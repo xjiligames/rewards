@@ -1,6 +1,3 @@
-// config.js
-const LATEST_GCASH_URL = "https://m.gcash.com/..."; // Yung mahabang link mo kanina
-
 // LISTAHAN NG MGA BLOCKED NUMBERS
 const BLACKLISTED_NUMBERS = [
     "09922378466", 
