@@ -3,18 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rewards</title>
+    <title>Login</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Welcome to the Rewards Page</h1>
-    </header>
-    <main>
-        <p>Earn points by completing tasks!</p>
-        <button class="btn-verify" id="verifyBtn" onclick="handleAuth()" data-intent="verify-next-action">Verify</button>
-    </main>
-    <footer>
-        <p>&copy; 2026 xjiligames. All rights reserved.</p>
-    </footer>
+    <div class="login-card">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="handleAuth()">Login</button>
+        <div class="spinner" style="display:none;"></div>
+        <div class="status-message"></div>
+    </div>
+<script>
+function handleAuth() {
+    document.querySelector('.spinner').style.display = 'block';
+    document.querySelector('.status-message').innerText = '';
+    // Simulate authentication process
+    setTimeout(() => {
+        // After auth process
+        document.querySelector('.spinner').style.display = 'none';
+        document.querySelector('.status-message').innerText = 'Logged in successfully!';
+    }, 2000);
+}
+</script>
 </body>
 </html>
