@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Plus | Lucky Drop</title>
+    <title>CasinoPlus | Lucky Drop</title>
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -90,11 +90,15 @@
             to { transform: scale(1); opacity: 1; }
         }
 
+        /* --- REMASTERED PHOTO POSITIONING --- */
         .promo-banner {
             width: 100%;
-            height: 180px;
-            object-fit: cover;
+            height: 220px; /* Tinaasan ko para mas maraming space */
+            object-fit: contain; /* Pilitin makita ang buong image */
+            object-position: bottom; /* I-align sa baba ang focus */
+            background-color: #000; /* Itim na background kung may space */
             border-bottom: 2px solid #d4af37;
+            padding: 10px; /* Kaunting padding para hindi sagad sa gilid */
         }
 
         .modal-body { padding: 25px 20px; }
