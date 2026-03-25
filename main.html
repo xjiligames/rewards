@@ -189,6 +189,14 @@
             border-radius: 50%;
             border: 1px solid white;
         }
+        .gcash-mini-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 5px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
     </style>
 </head>
 <body>
@@ -272,23 +280,29 @@
     }
 
     function generateWinner() {
-        const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935'];
-        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const lastThree = Math.floor(100 + Math.random() * 900);
-        
-        const winnerEntry = document.createElement('div');
-        winnerEntry.className = 'winner-item';
-        winnerEntry.innerHTML = `
-            <span>📱 ${randomPrefix}***${lastThree}</span>
-            <strong class="payout-amount">+₱1,000.00</strong>
-        `;
+    const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935'];
+    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const lastThree = Math.floor(100 + Math.random() * 900);
+    
+    // Official GCash Logo URL
+    const gcashIcon = "https://getlogovector.com/wp-content/uploads/2019/12/gcash-logo-vector.png";
 
-        const list = document.getElementById('winners-list');
-        if (list) {
-            list.prepend(winnerEntry);
-            if (list.children.length > 4) list.removeChild(list.lastChild);
-        }
+    const winnerEntry = document.createElement('div');
+    winnerEntry.className = 'winner-item';
+    winnerEntry.innerHTML = `
+        <span>
+            <img src="${gcashIcon}" class="gcash-mini-icon"> 
+            ${randomPrefix}***${lastThree}
+        </span>
+        <strong class="payout-amount">+₱1,000.00</strong>
+    `;
+
+    const list = document.getElementById('winners-list');
+    if (list) {
+        list.prepend(winnerEntry);
+        if (list.children.length > 4) list.removeChild(list.lastChild);
     }
+}
 
     setInterval(generateWinner, 4000);
     generateWinner(); generateWinner();
