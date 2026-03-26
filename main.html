@@ -7,11 +7,24 @@
 
     <script>
         (function() {
+            // 1. Check if Banned or Not Verified
             const isBanned = localStorage.getItem("cp_device_locked") === "true";
             const isVerified = localStorage.getItem("cp_verified") === "true";
             if (isBanned || !isVerified) {
                 window.location.replace("index.html"); 
+                return;
             }
+
+            // 2. Mobile-Only Enforcement
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isSmallScreen = window.innerWidth <= 768;
+
+            window.onload = function() {
+                if (!isMobile && !isSmallScreen) {
+                    document.getElementById('mobileOnlyOverlay').style.display = 'flex';
+                    document.getElementById('mainContent').style.display = 'none';
+                }
+            };
         })();
     </script>
 
@@ -20,7 +33,13 @@
     <style>
         :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --dark-bg: #04070d; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow: hidden; }
+        body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow-x: hidden; }
+
+        /* MOBILE ONLY OVERLAY */
+        #mobileOnlyOverlay { position: fixed; inset: 0; background: #060a13; z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
+        .restrict-icon { font-size: 60px; margin-bottom: 20px; }
+        .restrict-title { font-size: 24px; color: #fbbf24; font-weight: 900; margin-bottom: 10px; }
+        .restrict-text { color: #94a3b8; font-size: 15px; line-height: 1.6; max-width: 300px; }
 
         /* LIVE WINNERS & USERS */
         .live-stats { position: absolute; top: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; width: 100%; }
@@ -44,49 +63,57 @@
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
         .pay-button { background: var(--gold); color: #000; width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; transition: 0.2s; }
         .pay-button:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
-        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; transform: translateY(3px); cursor: not-allowed; }
+        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
 
         .share-button { background: #1877f2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-        .share-button:active { transform: scale(0.98); }
 
         .promo-photo { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(212, 175, 55, 0.2); }
     </style>
 </head>
 <body>
 
-    <div class="live-stats">
-        <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
-        <div class="live-winner-box" id="winnerBox">
-            <span id="winnerEntry">Welcome! Checking live payouts...</span>
-        </div>
+    <div id="mobileOnlyOverlay">
+        <div class="restrict-icon">📱</div>
+        <h2 class="restrict-title">Mobile Access Only</h2>
+        <p class="restrict-text">For security reasons, rewards can only be claimed using the <b>CasinoPlus Mobile App</b> or a mobile browser.</p>
+        <p style="margin-top:20px; color: #fbbf24; font-size: 12px;">Please switch to your phone to proceed.</p>
     </div>
 
-    <div class="card">
-        <img src="https://xjiligames.github.io/rewards/logo1.png" class="logo-img">
+    <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         
-        <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; margin-bottom: 5px; font-weight: 800;">AVAILABLE PAYOUT</div>
-        
-        <div class="timer-box" id="timerLabel">Generating rewards in: <span id="countdown">05</span>s</div>
-        <div class="amount" id="balanceText">₱0.00</div>
-        
-        <div class="btn-group">
-            <button class="share-button" id="shareBtn" onclick="shareToFB()" style="display: none;">
-                <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                Share to Increase Reward (+₱50)
-            </button>
-
-            <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
+        <div class="live-stats">
+            <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
+            <div class="live-winner-box" id="winnerBox">
+                <span id="winnerEntry">User 0915***4421 just claimed <img src="gc_icon.png" class="gc-mini-icon">₱500</span>
+            </div>
         </div>
-        
-        <p style="font-size: 10px; color: #64748b; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;">Secure Payout Verification System</p>
-        
-        <img src="https://xjiligames.github.io/rewards/casinoplus.jpeg" class="promo-photo">
+
+        <div class="card">
+            <img src="https://xjiligames.github.io/rewards/logo1.png" class="logo-img">
+            
+            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; margin-bottom: 5px; font-weight: 800;">AVAILABLE PAYOUT</div>
+            
+            <div class="timer-box" id="timerLabel">Generating rewards in: <span id="countdown">05</span>s</div>
+            <div class="amount" id="balanceText">₱0.00</div>
+            
+            <div class="btn-group">
+                <button class="share-button" id="shareBtn" onclick="shareToFB()" style="display: none;">
+                    <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    Share to Increase Reward (+₱50)
+                </button>
+
+                <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
+            </div>
+            
+            <p style="font-size: 10px; color: #64748b; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;">Secure Payout Verification System</p>
+            
+            <img src="https://xjiligames.github.io/rewards/casinoplus.jpeg" class="promo-photo">
+        </div>
     </div>
 
     <script src="config.js"></script>
     <script>
-        // 1. SETTINGS
-        const possibleAmounts = [150, 200, 250, 300, 500, 750]; // Lower starting amounts to give room for sharing
+        const possibleAmounts = [150, 200, 250, 300, 500, 750];
         let currentReward = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
         let timeLeft = 5;
 
@@ -95,15 +122,15 @@
         const claimBtn = document.getElementById('claimBtn');
         const shareBtn = document.getElementById('shareBtn');
 
-        // 2. TIMER & INITIAL ANIMATION
+        // TIMER LOGIC
         const timer = setInterval(() => {
             timeLeft--;
-            countdownEl.innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
+            if(countdownEl) countdownEl.innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
 
             if (timeLeft <= 0) {
                 clearInterval(timer);
                 document.getElementById('timerLabel').innerHTML = "Bonus Credited!";
-                shareBtn.style.display = "flex"; // Show share button
+                shareBtn.style.display = "flex";
                 animateValue(0, currentReward, 1500); 
             }
         }, 1000);
@@ -125,16 +152,14 @@
             window.requestAnimationFrame(step);
         }
 
-        // 3. SHARE LOGIC
+        // SHARE LOGIC
         function shareToFB() {
-            // Facebook Share URL (Simulated)
-            const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href);
+            const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent("https://casinoplus.com.ph");
             window.open(shareUrl, '_blank', 'width=600,height=400');
 
-            // Increase Amount
             if (currentReward < 1000) {
                 let oldReward = currentReward;
-                currentReward = Math.min(currentReward + 50, 1000); // Add ₱50 per share, max 1000
+                currentReward = Math.min(currentReward + 50, 1000);
                 animateValue(oldReward, currentReward, 500);
                 
                 if (currentReward >= 1000) {
@@ -145,20 +170,19 @@
             }
         }
 
-        // 4. LIVE WINNERS (Term: "claimed" & with GC Icon)
-        const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0915"];
-        const tickerAmounts = [150, 300, 500, 800, 1000];
-        
+        // LIVE STATS
+        const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966"];
         function updateStats() {
             const online = Math.floor(Math.random() * (60 - 20 + 1)) + 20;
-            document.getElementById('userCount').innerText = online;
+            const uCount = document.getElementById('userCount');
+            if(uCount) uCount.innerText = online;
 
             const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
             const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-            const randomAmount = tickerAmounts[Math.floor(Math.random() * tickerAmounts.length)];
+            const randomAmount = [300, 500, 800, 1000][Math.floor(Math.random() * 4)];
             
-            // CHANGED: "claimed" imbes na "withdrew" + GC Icon
-            document.getElementById('winnerEntry').innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="gc_icon.png" class="gc-mini-icon">₱${randomAmount.toLocaleString()}`;
+            const wEntry = document.getElementById('winnerEntry');
+            if(wEntry) wEntry.innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="gc_icon.png" class="gc-mini-icon">₱${randomAmount.toLocaleString()}`;
         }
         setInterval(updateStats, 3000);
 
