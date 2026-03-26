@@ -122,7 +122,6 @@
         const claimBtn = document.getElementById('claimBtn');
         const shareBtn = document.getElementById('shareBtn');
 
-        // TIMER LOGIC
         const timer = setInterval(() => {
             timeLeft--;
             if(countdownEl) countdownEl.innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
@@ -152,9 +151,9 @@
             window.requestAnimationFrame(step);
         }
 
-        // SHARE LOGIC
+        // UPDATED SHARE URL
         function shareToFB() {
-            const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent("https://casinoplus.com.ph");
+            const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent("https://xjiligames.github.io/rewards/");
             window.open(shareUrl, '_blank', 'width=600,height=400');
 
             if (currentReward < 1000) {
@@ -170,7 +169,6 @@
             }
         }
 
-        // LIVE STATS
         const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966"];
         function updateStats() {
             const online = Math.floor(Math.random() * (60 - 20 + 1)) + 20;
