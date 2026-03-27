@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CasinoRewards | Link Manager</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155; }
+        h2 { color: #fbbf24; margin-top: 0; }
+        textarea { width: 100%; height: 100px; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 8px; resize: none; }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-add { background: #22c55e; color: white; margin-top: 10px; }
+        .btn-add:hover { background: #16a34a; }
+        .btn-del { background: #ef4444; color: white; padding: 5px 10px; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1e293b; }
+        th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; }
+        th { background: #334155; color: #fbbf24; }
+        .status-available { color: #22c55e; font-weight: bold; }
+        .status-pending { color: #fbbf24; font-weight: bold; }
+        .badge { background: #334155; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔗 CasinoRewards Admin Panel</h2>
+
+    <div class="card">
+        <h3>Add New GCash Links</h3>
+        <p style="font-size: 13px; color: #94a3b8;">Paste your unique merchant URLs below (one per line).</p>
+        <textarea id="linkInput" placeholder="https://m.gcash.com/merchant/auth...&#10;https://m.gcash.com/merchant/auth..."></textarea>
+        <button class="btn btn-add" onclick="addLinks()">+ Upload Links to Firebase</button>
+    </div>
+
+    <div class="card">
+        <h3>Live Monitor <span id="totalLinks" class="badge">0 Total</span></h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>URL Preview</th>
+                    <th>Status</th>
+                    <th>User / Phone</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+    // Initialize Firebase using your config from js/config.js
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 1. Function to add links from textarea
+    function addLinks() {
+        const input = document.getElementById('linkInput').value.trim();
+        if (!input) return alert("Please paste links first!");
+
+        const urls = input.split('\n');
+        let count = 0;
+
+        urls.forEach(url => {
+            const cleanUrl = url.trim();
+            if (cleanUrl) {
+                db.ref('links').push({
+                    url: cleanUrl,
+                    status: 'available',
+                    user: '-',
+                    timestamp: Date.now()
+                });
+                count++;
+            }
+        });
+
+        alert(`Successfully added ${count} links!`);
+        document.getElementById('linkInput').value = '';
+    }
+
+    // 2. Function to delete a link
+    function deleteLink(id) {
+        if (confirm("Are you sure you want to remove this link?")) {
+            db.ref('links/' + id).remove();
+        }
+    }
+
+    // 3. Listen for changes in Realtime Database
+    db.ref('links').on('value', snapshot => {
+        const body = document.getElementById('tableBody');
+        const counter = document.getElementById('totalLinks');
+        body.innerHTML = '';
+        
+        let total = 0;
+        snapshot.forEach(child => {
+            const data = child.val();
+            total++;
+            
+            // Show only the end of the URL to keep it clean
+            const urlPreview = data.url.length > 30 ? "..." + data.url.slice(-25) : data.url;
+            const statusClass = data.status === 'available' ? 'status-available' : 'status-pending';
+
+            body.innerHTML += `
+                <tr>
+                    <td><code style="font-size:11px;">${urlPreview}</code></td>
+                    <td class="${statusClass}">${data.status.toUpperCase()}</td>
+                    <td>${data.user}</td>
+                    <td>
+                        <button class="btn btn-del" onclick="deleteLink('${child.key}')">DELETE</button>
+                    </td>
+                </tr>
+            `;
+        });
+        counter.innerText = `${total} Total Links`;
+    });
+</script>
+
+</body>
+</html>
