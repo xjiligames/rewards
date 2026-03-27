@@ -1,3 +1,14 @@
+// js/config.js
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "casinorewards-95502.firebaseapp.com",
+  databaseURL: "https://casinorewards-95502-default-rtdb.firebaseio.com",
+  projectId: "casinorewards-95502",
+  storageBucket: "casinorewards-95502.appspot.com",
+  messagingSenderId: "YOUR_ID",
+  appId: "YOUR_APP_ID"
+};
+
 // config.js
 window.BLACKLISTED_NUMBERS = [   
     '09922378466', 
