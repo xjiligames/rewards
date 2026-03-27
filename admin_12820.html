@@ -3,47 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CasinoRewards | Link Manager</title>
+    <title>CasinoRewards | ViaLink Manager</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; padding: 20px; }
+        body { font-family: 'Public Sans', sans-serif; background: #060a13; color: #fff; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
-        .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155; }
-        h2 { color: #fbbf24; margin-top: 0; }
-        textarea { width: 100%; height: 100px; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 8px; resize: none; }
-        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-add { background: #22c55e; color: white; margin-top: 10px; }
-        .btn-add:hover { background: #16a34a; }
-        .btn-del { background: #ef4444; color: white; padding: 5px 10px; font-size: 12px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1e293b; }
-        th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; }
-        th { background: #334155; color: #fbbf24; }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid #d4af37; border-radius: 15px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
+        h2 { color: #fbbf24; text-transform: uppercase; letter-spacing: 2px; }
+        textarea { width: 100%; height: 120px; background: #000; border: 1px solid #334155; color: #22c55e; padding: 15px; border-radius: 10px; resize: none; font-family: monospace; }
+        .btn { padding: 12px 25px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-add { background: #fbbf24; color: #000; margin-top: 10px; width: 100%; }
+        .btn-del { background: #ff4d4d; color: #fff; padding: 6px 12px; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        th { background: #d4af37; color: #000; font-size: 13px; }
         .status-available { color: #22c55e; font-weight: bold; }
-        .status-pending { color: #fbbf24; font-weight: bold; }
-        .badge { background: #334155; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        .status-pending { color: #fbbf24; font-weight: bold; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .badge { background: #fbbf24; color: #000; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🔗 CasinoRewards Admin Panel</h2>
-
+    <h2>💎 CasinoRewards Admin</h2>
+    
     <div class="card">
-        <h3>Add New GCash Links</h3>
-        <p style="font-size: 13px; color: #94a3b8;">Paste your unique merchant URLs below (one per line).</p>
-        <textarea id="linkInput" placeholder="https://m.gcash.com/merchant/auth...&#10;https://m.gcash.com/merchant/auth..."></textarea>
-        <button class="btn btn-add" onclick="addLinks()">+ Upload Links to Firebase</button>
+        <h3>Add New ViaLinks</h3>
+        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Paste GCash merchant URLs (one per line):</p>
+        <textarea id="linkInput" placeholder="Paste links here..."></textarea>
+        <button class="btn btn-add" onclick="addLinks()">🚀 Upload to Database</button>
     </div>
 
     <div class="card">
-        <h3>Live Monitor <span id="totalLinks" class="badge">0 Total</span></h3>
+        <h3>Live Monitor <span id="totalLinks" class="badge">0 ViaLinks</span></h3>
         <table>
             <thead>
                 <tr>
-                    <th>URL Preview</th>
+                    <th>Codename</th>
                     <th>Status</th>
-                    <th>User / Phone</th>
+                    <th>User / Mobile</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -55,14 +55,14 @@
 
 <script src="js/config.js"></script>
 <script>
-    // Initialize Firebase using your config from js/config.js
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Function to add links from textarea
+    // 1. Add Links
     function addLinks() {
         const input = document.getElementById('linkInput').value.trim();
-        if (!input) return alert("Please paste links first!");
+        if (!input) return alert("Walang link na nakalagay!");
 
         const urls = input.split('\n');
         let count = 0;
@@ -73,25 +73,25 @@
                 db.ref('links').push({
                     url: cleanUrl,
                     status: 'available',
-                    user: '-',
+                    user: 'None',
                     timestamp: Date.now()
                 });
                 count++;
             }
         });
 
-        alert(`Successfully added ${count} links!`);
+        alert(`Successfully added ${count} ViaLinks!`);
         document.getElementById('linkInput').value = '';
     }
 
-    // 2. Function to delete a link
+    // 2. Delete Link
     function deleteLink(id) {
-        if (confirm("Are you sure you want to remove this link?")) {
+        if (confirm("Buburahin mo na ba itong ViaLink na ito?")) {
             db.ref('links/' + id).remove();
         }
     }
 
-    // 3. Listen for changes in Realtime Database
+    // 3. Live Listener
     db.ref('links').on('value', snapshot => {
         const body = document.getElementById('tableBody');
         const counter = document.getElementById('totalLinks');
@@ -102,22 +102,21 @@
             const data = child.val();
             total++;
             
-            // Show only the end of the URL to keep it clean
-            const urlPreview = data.url.length > 30 ? "..." + data.url.slice(-25) : data.url;
             const statusClass = data.status === 'available' ? 'status-available' : 'status-pending';
+            const displayStatus = data.status === 'available' ? 'READY' : 'IN USE';
 
             body.innerHTML += `
                 <tr>
-                    <td><code style="font-size:11px;">${urlPreview}</code></td>
-                    <td class="${statusClass}">${data.status.toUpperCase()}</td>
-                    <td>${data.user}</td>
+                    <td style="color: #94a3b8; font-weight: bold;">ViaLink-${total}</td>
+                    <td class="${statusClass}">${displayStatus}</td>
+                    <td><span style="color: #fbbf24">${data.user}</span></td>
                     <td>
                         <button class="btn btn-del" onclick="deleteLink('${child.key}')">DELETE</button>
                     </td>
                 </tr>
             `;
         });
-        counter.innerText = `${total} Total Links`;
+        counter.innerText = `${total} ViaLinks Total`;
     });
 </script>
 
