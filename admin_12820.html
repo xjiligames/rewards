@@ -3,98 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CasinoRewards | ViaLink Manager</title>
+    <title>C.I.A. | Cryptographic Operations Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
-        body { font-family: 'Public Sans', sans-serif; background: #060a13; color: #fff; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: rgba(255,255,255,0.05); border: 1px solid #d4af37; border-radius: 15px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
-        h2 { color: #fbbf24; text-transform: uppercase; letter-spacing: 2px; }
-        textarea { width: 100%; height: 120px; background: #000; border: 1px solid #334155; color: #22c55e; padding: 15px; border-radius: 10px; resize: none; font-family: monospace; }
-        .btn { padding: 12px 25px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
-        .btn-add { background: #fbbf24; color: #000; margin-top: 10px; width: 100%; }
-        .btn-del { background: #ff4d4d; color: #fff; padding: 6px 12px; font-size: 11px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; }
-        th, td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
-        th { background: #d4af37; color: #000; font-size: 13px; }
-        .status-available { color: #22c55e; font-weight: bold; }
-        .status-pending { color: #fbbf24; font-weight: bold; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        .badge { background: #fbbf24; color: #000; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        :root {
+            --bg-color: #000c14; /* Deep, dark cyan-black */
+            --primary-accent: #0ff; /* Electric Cyan */
+            --secondary-accent: #39ff14; /* Neon Green */
+            --terminal-text: #66ccff; /* Softer text color for readability */
+            --panel-border: rgba(0, 255, 255, 0.4); /* Faint cyan border */
+        }
+
+        @font-face {
+            font-family: 'Terminus';
+            src: url('https://raw.githubusercontent.com/tjm/terminus-font/master/fonts/terminus.ttf') format('truetype');
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--terminal-text);
+            font-family: 'Terminus', 'Courier New', monospace;
+            padding: 20px;
+            margin: 0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* HEADER SECTION */
+        .header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid var(--panel-border);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            color: var(--primary-accent);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        /* DASHBOARD SECTIONS */
+        .dashboard-panel {
+            background-color: rgba(0, 15, 25, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+        }
+
+        .panel-label {
+            color: var(--secondary-accent);
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* INPUT AREA */
+        textarea {
+            width: 100%;
+            height: 150px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--panel-border);
+            color: var(--secondary-accent);
+            padding: 15px;
+            border-radius: 2px;
+            resize: none;
+            font-family: 'Terminus', 'Courier New', monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        textarea:focus {
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            border-color: var(--primary-accent);
+        }
+
+        /* BUTTONS */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 2px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            font-family: 'Terminus', monospace;
+            letter-spacing: 2px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .btn-upload {
+            background-color: var(--primary-accent);
+            color: #000;
+        }
+
+        .btn-upload:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-delete {
+            background-color: transparent;
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+            padding: 5px 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .btn-delete:hover {
+            background-color: #ff4d4d;
+            color: #fff;
+        }
+
+        /* MONITORING TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: rgba(0, 0, 0, 0.3);
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+            text-align: left;
+        }
+
+        th {
+            color: var(--primary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: normal;
+        }
+
+        td {
+            color: #ccc;
+        }
+
+        .status-ready { color: var(--secondary-accent); }
+        .status-in-use { color: #ffbf00; font-weight: bold; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .stat-counter {
+            float: right;
+            background: rgba(0, 255, 255, 0.1);
+            color: var(--primary-accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+
+        /* DECORATIVE ELEMENTS */
+        .decoration {
+            color: rgba(0, 255, 255, 0.2);
+            font-size: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>💎 CasinoRewards Admin</h2>
-    
-    <div class="card">
-        <h3>Add New ViaLinks</h3>
-        <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Paste GCash merchant URLs (one per line):</p>
-        <textarea id="linkInput" placeholder="Paste links here..."></textarea>
-        <button class="btn btn-add" onclick="addLinks()">🚀 Upload to Database</button>
+    <div class="header">
+        <h1>[ C.I.A. CRYPTOGRAPHIC OPERATIONS ]</h1>
     </div>
 
-    <div class="card">
-        <h3>Live Monitor <span id="totalLinks" class="badge">0 ViaLinks</span></h3>
+    <div class="dashboard-panel">
+        <h3 class="panel-label">[ Cryptographic Link Deployment Terminal ]</h3>
+        <textarea id="codeInput" placeholder="[ paste your Admin Code here ]"></textarea>
+        <button class="btn btn-upload" onclick="deployCodes()">DEPLOY SECURE CODES</button>
+    </div>
+
+    <div class="dashboard-panel">
+        <h3 class="panel-label">
+            [ Real-Time ViaLink Intelligence Monitor ]
+            <span id="statCounter" class="stat-counter">0 Active ViaLinks</span>
+        </h3>
         <table>
             <thead>
                 <tr>
-                    <th>Codename</th>
-                    <th>Status</th>
-                    <th>User / Mobile</th>
-                    <th>Action</th>
+                    <th>VIA-LINK ID</th>
+                    <th>OPERATIONAL STATUS</th>
+                    <th>TARGET ID (MOBILE)</th>
+                    <th>ACTION COMMAND</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
                 </tbody>
         </table>
     </div>
+
+    <div class="decoration">
+        // SECURE CONNECTION ESTABLISHED // ACCESS GRANTED // C.I.A. / C.R.O.C. //
+    </div>
 </div>
 
 <script src="js/config.js"></script>
 <script>
-    // Initialize Firebase
+    // Initialize secure communication
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const intelFeed = firebase.database();
 
-    // 1. Add Links
-    function addLinks() {
-        const input = document.getElementById('linkInput').value.trim();
-        if (!input) return alert("Walang link na nakalagay!");
+    // 1. Function to deploy codes
+    function deployCodes() {
+        const rawCodes = document.getElementById('codeInput').value.trim();
+        if (!rawCodes) return alert("NO OPERATIONAL DATA RECEIVED.");
 
-        const urls = input.split('\n');
-        let count = 0;
+        const codeList = rawCodes.split('\n');
+        let processedCount = 0;
 
-        urls.forEach(url => {
-            const cleanUrl = url.trim();
-            if (cleanUrl) {
-                db.ref('links').push({
-                    url: cleanUrl,
+        codeList.forEach(code => {
+            const cleanCode = code.trim();
+            if (cleanCode) {
+                intelFeed.ref('links').push({
+                    url: cleanCode,
                     status: 'available',
                     user: 'None',
                     timestamp: Date.now()
                 });
-                count++;
+                processedCount++;
             }
         });
 
-        alert(`Successfully added ${count} ViaLinks!`);
-        document.getElementById('linkInput').value = '';
+        alert(`Successfully deployed ${processedCount} cryptographic ViaLinks.`);
+        document.getElementById('codeInput').value = '';
     }
 
-    // 2. Delete Link
-    function deleteLink(id) {
-        if (confirm("Buburahin mo na ba itong ViaLink na ito?")) {
-            db.ref('links/' + id).remove();
+    // 2. Function to terminate a link
+    function terminateLink(id) {
+        if (confirm("TERMIMATE THIS VIALINK? DATA WILL BE PURGED.")) {
+            intelFeed.ref('links/' + id).remove();
         }
     }
 
-    // 3. Live Listener
-    db.ref('links').on('value', snapshot => {
+    // 3. Secure Intelligence Listener
+    intelFeed.ref('links').on('value', snapshot => {
         const body = document.getElementById('tableBody');
-        const counter = document.getElementById('totalLinks');
+        const counter = document.getElementById('statCounter');
         body.innerHTML = '';
         
         let total = 0;
@@ -102,21 +274,21 @@
             const data = child.val();
             total++;
             
-            const statusClass = data.status === 'available' ? 'status-available' : 'status-pending';
-            const displayStatus = data.status === 'available' ? 'READY' : 'IN USE';
+            const statusStyle = data.status === 'available' ? 'status-ready' : 'status-in-use';
+            const displayStatus = data.status === 'available' ? 'ACTIVE / READY' : 'IN USE / TRACKING';
 
             body.innerHTML += `
                 <tr>
-                    <td style="color: #94a3b8; font-weight: bold;">ViaLink-${total}</td>
-                    <td class="${statusClass}">${displayStatus}</td>
-                    <td><span style="color: #fbbf24">${data.user}</span></td>
+                    <td>VIA-LINK_${total}</td>
+                    <td class="${statusStyle}">${displayStatus}</td>
+                    <td><code style="color: #fbbf24">${data.user}</code></td>
                     <td>
-                        <button class="btn btn-del" onclick="deleteLink('${child.key}')">DELETE</button>
+                        <button class="btn btn-delete" onclick="terminateLink('${child.key}')">TERMINATE</button>
                     </td>
                 </tr>
             `;
         });
-        counter.innerText = `${total} ViaLinks Total`;
+        counter.innerText = `${total} ViaLinks Operational`;
     });
 </script>
 
