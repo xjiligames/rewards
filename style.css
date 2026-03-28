@@ -1,4 +1,4 @@
-/* style.css - Polished Casino Gold & Royal Blue Theme */
+/* style.css - Full Version with 6 Unique Moves & Persistence Logic */
 
 :root { 
     --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
@@ -34,57 +34,64 @@ body {
 .spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- LIVE STATS SECTION --- */
-.live-stats { width: 100%; max-width: 400px; margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 100; }
+/* --- LIVE STATS --- */
+.live-stats { width: 100%; max-width: 400px; margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; }
 .online-count { font-size: 11px; color: #22c55e; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-.live-winner-box { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border); padding: 8px 15px; border-radius: 50px; font-size: 11px; backdrop-filter: blur(5px); }
-.gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; }
+.live-winner-box { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border); padding: 6px 15px; border-radius: 50px; font-size: 10px; backdrop-filter: blur(5px); }
+.gc-mini-icon { width: 14px !important; height: 14px !important; vertical-align: middle; margin: 0 3px; }
 
-/* --- GAME GRID (The 6 Cards) --- */
+/* --- GAME GRID --- */
 .game-grid { 
     display: grid; 
-    grid-template-columns: repeat(3, 1fr); /* 3 columns para malinis sa mobile */
+    grid-template-columns: repeat(3, 1fr); 
     gap: 12px; 
     width: 100%; 
-    max-width: 400px; 
-    margin: 25px 0; 
+    max-width: 380px; 
+    margin: 20px 0; 
     padding: 10px;
 }
 
 .card-wrapper { position: relative; cursor: pointer; display: flex; justify-content: center; }
 .card-img { 
     width: 100%; 
-    max-width: 110px; /* Nilimitahan para hindi mag-overlap */
+    max-width: 110px; 
     height: auto; 
     filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
-    transition: transform 0.2s;
+    transition: all 0.4s ease;
 }
 
-/* --- ANIMATIONS --- */
-@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-@keyframes inhale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); filter: brightness(1.2); } }
-@keyframes spinFast { 0% { transform: rotate(0deg); } 100% { transform: rotate(1080deg) scale(1.3); } }
-@keyframes punch { 0% { transform: scale(1); } 30% { transform: scale(0.8); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
-@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(4px); } 75% { transform: translateX(-4px); } }
+/* --- 6 UNIQUE CHARACTER ANIMATIONS --- */
+@keyframes goddessTwirl { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg) scale(1.1); } }
+@keyframes monkeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
+@keyframes zeusShock { 0% { filter: brightness(1); } 50% { filter: brightness(3) drop-shadow(0 0 20px #fff); } 100% { filter: brightness(1); } }
+@keyframes bearHop { 0% { transform: scale(1); } 50% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1); } }
+@keyframes dressFloat { 0% { transform: translateY(0); } 50% { transform: translateY(-15px) rotate(-5deg); } 100% { transform: translateY(0); } }
+@keyframes boxerPunch { 0% { transform: scale(1); } 20% { transform: translateX(-15px); } 50% { transform: scale(1.3) translateX(15px); } 100% { transform: scale(1); } }
 
-.card-img.idle { animation: float 3s ease-in-out infinite; }
+/* Active Animation Classes */
+.move-goddess { animation: goddessTwirl 0.6s ease-out 1; }
+.move-monkey { animation: monkeyBounce 0.5s ease-out 1; }
+.move-zeus { animation: zeusShock 0.4s ease-out 1; }
+.move-bear { animation: bearHop 0.5s ease-out 1; }
+.move-dress { animation: dressFloat 0.6s ease-out 1; }
+.move-boxer { animation: boxerPunch 0.4s ease-out 1; }
 
-/* Interactive Hover/Touch States */
-.card-wrapper:hover .card-img { animation: inhale 0.6s ease-in-out infinite; }
-#boxer-card:hover .card-img, #monkey-card:hover .card-img { animation: shake 0.2s infinite; }
-
-/* Click States */
-.move-active .card-img { animation: spinFast 0.6s ease-out 1 !important; }
-#boxer-card.move-active .card-img { animation: punch 0.4s ease-out 1 !important; }
+/* Disabled/Clicked State */
+.card-disabled { 
+    filter: grayscale(0.9) opacity(0.3) !important; 
+    cursor: not-allowed !important; 
+    pointer-events: none; 
+    transform: scale(0.9);
+}
 
 /* --- MAIN REWARD CARD --- */
 .card { 
     background: var(--glass); 
     width: 100%; 
-    max-width: 380px; 
-    padding: 25px 20px; 
+    max-width: 360px; 
+    padding: 20px; 
     border-radius: 25px; 
     border: 1px solid var(--border); 
     backdrop-filter: blur(15px); 
@@ -92,16 +99,15 @@ body {
     box-shadow: 0 15px 35px rgba(0,0,0,0.4);
 }
 
-.logo-img { width: 140px; margin-bottom: 15px; }
+.logo-img { width: 120px; margin-bottom: 10px; }
 .amount { 
     font-family: 'Orbitron', sans-serif; 
-    font-size: 42px; 
+    font-size: 38px; 
     background: var(--gold); 
     -webkit-background-clip: text; 
     -webkit-text-fill-color: transparent; 
     font-weight: 700; 
-    margin: 10px 0;
-    text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+    margin: 5px 0;
 }
 
 .timer-box { font-size: 11px; color: #94a3b8; margin-bottom: 15px; font-weight: 600; }
@@ -113,18 +119,17 @@ body {
     background: var(--gold); 
     color: #000; 
     width: 100%; 
-    padding: 16px; 
+    padding: 15px; 
     border: none; 
     border-radius: 12px; 
-    font-size: 16px; 
+    font-size: 15px; 
     font-weight: 800; 
     text-transform: uppercase; 
     cursor: pointer; 
-    box-shadow: 0 5px 0 #8b6508; 
-    transition: 0.1s; 
+    box-shadow: 0 4px 0 #8b6508; 
 }
-.pay-button:active { transform: translateY(3px); box-shadow: 0 2px 0 #8b6508; }
-.pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+.pay-button:active { transform: translateY(2px); box-shadow: 0 2px 0 #8b6508; }
+.pay-button:disabled { background: #1e293b; color: #475569; box-shadow: none; cursor: not-allowed; opacity: 0.7; }
 
 .share-button { 
     background: #1877f2; 
@@ -134,9 +139,7 @@ body {
     border-radius: 10px; 
     font-size: 13px; 
     font-weight: 700; 
-    display: none; /* Hidden until timer ends */
-    justify-content: center;
-    align-items: center;
+    display: none; 
 }
 
-.promo-photo { width: 100%; border-radius: 15px; margin-top: 20px; border: 1px solid rgba(212, 175, 55, 0.1); }
+.promo-photo { width: 100%; border-radius: 15px; margin-top: 15px; border: 1px solid rgba(212, 175, 55, 0.1); }
