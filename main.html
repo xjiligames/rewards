@@ -35,19 +35,18 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .proc-title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 15px; }
 
-        /* LIVE STATS (Top Section) */
+        /* LIVE STATS */
         .live-stats { width: 100%; max-width: 400px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; }
         .live-winner-box { background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
         .online-count { font-size: 10px; color: #22c55e; font-weight: 800; text-transform: uppercase; }
         .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .gc-mini-icon { width: 14px; height: 14px; }
 
-        /* MAIN CARD CONTAINER */
+        /* MAIN CARD - PINALAPAD NG KONTI */
         .card { 
             background: rgba(255, 255, 255, 0.03); 
             width: 100%; 
-            max-width: 380px; 
+            max-width: 410px; 
             padding: 25px 15px; 
             border-radius: 25px; 
             border: 1px solid rgba(212, 175, 55, 0.3); 
@@ -56,30 +55,61 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.4);
         }
 
-        .logo-img { width: 140px; margin-bottom: 10px; }
+        .logo-img { width: 140px; margin-bottom: 5px; }
 
-        /* GAME GRID (Relocated inside card) */
+        /* GAME GRID - PINALAKING CARDS */
         .game-grid { 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
-            gap: 10px; 
+            gap: 8px; 
             margin: 15px 0; 
         }
-        .card-wrapper { cursor: pointer; transition: transform 0.2s; }
-        .card-img { width: 100%; max-width: 100px; height: auto; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
+        .card-wrapper { cursor: pointer; display: flex; justify-content: center; position: relative; }
+        .card-img { width: 100%; max-width: 125px; height: auto; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); transition: transform 0.2s; }
+
+        /* --- IDLE ANIMATIONS --- */
+        @keyframes idleGoddess { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes idleMonkey { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+        @keyframes idleBathala { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.2) drop-shadow(0 0 8px #ff4500); } }
+        @keyframes idleBear { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.97); } }
+        @keyframes idleDress { 0%, 100% { transform: translateX(-2px); } 50% { transform: translateX(2px); } }
+        @keyframes idleBoxer { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.03); } }
+
+        .idle-goddess { animation: idleGoddess 3s infinite ease-in-out; }
+        .idle-monkey { animation: idleMonkey 2s infinite ease-in-out; }
+        .idle-bathala { animation: idleBathala 2.5s infinite ease-in-out; }
+        .idle-bear { animation: idleBear 2s infinite ease-in-out; }
+        .idle-dress { animation: idleDress 2.5s infinite ease-in-out; }
+        .idle-boxer { animation: idleBoxer 1.5s infinite ease-in-out; }
+
+        /* --- CLICK ANIMATIONS --- */
+        .active-goddess { animation: clickGoddess 0.6s ease-out; }
+        @keyframes clickGoddess { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
         
-        /* Animations */
-        .move-active { animation: bounce 0.5s ease-out 1; }
-        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        .active-monkey { animation: clickMonkey 0.5s ease-out; }
+        @keyframes clickMonkey { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
+
+        .active-bathala { animation: clickBathala 0.5s ease-out; }
+        @keyframes clickBathala { 0% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.2); filter: brightness(2); } }
+
+        .active-bear { animation: clickBear 0.5s ease-out; }
+        @keyframes clickBear { 0% { transform: scale(1); } 50% { transform: scale(1.3) rotate(10deg); } }
+
+        .active-dress { animation: clickDress 0.5s ease-out; }
+        @keyframes clickDress { 0% { transform: translateY(0); } 50% { transform: translateY(-15px) scale(1.1); } }
+
+        .active-boxer { animation: clickBoxer 0.4s ease-out; }
+        @keyframes clickBoxer { 0% { transform: translateX(0); } 30% { transform: translateX(-10px); } 100% { transform: translateX(20px); opacity: 0; } }
+
+        .card-disabled { filter: grayscale(1) opacity(0.4) !important; pointer-events: none; transition: 0.5s; }
 
         /* BALANCE & BUTTONS */
         .label-text { font-size: 11px; color: #fbbf24; letter-spacing: 2px; font-weight: 800; margin-top: 10px; }
         .amount { font-family: 'Orbitron', sans-serif; font-size: 42px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 5px 0; }
         
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .pay-button { background: var(--gold); color: #000; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 5px 0 #8b6508; }
-        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
-        
+        .pay-button { background: var(--gold); color: #000; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 5px 0 #8b6508; margin-top: 15px;}
+        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; opacity: 0.6; }
+
         .promo-photo { width: 100%; border-radius: 15px; margin-top: 20px; border: 1px solid rgba(212, 175, 55, 0.1); }
     </style>
 </head>
@@ -95,7 +125,7 @@
         <div class="live-stats">
             <div class="online-count"><span class="dot"></span> <span id="userCount">70</span> Members Online</div>
             <div class="live-winner-box">
-                <span id="winnerEntry">User 0998***1851 claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱500</span>
+                <span id="winnerEntry">User 0998***1851 claimed ₱500</span>
             </div>
         </div>
 
@@ -103,32 +133,30 @@
             <img src="images/logo1.png" class="logo-img">
 
             <div class="game-grid">
-    <div class="card-wrapper" id="char-goddess" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'goddess', 25)">
-        <img src="images/img1.png" class="card-img idle-goddess">
-    </div>
-    <div class="card-wrapper" id="char-monkey" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'monkey', 25)">
-        <img src="images/img2.png" class="card-img idle-monkey">
-    </div>
-    <div class="card-wrapper" id="char-bathala" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'bathala', 25)">
-        <img src="images/img3.png" class="card-img idle-bathala">
-    </div>
-    <div class="card-wrapper" id="char-bear" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'bear', 25)">
-        <img src="images/img4.png" class="card-img idle-bear">
-    </div>
-    <div class="card-wrapper" id="char-dress" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'dress', 25)">
-        <img src="images/img5.png" class="card-img idle-dress">
-    </div>
-    <div class="card-wrapper" id="char-boxer" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'boxer', 25)">
-        <img src="images/img6.png" class="card-img idle-boxer">
-    </div>
-</div>
+                <div class="card-wrapper" id="char-goddess" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'goddess')">
+                    <img src="images/img1.png" class="card-img idle-goddess">
+                </div>
+                <div class="card-wrapper" id="char-monkey" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'monkey')">
+                    <img src="images/img2.png" class="card-img idle-monkey">
+                </div>
+                <div class="card-wrapper" id="char-bathala" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'bathala')">
+                    <img src="images/img3.png" class="card-img idle-bathala">
+                </div>
+                <div class="card-wrapper" id="char-bear" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'bear')">
+                    <img src="images/img4.png" class="card-img idle-bear">
+                </div>
+                <div class="card-wrapper" id="char-dress" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'dress')">
+                    <img src="images/img5.png" class="card-img idle-dress">
+                </div>
+                <div class="card-wrapper" id="char-boxer" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'boxer')">
+                    <img src="images/img6.png" class="card-img idle-boxer">
+                </div>
+            </div>
 
             <div class="label-text">AVAILABLE BALANCE</div>
             <div class="amount" id="balanceText">₱0.00</div>
 
-            <div class="btn-group">
-                <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
-            </div>
+            <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
 
             <img src="images/casinoplus.jpeg" class="promo-photo">
         </div>
@@ -140,24 +168,55 @@
         const db = firebase.database();
         let balance = 0;
         let clicks = 0;
-        const targetReward = [500, 750, 900][Math.floor(Math.random() * 3)];
+        const targetReward = [500, 750, 900, 1000][Math.floor(Math.random() * 4)];
+
+        // --- Sound Setup ---
+        const sfx = {
+            hover: new Audio('https://www.soundjay.com/buttons/sounds/button-50.mp3'),
+            click: new Audio('https://www.soundjay.com/buttons/sounds/button-37a.mp3'),
+            bgm: new Audio('https://www.soundjay.com/ads/sounds/casino-ambiance-1.mp3') // Placeholder BGM
+        };
+        sfx.bgm.loop = true;
+
+        function playSound(type) {
+            try {
+                if (type === 'hover') { sfx.hover.currentTime = 0; sfx.hover.play().catch(e=>{}); }
+                else if (type === 'click') { sfx.click.currentTime = 0; sfx.click.play().catch(e=>{}); }
+            } catch(e) {}
+        }
 
         // --- Game Logic ---
-        function triggerMove(el, amt) {
-            if (clicks >= 6) return;
-            el.classList.add('move-active');
-            clicks++;
+        function triggerMove(el, charType) {
+            if (clicks >= 6 || el.classList.contains('card-disabled')) return;
+
+            // Start BGM on first click
+            if (clicks === 0) sfx.bgm.play().catch(e=>{});
+            playSound('click');
+
+            const img = el.querySelector('img');
+            const activeClass = 'active-' + charType;
             
-            // Increment balance effect
+            img.classList.add(activeClass);
+            clicks++;
+
+            // Update Balance
             let newBalance = Math.floor((clicks / 6) * targetReward);
             animateValue(balance, newBalance, 500);
             balance = newBalance;
 
+            // Final state
             if (clicks === 6) {
-                document.getElementById('claimBtn').disabled = false;
-                document.getElementById('claimBtn').innerText = "CLAIM ₱" + balance + " NOW";
+                const btn = document.getElementById('claimBtn');
+                btn.disabled = false;
+                btn.innerText = "WITHDRAW ₱" + balance + ".00";
             }
-            setTimeout(() => el.classList.remove('move-active'), 500);
+
+            // Disable card after anim
+            setTimeout(() => {
+                img.classList.remove(activeClass);
+                img.classList.remove('idle-' + charType);
+                img.classList.add('card-disabled');
+            }, 600);
         }
 
         function animateValue(start, end, duration) {
@@ -174,19 +233,21 @@
 
         function redirectToGCash() {
             document.getElementById('processingOverlay').style.display = 'flex';
-            // Firebase redirect logic here (base sa previous settings mo)
             setTimeout(() => {
                 db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', s => {
                     if(s.exists()) window.location.href = Object.values(s.val())[0].url;
+                    else {
+                        alert("Reward system busy. Try again in 5 minutes.");
+                        document.getElementById('processingOverlay').style.display = 'none';
+                    }
                 });
             }, 3000);
         }
 
-        // --- Live Stats Rotator ---
+        // Live stats updater
         setInterval(() => {
-            const online = Math.floor(Math.random() * 50) + 40;
-            document.getElementById('userCount').innerText = online;
-        }, 5000);
+            document.getElementById('userCount').innerText = Math.floor(Math.random() * 30) + 60;
+        }, 4000);
     </script>
 </body>
 </html>
