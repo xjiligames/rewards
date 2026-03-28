@@ -6,62 +6,44 @@
     <title>C.I.A. | Cryptographic Operations Dashboard</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/config.js"></script>
     
     <style>
         :root {
-            --bg-color: #000c14; /* Deep, dark cyan-black */
-            --primary-accent: #0ff; /* Electric Cyan */
-            --secondary-accent: #39ff14; /* Neon Green */
-            --terminal-text: #66ccff; /* Softer text color for readability */
-            --panel-border: rgba(0, 255, 255, 0.4); /* Faint cyan border */
-        }
-
-        @font-face {
-            font-family: 'Terminus';
-            src: url('https://raw.githubusercontent.com/tjm/terminus-font/master/fonts/terminus.ttf') format('truetype');
+            --bg-color: #000c14;
+            --primary-accent: #0ff; 
+            --secondary-accent: #39ff14;
+            --ghost-accent: #a855f7; /* Purple for Ghosts */
+            --terminal-text: #66ccff;
+            --panel-border: rgba(0, 255, 255, 0.4);
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--terminal-text);
-            font-family: 'Terminus', 'Courier New', monospace;
+            font-family: 'Courier New', monospace;
             padding: 20px;
             margin: 0;
-            overflow-x: hidden;
             background-image: radial-gradient(circle, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
             background-size: 30px 30px;
         }
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
+        .container { max-width: 1100px; margin: 0 auto; }
 
-        /* HEADER SECTION */
         .header {
-            display: flex;
-            align-items: center;
             border-bottom: 2px solid var(--panel-border);
             padding-bottom: 15px;
             margin-bottom: 25px;
         }
 
-        .header h1 {
-            color: var(--primary-accent);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin: 0;
-            font-size: 24px;
-        }
+        .header h1 { color: var(--primary-accent); text-transform: uppercase; letter-spacing: 3px; font-size: 24px; }
 
-        /* DASHBOARD SECTIONS */
         .dashboard-panel {
             background-color: rgba(0, 15, 25, 0.8);
             border: 1px solid var(--panel-border);
             border-radius: 4px;
             padding: 20px;
             margin-bottom: 20px;
-            position: relative;
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
         }
 
@@ -70,122 +52,38 @@
             text-transform: uppercase;
             font-size: 14px;
             letter-spacing: 2px;
-            margin-top: 0;
             margin-bottom: 15px;
             border-bottom: 1px solid rgba(0, 255, 0, 0.2);
             padding-bottom: 5px;
         }
 
-        /* INPUT AREA */
+        /* GHOST SECTION STYLE */
+        .ghost-panel { border-color: var(--ghost-accent); box-shadow: 0 0 15px rgba(168, 85, 247, 0.1); }
+        .ghost-label { color: var(--ghost-accent); border-color: rgba(168, 85, 247, 0.2); }
+
         textarea {
-            width: 100%;
-            height: 150px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border: 1px solid var(--panel-border);
-            color: var(--secondary-accent);
-            padding: 15px;
-            border-radius: 2px;
-            resize: none;
-            font-family: 'Terminus', 'Courier New', monospace;
-            font-size: 14px;
-            box-sizing: border-box;
-            outline: none;
+            width: 100%; height: 80px;
+            background: rgba(0, 0, 0, 0.5); border: 1px solid var(--panel-border);
+            color: var(--secondary-accent); padding: 15px; outline: none;
         }
 
-        textarea:focus {
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-            border-color: var(--primary-accent);
-        }
-
-        /* BUTTONS */
         .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 2px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-            font-family: 'Terminus', monospace;
-            letter-spacing: 2px;
-            width: 100%;
-            margin-top: 15px;
+            padding: 10px 20px; border: none; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 2px; margin-top: 10px;
         }
+        .btn-upload { background: var(--primary-accent); color: #000; width: 100%; }
+        .btn-delete { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; font-size: 10px; }
 
-        .btn-upload {
-            background-color: var(--primary-accent);
-            color: #000;
-        }
-
-        .btn-upload:hover {
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-        }
-
-        .btn-delete {
-            background-color: transparent;
-            color: #ff4d4d;
-            border: 1px solid #ff4d4d;
-            padding: 5px 10px;
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-
-        .btn-delete:hover {
-            background-color: #ff4d4d;
-            color: #fff;
-        }
-
-        /* MONITORING TABLE */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: rgba(0, 0, 0, 0.3);
-            font-size: 12px;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
-            text-align: left;
-        }
-
-        th {
-            color: var(--primary-accent);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: normal;
-        }
-
-        td {
-            color: #ccc;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { padding: 10px; border-bottom: 1px solid rgba(0, 255, 255, 0.1); text-align: left; }
+        th { color: var(--primary-accent); }
 
         .status-ready { color: var(--secondary-accent); }
-        .status-in-use { color: #ffbf00; font-weight: bold; animation: pulse 1s infinite; }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        .status-in-use { color: #fbbf24; font-weight: bold; animation: pulse 1.5s infinite; }
+        .status-claimed { color: var(--secondary-accent); font-weight: bold; }
+        .status-idle { color: #94a3b8; }
 
-        .stat-counter {
-            float: right;
-            background: rgba(0, 255, 255, 0.1);
-            color: var(--primary-accent);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 10px;
-        }
-
-        /* DECORATIVE ELEMENTS */
-        .decoration {
-            color: rgba(0, 255, 255, 0.2);
-            font-size: 10px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
@@ -196,101 +94,131 @@
     </div>
 
     <div class="dashboard-panel">
-        <h3 class="panel-label">[ Cryptographic Link Deployment Terminal ]</h3>
-        <textarea id="codeInput" placeholder="[ paste your Admin Code here ]"></textarea>
+        <h3 class="panel-label">[ Link Deployment Terminal ]</h3>
+        <textarea id="codeInput" placeholder="[ paste merchant links here ]"></textarea>
         <button class="btn btn-upload" onclick="deployCodes()">DEPLOY SECURE CODES</button>
     </div>
 
     <div class="dashboard-panel">
-        <h3 class="panel-label">
-            [ Real-Time ViaLink Intelligence Monitor ]
-            <span id="statCounter" class="stat-counter">0 Active ViaLinks</span>
-        </h3>
+        <h3 class="panel-label">[ Intelligence Monitor ]</h3>
         <table>
             <thead>
                 <tr>
                     <th>VIA-LINK ID</th>
-                    <th>OPERATIONAL STATUS</th>
-                    <th>TARGET ID (MOBILE)</th>
-                    <th>ACTION COMMAND</th>
+                    <th>STATUS</th>
+                    <th>TARGET (MOBILE)</th>
+                    <th>TIME REMAINING</th>
+                    <th>ACTION</th>
                 </tr>
             </thead>
-            <tbody id="tableBody">
-                </tbody>
+            <tbody id="tableBody"></tbody>
         </table>
     </div>
 
-    <div class="decoration">
-        // SECURE CONNECTION ESTABLISHED // ACCESS GRANTED // C.I.A. / C.R.O.C. //
+    <div class="dashboard-panel ghost-panel">
+        <h3 class="panel-label ghost-label">[ Ghost Intelligence - Payout History ]</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>GHOST_ID (PHONE)</th>
+                    <th>ASSIGNED_REWARD</th>
+                    <th>OPERATIONAL_STATUS</th>
+                    <th>LAST_SEEN</th>
+                </tr>
+            </thead>
+            <tbody id="ghostTableBody"></tbody>
+        </table>
     </div>
 </div>
 
-<script src="js/config.js"></script>
 <script>
-    // Initialize secure communication
     firebase.initializeApp(firebaseConfig);
-    const intelFeed = firebase.database();
+    const db = firebase.database();
 
-    // 1. Function to deploy codes
+    // 1. Deploy Links
     function deployCodes() {
         const rawCodes = document.getElementById('codeInput').value.trim();
-        if (!rawCodes) return alert("NO OPERATIONAL DATA RECEIVED.");
-
-        const codeList = rawCodes.split('\n');
-        let processedCount = 0;
-
-        codeList.forEach(code => {
-            const cleanCode = code.trim();
-            if (cleanCode) {
-                intelFeed.ref('links').push({
-                    url: cleanCode,
+        if (!rawCodes) return;
+        rawCodes.split('\n').forEach(code => {
+            if (code.trim()) {
+                db.ref('links').push({
+                    url: code.trim(),
                     status: 'available',
                     user: 'None',
                     timestamp: Date.now()
                 });
-                processedCount++;
             }
         });
-
-        alert(`Successfully deployed ${processedCount} cryptographic ViaLinks.`);
         document.getElementById('codeInput').value = '';
     }
 
-    // 2. Function to terminate a link
     function terminateLink(id) {
-        if (confirm("TERMIMATE THIS VIALINK? DATA WILL BE PURGED.")) {
-            intelFeed.ref('links/' + id).remove();
-        }
+        if (confirm("PURGE DATA?")) db.ref('links/' + id).remove();
     }
 
-    // 3. Secure Intelligence Listener
-    intelFeed.ref('links').on('value', snapshot => {
+    // 2. Intelligence Listener + 10 Minute Auto-Recycle
+    db.ref('links').on('value', snapshot => {
         const body = document.getElementById('tableBody');
-        const counter = document.getElementById('statCounter');
         body.innerHTML = '';
-        
-        let total = 0;
+        const now = Date.now();
+        const tenMinutes = 10 * 60 * 1000;
+
         snapshot.forEach(child => {
             const data = child.val();
-            total++;
-            
-            const statusStyle = data.status === 'available' ? 'status-ready' : 'status-in-use';
-            const displayStatus = data.status === 'available' ? 'ACTIVE / READY' : 'IN USE / TRACKING';
+            const id = child.key;
+
+            // --- AUTO REUSE LOGIC ---
+            // Kung status ay 'pending' at lumampas na ng 10 mins (600,000ms)
+            if (data.status === 'pending' && (now - data.timestamp) > tenMinutes) {
+                db.ref('links/' + id).update({
+                    status: 'available',
+                    user: 'None',
+                    timestamp: now // Reset timer
+                });
+                return; // Skip muna ang render para sa loop na ito
+            }
+
+            const isPending = data.status !== 'available';
+            const timeDiff = Math.max(0, Math.floor((tenMinutes - (now - data.timestamp)) / 1000));
+            const mins = Math.floor(timeDiff / 60);
+            const secs = timeDiff % 60;
+            const timerDisplay = isPending ? `${mins}m ${secs}s` : '∞';
 
             body.innerHTML += `
                 <tr>
-                    <td>VIA-LINK_${total}</td>
-                    <td class="${statusStyle}">${displayStatus}</td>
+                    <td>LINK_${id.slice(-4)}</td>
+                    <td class="${isPending ? 'status-in-use' : 'status-ready'}">${isPending ? 'IN USE' : 'READY'}</td>
                     <td><code style="color: #fbbf24">${data.user}</code></td>
-                    <td>
-                        <button class="btn btn-delete" onclick="terminateLink('${child.key}')">TERMINATE</button>
-                    </td>
+                    <td>${timerDisplay}</td>
+                    <td><button class="btn btn-delete" onclick="terminateLink('${id}')">TERMINATE</button></td>
                 </tr>
             `;
         });
-        counter.innerText = `${total} ViaLinks Operational`;
     });
-</script>
 
+    // 3. Ghost Intelligence Listener (User Logs)
+    db.ref('user_logs').on('value', snapshot => {
+        const ghostBody = document.getElementById('ghostTableBody');
+        ghostBody.innerHTML = '';
+        
+        snapshot.forEach(child => {
+            const ghost = child.val();
+            const statusClass = ghost.status === 'claimed' ? 'status-claimed' : 'status-idle';
+            const statusLabel = ghost.status === 'claimed' ? '✅ CLAIMED' : '⏳ IDLE / PENDING';
+
+            ghostBody.innerHTML += `
+                <tr>
+                    <td>${ghost.phone}</td>
+                    <td>₱${ghost.reward}</td>
+                    <td class="${statusClass}">${statusLabel}</td>
+                    <td style="color: #64748b; font-size: 10px;">${ghost.last_updated || ghost.date_started}</td>
+                </tr>
+            `;
+        });
+    });
+
+    // Refresh timers every second
+    setInterval(() => { db.ref('links').once('value', () => {}); }, 1000);
+</script>
 </body>
 </html>
