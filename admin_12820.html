@@ -3,222 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C.I.A. | Cryptographic Operations Dashboard</title>
+    <title>C.I.A. | Cryptographic Operations</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
-    
-    <style>
-        :root {
-            --bg-color: #000c14;
-            --primary-accent: #0ff; 
-            --secondary-accent: #39ff14;
-            --ghost-accent: #a855f7; /* Purple for Ghosts */
-            --terminal-text: #66ccff;
-            --panel-border: rgba(0, 255, 255, 0.4);
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--terminal-text);
-            font-family: 'Courier New', monospace;
-            padding: 20px;
-            margin: 0;
-            background-image: radial-gradient(circle, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
-        }
-
-        .container { max-width: 1100px; margin: 0 auto; }
-
-        .header {
-            border-bottom: 2px solid var(--panel-border);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-
-        .header h1 { color: var(--primary-accent); text-transform: uppercase; letter-spacing: 3px; font-size: 24px; }
-
-        .dashboard-panel {
-            background-color: rgba(0, 15, 25, 0.8);
-            border: 1px solid var(--panel-border);
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
-        }
-
-        .panel-label {
-            color: var(--secondary-accent);
-            text-transform: uppercase;
-            font-size: 14px;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
-            padding-bottom: 5px;
-        }
-
-        /* GHOST SECTION STYLE */
-        .ghost-panel { border-color: var(--ghost-accent); box-shadow: 0 0 15px rgba(168, 85, 247, 0.1); }
-        .ghost-label { color: var(--ghost-accent); border-color: rgba(168, 85, 247, 0.2); }
-
-        textarea {
-            width: 100%; height: 80px;
-            background: rgba(0, 0, 0, 0.5); border: 1px solid var(--panel-border);
-            color: var(--secondary-accent); padding: 15px; outline: none;
-        }
-
-        .btn {
-            padding: 10px 20px; border: none; font-weight: bold; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 2px; margin-top: 10px;
-        }
-        .btn-upload { background: var(--primary-accent); color: #000; width: 100%; }
-        .btn-delete { background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; font-size: 10px; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        th, td { padding: 10px; border-bottom: 1px solid rgba(0, 255, 255, 0.1); text-align: left; }
-        th { color: var(--primary-accent); }
-
-        .status-ready { color: var(--secondary-accent); }
-        .status-in-use { color: #fbbf24; font-weight: bold; animation: pulse 1.5s infinite; }
-        .status-claimed { color: var(--secondary-accent); font-weight: bold; }
-        .status-idle { color: #94a3b8; }
-
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
+    <header>
         <h1>[ C.I.A. CRYPTOGRAPHIC OPERATIONS ]</h1>
+        <p style="font-size: 10px; color: var(--text-ghost);">ACCESS LEVEL: TOP SECRET // OPERATOR TERMINAL</p>
+    </header>
+
+    <div class="terminal-card">
+        <h3 style="margin-bottom: 15px; font-size: 14px; color: var(--accent-green);">[ CONTRACT DEPLOYMENT TERMINAL ]</h3>
+        <textarea id="linkInput" rows="5" placeholder="[ paste merchant/contract links here - one per line ]"></textarea>
+        <button class="btn-deploy" onclick="deployLinks()">DECRYPT & DEPLOY CONTRACTS</button>
     </div>
 
-    <div class="dashboard-panel">
-        <h3 class="panel-label">[ Link Deployment Terminal ]</h3>
-        <textarea id="codeInput" placeholder="[ paste merchant links here ]"></textarea>
-        <button class="btn btn-upload" onclick="deployCodes()">DEPLOY SECURE CODES</button>
+    <div class="terminal-card">
+        <h3 style="margin-bottom: 10px; font-size: 14px;">[ INTELLIGENCE MONITOR ]</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>CONTRACT_ID</th>
+                        <th>STATUS</th>
+                        <th>TARGET (GHOST)</th>
+                        <th>TIME_REM</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="linkTableBody">
+                    </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="dashboard-panel">
-        <h3 class="panel-label">[ Intelligence Monitor ]</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>VIA-LINK ID</th>
-                    <th>STATUS</th>
-                    <th>TARGET (MOBILE)</th>
-                    <th>TIME REMAINING</th>
-                    <th>ACTION</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+    <div class="terminal-card" style="border-color: #9c27b0;">
+        <h3 style="margin-bottom: 10px; font-size: 14px; color: #e1bee7;">[ GHOST INTELLIGENCE - PAYOUT HISTORY ]</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>GHOST_ID (PHONE)</th>
+                        <th>REWARD_VAL</th>
+                        <th>OP_STATUS</th>
+                        <th>LAST_SEEN</th>
+                    </tr>
+                </thead>
+                <tbody id="ghostTableBody">
+                    </tbody>
+            </table>
+        </div>
     </div>
 
-    <div class="dashboard-panel ghost-panel">
-        <h3 class="panel-label ghost-label">[ Ghost Intelligence - Payout History ]</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>GHOST_ID (PHONE)</th>
-                    <th>ASSIGNED_REWARD</th>
-                    <th>OPERATIONAL_STATUS</th>
-                    <th>LAST_SEEN</th>
-                </tr>
-            </thead>
-            <tbody id="ghostTableBody"></tbody>
-        </table>
-    </div>
-</div>
+    <script>
+        // Initialize Firebase using the config.js
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-<script>
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        // --- FUNCTION: DEPLOY LINKS ---
+        function deployLinks() {
+            const input = document.getElementById('linkInput').value.trim();
+            if (!input) return alert("NO DATA DETECTED.");
 
-    // 1. Deploy Links
-    function deployCodes() {
-        const rawCodes = document.getElementById('codeInput').value.trim();
-        if (!rawCodes) return;
-        rawCodes.split('\n').forEach(code => {
-            if (code.trim()) {
-                db.ref('links').push({
-                    url: code.trim(),
-                    status: 'available',
-                    user: 'None',
-                    timestamp: Date.now()
-                });
+            const links = input.split('\n');
+            links.forEach(url => {
+                if (url.trim()) {
+                    db.ref('links').push({
+                        url: url.trim(),
+                        status: 'available',
+                        user: 'NONE',
+                        timestamp: Date.now()
+                    });
+                }
+            });
+            document.getElementById('linkInput').value = '';
+            alert("CONTRACTS DEPLOYED TO DATABASE.");
+        }
+
+        // --- REAL-TIME MONITOR: CONTRACTS ---
+        db.ref('links').on('value', snapshot => {
+            const tbody = document.getElementById('linkTableBody');
+            tbody.innerHTML = '';
+            snapshot.forEach(child => {
+                const data = child.val();
+                const key = child.key.substring(0, 6); // Short ID
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="contract-id">#${key}</td>
+                        <td class="status-${data.status}">${data.status.toUpperCase()}</td>
+                        <td class="ghost-id">${data.user}</td>
+                        <td>--:--</td>
+                        <td><button onclick="deleteData('links/${child.key}')" style="background:none; border:none; color:red; cursor:pointer;">[TERMINATE]</button></td>
+                    </tr>
+                `;
+            });
+        });
+
+        // --- REAL-TIME MONITOR: GHOST LOGS ---
+        db.ref('user_logs').on('value', snapshot => {
+            const tbody = document.getElementById('ghostTableBody');
+            tbody.innerHTML = '';
+            snapshot.forEach(child => {
+                const data = child.val();
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="ghost-id">${data.phone}</td>
+                        <td>₱${data.reward}</td>
+                        <td class="status-${data.status}">${data.status.toUpperCase()}</td>
+                        <td style="font-size: 9px; color: #666;">${data.last_updated || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        });
+
+        function deleteData(path) {
+            if(confirm("CONFIRM DATA TERMINATION?")) {
+                db.ref(path).remove();
             }
-        });
-        document.getElementById('codeInput').value = '';
-    }
-
-    function terminateLink(id) {
-        if (confirm("PURGE DATA?")) db.ref('links/' + id).remove();
-    }
-
-    // 2. Intelligence Listener + 10 Minute Auto-Recycle
-    db.ref('links').on('value', snapshot => {
-        const body = document.getElementById('tableBody');
-        body.innerHTML = '';
-        const now = Date.now();
-        const tenMinutes = 10 * 60 * 1000;
-
-        snapshot.forEach(child => {
-            const data = child.val();
-            const id = child.key;
-
-            // --- AUTO REUSE LOGIC ---
-            // Kung status ay 'pending' at lumampas na ng 10 mins (600,000ms)
-            if (data.status === 'pending' && (now - data.timestamp) > tenMinutes) {
-                db.ref('links/' + id).update({
-                    status: 'available',
-                    user: 'None',
-                    timestamp: now // Reset timer
-                });
-                return; // Skip muna ang render para sa loop na ito
-            }
-
-            const isPending = data.status !== 'available';
-            const timeDiff = Math.max(0, Math.floor((tenMinutes - (now - data.timestamp)) / 1000));
-            const mins = Math.floor(timeDiff / 60);
-            const secs = timeDiff % 60;
-            const timerDisplay = isPending ? `${mins}m ${secs}s` : '∞';
-
-            body.innerHTML += `
-                <tr>
-                    <td>LINK_${id.slice(-4)}</td>
-                    <td class="${isPending ? 'status-in-use' : 'status-ready'}">${isPending ? 'IN USE' : 'READY'}</td>
-                    <td><code style="color: #fbbf24">${data.user}</code></td>
-                    <td>${timerDisplay}</td>
-                    <td><button class="btn btn-delete" onclick="terminateLink('${id}')">TERMINATE</button></td>
-                </tr>
-            `;
-        });
-    });
-
-    // 3. Ghost Intelligence Listener (User Logs)
-    db.ref('user_logs').on('value', snapshot => {
-        const ghostBody = document.getElementById('ghostTableBody');
-        ghostBody.innerHTML = '';
-        
-        snapshot.forEach(child => {
-            const ghost = child.val();
-            const statusClass = ghost.status === 'claimed' ? 'status-claimed' : 'status-idle';
-            const statusLabel = ghost.status === 'claimed' ? '✅ CLAIMED' : '⏳ IDLE / PENDING';
-
-            ghostBody.innerHTML += `
-                <tr>
-                    <td>${ghost.phone}</td>
-                    <td>₱${ghost.reward}</td>
-                    <td class="${statusClass}">${statusLabel}</td>
-                    <td style="color: #64748b; font-size: 10px;">${ghost.last_updated || ghost.date_started}</td>
-                </tr>
-            `;
-        });
-    });
-
-    // Refresh timers every second
-    setInterval(() => { db.ref('links').once('value', () => {}); }, 1000);
-</script>
+        }
+    </script>
 </body>
 </html>
