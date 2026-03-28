@@ -3,128 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C.I.A. | Cryptographic Operations</title>
-    <link rel="stylesheet" href="style.css">
+    <title>C.I.A. | Command Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00f2ff; --ghost: #39ff14; --danger: #ff3131; --bg: #020408; }
+        * { box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
+        
+        body { 
+            background: var(--bg); color: var(--neon); margin: 0; padding: 15px;
+            background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        header { 
+            border-bottom: 2px solid var(--neon); padding-bottom: 10px; margin-bottom: 25px;
+            text-shadow: 0 0 10px var(--neon);
+        }
+
+        h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
+        .sub-deck { font-size: 10px; color: rgba(0, 242, 255, 0.6); }
+
+        /* Tactical Cards */
+        .op-card {
+            background: rgba(0, 15, 25, 0.8); border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 8px; padding: 15px; margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-label { 
+            font-size: 11px; font-weight: 800; margin-bottom: 15px; 
+            display: flex; align-items: center; gap: 8px; color: var(--ghost);
+        }
+
+        /* Inputs */
+        textarea {
+            width: 100%; background: #000; border: 1px solid var(--neon);
+            color: var(--ghost); padding: 12px; border-radius: 4px; outline: none;
+            font-size: 12px; margin-bottom: 10px;
+        }
+
+        .btn-action {
+            width: 100%; background: var(--neon); color: #000; border: none;
+            padding: 12px; font-weight: 800; cursor: pointer; border-radius: 4px;
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .btn-action:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
+
+        /* Tables */
+        .monitor-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .monitor-table th { text-align: left; padding: 10px; border-bottom: 1px solid var(--neon); color: var(--neon); }
+        .monitor-table td { padding: 10px; border-bottom: 1px solid rgba(0, 242, 255, 0.1); }
+
+        .status-tag { padding: 2px 6px; border-radius: 3px; font-weight: 800; font-size: 9px; }
+        .st-avail { background: rgba(57, 255, 20, 0.1); color: var(--ghost); border: 1px solid var(--ghost); }
+        .st-pend { background: rgba(255, 255, 0, 0.1); color: #ffff00; border: 1px solid #ffff00; }
+        .st-claim { background: rgba(255, 49, 49, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+
+        .ghost-id { color: #fff; font-weight: bold; }
+    </style>
 </head>
 <body>
 
     <header>
-        <h1>[ C.I.A. CRYPTOGRAPHIC OPERATIONS ]</h1>
-        <p style="font-size: 10px; color: var(--text-ghost);">ACCESS LEVEL: TOP SECRET // OPERATOR TERMINAL</p>
+        <h1>[ CRYPTOGRAPHIC OPERATIONS ]</h1>
+        <div class="sub-deck">OPERATOR: AUTHORIZED // STATUS: ONLINE</div>
     </header>
 
-    <div class="terminal-card">
-        <h3 style="margin-bottom: 15px; font-size: 14px; color: var(--accent-green);">[ CONTRACT DEPLOYMENT TERMINAL ]</h3>
-        <textarea id="linkInput" rows="5" placeholder="[ paste merchant/contract links here - one per line ]"></textarea>
-        <button class="btn-deploy" onclick="deployLinks()">DECRYPT & DEPLOY CONTRACTS</button>
+    <div class="op-card">
+        <div class="card-label"><span>●</span> CONTRACT_DEPLOYMENT_TERMINAL</div>
+        <textarea id="links" rows="4" placeholder="INPUT MERCHANT LINKS HERE..."></textarea>
+        <button class="btn-action" onclick="deploy()">DEPLOY SECURE CODES</button>
     </div>
 
-    <div class="terminal-card">
-        <h3 style="margin-bottom: 10px; font-size: 14px;">[ INTELLIGENCE MONITOR ]</h3>
-        <div class="table-wrapper">
-            <table>
+    <div class="op-card">
+        <div class="card-label" style="color: var(--neon);"><span>●</span> INTELLIGENCE_MONITOR</div>
+        <div style="overflow-x:auto;">
+            <table class="monitor-table">
                 <thead>
                     <tr>
                         <th>CONTRACT_ID</th>
                         <th>STATUS</th>
-                        <th>TARGET (GHOST)</th>
-                        <th>TIME_REM</th>
+                        <th>GHOST_ID</th>
                         <th>ACTION</th>
                     </tr>
                 </thead>
-                <tbody id="linkTableBody">
-                    </tbody>
+                <tbody id="linkData"></tbody>
             </table>
         </div>
     </div>
 
-    <div class="terminal-card" style="border-color: #9c27b0;">
-        <h3 style="margin-bottom: 10px; font-size: 14px; color: #e1bee7;">[ GHOST INTELLIGENCE - PAYOUT HISTORY ]</h3>
-        <div class="table-wrapper">
-            <table>
+    <div class="op-card" style="border-color: var(--ghost);">
+        <div class="card-label"><span>●</span> GHOST_INTEL_LOGS</div>
+        <div style="overflow-x:auto;">
+            <table class="monitor-table">
                 <thead>
                     <tr>
-                        <th>GHOST_ID (PHONE)</th>
-                        <th>REWARD_VAL</th>
-                        <th>OP_STATUS</th>
-                        <th>LAST_SEEN</th>
+                        <th>GHOST_ID</th>
+                        <th>REWARD</th>
+                        <th>STATUS</th>
                     </tr>
                 </thead>
-                <tbody id="ghostTableBody">
-                    </tbody>
+                <tbody id="ghostData"></tbody>
             </table>
         </div>
     </div>
 
-    <script>
-        // Initialize Firebase using the config.js
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+<script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        // --- FUNCTION: DEPLOY LINKS ---
-        function deployLinks() {
-            const input = document.getElementById('linkInput').value.trim();
-            if (!input) return alert("NO DATA DETECTED.");
-
-            const links = input.split('\n');
-            links.forEach(url => {
-                if (url.trim()) {
-                    db.ref('links').push({
-                        url: url.trim(),
-                        status: 'available',
-                        user: 'NONE',
-                        timestamp: Date.now()
-                    });
-                }
-            });
-            document.getElementById('linkInput').value = '';
-            alert("CONTRACTS DEPLOYED TO DATABASE.");
-        }
-
-        // --- REAL-TIME MONITOR: CONTRACTS ---
-        db.ref('links').on('value', snapshot => {
-            const tbody = document.getElementById('linkTableBody');
-            tbody.innerHTML = '';
-            snapshot.forEach(child => {
-                const data = child.val();
-                const key = child.key.substring(0, 6); // Short ID
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="contract-id">#${key}</td>
-                        <td class="status-${data.status}">${data.status.toUpperCase()}</td>
-                        <td class="ghost-id">${data.user}</td>
-                        <td>--:--</td>
-                        <td><button onclick="deleteData('links/${child.key}')" style="background:none; border:none; color:red; cursor:pointer;">[TERMINATE]</button></td>
-                    </tr>
-                `;
-            });
+    function deploy() {
+        const val = document.getElementById('links').value.trim();
+        if(!val) return;
+        val.split('\n').forEach(url => {
+            if(url) db.ref('links').push({ url: url.trim(), status: 'available', user: 'NONE' });
         });
+        document.getElementById('links').value = '';
+    }
 
-        // --- REAL-TIME MONITOR: GHOST LOGS ---
-        db.ref('user_logs').on('value', snapshot => {
-            const tbody = document.getElementById('ghostTableBody');
-            tbody.innerHTML = '';
-            snapshot.forEach(child => {
-                const data = child.val();
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="ghost-id">${data.phone}</td>
-                        <td>₱${data.reward}</td>
-                        <td class="status-${data.status}">${data.status.toUpperCase()}</td>
-                        <td style="font-size: 9px; color: #666;">${data.last_updated || 'N/A'}</td>
-                    </tr>
-                `;
-            });
+    db.ref('links').on('value', snap => {
+        const tbody = document.getElementById('linkData');
+        tbody.innerHTML = '';
+        snap.forEach(c => {
+            const d = c.val();
+            const sClass = d.status == 'available' ? 'st-avail' : (d.status == 'pending' ? 'st-pend' : 'st-claim');
+            tbody.innerHTML += `<tr>
+                <td>#${c.key.substr(-5)}</td>
+                <td><span class="status-tag ${sClass}">${d.status.toUpperCase()}</span></td>
+                <td class="ghost-id">${d.user}</td>
+                <td><button onclick="db.ref('links/${c.key}').remove()" style="color:red; background:none; border:none; cursor:pointer;">[X]</button></td>
+            </tr>`;
         });
+    });
 
-        function deleteData(path) {
-            if(confirm("CONFIRM DATA TERMINATION?")) {
-                db.ref(path).remove();
-            }
-        }
-    </script>
+    db.ref('user_logs').on('value', snap => {
+        const tbody = document.getElementById('ghostData');
+        tbody.innerHTML = '';
+        snap.forEach(c => {
+            const d = c.val();
+            tbody.innerHTML += `<tr>
+                <td class="ghost-id">${d.phone}</td>
+                <td style="color: #39ff14;">₱${d.reward}</td>
+                <td>${d.status.toUpperCase()}</td>
+            </tr>`;
+        });
+    });
+</script>
 </body>
 </html>
