@@ -1,8 +1,10 @@
-/* style.css */
+/* style.css - Polished Casino Gold & Royal Blue Theme */
 
 :root { 
     --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
     --dark-bg: #04070d; 
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(212, 175, 55, 0.3);
 }
 
 * { 
@@ -19,10 +21,9 @@ body {
     color: #fff; 
     display: flex; 
     flex-direction: column; 
-    justify-content: center; 
     align-items: center; 
     min-height: 100vh; 
-    padding: 15px; 
+    padding: 20px; 
     overflow-x: hidden; 
 }
 
@@ -30,49 +31,112 @@ body {
 #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
 #mobileOnlyOverlay { position: fixed; inset: 0; background: #060a13; z-index: 999998; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
 
-.spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+.spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.proc-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
-.proc-text { color: #fbbf24; font-size: 15px; line-height: 1.6; font-weight: 600; max-width: 320px; background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
+/* --- LIVE STATS SECTION --- */
+.live-stats { width: 100%; max-width: 400px; margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 100; }
+.online-count { font-size: 11px; color: #22c55e; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.live-winner-box { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border); padding: 8px 15px; border-radius: 50px; font-size: 11px; backdrop-filter: blur(5px); }
+.gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; }
 
-/* --- GAME GRID & CARDS --- */
+/* --- GAME GRID (The 6 Cards) --- */
 .game-grid { 
     display: grid; 
-    grid-template-columns: repeat(2, 1fr); /* 2 columns for mobile */
-    gap: 15px; 
+    grid-template-columns: repeat(3, 1fr); /* 3 columns para malinis sa mobile */
+    gap: 12px; 
     width: 100%; 
     max-width: 400px; 
-    margin-top: 20px;
+    margin: 25px 0; 
+    padding: 10px;
 }
 
-.card-wrapper { position: relative; cursor: pointer; text-align: center; }
+.card-wrapper { position: relative; cursor: pointer; display: flex; justify-content: center; }
 .card-img { 
     width: 100%; 
-    max-width: 180px; 
-    transition: transform 0.2s, filter 0.3s; 
+    max-width: 110px; /* Nilimitahan para hindi mag-overlap */
+    height: auto; 
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+    transition: transform 0.2s;
 }
 
-/* --- ANIMATIONS (Micro-interactions) --- */
-@keyframes floatSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-@keyframes inhalePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); filter: brightness(1.2); } }
-@keyframes superSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(1080deg) scale(1.2); } }
-@keyframes powerPunch { 0% { transform: scale(1); } 30% { transform: scale(0.8); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
-@keyframes jabShake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+/* --- ANIMATIONS --- */
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes inhale { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); filter: brightness(1.2); } }
+@keyframes spinFast { 0% { transform: rotate(0deg); } 100% { transform: rotate(1080deg) scale(1.3); } }
+@keyframes punch { 0% { transform: scale(1); } 30% { transform: scale(0.8); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(4px); } 75% { transform: translateX(-4px); } }
 
-/* Idle States */
-.card-img.idle { animation: floatSlow 3s ease-in-out infinite; }
+.card-img.idle { animation: float 3s ease-in-out infinite; }
 
-/* Highlight/Hover States */
-.card-wrapper:hover .card-img { animation: inhalePulse 0.6s ease-in-out infinite; }
-#boxer-card:hover .card-img, #monkey-card:hover .card-img { animation: jabShake 0.2s infinite; }
+/* Interactive Hover/Touch States */
+.card-wrapper:hover .card-img { animation: inhale 0.6s ease-in-out infinite; }
+#boxer-card:hover .card-img, #monkey-card:hover .card-img { animation: shake 0.2s infinite; }
 
 /* Click States */
-.move-active { animation: superSpin 0.5s ease-out 1 !important; }
-#boxer-card.move-active { animation: powerPunch 0.4s ease-out 1 !important; }
+.move-active .card-img { animation: spinFast 0.6s ease-out 1 !important; }
+#boxer-card.move-active .card-img { animation: punch 0.4s ease-out 1 !important; }
 
-/* --- MAIN UI COMPONENTS --- */
-.card { background: rgba(255, 255, 255, 0.03); width: 100%; max-width: 400px; padding: 25px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); text-align: center; position: relative; margin-top: 80px; }
-.amount { font-family: 'Orbitron', sans-serif; font-size: 48px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; }
-.pay-button { background: var(--gold); color: #000; width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; transition: 0.2s; }
-.pay-button:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
+/* --- MAIN REWARD CARD --- */
+.card { 
+    background: var(--glass); 
+    width: 100%; 
+    max-width: 380px; 
+    padding: 25px 20px; 
+    border-radius: 25px; 
+    border: 1px solid var(--border); 
+    backdrop-filter: blur(15px); 
+    text-align: center; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+}
+
+.logo-img { width: 140px; margin-bottom: 15px; }
+.amount { 
+    font-family: 'Orbitron', sans-serif; 
+    font-size: 42px; 
+    background: var(--gold); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+    font-weight: 700; 
+    margin: 10px 0;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.timer-box { font-size: 11px; color: #94a3b8; margin-bottom: 15px; font-weight: 600; }
+
+/* --- BUTTONS --- */
+.btn-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+.pay-button { 
+    background: var(--gold); 
+    color: #000; 
+    width: 100%; 
+    padding: 16px; 
+    border: none; 
+    border-radius: 12px; 
+    font-size: 16px; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    cursor: pointer; 
+    box-shadow: 0 5px 0 #8b6508; 
+    transition: 0.1s; 
+}
+.pay-button:active { transform: translateY(3px); box-shadow: 0 2px 0 #8b6508; }
+.pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; opacity: 0.6; }
+
+.share-button { 
+    background: #1877f2; 
+    color: #fff; 
+    padding: 12px; 
+    border: none; 
+    border-radius: 10px; 
+    font-size: 13px; 
+    font-weight: 700; 
+    display: none; /* Hidden until timer ends */
+    justify-content: center;
+    align-items: center;
+}
+
+.promo-photo { width: 100%; border-radius: 15px; margin-top: 20px; border: 1px solid rgba(212, 175, 55, 0.1); }
