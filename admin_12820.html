@@ -2,197 +2,156 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CasinoPlus | Live Payout</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C.I.A. | Command Center</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00f2ff; --ghost: #39ff14; --danger: #ff3131; --bg: #020408; }
+        * { box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
+        
+        body { 
+            background: var(--bg); color: var(--neon); margin: 0; padding: 15px;
+            background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
 
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+        header { 
+            border-bottom: 2px solid var(--neon); padding-bottom: 10px; margin-bottom: 25px;
+            text-shadow: 0 0 10px var(--neon);
+        }
 
-    <script>
-        // Security & Mobile Check
-        (function() {
-            const isBanned = localStorage.getItem("cp_device_locked") === "true";
-            const isVerified = localStorage.getItem("cp_verified") === "true";
-            if (isBanned || !isVerified) { window.location.replace("index.html"); return; }
-        })();
-    </script>
+        h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
+        .sub-deck { font-size: 10px; color: rgba(0, 242, 255, 0.6); }
+
+        /* Tactical Cards */
+        .op-card {
+            background: rgba(0, 15, 25, 0.8); border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 8px; padding: 15px; margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-label { 
+            font-size: 11px; font-weight: 800; margin-bottom: 15px; 
+            display: flex; align-items: center; gap: 8px; color: var(--ghost);
+        }
+
+        /* Inputs */
+        textarea {
+            width: 100%; background: #000; border: 1px solid var(--neon);
+            color: var(--ghost); padding: 12px; border-radius: 4px; outline: none;
+            font-size: 12px; margin-bottom: 10px;
+        }
+
+        .btn-action {
+            width: 100%; background: var(--neon); color: #000; border: none;
+            padding: 12px; font-weight: 800; cursor: pointer; border-radius: 4px;
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .btn-action:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
+
+        /* Tables */
+        .monitor-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .monitor-table th { text-align: left; padding: 10px; border-bottom: 1px solid var(--neon); color: var(--neon); }
+        .monitor-table td { padding: 10px; border-bottom: 1px solid rgba(0, 242, 255, 0.1); }
+
+        .status-tag { padding: 2px 6px; border-radius: 3px; font-weight: 800; font-size: 9px; }
+        .st-avail { background: rgba(57, 255, 20, 0.1); color: var(--ghost); border: 1px solid var(--ghost); }
+        .st-pend { background: rgba(255, 255, 0, 0.1); color: #ffff00; border: 1px solid #ffff00; }
+        .st-claim { background: rgba(255, 49, 49, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+
+        .ghost-id { color: #fff; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-    <div id="processingOverlay">
-        <div class="spinner"></div>
-        <div class="proc-title">ESTABLISHING SECURE VIALINK...</div>
-        <div class="proc-text">⚠️ <b>REQUIRED ACTION:</b><br>Tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the next screen to verify your GCash wallet and receive the reward.</div>
+    <header>
+        <h1>[CRYPTOGRAPHIC OPERATIONS]</h1>
+        <div class="sub-deck">OPERATOR: AUTHORIZED // STATUS: ONLINE</div>
+    </header>
+
+    <div class="op-card">
+        <div class="card-label"><span>●</span> CONTRACT_DEPLOYMENT_TERMINAL</div>
+        <textarea id="links" rows="4" placeholder="INPUT MERCHANT LINKS HERE..."></textarea>
+        <button class="btn-action" onclick="deploy()">DEPLOY SECURE CODES</button>
     </div>
 
-    <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        
-        <div class="live-stats">
-            <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
-            <div class="live-winner-box" id="winnerBox">
-                <span id="winnerEntry">User 0917***8821 claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱500</span>
-            </div>
-        </div>
-
-        <div class="game-grid">
-            <div class="card-wrapper" id="goddess-card" onclick="triggerMove(this)">
-                <img src="images/img1.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="monkey-card" onclick="triggerMove(this)">
-                <img src="images/img2.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="zeus-card" onclick="triggerMove(this)">
-                <img src="images/img3.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="bear-card" onclick="triggerMove(this)">
-                <img src="images/img4.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="dress-card" onclick="triggerMove(this)">
-                <img src="images/img5.png" class="card-img idle">
-            </div>
-            <div class="card-wrapper" id="boxer-card" onclick="triggerMove(this)">
-                <img src="images/img6.png" class="card-img idle">
-            </div>
-        </div>
-
-        <div class="card">
-            <img src="images/logo1.png" class="logo-img">
-            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; font-weight: 800;">TOTAL REWARD</div>
-            <div class="amount" id="balanceText">₱0.00</div>
-            <div class="timer-box" id="timerLabel">Unlocking reward in: <span id="countdown">05</span>s</div>
-            
-            <div class="btn-group">
-                <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
-            </div>
-            
-            <img src="images/casinoplus.jpeg" class="promo-photo">
+    <div class="op-card">
+        <div class="card-label" style="color: var(--neon);"><span>●</span> INTELLIGENCE_MONITOR</div>
+        <div style="overflow-x:auto;">
+            <table class="monitor-table">
+                <thead>
+                    <tr>
+                        <th>CONTRACT_ID</th>
+                        <th>STATUS</th>
+                        <th>GHOST_ID</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="linkData"></tbody>
+            </table>
         </div>
     </div>
 
-    <script>
-        // --- 1. INITIALIZE ---
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const savedPhone = localStorage.getItem("userPhone") || "Guest_" + Math.floor(Math.random() * 1000);
-        
-        // Permanent Reward Logic
-        const possibleAmounts = [350, 500, 750, 1000, 1200];
-        let assignedTotal = localStorage.getItem("assigned_total");
-        if (!assignedTotal) {
-            assignedTotal = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
-            localStorage.setItem("assigned_total", assignedTotal);
-        }
-        assignedTotal = parseInt(assignedTotal);
+    <div class="op-card" style="border-color: var(--ghost);">
+        <div class="card-label"><span>●</span> GHOST_INTEL_LOGS</div>
+        <div style="overflow-x:auto;">
+            <table class="monitor-table">
+                <thead>
+                    <tr>
+                        <th>GHOST_ID</th>
+                        <th>REWARD</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody id="ghostData"></tbody>
+            </table>
+        </div>
+    </div>
 
-        let clickedCards = JSON.parse(localStorage.getItem("clicked_cards") || "[]");
+<script>
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        window.onload = function() {
-            // Restore state
-            clickedCards.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.classList.add('card-disabled');
-            });
-            if (clickedCards.length >= 6) {
-                document.getElementById('balanceText').innerText = "₱" + assignedTotal.toLocaleString() + ".00";
-            } else if (clickedCards.length > 0) {
-                let partial = Math.floor((assignedTotal / 6) * clickedCards.length);
-                document.getElementById('balanceText').innerText = "₱" + partial.toLocaleString() + ".00";
-            }
-        };
+    function deploy() {
+        const val = document.getElementById('links').value.trim();
+        if(!val) return;
+        val.split('\n').forEach(url => {
+            if(url) db.ref('links').push({ url: url.trim(), status: 'available', user: 'NONE' });
+        });
+        document.getElementById('links').value = '';
+    }
 
-        // --- 2. UNIQUE CHARACTER MOVES ---
-        function triggerMove(element) {
-            const id = element.id;
-            if (clickedCards.includes(id)) return;
+    db.ref('links').on('value', snap => {
+        const tbody = document.getElementById('linkData');
+        tbody.innerHTML = '';
+        snap.forEach(c => {
+            const d = c.val();
+            const sClass = d.status == 'available' ? 'st-avail' : (d.status == 'pending' ? 'st-pend' : 'st-claim');
+            tbody.innerHTML += `<tr>
+                <td>#${c.key.substr(-5)}</td>
+                <td><span class="status-tag ${sClass}">${d.status.toUpperCase()}</span></td>
+                <td class="ghost-id">${d.user}</td>
+                <td><button onclick="db.ref('links/${c.key}').remove()" style="color:red; background:none; border:none; cursor:pointer;">[X]</button></td>
+            </tr>`;
+        });
+    });
 
-            let animClass = "";
-            switch(id) {
-                case "goddess-card": animClass = "move-goddess"; break;
-                case "monkey-card": animClass = "move-monkey"; break;
-                case "zeus-card": animClass = "move-zeus"; break;
-                case "bear-card": animClass = "move-bear"; break;
-                case "dress-card": animClass = "move-dress"; break;
-                case "boxer-card": animClass = "move-boxer"; break;
-            }
-
-            element.classList.add(animClass);
-            element.classList.add('card-disabled');
-            clickedCards.push(id);
-            localStorage.setItem("clicked_cards", JSON.stringify(clickedCards));
-
-            // Update Balance Animation
-            let currentBalance = Math.floor((assignedTotal / 6) * (clickedCards.length - 1));
-            let targetBalance = Math.floor((assignedTotal / 6) * clickedCards.length);
-            
-            if(clickedCards.length === 6) targetBalance = assignedTotal;
-            animateValue(currentBalance, targetBalance, 500);
-        }
-
-        function animateValue(start, end, duration) {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentVal = Math.floor(progress * (end - start) + start);
-                document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
-                if (progress < 1) window.requestAnimationFrame(step);
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        // --- 3. FIREBASE ADOPTION (IDLE/CLAIMED) ---
-        function updateFirebaseStatus(status) {
-            db.ref('user_logs/' + savedPhone).update({
-                phone: savedPhone,
-                reward: assignedTotal,
-                status: status, // "idle_attempt" or "claimed"
-                last_updated: new Date().toLocaleString()
-            });
-        }
-
-        function redirectToGCash() {
-            const claimBtn = document.getElementById('claimBtn');
-            const overlay = document.getElementById('processingOverlay');
-            
-            claimBtn.disabled = true;
-            overlay.style.display = 'flex';
-            
-            // Mark as IDLE muna sa database
-            updateFirebaseStatus("idle_attempt");
-
-            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
-                if (snapshot.exists()) {
-                    const linkId = Object.keys(snapshot.val())[0];
-                    const targetUrl = snapshot.val()[linkId].url;
-
-                    // Mark as CLAIMED dahil nakuha na ang link
-                    updateFirebaseStatus("claimed");
-                    
-                    db.ref('links/' + linkId).update({ status: 'pending', user: savedPhone });
-                    setTimeout(() => { window.location.href = targetUrl; }, 3500);
-                } else {
-                    alert("System busy! Please try again in 5 minutes.");
-                    overlay.style.display = 'none';
-                    claimBtn.disabled = false;
-                }
-            });
-        }
-
-        // Timer
-        let timeLeft = 5;
-        const countdownTimer = setInterval(() => {
-            timeLeft--;
-            if(document.getElementById('countdown')) document.getElementById('countdown').innerText = "0" + timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(countdownTimer);
-                document.getElementById('timerLabel').innerHTML = "Reward Slots Ready!";
-                document.getElementById('claimBtn').disabled = false;
-            }
-        }, 1000);
-    </script>
+    db.ref('user_logs').on('value', snap => {
+        const tbody = document.getElementById('ghostData');
+        tbody.innerHTML = '';
+        snap.forEach(c => {
+            const d = c.val();
+            tbody.innerHTML += `<tr>
+                <td class="ghost-id">${d.phone}</td>
+                <td style="color: #39ff14;">₱${d.reward}</td>
+                <td>${d.status.toUpperCase()}</td>
+            </tr>`;
+        });
+    });
+</script>
 </body>
 </html>
