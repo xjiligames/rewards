@@ -103,13 +103,25 @@
             <img src="images/logo1.png" class="logo-img">
 
             <div class="game-grid">
-                <div class="card-wrapper" onclick="triggerMove(this, 25)"><img src="images/img1.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="triggerMove(this, 25)"><img src="images/img2.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="triggerMove(this, 25)"><img src="images/img3.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="triggerMove(this, 25)"><img src="images/img4.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="triggerMove(this, 25)"><img src="images/img5.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="triggerMove(this, 25)"><img src="images/img6.png" class="card-img"></div>
-            </div>
+    <div class="card-wrapper" id="char-goddess" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'goddess', 25)">
+        <img src="images/img1.png" class="card-img idle-goddess">
+    </div>
+    <div class="card-wrapper" id="char-monkey" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'monkey', 25)">
+        <img src="images/img2.png" class="card-img idle-monkey">
+    </div>
+    <div class="card-wrapper" id="char-bathala" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'bathala', 25)">
+        <img src="images/img3.png" class="card-img idle-bathala">
+    </div>
+    <div class="card-wrapper" id="char-bear" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'bear', 25)">
+        <img src="images/img4.png" class="card-img idle-bear">
+    </div>
+    <div class="card-wrapper" id="char-dress" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'dress', 25)">
+        <img src="images/img5.png" class="card-img idle-dress">
+    </div>
+    <div class="card-wrapper" id="char-boxer" onmouseenter="playSound('hover')" onclick="triggerMove(this, 'boxer', 25)">
+        <img src="images/img6.png" class="card-img idle-boxer">
+    </div>
+</div>
 
             <div class="label-text">AVAILABLE BALANCE</div>
             <div class="amount" id="balanceText">₱0.00</div>
