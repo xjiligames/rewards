@@ -138,12 +138,26 @@ body {
 /* --- GAME GRID --- */
 .game-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 columns gaya ng nasa picture */
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr); /* Siguradong 3 columns */
+    gap: 8px; /* Mas maliit na gap para magkasya sa loob ng card */
     width: 100%;
-    max-width: 380px;
-    margin: 80px 0 20px 0; /* DINAGDAGAN NATIN: 80px sa itaas para bumaba ang cards */
-    padding: 10px;
+    margin: 15px 0; /* Space sa ilalim ng logo */
+    padding: 5px;
+}
+
+.card-img { 
+    width: 100%; 
+    max-width: 85px; /* Inadjust para magkasya ang 3 images side-by-side sa card */
+    height: auto; 
+    filter: drop-shadow(0 3px 8px rgba(0,0,0,0.5));
+    transition: all 0.4s ease;
+}
+
+/* Para hindi masyadong malayo ang live stats sa taas */
+.live-stats {
+    position: relative; /* Binago mula absolute para hindi mag-overlap */
+    margin-bottom: 20px;
+    z-index: 100;
 }
 
 .card-wrapper { position: relative; cursor: pointer; display: flex; justify-content: center; }
