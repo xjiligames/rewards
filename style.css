@@ -136,13 +136,13 @@ body {
 .gc-mini-icon { width: 14px !important; height: 14px !important; vertical-align: middle; margin: 0 3px; }
 
 /* --- GAME GRID --- */
-.game-grid { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 12px; 
-    width: 100%; 
-    max-width: 380px; 
-    margin: 20px 0; 
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns gaya ng nasa picture */
+    gap: 12px;
+    width: 100%;
+    max-width: 380px;
+    margin: 80px 0 20px 0; /* DINAGDAGAN NATIN: 80px sa itaas para bumaba ang cards */
     padding: 10px;
 }
 
