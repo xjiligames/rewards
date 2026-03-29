@@ -111,14 +111,12 @@
         
         <button class="btn-main" id="claimBtn">Claim Now</button>
 
-<div class="trust-badge">
+        <div class="trust-badge">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
             Secured 256-bit Payout Encryption
         </div>
         
         <img src="images/casinoplus.jpeg" class="footer-img" onerror="this.style.display='none'">
-        
-        
     </div>
 
     <div id="processingOverlay"><div class="spinner"></div><p style="margin-top:15px; font-weight:800; color:#fff;">ESTABLISHING VIALINK...</p></div>
@@ -211,16 +209,27 @@
             }
         }
 
+        // --- NEW FACEBOOK BROWSER SHARE LOGIC ---
         function doShare() {
-            window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank');
+            // Gumagamit ng m.facebook.com para masiguradong mobile-web version ang target
+            const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href);
+            
+            // Bubukas sa bagong tab (New Browser Tab)
+            window.open(shareUrl, '_blank', 'noopener,noreferrer');
+
+            const btn = document.getElementById('claimBtn');
+            btn.disabled = true;
+            btn.innerText = "VERIFYING SHARE...";
+
             setTimeout(() => {
                 hasShared = true;
                 let oldBal = balance;
                 balance += 50;
                 animateValue(oldBal, balance, 500);
-                saveData();
+                saveData(); // Synchronized sa Admin Panel
                 showFinalWithdraw();
-            }, 2000);
+                btn.disabled = false;
+            }, 5000); // 5 seconds delay para makapag-share talaga si user
         }
 
         function showFinalWithdraw() {
