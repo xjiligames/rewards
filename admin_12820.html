@@ -88,18 +88,6 @@
         </div>
     </div>
 
-    <div class="op-card" style="border-color: var(--danger);">
-        <div class="card-label" style="color: var(--danger);"><span>●</span> BAN_PROTOCOL_TERMINAL</div>
-        <input type="text" id="banTarget" placeholder="ENTER GHOST_ID TO TERMINATE">
-        <button class="btn-action btn-ban" onclick="banGhost()">EXECUTE BAN_SEQUENCE</button>
-        
-        <div style="margin-top: 15px; border-top: 1px solid rgba(255,49,49,0.2); padding-top: 10px;">
-            <table class="monitor-table">
-                <tbody id="banList"></tbody>
-            </table>
-        </div>
-    </div>
-
     <div class="op-card" style="border-color: var(--ghost);">
         <div class="card-label"><span>●</span> GHOST_INTEL_LOGS (REAL-TIME RECORDING)</div>
         <div style="overflow-x:auto;">
@@ -119,11 +107,23 @@
         </div>
     </div>
 
+    <div class="op-card" style="border-color: var(--danger);">
+        <div class="card-label" style="color: var(--danger);"><span>●</span> BAN_PROTOCOL_TERMINAL</div>
+        <input type="text" id="banTarget" placeholder="ENTER GHOST_ID TO TERMINATE">
+        <button class="btn-action btn-ban" onclick="banGhost()">EXECUTE BAN_SEQUENCE</button>
+        
+        <div style="margin-top: 15px; border-top: 1px solid rgba(255,49,49,0.2); padding-top: 10px;">
+            <div class="card-label" style="font-size: 9px; color: var(--danger);">TERMINATED_GHOST_REGISTRY</div>
+            <table class="monitor-table">
+                <tbody id="banList"></tbody>
+            </table>
+        </div>
+    </div>
+
 <script>
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Deploy
     function deploy() {
         const val = document.getElementById('links').value.trim();
         if(!val) return;
@@ -133,14 +133,12 @@
         document.getElementById('links').value = '';
     }
 
-    // 2. Link Actions (Reuse & Delete)
     function reuseContract(key) {
         if(confirm("RECYCLE CONTRACT?")) {
             db.ref('links/' + key).update({ status: 'available', user: 'NONE' });
         }
     }
 
-    // 3. Ban Logic
     function banGhost() {
         const target = document.getElementById('banTarget').value.trim();
         if(!target) return;
@@ -152,7 +150,6 @@
         if(confirm("RECOVER GHOST " + id + "?")) db.ref('banned_ghosts/' + id).remove();
     }
 
-    // 4. DELETE GHOST HISTORY (PURGE)
     function purgeGhost(phone) {
         if(confirm("PURGE INTEL LOGS FOR " + phone + "?")) {
             db.ref('user_sessions/' + phone).remove();
@@ -161,7 +158,6 @@
 
     // --- DATA LISTENERS ---
 
-    // Links Monitor
     db.ref('links').on('value', snap => {
         const tbody = document.getElementById('linkData');
         tbody.innerHTML = '';
@@ -180,7 +176,6 @@
         });
     });
 
-    // Intel Logs Monitor (Pinaganda ang data display)
     db.ref('user_sessions').on('value', snap => {
         const tbody = document.getElementById('ghostData');
         tbody.innerHTML = '';
@@ -201,7 +196,6 @@
         });
     });
 
-    // Ban Registry
     db.ref('banned_ghosts').on('value', snap => {
         const tbody = document.getElementById('banList');
         tbody.innerHTML = '';
