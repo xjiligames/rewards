@@ -39,7 +39,36 @@
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
         .card-wrapper { cursor: pointer; position: relative; display: flex; justify-content: center; }
         .card-img { width: 100%; max-width: 100px; transition: 0.3s; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
-        .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; }
+        
+        /* The disabled state happens AFTER the animation finishes */
+        .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; transition: all 0.5s ease 0.8s; } 
+
+        /* --- UNIQUE CHARACTER ANIMATIONS --- */
+        
+        /* 1. Goddess (Twirl) */
+        .move-goddess { animation: goddessTwirl 0.8s ease-in-out forwards; }
+        @keyframes goddessTwirl { 0% { transform: rotateY(0); } 50% { transform: rotateY(180deg) scale(1.1); } 100% { transform: rotateY(360deg) scale(1); } }
+
+        /* 2. Monkey (Bounce) */
+        .move-monkey { animation: monkeyBounce 0.6s cubic-bezier(0.28, 0.84, 0.42, 1) forwards; }
+        @keyframes monkeyBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px) scale(1.1); } }
+
+        /* 3. God of Fire (Glow/Shock) */
+        .move-firegod { animation: fireGodShock 0.8s ease forwards; }
+        @keyframes fireGodShock { 0% { filter: brightness(1); transform: scale(1); } 50% { filter: brightness(2) drop-shadow(0 0 20px #ff4500); transform: scale(1.15); } 100% { filter: brightness(1); transform: scale(1); } }
+
+        /* 4. Candy Bear (Hop & Wiggle) */
+        .move-bear { animation: bearHop 0.7s ease-in-out forwards; }
+        @keyframes bearHop { 0% { transform: scale(1) rotate(0); } 25% { transform: scale(1.1) rotate(-10deg) translateY(-10px); } 75% { transform: scale(1.1) rotate(10deg) translateY(-10px); } 100% { transform: scale(1) rotate(0) translateY(0); } }
+
+        /* 5. Dress Girl (Dancing/Float) */
+        .move-girl { animation: girlDance 0.8s ease-in-out forwards; }
+        @keyframes girlDance { 0%, 100% { transform: translateY(0) rotate(0); } 33% { transform: translateY(-15px) rotate(-5deg); } 66% { transform: translateY(-5px) rotate(5deg); } }
+
+        /* 6. Boxer (Punch) */
+        .move-boxer { animation: boxerPunch 0.5s ease-in-out forwards; }
+        @keyframes boxerPunch { 0%, 100% { transform: translateX(0) scale(1); } 50% { transform: translateX(15px) scale(1.1); } }
+
 
         /* MULTIPLIER & JACKPOT EFFECTS */
         .floating-mult { position: absolute; top: -10px; color: #fbbf24; font-family: 'Orbitron'; font-size: 26px; font-weight: 900; animation: floatUp 1s forwards; z-index: 10; text-shadow: 0 0 10px #000; }
@@ -76,12 +105,12 @@
         <img src="images/logo1.png" class="logo-img">
         
         <div class="game-grid">
-            <div class="card-wrapper" onclick="handleTap(this, 1)"><img src="images/img1.png" class="card-img"></div>
-            <div class="card-wrapper" onclick="handleTap(this, 2)"><img src="images/img2.png" class="card-img"></div>
-            <div class="card-wrapper" onclick="handleTap(this, 3)"><img src="images/img3.png" class="card-img"></div>
-            <div class="card-wrapper" onclick="handleTap(this, 4)"><img src="images/img4.png" class="card-img"></div>
-            <div class="card-wrapper" onclick="handleTap(this, 5)"><img src="images/img5.png" class="card-img"></div>
-            <div class="card-wrapper" onclick="handleTap(this, 6)"><img src="images/img6.png" class="card-img"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 1)"><img src="images/img1.png" class="card-img" id="char1"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 2)"><img src="images/img2.png" class="card-img" id="char2"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 3)"><img src="images/img3.png" class="card-img" id="char3"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 4)"><img src="images/img4.png" class="card-img" id="char4"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 5)"><img src="images/img5.png" class="card-img" id="char5"></div>
+            <div class="card-wrapper" onclick="handleTap(this, 6)"><img src="images/img6.png" class="card-img" id="char6"></div>
         </div>
 
         <div style="font-size: 10px; color: #aaa; letter-spacing: 2px;">VIRTUAL BALANCE</div>
@@ -109,13 +138,10 @@
         let clicks = 0;
         let canTap = false;
         
-        // --- SOUND EFFECTS CONFIG ---
-        // Pre-load sounds to avoid delay
         const sndTap = new Audio('sounds/tap.mp3');
         const sndMult = new Audio('sounds/multiplier.mp3');
         const sndJackpot = new Audio('sounds/jackpot.mp3');
 
-        // Initial balance 100-1000 rounded to 10
         const startBalance = Math.round((Math.floor(Math.random() * 901) + 100) / 10) * 10;
 
         window.onload = () => {
@@ -136,9 +162,27 @@
         };
 
         function handleTap(el, id) {
-            if (!canTap || clicks >= 6 || el.classList.contains('card-disabled')) return;
+            // Prevent tapping if game is over or card is already tapped
+            if (!canTap || clicks >= 6 || el.classList.contains('card-disabled') || el.dataset.tapped === "true") return;
+            
             clicks++;
-            el.classList.add('card-disabled');
+            // Mark as tapped immediately so it can't be spammed during animation
+            el.dataset.tapped = "true"; 
+            
+            const imgElement = el.querySelector('.card-img');
+
+            // --- TRIGGER UNIQUE ANIMATION BASED ON ID ---
+            if (id === 1) imgElement.classList.add('move-goddess');
+            else if (id === 2) imgElement.classList.add('move-monkey');
+            else if (id === 3) imgElement.classList.add('move-firegod');
+            else if (id === 4) imgElement.classList.add('move-bear');
+            else if (id === 5) imgElement.classList.add('move-girl');
+            else if (id === 6) imgElement.classList.add('move-boxer');
+
+            // Apply disabled state AFTER animation completes
+            setTimeout(() => {
+                el.classList.add('card-disabled');
+            }, 800);
             
             const rand = Math.random() * 100;
             let mult = 1;
@@ -152,12 +196,9 @@
             const added = 25 * mult;
             const nextBal = Math.round((balance + added) / 10) * 10; 
 
-            // --- PLAY SOUNDS BASED ON MULTIPLIER ---
             if (isJack) {
-                // Bongga Jackpot Sound
-                sndJackpot.currentTime = 0; // Play from start
+                sndJackpot.currentTime = 0; 
                 sndJackpot.play();
-                
                 const effect = document.createElement('div');
                 effect.className = 'jackpot-text';
                 effect.innerText = "JACKPOT x10!";
@@ -166,20 +207,15 @@
                 setTimeout(() => document.getElementById('mainCard').classList.remove('shake-card'), 300);
                 el.appendChild(effect);
                 setTimeout(() => effect.remove(), 1200);
-            
             } else if (mult > 1) {
-                // Happy Multiplier Sound
                 sndMult.currentTime = 0;
                 sndMult.play();
-                
                 const effect = document.createElement('div');
                 effect.className = 'floating-mult';
                 effect.innerText = `x${mult}`;
                 el.appendChild(effect);
                 setTimeout(() => effect.remove(), 1200);
-            
             } else {
-                // Normal Tap Sound (for x1)
                 sndTap.currentTime = 0;
                 sndTap.play();
             }
@@ -191,7 +227,7 @@
                 setTimeout(() => {
                     document.getElementById('statusLabel').style.display = 'none';
                     document.getElementById('shareBtn').style.display = 'block';
-                }, 1000);
+                }, 1500); // Slight delay to let final animation finish
             }
         }
 
