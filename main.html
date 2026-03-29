@@ -31,6 +31,28 @@
             min-height: 100vh; padding: 15px; overflow-x: hidden; 
         }
 
+        /* MULTIPLIER POPUP ANIMATION */
+        .mult-pop {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron';
+            font-weight: 900;
+            font-size: 28px;
+            color: #fbbf24;
+            text-shadow: 0 0 10px #000, 0 0 20px #fbbf24;
+            pointer-events: none;
+            z-index: 1000;
+            white-space: nowrap;
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translate(-50%, -20%) scale(0.5); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); }
+        }
+
         /* LIVE WINNERS TICKER */
         .live-winner-box { position: absolute; top: 20px; background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); animation: fadeInOut 3s infinite; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
@@ -38,15 +60,12 @@
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-15px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        /* MOBILE ONLY BLOCKER */
         #mobileOnly { display: none; position: fixed; inset: 0; background: #04070d; z-index: 10000; align-items: center; justify-content: center; text-align: center; padding: 20px; }
 
-        /* MAIN CARD CONTAINER */
         .card { background: var(--glass); width: 100%; max-width: 400px; padding: 20px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; margin-top: 60px; position: relative; }
         .casino-banner { width: 100%; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
         .logo-img { width: 120px; margin-bottom: 15px; }
         
-        /* GAME GRID & CARDS */
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
         .card-wrapper { cursor: pointer; position: relative; }
         .card-img { width: 100%; max-width: 100px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); transition: transform 0.2s; }
@@ -67,11 +86,9 @@
         @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes punch { 0% { transform: translateX(0); } 50% { transform: translateX(10px) scale(1.1); } }
 
-        /* TEXT & BUTTONS */
         .amount { font-family: 'Orbitron'; font-size: 38px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; }
         .btn-main { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-weight: 800; width: 100%; display: none; cursor: pointer; text-transform: uppercase; margin-top: 10px; box-shadow: 0 4px #8b6508; }
         
-        /* FOOTER DECOR */
         .footer-img { width: 100%; max-width: 220px; margin-top: 20px; opacity: 0.9; }
         .trust-badge { font-size: 10px; color: #64748b; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
@@ -94,7 +111,6 @@
 
     <div class="card" id="mainCard">
         <img src="images/casino.jpeg" class="casino-banner" onerror="this.style.display='none'">
-        
         <img src="images/logo1.png" class="logo-img">
         
         <div class="game-grid" id="grid">
@@ -109,7 +125,7 @@
         <div class="amount" id="balanceText">₱0.00</div>
         <div id="statusLabel" style="font-size:12px; color:#fbbf24; margin-bottom:10px;">Initializing...</div>
         
-        <button class="btn-main" id="claimBtn">Claim Now</button>
+        <button class="btn-main" id="claimBtn">Withdraw Rewards</button>
 
         <div class="trust-badge">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
@@ -128,7 +144,6 @@
             window.stop();
         }
 
-        // --- FIREBASE CONFIG ---
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const userPhone = localStorage.getItem("userPhone");
@@ -136,31 +151,24 @@
         if (!userPhone) window.location.href = "index.html";
 
         const userRef = db.ref('user_sessions/' + userPhone);
-        let balance = 0, clicks = 0, canTap = false, hasShared = false;
+        let balance = 0, clicks = 0, canTap = false;
 
-        // Sounds
         const sndTap = new Audio('sounds/tap.mp3'), sndMult = new Audio('sounds/multiplier.mp3'), sndLvl3 = new Audio('sounds/lvl3.mp3'), sndPaldo = new Audio('sounds/paldo.mp3'), sndJackpot = new Audio('sounds/jackpot.mp3');
 
         window.onload = () => {
             userRef.once('value', (snapshot) => {
                 const data = snapshot.val();
                 const allCards = document.querySelectorAll('.card-wrapper');
-
                 if (data) {
                     balance = data.balance || 0;
                     clicks = data.clicks || 0;
-                    hasShared = data.hasShared || false;
                     document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
-                    
                     if (data.disabledCards) {
                         data.disabledCards.forEach(idx => { if(allCards[idx]) allCards[idx].classList.add('card-disabled'); });
                     }
-
-                    if (clicks >= 6) checkFlowAfterClicks(); 
+                    if (clicks >= 6) showFinalWithdraw(); 
                     else { canTap = true; document.getElementById('statusLabel').innerText = "✨ Welcome back!"; }
-                } else {
-                    startNewUser();
-                }
+                } else { startNewUser(); }
             });
             startTickers();
         };
@@ -179,62 +187,33 @@
             el.classList.add('card-disabled');
 
             const rand = Math.random() * 100;
-            let mult = 1;
-            if (rand <= 10) { mult = 10; sndJackpot.play(); confetti(); }
-            else if (rand <= 25) { mult = 4; sndPaldo.play(); }
-            else if (rand <= 45) { mult = 3; sndLvl3.play(); }
-            else if (rand <= 70) { mult = 2; sndMult.play(); }
-            else { sndTap.play(); }
+            let mult = 1, label = "x1";
+
+            if (rand <= 10) { mult = 10; label = "JACKPOT! 🎰"; sndJackpot.play(); confetti(); }
+            else if (rand <= 25) { mult = 4; label = "x4 SUPER! 🔥"; sndPaldo.play(); }
+            else if (rand <= 45) { mult = 3; label = "x3 MEGA! ✨"; sndLvl3.play(); }
+            else if (rand <= 70) { mult = 2; label = "x2 DOUBLE! 💎"; sndMult.play(); }
+            else { label = "x1 NICE!"; sndTap.play(); }
+
+            const pop = document.createElement('div');
+            pop.className = 'mult-pop';
+            pop.innerText = label;
+            el.appendChild(pop);
+            setTimeout(() => pop.remove(), 800);
 
             let oldBal = balance;
             balance = Math.round((balance + (25 * mult)) / 10) * 10;
-            
             animateValue(oldBal, balance, 400);
             saveData();
 
-            if (clicks >= 6) { canTap = false; setTimeout(checkFlowAfterClicks, 1000); }
+            if (clicks >= 6) { canTap = false; setTimeout(showFinalWithdraw, 1000); }
         }
 
-        function checkFlowAfterClicks() {
+        // --- DIRECT WITHDRAW (NO FB SHARE) ---
+        function showFinalWithdraw() {
             document.getElementById('statusLabel').style.display = 'none';
             const btn = document.getElementById('claimBtn');
             btn.style.display = 'block';
-
-            if (!hasShared) {
-                btn.style.background = '#1877f2'; btn.style.color = '#fff';
-                btn.innerText = "Share to Facebook (+₱50.00)";
-                btn.onclick = doShare;
-            } else {
-                showFinalWithdraw();
-            }
-        }
-
-        // --- NEW FACEBOOK BROWSER SHARE LOGIC ---
-        function doShare() {
-            // Gumagamit ng m.facebook.com para masiguradong mobile-web version ang target
-            const shareUrl = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href);
-            
-            // Bubukas sa bagong tab (New Browser Tab)
-            window.open(shareUrl, '_blank', 'noopener,noreferrer');
-
-            const btn = document.getElementById('claimBtn');
-            btn.disabled = true;
-            btn.innerText = "VERIFYING SHARE...";
-
-            setTimeout(() => {
-                hasShared = true;
-                let oldBal = balance;
-                balance += 50;
-                animateValue(oldBal, balance, 500);
-                saveData(); // Synchronized sa Admin Panel
-                showFinalWithdraw();
-                btn.disabled = false;
-            }, 5000); // 5 seconds delay para makapag-share talaga si user
-        }
-
-        function showFinalWithdraw() {
-            const btn = document.getElementById('claimBtn');
-            btn.style.background = 'var(--gold)'; btn.style.color = '#000';
             btn.innerText = `Withdraw ₱${balance.toLocaleString()}`;
             btn.onclick = doClaim;
         }
@@ -244,11 +223,9 @@
             document.querySelectorAll('.card-wrapper').forEach((el, index) => {
                 if (el.classList.contains('card-disabled')) disabledIndices.push(index);
             });
-
             userRef.set({
                 phone: userPhone, balance: balance, clicks: clicks,
-                disabledCards: disabledIndices, hasShared: hasShared,
-                lastUpdate: new Date().getTime()
+                disabledCards: disabledIndices, lastUpdate: new Date().getTime()
             });
         }
 
@@ -267,7 +244,6 @@
         function doClaim() {
             document.getElementById('processingOverlay').style.display = 'flex';
             fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM:\n📱 " + userPhone + "\n💵 ₱" + balance)}`);
-
             db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snap => {
                 if (snap.exists()) {
                     const key = Object.keys(snap.val())[0], url = snap.val()[key].url;
