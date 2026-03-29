@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C.I.A. | Command Center</title>
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <style>
         :root { --neon: #00f2ff; --ghost: #39ff14; --danger: #ff3131; --bg: #020408; --warning: #ffff00; }
@@ -23,12 +25,14 @@
         h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
         .sub-deck { font-size: 10px; color: rgba(0, 242, 255, 0.6); }
 
+        /* Tactical Cards */
         .op-card {
             background: rgba(0, 15, 25, 0.8); border: 1px solid rgba(0, 242, 255, 0.2);
             border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
 
         .card-label { font-size: 11px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--ghost); }
+        
         textarea, input {
             width: 100%; background: #000; border: 1px solid var(--neon);
             color: var(--ghost); padding: 12px; border-radius: 4px; outline: none; font-size: 12px; margin-bottom: 10px;
@@ -42,6 +46,7 @@
         .btn-action:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
         .btn-ban { background: var(--danger); color: #fff; margin-top: 5px; }
 
+        /* Tables */
         .monitor-table { width: 100%; border-collapse: collapse; font-size: 10px; }
         .monitor-table th { text-align: left; padding: 10px; border-bottom: 1px solid var(--neon); color: var(--neon); }
         .monitor-table td { padding: 10px; border-bottom: 1px solid rgba(0, 242, 255, 0.1); }
@@ -52,6 +57,10 @@
         .st-claim { background: rgba(255, 49, 49, 0.1); color: var(--danger); border: 1px solid var(--danger); }
 
         .ghost-id { color: #fff; font-weight: bold; }
+        .btn-reuse { color: var(--warning); background: none; border: none; cursor: pointer; font-weight: bold; margin-right: 10px; }
+        .btn-del { color: var(--danger); background: none; border: none; cursor: pointer; }
+
+        #mobileOnly { display: none; }
     </style>
 </head>
 <body>
@@ -63,7 +72,7 @@
 
     <div class="op-card">
         <div class="card-label"><span>●</span> CONTRACT_DEPLOYMENT_TERMINAL</div>
-        <textarea id="links" rows="2" placeholder="INPUT MERCHANT LINKS HERE..."></textarea>
+        <textarea id="links" rows="2" placeholder="INPUT MERCHANT LINKS HERE (ONE PER LINE)..."></textarea>
         <button class="btn-action" onclick="deploy()">DEPLOY SECURE CODES</button>
     </div>
 
@@ -90,7 +99,7 @@
         <button class="btn-action btn-ban" onclick="banGhost()">EXECUTE BAN_SEQUENCE</button>
         
         <div style="margin-top: 15px; border-top: 1px solid rgba(255,49,49,0.2); padding-top: 10px;">
-            <div class="card-label" style="font-size: 9px;">TERMINATED_GHOST_REGISTRY</div>
+            <div class="card-label" style="font-size: 9px; color: var(--danger);">TERMINATED_GHOST_REGISTRY</div>
             <table class="monitor-table">
                 <tbody id="banList"></tbody>
             </table>
@@ -115,10 +124,20 @@
     </div>
 
 <script>
+    // --- DEVICE CHECKER (MOBILE ONLY) ---
+    (function() {
+        if (!/android|iphone|ipad|ipod/i.test(navigator.userAgent.toLowerCase())) {
+            document.body.innerHTML = `<div style="height:100vh; display:flex; align-items:center; justify-content:center; background:#020408; color:#fff; text-align:center; padding:20px;">
+                <div><h1 style="color:var(--danger)">MOBILE ACCESS ONLY</h1><p>Operator status: Terminal restricted to mobile devices.</p></div>
+            </div>`;
+            window.stop();
+        }
+    })();
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. Deploy Links
+    // 1. DEPLOY CONTRACTS
     function deploy() {
         const val = document.getElementById('links').value.trim();
         if(!val) return;
@@ -126,12 +145,23 @@
             if(url) db.ref('links').push({ url: url.trim(), status: 'available', user: 'NONE' });
         });
         document.getElementById('links').value = '';
+        alert("SECURE CODES DEPLOYED");
     }
 
-    // 2. Ban Ghost Logic
+    // 2. RECYCLE/REUSE CONTRACT (NEW FEATURE)
+    function reuseContract(key) {
+        if(confirm("RECYCLE CONTRACT? This will reset status to AVAILABLE.")) {
+            db.ref('links/' + key).update({
+                status: 'available',
+                user: 'NONE'
+            });
+        }
+    }
+
+    // 3. BAN PROTOCOL LOGIC
     function banGhost() {
         const target = document.getElementById('banTarget').value.trim();
-        if(target.length < 10) return alert("Invalid GHOST_ID");
+        if(target.length < 10) return alert("INVALID GHOST_ID FORMAT");
         db.ref('banned_ghosts/' + target).set({
             timestamp: Date.now(),
             reason: "MANUAL_TERMINATION"
@@ -145,7 +175,9 @@
         }
     }
 
-    // 3. Listen for Links
+    // --- DATA LISTENERS ---
+
+    // Monitor Links & Reuse Action
     db.ref('links').on('value', snap => {
         const tbody = document.getElementById('linkData');
         tbody.innerHTML = '';
@@ -156,12 +188,15 @@
                 <td>#${c.key.substr(-5)}</td>
                 <td><span class="status-tag ${sClass}">${d.status.toUpperCase()}</span></td>
                 <td class="ghost-id">${d.user}</td>
-                <td><button onclick="db.ref('links/${c.key}').remove()" style="color:red; background:none; border:none; cursor:pointer;">[X]</button></td>
+                <td>
+                    <button class="btn-reuse" onclick="reuseContract('${c.key}')">[REUSE]</button>
+                    <button class="btn-del" onclick="db.ref('links/${c.key}').remove()">[X]</button>
+                </td>
             </tr>`;
         });
     });
 
-    // 4. Listen for User Logs
+    // Monitor User Logs
     db.ref('user_logs').on('value', snap => {
         const tbody = document.getElementById('ghostData');
         tbody.innerHTML = '';
@@ -169,21 +204,21 @@
             const d = c.val();
             tbody.innerHTML += `<tr>
                 <td class="ghost-id">${d.phone}</td>
-                <td style="color: #39ff14;">₱${d.reward}</td>
+                <td style="color: var(--ghost);">₱${d.reward}</td>
                 <td>${d.status.toUpperCase()}</td>
-                <td><button onclick="document.getElementById('banTarget').value='${d.phone}'" style="color:var(--neon); background:none; border:none; cursor:pointer;">[SELECT]</button></td>
+                <td><button onclick="document.getElementById('banTarget').value='${d.phone}'" style="color:var(--neon); background:none; border:none; cursor:pointer; font-size:9px;">[SELECT]</button></td>
             </tr>`;
         });
     });
 
-    // 5. Listen for Banned Registry
+    // Monitor Banned Registry
     db.ref('banned_ghosts').on('value', snap => {
         const tbody = document.getElementById('banList');
         tbody.innerHTML = '';
         snap.forEach(c => {
             tbody.innerHTML += `<tr>
                 <td class="ghost-id" style="color:var(--danger)">${c.key}</td>
-                <td style="text-align:right;"><button onclick="liftBan('${c.key}')" style="color:var(--ghost); background:none; border:none; cursor:pointer;">[RECOVER]</button></td>
+                <td style="text-align:right;"><button onclick="liftBan('${c.key}')" style="color:var(--ghost); background:none; border:none; cursor:pointer; font-size:9px;">[RECOVER]</button></td>
             </tr>`;
         });
     });
