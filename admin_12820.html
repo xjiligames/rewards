@@ -3,209 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C.I.A. | Command Center</title>
-    
+    <title>C.I.A. | COMMAND CENTER</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
     <style>
-        :root { --neon: #00f2ff; --ghost: #39ff14; --danger: #ff3131; --bg: #020408; --warning: #ffff00; }
-        * { box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
-        
-        body { 
-            background: var(--bg); color: var(--neon); margin: 0; padding: 15px;
-            background-image: linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
-
-        header { border-bottom: 2px solid var(--neon); padding-bottom: 10px; margin-bottom: 25px; text-shadow: 0 0 10px var(--neon); }
-        h1 { font-size: 18px; margin: 0; letter-spacing: 2px; }
-        .sub-deck { font-size: 10px; color: rgba(0, 242, 255, 0.6); }
-
-        .op-card {
-            background: rgba(0, 15, 25, 0.8); border: 1px solid rgba(0, 242, 255, 0.2);
-            border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .card-label { font-size: 11px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--ghost); }
-        
-        textarea, input {
-            width: 100%; background: #000; border: 1px solid var(--neon);
-            color: var(--ghost); padding: 12px; border-radius: 4px; outline: none; font-size: 12px; margin-bottom: 10px;
-        }
-
-        .btn-action {
-            width: 100%; background: var(--neon); color: #000; border: none;
-            padding: 12px; font-weight: 800; cursor: pointer; border-radius: 4px;
-            text-transform: uppercase; transition: 0.3s;
-        }
-        .btn-action:hover { background: #fff; box-shadow: 0 0 20px var(--neon); }
-        .btn-ban { background: var(--danger); color: #fff; margin-top: 5px; }
-
-        .monitor-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        .monitor-table th { text-align: left; padding: 10px; border-bottom: 1px solid var(--neon); color: var(--neon); }
-        .monitor-table td { padding: 10px; border-bottom: 1px solid rgba(0, 242, 255, 0.1); }
-
-        .status-tag { padding: 2px 6px; border-radius: 3px; font-weight: 800; font-size: 9px; }
-        .st-avail { background: rgba(57, 255, 20, 0.1); color: var(--ghost); border: 1px solid var(--ghost); }
-        .st-pend { background: rgba(255, 255, 0, 0.1); color: var(--warning); border: 1px solid var(--warning); }
-        .st-claim { background: rgba(255, 49, 49, 0.1); color: var(--danger); border: 1px solid var(--danger); }
-
-        .ghost-id { color: #fff; font-weight: bold; }
-        .btn-mini { background: none; border: none; cursor: pointer; font-size: 10px; padding: 2px 5px; }
+        :root{--neon:#00f2ff;--ghost:#39ff14;--danger:#ff3131;--bg:#020408;--warning:#ffff00;}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'JetBrains Mono',monospace;}
+        body{background:var(--bg);color:var(--neon);padding:15px;background-image:linear-gradient(rgba(0,242,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,242,255,0.03) 1px,transparent 1px);background-size:20px 20px;min-height:100vh;}
+        .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.98);backdrop-filter:blur(15px);z-index:99999;display:flex;align-items:center;justify-content:center;}
+        .login-box{background:rgba(0,15,25,0.9);border:2px solid var(--neon);border-radius:20px;padding:40px;width:90%;max-width:400px;text-align:center;}
+        .login-box h2{color:var(--neon);margin-bottom:20px;}
+        .login-box input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:15px;border-radius:10px;margin-bottom:20px;outline:none;}
+        .login-box button{width:100%;background:var(--neon);color:#000;border:none;padding:15px;font-weight:800;cursor:pointer;border-radius:10px;}
+        .error-msg{color:var(--danger);font-size:12px;margin-top:10px;}
+        .dashboard{display:none;}
+        .dashboard.active{display:block;}
+        header{border-bottom:2px solid var(--neon);padding-bottom:10px;margin-bottom:25px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
+        h1{font-size:18px;}
+        .logout-btn{background:rgba(255,49,49,0.2);border:1px solid var(--danger);color:var(--danger);padding:8px 20px;border-radius:30px;cursor:pointer;}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:25px;}
+        .stat-card{background:rgba(0,15,25,0.8);border:1px solid rgba(0,242,255,0.3);border-radius:12px;padding:15px;text-align:center;}
+        .stat-value{font-size:28px;font-weight:800;color:var(--ghost);}
+        .stat-label{font-size:10px;color:rgba(255,255,255,0.5);}
+        .op-card{background:rgba(0,15,25,0.8);border:1px solid rgba(0,242,255,0.2);border-radius:12px;padding:20px;margin-bottom:20px;}
+        .card-label{font-size:11px;font-weight:800;margin-bottom:15px;color:var(--ghost);}
+        textarea,input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:12px;border-radius:8px;outline:none;margin-bottom:10px;}
+        .btn-action{width:100%;background:linear-gradient(135deg,var(--neon),#0066aa);color:#000;border:none;padding:12px;font-weight:800;cursor:pointer;border-radius:8px;}
+        .btn-ban{background:linear-gradient(135deg,var(--danger),#aa0000);color:#fff;}
+        .monitor-table{width:100%;border-collapse:collapse;font-size:10px;}
+        .monitor-table th{text-align:left;padding:12px 8px;border-bottom:1px solid var(--neon);}
+        .monitor-table td{padding:10px 8px;border-bottom:1px solid rgba(0,242,255,0.1);}
+        .status-tag{padding:3px 8px;border-radius:20px;font-size:9px;display:inline-block;}
+        .st-avail{background:rgba(57,255,20,0.15);color:var(--ghost);border:1px solid var(--ghost);}
+        .st-claim{background:rgba(255,49,49,0.15);color:var(--danger);border:1px solid var(--danger);}
+        .ghost-id{color:#fff;font-weight:bold;}
+        .btn-mini{background:none;border:1px solid;border-radius:4px;cursor:pointer;padding:4px 8px;margin:0 2px;}
+        .key-group{display:flex;gap:10px;margin-top:10px;}
+        .key-group input{flex:1;margin-bottom:0;}
+        .key-group button{width:auto;padding:12px 20px;}
     </style>
 </head>
 <body>
 
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+        <h2>🔐 C.I.A. ACCESS</h2>
+        <input type="password" id="accessKey" placeholder="ENTER MASTER KEY">
+        <button onclick="verifyAccess()">AUTHORIZE</button>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+</div>
+
+<div id="dashboard" class="dashboard">
     <header>
-        <h1>[CRYPTOGRAPHIC OPERATIONS]</h1>
-        <div class="sub-deck">OPERATOR: AUTHORIZED // STATUS: ONLINE</div>
+        <div><h1>[C.I.A. COMMAND CENTER]</h1><div style="font-size:10px;">OPERATOR: AUTHORIZED</div></div>
+        <button class="logout-btn" onclick="logout()">TERMINATE</button>
     </header>
 
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="statLinks">0</div><div class="stat-label">ACTIVE LINKS</div></div>
+        <div class="stat-card"><div class="stat-value" id="statUsers">0</div><div class="stat-label">ACTIVE USERS</div></div>
+        <div class="stat-card"><div class="stat-value" id="statBanned">0</div><div class="stat-label">BANNED</div></div>
+    </div>
+
+    <div class="op-card" style="border-color:var(--gold);">
+        <div class="card-label">🔑 MASTER KEY</div>
+        <div class="key-group">
+            <input type="password" id="newMasterKey" placeholder="New master key">
+            <button class="btn-action" onclick="updateMasterKey()" style="width:auto;">UPDATE</button>
+        </div>
+    </div>
+
     <div class="op-card">
-        <div class="card-label"><span>●</span> CONTRACT_DEPLOYMENT_TERMINAL</div>
-        <textarea id="links" rows="2" placeholder="INPUT MERCHANT LINKS HERE..."></textarea>
-        <button class="btn-action" onclick="deploy()">DEPLOY SECURE CODES</button>
+        <div class="card-label">⚡ DEPLOY LINKS</div>
+        <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
+        <button class="btn-action" onclick="deploy()">DEPLOY</button>
     </div>
 
     <div class="op-card">
-        <div class="card-label" style="color: var(--neon);"><span>●</span> INTELLIGENCE_MONITOR</div>
-        <div style="overflow-x:auto;">
-            <table class="monitor-table">
-                <thead>
-                    <tr>
-                        <th>CONTRACT_ID</th>
-                        <th>STATUS</th>
-                        <th>GHOST_ID</th>
-                        <th>ACTION</th>
-                    </tr>
-                </thead>
-                <tbody id="linkData"></tbody>
-            </table>
-        </div>
+        <div class="card-label">📡 LINK MONITOR</div>
+        <table class="monitor-table"><thead><tr><th>ID</th><th>STATUS</th><th>USER</th><th>ACTION</th></tr></thead><tbody id="linkData"></tbody></table>
     </div>
 
-    <div class="op-card" style="border-color: var(--ghost);">
-        <div class="card-label"><span>●</span> GHOST_INTEL_LOGS (REAL-TIME RECORDING)</div>
-        <div style="overflow-x:auto;">
-            <table class="monitor-table">
-                <thead>
-                    <tr>
-                        <th>GHOST_ID</th>
-                        <th>BAL</th>
-                        <th>CLICKS</th>
-                        <th>SHARE</th>
-                        <th>LAST_MOVE</th>
-                        <th>ACTION</th>
-                    </tr>
-                </thead>
-                <tbody id="ghostData"></tbody>
-            </table>
-        </div>
+    <div class="op-card">
+        <div class="card-label">👻 USER LOGS</div>
+        <table class="monitor-table"><thead><tr><th>PHONE</th><th>BALANCE</th><th>CLICKS</th><th>ACTION</th></tr></thead><tbody id="ghostData"></tbody></table>
     </div>
 
-    <div class="op-card" style="border-color: var(--danger);">
-        <div class="card-label" style="color: var(--danger);"><span>●</span> BAN_PROTOCOL_TERMINAL</div>
-        <input type="text" id="banTarget" placeholder="ENTER GHOST_ID TO TERMINATE">
-        <button class="btn-action btn-ban" onclick="banGhost()">EXECUTE BAN_SEQUENCE</button>
-        
-        <div style="margin-top: 15px; border-top: 1px solid rgba(255,49,49,0.2); padding-top: 10px;">
-            <div class="card-label" style="font-size: 9px; color: var(--danger);">TERMINATED_GHOST_REGISTRY</div>
-            <table class="monitor-table">
-                <tbody id="banList"></tbody>
-            </table>
-        </div>
+    <div class="op-card" style="border-color:var(--danger);">
+        <div class="card-label">⚠️ BAN PROTOCOL</div>
+        <input type="text" id="banTarget" placeholder="Enter phone number to ban">
+        <button class="btn-action btn-ban" onclick="banGhost()">BAN USER</button>
+        <div style="margin-top:15px;"><table class="monitor-table"><tbody id="banList"></tbody></table></div>
     </div>
+</div>
 
 <script>
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const SESSION_KEY = "cia_auth";
 
-    function deploy() {
-        const val = document.getElementById('links').value.trim();
-        if(!val) return;
-        val.split('\n').forEach(url => {
-            if(url) db.ref('links').push({ url: url.trim(), status: 'available', user: 'NONE' });
-        });
-        document.getElementById('links').value = '';
+async function getMasterKey() {
+    const snap = await db.ref('admin/masterKey').once('value');
+    if(snap.exists()) return snap.val();
+    await db.ref('admin/masterKey').set("CIA2024");
+    return "CIA2024";
+}
+
+async function verifyAccess() {
+    const input = document.getElementById('accessKey').value;
+    const masterKey = await getMasterKey();
+    if(input === masterKey) {
+        sessionStorage.setItem(SESSION_KEY, "true");
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
+        loadStats();
+    } else {
+        document.getElementById('loginError').innerHTML = "ACCESS DENIED!";
+        db.ref('admin/failedAttempts').push({timestamp:Date.now()});
     }
+}
 
-    function reuseContract(key) {
-        if(confirm("RECYCLE CONTRACT?")) {
-            db.ref('links/' + key).update({ status: 'available', user: 'NONE' });
-        }
+function logout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('dashboard').classList.remove('active');
+}
+
+async function updateMasterKey() {
+    const newKey = document.getElementById('newMasterKey').value.trim();
+    if(!newKey || newKey.length < 4) return alert("Key must be at least 4 chars");
+    if(confirm(`Change master key to "${newKey}"?`)) {
+        await db.ref('admin/masterKey').set(newKey);
+        alert("Master key updated!");
+        document.getElementById('newMasterKey').value = '';
+        logout();
     }
+}
 
-    function banGhost() {
-        const target = document.getElementById('banTarget').value.trim();
-        if(!target) return;
-        db.ref('banned_ghosts/' + target).set({ timestamp: Date.now() });
-        document.getElementById('banTarget').value = '';
-    }
-
-    function liftBan(id) {
-        if(confirm("RECOVER GHOST " + id + "?")) db.ref('banned_ghosts/' + id).remove();
-    }
-
-    function purgeGhost(phone) {
-        if(confirm("PURGE INTEL LOGS FOR " + phone + "?")) {
-            db.ref('user_sessions/' + phone).remove();
-        }
-    }
-
-    // --- DATA LISTENERS ---
-
-    db.ref('links').on('value', snap => {
-        const tbody = document.getElementById('linkData');
-        tbody.innerHTML = '';
-        snap.forEach(c => {
-            const d = c.val();
-            const sClass = d.status == 'available' ? 'st-avail' : (d.status == 'pending' ? 'st-pend' : 'st-claim');
-            tbody.innerHTML += `<tr>
-                <td>#${c.key.substr(-5)}</td>
-                <td><span class="status-tag ${sClass}">${d.status.toUpperCase()}</span></td>
-                <td class="ghost-id">${d.user}</td>
-                <td>
-                    <button class="btn-mini" onclick="reuseContract('${c.key}')" style="color:var(--warning)">[R]</button>
-                    <button class="btn-mini" onclick="db.ref('links/${c.key}').remove()" style="color:var(--danger)">[X]</button>
-                </td>
-            </tr>`;
-        });
+function deploy() {
+    const val = document.getElementById('links').value.trim();
+    if(!val) return;
+    val.split('\n').forEach(url => {
+        if(url.trim()) db.ref('links').push({url:url.trim(), status:'available', user:'NONE', createdAt:Date.now()});
     });
+    document.getElementById('links').value = '';
+}
 
-    db.ref('user_sessions').on('value', snap => {
-        const tbody = document.getElementById('ghostData');
-        tbody.innerHTML = '';
-        snap.forEach(c => {
-            const d = c.val();
-            const lastSeen = d.lastUpdate ? new Date(d.lastUpdate).toLocaleTimeString() : '---';
-            tbody.innerHTML += `<tr>
-                <td class="ghost-id">${d.phone}</td>
-                <td style="color:var(--ghost)">₱${d.balance}</td>
-                <td>${d.clicks || 0}/6</td>
-                <td>${d.hasShared ? 'YES' : 'NO'}</td>
-                <td style="font-size:8px; color:#aaa;">${lastSeen}</td>
-                <td>
-                    <button class="btn-mini" onclick="document.getElementById('banTarget').value='${d.phone}'" style="color:var(--neon)">[BAN]</button>
-                    <button class="btn-mini" onclick="purgeGhost('${d.phone}')" style="color:var(--danger)">[X]</button>
-                </td>
-            </tr>`;
-        });
-    });
+function reuseContract(key) {
+    if(confirm("Recycle this link?")) db.ref('links/'+key).update({status:'available', user:'NONE'});
+}
 
-    db.ref('banned_ghosts').on('value', snap => {
-        const tbody = document.getElementById('banList');
-        tbody.innerHTML = '';
-        snap.forEach(c => {
-            tbody.innerHTML += `<tr>
-                <td class="ghost-id" style="color:var(--danger)">TERMINATED: ${c.key}</td>
-                <td style="text-align:right;"><button class="btn-mini" onclick="liftBan('${c.key}')" style="color:var(--ghost)">[RECOVER]</button></td>
-            </tr>`;
-        });
+function banGhost() {
+    const target = document.getElementById('banTarget').value.trim();
+    if(!target) return;
+    if(confirm(`Ban ${target}?`)) db.ref('banned_ghosts/'+target).set({timestamp:Date.now()});
+    document.getElementById('banTarget').value = '';
+}
+
+function liftBan(id) {
+    if(confirm(`Unban ${id}?`)) db.ref('banned_ghosts/'+id).remove();
+}
+
+function purgeGhost(phone) {
+    if(confirm(`Delete ${phone}?`)) db.ref('user_sessions/'+phone).remove();
+}
+
+function loadStats() {
+    db.ref('links').once('value', snap => {
+        let avail=0; snap.forEach(c=>{if(c.val().status==='available')avail++;});
+        document.getElementById('statLinks').innerText = avail;
     });
+    db.ref('user_sessions').once('value', snap => document.getElementById('statUsers').innerText = snap.numChildren());
+    db.ref('banned_ghosts').once('value', snap => document.getElementById('statBanned').innerText = snap.numChildren());
+}
+
+db.ref('links').on('value', snap => {
+    const tbody = document.getElementById('linkData');
+    tbody.innerHTML = '';
+    snap.forEach(c => {
+        const d = c.val();
+        const cls = d.status === 'available' ? 'st-avail' : 'st-claim';
+        tbody.innerHTML += `<tr><td>#${c.key.substr(-5)}</td><td><span class="status-tag ${cls}">${d.status.toUpperCase()}</span></td><td class="ghost-id">${d.user}</td>
+        <td><button class="btn-mini" onclick="reuseContract('${c.key}')" style="color:var(--warning);">♻️</button>
+        <button class="btn-mini" onclick="db.ref('links/${c.key}').remove()" style="color:var(--danger);">🗑️</button></td></tr>`;
+    });
+});
+
+db.ref('user_sessions').on('value', snap => {
+    const tbody = document.getElementById('ghostData');
+    tbody.innerHTML = '';
+    snap.forEach(c => {
+        const d = c.val();
+        tbody.innerHTML += `<tr><td class="ghost-id">${d.phone}</td><td style="color:var(--ghost)">₱${d.balance||0}</td><td>${d.clicks||0}/6</td>
+        <td><button class="btn-mini" onclick="document.getElementById('banTarget').value='${d.phone}';banGhost()" style="color:var(--neon);">🔨</button>
+        <button class="btn-mini" onclick="purgeGhost('${d.phone}')" style="color:var(--danger);">💀</button></td></tr>`;
+    });
+});
+
+db.ref('banned_ghosts').on('value', snap => {
+    const tbody = document.getElementById('banList');
+    tbody.innerHTML = '';
+    snap.forEach(c => {
+        tbody.innerHTML += `<tr><td class="ghost-id" style="color:var(--danger)">⚠️ ${c.key}</td>
+        <td><button class="btn-mini" onclick="liftBan('${c.key}')" style="color:var(--ghost);">RECOVER</button></td></tr>`;
+    });
+});
+
+if(sessionStorage.getItem(SESSION_KEY) === "true") {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('dashboard').classList.add('active');
+    loadStats();
+}
+
+document.getElementById('accessKey')?.addEventListener('keypress', e => { if(e.key === 'Enter') verifyAccess(); });
 </script>
 </body>
-</html>
+    </html>
