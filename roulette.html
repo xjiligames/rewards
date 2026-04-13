@@ -65,51 +65,355 @@
 <div id="winPopup" class="popup-overlay"><div class="popup-card"><h2 id="popupTitle">🎉 WINNER!</h2><p id="popupPrize">₱0</p><p id="popupNet"></p><button class="popup-close" onclick="closePopup()">CLAIM</button></div></div>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
-// ========== CONFIG ==========
-const PRIZE_POOL = [{value:1000,chance:25},{value:500,chance:35},{value:250,chance:40},{value:100,chance:50},{value:50,chance:60},{value:75,chance:60},{value:30,chance:60},{value:20,chance:60},{value:15,chance:60},{value:10,chance:60},{value:5,chance:60}];
-function getRandomPrize(){let r=Math.random()*100;for(let p of PRIZE_POOL)if(r<=p.chance)return p.value;return 50;}
-let PRIZES=[];for(let i=0;i<21;i++)PRIZES.push(getRandomPrize());
-const SEGMENT_COUNT=21,ANGLE_PER_SEG=(Math.PI*2)/SEGMENT_COUNT;
-let canvas=document.getElementById('rouletteCanvas'),ctx=canvas.getContext('2d');
-canvas.width=canvas.height=380;
-let currentRotation=0,spinning=false,animationId=null,jackpotHit=false;
-let mainBalance=0,spinCount=0,currentStake=0,freeSpinAvailable=true;
-const balanceSpan=document.getElementById('balanceAmount'),spinCountSpan=document.getElementById('spinCount');
-const currentStakeSpan=document.getElementById('currentStake'),stakeInfoSpan=document.getElementById('stakeInfo');
-const spinBtn=document.getElementById('spinBtn'),resultMsg=document.getElementById('resultMessage');
-const jackpotLockedDiv=document.getElementById('jackpotLockedMsg');
 
-function calculateStake(s){if(s===1)return 0;if(s>=6)return 100;return [25,50,75,100][s-2];}
-function getNextStake(s){return calculateStake(s+1);}
+const PRIZE_POOL = [
+    {value:1000, chance:25},
+    {value:500, chance:35},
+    {value:250, chance:40},
+    {value:100, chance:50},
+    {value:50, chance:60},
+    {value:75, chance:60},
+    {value:30, chance:60},
+    {value:20, chance:60},
+    {value:15, chance:60},
+    {value:10, chance:60},
+    {value:5, chance:60}
+];
 
-function syncBalanceFromMain(){try{if(window.parent&&window.parent.getCurrentBalance)mainBalance=window.parent.getCurrentBalance();else if(window.getCurrentBalance)mainBalance=window.getCurrentBalance();else{let s=localStorage.getItem('userBalance');mainBalance=s?parseInt(s):1000;}}catch(e){let s=localStorage.getItem('userBalance');mainBalance=s?parseInt(s):1000;}balanceSpan.innerHTML=`₱${mainBalance.toLocaleString()}`;return mainBalance;}
-function updateMainBalance(n){mainBalance=n;try{if(window.parent&&window.parent.updateGameBalance)window.parent.updateGameBalance(mainBalance);else if(window.updateGameBalance)window.updateGameBalance(mainBalance);window.parent.postMessage({type:'BALANCE_UPDATE',balance:mainBalance},'*');}catch(e){}localStorage.setItem('userBalance',mainBalance);balanceSpan.innerHTML=`₱${mainBalance.toLocaleString()}`;}
+function getRandomPrize() {
+    var r = Math.random() * 100;
+    for(var i = 0; i < PRIZE_POOL.length; i++) {
+        if(r <= PRIZE_POOL[i].chance) {
+            return PRIZE_POOL[i].value;
+        }
+    }
+    return 50;
+}
 
-function deductStake(){if(jackpotHit){resultMsg.innerHTML="🏆 JACKPOT HIT! Game over! 🏆";return false;}if(freeSpinAvailable){freeSpinAvailable=false;resultMsg.innerHTML="🎁 FREE SPIN!";return true;}if(mainBalance>=currentStake){mainBalance-=currentStake;updateMainBalance(mainBalance);return true;}else{resultMsg.innerHTML=`❌ Need ₱${currentStake} ❌`;return false;}}
-function calculateNetWin(r){if(currentStake===0)return r;return Math.floor(r*(currentStake/25));}
+var PRIZES = [];
+for(var i = 0; i < 21; i++) {
+    PRIZES.push(getRandomPrize());
+}
 
-function updateStakeDisplay(){if(jackpotHit){spinBtn.disabled=true;spinBtn.innerHTML="🏆 GAME OVER 🏆";return;}let n=spinCount+1;if(spinCount===0){currentStakeSpan.innerHTML="🎁 FREE!";spinBtn.innerHTML="🎰 FREE SPIN! 🎰";stakeInfoSpan.innerHTML="✨ 1st spin FREE! ✨";}else{currentStakeSpan.innerHTML=`₱${currentStake}`;spinBtn.innerHTML=`🎰 SPIN (₱${currentStake}) 🎰`;let ns=getNextStake(spinCount);stakeInfoSpan.innerHTML=ns===0?"⬆️ Next: FREE! ⬆️":`⬆️ Next: ₱${ns} ⬆️`;}}
-function updateSpinCounter(){spinCountSpan.innerHTML=spinCount;}
+var SEGMENT_COUNT = 21;
+var ANGLE_PER_SEG = (Math.PI * 2) / SEGMENT_COUNT;
 
-function drawWheel(r){ctx.clearRect(0,0,380,380);let cx=190,cy=190,rad=180;for(let i=0;i<SEGMENT_COUNT;i++){let sa=i*ANGLE_PER_SEG+r,ea=(i+1)*ANGLE_PER_SEG+r;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,rad,sa,ea);if(PRIZES[i]===1000)ctx.fillStyle='#ff4444';else if(PRIZES[i]===500)ctx.fillStyle='#ff8800';else if(PRIZES[i]===250)ctx.fillStyle='#aa66ff';else ctx.fillStyle=['#e6b800','#cc3300','#2a6b2a','#1e3a8a'][i%4];ctx.fill();ctx.strokeStyle='#ffd700';ctx.stroke();ctx.save();ctx.translate(cx,cy);ctx.rotate(sa+ANGLE_PER_SEG/2);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 13px 'Orbitron'";ctx.fillStyle="#fff";ctx.fillText(`₱${PRIZES[i]}`,rad*0.7,6);ctx.restore();}ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);ctx.fillStyle="#ffd700";ctx.fill();}
-function getCurrentPrize(r){let pa=-Math.PI/2,raw=pa-r,norm=((raw%(2*Math.PI))+2*Math.PI)%(2*Math.PI);return PRIZES[Math.floor(norm/ANGLE_PER_SEG)];}
+var canvas = document.getElementById('rouletteCanvas');
+var ctx = canvas.getContext('2d');
+canvas.width = 380;
+canvas.height = 380;
 
-function playTick(){try{new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==').play().catch(e=>{});}catch(e){}}
-function playWin(){try{new Audio('data:audio/wav;base64,V2luIHNvdW5k').play().catch(e=>{});}catch(e){}}
-function playJackpot(){confetti({particleCount:500,spread:100,origin:{y:0.5}});}
+var currentRotation = 0;
+var spinning = false;
+var animationId = null;
+var jackpotHit = false;
 
-function showWinPopup(a,s,r){let pop=document.getElementById('winPopup');document.getElementById('popupTitle').innerHTML="🎉 WINNER!";document.getElementById('popupPrize').innerHTML=`₱${a.toLocaleString()}`;let netDiv=document.getElementById('popupNet');if(s===0)netDiv.innerHTML="🎁 FREE SPIN!";else if(s!==25)netDiv.innerHTML=`₱${r} × ${s/25}x = ₱${a}`;else netDiv.innerHTML="";pop.classList.add('active');if(a>=500)confetti({particleCount:200,spread:70,origin:{y:0.6}});}
-function showJackpotPopup(a){let pop=document.getElementById('winPopup');document.getElementById('popupTitle').innerHTML="🏆 JACKPOT!";document.getElementById('popupPrize').innerHTML=`₱${a.toLocaleString()}`;document.getElementById('popupNet').innerHTML="🎰 GRAND PRIZE! GAME OVER!";pop.classList.add('active');confetti({particleCount:500,spread:100,origin:{y:0.5}});setTimeout(()=>confetti({particleCount:300,spread:70,origin:{y:0.4}}),200);}
-function closePopup(){document.getElementById('winPopup').classList.remove('active');}
+var mainBalance = 0;
+var spinCount = 0;
+var currentStake = 0;
+var freeSpinAvailable = true;
 
-function startSpin(){if(spinning||jackpotHit)return;syncBalanceFromMain();let ns=spinCount+1;currentStake=calculateStake(ns);freeSpinAvailable=(currentStake===0);updateStakeDisplay();if(!deductStake())return;spinning=true;playTick();resultMsg.innerHTML="🌀 SPINNING... 🌀";
-let turns=Math.floor(Math.random()*10)+15,target=currentRotation+(turns*2*Math.PI)+(Math.random()*Math.PI*2),startTime=performance.now(),startRot=currentRotation;
-function animate(now){let t=Math.min(1,(now-startTime)/2800),ease=1-Math.pow(1-t,3);currentRotation=startRot+(target-startRot)*ease;drawWheel(currentRotation);let seg=Math.floor((currentRotation%(2*Math.PI))/ANGLE_PER_SEG);if(window.lastSeg!==seg&&t<0.98){window.lastSeg=seg;playTick();document.querySelector('.pointer').classList.add('light-effect');setTimeout(()=>document.querySelector('.pointer')?.classList.remove('light-effect'),150);}
-if(t<1){animationId=requestAnimationFrame(animate);}else{currentRotation=target%(2*Math.PI);drawWheel(currentRotation);let raw=getCurrentPrize(currentRotation),win=calculateNetWin(raw),isJack=(raw===1000);mainBalance+=win;updateMainBalance(mainBalance);spinCount++;updateSpinCounter();let ns2=spinCount+1;currentStake=calculateStake(ns2);freeSpinAvailable=(currentStake===0);updateStakeDisplay();resultMsg.innerHTML=`✨ WON ₱${win.toLocaleString()}! ✨`;playWin();if(isJack){jackpotHit=true;playJackpot();jackpotLockedDiv.style.display='block';spinBtn.disabled=true;spinBtn.innerHTML="🏆 JACKPOT HIT! 🏆";resultMsg.innerHTML="🎉 JACKPOT! GAME COMPLETE! 🎉";showJackpotPopup(win);}else{showWinPopup(win,currentStake,raw);}spinning=false;cancelAnimationFrame(animationId);window.lastSeg=null;}}
-window.lastSeg=null;animationId=requestAnimationFrame(animate);}
+var balanceSpan = document.getElementById('balanceAmount');
+var spinCountSpan = document.getElementById('spinCount');
+var currentStakeSpan = document.getElementById('currentStake');
+var currentStakeDisplaySpan = document.getElementById('currentStakeDisplay');
+var stakeInfoSpan = document.getElementById('stakeInfo');
+var spinBtn = document.getElementById('spinBtn');
+var resultMsg = document.getElementById('resultMessage');
+var jackpotLockedDiv = document.getElementById('jackpotLockedMsg');
 
-function init(){syncBalanceFromMain();spinCount=0;currentStake=0;freeSpinAvailable=true;jackpotHit=false;jackpotLockedDiv.style.display='none';spinBtn.disabled=false;updateSpinCounter();updateStakeDisplay();drawWheel(currentRotation);}
-document.getElementById('spinBtn').addEventListener('click',startSpin);init();
+function calculateStake(spinNum) {
+    if(spinNum === 1) return 0;
+    if(spinNum >= 6) return 100;
+    var pattern = [25, 50, 75, 100];
+    return pattern[spinNum - 2];
+}
+
+function getNextStake(spinNum) {
+    return calculateStake(spinNum + 1);
+}
+
+function syncBalanceFromMain() {
+    try {
+        if(window.parent && window.parent.getCurrentBalance) {
+            mainBalance = window.parent.getCurrentBalance();
+        } else if(window.getCurrentBalance) {
+            mainBalance = window.getCurrentBalance();
+        } else {
+            var saved = localStorage.getItem('userBalance');
+            mainBalance = saved ? parseInt(saved) : 1000;
+        }
+    } catch(e) {
+        var saved = localStorage.getItem('userBalance');
+        mainBalance = saved ? parseInt(saved) : 1000;
+    }
+    balanceSpan.innerHTML = "₱" + mainBalance.toLocaleString();
+    return mainBalance;
+}
+
+function updateMainBalance(newBalance) {
+    mainBalance = newBalance;
+    try {
+        if(window.parent && window.parent.updateGameBalance) {
+            window.parent.updateGameBalance(mainBalance);
+        } else if(window.updateGameBalance) {
+            window.updateGameBalance(mainBalance);
+        }
+        window.parent.postMessage({type:'BALANCE_UPDATE', balance:mainBalance}, '*');
+    } catch(e) {}
+    localStorage.setItem('userBalance', mainBalance);
+    balanceSpan.innerHTML = "₱" + mainBalance.toLocaleString();
+}
+
+function deductStake() {
+    if(jackpotHit) {
+        resultMsg.innerHTML = "🏆 JACKPOT HIT! Game over! 🏆";
+        return false;
+    }
+    if(freeSpinAvailable) {
+        freeSpinAvailable = false;
+        resultMsg.innerHTML = "🎁 FREE SPIN! No deduction! 🎁";
+        return true;
+    }
+    if(mainBalance >= currentStake) {
+        mainBalance = mainBalance - currentStake;
+        updateMainBalance(mainBalance);
+        return true;
+    } else {
+        resultMsg.innerHTML = "❌ Need ₱" + currentStake + " ❌";
+        return false;
+    }
+}
+
+function calculateNetWin(rawPrize) {
+    if(currentStake === 0) return rawPrize;
+    var multiplier = currentStake / 25;
+    return Math.floor(rawPrize * multiplier);
+}
+
+function updateStakeDisplay() {
+    if(jackpotHit) {
+        spinBtn.disabled = true;
+        spinBtn.innerHTML = "🏆 GAME OVER 🏆";
+        return;
+    }
+    var nextSpinNum = spinCount + 1;
+    if(spinCount === 0) {
+        currentStakeSpan.innerHTML = "🎁 FREE SPIN! 🎁";
+        currentStakeDisplaySpan.innerHTML = "FREE";
+        spinBtn.innerHTML = "🎰 FREE SPIN! 🎰";
+        stakeInfoSpan.innerHTML = "✨ 1st spin is FREE! ✨";
+    } else {
+        currentStakeSpan.innerHTML = "₱" + currentStake;
+        currentStakeDisplaySpan.innerHTML = "₱" + currentStake;
+        spinBtn.innerHTML = "🎰 SPIN (₱" + currentStake + ") 🎰";
+        var nextStake = getNextStake(spinCount);
+        if(nextStake === 0) {
+            stakeInfoSpan.innerHTML = "⬆️ Next: FREE SPIN! ⬆️";
+        } else {
+            stakeInfoSpan.innerHTML = "⬆️ Next bet: ₱" + nextStake + " ⬆️";
+        }
+    }
+}
+
+function updateSpinCounter() {
+    spinCountSpan.innerHTML = spinCount;
+}
+
+function drawWheel(rotationRad) {
+    ctx.clearRect(0, 0, 380, 380);
+    var cx = 190, cy = 190, rad = 180;
+    for(var i = 0; i < SEGMENT_COUNT; i++) {
+        var startAngle = i * ANGLE_PER_SEG + rotationRad;
+        var endAngle = (i + 1) * ANGLE_PER_SEG + rotationRad;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, rad, startAngle, endAngle);
+        if(PRIZES[i] === 1000) {
+            ctx.fillStyle = '#ff4444';
+        } else if(PRIZES[i] === 500) {
+            ctx.fillStyle = '#ff8800';
+        } else if(PRIZES[i] === 250) {
+            ctx.fillStyle = '#aa66ff';
+        } else {
+            var colors = ['#e6b800', '#cc3300', '#2a6b2a', '#1e3a8a'];
+            ctx.fillStyle = colors[i % 4];
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#ffd700';
+        ctx.stroke();
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(startAngle + ANGLE_PER_SEG / 2);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 13px 'Orbitron'";
+        ctx.fillStyle = "#fff";
+        ctx.fillText("₱" + PRIZES[i], rad * 0.7, 6);
+        ctx.restore();
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ffd700";
+    ctx.fill();
+}
+
+function getCurrentPrize(rotationRad) {
+    var pointerAngle = -Math.PI / 2;
+    var rawAngle = pointerAngle - rotationRad;
+    var normalized = ((rawAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    var segmentIndex = Math.floor(normalized / ANGLE_PER_SEG);
+    if(segmentIndex >= SEGMENT_COUNT) segmentIndex = 0;
+    return PRIZES[segmentIndex];
+}
+
+function playTick() {
+    // tick sound effect
+}
+
+function playWin() {
+    // win sound effect
+}
+
+function playJackpot() {
+    if(typeof confetti !== 'undefined') {
+        confetti({particleCount:500, spread:100, origin:{y:0.5}});
+    }
+}
+
+function showWinPopup(amount, stake, rawPrize) {
+    var popup = document.getElementById('winPopup');
+    document.getElementById('popupTitle').innerHTML = "🎉 WINNER! 🎉";
+    document.getElementById('popupPrize').innerHTML = "₱" + amount.toLocaleString();
+    var netDiv = document.getElementById('popupNet');
+    if(stake === 0) {
+        netDiv.innerHTML = "🎁 FREE SPIN WIN! 🎁";
+    } else if(stake !== 25) {
+        var multiplier = stake / 25;
+        netDiv.innerHTML = "₱" + rawPrize + " × " + multiplier + "x = ₱" + amount;
+    } else {
+        netDiv.innerHTML = "";
+    }
+    popup.classList.add('active');
+    if(amount >= 500 && typeof confetti !== 'undefined') {
+        confetti({particleCount:200, spread:70, origin:{y:0.6}});
+    }
+}
+
+function showJackpotPopup(amount) {
+    var popup = document.getElementById('winPopup');
+    document.getElementById('popupTitle').innerHTML = "🏆 JACKPOT! 🏆";
+    document.getElementById('popupPrize').innerHTML = "₱" + amount.toLocaleString();
+    document.getElementById('popupNet').innerHTML = "🎰 GRAND PRIZE! GAME OVER! 🎰";
+    popup.classList.add('active');
+    if(typeof confetti !== 'undefined') {
+        confetti({particleCount:500, spread:100, origin:{y:0.5}});
+        setTimeout(function() {
+            confetti({particleCount:300, spread:70, origin:{y:0.4}});
+        }, 200);
+    }
+}
+
+function closePopup() {
+    document.getElementById('winPopup').classList.remove('active');
+}
+
+function startSpin() {
+    if(spinning) return;
+    if(jackpotHit) {
+        resultMsg.innerHTML = "🏆 JACKPOT ALREADY HIT! Game over! 🏆";
+        return;
+    }
+    syncBalanceFromMain();
+    var nextSpinNum = spinCount + 1;
+    currentStake = calculateStake(nextSpinNum);
+    freeSpinAvailable = (currentStake === 0);
+    updateStakeDisplay();
+    if(!deductStake()) return;
+    spinning = true;
+    resultMsg.innerHTML = "🌀 SPINNING... 🌀";
+    
+    var randomTurns = Math.floor(Math.random() * 10) + 15;
+    var targetRotation = currentRotation + (randomTurns * 2 * Math.PI) + (Math.random() * Math.PI * 2);
+    var spinStartTime = performance.now();
+    var spinDuration = 2800;
+    var startRotation = currentRotation;
+    window.lastSeg = null;
+    
+    function animateSpin(now) {
+        var elapsed = now - spinStartTime;
+        var t = Math.min(1, elapsed / spinDuration);
+        var easeOut = 1 - Math.pow(1 - t, 3);
+        currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+        drawWheel(currentRotation);
+        
+        var roughSeg = Math.floor((currentRotation % (Math.PI * 2)) / ANGLE_PER_SEG);
+        if(window.lastSeg !== roughSeg && t < 0.98) {
+            window.lastSeg = roughSeg;
+            playTick();
+            var pointerDiv = document.querySelector('.pointer');
+            pointerDiv.classList.add('light-effect');
+            setTimeout(function() {
+                if(pointerDiv) pointerDiv.classList.remove('light-effect');
+            }, 150);
+        }
+        
+        if(t < 1) {
+            animationId = requestAnimationFrame(animateSpin);
+        } else {
+            currentRotation = targetRotation % (Math.PI * 2);
+            drawWheel(currentRotation);
+            var rawPrize = getCurrentPrize(currentRotation);
+            var netWin = calculateNetWin(rawPrize);
+            var isJackpot = (rawPrize === 1000);
+            
+            mainBalance = mainBalance + netWin;
+            updateMainBalance(mainBalance);
+            spinCount = spinCount + 1;
+            updateSpinCounter();
+            
+            var nextSpinNum2 = spinCount + 1;
+            currentStake = calculateStake(nextSpinNum2);
+            freeSpinAvailable = (currentStake === 0);
+            updateStakeDisplay();
+            
+            resultMsg.innerHTML = "✨ WON ₱" + netWin.toLocaleString() + "! ✨";
+            playWin();
+            
+            if(isJackpot) {
+                jackpotHit = true;
+                playJackpot();
+                jackpotLockedDiv.style.display = 'block';
+                spinBtn.disabled = true;
+                spinBtn.innerHTML = "🏆 JACKPOT HIT! 🏆";
+                resultMsg.innerHTML = "🎉 JACKPOT! GAME COMPLETE! 🎉";
+                showJackpotPopup(netWin);
+            } else {
+                showWinPopup(netWin, currentStake, rawPrize);
+            }
+            spinning = false;
+            cancelAnimationFrame(animationId);
+            window.lastSeg = null;
+        }
+    }
+    animationId = requestAnimationFrame(animateSpin);
+}
+
+function init() {
+    syncBalanceFromMain();
+    spinCount = 0;
+    currentStake = 0;
+    freeSpinAvailable = true;
+    jackpotHit = false;
+    jackpotLockedDiv.style.display = 'none';
+    spinBtn.disabled = false;
+    updateSpinCounter();
+    updateStakeDisplay();
+    drawWheel(currentRotation);
+}
+
+document.getElementById('spinBtn').addEventListener('click', startSpin);
+init();
 </script>
 </body>
 </html>
