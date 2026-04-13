@@ -3,685 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roulette Game | CasinoPlus</title>
-    
+    <title>Roulette | CasinoPlus</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0a0f1e 0%, #0a1a2a 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Orbitron', 'Segoe UI', monospace;
-            padding: 20px;
-        }
-
-        .roulette-container {
-            background: radial-gradient(circle at 30% 20%, #1a3a2a, #0a1a0f);
-            border-radius: 60px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
-            border: 1px solid #ffd70055;
-            max-width: 500px;
-            width: 100%;
-        }
-
-        .game-title {
-            text-align: center;
-            color: #ffd966;
-            text-shadow: 0 0 10px #ffaa33, 0 0 20px #ff6600;
-            font-size: 20px;
-            margin-bottom: 15px;
-            letter-spacing: 3px;
-        }
-
-        .score-board {
-            background: #00000099;
-            border-radius: 40px;
-            padding: 10px 15px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .score-item {
-            text-align: center;
-            flex: 1;
-        }
-
-        .score-label {
-            font-size: 10px;
-            color: #aaa;
-        }
-
-        .score-value {
-            font-size: 18px;
-            color: #ffd700;
-            font-weight: bold;
-        }
-
-        .stake-area {
-            background: rgba(0,0,0,0.7);
-            border-radius: 30px;
-            padding: 10px;
-            margin: 10px 0;
-            text-align: center;
-            border: 1px solid #ffaa3355;
-        }
-
-        .stake-value {
-            font-size: 28px;
-            color: #ffaa33;
-            font-weight: bold;
-        }
-
-        .free-spin-badge {
-            background: linear-gradient(135deg, #ff4444, #aa2222);
-            border-radius: 30px;
-            padding: 5px 12px;
-            display: inline-block;
-            animation: pulseRed 1s infinite;
-        }
-
-        @keyframes pulseRed {
-            0% { box-shadow: 0 0 0 0 #ff4444; }
-            70% { box-shadow: 0 0 0 10px rgba(255,68,68,0); }
-            100% { box-shadow: 0 0 0 0 rgba(255,68,68,0); }
-        }
-
-        .side-prizes {
-            display: flex;
-            justify-content: space-between;
-            margin: 15px 0;
-            gap: 10px;
-        }
-
-        .prize-panel {
-            background: rgba(0,0,0,0.7);
-            border-radius: 20px;
-            padding: 10px;
-            text-align: center;
-            flex: 1;
-            border: 1px solid #ffd70044;
-        }
-
-        .prize-panel h3 {
-            color: #ffaa33;
-            font-size: 11px;
-            margin-bottom: 8px;
-        }
-
-        .prize-values {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .prize-chip {
-            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-            padding: 4px 8px;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 12px;
-            color: #ffd966;
-            border: 1px solid #ffaa33;
-        }
-
-        .wheel-wrapper {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            margin: 15px 0;
-        }
-
-        canvas {
-            background: #1a1a2a;
-            border-radius: 50%;
-            box-shadow: 0 0 0 6px #2a2a3a, 0 0 0 10px #ffd70033, 0 20px 40px rgba(0,0,0,0.5);
-            max-width: 100%;
-            height: auto;
-        }
-
-        .pointer {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 16px solid transparent;
-            border-right: 16px solid transparent;
-            border-top: 40px solid #ffd700;
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
-            z-index: 10;
-        }
-
-        .pointer::after {
-            content: "▼";
-            position: absolute;
-            top: -45px;
-            left: -10px;
-            font-size: 22px;
-            color: #ffaa33;
-        }
-
-        .result-area {
-            background: #000000aa;
-            margin: 15px 0;
-            padding: 10px;
-            border-radius: 50px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffdd99;
-            min-height: 55px;
-        }
-
-        .spin-btn {
-            background: linear-gradient(180deg, #ffd700, #ff8800);
-            border: none;
-            width: 100%;
-            padding: 15px;
-            font-size: 20px;
-            font-weight: bold;
-            font-family: 'Orbitron';
-            color: #1a1a2a;
-            border-radius: 60px;
-            cursor: pointer;
-            box-shadow: 0 6px 0 #aa5500;
-            transition: 0.05s linear;
-            margin-top: 10px;
-        }
-
-        .spin-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 3px 0 #aa5500;
-        }
-
-        .spin-btn:disabled {
-            opacity: 0.6;
-            transform: translateY(0);
-            cursor: not-allowed;
-        }
-
-        .popup-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            visibility: hidden;
-            opacity: 0;
-            transition: 0.2s;
-        }
-
-        .popup-overlay.active {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .popup-card {
-            background: linear-gradient(145deg, #2a2a1a, #1a1a0a);
-            border-radius: 40px;
-            padding: 25px;
-            text-align: center;
-            border: 2px solid #ffd700;
-            max-width: 280px;
-            width: 80%;
-            animation: bounceIn 0.4s ease;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            80% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .popup-card h2 {
-            color: #ffd700;
-            font-size: 28px;
-        }
-
-        .popup-card p {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-
-        .popup-close {
-            background: #ffaa33;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        @keyframes lightPulse {
-            0% { text-shadow: 0 0 0px #ffaa33; }
-            100% { text-shadow: 0 0 20px #ffaa33, 0 0 30px gold; }
-        }
-
-        .light-effect {
-            animation: lightPulse 0.15s ease-in-out 3;
-        }
-
-        .balance-warning {
-            color: #ff8888;
-            font-size: 12px;
-            margin-top: 5px;
-        }
+        *{margin:0;padding:0;box-sizing:border-box;user-select:none;}
+        body{background:linear-gradient(135deg,#0a0f1e,#0a1a2a);min-height:100vh;display:flex;justify-content:center;align-items:center;font-family:'Orbitron','Segoe UI',monospace;padding:20px;}
+        .roulette-container{background:radial-gradient(circle at 30% 20%,#1a3a2a,#0a1a0f);border-radius:60px;padding:25px;box-shadow:0 20px 40px rgba(0,0,0,0.5),inset 0 1px 2px rgba(255,255,255,0.1);border:1px solid #ffd70055;max-width:500px;width:100%;}
+        .game-title{text-align:center;color:#ffd966;text-shadow:0 0 10px #ffaa33;font-size:20px;margin-bottom:15px;}
+        .score-board{background:#00000099;border-radius:40px;padding:10px 15px;margin-bottom:15px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+        .score-item{text-align:center;flex:1;}
+        .score-label{font-size:10px;color:#aaa;}
+        .score-value{font-size:18px;color:#ffd700;font-weight:bold;}
+        .stake-area{background:rgba(0,0,0,0.7);border-radius:30px;padding:10px;margin:10px 0;text-align:center;border:1px solid #ffaa3355;}
+        .stake-value{font-size:28px;color:#ffaa33;font-weight:bold;}
+        .jackpot-locked{background:linear-gradient(135deg,#ff4444,#aa2222);border-radius:30px;padding:8px;margin-top:10px;text-align:center;font-weight:bold;color:white;animation:pulseRed 1s infinite;}
+        @keyframes pulseRed{0%{box-shadow:0 0 0 0 #ff4444;}70%{box-shadow:0 0 0 10px rgba(255,68,68,0);}100%{box-shadow:0 0 0 0 rgba(255,68,68,0);}}
+        .side-prizes{display:flex;justify-content:space-between;margin:15px 0;gap:10px;}
+        .prize-panel{background:rgba(0,0,0,0.7);border-radius:20px;padding:10px;text-align:center;flex:1;border:1px solid #ffd70044;}
+        .prize-panel h3{color:#ffaa33;font-size:11px;margin-bottom:8px;}
+        .prize-values{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;}
+        .prize-chip{background:linear-gradient(145deg,#2a2a2a,#1a1a1a);padding:4px 8px;border-radius:30px;font-weight:bold;font-size:12px;color:#ffd966;border:1px solid #ffaa33;}
+        .wheel-wrapper{position:relative;display:flex;justify-content:center;margin:15px 0;}
+        canvas{background:#1a1a2a;border-radius:50%;box-shadow:0 0 0 6px #2a2a3a,0 0 0 10px #ffd70033;max-width:100%;height:auto;}
+        .pointer{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:40px solid #ffd700;z-index:10;}
+        .pointer::after{content:"▼";position:absolute;top:-45px;left:-10px;font-size:22px;color:#ffaa33;}
+        .result-area{background:#000000aa;margin:15px 0;padding:10px;border-radius:50px;text-align:center;font-size:14px;font-weight:bold;color:#ffdd99;min-height:55px;}
+        .spin-btn{background:linear-gradient(180deg,#ffd700,#ff8800);border:none;width:100%;padding:15px;font-size:20px;font-weight:bold;font-family:'Orbitron';color:#1a1a2a;border-radius:60px;cursor:pointer;box-shadow:0 6px 0 #aa5500;margin-top:10px;}
+        .spin-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #aa5500;}
+        .spin-btn:disabled{opacity:0.5;cursor:not-allowed;}
+        .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:1000;visibility:hidden;opacity:0;transition:0.2s;}
+        .popup-overlay.active{visibility:visible;opacity:1;}
+        .popup-card{background:linear-gradient(145deg,#2a2a1a,#1a1a0a);border-radius:40px;padding:25px;text-align:center;border:2px solid #ffd700;max-width:280px;width:80%;animation:bounceIn 0.4s ease;}
+        @keyframes bounceIn{0%{transform:scale(0.3);opacity:0;}80%{transform:scale(1.05);}100%{transform:scale(1);opacity:1;}}
+        .popup-card h2{color:#ffd700;font-size:28px;}
+        .popup-card p{color:white;font-size:24px;font-weight:bold;margin:15px 0;}
+        .popup-close{background:#ffaa33;border:none;padding:10px 20px;border-radius:40px;font-weight:bold;font-size:16px;cursor:pointer;}
+        .light-effect{animation:lightPulse 0.15s ease-in-out 3;}
+        @keyframes lightPulse{0%{text-shadow:0 0 0 #ffaa33;}100%{text-shadow:0 0 20px #ffaa33;}}
     </style>
 </head>
 <body>
-    <div class="roulette-container">
+<div class="roulette-container">
     <div class="game-title">🎡 ROULETTE ROYALE 🎡</div>
-
-    <!-- Score Board -->
     <div class="score-board">
-        <div class="score-item">
-            <div class="score-label">💰 MAIN BALANCE</div>
-            <div class="score-value" id="balanceAmount">₱0</div>
-        </div>
-        <div class="score-item">
-            <div class="score-label">🎲 SPIN #</div>
-            <div class="score-value" id="spinCount">0</div>
-        </div>
-        <div class="score-item">
-            <div class="score-label">💎 CURRENT BET</div>
-            <div class="score-value" id="currentStakeDisplay">₱0</div>
-        </div>
+        <div class="score-item"><div class="score-label">💰 BALANCE</div><div class="score-value" id="balanceAmount">₱0</div></div>
+        <div class="score-item"><div class="score-label">🎲 SPIN #</div><div class="score-value" id="spinCount">0</div></div>
+        <div class="score-item"><div class="score-label">💎 BET</div><div class="score-value" id="currentStakeDisplay">₱0</div></div>
     </div>
-
-    <!-- Stake Display -->
     <div class="stake-area">
-        <span style="font-size:12px;">💰 BET AMOUNT 💰</span>
         <div class="stake-value" id="currentStake">₱0</div>
-        <div class="spin-counter" id="stakeInfo">⬆️ Bet progression ⬆️</div>
+        <div id="stakeInfo">⬆️ Bet progression ⬆️</div>
     </div>
-
-    <!-- Left and Right Prize Panels -->
+    <div id="jackpotLockedMsg" class="jackpot-locked" style="display:none;">🎰 JACKPOT HIT! GAME OVER! 🎰</div>
     <div class="side-prizes">
-        <div class="prize-panel">
-            <h3>🔥 LEFT ZONE 🔥</h3>
-            <div class="prize-values">
-                <span class="prize-chip">🎰 ₱1,000</span>
-                <span class="prize-chip">🎯 ₱50</span>
-                <span class="prize-chip">🎯 ₱50</span>
-            </div>
-        </div>
-        <div class="prize-panel">
-            <h3>⚡ RIGHT ZONE ⚡</h3>
-            <div class="prize-values">
-                <span class="prize-chip">🏆 ₱500</span>
-                <span class="prize-chip">💎 ₱250</span>
-                <span class="prize-chip">🎲 ₱100</span>
-                <span class="prize-chip">🎲 ₱100</span>
-            </div>
-        </div>
+        <div class="prize-panel"><h3>🔥 LEFT ZONE 🔥</h3><div class="prize-values"><span class="prize-chip">🎰 ₱1,000 (25%)</span><span class="prize-chip">🎯 ₱50</span><span class="prize-chip">🎯 ₱50</span></div></div>
+        <div class="prize-panel"><h3>⚡ RIGHT ZONE ⚡</h3><div class="prize-values"><span class="prize-chip">🏆 ₱500 (35%)</span><span class="prize-chip">💎 ₱250 (40%)</span><span class="prize-chip">🎲 ₱100 (50%)</span><span class="prize-chip">🎲 ₱100</span></div></div>
     </div>
-
-    <!-- Roulette Wheel -->
-    <div class="wheel-wrapper">
-        <canvas id="rouletteCanvas" width="380" height="380"></canvas>
-        <div class="pointer"></div>
-    </div>
-
-    <!-- Result Area -->
-    <div class="result-area" id="resultMessage">
-        🎲 Click SPIN to start! 🎲
-    </div>
-
-    <!-- Spin Button -->
+    <div class="wheel-wrapper"><canvas id="rouletteCanvas" width="380" height="380"></canvas><div class="pointer"></div></div>
+    <div class="result-area" id="resultMessage">🎲 Click SPIN to start! 🎲</div>
     <button class="spin-btn" id="spinBtn">🎰 LOADING... 🎰</button>
 </div>
-
-<!-- Popup Modal -->
-<div id="winPopup" class="popup-overlay">
-    <div class="popup-card">
-        <h2>🎉 WINNER! 🎉</h2>
-        <p id="popupPrize">₱0</p>
-        <p id="popupNet" style="font-size: 14px; color:#88ff88;"></p>
-        <button class="popup-close" onclick="closePopup()">CLAIM REWARD</button>
-    </div>
-</div>
-
+<div id="winPopup" class="popup-overlay"><div class="popup-card"><h2 id="popupTitle">🎉 WINNER!</h2><p id="popupPrize">₱0</p><p id="popupNet"></p><button class="popup-close" onclick="closePopup()">CLAIM</button></div></div>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
 <script>
-    // ========== ROULETTE CONFIG ==========
-    const PRIZES = [
-        1000, 50, 50, 500, 250, 100, 100,
-        75, 75, 30, 30, 20, 20, 15, 15, 10, 10, 5, 5, 200, 200
-    ];
-    while(PRIZES.length < 21) PRIZES.push(25);
-    while(PRIZES.length > 21) PRIZES.pop();
-    
-    const SEGMENT_COUNT = PRIZES.length;
-    const ANGLE_PER_SEG = (Math.PI * 2) / SEGMENT_COUNT;
-    
-    // Canvas
-    let canvas = document.getElementById('rouletteCanvas');
-    let ctx = canvas.getContext('2d');
-    let width = 380, height = 380;
-    canvas.width = width;
-    canvas.height = height;
-    
-    // Game State
-    let currentRotation = 0;
-    let spinning = false;
-    let animationId = null;
-    
-    // Stake System
-    let mainBalance = 0;
-    let spinCount = 0;
-    let currentStake = 0;
-    let freeSpinAvailable = true;
-    
-    // DOM Elements
-    const balanceSpan = document.getElementById('balanceAmount');
-    const spinCountSpan = document.getElementById('spinCount');
-    const currentStakeSpan = document.getElementById('currentStake');
-    const currentStakeDisplaySpan = document.getElementById('currentStakeDisplay');
-    const stakeInfoSpan = document.getElementById('stakeInfo');
-    const spinBtn = document.getElementById('spinBtn');
-    const resultMsg = document.getElementById('resultMessage');
-    
-    // ========== STAKE CALCULATION ==========
-function calculateStake(spinNum) {
-    if (spinNum === 1) return 0;
-    let adjustedSpin = spinNum - 1;
-    let pattern = [25, 50, 75, 100];
-    let index = (adjustedSpin - 1) % 4;
-    return pattern[index];
-}
+// ========== CONFIG ==========
+const PRIZE_POOL = [{value:1000,chance:25},{value:500,chance:35},{value:250,chance:40},{value:100,chance:50},{value:50,chance:60},{value:75,chance:60},{value:30,chance:60},{value:20,chance:60},{value:15,chance:60},{value:10,chance:60},{value:5,chance:60}];
+function getRandomPrize(){let r=Math.random()*100;for(let p of PRIZE_POOL)if(r<=p.chance)return p.value;return 50;}
+let PRIZES=[];for(let i=0;i<21;i++)PRIZES.push(getRandomPrize());
+const SEGMENT_COUNT=21,ANGLE_PER_SEG=(Math.PI*2)/SEGMENT_COUNT;
+let canvas=document.getElementById('rouletteCanvas'),ctx=canvas.getContext('2d');
+canvas.width=canvas.height=380;
+let currentRotation=0,spinning=false,animationId=null,jackpotHit=false;
+let mainBalance=0,spinCount=0,currentStake=0,freeSpinAvailable=true;
+const balanceSpan=document.getElementById('balanceAmount'),spinCountSpan=document.getElementById('spinCount');
+const currentStakeSpan=document.getElementById('currentStake'),stakeInfoSpan=document.getElementById('stakeInfo');
+const spinBtn=document.getElementById('spinBtn'),resultMsg=document.getElementById('resultMessage');
+const jackpotLockedDiv=document.getElementById('jackpotLockedMsg');
 
-function getNextStake(spinNum) {
-    let nextSpin = spinNum + 1;
-    return calculateStake(nextSpin);
-}
+function calculateStake(s){if(s===1)return 0;if(s>=6)return 100;return [25,50,75,100][s-2];}
+function getNextStake(s){return calculateStake(s+1);}
 
-// ========== SYNC WITH MAIN GAME ==========
-function syncBalanceFromMain() {
-    if (window.parent && window.parent.getCurrentBalance) {
-        mainBalance = window.parent.getCurrentBalance();
-    } else if (window.getCurrentBalance) {
-        mainBalance = window.getCurrentBalance();
-    } else {
-        let saved = localStorage.getItem('rouletteBalance');
-        if (saved) mainBalance = parseInt(saved);
-        else mainBalance = 1000;
-    }
-    updateBalanceDisplay();
-    return mainBalance;
-}
+function syncBalanceFromMain(){try{if(window.parent&&window.parent.getCurrentBalance)mainBalance=window.parent.getCurrentBalance();else if(window.getCurrentBalance)mainBalance=window.getCurrentBalance();else{let s=localStorage.getItem('userBalance');mainBalance=s?parseInt(s):1000;}}catch(e){let s=localStorage.getItem('userBalance');mainBalance=s?parseInt(s):1000;}balanceSpan.innerHTML=`₱${mainBalance.toLocaleString()}`;return mainBalance;}
+function updateMainBalance(n){mainBalance=n;try{if(window.parent&&window.parent.updateGameBalance)window.parent.updateGameBalance(mainBalance);else if(window.updateGameBalance)window.updateGameBalance(mainBalance);window.parent.postMessage({type:'BALANCE_UPDATE',balance:mainBalance},'*');}catch(e){}localStorage.setItem('userBalance',mainBalance);balanceSpan.innerHTML=`₱${mainBalance.toLocaleString()}`;}
 
-function updateMainBalance(newBalance) {
-    mainBalance = newBalance;
-    if (window.parent && window.parent.updateGameBalance) {
-        window.parent.updateGameBalance(mainBalance);
-    } else if (window.updateGameBalance) {
-        window.updateGameBalance(mainBalance);
-    }
-    localStorage.setItem('rouletteBalance', mainBalance);
-    updateBalanceDisplay();
-}
+function deductStake(){if(jackpotHit){resultMsg.innerHTML="🏆 JACKPOT HIT! Game over! 🏆";return false;}if(freeSpinAvailable){freeSpinAvailable=false;resultMsg.innerHTML="🎁 FREE SPIN!";return true;}if(mainBalance>=currentStake){mainBalance-=currentStake;updateMainBalance(mainBalance);return true;}else{resultMsg.innerHTML=`❌ Need ₱${currentStake} ❌`;return false;}}
+function calculateNetWin(r){if(currentStake===0)return r;return Math.floor(r*(currentStake/25));}
 
-function updateBalanceDisplay() {
-    balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
-}
+function updateStakeDisplay(){if(jackpotHit){spinBtn.disabled=true;spinBtn.innerHTML="🏆 GAME OVER 🏆";return;}let n=spinCount+1;if(spinCount===0){currentStakeSpan.innerHTML="🎁 FREE!";spinBtn.innerHTML="🎰 FREE SPIN! 🎰";stakeInfoSpan.innerHTML="✨ 1st spin FREE! ✨";}else{currentStakeSpan.innerHTML=`₱${currentStake}`;spinBtn.innerHTML=`🎰 SPIN (₱${currentStake}) 🎰`;let ns=getNextStake(spinCount);stakeInfoSpan.innerHTML=ns===0?"⬆️ Next: FREE! ⬆️":`⬆️ Next: ₱${ns} ⬆️`;}}
+function updateSpinCounter(){spinCountSpan.innerHTML=spinCount;}
 
-// ========== DEDUCT STAKE ==========
-function deductStake() {
-    if (freeSpinAvailable) {
-        freeSpinAvailable = false;
-        resultMsg.innerHTML = "🎁 FREE SPIN! No deduction! 🎁";
-        return true;
-    }
-    
-    if (mainBalance >= currentStake) {
-        mainBalance -= currentStake;
-        updateMainBalance(mainBalance);
-        return true;
-    } else {
-        resultMsg.innerHTML = `❌ INSUFFICIENT BALANCE! Need ₱${currentStake} ❌`;
-        return false;
-    }
-}
+function drawWheel(r){ctx.clearRect(0,0,380,380);let cx=190,cy=190,rad=180;for(let i=0;i<SEGMENT_COUNT;i++){let sa=i*ANGLE_PER_SEG+r,ea=(i+1)*ANGLE_PER_SEG+r;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,rad,sa,ea);if(PRIZES[i]===1000)ctx.fillStyle='#ff4444';else if(PRIZES[i]===500)ctx.fillStyle='#ff8800';else if(PRIZES[i]===250)ctx.fillStyle='#aa66ff';else ctx.fillStyle=['#e6b800','#cc3300','#2a6b2a','#1e3a8a'][i%4];ctx.fill();ctx.strokeStyle='#ffd700';ctx.stroke();ctx.save();ctx.translate(cx,cy);ctx.rotate(sa+ANGLE_PER_SEG/2);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="bold 13px 'Orbitron'";ctx.fillStyle="#fff";ctx.fillText(`₱${PRIZES[i]}`,rad*0.7,6);ctx.restore();}ctx.beginPath();ctx.arc(cx,cy,22,0,2*Math.PI);ctx.fillStyle="#ffd700";ctx.fill();}
+function getCurrentPrize(r){let pa=-Math.PI/2,raw=pa-r,norm=((raw%(2*Math.PI))+2*Math.PI)%(2*Math.PI);return PRIZES[Math.floor(norm/ANGLE_PER_SEG)];}
 
-// ========== APPLY WIN ==========
-function calculateNetWin(rawPrize) {
-    if (currentStake === 0) return rawPrize;
-    let multiplier = currentStake / 25;
-    return Math.floor(rawPrize * multiplier);
-}
+function playTick(){try{new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==').play().catch(e=>{});}catch(e){}}
+function playWin(){try{new Audio('data:audio/wav;base64,V2luIHNvdW5k').play().catch(e=>{});}catch(e){}}
+function playJackpot(){confetti({particleCount:500,spread:100,origin:{y:0.5}});}
 
-// ========== UPDATE UI ==========
-function updateStakeDisplay() {
-    let nextSpinNum = spinCount + 1;
-    
-    if (spinCount === 0) {
-        currentStakeSpan.innerHTML = "🎁 FREE SPIN! 🎁";
-        currentStakeDisplaySpan.innerHTML = "FREE";
-        spinBtn.innerHTML = "🎰 FREE SPIN! 🎰";
-        stakeInfoSpan.innerHTML = "✨ 1st spin is FREE! ✨";
-    } else {
-        currentStakeSpan.innerHTML = `₱${currentStake}`;
-        currentStakeDisplaySpan.innerHTML = `₱${currentStake}`;
-        spinBtn.innerHTML = `🎰 SPIN (₱${currentStake}) 🎰`;
-        
-        let nextStake = getNextStake(spinCount);
-        if (nextStake === 0) {
-            stakeInfoSpan.innerHTML = `⬆️ Next: FREE SPIN! ⬆️`;
-        } else {
-            stakeInfoSpan.innerHTML = `⬆️ Next bet: ₱${nextStake} ⬆️`;
-        }
-    }
-}
+function showWinPopup(a,s,r){let pop=document.getElementById('winPopup');document.getElementById('popupTitle').innerHTML="🎉 WINNER!";document.getElementById('popupPrize').innerHTML=`₱${a.toLocaleString()}`;let netDiv=document.getElementById('popupNet');if(s===0)netDiv.innerHTML="🎁 FREE SPIN!";else if(s!==25)netDiv.innerHTML=`₱${r} × ${s/25}x = ₱${a}`;else netDiv.innerHTML="";pop.classList.add('active');if(a>=500)confetti({particleCount:200,spread:70,origin:{y:0.6}});}
+function showJackpotPopup(a){let pop=document.getElementById('winPopup');document.getElementById('popupTitle').innerHTML="🏆 JACKPOT!";document.getElementById('popupPrize').innerHTML=`₱${a.toLocaleString()}`;document.getElementById('popupNet').innerHTML="🎰 GRAND PRIZE! GAME OVER!";pop.classList.add('active');confetti({particleCount:500,spread:100,origin:{y:0.5}});setTimeout(()=>confetti({particleCount:300,spread:70,origin:{y:0.4}}),200);}
+function closePopup(){document.getElementById('winPopup').classList.remove('active');}
 
-function updateSpinCounter() {
-    spinCountSpan.innerHTML = spinCount;
-}
+function startSpin(){if(spinning||jackpotHit)return;syncBalanceFromMain();let ns=spinCount+1;currentStake=calculateStake(ns);freeSpinAvailable=(currentStake===0);updateStakeDisplay();if(!deductStake())return;spinning=true;playTick();resultMsg.innerHTML="🌀 SPINNING... 🌀";
+let turns=Math.floor(Math.random()*10)+15,target=currentRotation+(turns*2*Math.PI)+(Math.random()*Math.PI*2),startTime=performance.now(),startRot=currentRotation;
+function animate(now){let t=Math.min(1,(now-startTime)/2800),ease=1-Math.pow(1-t,3);currentRotation=startRot+(target-startRot)*ease;drawWheel(currentRotation);let seg=Math.floor((currentRotation%(2*Math.PI))/ANGLE_PER_SEG);if(window.lastSeg!==seg&&t<0.98){window.lastSeg=seg;playTick();document.querySelector('.pointer').classList.add('light-effect');setTimeout(()=>document.querySelector('.pointer')?.classList.remove('light-effect'),150);}
+if(t<1){animationId=requestAnimationFrame(animate);}else{currentRotation=target%(2*Math.PI);drawWheel(currentRotation);let raw=getCurrentPrize(currentRotation),win=calculateNetWin(raw),isJack=(raw===1000);mainBalance+=win;updateMainBalance(mainBalance);spinCount++;updateSpinCounter();let ns2=spinCount+1;currentStake=calculateStake(ns2);freeSpinAvailable=(currentStake===0);updateStakeDisplay();resultMsg.innerHTML=`✨ WON ₱${win.toLocaleString()}! ✨`;playWin();if(isJack){jackpotHit=true;playJackpot();jackpotLockedDiv.style.display='block';spinBtn.disabled=true;spinBtn.innerHTML="🏆 JACKPOT HIT! 🏆";resultMsg.innerHTML="🎉 JACKPOT! GAME COMPLETE! 🎉";showJackpotPopup(win);}else{showWinPopup(win,currentStake,raw);}spinning=false;cancelAnimationFrame(animationId);window.lastSeg=null;}}
+window.lastSeg=null;animationId=requestAnimationFrame(animate);}
 
-// ========== ROULETTE DRAWING ==========
-function drawWheel(rotationRad) {
-    ctx.clearRect(0, 0, width, height);
-    let centerX = width/2, centerY = height/2;
-    let radius = width/2 - 10;
-    
-    for(let i = 0; i < SEGMENT_COUNT; i++) {
-        let startAngle = i * ANGLE_PER_SEG + rotationRad;
-        let endAngle = (i+1) * ANGLE_PER_SEG + rotationRad;
-        let colors = ['#e6b800', '#cc3300', '#2a6b2a', '#1e3a8a'];
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.fill();
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.rotate(startAngle + ANGLE_PER_SEG/2);
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        let textRadius = radius * 0.7;
-        ctx.font = "bold 13px 'Orbitron', monospace";
-        ctx.fillStyle = "#fff";
-        ctx.shadowBlur = 3;
-        ctx.fillText(`₱${PRIZES[i]}`, textRadius, 6);
-        ctx.restore();
-    }
-    
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 22, 0, 2*Math.PI);
-    ctx.fillStyle = "#ffd700";
-    ctx.fill();
-}
-
-function getCurrentPrize(rotationRad) {
-    let pointerAngle = -Math.PI / 2;
-    let rawAngle = pointerAngle - rotationRad;
-    let normalized = ((rawAngle % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
-    let segmentIndex = Math.floor(normalized / ANGLE_PER_SEG);
-    if(segmentIndex >= SEGMENT_COUNT) segmentIndex = 0;
-    return PRIZES[segmentIndex];
-}
-
-// ========== SOUND EFFECTS ==========
-function playTick() {
-    try {
-        let beep = new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==');
-        beep.play().catch(e=>{});
-    } catch(e) {}
-}
-
-function playWin() {
-    try {
-        let win = new Audio('data:audio/wav;base64,V2luIHNvdW5k');
-        win.play().catch(e=>{});
-    } catch(e) {}
-}
-
-// ========== SPIN MECHANICS ==========
-function startSpin() {
-    if(spinning) return;
-    
-    syncBalanceFromMain();
-    
-    let nextSpinNum = spinCount + 1;
-    currentStake = calculateStake(nextSpinNum);
-    freeSpinAvailable = (currentStake === 0);
-    
-    updateStakeDisplay();
-    
-    if (!deductStake()) return;
-    
-    spinning = true;
-    playTick();
-    resultMsg.innerHTML = "🌀 SPINNING... 🌀";
-    
-    let randomTurns = Math.floor(Math.random() * 10) + 15;
-    let targetRotation = currentRotation + (randomTurns * 2 * Math.PI) + (Math.random() * Math.PI * 2);
-    
-    let spinStartTime = performance.now();
-    let spinDuration = 2800;
-    let startRotation = currentRotation;
-    
-    function animateSpin(now) {
-        let elapsed = now - spinStartTime;
-        let t = Math.min(1, elapsed / spinDuration);
-        let easeOut = 1 - Math.pow(1 - t, 3);
-        currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
-        drawWheel(currentRotation);
-        
-        let roughSeg = Math.floor((currentRotation % (Math.PI*2)) / ANGLE_PER_SEG);
-        if(window.lastTickSeg !== roughSeg && t < 0.98) {
-            window.lastTickSeg = roughSeg;
-            playTick();
-            document.querySelector('.pointer').classList.add('light-effect');
-            setTimeout(() => document.querySelector('.pointer')?.classList.remove('light-effect'), 150);
-        }
-        
-        if(t < 1) {
-            animationId = requestAnimationFrame(animateSpin);
-        } else {
-            currentRotation = targetRotation % (Math.PI*2);
-            drawWheel(currentRotation);
-            
-            let rawPrize = getCurrentPrize(currentRotation);
-            let netWin = calculateNetWin(rawPrize);
-            
-            mainBalance += netWin;
-            updateMainBalance(mainBalance);
-            
-            spinCount++;
-            updateSpinCounter();
-            
-            let nextSpinNum = spinCount + 1;
-            currentStake = calculateStake(nextSpinNum);
-            freeSpinAvailable = (currentStake === 0);
-            updateStakeDisplay();
-            
-            let stakeText = (currentStake === 0 && spinCount === 1) ? `(FREE SPIN!)` : `(Bet: ₱${currentStake === 0 ? 'FREE' : currentStake})`;
-            resultMsg.innerHTML = `✨ WON ₱${netWin.toLocaleString()}! ${stakeText} ✨`;
-            
-            playWin();
-            showWinPopup(netWin, currentStake, rawPrize);
-            
-            spinning = false;
-            cancelAnimationFrame(animationId);
-            animationId = null;
-            window.lastTickSeg = null;
-        }
-    }
-    
-    window.lastTickSeg = null;
-    animationId = requestAnimationFrame(animateSpin);
-}
-
-    // ========== POPUP ==========
-    function showWinPopup(amount, stake, rawPrize) {
-        const popup = document.getElementById('winPopup');
-        const popupPrize = document.getElementById('popupPrize');
-        const popupNet = document.getElementById('popupNet');
-        popupPrize.innerText = `₱${amount.toLocaleString()}`;
-        
-        if(stake === 0) {
-            popupNet.innerText = `🎁 FREE SPIN WIN! 🎁`;
-        } else if(stake !== 25) {
-            let multiplier = stake / 25;
-            popupNet.innerText = `₱${rawPrize} × ${multiplier}x = ₱${amount}`;
-        } else {
-            popupNet.innerText = ``;
-        }
-        popup.classList.add('active');
-        
-        if(amount >= 500) {
-            confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
-        } else if(amount >= 200) {
-            confetti({ particleCount: 80, spread: 50 });
-        }
-    }
-    
-    function closePopup() {
-        document.getElementById('winPopup').classList.remove('active');
-    }
-    
-    // ========== INITIALIZE ==========
-    function init() {
-        syncBalanceFromMain();
-        spinCount = 0;
-        currentStake = 0;
-        freeSpinAvailable = true;
-        updateSpinCounter();
-        updateStakeDisplay();
-        drawWheel(currentRotation);
-        console.log('🎰 Roulette ready! First spin is FREE!');
-    }
-    
-    // Event Listeners
-    document.getElementById('spinBtn').addEventListener('click', startSpin);
-    
-    // Start
-    init();
+function init(){syncBalanceFromMain();spinCount=0;currentStake=0;freeSpinAvailable=true;jackpotHit=false;jackpotLockedDiv.style.display='none';spinBtn.disabled=false;updateSpinCounter();updateStakeDisplay();drawWheel(currentRotation);}
+document.getElementById('spinBtn').addEventListener('click',startSpin);init();
 </script>
 </body>
 </html>
