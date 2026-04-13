@@ -122,6 +122,44 @@
             rouletteModal.style.display = 'none';
         }
     });
+
+    // ========== SHARED BALANCE FUNCTION ==========
+// Ito ang gagamitin ng roulette para mag-sync ng balance
+
+window.updateGameBalance = function(newBalance) {
+    // Update main game balance
+    if (typeof GameState !== 'undefined') {
+        GameState.balance = newBalance;
+        if (typeof updateUI === 'function') {
+            updateUI();
+        }
+        // Save to Firebase
+        if (typeof saveData === 'function') {
+            saveData();
+        }
+    }
+    
+    // Update display
+    const balanceText = document.getElementById('balanceText');
+    if (balanceText) {
+        balanceText.innerText = "₱" + newBalance.toLocaleString() + ".00";
+    }
+    
+    console.log('💰 Balance synced:', newBalance);
+};
+
+// Function para makuha ang current balance
+window.getCurrentBalance = function() {
+    if (typeof GameState !== 'undefined' && GameState.balance !== undefined) {
+        return GameState.balance;
+    }
+    const balanceText = document.getElementById('balanceText');
+    if (balanceText) {
+        let val = parseInt(balanceText.innerText.replace(/[₱,]/g, ''));
+        return isNaN(val) ? 0 : val;
+    }
+    return 0;
+};
 </script>
     
 </body>
