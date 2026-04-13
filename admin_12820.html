@@ -10,15 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        :root{--neon:#00f2ff;--ghost:#39ff14;--danger:#ff3131;--bg:#05080c;--gold:#ffd700;}
-        body{background:var(--bg);color:var(--neon);font-family:'JetBrains Mono',monospace;padding:12px;min-height:100vh;}
+        :root{--neon:#00f2ff;--ghost:#39ff14;--danger:#ff3131;--bg:#010101;--gold:#ffd700;--dark-glass:rgba(0,10,20,0.85);}
+        body{background:radial-gradient(circle at 20% 30%, #0a0f1a, #000000);color:var(--neon);font-family:'JetBrains Mono',monospace;padding:15px;min-height:100vh;}
         
         /* Login */
         .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.98);backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;}
-        .login-box{background:#0a0f1a;border:2px solid var(--neon);border-radius:20px;padding:30px;width:90%;max-width:340px;text-align:center;}
+        .login-box{background:#0a0f1a;border:2px solid var(--neon);border-radius:24px;padding:35px;width:90%;max-width:340px;text-align:center;box-shadow:0 0 40px rgba(0,242,255,0.2);}
         .login-box h2{color:var(--neon);margin-bottom:20px;font-size:22px;}
-        .login-box input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:12px;border-radius:10px;margin-bottom:15px;outline:none;}
-        .login-box button{width:100%;background:var(--neon);color:#000;border:none;padding:12px;font-weight:800;cursor:pointer;border-radius:10px;}
+        .login-box input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:12px;border-radius:12px;margin-bottom:15px;outline:none;}
+        .login-box button{width:100%;background:var(--neon);color:#000;border:none;padding:12px;font-weight:800;cursor:pointer;border-radius:12px;}
         .error-msg{color:var(--danger);font-size:11px;margin-top:8px;}
         
         /* Dashboard */
@@ -26,52 +26,47 @@
         .dashboard.active{display:block;}
         
         /* Header */
-        .cia-header{background:linear-gradient(135deg,#0a0f1a,#010101);border-bottom:3px solid var(--neon);padding:15px;margin-bottom:20px;border-radius:12px 12px 0 0;}
+        .cia-header{background:linear-gradient(135deg,#0a0f1a,#010101);border-bottom:2px solid var(--neon);padding:15px;margin-bottom:20px;border-radius:16px 16px 0 0;}
         .cia-header h1{font-size:18px;letter-spacing:3px;display:flex;align-items:center;gap:8px;}
         .cia-header h1 span{color:var(--danger);}
         .cia-header p{font-size:9px;color:rgba(0,242,255,0.5);margin-top:5px;}
-        .logout-btn{background:rgba(255,49,49,0.15);border:1px solid var(--danger);color:var(--danger);padding:6px 15px;border-radius:25px;cursor:pointer;font-size:11px;float:right;margin-top:-35px;}
+        .logout-btn{background:rgba(255,49,49,0.15);border:1px solid var(--danger);color:var(--danger);padding:6px 15px;border-radius:25px;cursor:pointer;font-size:11px;float:right;margin-top:-38px;}
         
-        /* Stats Row */
-        .stats-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
-        .stat-card{background:rgba(0,15,25,0.7);border:1px solid rgba(0,242,255,0.3);border-radius:12px;padding:10px;flex:1;min-width:80px;text-align:center;}
-        .stat-num{font-size:22px;font-weight:800;color:var(--ghost);}
-        .stat-label{font-size:8px;color:#888;text-transform:uppercase;}
+        /* Cards */
+        .card{background:var(--dark-glass);backdrop-filter:blur(10px);border:1px solid rgba(0,242,255,0.3);border-radius:16px;margin-bottom:16px;overflow:hidden;}
+        .card-header{background:rgba(0,20,35,0.6);padding:12px 16px;border-bottom:1px solid rgba(0,242,255,0.2);}
+        .card-header h3{font-size:13px;font-weight:800;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+        .card-header h3 span{font-size:16px;}
+        .card-body{padding:16px;}
         
-        /* Dropdown Sections */
-        .section{background:rgba(0,10,20,0.7);border:1px solid rgba(0,242,255,0.2);border-radius:14px;margin-bottom:12px;overflow:hidden;}
-        .section-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;cursor:pointer;background:rgba(0,20,35,0.5);transition:0.2s;}
-        .section-header:hover{background:rgba(0,50,70,0.5);}
-        .section-title{font-size:13px;font-weight:800;letter-spacing:1px;}
-        .section-title span{font-size:16px;margin-right:8px;}
-        .section-badge{background:rgba(0,242,255,0.15);padding:3px 10px;border-radius:30px;font-size:10px;}
-        .toggle-icon{font-size:16px;color:var(--neon);}
-        .section-content{display:none;padding:15px;border-top:1px solid rgba(0,242,255,0.15);}
-        .section-content.open{display:block;}
+        /* Dropdown sections (User Logs & Ban Protocol) */
+        .dropdown-section{margin-bottom:12px;}
+        .dropdown-header{background:rgba(0,20,35,0.5);padding:12px 16px;cursor:pointer;border-radius:14px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(0,242,255,0.2);transition:0.2s;}
+        .dropdown-header:hover{background:rgba(0,50,70,0.5);}
+        .dropdown-title{font-size:13px;font-weight:800;}
+        .dropdown-badge{background:rgba(0,242,255,0.15);padding:2px 10px;border-radius:30px;font-size:10px;}
+        .dropdown-content{display:none;padding:15px;background:rgba(0,10,20,0.5);border-radius:0 0 14px 14px;margin-top:-2px;}
+        .dropdown-content.open{display:block;}
         
-        /* Forms & Tables */
-        textarea,input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:12px;border-radius:10px;outline:none;font-size:12px;margin-bottom:10px;}
-        .btn{width:100%;background:linear-gradient(135deg,var(--neon),#0066aa);color:#000;border:none;padding:12px;font-weight:800;cursor:pointer;border-radius:10px;font-size:13px;}
+        /* Forms */
+        textarea,input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:12px;border-radius:12px;outline:none;font-size:12px;margin-bottom:12px;}
+        .btn{width:100%;background:linear-gradient(135deg,var(--neon),#0066aa);color:#000;border:none;padding:12px;font-weight:800;cursor:pointer;border-radius:12px;font-size:13px;}
         .btn-danger{background:linear-gradient(135deg,var(--danger),#aa0000);color:#fff;}
         
-        .table-wrap{overflow-x:auto;max-height:280px;overflow-y:auto;}
-        table{width:100%;border-collapse:collapse;font-size:11px;}
+        /* Tables */
+        .table-wrap{overflow-x:auto;max-height:300px;overflow-y:auto;}
+        table{width:100%;border-collapse:collapse;font-size:10px;}
         th{text-align:left;padding:10px 6px;border-bottom:1px solid var(--neon);color:var(--neon);}
         td{padding:8px 6px;border-bottom:1px solid rgba(0,242,255,0.1);}
-        .status{padding:2px 8px;border-radius:20px;font-size:9px;display:inline-block;}
+        .status{padding:2px 8px;border-radius:20px;font-size:8px;display:inline-block;}
         .status-avail{background:rgba(57,255,20,0.2);color:var(--ghost);border:1px solid var(--ghost);}
         .status-used{background:rgba(255,49,49,0.2);color:var(--danger);border:1px solid var(--danger);}
         .ghost-id{color:#fff;font-weight:bold;}
         .icon-btn{background:none;border:none;cursor:pointer;font-size:12px;padding:3px 6px;}
         
-        /* Master Key Small */
-        .master-key-area{display:flex;gap:8px;align-items:center;margin-top:5px;}
-        .master-key-area input{flex:1;margin-bottom:0;padding:8px;}
-        .master-key-area button{width:auto;padding:8px 15px;}
-        
-        /* Bottom Banned Indicator */
-        .banned-footer{margin-top:15px;padding:12px;background:rgba(255,49,49,0.1);border:1px solid var(--danger);border-radius:12px;text-align:center;}
-        .banned-footer span{color:var(--danger);font-weight:800;}
+        /* Bottom Master Key Button */
+        .master-key-footer{text-align:center;margin-top:20px;padding:10px;}
+        .master-key-btn{background:rgba(255,215,0,0.15);border:1px solid var(--gold);color:var(--gold);padding:10px 20px;border-radius:40px;cursor:pointer;font-size:12px;font-weight:800;width:auto;display:inline-block;}
         
         /* Scroll */
         ::-webkit-scrollbar{width:3px;}
@@ -95,40 +90,22 @@
     <div class="cia-header">
         <h1><span>🔻</span> C.I.A. COMMAND CENTER <span>🔻</span></h1>
         <p>CLASSIFIED // EYES ONLY // LEVEL 5 CLEARANCE</p>
-        <button class="logout-btn" onclick="logout()">⛔ TERMINATE SESSION</button>
+        <button class="logout-btn" onclick="logout()">⛔ TERMINATE</button>
     </div>
 
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-card"><div class="stat-num" id="statLinks">0</div><div class="stat-label">ACTIVE LINKS</div></div>
-        <div class="stat-card"><div class="stat-num" id="statUsers">0</div><div class="stat-label">ACTIVE USERS</div></div>
-        <div class="stat-card"><div class="stat-num" id="statBanned">0</div><div class="stat-label">TERMINATED</div></div>
-    </div>
-
-    <!-- SECTION 1: DEPLOY LINKS (with Master Key inside) -->
-    <div class="section">
-        <div class="section-header" onclick="toggleSection('deploySection')">
-            <div class="section-title"><span>⚡</span> DEPLOY LINKS</div>
-            <div class="toggle-icon">▼</div>
-        </div>
-        <div id="deploySection" class="section-content">
+    <!-- DEPLOY LINKS (always visible) -->
+    <div class="card">
+        <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS</h3></div>
+        <div class="card-body">
             <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
             <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
-            <div class="master-key-area" style="margin-top:12px;">
-                <input type="password" id="newMasterKey" placeholder="New master key">
-                <button class="btn" onclick="updateMasterKey()" style="background:var(--gold);color:#000;">🔑 UPDATE KEY</button>
-            </div>
         </div>
     </div>
 
-    <!-- SECTION 2: LINK MONITOR -->
-    <div class="section">
-        <div class="section-header" onclick="toggleSection('monitorSection')">
-            <div class="section-title"><span>📡</span> LINK MONITOR</div>
-            <div class="section-badge" id="activeLinksBadge">0 ACTIVE</div>
-            <div class="toggle-icon">▼</div>
-        </div>
-        <div id="monitorSection" class="section-content">
+    <!-- LINK MONITOR (always visible) -->
+    <div class="card">
+        <div class="card-header"><h3><span>📡</span> LINK MONITOR</h3></div>
+        <div class="card-body">
             <div class="table-wrap">
                 <table>
                     <thead><tr><th>ID</th><th>LINK</th><th>STATUS</th><th>USER</th><th></th></tr></thead>
@@ -138,14 +115,14 @@
         </div>
     </div>
 
-    <!-- SECTION 3: USER LOGS -->
-    <div class="section">
-        <div class="section-header" onclick="toggleSection('userSection')">
-            <div class="section-title"><span>👻</span> USER LOGS</div>
-            <div class="section-badge" id="activeUsersBadge">0 ACTIVE</div>
-            <div class="toggle-icon">▼</div>
+    <!-- USER LOGS (dropdown) -->
+    <div class="dropdown-section">
+        <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
+            <span class="dropdown-title">👻 USER LOGS</span>
+            <span class="dropdown-badge" id="activeUsersBadge">0 ACTIVE</span>
+            <span style="font-size:12px;">▼</span>
         </div>
-        <div id="userSection" class="section-content">
+        <div id="userDropdown" class="dropdown-content">
             <div class="table-wrap">
                 <table>
                     <thead><tr><th>PHONE</th><th>BALANCE</th><th>CLICKS</th><th>LAST SEEN</th><th></th></tr></thead>
@@ -155,14 +132,14 @@
         </div>
     </div>
 
-    <!-- SECTION 4: BAN PROTOCOL -->
-    <div class="section" style="border-color:var(--danger);">
-        <div class="section-header" onclick="toggleSection('banSection')" style="background:rgba(255,49,49,0.05);">
-            <div class="section-title" style="color:var(--danger);"><span>⚠️</span> BAN PROTOCOL</div>
-            <div class="section-badge" id="bannedBadge" style="border-color:var(--danger);">0 BANNED</div>
-            <div class="toggle-icon">▼</div>
+    <!-- BAN PROTOCOL (dropdown) -->
+    <div class="dropdown-section">
+        <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" style="border-color:var(--danger);">
+            <span class="dropdown-title" style="color:var(--danger);">⚠️ BAN PROTOCOL</span>
+            <span class="dropdown-badge" id="bannedBadge" style="border-color:var(--danger);">0 BANNED</span>
+            <span style="font-size:12px;">▼</span>
         </div>
-        <div id="banSection" class="section-content">
+        <div id="banDropdown" class="dropdown-content">
             <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
             <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
             <div class="table-wrap" style="margin-top:12px;">
@@ -171,9 +148,19 @@
         </div>
     </div>
 
-    <!-- Bottom Banned Indicator -->
-    <div class="banned-footer">
-        <span>⚠️ TERMINATED GHOSTS: <span id="footerBannedCount">0</span></span>
+    <!-- Master Key Button (Footer) -->
+    <div class="master-key-footer">
+        <button class="master-key-btn" onclick="showMasterKeyPopup()">🔑 MASTER KEY CONTROL</button>
+    </div>
+</div>
+
+<!-- Master Key Popup -->
+<div id="keyPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); z-index:20000; align-items:center; justify-content:center;">
+    <div style="background:#0a0f1a; border:2px solid var(--gold); border-radius:24px; padding:30px; width:90%; max-width:350px; text-align:center;">
+        <h3 style="color:var(--gold); margin-bottom:20px;">🔑 UPDATE MASTER KEY</h3>
+        <input type="password" id="popupNewKey" placeholder="Enter new master key" style="width:100%; margin-bottom:15px;">
+        <button class="btn" onclick="updateMasterKey()" style="margin-bottom:10px;">UPDATE</button>
+        <button class="btn" onclick="closeKeyPopup()" style="background:#333;">CANCEL</button>
     </div>
 </div>
 
@@ -182,13 +169,16 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const SESSION_KEY = "cia_auth";
 
-// Toggle dropdown sections
-function toggleSection(id) {
+// Toggle dropdowns (only for user logs and ban)
+function toggleDropdown(id) {
     const el = document.getElementById(id);
     el.classList.toggle('open');
 }
 
-// Master Key functions
+// Master Key popup
+function showMasterKeyPopup() { document.getElementById('keyPopup').style.display = 'flex'; }
+function closeKeyPopup() { document.getElementById('keyPopup').style.display = 'none'; }
+
 async function getMasterKey() {
     const snap = await db.ref('admin/masterKey').once('value');
     if(snap.exists()) return snap.val();
@@ -197,11 +187,12 @@ async function getMasterKey() {
 }
 
 async function updateMasterKey() {
-    const newKey = document.getElementById('newMasterKey').value.trim();
+    const newKey = document.getElementById('popupNewKey').value.trim();
     if(!newKey || newKey.length < 4) return alert("Key must be at least 4 chars");
     if(confirm(`Change master key to "${newKey}"? You will be logged out.`)) {
         await db.ref('admin/masterKey').set(newKey);
         alert("Master key updated!");
+        closeKeyPopup();
         logout();
     }
 }
@@ -257,33 +248,31 @@ function purgeGhost(phone) {
 }
 
 async function loadStats() {
-    const links = await db.ref('links').once('value');
-    let avail=0; links.forEach(c=>{if(c.val().status==='available')avail++;});
-    document.getElementById('statLinks').innerText = avail;
-    
     const users = await db.ref('user_sessions').once('value');
-    document.getElementById('statUsers').innerText = users.numChildren();
-    
+    document.getElementById('activeUsersBadge').innerHTML = users.numChildren() + " ACTIVE";
     const banned = await db.ref('banned_ghosts').once('value');
-    document.getElementById('statBanned').innerText = banned.numChildren();
-    document.getElementById('footerBannedCount').innerText = banned.numChildren();
+    document.getElementById('bannedBadge').innerHTML = banned.numChildren() + " BANNED";
 }
 
 // Real-time listeners
 db.ref('links').on('value', snap => {
     const tbody = document.getElementById('linkData');
     tbody.innerHTML = '';
-    let avail=0;
     snap.forEach(c => {
         const d = c.val();
-        if(d.status === 'available') avail++;
         const statusClass = d.status === 'available' ? 'status-avail' : 'status-used';
         const urlShort = d.url ? d.url.substring(0,30) + (d.url.length>30?'...':'') : '---';
-        tbody.innerHTML += `<tr><td>#${c.key.substr(-4)}</td><td title="${d.url}">${urlShort}</td><td><span class="status ${statusClass}">${d.status}</span></td><td class="ghost-id">${d.user === 'NONE' ? '---' : d.user}</td>
-        <td><button class="icon-btn" onclick="reuseLink('${c.key}')" style="color:var(--gold);">♻️</button><button class="icon-btn" onclick="db.ref('links/${c.key}').remove()" style="color:var(--danger);">🗑️</button></td></tr>`;
+        tbody.innerHTML += `<tr>
+            <td>#${c.key.substr(-4)}</td>
+            <td title="${d.url}">${urlShort}</td>
+            <td><span class="status ${statusClass}">${d.status}</span></td>
+            <td class="ghost-id">${d.user === 'NONE' ? '---' : d.user}</td>
+            <td>
+                <button class="icon-btn" onclick="reuseLink('${c.key}')" style="color:var(--gold);">♻️</button>
+                <button class="icon-btn" onclick="db.ref('links/${c.key}').remove()" style="color:var(--danger);">🗑️</button>
+            </td>
+        </tr>`;
     });
-    document.getElementById('statLinks').innerText = avail;
-    document.getElementById('activeLinksBadge').innerHTML = avail + " ACTIVE";
 });
 
 db.ref('user_sessions').on('value', snap => {
@@ -292,12 +281,17 @@ db.ref('user_sessions').on('value', snap => {
     snap.forEach(c => {
         const d = c.val();
         const lastSeen = d.lastUpdate ? new Date(d.lastUpdate).toLocaleTimeString() : '---';
-        tbody.innerHTML += `<tr><td class="ghost-id">${d.phone}</td><td style="color:var(--ghost)">₱${(d.balance||0).toLocaleString()}</td><td>${d.clicks||0}/6</td>
-        <td style="font-size:9px;">${lastSeen}</td>
-        <td><button class="icon-btn" onclick="document.getElementById('banTarget').value='${d.phone}';banGhost()" style="color:var(--neon);">🔨</button>
-        <button class="icon-btn" onclick="purgeGhost('${d.phone}')" style="color:var(--danger);">💀</button></td></tr>`;
+        tbody.innerHTML += `<tr>
+            <td class="ghost-id">${d.phone}</td>
+            <td style="color:var(--ghost)">₱${(d.balance||0).toLocaleString()}</td>
+            <td>${d.clicks||0}/6</td>
+            <td style="font-size:9px;">${lastSeen}</td>
+            <td>
+                <button class="icon-btn" onclick="document.getElementById('banTarget').value='${d.phone}';banGhost()" style="color:var(--neon);">🔨</button>
+                <button class="icon-btn" onclick="purgeGhost('${d.phone}')" style="color:var(--danger);">💀</button>
+            </td>
+        </tr>`;
     });
-    document.getElementById('statUsers').innerText = snap.numChildren();
     document.getElementById('activeUsersBadge').innerHTML = snap.numChildren() + " ACTIVE";
 });
 
@@ -305,12 +299,12 @@ db.ref('banned_ghosts').on('value', snap => {
     const tbody = document.getElementById('banList');
     tbody.innerHTML = '';
     snap.forEach(c => {
-        tbody.innerHTML += `<tr><td class="ghost-id" style="color:var(--danger)">⚠️ ${c.key}</td>
-        <td><button class="icon-btn" onclick="liftBan('${c.key}')" style="color:var(--ghost);">🔄 RECOVER</button></td></tr>`;
+        tbody.innerHTML += `<tr>
+            <td class="ghost-id" style="color:var(--danger)">⚠️ ${c.key}</td>
+            <td><button class="icon-btn" onclick="liftBan('${c.key}')" style="color:var(--ghost);">🔄 RECOVER</button></td>
+        </tr>`;
     });
-    document.getElementById('statBanned').innerText = snap.numChildren();
     document.getElementById('bannedBadge').innerHTML = snap.numChildren() + " BANNED";
-    document.getElementById('footerBannedCount').innerText = snap.numChildren();
 });
 
 // Auto-login
