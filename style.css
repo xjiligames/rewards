@@ -1,306 +1,13 @@
-/* ========== CSS RESET & VARIABLES ========== */
-:root { 
-    --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
-    --dark-bg: #04070d; 
-    --glass: rgba(255, 255, 255, 0.03);
-    --border: rgba(212, 175, 55, 0.3);
-}
-
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    -webkit-tap-highlight-color: transparent; 
-}
-
-/* ========== BASE BODY ========== */
-body { 
-    font-family: 'Public Sans', sans-serif; 
-    background-color: var(--dark-bg); 
-    background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); 
-    color: #fff; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    min-height: 100vh; 
-    padding: 15px; 
-    overflow-x: hidden; 
-}
-
-/* ========== ANIMATIONS ========== */
-@keyframes floatUp {
-    0% { opacity: 0; transform: translate(-50%, -20%) scale(0.5); }
-    30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); }
-}
-
-@keyframes fadeInOut { 
-    0% { opacity: 0; transform: translateY(-15px); } 
-    10% { opacity: 1; transform: translateY(0); } 
-    90% { opacity: 1; } 
-    100% { opacity: 0; } 
-}
-
-@keyframes pulse { 
-    0% { opacity: 1; } 
-    50% { opacity: 0.4; } 
-    100% { opacity: 1; } 
-}
-
-@keyframes spin { 
-    to { transform: rotate(360deg); } 
-}
-
-/* Card Animations */
-@keyframes twirl { 
-    0% { transform: rotateY(0); } 
-    100% { transform: rotateY(360deg); } 
-}
-
-@keyframes bounce { 
-    0%, 100% { transform: translateY(0); } 
-    50% { transform: translateY(-20px); } 
-}
-
-@keyframes glow { 
-    0% { filter: brightness(1); } 
-    50% { filter: brightness(3); } 
-}
-
-@keyframes hop { 
-    0% { transform: scale(1); } 
-    50% { transform: scale(1.2) translateY(-10px); } 
-}
-
-@keyframes float { 
-    0% { transform: translateY(0); } 
-    50% { transform: translateY(-15px); } 
-}
-
-@keyframes punch { 
-    0% { transform: translateX(0); } 
-    50% { transform: translateX(10px) scale(1.1); } 
-}
-
-/* ========== COMPONENTS ========== */
-.mult-pop {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: 'Orbitron';
-    font-weight: 900;
-    font-size: 28px;
-    color: #fbbf24;
-    text-shadow: 0 0 10px #000, 0 0 20px #fbbf24;
-    pointer-events: none;
-    z-index: 1000;
-    white-space: nowrap;
-    animation: floatUp 0.8s ease-out forwards;
-}
-
-.live-winner-box { 
-    position: absolute; 
-    top: 20px; 
-    background: rgba(0, 0, 0, 0.85); 
-    border: 1px solid rgba(212, 175, 55, 0.4); 
-    padding: 8px 15px; 
-    border-radius: 50px; 
-    font-size: 11px; 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    backdrop-filter: blur(10px); 
-    animation: fadeInOut 3s infinite; 
-    z-index: 100; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
-}
-
-.dot { 
-    width: 8px; 
-    height: 8px; 
-    background: #22c55e; 
-    border-radius: 50%; 
-    box-shadow: 0 0 10px #22c55e; 
-    animation: pulse 1.5s infinite; 
-}
-
-.gc-mini-icon { 
-    width: 14px; 
-    height: 14px; 
-    vertical-align: middle; 
-    margin: 0 2px; 
-    object-fit: contain; 
-}
-
-/* ========== LAYOUT SECTIONS ========== */
-#mobileOnly { 
-    display: none; 
-    position: fixed; 
-    inset: 0; 
-    background: #04070d; 
-    z-index: 10000; 
-    align-items: center; 
-    justify-content: center; 
-    text-align: center; 
-    padding: 20px; 
-}
-
-.card { 
-    background: var(--glass); 
-    width: 100%; 
-    max-width: 400px; 
-    padding: 20px; 
-    border-radius: 30px; 
-    border: 1px solid var(--border); 
-    backdrop-filter: blur(15px); 
-    text-align: center; 
-    margin-top: 60px; 
-    position: relative; 
-}
-
-.casino-banner { 
-    width: 100%; 
-    border-radius: 20px; 
-    margin-bottom: 15px; 
-    border: 1px solid var(--border); 
-}
-
-.logo-img { 
-    width: 120px; 
-    margin-bottom: 15px; 
-}
-
-.footer-img { 
-    width: 100%; 
-    max-width: 220px; 
-    margin-top: 20px; 
-    opacity: 0.9; 
-}
-
-/* ========== GAME GRID ========== */
-.game-grid { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 10px; 
-    margin: 20px 0; 
-}
-
-.card-wrapper { 
-    cursor: pointer; 
-    position: relative; 
-}
-
-.card-img { 
-    width: 100%; 
-    max-width: 100px; 
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); 
-    transition: transform 0.2s; 
-}
-
-.card-disabled { 
-    filter: grayscale(1) opacity(0.2) !important; 
-    pointer-events: none !important; 
-    transform: scale(0.9); 
-    transition: 0.5s; 
-}
-
-/* Animation Classes */
-.move-goddess { animation: twirl 0.6s ease; }
-.move-monkey { animation: bounce 0.5s ease; }
-.move-firegod { animation: glow 0.4s ease; }
-.move-bear { animation: hop 0.5s ease; }
-.move-girl { animation: float 0.6s ease; }
-.move-boxer { animation: punch 0.4s ease; }
-
-/* ========== TEXT & BUTTONS ========== */
-.amount { 
-    font-family: 'Orbitron'; 
-    font-size: 38px; 
-    background: var(--gold); 
-    -webkit-background-clip: text; 
-    -webkit-text-fill-color: transparent; 
-    font-weight: 700; 
-    margin: 10px 0; 
-}
-
-.btn-main { 
-    background: var(--gold); 
-    color: #000; 
-    padding: 18px; 
-    border: none; 
-    border-radius: 15px; 
-    font-weight: 800; 
-    width: 100%; 
-    display: none; 
-    cursor: pointer; 
-    text-transform: uppercase; 
-    margin-top: 10px; 
-    box-shadow: 0 4px #8b6508; 
-}
-
-.btn-main:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px #8b6508;
-}
-
-.trust-badge { 
-    font-size: 10px; 
-    color: #64748b; 
-    margin-top: 15px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 5px; 
-}
-
-/* ========== OVERLAY ========== */
-#processingOverlay { 
-    position: fixed; 
-    inset: 0; 
-    background: rgba(4, 7, 13, 0.98); 
-    z-index: 9999; 
-    display: none; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
-}
-
-.spinner { 
-    width: 40px; 
-    height: 40px; 
-    border: 4px solid rgba(212,175,55,0.1); 
-    border-top-color: #d4af37; 
-    border-radius: 50%; 
-    animation: spin 1s linear infinite; 
-}
-
-/* ========== CLAIM POPUP STYLES ========== */
-@keyframes rotateGreen {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-@keyframes fadeInScale {
-    0% { opacity: 0; transform: scale(0.8); }
-    100% { opacity: 1; transform: scale(1); }
-}
-@keyframes btnPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-@keyframes slideInUp {
-    0% { opacity: 0; transform: translateY(50px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
+/* ========== REMASTERED CLAIM POPUP (NEW) ========== */
+/* Override old claim popup styles */
 .claim-popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.9);
-    backdrop-filter: blur(15px);
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
     z-index: 30000;
     display: none;
     align-items: center;
@@ -309,200 +16,126 @@ body {
 }
 
 .claim-popup-card {
-    background: rgba(255,255,255,0.1);
+    background: rgba(20, 25, 35, 0.95);
     backdrop-filter: blur(20px);
-    border-radius: 60px;
-    max-width: 450px;
-    width: 90%;
-    padding: 40px 30px;
+    border-radius: 40px;
+    max-width: 380px;
+    width: 85%;
+    padding: 30px 25px;
     text-align: center;
-    border: 1px solid rgba(255,255,255,0.25);
+    border: 1px solid rgba(57, 255, 20, 0.4);
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     animation: fadeInScale 0.4s ease;
 }
 
-.rotating-green-o {
-    width: 80px;
-    height: 80px;
+/* OK Button Circle - Neon Green */
+.ok-circle {
+    width: 70px;
+    height: 70px;
     margin: 0 auto 20px auto;
-    border: 5px solid rgba(34,197,94,0.3);
-    border-top: 5px solid #22c55e;
-    border-right: 5px solid #22c55e;
+    background: rgba(57, 255, 20, 0.1);
+    border: 3px solid #39ff14;
     border-radius: 50%;
-    animation: rotateGreen 1s linear infinite;
-    box-shadow: 0 0 20px rgba(34,197,94,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
+    animation: glowPulse 1.5s infinite;
+}
+
+.ok-circle span {
+    font-size: 32px;
+    font-weight: 800;
+    color: #39ff14;
+    text-shadow: 0 0 10px #39ff14;
+    letter-spacing: 2px;
+}
+
+@keyframes glowPulse {
+    0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.4); transform: scale(1); }
+    70% { box-shadow: 0 0 0 12px rgba(57, 255, 20, 0); transform: scale(1.05); }
+    100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); transform: scale(1); }
 }
 
 .claim-popup-card h2 {
     color: #ffd700;
-    font-size: 28px;
+    font-size: 26px;
     margin-bottom: 10px;
     font-weight: 800;
 }
 
 .claim-popup-card .greeting {
     color: rgba(255,255,255,0.95);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
 .claim-popup-card .prize-amount {
     background: linear-gradient(135deg, #ffd700, #ffaa33);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 52px;
+    font-size: 48px;
     font-weight: 800;
     margin: 10px 0;
 }
 
 .claim-popup-card .message {
     color: rgba(255,255,255,0.85);
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
     margin-bottom: 20px;
 }
 
-/* BAGO I-CLAIM SECTION */
-.precondition-section {
-    background: rgba(0,0,0,0.5);
-    border-radius: 30px;
-    padding: 20px;
+/* Simple note - walang red flags */
+.simple-note {
+    background: rgba(57, 255, 20, 0.08);
+    border-radius: 20px;
+    padding: 10px;
     margin: 15px 0;
-    text-align: left;
-    border: 1px solid rgba(255,215,0,0.3);
+    border: 1px solid rgba(57, 255, 20, 0.2);
 }
 
-.precondition-title {
-    color: #ffaa33;
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 12px;
-    text-align: center;
+.simple-note p {
+    color: #39ff14;
+    font-size: 12px;
+    font-weight: 500;
 }
 
-.precondition-list {
-    list-style: none;
-    padding: 0;
-}
-
-.precondition-list li {
-    color: rgba(255,255,255,0.9);
-    font-size: 13px;
-    padding: 8px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.precondition-list li:last-child {
-    border-bottom: none;
-}
-
-.check-icon {
-    color: #22c55e;
-    font-size: 18px;
-}
-
-.warning-icon {
-    color: #ffaa33;
-    font-size: 18px;
-}
-
-/* Agree checkbox */
-.agree-section {
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-}
-
-.agree-checkbox {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-    accent-color: #ffd700;
-}
-
-.agree-label {
-    color: rgba(255,255,255,0.9);
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.agree-label strong {
-    color: #ffd700;
-}
-
-/* GCash Button */
-.claim-gcash-btn {
-    background: linear-gradient(135deg, #0066cc, #004099);
+/* OK Claim Button - Neon Green */
+.ok-claim-btn {
+    background: linear-gradient(135deg, #39ff14, #0a8a00);
     border: none;
     width: 100%;
-    padding: 16px 20px;
+    padding: 14px 20px;
     font-size: 18px;
     font-weight: bold;
     border-radius: 60px;
     cursor: pointer;
     transition: 0.2s;
     font-family: 'Poppins', 'Segoe UI', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    color: white;
-    opacity: 0.5;
-    pointer-events: none;
+    color: #000;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(57, 255, 20, 0.3);
 }
 
-.claim-gcash-btn.active {
-    opacity: 1;
-    pointer-events: auto;
-    cursor: pointer;
-}
-
-.claim-gcash-btn.active:active {
+.ok-claim-btn:active {
     transform: scale(0.98);
 }
 
-.claim-gcash-btn.processing {
-    background: linear-gradient(135deg, #0088cc, #006699);
+.ok-claim-btn.processing {
+    background: linear-gradient(135deg, #ffaa33, #ff6600);
     opacity: 0.9;
 }
 
-.gc-icon-small {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-}
-
+/* Info note */
 .info-note {
     color: rgba(255,255,255,0.4);
     font-size: 10px;
     margin-top: 15px;
 }
 
-.btn-disabled-note {
-    color: #ff8888;
-    font-size: 11px;
-    margin-top: 10px;
+@keyframes fadeInScale {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
 }
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 480px) {
-    .card {
-        margin-top: 50px;
-        padding: 15px;
-    }
-    
-    .amount {
-        font-size: 28px;
-    }
-    
-    .mult-pop {
-        font-size: 20px;
-    }
-    }
