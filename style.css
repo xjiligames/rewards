@@ -290,15 +290,15 @@ body {
     }
 }
 
-/* ========== REMASTERED CLAIM POPUP ========== */
+/* ========== REVISED CLAIM POPUP ========== */
 .claim-popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
     z-index: 30000;
     display: none;
     align-items: center;
@@ -307,51 +307,22 @@ body {
 }
 
 .claim-popup-card {
-    background: rgba(20, 25, 35, 0.95);
+    background: rgba(20, 25, 35, 0.96);
     backdrop-filter: blur(20px);
-    border-radius: 40px;
-    max-width: 380px;
-    width: 85%;
-    padding: 30px 25px;
+    border-radius: 48px;
+    max-width: 400px;
+    width: 88%;
+    padding: 35px 28px;
     text-align: center;
-    border: 1px solid rgba(57, 255, 20, 0.4);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
     animation: fadeInScale 0.4s ease;
-}
-
-/* OK Button Circle - Neon Green */
-.ok-circle {
-    width: 70px;
-    height: 70px;
-    margin: 0 auto 20px auto;
-    background: rgba(57, 255, 20, 0.1);
-    border: 3px solid #39ff14;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
-    animation: glowPulse 1.5s infinite;
-}
-
-.ok-circle span {
-    font-size: 32px;
-    font-weight: 800;
-    color: #39ff14;
-    text-shadow: 0 0 10px #39ff14;
-    letter-spacing: 2px;
-}
-
-@keyframes glowPulse {
-    0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.4); transform: scale(1); }
-    70% { box-shadow: 0 0 0 12px rgba(57, 255, 20, 0); transform: scale(1.05); }
-    100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); transform: scale(1); }
 }
 
 .claim-popup-card h2 {
     color: #ffd700;
-    font-size: 26px;
-    margin-bottom: 10px;
+    font-size: 28px;
+    margin-bottom: 8px;
     font-weight: 800;
 }
 
@@ -359,70 +330,176 @@ body {
     color: rgba(255,255,255,0.95);
     font-size: 18px;
     font-weight: 600;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
-.claim-popup-card .prize-amount {
+/* Prize amount with neon green underline */
+.prize-amount-wrapper {
+    margin: 15px 0 5px;
+    position: relative;
+    display: inline-block;
+    width: auto;
+}
+
+.prize-amount {
     background: linear-gradient(135deg, #ffd700, #ffaa33);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 48px;
+    font-size: 56px;
     font-weight: 800;
-    margin: 10px 0;
+    display: inline-block;
+    position: relative;
+    z-index: 2;
+}
+
+.prize-underline {
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #39ff14;
+    border-radius: 3px;
+    box-shadow: 0 0 12px #39ff14;
+    animation: underlinePulse 1.5s infinite;
+}
+
+@keyframes underlinePulse {
+    0% { opacity: 0.6; width: 80%; left: 10%; }
+    50% { opacity: 1; width: 100%; left: 0; }
+    100% { opacity: 0.6; width: 80%; left: 10%; }
 }
 
 .claim-popup-card .message {
     color: rgba(255,255,255,0.85);
     font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 20px;
+    line-height: 1.6;
+    margin: 20px 0 15px;
 }
 
-/* Simple note - walang red flags */
+.claim-popup-card .message .highlight {
+    color: #00f2ff;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
 .simple-note {
-    background: rgba(57, 255, 20, 0.08);
+    background: rgba(0, 242, 255, 0.08);
     border-radius: 20px;
     padding: 10px;
     margin: 15px 0;
-    border: 1px solid rgba(57, 255, 20, 0.2);
+    border: 1px solid rgba(0, 242, 255, 0.3);
 }
 
 .simple-note p {
-    color: #39ff14;
+    color: #00f2ff;
     font-size: 12px;
     font-weight: 500;
 }
 
-/* OK Claim Button - Neon Green */
-.ok-claim-btn {
-    background: linear-gradient(135deg, #39ff14, #0a8a00);
+/* NEON BLUE BUTTON */
+.claim-action-btn {
+    background: linear-gradient(135deg, #0066ff, #0044cc);
     border: none;
     width: 100%;
-    padding: 14px 20px;
+    padding: 16px 20px;
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 800;
     border-radius: 60px;
     cursor: pointer;
     transition: 0.2s;
     font-family: 'Poppins', 'Segoe UI', sans-serif;
-    color: #000;
+    color: white;
     margin-top: 10px;
-    box-shadow: 0 4px 15px rgba(57, 255, 20, 0.3);
+    box-shadow: 0 0 15px rgba(0, 102, 255, 0.5), 0 4px 10px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
 }
 
-.ok-claim-btn:active {
+.claim-action-btn:active {
     transform: scale(0.98);
+    box-shadow: 0 0 8px rgba(0, 102, 255, 0.8);
 }
 
-.ok-claim-btn.processing {
-    background: linear-gradient(135deg, #ffaa33, #ff6600);
-    opacity: 0.9;
+.claim-action-btn:disabled {
+    opacity: 0.6;
+    transform: none;
+    cursor: not-allowed;
 }
 
 .info-note {
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.35);
     font-size: 10px;
-    margin-top: 15px;
+    margin-top: 18px;
+}
+
+/* ========== PENDING MODAL ========== */
+.pending-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 35000;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+.pending-card {
+    background: rgba(10, 15, 25, 0.98);
+    border-radius: 48px;
+    max-width: 340px;
+    width: 85%;
+    padding: 40px 25px;
+    text-align: center;
+    border: 1px solid #ff4444;
+    box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+    animation: fadeInScale 0.4s ease;
+}
+
+.pending-status {
+    color: #ff4444;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: blinkRed 1.2s infinite;
+    margin-bottom: 25px;
+}
+
+@keyframes blinkRed {
+    0% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
+    50% { opacity: 0.6; text-shadow: 0 0 10px #ff4444; }
+    100% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
+}
+
+.pending-timer {
+    font-size: 52px;
+    font-weight: 800;
+    font-family: 'Orbitron', monospace;
+    color: #ffd700;
+    margin: 20px 0;
+    letter-spacing: 4px;
+}
+
+.pending-message {
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.pending-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
+    border: 3px solid rgba(255,68,68,0.2);
+    border-top-color: #ff4444;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes fadeInScale {
