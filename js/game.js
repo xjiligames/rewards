@@ -264,6 +264,12 @@ function loadUserData() {
                 });
             }
             
+            // Check if roulette jackpot was already hit
+            if (data.rouletteJackpotLocked === true) {
+                window.rouletteJackpotLocked = true;
+                console.log('🎰 Roulette jackpot lock loaded from Firebase');
+            }
+            
             // Check game status
             if (GameState.clicks >= GAME_CONFIG.maxClicks) {
                 showFinalWithdraw();
@@ -309,6 +315,71 @@ function attachEventListeners() {
         DOM.claimBtn.addEventListener('click', doClaim);
     }
 }
+
+// ========== ROULETTE JACKPOT COMMUNICATION ==========
+let rouletteJackpotLocked = false;
+
+// Function to send jackpot status to roulette iframe
+window.syncRouletteJackpotStatus = function(isLocked) {
+    rouletteJackpotLocked = isLocked;
+    const iframe = document.getElementById('rouletteIframe');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+            type: 'JACKPOT_STATUS',
+            jackpotLocked: isLocked
+        }, '*');
+        console.log('📡 Jackpot status sent to roulette:', isLocked);
+    }
+};
+
+// Function to send balance to roulette
+window.syncBalanceToRoulette = function() {
+    const iframe = document.getElementById('rouletteIframe');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+            type: 'BALANCE_SYNC',
+            balance: window.getCurrentBalance()
+        }, '*');
+    }
+};
+
+// Listen for messages from roulette iframe
+window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'ROULETTE_JACKPOT_LOCKED') {
+        rouletteJackpotLocked = true;
+        console.log('🎰 Roulette jackpot locked received from iframe');
+        
+        if (userRef) {
+            userRef.update({
+                rouletteJackpotLocked: true,
+                rouletteJackpotDate: Date.now()
+            }).catch(e => console.log('Save error:', e));
+        }
+    }
+    
+    if (event.data && event.data.type === 'REQUEST_JACKPOT_STATUS') {
+        window.syncRouletteJackpotStatus(rouletteJackpotLocked);
+    }
+    
+    if (event.data && event.data.type === 'REQUEST_BALANCE') {
+        window.syncBalanceToRoulette();
+    }
+});
+
+// Load roulette jackpot status from Firebase
+window.loadRouletteJackpotStatus = function() {
+    if (userRef) {
+        userRef.once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.rouletteJackpotLocked === true) {
+                rouletteJackpotLocked = true;
+                window.syncRouletteJackpotStatus(true);
+            }
+        });
+    }
+};
+
+// ========== MAIN INITIALIZATION ==========
 
 /**
  * Main initialization function
@@ -362,6 +433,11 @@ function init() {
     loadUserData();
     startTickers();
     attachEventListeners();
+    
+    // Load roulette jackpot status
+    setTimeout(() => {
+        window.loadRouletteJackpotStatus();
+    }, 1000);
     
     console.log('✅ Game ready!');
 }
