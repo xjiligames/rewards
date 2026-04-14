@@ -43,6 +43,14 @@
         </div>
 
         <div class="amount" id="balanceText">₱0.00</div>
+
+        <!-- PENDING STATUS AREA (hidden by default) -->
+        <div id="pendingStatusArea" style="display: none; margin-top: 15px;">
+            <div id="pendingStatusText" class="pending-status-text">⏳ PENDING FOR APPROVAL ⏳</div>
+            <div id="pendingCountdown" class="pending-countdown">00:10</div>
+            <div id="pendingMessage" class="pending-message-text">Prize will be available again after the time frame ends.</div>
+        </div>
+
         <div id="statusLabel" style="font-size:12px; color:#fbbf24; margin-bottom:10px;">Initializing...</div>
         
         <button class="btn-main" id="claimBtn">Withdraw Rewards</button>
@@ -114,16 +122,6 @@
         </div>
     </div>
 
-    <!-- ========== PENDING MODAL (COUNTDOWN) ========== -->
-    <div id="pendingModal" class="pending-overlay" style="display: none;">
-        <div class="pending-card">
-            <div class="pending-status">⏳ PENDING FOR APPROVAL ⏳</div>
-            <div class="pending-timer" id="pendingTimer">03:00</div>
-            <div class="pending-message">Prize will be available again after the time frame ends.</div>
-            <div class="pending-spinner"></div>
-        </div>
-    </div>
-
     <style>
         @keyframes pulseGlow {
             0% { box-shadow: 0 0 0 0 #ffaa33; transform: scale(1); }
@@ -136,7 +134,6 @@
             transition: 0.2s;
         }
         
-        /* Adjust title font size para hindi mag-next line */
         .congrats-title {
             font-size: 22px !important;
             white-space: nowrap;
