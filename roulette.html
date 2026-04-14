@@ -15,7 +15,7 @@
         .score-value{font-size:18px;color:#ffd700;font-weight:bold;}
         .stake-area{background:rgba(0,0,0,0.7);border-radius:30px;padding:10px;margin:10px 0;text-align:center;border:1px solid #ffaa3355;}
         .stake-value{font-size:28px;color:#ffaa33;font-weight:bold;}
-        .jackpot-locked{background:linear-gradient(135deg,#ff4444,#aa2222);border-radius:30px;padding:8px;margin-top:10px;text-align:center;font-weight:bold;color:white;animation:pulseRed 1s infinite;}
+        .jackpot-locked{background:linear-gradient(135deg,#ff4444,#aa2222);border-radius:30px;padding:8px;margin-top:10px;text-align:center;font-weight:bold;color:white;animation:pulseRed 1s infinite;display:none;}
         @keyframes pulseRed{0%{box-shadow:0 0 0 0 #ff4444;}70%{box-shadow:0 0 0 10px rgba(255,68,68,0);}100%{box-shadow:0 0 0 0 rgba(255,68,68,0);}}
         .side-prizes{display:flex;justify-content:space-between;margin:15px 0;gap:10px;}
         .prize-panel{background:rgba(0,0,0,0.7);border-radius:20px;padding:10px;text-align:center;flex:1;border:1px solid #ffd70044;}
@@ -27,9 +27,9 @@
         .pointer{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:40px solid #ffd700;z-index:10;}
         .pointer::after{content:"▼";position:absolute;top:-45px;left:-10px;font-size:22px;color:#ffaa33;}
         .result-area{background:#000000aa;margin:15px 0;padding:10px;border-radius:50px;text-align:center;font-size:14px;font-weight:bold;color:#ffdd99;min-height:55px;}
-        .spin-btn{background:linear-gradient(180deg,#ffd700,#ff8800);border:none;width:100%;padding:15px;font-size:20px;font-weight:bold;font-family:'Orbitron';color:#1a1a2a;border-radius:60px;cursor:pointer;box-shadow:0 6px 0 #aa5500;margin-top:10px;}
+        .spin-btn{background:linear-gradient(180deg,#ffd700,#ff8800);border:none;width:100%;padding:15px;font-size:20px;font-weight:bold;font-family:'Orbitron';color:#1a1a2a;border-radius:60px;cursor:pointer;box-shadow:0 6px 0 #aa5500;margin-top:10px;transition:0.1s;}
         .spin-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #aa5500;}
-        .spin-btn:disabled{opacity:0.5;cursor:not-allowed;}
+        .spin-btn.disabled{opacity:0.4;filter:grayscale(0.5);pointer-events:none;cursor:not-allowed;transform:none;}
         .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:1000;visibility:hidden;opacity:0;transition:0.2s;}
         .popup-overlay.active{visibility:visible;opacity:1;}
         .popup-card{background:linear-gradient(145deg,#2a2a1a,#1a1a0a);border-radius:40px;padding:25px;text-align:center;border:2px solid #ffd700;max-width:280px;width:80%;animation:bounceIn 0.4s ease;}
@@ -53,19 +53,19 @@
         <div class="stake-value" id="currentStake">₱0</div>
         <div id="stakeInfo">⬆️ Bet progression ⬆️</div>
     </div>
-    <div id="jackpotLockedMsg" class="jackpot-locked" style="display:none;">🏆 JACKPOT HIT! GAME OVER! 🏆</div>
+    <div id="jackpotLockedMsg" class="jackpot-locked">🏆 JACKPOT HIT! GAME OVER! 🏆</div>
     <div class="side-prizes">
         <div class="prize-panel"><h3>🔥 LEFT ZONE 🔥</h3><div class="prize-values"><span class="prize-chip">🎰 ₱1,000 (25%)</span><span class="prize-chip">🎯 ₱50</span><span class="prize-chip">🎯 ₱50</span></div></div>
         <div class="prize-panel"><h3>⚡ RIGHT ZONE ⚡</h3><div class="prize-values"><span class="prize-chip">🏆 ₱500 (35%)</span><span class="prize-chip">💎 ₱250 (40%)</span><span class="prize-chip">🎲 ₱100 (50%)</span><span class="prize-chip">🎲 ₱100</span></div></div>
     </div>
     <div class="wheel-wrapper"><canvas id="rouletteCanvas" width="380" height="380"></canvas><div class="pointer"></div></div>
     <div class="result-area" id="resultMessage">🎲 Click SPIN to start! 🎲</div>
-    <button class="spin-btn" id="spinBtn">🎰 LOADING... 🎰</button>
+    <button class="spin-btn" id="spinBtn">🎰 SPIN 🎰</button>
 </div>
 <div id="winPopup" class="popup-overlay"><div class="popup-card"><h2 id="popupTitle">🎉 WINNER!</h2><p id="popupPrize">₱0</p><p id="popupNet"></p><button class="popup-close" onclick="closePopup()">CLAIM</button></div></div>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
-// ========== CONFIG ==========
+// ========== ROULETTE CONFIG ==========
 const PRIZE_POOL = [{value:1000,chance:25},{value:500,chance:35},{value:250,chance:40},{value:100,chance:50},{value:50,chance:60},{value:75,chance:60},{value:30,chance:60},{value:20,chance:60},{value:15,chance:60},{value:10,chance:60},{value:5,chance:60}];
 function getRandomPrize(){let r=Math.random()*100;for(let p of PRIZE_POOL)if(r<=p.chance)return p.value;return 50;}
 let PRIZES=[];for(let i=0;i<21;i++)PRIZES.push(getRandomPrize());
@@ -73,21 +73,36 @@ const SEGMENT_COUNT=21,ANGLE_PER_SEG=(Math.PI*2)/SEGMENT_COUNT;
 let canvas=document.getElementById('rouletteCanvas'),ctx=canvas.getContext('2d');
 canvas.width=canvas.height=380;
 let currentRotation=0,spinning=false,animationId=null;
-let mainBalance=0,spinCount=0,currentStake=0,jackpotHit=false;
+let mainBalance=0,spinCount=0,currentStake=25,jackpotLocked=false;
 let db=null,userPhone=null,userRef=null;
 const balanceSpan=document.getElementById('balanceAmount'),spinCountSpan=document.getElementById('spinCount');
 const currentStakeSpan=document.getElementById('currentStake'),stakeInfoSpan=document.getElementById('stakeInfo');
 const spinBtn=document.getElementById('spinBtn'),resultMsg=document.getElementById('resultMessage');
 const jackpotLockedDiv=document.getElementById('jackpotLockedMsg');
 
-function calculateStake(s){
-    if(jackpotHit) return 0;
-    if(s===0) return 0;
-    if(s===1) return 0;  // Spin #1 FREE
-    if(s>=6) return 100;
-    return [25,50,75,100][s-2];
+// Stake progression: 1st FREE, then 25,50,75,100, then 100 onwards
+function getStakeForSpin(spinNum){
+    if(jackpotLocked) return 0;
+    if(spinNum === 1) return 0;
+    if(spinNum >= 6) return 100;
+    return [25,50,75,100][spinNum - 2];
 }
-function getNextStake(s){return calculateStake(s+1);}
+
+function updateUI(){
+    let nextSpin = spinCount + 1;
+    let nextStake = getStakeForSpin(nextSpin);
+    if(nextStake === 0){
+        currentStakeSpan.innerHTML = "🎁 FREE SPIN! 🎁";
+        spinBtn.innerHTML = "🎰 FREE SPIN! 🎰";
+        stakeInfoSpan.innerHTML = "✨ 1st spin is FREE! ✨";
+    } else {
+        currentStakeSpan.innerHTML = `₱${nextStake}`;
+        spinBtn.innerHTML = `🎰 SPIN (₱${nextStake}) 🎰`;
+        let afterStake = getStakeForSpin(nextSpin + 1);
+        stakeInfoSpan.innerHTML = afterStake === 0 ? "⬆️ Next: FREE! ⬆️" : `⬆️ Next: ₱${afterStake} ⬆️`;
+    }
+    spinCountSpan.innerHTML = spinCount;
+}
 
 function syncBalanceFromMain(){
     try{if(window.parent&&window.parent.getCurrentBalance)mainBalance=window.parent.getCurrentBalance();
@@ -101,25 +116,6 @@ function updateMainBalance(n){mainBalance=n;
     window.parent.postMessage({type:'BALANCE_UPDATE',balance:mainBalance},'*');}catch(e){}
     localStorage.setItem('userBalance',mainBalance);balanceSpan.innerHTML=`₱${mainBalance.toLocaleString()}`;
 }
-
-function deductStake(){
-    if(jackpotHit){resultMsg.innerHTML="🏆 JACKPOT HIT! Game over! 🏆";return false;}
-    let nextSpin = spinCount + 1;
-    let requiredStake = calculateStake(nextSpin);
-    if(requiredStake === 0){return true;}
-    if(mainBalance >= requiredStake){mainBalance -= requiredStake;updateMainBalance(mainBalance);return true;}
-    else{resultMsg.innerHTML=`❌ Need ₱${requiredStake} ❌`;return false;}
-}
-function calculateNetWin(r){let nextSpin=spinCount+1;let stake=calculateStake(nextSpin);if(stake===0)return r;return Math.floor(r*(stake/25));}
-
-function updateStakeDisplay(){
-    if(jackpotHit){spinBtn.disabled=true;spinBtn.innerHTML="🏆 JACKPOT CLAIMED 🏆";return;}
-    let nextSpin = spinCount + 1;
-    let stake = calculateStake(nextSpin);
-    if(spinCount===0){currentStakeSpan.innerHTML="🎁 FREE SPIN!";spinBtn.innerHTML="🎰 FREE SPIN! 🎰";stakeInfoSpan.innerHTML="✨ 1st spin is FREE! ✨";}
-    else{currentStakeSpan.innerHTML=`₱${stake}`;spinBtn.innerHTML=`🎰 SPIN (₱${stake}) 🎰`;let ns=calculateStake(nextSpin+1);stakeInfoSpan.innerHTML=ns===0?"⬆️ Next: FREE! ⬆️":`⬆️ Next: ₱${ns} ⬆️`;}
-}
-function updateSpinCounter(){spinCountSpan.innerHTML=spinCount;}
 
 function drawWheel(r){
     ctx.clearRect(0,0,380,380);let cx=190,cy=190,rad=180;
@@ -165,41 +161,37 @@ function showJackpotPopup(a){
 }
 function closePopup(){document.getElementById('winPopup').classList.remove('active');}
 
-// SAVE FULL GAME STATE TO FIREBASE
-function saveGameState(){
-    if(userRef){
-        userRef.update({
-            spinCount: spinCount,
-            lastUpdate: Date.now(),
-            balance: mainBalance
-        }).catch(e=>console.log('Save state error:',e));
-    }
+// Disable spin button permanently (gaya ng card-disabled)
+function disableSpinButton(){
+    spinBtn.classList.add('disabled');
+    spinBtn.disabled = true;
+    jackpotLockedDiv.style.display = 'block';
+    resultMsg.innerHTML = "🏆 JACKPOT HIT! Game completed! 🏆";
 }
 
-function saveJackpotToFirebase(amount){
+// Save jackpot lock to Firebase
+function saveJackpotLock(){
     if(userRef){
         userRef.update({
-            jackpotClaimed: true,
-            jackpotAmount: amount,
-            jackpotDate: Date.now(),
-            gameLocked: true
-        }).catch(e=>console.log('Save jackpot error:',e));
+            jackpotLocked: true,
+            jackpotDate: Date.now()
+        }).catch(e=>console.log('Save error:',e));
     }
 }
 
 function startSpin(){
-    if(spinning)return;
-    if(jackpotHit){
-        resultMsg.innerHTML="🏆 JACKPOT ALREADY CLAIMED! Game over! 🏆";
+    if(spinning) return;
+    if(jackpotLocked){
+        resultMsg.innerHTML = "🏆 JACKPOT ALREADY HIT! Game over! 🏆";
         return;
     }
     
     let nextSpinNum = spinCount + 1;
-    let requiredStake = calculateStake(nextSpinNum);
+    let requiredStake = getStakeForSpin(nextSpinNum);
     
-    // Check if can play
+    // Check balance
     if(requiredStake > 0 && mainBalance < requiredStake){
-        resultMsg.innerHTML=`❌ Need ₱${requiredStake} to continue! ❌`;
+        resultMsg.innerHTML = `❌ Need ₱${requiredStake} to spin! ❌`;
         return;
     }
     
@@ -223,85 +215,77 @@ function startSpin(){
             currentRotation=target%(2*Math.PI);
             drawWheel(currentRotation);
             let raw=getCurrentPrize(currentRotation);
-            let winMultiplier = calculateStake(spinCount+1) === 0 ? 1 : (calculateStake(spinCount+1)/25);
-            let netWin = Math.floor(raw * winMultiplier);
-            let isJackpot = (raw===1000);
+            let stakeForThisSpin = getStakeForSpin(nextSpinNum);
+            let multiplier = stakeForThisSpin === 0 ? 1 : (stakeForThisSpin / 25);
+            let netWin = Math.floor(raw * multiplier);
+            let isJackpot = (raw === 1000);
             
             mainBalance += netWin;
             updateMainBalance(mainBalance);
             spinCount++;
-            updateSpinCounter();
-            saveGameState();
+            updateUI();
             
-            updateStakeDisplay();
             resultMsg.innerHTML=`✨ WON ₱${netWin.toLocaleString()}! ✨`;
             playWin();
             
             if(isJackpot){
-                jackpotHit=true;
-                saveJackpotToFirebase(raw);
+                jackpotLocked = true;
+                disableSpinButton();
+                saveJackpotLock();
                 playJackpot();
-                jackpotLockedDiv.style.display='block';
-                spinBtn.disabled=true;
-                spinBtn.innerHTML="🏆 JACKPOT CLAIMED! 🏆";
-                resultMsg.innerHTML="🎉 JACKPOT! GAME COMPLETE! 🎉";
                 showJackpotPopup(netWin);
-            }else{showWinPopup(netWin,calculateStake(spinCount),raw);}
+            }else{
+                showWinPopup(netWin, stakeForThisSpin, raw);
+            }
             spinning=false;cancelAnimationFrame(animationId);window.lastSeg=null;
         }
     }
     window.lastSeg=null;animationId=requestAnimationFrame(animate);
 }
 
-// Load saved game state from Firebase
-function loadGameState(data){
-    if(data && data.jackpotClaimed===true){
-        jackpotHit=true;
-        spinBtn.disabled=true;
-        spinBtn.innerHTML="🏆 JACKPOT CLAIMED! 🏆";
-        jackpotLockedDiv.style.display='block';
-        resultMsg.innerHTML="🏆 You already won the JACKPOT! Game over. 🏆";
-        return;
+// Load saved state from Firebase
+function loadSavedState(){
+    if(userRef){
+        userRef.once('value',(snap)=>{
+            const data=snap.val();
+            if(data && data.jackpotLocked === true){
+                jackpotLocked = true;
+                disableSpinButton();
+            }
+            syncBalanceFromMain();
+            drawWheel(currentRotation);
+            updateUI();
+        });
+    }else{
+        syncBalanceFromMain();
+        drawWheel(currentRotation);
+        updateUI();
     }
-    if(data && data.spinCount !== undefined){
-        spinCount = data.spinCount;
-        updateSpinCounter();
-    }
-    updateStakeDisplay();
 }
 
-// Firebase initialization
-function initFirebaseAndGame(){
+// Initialize Firebase
+function init(){
     if(typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined'){
         if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
         db=firebase.database();
         userPhone=localStorage.getItem("userPhone");
         if(userPhone){
             userRef=db.ref('user_sessions/'+userPhone);
-            userRef.once('value',(snap)=>{
-                const data=snap.val();
-                syncBalanceFromMain();
-                if(data){
-                    if(data.balance !== undefined)mainBalance=data.balance;
-                    updateMainBalance(mainBalance);
-                    loadGameState(data);
-                }
-                drawWheel(currentRotation);
-            });
+            loadSavedState();
         }else{
             syncBalanceFromMain();
             drawWheel(currentRotation);
-            updateStakeDisplay();
+            updateUI();
         }
     }else{
         syncBalanceFromMain();
         drawWheel(currentRotation);
-        updateStakeDisplay();
+        updateUI();
     }
 }
 
-document.getElementById('spinBtn').addEventListener('click',startSpin);
-initFirebaseAndGame();
+spinBtn.addEventListener('click',startSpin);
+init();
 </script>
 </body>
 </html>
