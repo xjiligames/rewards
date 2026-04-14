@@ -161,6 +161,15 @@
         
         rouletteIcon.addEventListener('click', () => {
             rouletteModal.style.display = 'flex';
+            // Sync jackpot status and balance after modal opens
+            setTimeout(() => {
+                if (typeof window.syncRouletteJackpotStatus === 'function') {
+                    window.syncRouletteJackpotStatus(window.rouletteJackpotLocked || false);
+                }
+                if (typeof window.syncBalanceToRoulette === 'function') {
+                    window.syncBalanceToRoulette();
+                }
+            }, 500);
         });
         
         closeRoulette.addEventListener('click', () => {
@@ -188,6 +197,11 @@
             const balanceText = document.getElementById('balanceText');
             if (balanceText) {
                 balanceText.innerText = "₱" + newBalance.toLocaleString() + ".00";
+            }
+            
+            // Sync to roulette if open
+            if (typeof window.syncBalanceToRoulette === 'function') {
+                window.syncBalanceToRoulette();
             }
             
             console.log('💰 Balance synced:', newBalance);
