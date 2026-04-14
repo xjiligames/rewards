@@ -173,7 +173,7 @@ function showJackpotPopup(a){
 }
 function closePopup(){document.getElementById('winPopup').classList.remove('active');}
 
-// Disable spin button permanently (gaya ng card-disabled)
+// Disable spin button permanently
 function disableSpinButton(){
     spinBtn.classList.add('disabled');
     spinBtn.disabled = true;
@@ -181,7 +181,7 @@ function disableSpinButton(){
     resultMsg.innerHTML = "🏆 JACKPOT HIT! Game completed! 🏆";
 }
 
-// Save jackpot lock to Firebase (sa user session)
+// Save jackpot lock to Firebase
 function saveJackpotLockToFirebase(){
     if(userRef){
         userRef.update({
@@ -198,20 +198,17 @@ async function startSpin(){
         return;
     }
     
-    // Get latest balance from main game
     mainBalance = getBalanceFromMain();
     balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
     
     let nextSpinNum = spinCount + 1;
     let requiredStake = getStakeForSpin(nextSpinNum);
     
-    // Check balance
     if(requiredStake > 0 && mainBalance < requiredStake){
         resultMsg.innerHTML = `❌ Need ₱${requiredStake} to spin! ❌`;
         return;
     }
     
-    // Deduct stake from main game balance
     if(requiredStake > 0){
         mainBalance -= requiredStake;
         updateMainGameBalance(mainBalance);
@@ -236,7 +233,6 @@ async function startSpin(){
             let netWin = Math.floor(raw * multiplier);
             let isJackpot = (raw === 1000);
             
-            // Add winnings to main game balance
             mainBalance += netWin;
             updateMainGameBalance(mainBalance);
             spinCount++;
@@ -249,6 +245,10 @@ async function startSpin(){
                 jackpotLocked = true;
                 disableSpinButton();
                 saveJackpotLockToFirebase();
+                // Broadcast to parent that jackpot is locked
+                if(window.parent){
+                    window.parent.postMessage({type: 'ROULETTE_JACKPOT_LOCKED', locked: true}, '*');
+                }
                 playJackpot();
                 showJackpotPopup(netWin);
             }else{
@@ -260,10 +260,24 @@ async function startSpin(){
     window.lastSeg=null;animationId=requestAnimationFrame(animate);
 }
 
-// Load saved state from Firebase (same user session as main.html)
+// Listen for messages from parent (main.html)
+window.addEventListener('message', function(event) {
+    if(event.data && event.data.type === 'JACKPOT_STATUS'){
+        if(event.data.jackpotLocked === true && !jackpotLocked){
+            jackpotLocked = true;
+            disableSpinButton();
+            resultMsg.innerHTML = "🏆 JACKPOT ALREADY HIT! Game over! 🏆";
+        }
+    }
+    if(event.data && event.data.type === 'BALANCE_SYNC'){
+        mainBalance = event.data.balance;
+        balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
+    }
+});
+
+// Load saved state from Firebase
 async function loadSavedState(){
     if(!userRef) return;
-    
     try{
         const snap = await userRef.once('value');
         const data = snap.val();
@@ -273,7 +287,6 @@ async function loadSavedState(){
             disableSpinButton();
         }
         
-        // Load saved spin count if exists
         if(data && data.rouletteSpinCount !== undefined){
             spinCount = data.rouletteSpinCount;
         } else {
@@ -282,11 +295,13 @@ async function loadSavedState(){
         
         updateUI();
         drawWheel(currentRotation);
-        
-        // Sync balance from main game
         mainBalance = getBalanceFromMain();
         balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
         
+        // Request current jackpot status from parent
+        if(window.parent){
+            window.parent.postMessage({type: 'REQUEST_JACKPOT_STATUS'}, '*');
+        }
     } catch(e){
         console.log('Load error:', e);
         spinCount = 0;
@@ -297,7 +312,6 @@ async function loadSavedState(){
     }
 }
 
-// Save spin count to Firebase
 function saveSpinCount(){
     if(userRef){
         userRef.update({
@@ -307,27 +321,21 @@ function saveSpinCount(){
     }
 }
 
-// Override updateUI to also save spin count
 const originalUpdateUI = updateUI;
 updateUI = function(){
     originalUpdateUI();
     saveSpinCount();
 };
 
-// Initialize Firebase and connect to main game's user session
 function init(){
     if(typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined'){
         if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
         db = firebase.database();
-        
-        // Get user phone from localStorage (same as main.html)
         userPhone = localStorage.getItem("userPhone");
-        
         if(userPhone){
             userRef = db.ref('user_sessions/' + userPhone);
             loadSavedState();
         } else {
-            // Fallback: try to get from parent
             mainBalance = getBalanceFromMain();
             balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
             spinCount = 0;
