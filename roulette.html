@@ -45,7 +45,7 @@
 <div class="roulette-container">
     <div class="game-title">🎡 ROULETTE ROYALE 🎡</div>
     <div class="score-board">
-        <div class="score-item"><div class="score-label">💰 BALANCE</div><div class="score-value" id="balanceAmount">₱0</div></div>
+        <div class="score-item"><div class="score-label">💰 MAIN BALANCE</div><div class="score-value" id="balanceAmount">₱0</div></div>
         <div class="score-item"><div class="score-label">🎲 SPIN #</div><div class="score-value" id="spinCount">0</div></div>
         <div class="score-item"><div class="score-label">💎 BET</div><div class="score-value" id="currentStakeDisplay">₱0</div></div>
     </div>
@@ -73,7 +73,7 @@ const SEGMENT_COUNT=21,ANGLE_PER_SEG=(Math.PI*2)/SEGMENT_COUNT;
 let canvas=document.getElementById('rouletteCanvas'),ctx=canvas.getContext('2d');
 canvas.width=canvas.height=380;
 let currentRotation=0,spinning=false,animationId=null;
-let mainBalance=0,spinCount=0,currentStake=25,jackpotLocked=false;
+let mainBalance=0,spinCount=0,jackpotLocked=false;
 let db=null,userPhone=null,userRef=null;
 const balanceSpan=document.getElementById('balanceAmount'),spinCountSpan=document.getElementById('spinCount');
 const currentStakeSpan=document.getElementById('currentStake'),stakeInfoSpan=document.getElementById('stakeInfo');
@@ -104,17 +104,29 @@ function updateUI(){
     spinCountSpan.innerHTML = spinCount;
 }
 
-function syncBalanceFromMain(){
-    try{if(window.parent&&window.parent.getCurrentBalance)mainBalance=window.parent.getCurrentBalance();
-    else if(window.getCurrentBalance)mainBalance=window.getCurrentBalance();
-    else{let s=localStorage.getItem('userBalance');mainBalance=s?parseInt(s):1000;}}catch(e){let s=localStorage.getItem('userBalance');mainBalance=s?parseInt(s):1000;}
-    balanceSpan.innerHTML=`₱${mainBalance.toLocaleString()}`;return mainBalance;
+// Get balance from main game (parent window)
+function getBalanceFromMain(){
+    try{
+        if(window.parent && window.parent.getCurrentBalance){
+            return window.parent.getCurrentBalance();
+        } else if(window.getCurrentBalance){
+            return window.getCurrentBalance();
+        }
+    }catch(e){}
+    return 0;
 }
-function updateMainBalance(n){mainBalance=n;
-    try{if(window.parent&&window.parent.updateGameBalance)window.parent.updateGameBalance(mainBalance);
-    else if(window.updateGameBalance)window.updateGameBalance(mainBalance);
-    window.parent.postMessage({type:'BALANCE_UPDATE',balance:mainBalance},'*');}catch(e){}
-    localStorage.setItem('userBalance',mainBalance);balanceSpan.innerHTML=`₱${mainBalance.toLocaleString()}`;
+
+// Update balance in main game
+function updateMainGameBalance(newBalance){
+    try{
+        if(window.parent && window.parent.updateGameBalance){
+            window.parent.updateGameBalance(newBalance);
+        } else if(window.updateGameBalance){
+            window.updateGameBalance(newBalance);
+        }
+        window.parent.postMessage({type:'BALANCE_UPDATE', balance:newBalance}, '*');
+    }catch(e){}
+    balanceSpan.innerHTML = `₱${newBalance.toLocaleString()}`;
 }
 
 function drawWheel(r){
@@ -169,22 +181,26 @@ function disableSpinButton(){
     resultMsg.innerHTML = "🏆 JACKPOT HIT! Game completed! 🏆";
 }
 
-// Save jackpot lock to Firebase
-function saveJackpotLock(){
+// Save jackpot lock to Firebase (sa user session)
+function saveJackpotLockToFirebase(){
     if(userRef){
         userRef.update({
-            jackpotLocked: true,
-            jackpotDate: Date.now()
+            rouletteJackpotLocked: true,
+            rouletteJackpotDate: Date.now()
         }).catch(e=>console.log('Save error:',e));
     }
 }
 
-function startSpin(){
+async function startSpin(){
     if(spinning) return;
     if(jackpotLocked){
         resultMsg.innerHTML = "🏆 JACKPOT ALREADY HIT! Game over! 🏆";
         return;
     }
+    
+    // Get latest balance from main game
+    mainBalance = getBalanceFromMain();
+    balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
     
     let nextSpinNum = spinCount + 1;
     let requiredStake = getStakeForSpin(nextSpinNum);
@@ -195,10 +211,10 @@ function startSpin(){
         return;
     }
     
-    // Deduct stake
+    // Deduct stake from main game balance
     if(requiredStake > 0){
         mainBalance -= requiredStake;
-        updateMainBalance(mainBalance);
+        updateMainGameBalance(mainBalance);
     }
     
     spinning=true;playTick();resultMsg.innerHTML="🌀 SPINNING... 🌀";
@@ -220,8 +236,9 @@ function startSpin(){
             let netWin = Math.floor(raw * multiplier);
             let isJackpot = (raw === 1000);
             
+            // Add winnings to main game balance
             mainBalance += netWin;
-            updateMainBalance(mainBalance);
+            updateMainGameBalance(mainBalance);
             spinCount++;
             updateUI();
             
@@ -231,7 +248,7 @@ function startSpin(){
             if(isJackpot){
                 jackpotLocked = true;
                 disableSpinButton();
-                saveJackpotLock();
+                saveJackpotLockToFirebase();
                 playJackpot();
                 showJackpotPopup(netWin);
             }else{
@@ -243,48 +260,90 @@ function startSpin(){
     window.lastSeg=null;animationId=requestAnimationFrame(animate);
 }
 
-// Load saved state from Firebase
-function loadSavedState(){
-    if(userRef){
-        userRef.once('value',(snap)=>{
-            const data=snap.val();
-            if(data && data.jackpotLocked === true){
-                jackpotLocked = true;
-                disableSpinButton();
-            }
-            syncBalanceFromMain();
-            drawWheel(currentRotation);
-            updateUI();
-        });
-    }else{
-        syncBalanceFromMain();
-        drawWheel(currentRotation);
+// Load saved state from Firebase (same user session as main.html)
+async function loadSavedState(){
+    if(!userRef) return;
+    
+    try{
+        const snap = await userRef.once('value');
+        const data = snap.val();
+        
+        if(data && data.rouletteJackpotLocked === true){
+            jackpotLocked = true;
+            disableSpinButton();
+        }
+        
+        // Load saved spin count if exists
+        if(data && data.rouletteSpinCount !== undefined){
+            spinCount = data.rouletteSpinCount;
+        } else {
+            spinCount = 0;
+        }
+        
         updateUI();
+        drawWheel(currentRotation);
+        
+        // Sync balance from main game
+        mainBalance = getBalanceFromMain();
+        balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
+        
+    } catch(e){
+        console.log('Load error:', e);
+        spinCount = 0;
+        updateUI();
+        drawWheel(currentRotation);
+        mainBalance = getBalanceFromMain();
+        balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
     }
 }
 
-// Initialize Firebase
+// Save spin count to Firebase
+function saveSpinCount(){
+    if(userRef){
+        userRef.update({
+            rouletteSpinCount: spinCount,
+            rouletteLastUpdate: Date.now()
+        }).catch(e=>console.log('Save spin error:',e));
+    }
+}
+
+// Override updateUI to also save spin count
+const originalUpdateUI = updateUI;
+updateUI = function(){
+    originalUpdateUI();
+    saveSpinCount();
+};
+
+// Initialize Firebase and connect to main game's user session
 function init(){
     if(typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined'){
         if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
-        db=firebase.database();
-        userPhone=localStorage.getItem("userPhone");
+        db = firebase.database();
+        
+        // Get user phone from localStorage (same as main.html)
+        userPhone = localStorage.getItem("userPhone");
+        
         if(userPhone){
-            userRef=db.ref('user_sessions/'+userPhone);
+            userRef = db.ref('user_sessions/' + userPhone);
             loadSavedState();
-        }else{
-            syncBalanceFromMain();
-            drawWheel(currentRotation);
+        } else {
+            // Fallback: try to get from parent
+            mainBalance = getBalanceFromMain();
+            balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
+            spinCount = 0;
             updateUI();
+            drawWheel(currentRotation);
         }
-    }else{
-        syncBalanceFromMain();
-        drawWheel(currentRotation);
+    } else {
+        mainBalance = getBalanceFromMain();
+        balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
+        spinCount = 0;
         updateUI();
+        drawWheel(currentRotation);
     }
 }
 
-spinBtn.addEventListener('click',startSpin);
+spinBtn.addEventListener('click', startSpin);
 init();
 </script>
 </body>
