@@ -1,0 +1,55 @@
+:root { 
+    --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 50%, #b8860b 100%); 
+    --dark-bg: #060a13; 
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body { 
+    background-color: var(--dark-bg); 
+    background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, #060a13 100%); 
+    color: #fff; 
+    font-family: 'Public Sans', sans-serif; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    overflow: hidden; 
+    flex-direction: column;
+}
+
+/* LIVE WINNERS TICKER */
+.live-winner-box { position: absolute; top: 20px; background: rgba(0, 0, 0, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); padding: 8px 15px; border-radius: 50px; font-size: 11px; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); animation: fadeInOut 3s infinite; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+.dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; animation: pulse 1.5s infinite; }
+.gc-mini-icon { width: 14px; height: 14px; vertical-align: middle; margin: 0 2px; object-fit: contain; }
+
+@keyframes fadeInOut { 0% { opacity: 0; transform: translateY(-15px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+/* MAIN CARD */
+.card { width: 92%; max-width: 380px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(212, 175, 55, 0.5); border-radius: 28px; padding: 35px 24px; backdrop-filter: blur(20px); text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); position: relative; overflow: hidden; }
+.card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%); transform: rotate(30deg); animation: shimmer 4s infinite; pointer-events: none; }
+@keyframes shimmer { 0% { transform: translateX(-100%) rotate(30deg); } 100% { transform: translateX(100%) rotate(30deg); } }
+
+.logo-img { width: 170px; margin-bottom: 20px; }
+h1 { font-size: 26px; font-weight: 900; margin-bottom: 5px; color: #fbbf24; text-shadow: 0 2px 10px rgba(251, 191, 36, 0.3); }
+.promo-text { color: #cbd5e1; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+
+/* SCARCITY BAR */
+.scarcity-box { background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+.scarcity-text { font-size: 12px; color: #fbbf24; font-weight: 700; margin-bottom: 5px; display: flex; justify-content: space-between; }
+.progress-bg { width: 100%; height: 6px; background: #334155; border-radius: 5px; overflow: hidden; }
+.progress-bar { width: 85%; height: 100%; background: var(--gold); border-radius: 5px; transition: width 0.5s ease-in-out; }
+
+/* BUTTON */
+.btn-main { background: var(--gold); color: #000; border: none; width: 100%; padding: 20px; border-radius: 16px; font-size: 16px; font-weight: 900; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 0 #8b6508; animation: btnPulse 2s infinite; }
+.btn-main:active { transform: translateY(3px); box-shadow: 0 3px 0 #8b6508; }
+.btn-main:disabled { background: #334155; box-shadow: none; color: #64748b; animation: none; cursor: not-allowed; }
+@keyframes btnPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+.modal-content { width: 92%; max-width: 380px; background: #0f172a; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.3); overflow: hidden; text-align: center; }
+.promo-banner { width: 100%; height: 200px; object-fit: contain; background: #000; border-bottom: 2px solid #d4af37; padding: 10px; }
+.modal-body { padding: 25px 20px; }
+input { width: 100%; background: #000; border: 1px solid #334155; border-radius: 15px; padding: 18px; color: #fff; font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 15px; outline: none; }
+.trust-badge { font-size: 11px; color: #64748b; margin-top: 15px; }
