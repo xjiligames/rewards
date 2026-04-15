@@ -21,7 +21,7 @@ body {
     min-height: 100vh;
 }
 
-/* ========== LOGIN OVERLAY ========== */
+/* Login */
 .login-overlay {
     position: fixed;
     top: 0;
@@ -64,10 +64,6 @@ body {
     outline: none;
 }
 
-.login-box input:focus {
-    box-shadow: 0 0 10px var(--neon);
-}
-
 .login-box button {
     width: 100%;
     background: var(--neon);
@@ -82,7 +78,6 @@ body {
 
 .login-box button:hover {
     box-shadow: 0 0 20px var(--neon);
-    transform: scale(1.02);
 }
 
 .error-msg {
@@ -91,16 +86,11 @@ body {
     margin-top: 8px;
 }
 
-/* ========== DASHBOARD ========== */
-.dashboard {
-    display: none;
-}
+/* Dashboard */
+.dashboard { display: none; }
+.dashboard.active { display: block; }
 
-.dashboard.active {
-    display: block;
-}
-
-/* ========== HEADER ========== */
+/* Header */
 .cia-header {
     background: linear-gradient(135deg, #0a0f1a, #010101);
     border-bottom: 2px solid var(--neon);
@@ -117,10 +107,7 @@ body {
     gap: 8px;
 }
 
-.cia-header h1 span {
-    color: var(--danger);
-}
-
+.cia-header h1 span { color: var(--danger); }
 .cia-header p {
     font-size: 9px;
     color: rgba(0, 242, 255, 0.5);
@@ -137,16 +124,9 @@ body {
     font-size: 11px;
     float: right;
     margin-top: -38px;
-    transition: 0.2s;
 }
 
-.logout-btn:hover {
-    background: var(--danger);
-    color: #000;
-    box-shadow: 0 0 15px var(--danger);
-}
-
-/* ========== CARDS ========== */
+/* Cards */
 .card {
     background: var(--dark-glass);
     backdrop-filter: blur(10px);
@@ -165,25 +145,15 @@ body {
 .card-header h3 {
     font-size: 13px;
     font-weight: 800;
-    letter-spacing: 1px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.card-header h3 span {
-    font-size: 16px;
-}
+.card-body { padding: 16px; }
 
-.card-body {
-    padding: 16px;
-}
-
-/* ========== DROPDOWN SECTIONS ========== */
-.dropdown-section {
-    margin-bottom: 12px;
-}
-
+/* Dropdown */
+.dropdown-section { margin-bottom: 12px; }
 .dropdown-header {
     background: rgba(0, 20, 35, 0.5);
     padding: 12px 16px;
@@ -193,38 +163,24 @@ body {
     justify-content: space-between;
     align-items: center;
     border: 1px solid rgba(0, 242, 255, 0.2);
-    transition: 0.2s;
 }
-
-.dropdown-header:hover {
-    background: rgba(0, 50, 70, 0.5);
-}
-
-.dropdown-title {
-    font-size: 13px;
-    font-weight: 800;
-}
-
+.dropdown-header:hover { background: rgba(0, 50, 70, 0.5); }
+.dropdown-title { font-size: 13px; font-weight: 800; }
 .dropdown-badge {
     background: rgba(0, 242, 255, 0.15);
     padding: 2px 10px;
     border-radius: 30px;
     font-size: 10px;
 }
-
 .dropdown-content {
     display: none;
     padding: 15px;
     background: rgba(0, 10, 20, 0.5);
     border-radius: 0 0 14px 14px;
-    margin-top: -2px;
 }
+.dropdown-content.open { display: block; }
 
-.dropdown-content.open {
-    display: block;
-}
-
-/* ========== FORMS & BUTTONS ========== */
+/* Forms */
 textarea, input {
     width: 100%;
     background: #000;
@@ -235,11 +191,7 @@ textarea, input {
     outline: none;
     font-size: 12px;
     margin-bottom: 12px;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-textarea:focus, input:focus {
-    box-shadow: 0 0 8px var(--neon);
+    font-family: monospace;
 }
 
 .btn {
@@ -252,12 +204,6 @@ textarea:focus, input:focus {
     cursor: pointer;
     border-radius: 12px;
     font-size: 13px;
-    transition: 0.2s;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 242, 255, 0.3);
 }
 
 .btn-danger {
@@ -265,79 +211,58 @@ textarea:focus, input:focus {
     color: #fff;
 }
 
-.btn-danger:hover {
-    box-shadow: 0 5px 15px rgba(255, 49, 49, 0.3);
-}
-
-/* ========== TABLES ========== */
+/* Tables */
 .table-wrap {
     overflow-x: auto;
     max-height: 300px;
     overflow-y: auto;
 }
-
 table {
     width: 100%;
     border-collapse: collapse;
     font-size: 10px;
 }
-
 th {
     text-align: left;
     padding: 10px 6px;
     border-bottom: 1px solid var(--neon);
     color: var(--neon);
 }
-
 td {
     padding: 8px 6px;
     border-bottom: 1px solid rgba(0, 242, 255, 0.1);
 }
-
 .status {
     padding: 2px 8px;
     border-radius: 20px;
     font-size: 8px;
     display: inline-block;
 }
-
 .status-avail {
     background: rgba(57, 255, 20, 0.2);
     color: var(--ghost);
     border: 1px solid var(--ghost);
 }
-
 .status-used {
     background: rgba(255, 49, 49, 0.2);
     color: var(--danger);
     border: 1px solid var(--danger);
 }
-
-.ghost-id {
-    color: #fff;
-    font-weight: bold;
-}
-
+.ghost-id { color: #fff; font-weight: bold; }
 .icon-btn {
     background: none;
     border: none;
     cursor: pointer;
     font-size: 12px;
     padding: 3px 6px;
-    transition: 0.2s;
 }
 
-.icon-btn:hover {
-    transform: scale(1.1);
-}
-
-/* ========== MASTER KEY FOOTER ========== */
+/* Footer */
 .master-key-footer {
     text-align: center;
     margin-top: 20px;
     padding: 10px;
 }
-
 .master-key-btn {
     background: rgba(255, 215, 0, 0.15);
     border: 1px solid var(--gold);
@@ -347,48 +272,10 @@ td {
     cursor: pointer;
     font-size: 12px;
     font-weight: 800;
-    width: auto;
     display: inline-block;
-    transition: 0.2s;
 }
 
-.master-key-btn:hover {
-    background: rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 15px var(--gold);
-}
-
-/* ========== SCROLLBAR ========== */
-::-webkit-scrollbar {
-    width: 3px;
-}
-
-::-webkit-scrollbar-track {
-    background: #000;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--neon);
-    border-radius: 3px;
-}
-
-/* ========== KEYFRAMES ========== */
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes blinkRed {
-    0% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
-    50% { opacity: 0.6; text-shadow: 0 0 8px #ff4444; }
-    100% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: var(--neon); border-radius: 3px; }
