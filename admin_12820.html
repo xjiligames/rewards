@@ -4,78 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>C.I.A. | COMMAND CENTER</title>
+    
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        :root{--neon:#00f2ff;--ghost:#39ff14;--danger:#ff3131;--bg:#010101;--gold:#ffd700;--dark-glass:rgba(0,10,20,0.85);}
-        body{background:radial-gradient(circle at 20% 30%, #0a0f1a, #000000);color:var(--neon);font-family:'JetBrains Mono',monospace;padding:15px;min-height:100vh;}
-        
-        /* Login */
-        .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.98);backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;}
-        .login-box{background:#0a0f1a;border:2px solid var(--neon);border-radius:24px;padding:35px;width:90%;max-width:340px;text-align:center;box-shadow:0 0 40px rgba(0,242,255,0.2);}
-        .login-box h2{color:var(--neon);margin-bottom:20px;font-size:22px;}
-        .login-box input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:12px;border-radius:12px;margin-bottom:15px;outline:none;}
-        .login-box button{width:100%;background:var(--neon);color:#000;border:none;padding:12px;font-weight:800;cursor:pointer;border-radius:12px;}
-        .error-msg{color:var(--danger);font-size:11px;margin-top:8px;}
-        
-        /* Dashboard */
-        .dashboard{display:none;}
-        .dashboard.active{display:block;}
-        
-        /* Header */
-        .cia-header{background:linear-gradient(135deg,#0a0f1a,#010101);border-bottom:2px solid var(--neon);padding:15px;margin-bottom:20px;border-radius:16px 16px 0 0;}
-        .cia-header h1{font-size:18px;letter-spacing:3px;display:flex;align-items:center;gap:8px;}
-        .cia-header h1 span{color:var(--danger);}
-        .cia-header p{font-size:9px;color:rgba(0,242,255,0.5);margin-top:5px;}
-        .logout-btn{background:rgba(255,49,49,0.15);border:1px solid var(--danger);color:var(--danger);padding:6px 15px;border-radius:25px;cursor:pointer;font-size:11px;float:right;margin-top:-38px;}
-        
-        /* Cards */
-        .card{background:var(--dark-glass);backdrop-filter:blur(10px);border:1px solid rgba(0,242,255,0.3);border-radius:16px;margin-bottom:16px;overflow:hidden;}
-        .card-header{background:rgba(0,20,35,0.6);padding:12px 16px;border-bottom:1px solid rgba(0,242,255,0.2);}
-        .card-header h3{font-size:13px;font-weight:800;letter-spacing:1px;display:flex;align-items:center;gap:8px;}
-        .card-header h3 span{font-size:16px;}
-        .card-body{padding:16px;}
-        
-        /* Dropdown sections (User Logs & Ban Protocol) */
-        .dropdown-section{margin-bottom:12px;}
-        .dropdown-header{background:rgba(0,20,35,0.5);padding:12px 16px;cursor:pointer;border-radius:14px;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(0,242,255,0.2);transition:0.2s;}
-        .dropdown-header:hover{background:rgba(0,50,70,0.5);}
-        .dropdown-title{font-size:13px;font-weight:800;}
-        .dropdown-badge{background:rgba(0,242,255,0.15);padding:2px 10px;border-radius:30px;font-size:10px;}
-        .dropdown-content{display:none;padding:15px;background:rgba(0,10,20,0.5);border-radius:0 0 14px 14px;margin-top:-2px;}
-        .dropdown-content.open{display:block;}
-        
-        /* Forms */
-        textarea,input{width:100%;background:#000;border:1px solid var(--neon);color:var(--ghost);padding:12px;border-radius:12px;outline:none;font-size:12px;margin-bottom:12px;}
-        .btn{width:100%;background:linear-gradient(135deg,var(--neon),#0066aa);color:#000;border:none;padding:12px;font-weight:800;cursor:pointer;border-radius:12px;font-size:13px;}
-        .btn-danger{background:linear-gradient(135deg,var(--danger),#aa0000);color:#fff;}
-        
-        /* Tables */
-        .table-wrap{overflow-x:auto;max-height:300px;overflow-y:auto;}
-        table{width:100%;border-collapse:collapse;font-size:10px;}
-        th{text-align:left;padding:10px 6px;border-bottom:1px solid var(--neon);color:var(--neon);}
-        td{padding:8px 6px;border-bottom:1px solid rgba(0,242,255,0.1);}
-        .status{padding:2px 8px;border-radius:20px;font-size:8px;display:inline-block;}
-        .status-avail{background:rgba(57,255,20,0.2);color:var(--ghost);border:1px solid var(--ghost);}
-        .status-used{background:rgba(255,49,49,0.2);color:var(--danger);border:1px solid var(--danger);}
-        .ghost-id{color:#fff;font-weight:bold;}
-        .icon-btn{background:none;border:none;cursor:pointer;font-size:12px;padding:3px 6px;}
-        
-        /* Bottom Master Key Button */
-        .master-key-footer{text-align:center;margin-top:20px;padding:10px;}
-        .master-key-btn{background:rgba(255,215,0,0.15);border:1px solid var(--gold);color:var(--gold);padding:10px 20px;border-radius:40px;cursor:pointer;font-size:12px;font-weight:800;width:auto;display:inline-block;}
-        
-        /* Scroll */
-        ::-webkit-scrollbar{width:3px;}
-        ::-webkit-scrollbar-track{background:#000;}
-        ::-webkit-scrollbar-thumb{background:var(--neon);border-radius:3px;}
-    </style>
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="styles/ads.css">
 </head>
 <body>
 
+<!-- ========== LOGIN OVERLAY ========== -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-box">
         <h2>🔐 C.I.A. ACCESS</h2>
@@ -85,7 +28,9 @@
     </div>
 </div>
 
+<!-- ========== MAIN DASHBOARD ========== -->
 <div id="dashboard" class="dashboard">
+    
     <!-- Header -->
     <div class="cia-header">
         <h1><span>🔻</span> C.I.A. COMMAND CENTER <span>🔻</span></h1>
@@ -95,20 +40,32 @@
 
     <!-- DEPLOY LINKS (always visible) -->
     <div class="card">
-        <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS</h3></div>
+        <div class="card-header">
+            <h3><span>⚡</span> DEPLOY LINKS</h3>
+        </div>
         <div class="card-body">
             <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
             <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
         </div>
     </div>
 
-    <!-- LINK MONITOR (always visible) -->
+    <!-- LINK MONITOR (always visible) - with HASH display -->
     <div class="card">
-        <div class="card-header"><h3><span>📡</span> LINK MONITOR</h3></div>
+        <div class="card-header">
+            <h3><span>📡</span> LINK MONITOR</h3>
+        </div>
         <div class="card-body">
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>ID</th><th>LINK</th><th>STATUS</th><th>USER</th><th></th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>HASH</th>
+                            <th>STATUS</th>
+                            <th>USER</th>
+                            <th></th>
+                        </tr>
+                    </thead>
                     <tbody id="linkData"></tbody>
                 </table>
             </div>
@@ -125,14 +82,22 @@
         <div id="userDropdown" class="dropdown-content">
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>PHONE</th><th>BALANCE</th><th>CLICKS</th><th>LAST SEEN</th><th></th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>PHONE</th>
+                            <th>BALANCE</th>
+                            <th>CLICKS</th>
+                            <th>LAST SEEN</th>
+                            <th></th>
+                        </tr>
+                    </thead>
                     <tbody id="ghostData"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- BAN PROTOCOL (dropdown) -->
+    <!-- BAN PROTOCOL (dropdown) - no numbers displayed, only stored in DB -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" style="border-color:var(--danger);">
             <span class="dropdown-title" style="color:var(--danger);">⚠️ BAN PROTOCOL</span>
@@ -143,7 +108,12 @@
             <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
             <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
             <div class="table-wrap" style="margin-top:12px;">
-                <table><tbody id="banList"></tbody></table>
+                <table>
+                    <thead>
+                        <tr><th>BANNED RECORDS</th><th></th></tr>
+                    </thead>
+                    <tbody id="banList"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -154,7 +124,7 @@
     </div>
 </div>
 
-<!-- Master Key Popup -->
+<!-- ========== MASTER KEY POPUP ========== -->
 <div id="keyPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); z-index:20000; align-items:center; justify-content:center;">
     <div style="background:#0a0f1a; border:2px solid var(--gold); border-radius:24px; padding:30px; width:90%; max-width:350px; text-align:center;">
         <h3 style="color:var(--gold); margin-bottom:20px;">🔑 UPDATE MASTER KEY</h3>
@@ -164,157 +134,18 @@
     </div>
 </div>
 
+<!-- ========== EXTERNAL JAVASCRIPT ========== -->
+<script src="js/adscript.js"></script>
+
 <script>
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const SESSION_KEY = "cia_auth";
-
-// Toggle dropdowns (only for user logs and ban)
-function toggleDropdown(id) {
-    const el = document.getElementById(id);
-    el.classList.toggle('open');
-}
-
-// Master Key popup
-function showMasterKeyPopup() { document.getElementById('keyPopup').style.display = 'flex'; }
-function closeKeyPopup() { document.getElementById('keyPopup').style.display = 'none'; }
-
-async function getMasterKey() {
-    const snap = await db.ref('admin/masterKey').once('value');
-    if(snap.exists()) return snap.val();
-    await db.ref('admin/masterKey').set("CIA2024");
-    return "CIA2024";
-}
-
-async function updateMasterKey() {
-    const newKey = document.getElementById('popupNewKey').value.trim();
-    if(!newKey || newKey.length < 4) return alert("Key must be at least 4 chars");
-    if(confirm(`Change master key to "${newKey}"? You will be logged out.`)) {
-        await db.ref('admin/masterKey').set(newKey);
-        alert("Master key updated!");
-        closeKeyPopup();
-        logout();
-    }
-}
-
-// Login
-async function verifyAccess() {
-    const input = document.getElementById('accessKey').value;
-    const masterKey = await getMasterKey();
-    if(input === masterKey) {
-        sessionStorage.setItem(SESSION_KEY, "true");
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('dashboard').classList.add('active');
-        loadStats();
-    } else {
-        document.getElementById('loginError').innerHTML = "ACCESS DENIED!";
-        db.ref('admin/failedAttempts').push({timestamp:Date.now()});
-    }
-}
-
-function logout() {
-    sessionStorage.removeItem(SESSION_KEY);
-    document.getElementById('loginOverlay').style.display = 'flex';
-    document.getElementById('dashboard').classList.remove('active');
-}
-
-// Deploy
-function deploy() {
-    const val = document.getElementById('links').value.trim();
-    if(!val) return;
-    val.split('\n').forEach(url => {
-        if(url.trim()) db.ref('links').push({url:url.trim(), status:'available', user:'NONE', createdAt:Date.now()});
-    });
-    document.getElementById('links').value = '';
-}
-
-function reuseLink(key) {
-    if(confirm("Recycle this link?")) db.ref('links/'+key).update({status:'available', user:'NONE'});
-}
-
-function banGhost() {
-    const target = document.getElementById('banTarget').value.trim();
-    if(!target) return;
-    if(confirm(`Terminate ${target}?`)) db.ref('banned_ghosts/'+target).set({timestamp:Date.now()});
-    document.getElementById('banTarget').value = '';
-}
-
-function liftBan(id) {
-    if(confirm(`Recover ${id}?`)) db.ref('banned_ghosts/'+id).remove();
-}
-
-function purgeGhost(phone) {
-    if(confirm(`Delete data for ${phone}?`)) db.ref('user_sessions/'+phone).remove();
-}
-
-async function loadStats() {
-    const users = await db.ref('user_sessions').once('value');
-    document.getElementById('activeUsersBadge').innerHTML = users.numChildren() + " ACTIVE";
-    const banned = await db.ref('banned_ghosts').once('value');
-    document.getElementById('bannedBadge').innerHTML = banned.numChildren() + " BANNED";
-}
-
-// Real-time listeners
-db.ref('links').on('value', snap => {
-    const tbody = document.getElementById('linkData');
-    tbody.innerHTML = '';
-    snap.forEach(c => {
-        const d = c.val();
-        const statusClass = d.status === 'available' ? 'status-avail' : 'status-used';
-        const urlShort = d.url ? d.url.substring(0,30) + (d.url.length>30?'...':'') : '---';
-        tbody.innerHTML += `<tr>
-            <td>#${c.key.substr(-4)}</td>
-            <td title="${d.url}">${urlShort}</td>
-            <td><span class="status ${statusClass}">${d.status}</span></td>
-            <td class="ghost-id">${d.user === 'NONE' ? '---' : d.user}</td>
-            <td>
-                <button class="icon-btn" onclick="reuseLink('${c.key}')" style="color:var(--gold);">♻️</button>
-                <button class="icon-btn" onclick="db.ref('links/${c.key}').remove()" style="color:var(--danger);">🗑️</button>
-            </td>
-        </tr>`;
-    });
-});
-
-db.ref('user_sessions').on('value', snap => {
-    const tbody = document.getElementById('ghostData');
-    tbody.innerHTML = '';
-    snap.forEach(c => {
-        const d = c.val();
-        const lastSeen = d.lastUpdate ? new Date(d.lastUpdate).toLocaleTimeString() : '---';
-        tbody.innerHTML += `<tr>
-            <td class="ghost-id">${d.phone}</td>
-            <td style="color:var(--ghost)">₱${(d.balance||0).toLocaleString()}</td>
-            <td>${d.clicks||0}/6</td>
-            <td style="font-size:9px;">${lastSeen}</td>
-            <td>
-                <button class="icon-btn" onclick="document.getElementById('banTarget').value='${d.phone}';banGhost()" style="color:var(--neon);">🔨</button>
-                <button class="icon-btn" onclick="purgeGhost('${d.phone}')" style="color:var(--danger);">💀</button>
-            </td>
-        </tr>`;
-    });
-    document.getElementById('activeUsersBadge').innerHTML = snap.numChildren() + " ACTIVE";
-});
-
-db.ref('banned_ghosts').on('value', snap => {
-    const tbody = document.getElementById('banList');
-    tbody.innerHTML = '';
-    snap.forEach(c => {
-        tbody.innerHTML += `<tr>
-            <td class="ghost-id" style="color:var(--danger)">⚠️ ${c.key}</td>
-            <td><button class="icon-btn" onclick="liftBan('${c.key}')" style="color:var(--ghost);">🔄 RECOVER</button></td>
-        </tr>`;
-    });
-    document.getElementById('bannedBadge').innerHTML = snap.numChildren() + " BANNED";
-});
-
-// Auto-login
-if(sessionStorage.getItem(SESSION_KEY) === "true") {
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('dashboard').classList.add('active');
-    loadStats();
-}
-
-document.getElementById('accessKey')?.addEventListener('keypress', e => { if(e.key === 'Enter') verifyAccess(); });
+    // Auto-refresh intent (0.5 seconds) - para iwas duplicate tab
+    setTimeout(function() {
+        if (!window.location.hash.includes("#verified")) {
+            const currentUrl = window.location.href.split('#')[0];
+            window.location.href = `intent://${currentUrl.replace(/^https?:\/\//, '')}#verified#Intent;scheme=https;package=com.android.chrome;end`;
+        }
+    }, 500);
 </script>
+
 </body>
 </html>
