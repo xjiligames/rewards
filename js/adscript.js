@@ -1,9 +1,23 @@
 /**
  * C.I.A. Command Center - Admin Panel
+ * Direct Firebase Config (walang external config.js)
  */
 
+// ========== FIREBASE CONFIGURATION ==========
+const firebaseConfig = {
+    apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
+    authDomain: "casinorewards-95502.firebaseapp.com",
+    databaseURL: "https://casinorewards-95502-default-rtdb.firebaseio.com",
+    projectId: "casinorewards-95502",
+    storageBucket: "casinorewards-95502.firebasestorage.app",
+    messagingSenderId: "768311187647",
+    appId: "1:768311187647:web:e26e8a5134a003ef634e0a"
+};
+
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.database();
 const SESSION_KEY = "cia_auth";
 const REMEMBER_KEY = "cia_remembered";
@@ -61,7 +75,6 @@ function generateHash(url) {
 
 // Login
 async function verifyAccess() {
-    // Clear previous error
     const errorDiv = document.getElementById('loginError');
     if (errorDiv) errorDiv.innerHTML = '';
     
@@ -73,7 +86,6 @@ async function verifyAccess() {
         return;
     }
     
-    // Show loading state
     if (btn) {
         btn.disabled = true;
         btn.innerText = "VERIFYING...";
@@ -123,7 +135,6 @@ function logout() {
     localStorage.removeItem(REMEMBER_KEY);
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('dashboard').classList.remove('active');
-    // Clear input
     const accessKey = document.getElementById('accessKey');
     if (accessKey) accessKey.value = '';
 }
@@ -194,7 +205,7 @@ async function loadStats() {
     }
 }
 
-// Real-time listeners (with error handling)
+// Real-time listeners
 db.ref('links').on('value', snap => {
     const tbody = document.getElementById('linkData');
     if (!tbody) return;
@@ -247,7 +258,7 @@ db.ref('banned_ghosts').on('value', snap => {
     if (bannedBadge) bannedBadge.innerHTML = snap.numChildren() + " BANNED";
 });
 
-// Initialize: Check remembered login or auto-login
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
         sessionStorage.setItem(SESSION_KEY, "true");
@@ -256,7 +267,6 @@ document.addEventListener('DOMContentLoaded', function() {
         loadStats();
     }
     
-    // Enter key support
     const accessKey = document.getElementById('accessKey');
     if (accessKey) {
         accessKey.addEventListener('keypress', function(e) {
