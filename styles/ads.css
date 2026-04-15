@@ -21,7 +21,7 @@ body {
     min-height: 100vh;
 }
 
-/* Login */
+/* ========== LOGIN OVERLAY ========== */
 .login-overlay {
     position: fixed;
     top: 0;
@@ -64,6 +64,10 @@ body {
     outline: none;
 }
 
+.login-box input:focus {
+    box-shadow: 0 0 10px var(--neon);
+}
+
 .login-box button {
     width: 100%;
     background: var(--neon);
@@ -73,6 +77,12 @@ body {
     font-weight: 800;
     cursor: pointer;
     border-radius: 12px;
+    transition: 0.2s;
+}
+
+.login-box button:hover {
+    box-shadow: 0 0 20px var(--neon);
+    transform: scale(1.02);
 }
 
 .error-msg {
@@ -81,7 +91,7 @@ body {
     margin-top: 8px;
 }
 
-/* Dashboard */
+/* ========== DASHBOARD ========== */
 .dashboard {
     display: none;
 }
@@ -90,7 +100,7 @@ body {
     display: block;
 }
 
-/* Header */
+/* ========== HEADER ========== */
 .cia-header {
     background: linear-gradient(135deg, #0a0f1a, #010101);
     border-bottom: 2px solid var(--neon);
@@ -127,9 +137,16 @@ body {
     font-size: 11px;
     float: right;
     margin-top: -38px;
+    transition: 0.2s;
 }
 
-/* Cards */
+.logout-btn:hover {
+    background: var(--danger);
+    color: #000;
+    box-shadow: 0 0 15px var(--danger);
+}
+
+/* ========== CARDS ========== */
 .card {
     background: var(--dark-glass);
     backdrop-filter: blur(10px);
@@ -162,7 +179,7 @@ body {
     padding: 16px;
 }
 
-/* Dropdown sections */
+/* ========== DROPDOWN SECTIONS ========== */
 .dropdown-section {
     margin-bottom: 12px;
 }
@@ -207,7 +224,7 @@ body {
     display: block;
 }
 
-/* Forms */
+/* ========== FORMS & BUTTONS ========== */
 textarea, input {
     width: 100%;
     background: #000;
@@ -218,6 +235,11 @@ textarea, input {
     outline: none;
     font-size: 12px;
     margin-bottom: 12px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+textarea:focus, input:focus {
+    box-shadow: 0 0 8px var(--neon);
 }
 
 .btn {
@@ -230,6 +252,12 @@ textarea, input {
     cursor: pointer;
     border-radius: 12px;
     font-size: 13px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 242, 255, 0.3);
 }
 
 .btn-danger {
@@ -237,7 +265,11 @@ textarea, input {
     color: #fff;
 }
 
-/* Tables */
+.btn-danger:hover {
+    box-shadow: 0 5px 15px rgba(255, 49, 49, 0.3);
+}
+
+/* ========== TABLES ========== */
 .table-wrap {
     overflow-x: auto;
     max-height: 300px;
@@ -292,9 +324,14 @@ td {
     cursor: pointer;
     font-size: 12px;
     padding: 3px 6px;
+    transition: 0.2s;
 }
 
-/* Bottom Master Key Button */
+.icon-btn:hover {
+    transform: scale(1.1);
+}
+
+/* ========== MASTER KEY FOOTER ========== */
 .master-key-footer {
     text-align: center;
     margin-top: 20px;
@@ -312,9 +349,15 @@ td {
     font-weight: 800;
     width: auto;
     display: inline-block;
+    transition: 0.2s;
 }
 
-/* Scroll */
+.master-key-btn:hover {
+    background: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 15px var(--gold);
+}
+
+/* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
     width: 3px;
 }
@@ -326,4 +369,26 @@ td {
 ::-webkit-scrollbar-thumb {
     background: var(--neon);
     border-radius: 3px;
+}
+
+/* ========== KEYFRAMES ========== */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes blinkRed {
+    0% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
+    50% { opacity: 0.6; text-shadow: 0 0 8px #ff4444; }
+    100% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
