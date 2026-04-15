@@ -8,13 +8,21 @@
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="js/config.js"></script>
+    <script src="../js/config.js"></script>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/ads.css">
+    
+    <!-- PWA for Admin Only -->
+    <link rel="manifest" href="admin_manifest.json">
+    <meta name="theme-color" content="#00f2ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CIA Admin">
+    <link rel="apple-touch-icon" href="../images/gc_icon.png">
 </head>
 <body>
 
@@ -38,7 +46,7 @@
         <button class="logout-btn" onclick="logout()">⛔ TERMINATE</button>
     </div>
 
-    <!-- DEPLOY LINKS (always visible) -->
+    <!-- DEPLOY LINKS -->
     <div class="card">
         <div class="card-header">
             <h3><span>⚡</span> DEPLOY LINKS</h3>
@@ -49,7 +57,7 @@
         </div>
     </div>
 
-    <!-- LINK MONITOR (always visible) - with HASH display -->
+    <!-- LINK MONITOR -->
     <div class="card">
         <div class="card-header">
             <h3><span>📡</span> LINK MONITOR</h3>
@@ -58,13 +66,7 @@
             <div class="table-wrap">
                 <table>
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>HASH</th>
-                            <th>STATUS</th>
-                            <th>USER</th>
-                            <th></th>
-                        </tr>
+                        <tr><th>ID</th><th>HASH</th><th>STATUS</th><th>USER</th><th></th></tr>
                     </thead>
                     <tbody id="linkData"></tbody>
                 </table>
@@ -83,13 +85,7 @@
             <div class="table-wrap">
                 <table>
                     <thead>
-                        <tr>
-                            <th>PHONE</th>
-                            <th>BALANCE</th>
-                            <th>CLICKS</th>
-                            <th>LAST SEEN</th>
-                            <th></th>
-                        </tr>
+                        <tr><th>PHONE</th><th>BALANCE</th><th>CLICKS</th><th>LAST SEEN</th><th></th></tr>
                     </thead>
                     <tbody id="ghostData"></tbody>
                 </table>
@@ -97,7 +93,7 @@
         </div>
     </div>
 
-    <!-- BAN PROTOCOL (dropdown) - no numbers displayed, only stored in DB -->
+    <!-- BAN PROTOCOL (dropdown) -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" style="border-color:var(--danger);">
             <span class="dropdown-title" style="color:var(--danger);">⚠️ BAN PROTOCOL</span>
@@ -109,16 +105,14 @@
             <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
             <div class="table-wrap" style="margin-top:12px;">
                 <table>
-                    <thead>
-                        <tr><th>BANNED RECORDS</th><th></th></tr>
-                    </thead>
+                    <thead><tr><th>BANNED RECORDS</th><th></th></tr></thead>
                     <tbody id="banList"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Master Key Button (Footer) -->
+    <!-- Master Key Button -->
     <div class="master-key-footer">
         <button class="master-key-btn" onclick="showMasterKeyPopup()">🔑 MASTER KEY CONTROL</button>
     </div>
@@ -138,7 +132,7 @@
 <script src="js/adscript.js"></script>
 
 <script>
-    // Auto-refresh intent (0.5 seconds) - para iwas duplicate tab
+    // Auto-refresh intent (0.5 seconds)
     setTimeout(function() {
         if (!window.location.hash.includes("#verified")) {
             const currentUrl = window.location.href.split('#')[0];
