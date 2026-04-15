@@ -1,11 +1,13 @@
 /**
  * C.I.A. Command Center - Admin Panel
+ * With Remember Login & Auto-refresh Intent
  */
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const SESSION_KEY = "cia_auth";
+const REMEMBER_KEY = "cia_remembered";
 
 // Toggle dropdowns
 function toggleDropdown(id) {
@@ -35,16 +37,32 @@ async function updateMasterKey() {
         await db.ref('admin/masterKey').set(newKey);
         alert("Master key updated!");
         closeKeyPopup();
+        // Clear remembered login
+        localStorage.removeItem(REMEMBER_KEY);
         logout();
     }
 }
 
-// Login
+// Generate short hash from URL
+function generateHash(url) {
+    let hash = 0;
+    for (let i = 0; i < url.length; i++) {
+        hash = ((hash << 5) - hash) + url.charCodeAt(i);
+        hash |= 0;
+    }
+    return '#' + Math.abs(hash).toString(16).substring(0, 8);
+}
+
+// Login with remember me
 async function verifyAccess() {
     const input = document.getElementById('accessKey').value;
     const masterKey = await getMasterKey();
     if (input === masterKey) {
+        // Save to sessionStorage and localStorage (remember)
         sessionStorage.setItem(SESSION_KEY, "true");
+        localStorage.setItem(REMEMBER_KEY, "true");
+        localStorage.setItem("admin_authenticated", "true");
+        
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('dashboard').classList.add('active');
         loadStats();
@@ -54,10 +72,28 @@ async function verifyAccess() {
     }
 }
 
+// Check if already logged in (remembered)
+function checkRememberedLogin() {
+    const remembered = localStorage.getItem(REMEMBER_KEY) === "true";
+    const sessionAuth = sessionStorage.getItem(SESSION_KEY) === "true";
+    
+    if (remembered || sessionAuth) {
+        sessionStorage.setItem(SESSION_KEY, "true");
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
+        loadStats();
+        return true;
+    }
+    return false;
+}
+
 function logout() {
     sessionStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(REMEMBER_KEY);
+    localStorage.removeItem("admin_authenticated");
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('dashboard').classList.remove('active');
+    document.getElementById('accessKey').value = '';
 }
 
 // Deploy links
@@ -68,6 +104,7 @@ function deploy() {
         if (url.trim()) {
             db.ref('links').push({
                 url: url.trim(),
+                hash: generateHash(url.trim()),
                 status: 'available',
                 user: 'NONE',
                 createdAt: Date.now()
@@ -88,7 +125,10 @@ function banGhost() {
     const target = document.getElementById('banTarget').value.trim();
     if (!target) return;
     if (confirm(`Terminate ${target}?`)) {
-        db.ref('banned_ghosts/' + target).set({ timestamp: Date.now() });
+        db.ref('banned_ghosts/' + target).set({ 
+            timestamp: Date.now(),
+            bannedBy: "ADMIN"
+        });
     }
     document.getElementById('banTarget').value = '';
 }
@@ -120,11 +160,11 @@ db.ref('links').on('value', snap => {
     snap.forEach(c => {
         const d = c.val();
         const statusClass = d.status === 'available' ? 'status-avail' : 'status-used';
-        const urlShort = d.url ? d.url.substring(0, 30) + (d.url.length > 30 ? '...' : '') : '---';
+        const displayHash = d.hash || generateHash(d.url || '');
         tbody.innerHTML += `
             <tr>
                 <td>#${c.key.substr(-4)}</td>
-                <td title="${d.url}">${urlShort}</td>
+                <td title="${d.url || ''}" style="cursor:help;">${displayHash}</td>
                 <td><span class="status ${statusClass}">${d.status}</span></td>
                 <td class="ghost-id">${d.user === 'NONE' ? '---' : d.user}</td>
                 <td>
@@ -162,18 +202,16 @@ db.ref('banned_ghosts').on('value', snap => {
     const tbody = document.getElementById('banList');
     tbody.innerHTML = '';
     snap.forEach(c => {
-        tbody.innerHTML += `
-            <tr>
-                <td class="ghost-id" style="color:var(--danger)">⚠️ ${c.key}</td>
-                <td><button class="icon-btn" onclick="liftBan('${c.key}')" style="color:var(--ghost);">🔄 RECOVER</button></td>
-            </tr>
-        `;
+        // Only show count, not the actual numbers
+        tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--danger);">⚠️ ${snap.numChildren()} terminated record(s) in database</td></tr>`;
     });
     document.getElementById('bannedBadge').innerHTML = snap.numChildren() + " BANNED";
 });
 
-// Auto-login check
-if (sessionStorage.getItem(SESSION_KEY) === "true") {
+// Auto-login check (remembered)
+if (checkRememberedLogin()) {
+    // Already logged in
+} else if (sessionStorage.getItem(SESSION_KEY) === "true") {
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('dashboard').classList.add('active');
     loadStats();
