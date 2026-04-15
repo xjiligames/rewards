@@ -2,6 +2,7 @@
  * C.I.A. Command Center - Admin Panel
  */
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const SESSION_KEY = "cia_auth";
@@ -9,22 +10,30 @@ const REMEMBER_KEY = "cia_remembered";
 
 // Toggle dropdown
 function toggleDropdown(id) {
-    document.getElementById(id).classList.toggle('open');
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('open');
 }
 
 // Master Key popup
 function showMasterKeyPopup() { 
-    document.getElementById('keyPopup').style.display = 'flex'; 
+    const popup = document.getElementById('keyPopup');
+    if (popup) popup.style.display = 'flex'; 
 }
 function closeKeyPopup() { 
-    document.getElementById('keyPopup').style.display = 'none'; 
+    const popup = document.getElementById('keyPopup');
+    if (popup) popup.style.display = 'none'; 
 }
 
 async function getMasterKey() {
-    const snap = await db.ref('admin/masterKey').once('value');
-    if (snap.exists()) return snap.val();
-    await db.ref('admin/masterKey').set("CIA2024");
-    return "CIA2024";
+    try {
+        const snap = await db.ref('admin/masterKey').once('value');
+        if (snap.exists()) return snap.val();
+        await db.ref('admin/masterKey').set("CIA2024");
+        return "CIA2024";
+    } catch (error) {
+        console.error("Firebase error:", error);
+        return null;
+    }
 }
 
 async function updateMasterKey() {
@@ -41,6 +50,7 @@ async function updateMasterKey() {
 
 // Generate hash from URL
 function generateHash(url) {
+    if (!url) return '#00000000';
     let hash = 0;
     for (let i = 0; i < url.length; i++) {
         hash = ((hash << 5) - hash) + url.charCodeAt(i);
@@ -51,17 +61,49 @@ function generateHash(url) {
 
 // Login
 async function verifyAccess() {
-    const input = document.getElementById('accessKey').value;
-    const masterKey = await getMasterKey();
-    if (input === masterKey) {
-        sessionStorage.setItem(SESSION_KEY, "true");
-        localStorage.setItem(REMEMBER_KEY, "true");
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('dashboard').classList.add('active');
-        loadStats();
-    } else {
-        document.getElementById('loginError').innerHTML = "ACCESS DENIED!";
-        db.ref('admin/failedAttempts').push({ timestamp: Date.now() });
+    // Clear previous error
+    const errorDiv = document.getElementById('loginError');
+    if (errorDiv) errorDiv.innerHTML = '';
+    
+    const input = document.getElementById('accessKey');
+    const btn = event?.target;
+    
+    if (!input || !input.value) {
+        if (errorDiv) errorDiv.innerHTML = "ENTER MASTER KEY!";
+        return;
+    }
+    
+    // Show loading state
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "VERIFYING...";
+    }
+    
+    try {
+        const masterKey = await getMasterKey();
+        if (!masterKey) {
+            if (errorDiv) errorDiv.innerHTML = "DATABASE ERROR!";
+            return;
+        }
+        
+        if (input.value === masterKey) {
+            sessionStorage.setItem(SESSION_KEY, "true");
+            localStorage.setItem(REMEMBER_KEY, "true");
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            loadStats();
+        } else {
+            if (errorDiv) errorDiv.innerHTML = "ACCESS DENIED!";
+            db.ref('admin/failedAttempts').push({ timestamp: Date.now() });
+        }
+    } catch (error) {
+        console.error("Login error:", error);
+        if (errorDiv) errorDiv.innerHTML = "CONNECTION ERROR!";
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = "AUTHORIZE";
+        }
     }
 }
 
@@ -81,12 +123,18 @@ function logout() {
     localStorage.removeItem(REMEMBER_KEY);
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('dashboard').classList.remove('active');
+    // Clear input
+    const accessKey = document.getElementById('accessKey');
+    if (accessKey) accessKey.value = '';
 }
 
 // Deploy
 function deploy() {
-    const val = document.getElementById('links').value.trim();
+    const textarea = document.getElementById('links');
+    if (!textarea) return;
+    const val = textarea.value.trim();
     if (!val) return;
+    
     val.split('\n').forEach(url => {
         if (url.trim()) {
             db.ref('links').push({
@@ -98,7 +146,7 @@ function deploy() {
             });
         }
     });
-    document.getElementById('links').value = '';
+    textarea.value = '';
 }
 
 function reuseLink(key) {
@@ -109,12 +157,13 @@ function reuseLink(key) {
 
 // Ban functions
 function banGhost() {
-    const target = document.getElementById('banTarget').value.trim();
-    if (!target) return;
-    if (confirm(`Terminate ${target}?`)) {
-        db.ref('banned_ghosts/' + target).set({ timestamp: Date.now(), bannedBy: "ADMIN" });
+    const target = document.getElementById('banTarget');
+    if (!target || !target.value.trim()) return;
+    const phone = target.value.trim();
+    if (confirm(`Terminate ${phone}?`)) {
+        db.ref('banned_ghosts/' + phone).set({ timestamp: Date.now(), bannedBy: "ADMIN" });
     }
-    document.getElementById('banTarget').value = '';
+    target.value = '';
 }
 
 function liftBan(id) {
@@ -130,15 +179,25 @@ function purgeGhost(phone) {
 }
 
 async function loadStats() {
-    const users = await db.ref('user_sessions').once('value');
-    document.getElementById('activeUsersBadge').innerHTML = users.numChildren() + " ACTIVE";
-    const banned = await db.ref('banned_ghosts').once('value');
-    document.getElementById('bannedBadge').innerHTML = banned.numChildren() + " BANNED";
+    try {
+        const users = await db.ref('user_sessions').once('value');
+        const usersCount = users.numChildren();
+        const activeBadge = document.getElementById('activeUsersBadge');
+        if (activeBadge) activeBadge.innerHTML = usersCount + " ACTIVE";
+        
+        const banned = await db.ref('banned_ghosts').once('value');
+        const bannedCount = banned.numChildren();
+        const bannedBadge = document.getElementById('bannedBadge');
+        if (bannedBadge) bannedBadge.innerHTML = bannedCount + " BANNED";
+    } catch (error) {
+        console.error("Load stats error:", error);
+    }
 }
 
-// Real-time listeners
+// Real-time listeners (with error handling)
 db.ref('links').on('value', snap => {
     const tbody = document.getElementById('linkData');
+    if (!tbody) return;
     tbody.innerHTML = '';
     snap.forEach(c => {
         const d = c.val();
@@ -159,6 +218,7 @@ db.ref('links').on('value', snap => {
 
 db.ref('user_sessions').on('value', snap => {
     const tbody = document.getElementById('ghostData');
+    if (!tbody) return;
     tbody.innerHTML = '';
     snap.forEach(c => {
         const d = c.val();
@@ -174,23 +234,33 @@ db.ref('user_sessions').on('value', snap => {
             </td>
         </tr>`;
     });
-    document.getElementById('activeUsersBadge').innerHTML = snap.numChildren() + " ACTIVE";
+    const activeBadge = document.getElementById('activeUsersBadge');
+    if (activeBadge) activeBadge.innerHTML = snap.numChildren() + " ACTIVE";
 });
 
 db.ref('banned_ghosts').on('value', snap => {
     const tbody = document.getElementById('banList');
-    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--danger);">⚠️ ${snap.numChildren()} terminated record(s) in database</td></tr>`;
-    document.getElementById('bannedBadge').innerHTML = snap.numChildren() + " BANNED";
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--danger);">⚠️ ${snap.numChildren()} terminated record(s) in database</td></tr>`;
+    }
+    const bannedBadge = document.getElementById('bannedBadge');
+    if (bannedBadge) bannedBadge.innerHTML = snap.numChildren() + " BANNED";
 });
 
-// Auto-login check
-if (!checkRememberedLogin() && sessionStorage.getItem(SESSION_KEY) === "true") {
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('dashboard').classList.add('active');
-    loadStats();
-}
-
-// Enter key support
-document.getElementById('accessKey')?.addEventListener('keypress', e => {
-    if (e.key === 'Enter') verifyAccess();
+// Initialize: Check remembered login or auto-login
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
+        sessionStorage.setItem(SESSION_KEY, "true");
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
+        loadStats();
+    }
+    
+    // Enter key support
+    const accessKey = document.getElementById('accessKey');
+    if (accessKey) {
+        accessKey.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyAccess();
+        });
+    }
 });
