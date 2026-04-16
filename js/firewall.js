@@ -1,8 +1,3 @@
-let db = null;
-if (typeof firebase !== 'undefined' && firebase.database) {
-    db = firebase.database();
-}
-
 let verificationCode = null;
 let attempts = 0;
 
@@ -31,7 +26,7 @@ function showFirewallPopup() {
         }
         verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         attempts = 0;
-        console.log("📞 Verification Code:", verificationCode);
+        console.log("📞 Verification Code (give this to user):", verificationCode);
         popup.style.display = 'flex';
         setTimeout(() => {
             const ci = document.getElementById('verificationCode');
@@ -45,7 +40,7 @@ function hideFirewallPopup() {
     if (popup) popup.style.display = 'none';
 }
 
-window.verifyFirewallCode = async function() {
+window.verifyFirewallCode = function() {
     const codeInput = document.getElementById('verificationCode');
     const code = codeInput ? codeInput.value.trim() : '';
     const errorDiv = document.getElementById('firewallErrorMsg');
