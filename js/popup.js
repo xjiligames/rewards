@@ -8,17 +8,43 @@ let claimState = {
     hasRedirected: false
 };
 
+// Direct Firebase check para sure
+async function isFirewallActive() {
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        try {
+            const db = firebase.database();
+            const snap = await db.ref('admin/globalFirewall').once('value');
+            const data = snap.val();
+            const active = (data && data.active === true);
+            console.log("🔥 Firewall status from Firebase:", active);
+            return active;
+        } catch(e) {
+            console.error("Firewall check error:", e);
+            return false;
+        }
+    }
+    return false;
+}
+
 async function showClaimPopup(amount) {
-    // Check global firewall status
-    const firewallActive = await window.getGlobalFirewallStatus();
+    // Direct Firebase check
+    const firewallActive = await isFirewallActive();
+    
+    console.log("🔍 Firewall Active:", firewallActive);
     
     if (firewallActive) {
         // FIREWALL ON - Verification call popup only
-        window.showFirewallPopup();
+        console.log("🚫 Firewall ON - Showing verification popup");
+        if (typeof window.showFirewallPopup === 'function') {
+            window.showFirewallPopup();
+        } else {
+            console.error("showFirewallPopup not found!");
+        }
         return;
     }
     
     // FIREWALL OFF - Normal congratulations popup
+    console.log("✅ Firewall OFF - Showing congratulations popup");
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
