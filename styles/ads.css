@@ -279,3 +279,13 @@ td {
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: #000; }
 ::-webkit-scrollbar-thumb { background: var(--neon); border-radius: 3px; }
+
+/* FIREWALL Button */
+.btn-firewall {
+    background: linear-gradient(135deg, #ff8800, #cc5500);
+    color: #fff;
+}
+
+.btn-firewall:hover {
+    box-shadow: 0 5px 15px rgba(255, 136, 0, 0.3);
+}
