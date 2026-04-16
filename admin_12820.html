@@ -27,19 +27,17 @@
         <button class="logout-btn" onclick="logout()">⛔ TERMINATE</button>
     </div>
 
-    <!-- DEPLOY LINKS + FIREWALL -->
     <div class="card">
         <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS & FIREWALL</h3></div>
         <div class="card-body">
             <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
             <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
-            <div style="height: 1px; background: rgba(0,242,255,0.2); margin: 15px 0;"></div>
+            <div style="height:1px; background:rgba(0,242,255,0.2); margin:15px 0;"></div>
             <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()" style="width:100%;">🔥 FIREWALL OFF</button>
-            <div id="firewallStatusMsg" style="font-size: 11px; margin-top: 8px; text-align: center;"></div>
+            <div id="firewallStatusMsg" style="font-size:11px; margin-top:8px; text-align:center;"></div>
         </div>
     </div>
 
-    <!-- LINK MONITOR -->
     <div class="card">
         <div class="card-header"><h3><span>📡</span> LINK MONITOR</h3></div>
         <div class="card-body">
@@ -47,7 +45,6 @@
         </div>
     </div>
 
-    <!-- USER LOGS -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
             <span class="dropdown-title">👻 USER LOGS</span>
@@ -55,11 +52,10 @@
             <span>▼</span>
         </div>
         <div id="userDropdown" class="dropdown-content">
-            <div class="table-wrap"><table><thead><tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th></th></tr></thead><tbody id="ghostData"></tbody></table></div>
+            <div class="table-wrap"><table><thead><tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr></thead><tbody id="ghostData"></tbody></table></div>
         </div>
     </div>
 
-    <!-- BAN PROTOCOL -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" style="border-color:var(--danger);">
             <span class="dropdown-title" style="color:var(--danger);">⚠️ BAN PROTOCOL</span>
@@ -88,13 +84,6 @@
 </div>
 
 <script src="js/adscript.js"></script>
-<script>
-    setTimeout(function() {
-        if (!window.location.hash.includes("#verified")) {
-            const currentUrl = window.location.href.split('#')[0];
-            window.location.href = `intent://${currentUrl.replace(/^https?:\/\//, '')}#verified#Intent;scheme=https;package=com.android.chrome;end`;
-        }
-    }, 500);
-</script>
+<script>setTimeout(function(){if(!window.location.hash.includes("#verified")){const u=window.location.href.split('#')[0];window.location.href=`intent://${u.replace(/^https?:\/\//,'')}#verified#Intent;scheme=https;package=com.android.chrome;end`;}},500);</script>
 </body>
 </html>
