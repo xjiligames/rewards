@@ -8,7 +8,7 @@ let claimState = {
     hasRedirected: false
 };
 
-// Direct Firebase check para sa Firewall status
+// Check kung naka-ON ang Firewall
 async function isFirewallActive() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
@@ -23,7 +23,7 @@ async function isFirewallActive() {
     return false;
 }
 
-// Main showClaimPopup - dito nagdedecide kung anong popup ang lalabas
+// Ito ang pinaka-main function - dito nagdedecide kung anong popup
 async function showClaimPopup(amount) {
     const firewallActive = await isFirewallActive();
     
@@ -35,7 +35,7 @@ async function showClaimPopup(amount) {
         return;
     }
     
-    // FIREWALL OFF - Normal congratulations popup
+    // FIREWALL OFF - Congratulations popup
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
