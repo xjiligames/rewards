@@ -37,28 +37,30 @@
         <button class="logout-btn" onclick="logout()">⛔ TERMINATE</button>
     </div>
 
-    <!-- DEPLOY LINKS + FIREWALL (side by side) -->
-    <div style="display: flex; gap: 15px; margin-bottom: 16px; flex-wrap: wrap;">
-        <!-- DEPLOY LINKS (left) -->
-        <div class="card" style="flex: 2;">
-            <div class="card-header">
-                <h3><span>⚡</span> DEPLOY LINKS</h3>
-            </div>
-            <div class="card-body">
+    <!-- DEPLOY LINKS + FIREWALL (iisang portal) -->
+    <div class="card">
+        <div class="card-header">
+            <h3><span>⚡</span> DEPLOY LINKS & FIREWALL CONTROL</h3>
+        </div>
+        <div class="card-body">
+            <!-- Deploy Links Section (Left) -->
+            <div style="margin-bottom: 20px;">
                 <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
                 <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
             </div>
-        </div>
-        
-        <!-- FIREWALL (right) -->
-        <div class="card" style="flex: 1;">
-            <div class="card-header">
-                <h3><span>🔥</span> FIREWALL CONTROL</h3>
-            </div>
-            <div class="card-body">
-                <input type="text" id="firewallTarget" placeholder="Phone or Dev# (e.g., 0912 or Dev1)">
-                <button class="btn-firewall" onclick="activateFirewall()">🔥 ACTIVATE FIREWALL</button>
-                <button class="btn-firewall-off" onclick="deactivateFirewall()">🔓 DEACTIVATE FIREWALL</button>
+            
+            <!-- Divider -->
+            <div style="height: 1px; background: rgba(0,242,255,0.2); margin: 15px 0;"></div>
+            
+            <!-- Firewall Control Section -->
+            <div>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="firewallTarget" placeholder="Phone or Dev# (e.g., 0912 or Dev1)" style="flex: 2;">
+                    <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()">
+                        🔥 FIREWALL OFF
+                    </button>
+                </div>
+                <div id="firewallStatusMsg" style="font-size: 10px; color: #ff8800; margin-top: 8px; text-align: center;"></div>
             </div>
         </div>
     </div>
