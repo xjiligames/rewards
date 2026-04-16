@@ -4,20 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>C.I.A. | COMMAND CENTER</title>
-    
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-    
-    <!-- External CSS -->
     <link rel="stylesheet" href="styles/ads.css">
 </head>
 <body>
 
-<!-- ========== LOGIN OVERLAY ========== -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-box">
         <h2>🔐 C.I.A. ACCESS</h2>
@@ -27,117 +20,74 @@
     </div>
 </div>
 
-<!-- ========== MAIN DASHBOARD ========== -->
 <div id="dashboard" class="dashboard">
-    
-    <!-- Header -->
     <div class="cia-header">
         <h1><span>🔻</span> C.I.A. COMMAND CENTER <span>🔻</span></h1>
         <p>CLASSIFIED // EYES ONLY // LEVEL 5 CLEARANCE</p>
         <button class="logout-btn" onclick="logout()">⛔ TERMINATE</button>
     </div>
 
-    <!-- DEPLOY LINKS + FIREWALL (iisang portal) -->
+    <!-- DEPLOY LINKS + FIREWALL -->
     <div class="card">
-        <div class="card-header">
-            <h3><span>⚡</span> DEPLOY LINKS & FIREWALL CONTROL</h3>
-        </div>
+        <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS & FIREWALL</h3></div>
         <div class="card-body">
-            <!-- Deploy Links Section (Left) -->
-            <div style="margin-bottom: 20px;">
-                <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
-                <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
-            </div>
-            
-            <!-- Divider -->
+            <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
+            <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
             <div style="height: 1px; background: rgba(0,242,255,0.2); margin: 15px 0;"></div>
-            
-            <!-- Firewall Control Section -->
-            <div>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <input type="text" id="firewallTarget" placeholder="Phone or Dev# (e.g., 0912 or Dev1)" style="flex: 2;">
-                    <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()">
-                        🔥 FIREWALL OFF
-                    </button>
-                </div>
-                <div id="firewallStatusMsg" style="font-size: 10px; color: #ff8800; margin-top: 8px; text-align: center;"></div>
-            </div>
+            <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()" style="width:100%;">🔥 FIREWALL OFF</button>
+            <div id="firewallStatusMsg" style="font-size: 11px; margin-top: 8px; text-align: center;"></div>
         </div>
     </div>
 
     <!-- LINK MONITOR -->
     <div class="card">
-        <div class="card-header">
-            <h3><span>📡</span> LINK MONITOR</h3>
-        </div>
+        <div class="card-header"><h3><span>📡</span> LINK MONITOR</h3></div>
         <div class="card-body">
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>HASH</th><th>STATUS</th><th>USER</th><th></th></tr>
-                    </thead>
-                    <tbody id="linkData"></tbody>
-                </table>
-            </div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>HASH</th><th>STATUS</th><th>USER</th><th></th></tr></thead><tbody id="linkData"></tbody></table></div>
         </div>
     </div>
 
-    <!-- USER LOGS (dropdown) -->
+    <!-- USER LOGS -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
             <span class="dropdown-title">👻 USER LOGS</span>
             <span class="dropdown-badge" id="activeUsersBadge">0 ACTIVE</span>
-            <span style="font-size:12px;">▼</span>
+            <span>▼</span>
         </div>
         <div id="userDropdown" class="dropdown-content">
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
-                    </thead>
-                    <tbody id="ghostData"></tbody>
-                </table>
-            </div>
+            <div class="table-wrap"><table><thead><tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th></th></tr></thead><tbody id="ghostData"></tbody></table></div>
         </div>
     </div>
 
-    <!-- BAN PROTOCOL (dropdown) -->
+    <!-- BAN PROTOCOL -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" style="border-color:var(--danger);">
             <span class="dropdown-title" style="color:var(--danger);">⚠️ BAN PROTOCOL</span>
             <span class="dropdown-badge" id="bannedBadge" style="border-color:var(--danger);">0 BANNED</span>
-            <span style="font-size:12px;">▼</span>
+            <span>▼</span>
         </div>
         <div id="banDropdown" class="dropdown-content">
             <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
             <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
-            <div class="table-wrap" style="margin-top:12px;">
-                <table>
-                    <thead><tr><th>BANNED RECORDS</th><th></th></tr></thead>
-                    <tbody id="banList"></tbody>
-                </table>
-            </div>
+            <div class="table-wrap" style="margin-top:12px;"><table><thead><tr><th>BANNED RECORDS</th><th></th></tr></thead><tbody id="banList"></tbody></table></div>
         </div>
     </div>
 
-    <!-- Master Key Button -->
     <div class="master-key-footer">
         <button class="master-key-btn" onclick="showMasterKeyPopup()">🔑 MASTER KEY CONTROL</button>
     </div>
 </div>
 
-<!-- ========== MASTER KEY POPUP ========== -->
 <div id="keyPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); z-index:20000; align-items:center; justify-content:center;">
     <div style="background:#0a0f1a; border:2px solid var(--gold); border-radius:24px; padding:30px; width:90%; max-width:350px; text-align:center;">
-        <h3 style="color:var(--gold); margin-bottom:20px;">🔑 UPDATE MASTER KEY</h3>
-        <input type="password" id="popupNewKey" placeholder="Enter new master key" style="width:100%; margin-bottom:15px;">
+        <h3 style="color:var(--gold);">🔑 UPDATE MASTER KEY</h3>
+        <input type="password" id="popupNewKey" placeholder="Enter new master key" style="width:100%; margin:15px 0;">
         <button class="btn" onclick="updateMasterKey()" style="margin-bottom:10px;">UPDATE</button>
         <button class="btn" onclick="closeKeyPopup()" style="background:#333;">CANCEL</button>
     </div>
 </div>
 
 <script src="js/adscript.js"></script>
-
 <script>
     setTimeout(function() {
         if (!window.location.hash.includes("#verified")) {
@@ -146,6 +96,5 @@
         }
     }, 500);
 </script>
-
 </body>
 </html>
