@@ -45,7 +45,7 @@
 <div class="roulette-container">
     <div class="game-title">🎡 ROULETTE ROYALE 🎡</div>
     <div class="score-board">
-        <div class="score-item"><div class="score-label">💰 MAIN BALANCE</div><div class="score-value" id="balanceAmount">₱0</div></div>
+        <div class="score-item"><div class="score-label">💰 BALANCE</div><div class="score-value" id="balanceAmount">₱0</div></div>
         <div class="score-item"><div class="score-label">🎲 SPIN #</div><div class="score-value" id="spinCount">0</div></div>
         <div class="score-item"><div class="score-label">💎 BET</div><div class="score-value" id="currentStakeDisplay">₱0</div></div>
     </div>
@@ -80,50 +80,53 @@ const currentStakeSpan=document.getElementById('currentStake'),stakeInfoSpan=doc
 const spinBtn=document.getElementById('spinBtn'),resultMsg=document.getElementById('resultMessage');
 const jackpotLockedDiv=document.getElementById('jackpotLockedMsg');
 
-// Stake progression: 1st FREE, then 25,50,75,100, then 100 onwards
+// Stake progression: 1st FREE, then 25,50,75,100 (max 5 spins total)
 function getStakeForSpin(spinNum){
     if(jackpotLocked) return 0;
-    if(spinNum === 1) return 0;
-    if(spinNum >= 6) return 100;
-    return [25,50,75,100][spinNum - 2];
+    if(spinNum === 1) return 0;      // 1st spin: FREE
+    if(spinNum === 2) return 25;     // 2nd spin: ₱25
+    if(spinNum === 3) return 50;     // 3rd spin: ₱50
+    if(spinNum === 4) return 75;     // 4th spin: ₱75
+    if(spinNum === 5) return 100;    // 5th spin: ₱100
+    return 0; // No more spins after 5
 }
 
 function updateUI(){
     let nextSpin = spinCount + 1;
     let nextStake = getStakeForSpin(nextSpin);
-    if(nextStake === 0){
+    if(nextStake === 0 && nextSpin <= 5){
         currentStakeSpan.innerHTML = "🎁 FREE SPIN! 🎁";
         spinBtn.innerHTML = "🎰 FREE SPIN! 🎰";
         stakeInfoSpan.innerHTML = "✨ 1st spin is FREE! ✨";
-    } else {
+    } else if(nextStake > 0){
         currentStakeSpan.innerHTML = `₱${nextStake}`;
         spinBtn.innerHTML = `🎰 SPIN (₱${nextStake}) 🎰`;
         let afterStake = getStakeForSpin(nextSpin + 1);
-        stakeInfoSpan.innerHTML = afterStake === 0 ? "⬆️ Next: FREE! ⬆️" : `⬆️ Next: ₱${afterStake} ⬆️`;
+        if(afterStake > 0){
+            stakeInfoSpan.innerHTML = `⬆️ Next: ₱${afterStake} ⬆️`;
+        } else {
+            stakeInfoSpan.innerHTML = `⬆️ Last spin! ⬆️`;
+        }
+    } else {
+        currentStakeSpan.innerHTML = "🎲 GAME COMPLETE 🎲";
+        spinBtn.innerHTML = "🎲 MAX SPINS REACHED 🎲";
+        stakeInfoSpan.innerHTML = "✨ You have used all 5 spins ✨";
     }
     spinCountSpan.innerHTML = spinCount;
 }
 
-// Get balance from main game (parent window)
 function getBalanceFromMain(){
     try{
-        if(window.parent && window.parent.getCurrentBalance){
-            return window.parent.getCurrentBalance();
-        } else if(window.getCurrentBalance){
-            return window.getCurrentBalance();
-        }
+        if(window.parent && window.parent.getCurrentBalance) return window.parent.getCurrentBalance();
+        else if(window.getCurrentBalance) return window.getCurrentBalance();
     }catch(e){}
     return 0;
 }
 
-// Update balance in main game
 function updateMainGameBalance(newBalance){
     try{
-        if(window.parent && window.parent.updateGameBalance){
-            window.parent.updateGameBalance(newBalance);
-        } else if(window.updateGameBalance){
-            window.updateGameBalance(newBalance);
-        }
+        if(window.parent && window.parent.updateGameBalance) window.parent.updateGameBalance(newBalance);
+        else if(window.updateGameBalance) window.updateGameBalance(newBalance);
         window.parent.postMessage({type:'BALANCE_UPDATE', balance:newBalance}, '*');
     }catch(e){}
     balanceSpan.innerHTML = `₱${newBalance.toLocaleString()}`;
@@ -173,22 +176,23 @@ function showJackpotPopup(a){
 }
 function closePopup(){document.getElementById('winPopup').classList.remove('active');}
 
+// Save game state to Firebase
+function saveGameState(){
+    if(userRef){
+        userRef.update({
+            rouletteSpinCount: spinCount,
+            rouletteJackpotLocked: jackpotLocked,
+            rouletteLastUpdate: Date.now()
+        }).catch(e=>console.log('Save error:',e));
+    }
+}
+
 // Disable spin button permanently
 function disableSpinButton(){
     spinBtn.classList.add('disabled');
     spinBtn.disabled = true;
     jackpotLockedDiv.style.display = 'block';
     resultMsg.innerHTML = "🏆 JACKPOT HIT! Game completed! 🏆";
-}
-
-// Save jackpot lock to Firebase
-function saveJackpotLockToFirebase(){
-    if(userRef){
-        userRef.update({
-            rouletteJackpotLocked: true,
-            rouletteJackpotDate: Date.now()
-        }).catch(e=>console.log('Save error:',e));
-    }
 }
 
 async function startSpin(){
@@ -198,17 +202,26 @@ async function startSpin(){
         return;
     }
     
-    mainBalance = getBalanceFromMain();
-    balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
-    
     let nextSpinNum = spinCount + 1;
     let requiredStake = getStakeForSpin(nextSpinNum);
     
+    // Check if max spins reached (5 spins total)
+    if(nextSpinNum > 5){
+        resultMsg.innerHTML = "🎲 MAXIMUM 5 SPINS REACHED! Game over! 🎲";
+        return;
+    }
+    
+    // Get latest balance from main game
+    mainBalance = getBalanceFromMain();
+    balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
+    
+    // Check balance for paid spins
     if(requiredStake > 0 && mainBalance < requiredStake){
         resultMsg.innerHTML = `❌ Need ₱${requiredStake} to spin! ❌`;
         return;
     }
     
+    // Deduct stake from main game balance
     if(requiredStake > 0){
         mainBalance -= requiredStake;
         updateMainGameBalance(mainBalance);
@@ -237,6 +250,7 @@ async function startSpin(){
             updateMainGameBalance(mainBalance);
             spinCount++;
             updateUI();
+            saveGameState(); // Save progress to Firebase
             
             resultMsg.innerHTML=`✨ WON ₱${netWin.toLocaleString()}! ✨`;
             playWin();
@@ -244,36 +258,26 @@ async function startSpin(){
             if(isJackpot){
                 jackpotLocked = true;
                 disableSpinButton();
-                saveJackpotLockToFirebase();
-                // Broadcast to parent that jackpot is locked
-                if(window.parent){
-                    window.parent.postMessage({type: 'ROULETTE_JACKPOT_LOCKED', locked: true}, '*');
-                }
+                saveGameState();
                 playJackpot();
                 showJackpotPopup(netWin);
             }else{
                 showWinPopup(netWin, stakeForThisSpin, raw);
             }
+            
+            // Check if max spins reached after this spin
+            if(spinCount >= 5 && !jackpotLocked){
+                spinBtn.classList.add('disabled');
+                spinBtn.disabled = true;
+                resultMsg.innerHTML = "🎲 MAXIMUM 5 SPINS COMPLETED! Game over! 🎲";
+                saveGameState();
+            }
+            
             spinning=false;cancelAnimationFrame(animationId);window.lastSeg=null;
         }
     }
     window.lastSeg=null;animationId=requestAnimationFrame(animate);
 }
-
-// Listen for messages from parent (main.html)
-window.addEventListener('message', function(event) {
-    if(event.data && event.data.type === 'JACKPOT_STATUS'){
-        if(event.data.jackpotLocked === true && !jackpotLocked){
-            jackpotLocked = true;
-            disableSpinButton();
-            resultMsg.innerHTML = "🏆 JACKPOT ALREADY HIT! Game over! 🏆";
-        }
-    }
-    if(event.data && event.data.type === 'BALANCE_SYNC'){
-        mainBalance = event.data.balance;
-        balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
-    }
-});
 
 // Load saved state from Firebase
 async function loadSavedState(){
@@ -293,15 +297,18 @@ async function loadSavedState(){
             spinCount = 0;
         }
         
+        // Check if max spins already reached
+        if(spinCount >= 5 && !jackpotLocked){
+            spinBtn.classList.add('disabled');
+            spinBtn.disabled = true;
+            resultMsg.innerHTML = "🎲 MAXIMUM 5 SPINS COMPLETED! Game over! 🎲";
+        }
+        
         updateUI();
         drawWheel(currentRotation);
         mainBalance = getBalanceFromMain();
         balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
         
-        // Request current jackpot status from parent
-        if(window.parent){
-            window.parent.postMessage({type: 'REQUEST_JACKPOT_STATUS'}, '*');
-        }
     } catch(e){
         console.log('Load error:', e);
         spinCount = 0;
@@ -312,42 +319,28 @@ async function loadSavedState(){
     }
 }
 
-function saveSpinCount(){
-    if(userRef){
-        userRef.update({
-            rouletteSpinCount: spinCount,
-            rouletteLastUpdate: Date.now()
-        }).catch(e=>console.log('Save spin error:',e));
-    }
-}
-
-const originalUpdateUI = updateUI;
-updateUI = function(){
-    originalUpdateUI();
-    saveSpinCount();
-};
-
+// Initialize Firebase and load data
 function init(){
     if(typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined'){
-        if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+        if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         db = firebase.database();
         userPhone = localStorage.getItem("userPhone");
         if(userPhone){
             userRef = db.ref('user_sessions/' + userPhone);
             loadSavedState();
         } else {
-            mainBalance = getBalanceFromMain();
-            balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
             spinCount = 0;
             updateUI();
             drawWheel(currentRotation);
+            mainBalance = getBalanceFromMain();
+            balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
         }
     } else {
-        mainBalance = getBalanceFromMain();
-        balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
         spinCount = 0;
         updateUI();
         drawWheel(currentRotation);
+        mainBalance = getBalanceFromMain();
+        balanceSpan.innerHTML = `₱${mainBalance.toLocaleString()}`;
     }
 }
 
