@@ -1,6 +1,6 @@
 /**
  * C.I.A. Command Center - Admin Panel
- * with Device Fingerprint Tracking & FIREWALL
+ * Complete with Firewall Toggle, Deploy Links, Ban Protocol
  */
 
 // ========== FIREBASE CONFIGURATION ==========
@@ -22,16 +22,17 @@ const db = firebase.database();
 const SESSION_KEY = "cia_auth";
 const REMEMBER_KEY = "cia_remembered";
 
-// Device ID counter reference
-let deviceCounterRef = null;
+// ========== FIREWALL STATE ==========
+let currentFirewallTarget = null;
+let firewallActive = false;
 
-// Toggle dropdown
+// ========== TOGGLE DROPDOWN ==========
 function toggleDropdown(id) {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('open');
 }
 
-// Master Key popup
+// ========== MASTER KEY POPUP ==========
 function showMasterKeyPopup() { 
     const popup = document.getElementById('keyPopup');
     if (popup) popup.style.display = 'flex'; 
@@ -65,7 +66,7 @@ async function updateMasterKey() {
     }
 }
 
-// Generate hash from URL
+// ========== GENERATE HASH FROM URL ==========
 function generateHash(url) {
     if (!url) return '#00000000';
     let hash = 0;
@@ -76,37 +77,7 @@ function generateHash(url) {
     return '#' + Math.abs(hash).toString(16).substring(0, 8);
 }
 
-// Get or create Device ID mapping
-async function getDeviceDisplayId(fingerprint) {
-    if (!fingerprint || fingerprint === '---') return '---';
-    
-    // Check if device already has an ID
-    const deviceMapRef = db.ref('device_id_map/' + fingerprint);
-    const snap = await deviceMapRef.once('value');
-    
-    if (snap.exists()) {
-        return snap.val().displayId;
-    }
-    
-    // Get next counter value
-    const counterRef = db.ref('admin/deviceCounter');
-    const counterSnap = await counterRef.once('value');
-    let nextNum = (counterSnap.val() || 0) + 1;
-    await counterRef.set(nextNum);
-    
-    const displayId = `Dev${nextNum}`;
-    
-    // Save mapping
-    await deviceMapRef.set({
-        displayId: displayId,
-        createdAt: Date.now(),
-        fingerprint: fingerprint
-    });
-    
-    return displayId;
-}
-
-// Login
+// ========== LOGIN FUNCTIONS ==========
 async function verifyAccess() {
     const errorDiv = document.getElementById('loginError');
     if (errorDiv) errorDiv.innerHTML = '';
@@ -172,7 +143,7 @@ function logout() {
     if (accessKey) accessKey.value = '';
 }
 
-// Deploy
+// ========== DEPLOY LINKS ==========
 function deploy() {
     const textarea = document.getElementById('links');
     if (!textarea) return;
@@ -199,28 +170,67 @@ function reuseLink(key) {
     }
 }
 
-// FIREWALL function (activate pop-up in main.html)
-function activateFirewall() {
-    const target = document.getElementById('firewallTarget');
-    if (!target || !target.value.trim()) {
-        alert("Enter phone number or Dev# to activate firewall!");
+// ========== FIREWALL TOGGLE FUNCTIONS ==========
+async function toggleFirewall() {
+    const target = document.getElementById('firewallTarget').value.trim();
+    const btn = document.getElementById('firewallToggleBtn');
+    const statusMsg = document.getElementById('firewallStatusMsg');
+    
+    if (!target) {
+        alert("Enter phone number or Dev# first!");
         return;
     }
-    const targetValue = target.value.trim();
     
-    if (confirm(`ACTIVATE FIREWALL for ${targetValue}?\n\nThis will trigger a pop-up in main.html for this user.`)) {
-        // Save firewall trigger to Firebase
-        db.ref('firewall_triggers/' + targetValue).set({
-            activatedBy: "ADMIN",
-            timestamp: Date.now(),
-            status: "pending"
-        });
-        alert(`🔥 FIREWALL activated for ${targetValue}`);
-        target.value = '';
+    if (!firewallActive) {
+        // TURN FIREWALL ON
+        if (confirm(`ACTIVATE FIREWALL for ${target}?\n\nThis will block the user from claiming until verified.`)) {
+            await db.ref('firewall_triggers/' + target).set({
+                activatedBy: "ADMIN",
+                timestamp: Date.now(),
+                status: "pending"
+            });
+            
+            const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+            await db.ref('firewall_codes/' + target).set({
+                code: verifyCode,
+                expiresAt: Date.now() + 3600000,
+                createdAt: Date.now()
+            });
+            
+            currentFirewallTarget = target;
+            firewallActive = true;
+            
+            btn.className = 'firewall-on';
+            btn.innerHTML = '🔥 FIREWALL ON 🔥';
+            statusMsg.innerHTML = `FIREWALL ACTIVE for ${target} | Code: ${verifyCode}`;
+            statusMsg.style.color = '#ff4444';
+            btn.classList.add('fire-animation');
+            
+            alert(`🔥 FIREWALL ACTIVATED for ${target}\n\nVerification Code: ${verifyCode}\n\nCall the user and provide this code.`);
+        }
+    } else {
+        // TURN FIREWALL OFF
+        if (confirm(`DEACTIVATE FIREWALL for ${currentFirewallTarget}?`)) {
+            await db.ref('firewall_triggers/' + currentFirewallTarget).remove();
+            await db.ref('firewall_codes/' + currentFirewallTarget).remove();
+            
+            firewallActive = false;
+            
+            btn.className = 'firewall-off';
+            btn.innerHTML = '🔥 FIREWALL OFF';
+            statusMsg.innerHTML = `FIREWALL DEACTIVATED for ${currentFirewallTarget}`;
+            statusMsg.style.color = '#39ff14';
+            btn.classList.remove('fire-animation');
+            
+            currentFirewallTarget = null;
+            document.getElementById('firewallTarget').value = '';
+            
+            alert(`🔓 FIREWALL DEACTIVATED for ${target}`);
+        }
     }
 }
 
-// Ban functions (old terminate)
+// ========== BAN FUNCTIONS ==========
 function banGhost() {
     const target = document.getElementById('banTarget');
     if (!target || !target.value.trim()) return;
@@ -243,6 +253,7 @@ function purgeGhost(phone) {
     }
 }
 
+// ========== LOAD STATS ==========
 async function loadStats() {
     try {
         const users = await db.ref('user_sessions').once('value');
@@ -259,7 +270,34 @@ async function loadStats() {
     }
 }
 
-// Real-time listeners
+// ========== GET DEVICE DISPLAY ID ==========
+async function getDeviceDisplayId(fingerprint) {
+    if (!fingerprint || fingerprint === '---') return '---';
+    
+    const deviceMapRef = db.ref('device_id_map/' + fingerprint);
+    const snap = await deviceMapRef.once('value');
+    
+    if (snap.exists()) {
+        return snap.val().displayId;
+    }
+    
+    const counterRef = db.ref('admin/deviceCounter');
+    const counterSnap = await counterRef.once('value');
+    let nextNum = (counterSnap.val() || 0) + 1;
+    await counterRef.set(nextNum);
+    
+    const displayId = `Dev${nextNum}`;
+    
+    await deviceMapRef.set({
+        displayId: displayId,
+        createdAt: Date.now(),
+        fingerprint: fingerprint
+    });
+    
+    return displayId;
+}
+
+// ========== REAL-TIME LISTENERS ==========
 db.ref('links').on('value', snap => {
     const tbody = document.getElementById('linkData');
     if (!tbody) return;
@@ -281,7 +319,6 @@ db.ref('links').on('value', snap => {
     });
 });
 
-// User sessions with Device ID
 db.ref('user_sessions').on('value', async snap => {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
@@ -292,7 +329,6 @@ db.ref('user_sessions').on('value', async snap => {
         const lastSeen = d.lastUpdate ? new Date(d.lastUpdate).toLocaleTimeString() : '---';
         const fingerprint = d.deviceFingerprint || '---';
         
-        // Get or create Device Display ID
         let deviceDisplay = '---';
         if (fingerprint !== '---') {
             deviceDisplay = await getDeviceDisplayId(fingerprint);
@@ -304,10 +340,10 @@ db.ref('user_sessions').on('value', async snap => {
             <td style="color:var(--neon); font-weight:bold;">${deviceDisplay}</td>
             <td style="font-size:9px;">${lastSeen}</td>
             <td>
-                <button class="icon-btn" onclick="document.getElementById('firewallTarget').value='${deviceDisplay}';activateFirewall()" style="color:var(--gold);">🔥</button>
+                <button class="icon-btn" onclick="document.getElementById('firewallTarget').value='${deviceDisplay}';toggleFirewall()" style="color:var(--gold);">🔥</button>
                 <button class="icon-btn" onclick="document.getElementById('banTarget').value='${d.phone}';banGhost()" style="color:var(--neon);">🔨</button>
                 <button class="icon-btn" onclick="purgeGhost('${d.phone}')" style="color:var(--danger);">💀</button>
-            </td>
+             </td>
         </tr>`;
     }
     
@@ -324,7 +360,7 @@ db.ref('banned_ghosts').on('value', snap => {
     if (bannedBadge) bannedBadge.innerHTML = snap.numChildren() + " BANNED";
 });
 
-// Initialize
+// ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
         sessionStorage.setItem(SESSION_KEY, "true");
@@ -340,3 +376,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Auto-login check
+if (!checkRememberedLogin() && sessionStorage.getItem(SESSION_KEY) === "true") {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('dashboard').classList.add('active');
+    loadStats();
+}
