@@ -24,4 +24,74 @@ db.ref('user_sessions').on('value',async s=>{const t=document.getElementById('gh
 db.ref('banned_ghosts').on('value',s=>{const t=document.getElementById('banList');if(t)t.innerHTML=`<tr><td colspan="2" style="text-align:center; color:var(--danger);">⚠️ ${s.numChildren()} terminated record(s) in database</td></tr>`;document.getElementById('bannedBadge').innerHTML=s.numChildren()+" BANNED";});
 db.ref('admin/globalFirewall').on('value',s=>{const d=s.val();globalFirewallActive=(d&&d.active===true);const b=document.getElementById('firewallToggleBtn'),m=document.getElementById('firewallStatusMsg');if(globalFirewallActive){if(b){b.className='firewall-on';b.innerHTML='🔥 FIREWALL ON 🔥';b.classList.add('fire-animation');}if(m){m.innerHTML='FIREWALL ACTIVE';m.style.color='#ff4444';}}else{if(b){b.className='firewall-off';b.innerHTML='🔥 FIREWALL OFF';b.classList.remove('fire-animation');}if(m){m.innerHTML='FIREWALL DEACTIVATED';m.style.color='#39ff14';}}});
 if(localStorage.getItem(REMEMBER_KEY)==="true"||sessionStorage.getItem(SESSION_KEY)==="true"){sessionStorage.setItem(SESSION_KEY,"true");document.getElementById('loginOverlay').style.display='none';document.getElementById('dashboard').classList.add('active');loadStats();checkGlobalFirewallStatus();}
-document.getElementById('accessKey')?.addEventListener('keypress',e=>{if(e.key==='Enter')verifyAccess();});
+document.getElementById('accessKey')?.addEventListener('keypress',e=>{if(e.key==='Enter')verifyAccess();}); // ========== FILTER VARIABLES ==========
+let currentUserData = [];
+let currentFilter = 'none'; // 'dev', 'lastseen'
+
+// Filter by DEV# (ascending: Dev1, Dev2, Dev3...)
+function filterByDev() {
+    currentFilter = 'dev';
+    applyFilter();
+    updateFilterButtonStyles();
+}
+
+// Filter by LAST SEEN (latest to oldest)
+function filterByLastSeen() {
+    currentFilter = 'lastseen';
+    applyFilter();
+    updateFilterButtonStyles();
+}
+
+// Update button styles to show active filter
+function updateFilterButtonStyles() {
+    const devBtn = document.getElementById('filterDevBtn');
+    const lastSeenBtn = document.getElementById('filterLastSeenBtn');
+    
+    if (currentFilter === 'dev') {
+        if (devBtn) devBtn.style.background = 'linear-gradient(135deg, var(--neon), #0066aa)';
+        if (lastSeenBtn) lastSeenBtn.style.background = 'rgba(0,242,255,0.2)';
+    } else if (currentFilter === 'lastseen') {
+        if (devBtn) devBtn.style.background = 'rgba(0,242,255,0.2)';
+        if (lastSeenBtn) lastSeenBtn.style.background = 'linear-gradient(135deg, var(--neon), #0066aa)';
+    } else {
+        if (devBtn) devBtn.style.background = 'rgba(0,242,255,0.2)';
+        if (lastSeenBtn) lastSeenBtn.style.background = 'rgba(0,242,255,0.2)';
+    }
+}
+
+// Apply filter to current data
+function applyFilter() {
+    const tbody = document.getElementById('ghostData');
+    if (!tbody) return;
+    
+    let filteredData = [...currentUserData];
+    
+    if (currentFilter === 'dev') {
+        // Sort by DEV# (Dev1, Dev2, Dev3...)
+        filteredData.sort((a, b) => {
+            const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
+            const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
+            return numA - numB;
+        });
+    } else if (currentFilter === 'lastseen') {
+        // Sort by lastSeen timestamp (latest to oldest)
+        filteredData.sort((a, b) => b.lastSeenRaw - a.lastSeenRaw);
+    }
+    
+    // Render filtered data
+    tbody.innerHTML = '';
+    filteredData.forEach(item => {
+        tbody.innerHTML += `
+            <tr>
+                <td class="ghost-id">${item.phone}</td>
+                <td style="color:var(--ghost)">₱${item.balance}</td>
+                <td style="color:var(--neon); font-weight:bold;">${item.devDisplay}</td>
+                <td style="font-size:9px;">${item.lastSeen}</td>
+                <td>
+                    <button class="icon-btn" onclick="document.getElementById('banTarget').value='${item.phone}';banGhost()" style="color:var(--neon);">🔨</button>
+                    <button class="icon-btn" onclick="purgeGhost('${item.phone}')" style="color:var(--danger);">💀</button>
+                </td>
+            </tr>
+        `;
+    });
+}
