@@ -45,14 +45,28 @@
         </div>
     </div>
 
+    <!-- USER LOGS (dropdown) -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
             <span class="dropdown-title">👻 USER LOGS</span>
-            <span class="dropdown-badge" id="activeUsersBadge">0 ACTIVE</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="dropdown-badge" id="activeUsersBadge">0 ACTIVE</span>
+                <div class="filter-group" style="display: flex; gap: 5px;">
+                    <button class="filter-btn" id="filterDevBtn" onclick="filterByDev()" style="background:rgba(0,242,255,0.2); border:1px solid var(--neon); padding:2px 8px; border-radius:12px; font-size:9px; cursor:pointer;">📱 DEV</button>
+                    <button class="filter-btn" id="filterLastSeenBtn" onclick="filterByLastSeen()" style="background:rgba(0,242,255,0.2); border:1px solid var(--neon); padding:2px 8px; border-radius:12px; font-size:9px; cursor:pointer;">⏰ LAST SEEN</button>
+                </div>
+            </div>
             <span>▼</span>
         </div>
         <div id="userDropdown" class="dropdown-content">
-            <div class="table-wrap"><table><thead><tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr></thead><tbody id="ghostData"></tbody></table></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody id="ghostData"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
