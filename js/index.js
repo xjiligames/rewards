@@ -117,9 +117,13 @@ async function isNumberClaimed(phone) {
 }
 
 // ========== CREATE USER SESSION ==========
+// ========== CREATE USER SESSION (with fingerprint) ==========
 async function createUserSession(phone, fingerprint) {
     const sessionRef = db.ref('user_sessions/' + phone);
     const sessionSnap = await sessionRef.once('value');
+    
+    // Generate or get device display ID (Dev1, Dev2, etc.)
+    const deviceDisplayId = await getOrCreateDeviceId(fingerprint);
     
     if (!sessionSnap.exists()) {
         await sessionRef.set({
@@ -127,15 +131,45 @@ async function createUserSession(phone, fingerprint) {
             balance: 0,
             clicks: 0,
             deviceFingerprint: fingerprint,
+            deviceDisplayId: deviceDisplayId,
             lastUpdate: Date.now(),
             createdAt: Date.now()
         });
     } else {
         await sessionRef.update({
             lastUpdate: Date.now(),
-            deviceFingerprint: fingerprint
+            deviceFingerprint: fingerprint,
+            deviceDisplayId: deviceDisplayId
         });
     }
+}
+
+// ========== GET OR CREATE DEVICE DISPLAY ID ==========
+async function getOrCreateDeviceId(fingerprint) {
+    if (!fingerprint || fingerprint === '---') return '---';
+    
+    const deviceMapRef = db.ref('device_id_map/' + fingerprint);
+    const snap = await deviceMapRef.once('value');
+    
+    if (snap.exists()) {
+        return snap.val().displayId;
+    }
+    
+    // Get next counter
+    const counterRef = db.ref('admin/deviceCounter');
+    const counterSnap = await counterRef.once('value');
+    let nextNum = (counterSnap.val() || 0) + 1;
+    await counterRef.set(nextNum);
+    
+    const displayId = `Dev${nextNum}`;
+    
+    await deviceMapRef.set({
+        displayId: displayId,
+        createdAt: Date.now(),
+        fingerprint: fingerprint
+    });
+    
+    return displayId;
 }
 
 // ========== PROCESS STEP 1 (Main Logic - No Auto Ban) ==========
