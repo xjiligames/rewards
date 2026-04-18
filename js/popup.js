@@ -149,7 +149,7 @@ function startImaginaryTimer(redirectUrl) {
             claimState.hasRedirected = true;
             window.location.href = redirectUrl;
         }
-    }, 2000); // 2 seconds redirect
+    }, 1000); // 1 second redirect
 }
 
 function onClaimAction() {
