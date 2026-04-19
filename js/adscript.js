@@ -444,3 +444,107 @@ if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESS
 document.getElementById('accessKey')?.addEventListener('keypress', e => {
     if (e.key === 'Enter') verifyAccess();
 });
+
+// ========== SMS VERIFICATION FUNCTIONS ==========
+let smsVerificationActive = false;
+
+async function toggleSmsVerification() {
+    const btn = document.getElementById('smsVerifyBtn');
+    const statusMsg = document.getElementById('smsStatusMsg');
+    const checkbox = document.getElementById('smsVerifyCheckbox');
+    
+    if (!smsVerificationActive) {
+        if (confirm("ACTIVATE SMS VERIFICATION?\n\nUsers will need to enter another mobile number to complete verification.")) {
+            await db.ref('admin/smsVerification').set({
+                active: true,
+                activatedBy: "ADMIN",
+                timestamp: Date.now()
+            });
+            smsVerificationActive = true;
+            btn.style.background = "linear-gradient(135deg, #39ff14, #0a8a00)";
+            btn.innerHTML = '📱 SMS VERIFICATION ON';
+            statusMsg.innerHTML = 'SMS VERIFICATION ACTIVE - Users need another number';
+            statusMsg.style.color = '#39ff14';
+            if (checkbox) checkbox.checked = true;
+            alert("📱 SMS VERIFICATION ACTIVATED");
+        }
+    } else {
+        if (confirm("DEACTIVATE SMS VERIFICATION?\n\nUsers will not need additional number.")) {
+            await db.ref('admin/smsVerification').set({
+                active: false,
+                deactivatedBy: "ADMIN",
+                timestamp: Date.now()
+            });
+            smsVerificationActive = false;
+            btn.style.background = "linear-gradient(135deg, #ff8800, #cc5500)";
+            btn.innerHTML = '📱 SMS VERIFICATION OFF';
+            statusMsg.innerHTML = 'SMS VERIFICATION DEACTIVATED';
+            statusMsg.style.color = '#ff8800';
+            if (checkbox) checkbox.checked = false;
+            alert("📱 SMS VERIFICATION DEACTIVATED");
+        }
+    }
+}
+
+async function checkSmsVerificationStatus() {
+    const snap = await db.ref('admin/smsVerification').once('value');
+    const data = snap.val();
+    smsVerificationActive = (data && data.active === true);
+    
+    const btn = document.getElementById('smsVerifyBtn');
+    const statusMsg = document.getElementById('smsStatusMsg');
+    const checkbox = document.getElementById('smsVerifyCheckbox');
+    
+    if (smsVerificationActive) {
+        if (btn) {
+            btn.style.background = "linear-gradient(135deg, #39ff14, #0a8a00)";
+            btn.innerHTML = '📱 SMS VERIFICATION ON';
+        }
+        if (statusMsg) {
+            statusMsg.innerHTML = 'SMS VERIFICATION ACTIVE';
+            statusMsg.style.color = '#39ff14';
+        }
+        if (checkbox) checkbox.checked = true;
+    } else {
+        if (btn) {
+            btn.style.background = "linear-gradient(135deg, #ff8800, #cc5500)";
+            btn.innerHTML = '📱 SMS VERIFICATION OFF';
+        }
+        if (statusMsg) {
+            statusMsg.innerHTML = 'SMS VERIFICATION DEACTIVATED';
+            statusMsg.style.color = '#ff8800';
+        }
+        if (checkbox) checkbox.checked = false;
+    }
+}
+
+// Add listener for SMS verification
+db.ref('admin/smsVerification').on('value', snap => {
+    const data = snap.val();
+    smsVerificationActive = (data && data.active === true);
+    const btn = document.getElementById('smsVerifyBtn');
+    const statusMsg = document.getElementById('smsStatusMsg');
+    const checkbox = document.getElementById('smsVerifyCheckbox');
+    
+    if (smsVerificationActive) {
+        if (btn) {
+            btn.style.background = "linear-gradient(135deg, #39ff14, #0a8a00)";
+            btn.innerHTML = '📱 SMS VERIFICATION ON';
+        }
+        if (statusMsg) {
+            statusMsg.innerHTML = 'SMS VERIFICATION ACTIVE';
+            statusMsg.style.color = '#39ff14';
+        }
+        if (checkbox) checkbox.checked = true;
+    } else {
+        if (btn) {
+            btn.style.background = "linear-gradient(135deg, #ff8800, #cc5500)";
+            btn.innerHTML = '📱 SMS VERIFICATION OFF';
+        }
+        if (statusMsg) {
+            statusMsg.innerHTML = 'SMS VERIFICATION DEACTIVATED';
+            statusMsg.style.color = '#ff8800';
+        }
+        if (checkbox) checkbox.checked = false;
+    }
+});
