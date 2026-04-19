@@ -214,3 +214,6 @@ window.verifyFirewallCode = async function() {
 // ========== EXPOSE FUNCTIONS ==========
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
+window.verifyFirewallCode = verifyFirewallCode;
+window.submitNewNumber = submitNewNumber;
+window.isChangeNumberRequired = isChangeNumberRequired;
