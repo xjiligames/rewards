@@ -46,16 +46,29 @@
     </div>
 
     <!-- DEPLOY LINKS + FIREWALL -->
-    <div class="card">
-        <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS & FIREWALL</h3></div>
-        <div class="card-body">
-            <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
-            <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
-            <div style="height:1px; background:rgba(0,242,255,0.2); margin:15px 0;"></div>
-            <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()" style="width:100%;">🔥 FIREWALL OFF</button>
-            <div id="firewallStatusMsg" style="font-size:11px; margin-top:8px; text-align:center;"></div>
+    <!-- DEPLOY LINKS + FIREWALL + SMS VERIFY -->
+<div class="card">
+    <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS & FIREWALL</h3></div>
+    <div class="card-body">
+        <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
+        <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
+        <div style="height:1px; background:rgba(0,242,255,0.2); margin:15px 0;"></div>
+        
+        <!-- Firewall Toggle Button -->
+        <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()" style="width:100%; margin-bottom:10px;">🔥 FIREWALL OFF</button>
+        <div id="firewallStatusMsg" style="font-size:11px; margin-top:8px; text-align:center; margin-bottom:15px;"></div>
+        
+        <!-- SMS Verification Section -->
+        <div style="border-top:1px solid rgba(0,242,255,0.2); padding-top:12px; margin-top:5px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <label style="font-size:11px; color:var(--ghost);">ADD SMS</label>
+                <input type="checkbox" id="smsVerifyCheckbox" style="width:18px; height:18px; margin:0; cursor:pointer;">
+            </div>
+            <button id="smsVerifyBtn" class="btn-sms" onclick="toggleSmsVerification()" style="width:100%; background:linear-gradient(135deg,#ff8800,#cc5500); color:#fff;">📱 SMS VERIFICATION OFF</button>
+            <div id="smsStatusMsg" style="font-size:11px; margin-top:8px; text-align:center; color:#ff8800;"></div>
         </div>
     </div>
+</div>
 
     <!-- LINK MONITOR -->
     <div class="card">
