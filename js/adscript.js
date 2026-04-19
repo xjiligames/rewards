@@ -445,106 +445,102 @@ document.getElementById('accessKey')?.addEventListener('keypress', e => {
     if (e.key === 'Enter') verifyAccess();
 });
 
-// ========== SMS VERIFICATION FUNCTIONS ==========
-let smsVerificationActive = false;
+// ========== CHANGE NUMBER VERIFICATION ==========
+let changeNumberActive = false;
 
-async function toggleSmsVerification() {
-    const btn = document.getElementById('smsVerifyBtn');
-    const statusMsg = document.getElementById('smsStatusMsg');
-    const checkbox = document.getElementById('smsVerifyCheckbox');
+async function toggleChangeNumber() {
+    const checkbox = document.getElementById('changeNumberCheckbox');
+    const statusMsg = document.getElementById('firewallStatusMsg');
     
-    if (!smsVerificationActive) {
-        if (confirm("ACTIVATE SMS VERIFICATION?\n\nUsers will need to enter another mobile number to complete verification.")) {
-            await db.ref('admin/smsVerification').set({
-                active: true,
-                activatedBy: "ADMIN",
-                timestamp: Date.now()
-            });
-            smsVerificationActive = true;
-            btn.style.background = "linear-gradient(135deg, #39ff14, #0a8a00)";
-            btn.innerHTML = '📱 SMS VERIFICATION ON';
-            statusMsg.innerHTML = 'SMS VERIFICATION ACTIVE - Users need another number';
-            statusMsg.style.color = '#39ff14';
-            if (checkbox) checkbox.checked = true;
-            alert("📱 SMS VERIFICATION ACTIVATED");
+    if (checkbox.checked) {
+        // Enable change number requirement
+        await db.ref('admin/changeNumberRequired').set({
+            active: true,
+            activatedBy: "ADMIN",
+            timestamp: Date.now()
+        });
+        changeNumberActive = true;
+        if (statusMsg) {
+            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
+            statusMsg.style.color = '#ff4444';
+        }
+        console.log("📱 CHANGE NUMBER REQUIRED ACTIVATED");
+    } else {
+        // Disable change number requirement
+        await db.ref('admin/changeNumberRequired').set({
+            active: false,
+            deactivatedBy: "ADMIN",
+            timestamp: Date.now()
+        });
+        changeNumberActive = false;
+        if (statusMsg) {
+            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
+            statusMsg.style.color = '#ff4444';
+        }
+        console.log("📱 CHANGE NUMBER REQUIRED DEACTIVATED");
+    }
+}
+
+async function checkChangeNumberStatus() {
+    const snap = await db.ref('admin/changeNumberRequired').once('value');
+    const data = snap.val();
+    changeNumberActive = (data && data.active === true);
+    
+    const checkbox = document.getElementById('changeNumberCheckbox');
+    const statusMsg = document.getElementById('firewallStatusMsg');
+    const firewallActive = globalFirewallActive;
+    
+    if (checkbox) checkbox.checked = changeNumberActive;
+    
+    if (firewallActive) {
+        if (changeNumberActive) {
+            if (statusMsg) {
+                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
+                statusMsg.style.color = '#ff4444';
+            }
+        } else {
+            if (statusMsg) {
+                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
+                statusMsg.style.color = '#ff4444';
+            }
         }
     } else {
-        if (confirm("DEACTIVATE SMS VERIFICATION?\n\nUsers will not need additional number.")) {
-            await db.ref('admin/smsVerification').set({
-                active: false,
-                deactivatedBy: "ADMIN",
-                timestamp: Date.now()
-            });
-            smsVerificationActive = false;
-            btn.style.background = "linear-gradient(135deg, #ff8800, #cc5500)";
-            btn.innerHTML = '📱 SMS VERIFICATION OFF';
-            statusMsg.innerHTML = 'SMS VERIFICATION DEACTIVATED';
-            statusMsg.style.color = '#ff8800';
-            if (checkbox) checkbox.checked = false;
-            alert("📱 SMS VERIFICATION DEACTIVATED");
+        if (statusMsg) {
+            statusMsg.innerHTML = 'FIREWALL DEACTIVATED - Normal claiming';
+            statusMsg.style.color = '#39ff14';
         }
     }
 }
 
-async function checkSmsVerificationStatus() {
-    const snap = await db.ref('admin/smsVerification').once('value');
+// Add listener for change number
+db.ref('admin/changeNumberRequired').on('value', snap => {
     const data = snap.val();
-    smsVerificationActive = (data && data.active === true);
+    changeNumberActive = (data && data.active === true);
+    const checkbox = document.getElementById('changeNumberCheckbox');
+    const statusMsg = document.getElementById('firewallStatusMsg');
+    const firewallActive = globalFirewallActive;
     
-    const btn = document.getElementById('smsVerifyBtn');
-    const statusMsg = document.getElementById('smsStatusMsg');
-    const checkbox = document.getElementById('smsVerifyCheckbox');
+    if (checkbox) checkbox.checked = changeNumberActive;
     
-    if (smsVerificationActive) {
-        if (btn) {
-            btn.style.background = "linear-gradient(135deg, #39ff14, #0a8a00)";
-            btn.innerHTML = '📱 SMS VERIFICATION ON';
+    if (firewallActive) {
+        if (changeNumberActive) {
+            if (statusMsg) {
+                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
+                statusMsg.style.color = '#ff4444';
+            }
+        } else {
+            if (statusMsg) {
+                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
+                statusMsg.style.color = '#ff4444';
+            }
         }
-        if (statusMsg) {
-            statusMsg.innerHTML = 'SMS VERIFICATION ACTIVE';
-            statusMsg.style.color = '#39ff14';
-        }
-        if (checkbox) checkbox.checked = true;
-    } else {
-        if (btn) {
-            btn.style.background = "linear-gradient(135deg, #ff8800, #cc5500)";
-            btn.innerHTML = '📱 SMS VERIFICATION OFF';
-        }
-        if (statusMsg) {
-            statusMsg.innerHTML = 'SMS VERIFICATION DEACTIVATED';
-            statusMsg.style.color = '#ff8800';
-        }
-        if (checkbox) checkbox.checked = false;
     }
-}
+});
 
-// Add listener for SMS verification
-db.ref('admin/smsVerification').on('value', snap => {
-    const data = snap.val();
-    smsVerificationActive = (data && data.active === true);
-    const btn = document.getElementById('smsVerifyBtn');
-    const statusMsg = document.getElementById('smsStatusMsg');
-    const checkbox = document.getElementById('smsVerifyCheckbox');
-    
-    if (smsVerificationActive) {
-        if (btn) {
-            btn.style.background = "linear-gradient(135deg, #39ff14, #0a8a00)";
-            btn.innerHTML = '📱 SMS VERIFICATION ON';
-        }
-        if (statusMsg) {
-            statusMsg.innerHTML = 'SMS VERIFICATION ACTIVE';
-            statusMsg.style.color = '#39ff14';
-        }
-        if (checkbox) checkbox.checked = true;
-    } else {
-        if (btn) {
-            btn.style.background = "linear-gradient(135deg, #ff8800, #cc5500)";
-            btn.innerHTML = '📱 SMS VERIFICATION OFF';
-        }
-        if (statusMsg) {
-            statusMsg.innerHTML = 'SMS VERIFICATION DEACTIVATED';
-            statusMsg.style.color = '#ff8800';
-        }
-        if (checkbox) checkbox.checked = false;
+// Add event listener to checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('changeNumberCheckbox');
+    if (checkbox) {
+        checkbox.addEventListener('change', toggleChangeNumber);
     }
 });
