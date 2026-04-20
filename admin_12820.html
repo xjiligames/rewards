@@ -46,32 +46,33 @@
     </div>
 
     <!-- DEPLOY LINKS + FIREWALL -->
-<div class="card">
-    <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS & FIREWALL</h3></div>
-    <div class="card-body">
-        <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
-        <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
-        <div style="height:1px; background:rgba(0,242,255,0.2); margin:15px 0;"></div>
-        
-        <!-- Firewall Toggle + Checkbox side by side (3/4 and 1/4) -->
-        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
-            <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()" style="flex: 3; padding:12px;">🔥 FIREWALL OFF</button>
-            <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <label style="font-size:11px; color:var(--ghost); white-space:nowrap;">CHANGE #</label>
-                <input type="checkbox" id="changeNumberCheckbox" style="width:20px; height:20px; margin:0; cursor:pointer;">
-            </div>
+    <div class="card">
+        <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS & FIREWALL</h3></div>
+        <div class="card-body">
+            <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
+            <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
+            <div style="height:1px; background:rgba(0,242,255,0.2); margin:15px 0;"></div>
+            
+            <!-- Firewall Toggle Button (full width) -->
+            <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()" style="width:100%; padding:12px;">🔥 FIREWALL OFF</button>
+            
+            <!-- Firewall Status Message -->
+            <div id="firewallStatusMsg" style="font-size:11px; margin-top:8px; text-align:center;"></div>
         </div>
-        
-        <!-- Firewall Status Message -->
-        <div id="firewallStatusMsg" style="font-size:11px; margin-top:5px; text-align:center; color:#ff4444;"></div>
     </div>
-</div>
 
     <!-- LINK MONITOR -->
     <div class="card">
         <div class="card-header"><h3><span>📡</span> LINK MONITOR</h3></div>
         <div class="card-body">
-            <div class="table-wrap"><table><thead><tr><th>ID</th><th>HASH</th><th>STATUS</th><th>USER</th><th></th></tr></thead><tbody id="linkData"></tbody></table></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>HASH</th><th>STATUS</th><th>USER</th><th></th></tr>
+                    </thead>
+                    <tbody id="linkData"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -89,7 +90,14 @@
             <span>▼</span>
         </div>
         <div id="userDropdown" class="dropdown-content">
-            <div class="table-wrap"><table><thead><tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr></thead><tbody id="ghostData"></tbody></table></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody id="ghostData"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -103,7 +111,14 @@
         <div id="banDropdown" class="dropdown-content">
             <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
             <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
-            <div class="table-wrap" style="margin-top:12px;"><table><thead><tr><th>BANNED RECORDS</th><th></th></tr></thead><tbody id="banList"></tbody></tr></div>
+            <div class="table-wrap" style="margin-top:12px;">
+                <table>
+                    <thead>
+                        <tr><th>BANNED RECORDS</th><th></th></tr>
+                    </thead>
+                    <tbody id="banList"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
