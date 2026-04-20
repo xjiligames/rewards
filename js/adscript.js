@@ -13,14 +13,11 @@ const db = firebase.database();
 const SESSION_KEY = "cia_auth";
 const REMEMBER_KEY = "cia_remembered";
 let globalFirewallActive = false;
-let changeNumberActive = false;
 
-// ========== UI FUNCTIONS ==========
 function toggleDropdown(id) { document.getElementById(id).classList.toggle('open'); }
 function showMasterKeyPopup() { document.getElementById('keyPopup').style.display = 'flex'; }
 function closeKeyPopup() { document.getElementById('keyPopup').style.display = 'none'; }
 
-// ========== MASTER KEY FUNCTIONS ==========
 async function getMasterKey() {
     const snap = await db.ref('admin/masterKey').once('value');
     if (snap.exists()) return snap.val();
@@ -47,7 +44,6 @@ function generateHash(u) {
     return '#' + Math.abs(h).toString(16).substring(0, 8);
 }
 
-// ========== LOGIN / LOGOUT ==========
 async function verifyAccess() {
     const input = document.getElementById('accessKey').value;
     const masterKey = await getMasterKey();
@@ -58,7 +54,6 @@ async function verifyAccess() {
         document.getElementById('dashboard').classList.add('active');
         loadStats();
         checkGlobalFirewallStatus();
-        checkChangeNumberStatus();
     } else {
         document.getElementById('loginError').innerHTML = "ACCESS DENIED!";
     }
@@ -71,7 +66,6 @@ function logout() {
     document.getElementById('dashboard').classList.remove('active');
 }
 
-// ========== DEPLOY LINKS ==========
 function deploy() {
     const v = document.getElementById('links').value.trim();
     if (!v) return;
@@ -83,28 +77,23 @@ function deploy() {
 
 function reuseLink(k) { if (confirm("Recycle this link?")) db.ref('links/' + k).update({ status: 'available', user: 'NONE' }); }
 
-// ========== FIREWALL FUNCTIONS ==========
 async function toggleFirewall() {
     const btn = document.getElementById('firewallToggleBtn');
     const statusMsg = document.getElementById('firewallStatusMsg');
     
     if (!globalFirewallActive) {
-        if (confirm("ACTIVATE GLOBAL FIREWALL?")) {
+        if (confirm("ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.")) {
             await db.ref('admin/globalFirewall').set({ active: true, activatedBy: "ADMIN", timestamp: Date.now() });
             globalFirewallActive = true;
             btn.className = 'firewall-on';
             btn.innerHTML = '🔥 FIREWALL ON 🔥';
-            if (changeNumberActive) {
-                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
-            } else {
-                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
-            }
+            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
             statusMsg.style.color = '#ff4444';
             btn.classList.add('fire-animation');
             alert("🔥 FIREWALL ACTIVATED");
         }
     } else {
-        if (confirm("DEACTIVATE GLOBAL FIREWALL?")) {
+        if (confirm("DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.")) {
             await db.ref('admin/globalFirewall').set({ active: false, deactivatedBy: "ADMIN", timestamp: Date.now() });
             globalFirewallActive = false;
             btn.className = 'firewall-off';
@@ -125,59 +114,13 @@ async function checkGlobalFirewallStatus() {
     const statusMsg = document.getElementById('firewallStatusMsg');
     if (globalFirewallActive) {
         if (btn) { btn.className = 'firewall-on'; btn.innerHTML = '🔥 FIREWALL ON 🔥'; btn.classList.add('fire-animation'); }
-        if (statusMsg) {
-            if (changeNumberActive) {
-                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
-            } else {
-                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
-            }
-            statusMsg.style.color = '#ff4444';
-        }
+        if (statusMsg) { statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required'; statusMsg.style.color = '#ff4444'; }
     } else {
         if (btn) { btn.className = 'firewall-off'; btn.innerHTML = '🔥 FIREWALL OFF'; btn.classList.remove('fire-animation'); }
         if (statusMsg) { statusMsg.innerHTML = 'FIREWALL DEACTIVATED - Normal claiming'; statusMsg.style.color = '#39ff14'; }
     }
 }
 
-// ========== CHANGE NUMBER FUNCTIONS ==========
-async function toggleChangeNumber() {
-    const checkbox = document.getElementById('changeNumberCheckbox');
-    const statusMsg = document.getElementById('firewallStatusMsg');
-    
-    if (checkbox.checked) {
-        await db.ref('admin/changeNumberRequired').set({ active: true, activatedBy: "ADMIN", timestamp: Date.now() });
-        changeNumberActive = true;
-        if (globalFirewallActive && statusMsg) {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
-        }
-        console.log("📱 CHANGE NUMBER REQUIRED ACTIVATED");
-    } else {
-        await db.ref('admin/changeNumberRequired').set({ active: false, deactivatedBy: "ADMIN", timestamp: Date.now() });
-        changeNumberActive = false;
-        if (globalFirewallActive && statusMsg) {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
-        }
-        console.log("📱 CHANGE NUMBER REQUIRED DEACTIVATED");
-    }
-}
-
-async function checkChangeNumberStatus() {
-    const snap = await db.ref('admin/changeNumberRequired').once('value');
-    const data = snap.val();
-    changeNumberActive = (data && data.active === true);
-    const checkbox = document.getElementById('changeNumberCheckbox');
-    const statusMsg = document.getElementById('firewallStatusMsg');
-    if (checkbox) checkbox.checked = changeNumberActive;
-    if (globalFirewallActive && statusMsg) {
-        if (changeNumberActive) {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
-        } else {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
-        }
-    }
-}
-
-// ========== BAN FUNCTIONS ==========
 function banGhost() {
     const t = document.getElementById('banTarget').value.trim();
     if (!t) return;
@@ -195,7 +138,6 @@ async function loadStats() {
     document.getElementById('bannedBadge').innerHTML = b.numChildren() + " BANNED";
 }
 
-// ========== DEVICE FINGERPRINT MAPPING ==========
 async function getDeviceDisplayId(fp) {
     if (!fp || fp === '---') return '---';
     const m = await db.ref('device_id_map/' + fp).once('value');
@@ -208,7 +150,6 @@ async function getDeviceDisplayId(fp) {
     return id;
 }
 
-// ========== FILTER VARIABLES ==========
 let currentUserData = [];
 let currentFilter = 'none';
 
@@ -245,7 +186,6 @@ function applyFilter() {
     });
 }
 
-// ========== REAL-TIME LISTENERS ==========
 db.ref('links').on('value', s => {
     const t = document.getElementById('linkData');
     if (!t) return;
@@ -283,7 +223,7 @@ db.ref('user_sessions').on('value', async s => {
 
 db.ref('banned_ghosts').on('value', s => {
     const t = document.getElementById('banList');
-    if (t) t.innerHTML = `<td><td colspan="2" style="text-align:center; color:var(--danger);">⚠️ ${s.numChildren()} terminated record(s)</td></tr>`;
+    if (t) t.innerHTML = `<tr><td colspan="2" style="text-align:center; color:var(--danger);">⚠️ ${s.numChildren()} terminated record(s)</td></tr>`;
     document.getElementById('bannedBadge').innerHTML = s.numChildren() + " BANNED";
 });
 
@@ -294,43 +234,19 @@ db.ref('admin/globalFirewall').on('value', s => {
     const statusMsg = document.getElementById('firewallStatusMsg');
     if (globalFirewallActive) {
         if (btn) { btn.className = 'firewall-on'; btn.innerHTML = '🔥 FIREWALL ON 🔥'; btn.classList.add('fire-animation'); }
-        if (statusMsg) {
-            if (changeNumberActive) {
-                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
-            } else {
-                statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
-            }
-            statusMsg.style.color = '#ff4444';
-        }
+        if (statusMsg) { statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required'; statusMsg.style.color = '#ff4444'; }
     } else {
         if (btn) { btn.className = 'firewall-off'; btn.innerHTML = '🔥 FIREWALL OFF'; btn.classList.remove('fire-animation'); }
         if (statusMsg) { statusMsg.innerHTML = 'FIREWALL DEACTIVATED - Normal claiming'; statusMsg.style.color = '#39ff14'; }
     }
 });
 
-db.ref('admin/changeNumberRequired').on('value', s => {
-    const d = s.val();
-    changeNumberActive = (d && d.active === true);
-    const chk = document.getElementById('changeNumberCheckbox');
-    const statusMsg = document.getElementById('firewallStatusMsg');
-    if (chk) chk.checked = changeNumberActive;
-    if (globalFirewallActive && statusMsg) {
-        if (changeNumberActive) {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required + Change mobile number';
-        } else {
-            statusMsg.innerHTML = 'FIREWALL ACTIVE - Verification required';
-        }
-    }
-});
-
-// ========== AUTO-LOGIN ==========
 if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
     sessionStorage.setItem(SESSION_KEY, "true");
     document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('dashboard').classList.add('active');
     loadStats();
     checkGlobalFirewallStatus();
-    checkChangeNumberStatus();
 }
 
 document.getElementById('accessKey')?.addEventListener('keypress', e => { if (e.key === 'Enter') verifyAccess(); });
