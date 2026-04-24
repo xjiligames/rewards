@@ -49,15 +49,30 @@
     <div class="card">
         <div class="card-header"><h3><span>⚡</span> DEPLOY LINKS & FIREWALL</h3></div>
         <div class="card-body">
+            <!-- Deploy Links Section -->
             <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
             <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
+            
+            <!-- SEPARATOR -->
             <div style="height:1px; background:rgba(0,242,255,0.2); margin:15px 0;"></div>
             
-            <!-- Firewall Toggle Button (full width) -->
+            <!-- Firewall Section -->
             <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()" style="width:100%; padding:12px;">🔥 FIREWALL OFF</button>
-            
-            <!-- Firewall Status Message -->
             <div id="firewallStatusMsg" style="font-size:11px; margin-top:8px; text-align:center;"></div>
+            
+            <!-- SEPARATOR -->
+            <div style="height:1px; background:rgba(0,242,255,0.2); margin:15px 0;"></div>
+            
+            <!-- QR CODE UPLOAD SECTION -->
+            <div>
+                <div style="font-size:12px; color:var(--neon); margin-bottom:10px;">📷 QR CODE UPLOAD</div>
+                <input type="file" id="qrImageInput" accept="image/png, image/jpeg, image/webp" style="margin-bottom:10px;">
+                <button class="btn" onclick="uploadQRCode()" style="background:linear-gradient(135deg,#ff8800,#cc5500);">📤 UPLOAD QR CODE</button>
+                <div id="qrUploadStatus" style="font-size:11px; margin-top:8px; text-align:center;"></div>
+                <div id="currentQRPreview" style="margin-top:10px; text-align:center; display:none;">
+                    <img id="currentQRImg" style="max-width:80px; border-radius:10px; border:1px solid var(--neon);">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -76,18 +91,15 @@
         </div>
     </div>
 
-    <!-- USER LOGS (dropdown) -->
+    <!-- USER LOGS (dropdown) - walang DEV button -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
             <span class="dropdown-title">👻 USER LOGS</span>
             <div style="display: flex; gap: 8px; align-items: center;">
                 <span class="dropdown-badge" id="activeUsersBadge">0 ACTIVE</span>
-                <div class="filter-group" style="display: flex; gap: 5px;">
-                    <button class="filter-btn" id="filterDevBtn" onclick="filterByDev()" style="background:rgba(0,242,255,0.2); border:1px solid var(--neon); padding:2px 8px; border-radius:12px; font-size:9px; cursor:pointer;">📱 DEV</button>
-                    <button class="filter-btn" id="filterLastSeenBtn" onclick="filterByLastSeen()" style="background:rgba(0,242,255,0.2); border:1px solid var(--neon); padding:2px 8px; border-radius:12px; font-size:9px; cursor:pointer;">⏰ LAST SEEN</button>
-                </div>
+                <button class="filter-btn" id="filterLastSeenBtn" onclick="filterByLastSeen()" style="background:rgba(0,242,255,0.2); border:1px solid var(--neon); padding:2px 8px; border-radius:12px; font-size:9px; cursor:pointer;">⏰ LAST SEEN</button>
             </div>
-            <span>▼</span>
+            <span style="font-size:12px;">▼</span>
         </div>
         <div id="userDropdown" class="dropdown-content">
             <div class="table-wrap">
@@ -106,7 +118,7 @@
         <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" style="border-color:var(--danger);">
             <span class="dropdown-title" style="color:var(--danger);">⚠️ BAN PROTOCOL</span>
             <span class="dropdown-badge" id="bannedBadge" style="border-color:var(--danger);">0 BANNED</span>
-            <span>▼</span>
+            <span style="font-size:12px;">▼</span>
         </div>
         <div id="banDropdown" class="dropdown-content">
             <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
