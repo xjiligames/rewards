@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Template Coordinates</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        body { background: #1a1a2a; color: white; font-family: monospace; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; text-align: center; }
+        canvas { border: 2px solid gold; border-radius: 20px; max-width: 100%; height: auto; }
+        .controls { background: #16213e; padding: 15px; border-radius: 10px; margin-top: 20px; }
+        label { display: block; margin: 10px 0; }
+        input { width: 100%; }
+        button { background: gold; color: black; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+        .coords { background: #0f3460; padding: 10px; border-radius: 10px; margin-top: 15px; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>🎯 Template Coordinate Tester</h2>
+    <canvas id="testCanvas" width="500" height="600" style="width:100%; height:auto; border:2px solid gold; border-radius:20px;"></canvas>
+    
+    <div class="controls">
+        <h3>Adjust Prize Amount Position</h3>
+        <label>X Position: <input type="range" id="prizeX" min="0" max="100" value="50"></label>
+        <label>Y Position: <input type="range" id="prizeY" min="0" max="100" value="35"></label>
+        <label>Font Size: <input type="range" id="fontSize" min="2" max="15" value="7"></label>
+        
+        <h3>Adjust QR Code Position</h3>
+        <label>QR X: <input type="range" id="qrX" min="0" max="100" value="50"></label>
+        <label>QR Y: <input type="range" id="qrY" min="0" max="100" value="75"></label>
+        <label>QR Size: <input type="range" id="qrSize" min="10" max="40" value="20"></label>
+        
+        <button onclick="updatePosition()">UPDATE PREVIEW</button>
+        <button onclick="copyCoordinates()">📋 COPY COORDINATES</button>
+    </div>
+    
+    <div class="coords" id="coordDisplay">
+        Coordinates will appear here...
+    </div>
+</div>
+
+<script>
+// I-PALITAN ANG IYONG TEMPLATE URL DITO
+const TEMPLATE_URL = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/images/temp_SA.png";
+
+let currentAmount = 1250;
+let currentQRLink = "https://gcash.com/promo";
+
+async function generateTestImage() {
+    const canvas = document.getElementById('testCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    const prizeX = document.getElementById('prizeX').value / 100;
+    const prizeY = document.getElementById('prizeY').value / 100;
+    const fontSize = document.getElementById('fontSize').value / 100;
+    const qrX = document.getElementById('qrX').value / 100;
+    const qrY = document.getElementById('qrY').value / 100;
+    const qrSizePercent = document.getElementById('qrSize').value / 100;
+    
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = TEMPLATE_URL;
+    
+    img.onload = async function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        // Add Prize Amount
+        const prizeXpos = canvas.width * prizeX;
+        const prizeYpos = canvas.height * prizeY;
+        const fontSz = canvas.width * fontSize;
+        
+        ctx.font = `bold ${fontSz}px 'Orbitron', 'Arial'`;
+        ctx.fillStyle = "#ffd700";
+        ctx.shadowColor = "black";
+        ctx.shadowBlur = 5;
+        ctx.textAlign = "center";
+        ctx.fillText(`₱${currentAmount.toLocaleString()}`, prizeXpos, prizeYpos);
+        
+        // Add QR Code
+        if (typeof QRCode !== 'undefined') {
+            try {
+                const qrCanvas = document.createElement('canvas');
+                const qrSize = canvas.width * qrSizePercent;
+                await QRCode.toCanvas(qrCanvas, currentQRLink, { width: qrSize, margin: 1 });
+                const qrXpos = canvas.width * qrX - (qrSize / 2);
+                const qrYpos = canvas.height * qrY - (qrSize / 2);
+                ctx.drawImage(qrCanvas, qrXpos, qrYpos, qrSize, qrSize);
+            } catch(e) { console.error("QR error:", e); }
+        }
+        
+        ctx.shadowColor = "transparent";
+        
+        // Update coordinates display
+        document.getElementById('coordDisplay').innerHTML = `
+            ✅ <strong>Copy these coordinates to temp.js:</strong><br><br>
+            const PRIZE_POSITION = {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;x: ${prizeX},<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;y: ${prizeY},<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;fontSize: ${fontSize}<br>
+            };<br><br>
+            const QR_POSITION = {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;x: ${qrX},<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;y: ${qrY},<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;width: ${qrSizePercent},<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;height: ${qrSizePercent}<br>
+            };
+        `;
+    };
+    
+    img.onerror = function() {
+        document.getElementById('coordDisplay').innerHTML = '❌ Failed to load template image. Check the URL!';
+    };
+}
+
+function updatePosition() {
+    generateTestImage();
+}
+
+function copyCoordinates() {
+    const text = document.getElementById('coordDisplay').innerText;
+    navigator.clipboard.writeText(text);
+    alert("Coordinates copied to clipboard!");
+}
+
+// Load on page open
+generateTestImage();
+</script>
+</body>
+</html>
