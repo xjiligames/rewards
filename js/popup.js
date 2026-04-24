@@ -185,3 +185,54 @@ function hidePrizePopup() {
 document.addEventListener('DOMContentLoaded', function() { 
     hidePendingStatus();
 });
+
+
+// ========== PRIZE POPUP FUNCTIONS ==========
+async function showPrizePopup() {
+    console.log("showPrizePopup called"); // Debug
+    const amount = claimState.currentAmount;
+    
+    if (!amount || amount === 0) {
+        alert("No prize amount available! Please complete the game first.");
+        return;
+    }
+    
+    const popup = document.getElementById('prizePopup');
+    if (!popup) {
+        console.error("Prize popup element not found!");
+        alert("Prize popup not available. Please refresh.");
+        return;
+    }
+    
+    // Show popup
+    popup.style.display = 'flex';
+    
+    // Show loading message
+    const container = document.getElementById('prizeImageContainer');
+    if (container) {
+        container.innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">Loading your prize image...</div>';
+    }
+    
+    try {
+        // Call temp.js function
+        if (typeof generateTemplateImage === 'function') {
+            await generateTemplateImage(amount, 'prizeDisplayCanvas');
+            console.log("Image generated successfully");
+        } else {
+            console.error("generateTemplateImage not found. Make sure temp.js is loaded.");
+            if (container) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Template generator not loaded. Please refresh.</div>';
+            }
+        }
+    } catch (error) {
+        console.error("Image generation error:", error);
+        if (container) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Failed to load prize image. Please try again.</div>';
+        }
+    }
+}
+
+function hidePrizePopup() {
+    const popup = document.getElementById('prizePopup');
+    if (popup) popup.style.display = 'none';
+}
