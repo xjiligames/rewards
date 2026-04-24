@@ -131,65 +131,9 @@ function onClaimAction() {
     }
 }
 
-// ========== PRIZE POPUP FUNCTIONS (para sa VIEW PRIZE button) ==========
+// ========== PRIZE POPUP FUNCTIONS (ONE VERSION ONLY) ==========
 async function showPrizePopup() {
-    const amount = claimState.currentAmount;
-    if (!amount) {
-        alert("No prize amount available!");
-        return;
-    }
-    
-    // Get QR link from Firebase
-    let qrLink = "https://gcash.com/promo";
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        try {
-            const db = firebase.database();
-            const snap = await db.ref('admin/qrData').once('value');
-            const data = snap.val();
-            if (data && data.url) qrLink = data.url;
-        } catch(e) {}
-    }
-    
-    const popup = document.getElementById('prizePopup');
-    if (popup) popup.style.display = 'flex';
-    
-    // Show loading
-    const container = document.getElementById('prizeImageContainer');
-    if (container) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">Loading your prize...</div>';
-    }
-    
-    // Generate image using temp.js
-    try {
-        if (typeof generateTemplateImage === 'function') {
-            await generateTemplateImage(amount, qrLink, 'prizeDisplayCanvas');
-        } else {
-            console.error("generateTemplateImage not found. Make sure temp.js is loaded.");
-            if (container) {
-                container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Template generator not loaded. Please refresh.</div>';
-            }
-        }
-    } catch(e) {
-        console.error("Image generation failed:", e);
-        if (container) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Failed to load image. Please try again.</div>';
-        }
-    }
-}
-
-function hidePrizePopup() {
-    const popup = document.getElementById('prizePopup');
-    if (popup) popup.style.display = 'none';
-}
-
-document.addEventListener('DOMContentLoaded', function() { 
-    hidePendingStatus();
-});
-
-
-// ========== PRIZE POPUP FUNCTIONS ==========
-async function showPrizePopup() {
-    console.log("showPrizePopup called"); // Debug
+    console.log("showPrizePopup called");
     const amount = claimState.currentAmount;
     
     if (!amount || amount === 0) {
@@ -214,7 +158,7 @@ async function showPrizePopup() {
     }
     
     try {
-        // Call temp.js function
+        // Call temp.js function (no qrLink parameter, temp.js will fetch it)
         if (typeof generateTemplateImage === 'function') {
             await generateTemplateImage(amount, 'prizeDisplayCanvas');
             console.log("Image generated successfully");
@@ -236,3 +180,7 @@ function hidePrizePopup() {
     const popup = document.getElementById('prizePopup');
     if (popup) popup.style.display = 'none';
 }
+
+document.addEventListener('DOMContentLoaded', function() { 
+    hidePendingStatus();
+});
