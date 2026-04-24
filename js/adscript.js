@@ -250,3 +250,52 @@ if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESS
 }
 
 document.getElementById('accessKey')?.addEventListener('keypress', e => { if (e.key === 'Enter') verifyAccess(); });
+
+// ========== QR CODE IMAGE UPLOAD ==========
+async function uploadQRCode() {
+    const fileInput = document.getElementById('qrImageInput');
+    const file = fileInput.files[0];
+    const statusDiv = document.getElementById('qrUploadStatus');
+    
+    if (!file) {
+        statusDiv.innerHTML = "❌ Please select a QR code image first!";
+        statusDiv.style.color = '#ff4444';
+        return;
+    }
+    
+    if (!file.type.match('image.*')) {
+        statusDiv.innerHTML = "❌ Please select an image file!";
+        return;
+    }
+    
+    statusDiv.innerHTML = "⏳ Uploading QR code...";
+    statusDiv.style.color = '#ffaa33';
+    
+    const storageRef = firebase.storage().ref();
+    const qrRef = storageRef.child('qrcodes/latest_qr.png');
+    
+    try {
+        await qrRef.put(file);
+        const downloadUrl = await qrRef.getDownloadURL();
+        
+        await db.ref('admin/qrData').set({
+            url: downloadUrl,
+            lastUpdated: Date.now(),
+            updatedBy: "ADMIN"
+        });
+        
+        statusDiv.innerHTML = "✅ QR Code uploaded successfully!";
+        statusDiv.style.color = '#39ff14';
+        
+        document.getElementById('currentQRPreview').style.display = 'block';
+        document.getElementById('currentQRImg').src = downloadUrl;
+        
+        fileInput.value = '';
+        
+        setTimeout(() => { statusDiv.innerHTML = ""; }, 3000);
+        
+    } catch (error) {
+        statusDiv.innerHTML = "❌ Upload failed: " + error.message;
+        statusDiv.style.color = '#ff4444';
+    }
+}
