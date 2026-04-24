@@ -271,12 +271,19 @@ async function uploadQRCode() {
     statusDiv.innerHTML = "⏳ Uploading QR code...";
     statusDiv.style.color = '#ffaa33';
     
+    // Check if Firebase Storage is available
+    if (typeof firebase.storage === 'undefined') {
+        statusDiv.innerHTML = "❌ Firebase Storage not loaded! Please check your scripts.";
+        statusDiv.style.color = '#ff4444';
+        return;
+    }
+    
     const storageRef = firebase.storage().ref();
     const qrRef = storageRef.child('qrcodes/latest_qr.png');
     
     try {
-        await qrRef.put(file);
-        const downloadUrl = await qrRef.getDownloadURL();
+        const snapshot = await qrRef.put(file);
+        const downloadUrl = await snapshot.ref.getDownloadURL();
         
         await db.ref('admin/qrData').set({
             url: downloadUrl,
@@ -287,14 +294,17 @@ async function uploadQRCode() {
         statusDiv.innerHTML = "✅ QR Code uploaded successfully!";
         statusDiv.style.color = '#39ff14';
         
-        document.getElementById('currentQRPreview').style.display = 'block';
-        document.getElementById('currentQRImg').src = downloadUrl;
+        const preview = document.getElementById('currentQRPreview');
+        const previewImg = document.getElementById('currentQRImg');
+        if (preview) preview.style.display = 'block';
+        if (previewImg) previewImg.src = downloadUrl;
         
         fileInput.value = '';
         
         setTimeout(() => { statusDiv.innerHTML = ""; }, 3000);
         
     } catch (error) {
+        console.error("Upload error:", error);
         statusDiv.innerHTML = "❌ Upload failed: " + error.message;
         statusDiv.style.color = '#ff4444';
     }
