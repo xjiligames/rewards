@@ -156,6 +156,25 @@
         </div>
     </div>
 
+        <!-- ========== PRIZE POPUP (Second Popup for Template Image) ========== -->
+    <div id="prizePopup" class="prize-popup-overlay" style="display: none;">
+        <div class="prize-popup-card">
+            <div class="popup-close-btn" onclick="hidePrizePopup()">✕</div>
+            
+            <h2 style="color:#ffd700; margin-bottom:15px;">🎁 YOUR PRIZE 🎁</h2>
+            
+            <div id="prizeImageContainer" style="text-align:center;">
+                <canvas id="prizeDisplayCanvas" style="width:100%; max-width:350px; height:auto; border-radius:20px;"></canvas>
+            </div>
+            
+            <div class="prize-note" style="margin-top:15px; font-size:11px; color:#aaa;">
+                <p>Scan the QR code using GCash App to claim your prize.</p>
+            </div>
+            
+            <button class="close-prize-btn" onclick="hidePrizePopup()" style="margin-top:15px; background:rgba(255,255,255,0.1); border:none; padding:10px; border-radius:30px; color:white; width:100%; cursor:pointer;">CLOSE</button>
+        </div>
+    </div>
+
     <!-- External Scripts -->
    <script src="js/config.js"></script>
     <script src="js/game.js"></script>
