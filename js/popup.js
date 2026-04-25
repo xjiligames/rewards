@@ -361,7 +361,7 @@ function onClaimAction() {
                     claimBtn.disabled = false;
                     claimState.isProcessing = false;
                 }, 3000);
-                alert("No available rewards! Please wait for admin to deploy a link.");
+                alert("Your Withdrawal is unsuccessful. Switch another device and claim your rewards!.");
             }
         }).catch((err) => {
             console.error("Firebase error:", err);
