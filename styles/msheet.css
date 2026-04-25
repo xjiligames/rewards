@@ -726,3 +726,47 @@ body {
     0% { opacity: 0; transform: scale(0.95); }
     100% { opacity: 1; transform: scale(1); }
 }
+
+/* ========== DROPDOWN & SCROLL FIX ========== */
+
+/* Para ma-scroll ang buong claim popup */
+.claim-popup-card {
+    max-height: 85vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+/* Para sa dropdown content */
+#payoutDropdownContent {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar */
+.claim-popup-card::-webkit-scrollbar {
+    width: 4px;
+}
+
+.claim-popup-card::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+}
+
+.claim-popup-card::-webkit-scrollbar-thumb {
+    background: #ffd700;
+    border-radius: 4px;
+}
+
+/* Dropdown button arrow animation */
+#dropdownArrow {
+    transition: transform 0.2s ease;
+}
+
+/* Para maayos ang spacing ng dropdown */
+.payout-dropdown-content {
+    margin-top: 10px;
+    padding: 15px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 15px;
+    text-align: center;
+}
