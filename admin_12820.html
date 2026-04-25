@@ -7,7 +7,7 @@
     
     <!-- PWA for Admin -->
     <link rel="manifest" href="admin_manifest.json">
-    <meta name="theme-color" content="#00f2ff">
+    <meta name="theme-color" content="#0a0f1a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CIA Admin">
@@ -39,38 +39,13 @@
 <!-- ========== MAIN DASHBOARD ========== -->
 <div id="dashboard" class="dashboard">
     
-    <!-- Header -->
+    <!-- Header - Icon only -->
     <div class="cia-header">
         <div class="header-left">
             <h1><span>🔻</span> C.I.A. COMMAND CENTER <span>🔻</span></h1>
             <p>CLASSIFIED // EYES ONLY // LEVEL 5 CLEARANCE</p>
         </div>
-        <button class="logout-btn" onclick="logout()">⛔ TERMINATE SESSION</button>
-    </div>
-
-    <!-- Stats Row -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon">📡</div>
-            <div class="stat-info">
-                <span class="stat-value" id="statLinks">0</span>
-                <span class="stat-label">Active Links</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">👻</div>
-            <div class="stat-info">
-                <span class="stat-value" id="statUsers">0</span>
-                <span class="stat-label">Active Users</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">⚠️</div>
-            <div class="stat-info">
-                <span class="stat-value" id="statBanned">0</span>
-                <span class="stat-label">Banned</span>
-            </div>
-        </div>
+        <button class="logout-icon" onclick="logout()" title="Terminate Session">⛔</button>
     </div>
 
     <!-- DEPLOY LINKS & FIREWALL -->
@@ -136,7 +111,7 @@
                         <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
                     </thead>
                     <tbody id="ghostData"></tbody>
-                </table>
+                </tr>
             </div>
         </div>
     </div>
@@ -158,7 +133,7 @@
                 <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
             </div>
             <div class="table-wrap" style="margin-top: 12px;">
-                <table>
+                </table>
                     <thead><tr><th>BANNED RECORDS</th><th></th></tr></thead>
                     <tbody id="banList"></tbody>
                 </table>
