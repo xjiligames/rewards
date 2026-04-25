@@ -256,7 +256,6 @@ function updateFireAnimation() {
     const body = document.body;
     if (globalFirewallActive) {
         body.classList.add('firewall-active');
-        // Optional: Add floating fire particles
         addFireParticles();
     } else {
         body.classList.remove('firewall-active');
@@ -279,7 +278,7 @@ function addFireParticles() {
         particle.style.animationDelay = Math.random() * 2 + 's';
         document.body.appendChild(particle);
         setTimeout(() => particle.remove(), 4000);
-    }, 200);
+    }, 150);
 }
 
 function removeFireParticles() {
@@ -291,7 +290,4 @@ function removeFireParticles() {
     particles.forEach(p => p.remove());
 }
 
-// Call updateFireAnimation whenever firewall status changes
-// Add this to your existing firewall listeners
-
-
+// Call updateFireAnimation in toggleFirewall and listeners
