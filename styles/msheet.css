@@ -333,7 +333,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Prize amount with neon green underline */
 .prize-amount-wrapper {
     margin: 15px 0 5px;
     position: relative;
@@ -397,7 +396,6 @@ body {
     font-weight: 500;
 }
 
-/* NEON BLUE BUTTON */
 .claim-action-btn {
     background: linear-gradient(135deg, #0066ff, #0044cc);
     border: none;
@@ -437,7 +435,6 @@ body {
     100% { opacity: 1; transform: scale(1); }
 }
 
-/* Adjust title font size para hindi mag-next line */
 .congrats-title {
     font-size: 22px !important;
     white-space: nowrap;
@@ -450,7 +447,7 @@ body {
     }
 }
 
-/* ========== PENDING STATUS IN MAIN GAME ========== */
+/* ========== PENDING STATUS ========== */
 .pending-status-text {
     color: #ff4444;
     font-size: 14px;
@@ -480,7 +477,6 @@ body {
     100% { opacity: 1; text-shadow: 0 0 0 #ff4444; }
 }
 
-/* ========== PENDING STATUS AREA ========== */
 #pendingStatusArea {
     background: rgba(0,0,0,0.5);
     border-radius: 16px;
@@ -489,137 +485,7 @@ body {
     border: 1px solid rgba(255,68,68,0.3);
 }
 
-/* ========== FIREWALL CALL ANIMATION ========== */
-.firewall-popup-content {
-    transition: all 0.3s ease;
-}
-
-.call-animation {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    margin: 20px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ringing-wave {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border: 3px solid #ff4444;
-    border-radius: 50%;
-    opacity: 0;
-    animation: waveRing 1.5s infinite;
-}
-
-.ringing-wave.delay-1 {
-    animation-delay: 0.5s;
-}
-
-.ringing-wave.delay-2 {
-    animation-delay: 1s;
-}
-
-@keyframes waveRing {
-    0% {
-        transform: scale(0.8);
-        opacity: 0.8;
-        border-color: #ff4444;
-    }
-    100% {
-        transform: scale(1.5);
-        opacity: 0;
-        border-color: #ff8888;
-    }
-}
-
-.phone-icon {
-    font-size: 48px;
-    z-index: 10;
-    background: rgba(0,0,0,0.5);
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.phone-icon.vibrating {
-    animation: vibrate 0.3s infinite;
-}
-
-@keyframes vibrate {
-    0% { transform: translate(0); }
-    25% { transform: translate(-2px, 2px); }
-    50% { transform: translate(2px, -2px); }
-    75% { transform: translate(-2px, -2px); }
-    100% { transform: translate(0); }
-}
-
-.call-timer {
-    font-size: 14px;
-    color: #ffaa33;
-    margin: 10px 0;
-    font-family: monospace;
-}
-
-.cancel-call-btn, .resend-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid #ffaa33;
-    color: #ffaa33;
-    padding: 8px 16px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 12px;
-    margin-top: 10px;
-    transition: 0.2s;
-}
-
-.cancel-call-btn:hover, .resend-btn:hover {
-    background: rgba(255,170,51,0.2);
-}
-
-.firewall-success-icon {
-    font-size: 60px;
-    width: 80px;
-    height: 80px;
-    background: rgba(57,255,20,0.2);
-    border: 3px solid #39ff14;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-    animation: successPulse 0.5s ease;
-}
-
-@keyframes successPulse {
-    0% { transform: scale(0.5); opacity: 0; }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-.checkmark {
-    font-size: 40px;
-    color: #39ff14;
-}
-
-.resend-section {
-    margin: 10px 0;
-}
-
-.demo-code-note {
-    font-size: 11px;
-    color: #666;
-    margin-top: 10px;
-    padding: 5px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 8px;
-}
-
+/* ========== FIREWALL POPUP ========== */
 .firewall-popup-overlay {
     position: fixed;
     top: 0;
@@ -646,6 +512,7 @@ body {
     border: 1px solid rgba(255, 68, 68, 0.5);
     box-shadow: 0 25px 50px rgba(0,0,0,0.5);
     animation: fadeInScale 0.4s ease;
+    position: relative;
 }
 
 .firewall-warning-icon {
@@ -712,7 +579,6 @@ body {
     border-radius: 8px;
 }
 
-/* Popup close button */
 .popup-close-btn {
     position: absolute;
     top: 15px;
@@ -735,8 +601,4 @@ body {
 .popup-close-btn:hover {
     background: rgba(255,255,255,0.3);
     transform: scale(1.1);
-}
-
-.claim-popup-card, .firewall-popup-card {
-    position: relative;
 }
