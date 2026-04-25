@@ -18,7 +18,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/ads.css">
@@ -39,13 +39,12 @@
 <!-- ========== MAIN DASHBOARD ========== -->
 <div id="dashboard" class="dashboard">
     
-    <!-- Header - Icon only -->
+    <!-- Header -->
     <div class="cia-header">
         <div class="header-left">
             <h1><span>🔻</span> C.I.A. COMMAND CENTER <span>🔻</span></h1>
             <p>CLASSIFIED // EYES ONLY // LEVEL 5 CLEARANCE</p>
         </div>
-        <button class="logout-icon" onclick="logout()" title="Terminate Session">⛔</button>
     </div>
 
     <!-- DEPLOY LINKS & FIREWALL -->
@@ -89,7 +88,7 @@
         </div>
     </div>
 
-    <!-- USER LOGS (dropdown) -->
+    <!-- USER LOGS (dropdown) - No BANNED RECORDS label -->
     <div class="dropdown-section">
         <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
             <div class="dropdown-title">
@@ -111,7 +110,7 @@
                         <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
                     </thead>
                     <tbody id="ghostData"></tbody>
-                </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -134,7 +133,6 @@
             </div>
             <div class="table-wrap" style="margin-top: 12px;">
                 </table>
-                    <thead><tr><th>BANNED RECORDS</th><th></th></tr></thead>
                     <tbody id="banList"></tbody>
                 </table>
             </div>
