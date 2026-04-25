@@ -557,3 +557,186 @@ td {
         padding: 2px 5px;
     }
 }
+
+/* ========== ADDITIONAL REMASTERED STYLES ========== */
+
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: rgba(10, 20, 35, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 242, 255, 0.2);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: 0.2s;
+}
+
+.stat-card:hover {
+    border-color: var(--neon);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    font-size: 28px;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ghost);
+}
+
+.stat-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Form Group */
+.form-group {
+    margin-bottom: 5px;
+}
+
+.form-label {
+    font-size: 11px;
+    color: var(--neon);
+    margin-bottom: 8px;
+    display: block;
+    letter-spacing: 1px;
+}
+
+/* Divider */
+.divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon), transparent);
+    margin: 15px 0;
+}
+
+/* Status Message */
+.status-msg {
+    font-size: 11px;
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* Dropdown Controls */
+.dropdown-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    transition: transform 0.2s;
+}
+
+.filter-group {
+    display: flex;
+    gap: 5px;
+}
+
+.filter-btn {
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid var(--neon);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    cursor: pointer;
+    color: var(--neon);
+    transition: 0.2s;
+}
+
+.filter-btn:hover {
+    background: var(--neon);
+    color: #000;
+}
+
+.dropdown-badge.danger {
+    background: rgba(255, 49, 49, 0.15);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* Key Popup */
+.key-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.96);
+    backdrop-filter: blur(12px);
+    z-index: 20000;
+    align-items: center;
+    justify-content: center;
+}
+
+.key-popup-card {
+    background: #0a0f1a;
+    border: 2px solid var(--gold);
+    border-radius: 24px;
+    padding: 30px;
+    width: 90%;
+    max-width: 350px;
+    text-align: center;
+}
+
+.key-popup-card h3 {
+    color: var(--gold);
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.key-popup-card input {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.key-popup-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.key-popup-buttons .btn {
+    flex: 1;
+}
+
+.btn-cancel {
+    background: #333;
+    color: #fff;
+}
+
+.btn-cancel:hover {
+    background: #555;
+}
+
+/* Header */
+.header-left {
+    flex: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card, .card {
+    animation: fadeIn 0.3s ease;
+}
