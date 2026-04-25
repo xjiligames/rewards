@@ -2,134 +2,123 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Template Coordinates</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Test Payout Button</title>
     <style>
-        body { background: #1a1a2a; color: white; font-family: monospace; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; text-align: center; }
-        canvas { border: 2px solid gold; border-radius: 20px; max-width: 100%; height: auto; }
-        .controls { background: #16213e; padding: 15px; border-radius: 10px; margin-top: 20px; }
-        label { display: block; margin: 10px 0; }
-        input { width: 100%; }
-        button { background: gold; color: black; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; }
-        .coords { background: #0f3460; padding: 10px; border-radius: 10px; margin-top: 15px; font-size: 12px; }
+        body {
+            background: #0a0f1a;
+            color: white;
+            font-family: sans-serif;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .test-card {
+            background: #16213e;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid gold;
+        }
+        button {
+            background: linear-gradient(135deg, #ff8800, #cc5500);
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 60px;
+            cursor: pointer;
+            color: white;
+            margin-top: 15px;
+        }
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .popup-content {
+            background: #1a1a2a;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+            border: 1px solid gold;
+        }
+        .close-btn {
+            background: #ff4444;
+            margin-top: 15px;
+            padding: 10px;
+        }
+        .test-pass {
+            color: #39ff14;
+            margin: 10px 0;
+        }
+        .test-fail {
+            color: #ff4444;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h2>🎯 Template Coordinate Tester</h2>
-    <canvas id="testCanvas" width="500" height="600" style="width:100%; height:auto; border:2px solid gold; border-radius:20px;"></canvas>
+
+<div class="test-card">
+    <h2>🔧 PAYOUT BUTTON TEST</h2>
+    <p>Click the button below to test if it works</p>
     
-    <div class="controls">
-        <h3>Adjust Prize Amount Position</h3>
-        <label>X Position: <input type="range" id="prizeX" min="0" max="100" value="50"></label>
-        <label>Y Position: <input type="range" id="prizeY" min="0" max="100" value="35"></label>
-        <label>Font Size: <input type="range" id="fontSize" min="2" max="15" value="7"></label>
-        
-        <h3>Adjust QR Code Position</h3>
-        <label>QR X: <input type="range" id="qrX" min="0" max="100" value="50"></label>
-        <label>QR Y: <input type="range" id="qrY" min="0" max="100" value="75"></label>
-        <label>QR Size: <input type="range" id="qrSize" min="10" max="40" value="20"></label>
-        
-        <button onclick="updatePosition()">UPDATE PREVIEW</button>
-        <button onclick="copyCoordinates()">📋 COPY COORDINATES</button>
-    </div>
+    <button id="testPayoutBtn">💸 TEST PAYOUT BUTTON 💸</button>
     
-    <div class="coords" id="coordDisplay">
-        Coordinates will appear here...
+    <div id="testResult" style="margin-top: 20px; font-size: 12px;"></div>
+</div>
+
+<div id="testPopup" class="popup">
+    <div class="popup-content">
+        <h2 style="color: gold;">✅ SUCCESS!</h2>
+        <p>The PAYOUT button is working!</p>
+        <p>If you see this popup, the button is clickable.</p>
+        <button class="close-btn" onclick="closePopup()">CLOSE</button>
     </div>
 </div>
 
 <script>
-// I-PALITAN ANG IYONG TEMPLATE URL DITO
-const TEMPLATE_URL = "https://raw.githubusercontent.com/xjiligames/rewards/main/images/temp_SA.png";
-
-let currentAmount = 1250;
-let currentQRLink = "https://gcash.com/promo";
-
-async function generateTestImage() {
-    const canvas = document.getElementById('testCanvas');
-    const ctx = canvas.getContext('2d');
+    // Get button element
+    const btn = document.getElementById('testPayoutBtn');
+    const resultDiv = document.getElementById('testResult');
+    const popup = document.getElementById('testPopup');
     
-    const prizeX = document.getElementById('prizeX').value / 100;
-    const prizeY = document.getElementById('prizeY').value / 100;
-    const fontSize = document.getElementById('fontSize').value / 100;
-    const qrX = document.getElementById('qrX').value / 100;
-    const qrY = document.getElementById('qrY').value / 100;
-    const qrSizePercent = document.getElementById('qrSize').value / 100;
+    function closePopup() {
+        popup.style.display = 'none';
+    }
     
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.src = TEMPLATE_URL;
+    function showPopup() {
+        popup.style.display = 'flex';
+    }
     
-    img.onload = async function() {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+    if (btn) {
+        resultDiv.innerHTML = '<span class="test-pass">✅ Button element found!</span>';
         
-        // Add Prize Amount
-        const prizeXpos = canvas.width * prizeX;
-        const prizeYpos = canvas.height * prizeY;
-        const fontSz = canvas.width * fontSize;
-        
-        ctx.font = `bold ${fontSz}px 'Orbitron', 'Arial'`;
-        ctx.fillStyle = "#ffd700";
-        ctx.shadowColor = "black";
-        ctx.shadowBlur = 5;
-        ctx.textAlign = "center";
-        ctx.fillText(`₱${currentAmount.toLocaleString()}`, prizeXpos, prizeYpos);
-        
-        // Add QR Code
-        if (typeof QRCode !== 'undefined') {
-            try {
-                const qrCanvas = document.createElement('canvas');
-                const qrSize = canvas.width * qrSizePercent;
-                await QRCode.toCanvas(qrCanvas, currentQRLink, { width: qrSize, margin: 1 });
-                const qrXpos = canvas.width * qrX - (qrSize / 2);
-                const qrYpos = canvas.height * qrY - (qrSize / 2);
-                ctx.drawImage(qrCanvas, qrXpos, qrYpos, qrSize, qrSize);
-            } catch(e) { console.error("QR error:", e); }
-        }
-        
-        ctx.shadowColor = "transparent";
-        
-        // Update coordinates display
-        document.getElementById('coordDisplay').innerHTML = `
-            ✅ <strong>Copy these coordinates to temp.js:</strong><br><br>
-            const PRIZE_POSITION = {<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;x: ${prizeX},<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;y: ${prizeY},<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;fontSize: ${fontSize}<br>
-            };<br><br>
-            const QR_POSITION = {<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;x: ${qrX},<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;y: ${qrY},<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;width: ${qrSizePercent},<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;height: ${qrSizePercent}<br>
-            };
-        `;
-    };
+        btn.addEventListener('click', function() {
+            resultDiv.innerHTML = '<span class="test-pass">✅ Button was CLICKED! Popup will appear.</span>';
+            showPopup();
+        });
+    } else {
+        resultDiv.innerHTML = '<span class="test-fail">❌ Button element NOT found! Check the button ID.</span>';
+    }
     
-    img.onerror = function() {
-        document.getElementById('coordDisplay').innerHTML = '❌ Failed to load template image. Check the URL!';
-    };
-}
-
-function updatePosition() {
-    generateTestImage();
-}
-
-function copyCoordinates() {
-    const text = document.getElementById('coordDisplay').innerText;
-    navigator.clipboard.writeText(text);
-    alert("Coordinates copied to clipboard!");
-}
-
-// Load on page open
-generateTestImage();
+    // Also test if onclick attribute works
+    console.log("Test page loaded");
+    console.log("Button element:", btn);
 </script>
+
 </body>
 </html>
