@@ -291,5 +291,5 @@ function updateBackgroundTheme() {
     }
 }
 
-// Call this in toggleFirewall and in the real-time listener
-// Add updateBackgroundTheme() after changing globalFirewallActive
+// Call this after toggling firewall
+// Add updateBackgroundTheme() in toggleFirewall and real-time listener
