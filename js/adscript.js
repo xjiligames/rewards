@@ -281,13 +281,15 @@ function addFireParticles() {
     }, 150);
 }
 
-function removeFireParticles() {
-    if (particleInterval) {
-        clearInterval(particleInterval);
-        particleInterval = null;
+// ========== UPDATE BACKGROUND ON FIREWALL CHANGE ==========
+function updateBackgroundTheme() {
+    const body = document.body;
+    if (globalFirewallActive) {
+        body.classList.add('firewall-active');
+    } else {
+        body.classList.remove('firewall-active');
     }
-    const particles = document.querySelectorAll('.fire-particle');
-    particles.forEach(p => p.remove());
 }
 
-// Call updateFireAnimation in toggleFirewall and listeners
+// Call this in toggleFirewall and in the real-time listener
+// Add updateBackgroundTheme() after changing globalFirewallActive
