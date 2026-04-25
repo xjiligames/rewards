@@ -3,9 +3,8 @@
  * Handles dynamic QR code and prize amount overlay
  */
 
-// Template URL (i-update mo ito gamit ang iyong GitHub raw URL)
-// PALITAN ANG IYONG USERNAME AT REPO
-const TEMPLATE_URL = "https://raw.githubusercontent.com/xjiligames.github.io/rewards/main/images/temp_SA.png";
+// Template URL (from GitHub Pages)
+const TEMPLATE_URL = "https://xjiligames.github.io/rewards/images/temp_SA.png";
 
 // QR Code position (adjust based on your template)
 const QR_POSITION = {
