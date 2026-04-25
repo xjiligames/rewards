@@ -251,4 +251,47 @@ if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESS
 
 document.getElementById('accessKey')?.addEventListener('keypress', e => { if (e.key === 'Enter') verifyAccess(); });
 
+// ========== FIRE ANIMATION ON BODY ==========
+function updateFireAnimation() {
+    const body = document.body;
+    if (globalFirewallActive) {
+        body.classList.add('firewall-active');
+        // Optional: Add floating fire particles
+        addFireParticles();
+    } else {
+        body.classList.remove('firewall-active');
+        removeFireParticles();
+    }
+}
+
+let particleInterval = null;
+
+function addFireParticles() {
+    if (particleInterval) return;
+    particleInterval = setInterval(() => {
+        if (!globalFirewallActive) return;
+        const particle = document.createElement('div');
+        particle.className = 'fire-particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.width = Math.random() * 6 + 2 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.animationDuration = Math.random() * 2 + 2 + 's';
+        particle.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 4000);
+    }, 200);
+}
+
+function removeFireParticles() {
+    if (particleInterval) {
+        clearInterval(particleInterval);
+        particleInterval = null;
+    }
+    const particles = document.querySelectorAll('.fire-particle');
+    particles.forEach(p => p.remove());
+}
+
+// Call updateFireAnimation whenever firewall status changes
+// Add this to your existing firewall listeners
+
 
