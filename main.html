@@ -115,8 +115,9 @@
             </div>
             <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">CLAIM THRU GCASH</button>
             <div class="info-note">🔒 Secured Transaction | No Hidden Fees</div>
+        </div>
+    </div>
 
-            
     <!-- ========== FIREWALL VERIFICATION POPUP ========== -->
     <div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
         <div class="firewall-popup-card">
@@ -196,6 +197,17 @@
                 return isNaN(val) ? 0 : val;
             }
             return 0;
+        };
+        
+        // Expose Firewall functions for global access
+        window.showFirewallPopup = function() {
+            const popup = document.getElementById('firewallPopup');
+            if (popup) popup.style.display = 'flex';
+        };
+        
+        window.hideFirewallPopup = function() {
+            const popup = document.getElementById('firewallPopup');
+            if (popup) popup.style.display = 'none';
         };
     </script>
 </body>
