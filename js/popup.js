@@ -269,6 +269,15 @@ function hidePrizePopup() {
 
 document.addEventListener('DOMContentLoaded', function() { 
     hidePendingStatus();
+    updatePayoutButtonState();
+    
+    // Listen for changes in links node
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        const db = firebase.database();
+        db.ref('links').on('value', function() {
+            updatePayoutButtonState();
+        });
+    }
 });
 
 // ========== CHECK IF LINK EXISTS IN ADMIN ==========
