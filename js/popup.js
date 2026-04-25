@@ -26,14 +26,19 @@ const PRIZE_POSITION = {
 
 // ========== GET LATEST PAYOUT LINK FROM FIREBASE ==========
 async function getLatestPayoutLink() {
-    const db = firebase.database();
-    const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-    if (snapshot.exists()) {
-        const key = Object.keys(snapshot.val())[0];
-        const linkData = snapshot.val()[key];
-        return linkData.url;
+    if (typeof firebase === 'undefined' || !firebase.database) return null;
+    try {
+        const db = firebase.database();
+        const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        if (snapshot.exists()) {
+            const key = Object.keys(snapshot.val())[0];
+            const linkData = snapshot.val()[key];
+            return linkData.url || null;
+        }
+        return null;
+    } catch (error) {
+        return null;
     }
-    return null;
 }
 
 // ========== GENERATE TEMPLATE IMAGE ==========
@@ -96,6 +101,57 @@ async function generateTemplateImage(amount, canvasId) {
             reject(new Error("Template load failed"));
         };
     });
+}
+
+// ========== DROPDOWN QR CODE FUNCTIONS ==========
+async function togglePayoutDropdown() {
+    const content = document.getElementById('payoutDropdownContent');
+    const arrow = document.getElementById('dropdownArrow');
+    
+    if (!content) return;
+    
+    if (content.style.display === 'none' || content.style.display === '') {
+        content.style.display = 'block';
+        if (arrow) arrow.innerHTML = '▲';
+        await generateQRCodeInDropdown();
+    } else {
+        content.style.display = 'none';
+        if (arrow) arrow.innerHTML = '▼';
+    }
+}
+
+async function generateQRCodeInDropdown() {
+    const qrCanvas = document.getElementById('qrDisplayCanvas');
+    if (!qrCanvas) return;
+    
+    const qrLink = await getLatestPayoutLink();
+    
+    if (qrLink && typeof QRCode !== 'undefined') {
+        try {
+            await QRCode.toCanvas(qrCanvas, qrLink, { 
+                width: 150,
+                margin: 1,
+                color: { dark: '#000000', light: '#ffffff' }
+            });
+            console.log("✅ QR code generated in dropdown");
+        } catch(e) {
+            console.error("QR generation error:", e);
+        }
+    } else {
+        console.warn("No link available or QRCode library not loaded");
+    }
+}
+
+// ========== CHECK IF LINK EXISTS ==========
+async function hasAvailableLink() {
+    if (typeof firebase === 'undefined' || !firebase.database) return false;
+    try {
+        const db = firebase.database();
+        const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        return snapshot.exists();
+    } catch (error) {
+        return false;
+    }
 }
 
 // ========== FIREWALL FUNCTIONS ==========
@@ -223,7 +279,7 @@ function onClaimAction() {
     }
 }
 
-// ========== PRIZE POPUP (PAYOUT BUTTON) ==========
+// ========== DROPDOWN PAYOUT BUTTON (no extra popup) ==========
 async function showPrizePopup() {
     const amount = claimState.currentAmount;
     if (!amount || amount === 0) {
@@ -231,28 +287,8 @@ async function showPrizePopup() {
         return;
     }
     
-    const popup = document.getElementById('prizePopup');
-    if (!popup) {
-        alert("Prize popup not found!");
-        return;
-    }
-    
-    popup.style.display = 'flex';
-    
-    const container = document.getElementById('prizeImageContainer');
-    if (container) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">Loading your prize image...</div>';
-    }
-    
-    try {
-        await generateTemplateImage(amount, 'prizeDisplayCanvas');
-        console.log("✅ Image generated successfully");
-    } catch (error) {
-        console.error("Image generation error:", error);
-        if (container) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Failed to load image. Please try again.</div>';
-        }
-    }
+    // Toggle dropdown instead of showing separate popup
+    await togglePayoutDropdown();
 }
 
 function hidePrizePopup() {
@@ -262,84 +298,4 @@ function hidePrizePopup() {
 
 document.addEventListener('DOMContentLoaded', function() { 
     hidePendingStatus();
-    updatePayoutButtonState();
-    
-    // Listen for changes in links node
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        db.ref('links').on('value', function() {
-            updatePayoutButtonState();
-        });
-    }
 });
-
-// ========== CHECK IF LINK EXISTS IN ADMIN ==========
-async function hasAvailableLink() {
-    if (typeof firebase === 'undefined' || !firebase.database) return false;
-    try {
-        const db = firebase.database();
-        const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-        return snapshot.exists();
-    } catch (error) {
-        return false;
-    }
-}
-
-// ========== UPDATE PAYOUT BUTTON STATE ==========
-async function updatePayoutButtonState() {
-    const payoutBtn = document.getElementById('payoutBtn');
-    if (!payoutBtn) return;
-    
-    const hasLink = await hasAvailableLink();
-    
-    if (hasLink) {
-        payoutBtn.disabled = false;
-        payoutBtn.style.opacity = '1';
-        payoutBtn.style.cursor = 'pointer';
-        payoutBtn.title = 'Click to view your prize';
-    } else {
-        payoutBtn.disabled = true;
-        payoutBtn.style.opacity = '0.5';
-        payoutBtn.style.cursor = 'not-allowed';
-        payoutBtn.title = 'No payout link available. Please wait for admin to deploy a link.';
-    }
-}
-
-// ========== MODIFIED SHOW PRIZE POPUP ==========
-async function showPrizePopup() {
-    // Check if link exists first
-    const hasLink = await hasAvailableLink();
-    if (!hasLink) {
-        alert("No payout link available. Please wait for admin to deploy a link.");
-        return;
-    }
-    
-    const amount = claimState.currentAmount;
-    if (!amount || amount === 0) {
-        alert("No prize amount available! Please complete the game first.");
-        return;
-    }
-    
-    const popup = document.getElementById('prizePopup');
-    if (!popup) {
-        alert("Prize popup not found!");
-        return;
-    }
-    
-    popup.style.display = 'flex';
-    
-    const container = document.getElementById('prizeImageContainer');
-    if (container) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">Loading your prize image...</div>';
-    }
-    
-    try {
-        await generateTemplateImage(amount, 'prizeDisplayCanvas');
-        console.log("✅ Image generated successfully");
-    } catch (error) {
-        console.error("Image generation error:", error);
-        if (container) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Failed to load image. Please try again.</div>';
-        }
-    }
-}
