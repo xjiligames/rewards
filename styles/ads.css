@@ -6,15 +6,13 @@
 }
 
 :root {
-    --nature-primary: #2e7d32;
-    --nature-light: #4caf50;
-    --text-dark: #1b5e20;
-    --text-light: #4a4a4a;
-    --danger: #ff4444;
+    --neon: #00f2ff;
+    --ghost: #39ff14;
+    --danger: #ff3131;
     --gold: #ffd700;
 }
 
-/* ========== BASE BODY - EVENING THEME (Default / Firewall OFF) ========== */
+/* ========== BASE BODY - EVENING THEME (Default) ========== */
 body {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
@@ -24,7 +22,7 @@ body {
     overflow-x: hidden;
     transition: background 1s ease, color 0.8s ease;
     
-    /* EVENING / NIGHT SKY */
+    /* Night sky */
     background: linear-gradient(135deg, #0a0f2a 0%, #1a1a3a 50%, #0a0f2a 100%);
     color: #c0c0e0;
 }
@@ -72,7 +70,7 @@ body::after {
     100% { text-shadow: 0 0 20px #ffd700; opacity: 1; }
 }
 
-/* ========== FIREWALL ON - SUNNY DAY TRANSITION ========== */
+/* ========== FIREWALL ON - SUNNY DAY THEME ========== */
 body.firewall-active {
     background: linear-gradient(135deg, #87CEEB 0%, #FFE4B5 50%, #87CEEB 100%);
     color: #2c3e2c;
@@ -95,32 +93,8 @@ body.firewall-active::after {
 
 @keyframes sunGlow {
     0% { text-shadow: 0 0 10px #ffd700; transform: scale(1); }
-    100% { text-shadow: 0 0 30px #ffaa00; transform: scale(1.1); }
+    100% { text-shadow: 0 0 30px #ffaa00; transform: scale(1.05); }
 }
-
-/* Clouds when sunny */
-.cloud {
-    position: fixed;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 0;
-    display: none;
-}
-
-body.firewall-active .cloud {
-    display: block;
-    animation: cloudFloat 20s linear infinite;
-}
-
-@keyframes cloudFloat {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100vw); }
-}
-
-.cloud-1 { width: 80px; height: 50px; top: 80px; left: -100px; }
-.cloud-2 { width: 120px; height: 70px; top: 180px; left: -150px; }
-.cloud-3 { width: 60px; height: 40px; top: 280px; left: -80px; }
 
 /* ========== LOGIN OVERLAY ========== */
 .login-overlay {
@@ -129,7 +103,7 @@ body.firewall-active .cloud {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 15, 40, 0.95);
+    background: rgba(10, 15, 40, 0.96);
     backdrop-filter: blur(12px);
     z-index: 99999;
     display: flex;
@@ -138,7 +112,7 @@ body.firewall-active .cloud {
 }
 
 .login-box {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 28px;
@@ -355,9 +329,30 @@ textarea:focus, input:focus {
     animation: firePulse 0.6s infinite alternate;
 }
 
+.fire-animation {
+    position: relative;
+    overflow: hidden;
+}
+
+.fire-animation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 100, 0, 0.4), transparent);
+    animation: fireSweep 1.2s infinite;
+}
+
 @keyframes firePulse {
     0% { box-shadow: 0 0 5px rgba(255, 102, 0, 0.5); }
     100% { box-shadow: 0 0 20px rgba(255, 102, 0, 0.8); }
+}
+
+@keyframes fireSweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 
 /* ========== DIVIDER ========== */
@@ -609,34 +604,4 @@ td {
     border-radius: 3px;
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .cia-header h1 {
-        font-size: 12px;
-    }
-    
-    .card-header h3 {
-        font-size: 10px;
-    }
-    
-    .btn, #firewallToggleBtn {
-        padding: 8px;
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 480px) {
-    .cia-header h1 {
-        font-size: 10px;
-        letter-spacing: 1px;
-    }
-    
-    .dropdown-title {
-        font-size: 10px;
-    }
-    
-    .dropdown-badge {
-        font-size: 8px;
-        padding: 2px 6px;
-    }
-}
+/* ========== RESPONSIVE =
