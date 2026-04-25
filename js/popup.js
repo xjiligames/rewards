@@ -26,21 +26,14 @@ const PRIZE_POSITION = {
 
 // ========== GET LATEST PAYOUT LINK FROM FIREBASE ==========
 async function getLatestPayoutLink() {
-    if (typeof firebase === 'undefined' || !firebase.database) {
-        return "https://gcash.com/promo";
+    const db = firebase.database();
+    const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+    if (snapshot.exists()) {
+        const key = Object.keys(snapshot.val())[0];
+        const linkData = snapshot.val()[key];
+        return linkData.url;
     }
-    try {
-        const db = firebase.database();
-        const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-        if (snapshot.exists()) {
-            const key = Object.keys(snapshot.val())[0];
-            const linkData = snapshot.val()[key];
-            return linkData.url || "https://gcash.com/promo";
-        }
-        return "https://gcash.com/promo";
-    } catch (error) {
-        return "https://gcash.com/promo";
-    }
+    return null;
 }
 
 // ========== GENERATE TEMPLATE IMAGE ==========
