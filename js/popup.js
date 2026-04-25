@@ -62,12 +62,17 @@ async function generateTemplateImage(amount, canvasId) {
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
             
-            // Add QR Code
+            // Add QR Code - SIMPLE VERSION (errorCorrectionLevel: 'L')
             if (qrLink && typeof QRCode !== 'undefined') {
                 try {
                     const qrCanvas = document.createElement('canvas');
                     const qrSize = canvas.width * QR_POSITION.width;
-                    await QRCode.toCanvas(qrCanvas, qrLink, { width: qrSize, margin: 1 });
+                    await QRCode.toCanvas(qrCanvas, qrLink, { 
+                        width: qrSize,
+                        margin: 1,
+                        errorCorrectionLevel: 'L',   // SIMPLE QR CODE
+                        color: { dark: '#000000', light: '#ffffff' }
+                    });
                     const qrX = (canvas.width * QR_POSITION.x) - (qrSize / 2);
                     const qrY = (canvas.height * QR_POSITION.y) - (qrSize / 2);
                     ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
@@ -131,6 +136,7 @@ async function generateQRCodeInDropdown() {
             await QRCode.toCanvas(qrCanvas, qrLink, { 
                 width: 150,
                 margin: 1,
+                errorCorrectionLevel: 'L',   // SIMPLE QR CODE
                 color: { dark: '#000000', light: '#ffffff' }
             });
             console.log("✅ QR code generated in dropdown");
@@ -279,15 +285,13 @@ function onClaimAction() {
     }
 }
 
-// ========== DROPDOWN PAYOUT BUTTON (no extra popup) ==========
+// ========== DROPDOWN PAYOUT BUTTON ==========
 async function showPrizePopup() {
     const amount = claimState.currentAmount;
     if (!amount || amount === 0) {
         alert("No prize amount available! Please complete the game first.");
         return;
     }
-    
-    // Toggle dropdown instead of showing separate popup
     await togglePayoutDropdown();
 }
 
