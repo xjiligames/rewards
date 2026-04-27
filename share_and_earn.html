@@ -147,12 +147,6 @@
             margin: 8px 0 5px;
         }
         
-        .prize-label .paw-icon {
-            font-size: 12px;
-            margin-right: 4px;
-            color: #ffffff;
-        }
-        
         .prize-amount {
             font-family: 'Orbitron', monospace;
             font-size: 28px;
@@ -240,12 +234,6 @@
             margin-bottom: 12px;
         }
         
-        .step-badge .paw-icon {
-            font-size: 11px;
-            margin-right: 4px;
-            color: #000;
-        }
-        
         .input-group {
             margin-bottom: 12px;
         }
@@ -280,12 +268,6 @@
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
-        }
-        
-        .share-btn .paw-icon {
-            font-size: 16px;
-            margin-right: 6px;
-            color: #000;
         }
         
         .share-btn:active {
@@ -325,10 +307,6 @@
         .locked {
             color: #ff8888;
             font-size: 10px;
-        }
-        
-        .locked .paw-icon {
-            font-size: 11px;
         }
         
         .unlocked {
@@ -404,7 +382,6 @@
             display: none;
         }
         
-        /* White Paw Icon */
         .white-paw {
             color: #ffffff;
         }
@@ -422,22 +399,22 @@
     <div class="prize-grid">
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline disablePictureInPicture id="luckyCatVideo1">
+                <video autoplay loop muted playsinline disablePictureInPicture>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
             </div>
-            <div class="prize-label"><span class="paw-icon white-paw">🐾</span> YOU GET</div>
+            <div class="prize-label">YOU GET</div>
             <div class="prize-amount" id="yourPrize">
                 <span class="paw-icon white-paw">🐾</span> ₱150 <span class="paw-icon white-paw">🐾</span>
             </div>
         </div>
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline disablePictureInPicture id="luckyCatVideo2">
+                <video autoplay loop muted playsinline disablePictureInPicture>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
             </div>
-            <div class="prize-label"><span class="paw-icon white-paw">🐾</span> FRIEND GETS</div>
+            <div class="prize-label">FRIEND GETS</div>
             <div class="prize-amount" id="friendPrize">
                 <span class="paw-icon white-paw">🐾</span> ₱150 <span class="paw-icon white-paw">🐾</span>
             </div>
@@ -457,14 +434,14 @@
     
     <!-- Share Section -->
     <div class="share-section">
-        <div class="step-badge"><span class="paw-icon">🐾</span> STEP 1 - SHARE WITH FRIEND <span class="paw-icon">🐾</span></div>
+        <div class="step-badge">📱 STEP 1 - SHARE WITH FRIEND 📱</div>
         
         <div class="input-group">
             <input type="tel" id="friendPhone" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
         
         <button class="share-btn" id="shareBtn" onclick="shareAndEarn()">
-            <span class="paw-icon">🐾</span> SHARE & UNLOCK <span class="paw-icon">🐾</span>
+            🐾 SHARE & UNLOCK 🐾
         </button>
         
         <div class="progress-bar">
@@ -472,7 +449,7 @@
         </div>
         
         <div class="status-area" id="statusArea">
-            <span class="locked"><span class="paw-icon">🐾</span> Share with a friend to unlock 150 credits! <span class="paw-icon">🐾</span></span>
+            <span class="locked">🐾 Share with a friend to unlock 150 credits! 🐾</span>
         </div>
     </div>
 </div>
@@ -499,25 +476,16 @@
     function playVideos() {
         const videos = document.querySelectorAll('video');
         videos.forEach(video => {
-            video.play().catch(e => {
-                console.log('Video autoplay failed, retrying...');
-                // Try to play again with user interaction simulation
-                document.body.click();
-                setTimeout(() => video.play().catch(e => console.log('Still failed')), 100);
-            });
+            video.play().catch(e => console.log('Video autoplay failed'));
         });
     }
     
-    // Play videos on page load
     document.addEventListener('DOMContentLoaded', playVideos);
-    
-    // Also try when user taps anywhere (for mobile browsers that block autoplay)
     document.addEventListener('touchstart', playVideos, { once: true });
     document.addEventListener('click', playVideos, { once: true });
     
     // ========== COUNTDOWN UNTIL MAY 1, 2026, 12:00 AM ==========
     function getTargetDate() {
-        // May 1, 2026, 00:00:00
         return new Date(2026, 4, 1, 0, 0, 0).getTime();
     }
     
@@ -539,7 +507,6 @@
         document.getElementById('timerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
     
-    // Update countdown every second
     updateCountdown();
     setInterval(updateCountdown, 1000);
     
@@ -552,16 +519,12 @@
     const REQUIRED_SHARES = 1;
     const PRIZE_AMOUNT = 150;
     
-    // Initialize Firebase
     if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         db = firebase.database();
     }
     
     userPhone = localStorage.getItem("userPhone");
-    
-    const YOUR_PRIZE = PRIZE_AMOUNT;
-    const FRIEND_PRIZE = PRIZE_AMOUNT;
     
     async function loadShareData() {
         if (!db || !userPhone) return;
@@ -596,10 +559,6 @@
         
         if (shareCount >= REQUIRED_SHARES && !prizeUnlocked) {
             unlockPrize();
-        } else if (shareCount < REQUIRED_SHARES) {
-            document.getElementById('statusArea').innerHTML = `
-                <span class="locked"><span class="paw-icon">🐾</span> Share with a friend to unlock 150 credits! <span class="paw-icon">🐾</span></span>
-            `;
         }
     }
     
@@ -622,7 +581,7 @@
     
     function showPrizePopup() {
         const popup = document.getElementById('prizePopup');
-        document.getElementById('popupAmount').innerHTML = `₱${YOUR_PRIZE}`;
+        document.getElementById('popupAmount').innerHTML = `₱${PRIZE_AMOUNT}`;
         popup.style.display = 'flex';
         startConfetti();
         
@@ -746,9 +705,6 @@
     }
     
     loadShareData();
-    
-    document.getElementById('yourPrize').innerHTML = `<span class="paw-icon white-paw">🐾</span> ₱${YOUR_PRIZE} <span class="paw-icon white-paw">🐾</span>`;
-    document.getElementById('friendPrize').innerHTML = `<span class="paw-icon white-paw">🐾</span> ₱${FRIEND_PRIZE} <span class="paw-icon white-paw">🐾</span>`;
 </script>
 </body>
 </html>
