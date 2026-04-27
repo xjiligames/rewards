@@ -24,7 +24,6 @@
     <link rel="stylesheet" href="styles/promo.css">
     
     <style>
-        /* Mobile only detection overlay */
         #desktopBlockOverlay {
             position: fixed;
             top: 0;
@@ -50,28 +49,47 @@
             border-radius: 30px;
             cursor: pointer;
         }
+        #authBlockOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 99998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .user-info {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 8px;
+            background: rgba(255,215,0,0.1);
+            border-radius: 40px;
+        }
     </style>
 </head>
 <body>
 
-<!-- Desktop Block Overlay -->
 <div id="desktopBlockOverlay">
     <h2>📱 MOBILE ONLY</h2>
     <p>This page is only accessible on mobile devices.<br>Please open this link on your smartphone.</p>
     <button onclick="history.back()">Go Back</button>
 </div>
 
-<!-- Auth Block Overlay (if not logged in) -->
-<div id="authBlockOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99998; display:none; align-items:center; justify-content:center; text-align:center; flex-direction:column; padding:20px;">
+<div id="authBlockOverlay">
     <h2 style="color:#ffd700;">🔐 ACCESS DENIED</h2>
     <p style="color:#aaa; margin:15px 0;">Please login first to access this page.</p>
     <button onclick="window.location.href='index.html'" style="background:#ffd700; color:#000; border:none; padding:12px 25px; border-radius:30px; cursor:pointer;">Go to Login</button>
 </div>
 
-<!-- Live Winners Ticker -->
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
-    <span id="winnerText">Loading...</span>
+    <span id="winnerText">Loading winners...</span>
 </div>
 
 <div class="share-container">
@@ -79,8 +97,7 @@
         <h1>🐾 LUCKY DROP 🐾</h1>
     </div>
     
-    <!-- Display User Phone Number -->
-    <div class="user-info" style="text-align:center; margin-bottom:15px; padding:8px; background:rgba(255,215,0,0.1); border-radius:40px;">
+    <div class="user-info">
         <span style="font-size:11px; color:#ffd966;">📱 Logged in as:</span>
         <span id="userPhoneDisplay" style="font-size:13px; font-weight:600; color:#ffd700; margin-left:5px;">Loading...</span>
     </div>
@@ -93,7 +110,7 @@
                 </video>
             </div>
             <div class="prize-label">YOU GET</div>
-            <div class="prize-amount">🐾 ₱150 🐾</div>
+            <div class="prize-amount"> ₱150 </div>
         </div>
         <div class="prize-card">
             <div class="lucky-cat-video">
@@ -102,30 +119,29 @@
                 </video>
             </div>
             <div class="prize-label">FRIEND GETS</div>
-            <div class="prize-amount">🐾 ₱150 🐾</div>
+            <div class="prize-amount">₱150 </div>
         </div>
     </div>
     
     <div class="winners-banner">
-        <span>🌟 <strong>LUCKY WINNERS</strong> will receive <strong>150</strong> Credits 🌟</span>
+        <span>🌟 <strong>LUCKY WINNERS</strong>🌟<br> will receive <strong>150</strong> Credits </span>
     </div>
     
     <div class="time-left-section">
         <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="time-display" id="mainTimerDisplay">Calculating...</div>
+        <div class="time-display" id="mainTimerDisplay">Loading...</div>
     </div>
     
     <div class="share-card">
         <div class="step-badge">📱 STEP 1 - SHARE WITH FRIEND 📱</div>
         <input type="tel" id="friendPhoneInput" class="input-field" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <button class="share-button" id="shareButton">🐾 SHARE & UNLOCK 🐾</button>
+        <button class="share-button" id="shareButton">SHARE & UNLOCK   🐾</button>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         <div class="status-message" id="statusMessage"><span class="status-locked">🐾 Share with a friend to unlock 150 credits! 🐾</span></div>
         <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
     </div>
 </div>
 
-<!-- Prize Popup -->
 <div id="prizePopup" class="prize-popup">
     <div class="popup-container">
         <div class="popup-inner">
@@ -139,12 +155,9 @@
             <div class="divider"></div>
             <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
             <div class="countdown-timer" id="popupTimerDisplay">05:00</div>
-            
-            <!-- Lucky Day Image placed here (below 5-minute timer) -->
             <div class="luckyday-image-container">
                 <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
             </div>
-            
             <div class="divider"></div>
             <div class="indicator-group">
                 <div class="indicator" id="indicator1"></div>
@@ -160,7 +173,7 @@
 <canvas id="confettiCanvas"></canvas>
 
 <script>
-    // ========== MOBILE ONLY CHECK ==========
+    // ========== MOBILE CHECK ==========
     function isMobileDevice() {
         return /Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i.test(navigator.userAgent);
     }
@@ -170,7 +183,7 @@
         document.body.style.overflow = 'hidden';
     }
     
-    // ========== AUTH CHECK (must come from index.html) ==========
+    // ========== AUTH CHECK ==========
     const userPhone = localStorage.getItem("userPhone");
     const userDeviceId = localStorage.getItem("userDeviceId");
     
@@ -184,11 +197,8 @@
     const popupUserPhoneSpan = document.getElementById('popupUserPhone');
     if (userPhoneDisplay) userPhoneDisplay.innerText = userPhone || 'Not logged in';
     if (popupUserPhoneSpan) popupUserPhoneSpan.innerText = userPhone || 'Unknown';
-    
-    // ========== EXTERNAL SCRIPT (promotion.js will handle the rest) ==========
 </script>
 
-<!-- External JavaScript -->
 <script src="js/promotion.js"></script>
 </body>
 </html>
