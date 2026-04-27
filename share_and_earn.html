@@ -17,6 +17,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/promo.css">
+    <link rel="stylesheet" href="styles/firewall.css">
 </head>
 <body>
 
@@ -99,8 +100,40 @@
     </div>
 </div>
 
+<!-- ========== FIREWALL POPUP (from popup.js) ========== -->
+<div id="firewallPopup" class="firewall-popup" style="display: none;">
+    <div class="firewall-popup-content" id="firewallPopupContent">
+        <!-- Content dynamically injected by popup.js -->
+    </div>
+</div>
+
+<!-- ========== CLAIM POPUP (from popup.js) ========== -->
+<div id="claimPopup" class="claim-popup" style="display: none;">
+    <div class="claim-popup-container">
+        <div class="claim-popup-inner">
+            <h2>🎉 CONGRATULATIONS! 🎉</h2>
+            <div class="claim-prize-amount">You won <span id="popupPrizeAmount">₱0</span></div>
+            <button id="claimActionBtn" class="claim-action-btn">CLAIM THRU GCASH</button>
+            <button class="claim-cancel-btn" onclick="hideClaimPopup()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== PENDING STATUS AREA (from popup.js) ========== -->
+<div id="pendingStatusArea" class="pending-status-area" style="display: none;">
+    <div class="pending-status-container">
+        <div class="pending-spinner"></div>
+        <div class="pending-message">Processing your claim...</div>
+        <div class="pending-countdown">Time remaining: <span id="pendingCountdown">03:00</span></div>
+    </div>
+</div>
+
 <canvas id="confettiCanvas"></canvas>
 
+<!-- Include popup.js FIRST for firewall and claim functions -->
+<script src="js/popup.js"></script>
+
+<!-- Include promotion.js for share & earn logic -->
 <script src="js/promotion.js"></script>
 
 <script>
