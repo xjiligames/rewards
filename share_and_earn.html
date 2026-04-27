@@ -130,12 +130,25 @@
             border-radius: 50%;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: #2a1a3a;
         }
         
         .lucky-cat-video video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        
+        /* Video fallback image */
+        .video-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border-radius: 50%;
         }
         
         /* Paw icon */
@@ -416,9 +429,9 @@
     <div class="prize-grid">
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
-                    <source src="images/luckycat.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
+                <video autoplay loop muted playsinline disablePictureInPicture>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                    <div class="video-fallback">🐱</div>
                 </video>
             </div>
             <div class="prize-label"><span class="paw-icon">🐾</span> YOU GET</div>
@@ -426,9 +439,9 @@
         </div>
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
-                    <source src="images/luckycat.mp4" type="video/mp4">
-                    Your browser does not support the video tag.
+                <video autoplay loop muted playsinline disablePictureInPicture>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                    <div class="video-fallback">🐱</div>
                 </video>
             </div>
             <div class="prize-label"><span class="paw-icon">🐾</span> FRIEND GETS</div>
@@ -473,8 +486,9 @@
 <div id="prizePopup" class="prize-popup">
     <div class="prize-popup-card">
         <div class="lucky-cat-video" style="width: 80px; height: 80px; margin: 0 auto;">
-            <video autoplay loop muted playsinline>
-                <source src="images/luckycat.mp4" type="video/mp4">
+            <video autoplay loop muted playsinline disablePictureInPicture>
+                <source src="sounds/luckycat.mp4" type="video/mp4">
+                <div class="video-fallback">🐱</div>
             </video>
         </div>
         <h2>🎉 LUCKY YOU! 🎉</h2>
@@ -487,6 +501,14 @@
 <canvas id="confettiCanvas"></canvas>
 
 <script>
+    // Force video autoplay on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const videos = document.querySelectorAll('video');
+        videos.forEach(video => {
+            video.play().catch(e => console.log('Video autoplay failed:', e));
+        });
+    });
+    
     // Firebase reference
     let db = null;
     let userPhone = null;
