@@ -1,0 +1,447 @@
+/* ========== PROMO PAGE STYLES - Lucky Drop ========== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2a 50%, #0a0a1a 100%);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Live Winners Ticker */
+.live-winners-ticker {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 50px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    white-space: nowrap;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #39ff14;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+.gc-winner-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+/* Main Container */
+.share-container {
+    max-width: 450px;
+    width: 100%;
+    background: linear-gradient(145deg, #1a1525, #0f0a1a);
+    border-radius: 48px;
+    padding: 25px 20px 35px;
+    border: 1px solid rgba(255,215,0,0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    margin-top: 50px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 26px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffd700, #ffaa33, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+}
+
+/* Prize Grid */
+.prize-grid {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.prize-card {
+    flex: 1;
+    background: linear-gradient(145deg, #2a2035, #1a1525);
+    border-radius: 32px;
+    padding: 15px 10px;
+    text-align: center;
+    border: 1px solid rgba(255,215,0,0.2);
+}
+
+.lucky-cat-video {
+    width: 85px;
+    height: 85px;
+    margin: 0 auto 8px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #2a1a3a;
+}
+
+.lucky-cat-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.prize-label {
+    font-size: 11px;
+    color: #ffd966;
+    margin: 8px 0 5px;
+}
+
+.prize-amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 24px;
+    font-weight: 900;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* Winners Banner */
+.winners-banner {
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.1), transparent);
+    border-radius: 30px;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.time-left-section {
+    background: rgba(0,0,0,0.4);
+    border-radius: 40px;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.time-label {
+    font-size: 10px;
+    color: #ffaa33;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.time-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffd700;
+}
+
+/* Share Section */
+.share-card {
+    background: rgba(0,0,0,0.3);
+    border-radius: 32px;
+    padding: 18px;
+    border: 1px solid rgba(255,215,0,0.15);
+}
+
+.step-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    color: #000;
+    padding: 4px 14px;
+    border-radius: 25px;
+    font-size: 10px;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+.input-field {
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 60px;
+    padding: 14px 18px;
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    outline: none;
+    margin-bottom: 12px;
+}
+
+.input-field:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(255,215,0,0.3);
+}
+
+.input-field::placeholder {
+    color: rgba(255,255,255,0.5);
+    font-weight: 400;
+}
+
+.share-button {
+    width: 100%;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border: none;
+    padding: 14px;
+    border-radius: 60px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #000;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.share-button:active {
+    transform: scale(0.98);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    margin: 15px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    transition: width 0.3s;
+}
+
+.status-message {
+    text-align: center;
+    padding: 8px;
+    font-size: 11px;
+    border-radius: 25px;
+    background: rgba(0,0,0,0.3);
+}
+
+.status-locked {
+    color: #ff8888;
+}
+
+.share-social-text {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 11px;
+    color: #ffaa33;
+}
+
+/* Prize Popup */
+.prize-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-container {
+    background: url('../images/luckyday.png') center/cover no-repeat;
+    border-radius: 48px;
+    max-width: 360px;
+    width: 88%;
+    position: relative;
+    animation: popIn 0.4s ease;
+}
+
+.popup-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.12);
+    border-radius: 48px;
+    pointer-events: none;
+}
+
+.popup-inner {
+    position: relative;
+    z-index: 1;
+    padding: 30px 25px;
+    text-align: center;
+}
+
+.popup-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 22px;
+    cursor: pointer;
+    color: white;
+    background: rgba(0,0,0,0.4);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-title {
+    color: #ffd700;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.popup-balance {
+    font-size: 44px;
+    font-weight: 800;
+    color: #ffd700;
+    margin: 15px 0 5px;
+}
+
+.divider {
+    width: 60px;
+    height: 2px;
+    background: #ffd700;
+    margin: 12px auto;
+}
+
+.invite-text {
+    font-size: 13px;
+    color: white;
+    margin: 12px 0;
+    line-height: 1.4;
+}
+
+.countdown-timer {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffaa33;
+    margin: 10px 0;
+}
+
+/* Indicator Bars */
+.indicator-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.indicator {
+    width: 55px;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.indicator-red {
+    background: #ff4444;
+    box-shadow: 0 0 8px #ff4444;
+    animation: pulseFade 1s infinite;
+}
+
+.indicator-green {
+    background: #39ff14;
+    box-shadow: 0 0 8px #39ff14;
+    animation: pulseFade 1s infinite;
+}
+
+.indicator-blue {
+    background: #00f2ff;
+    box-shadow: 0 0 8px #00f2ff;
+    animation: pulseFade 1s infinite;
+}
+
+@keyframes pulseFade {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.claim-gcash-button {
+    background: linear-gradient(135deg, #0066ff, #0044cc);
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 60px;
+    font-weight: 800;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.share-fb-button {
+    background: linear-gradient(135deg, #1877f2, #0d5fd9);
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 60px;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+}
+
+.gc-small-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
