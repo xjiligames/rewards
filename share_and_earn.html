@@ -37,7 +37,7 @@
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.75);
+            background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,215,0,0.3);
             border-radius: 50px;
@@ -99,13 +99,6 @@
             letter-spacing: 1px;
         }
         
-        .header p {
-            font-size: 11px;
-            color: #ffd966;
-            margin-top: 5px;
-        }
-        
-        /* Prize Grid */
         .prize-grid {
             display: flex;
             gap: 15px;
@@ -139,7 +132,6 @@
         .prize-label {
             font-size: 11px;
             color: #ffd966;
-            letter-spacing: 0.5px;
             margin: 8px 0 5px;
         }
         
@@ -154,22 +146,12 @@
             gap: 5px;
         }
         
-        .prize-amount .paw-icon {
-            font-size: 18px;
-            color: white;
-        }
-        
         .winners-banner {
             background: linear-gradient(90deg, transparent, rgba(255,215,0,0.1), transparent);
             border-radius: 30px;
             padding: 10px;
             text-align: center;
             margin-bottom: 18px;
-        }
-        
-        .winners-banner span {
-            font-size: 12px;
-            color: #ffd966;
         }
         
         .time-left-section {
@@ -282,8 +264,11 @@
             color: #ff8888;
         }
         
-        .status-unlocked {
-            color: #39ff14;
+        .share-social-text {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 11px;
+            color: #ffaa33;
         }
         
         /* Prize Popup */
@@ -349,7 +334,6 @@
             color: #ffd700;
             font-size: 26px;
             font-weight: 800;
-            margin-bottom: 10px;
         }
         
         .popup-balance {
@@ -381,7 +365,6 @@
             margin: 10px 0;
         }
         
-        /* Indicator Bars */
         .indicator-group {
             display: flex;
             justify-content: center;
@@ -478,37 +461,32 @@
 <!-- Live Winners Ticker with GCash Icon -->
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
-    <span id="winnerText">🎲 User 0917***1234 won <img src="images/gc_icon.png" class="gc-winner-icon" alt="GCash"> ₱300</span>
+    <span id="winnerText">Loading...</span>
 </div>
 
 <div class="share-container">
     <div class="header">
         <h1>🐾 LUCKY DROP 🐾</h1>
-        <p>Share with friends to unlock your prize!</p>
     </div>
     
     <div class="prize-grid">
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
+                <video id="luckyCatVideo1" autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
             </div>
             <div class="prize-label">YOU GET</div>
-            <div class="prize-amount">
-                <span>🐾</span> ₱150 <span>🐾</span>
-            </div>
+            <div class="prize-amount">🐾 ₱150 🐾</div>
         </div>
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
+                <video id="luckyCatVideo2" autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
             </div>
             <div class="prize-label">FRIEND GETS</div>
-            <div class="prize-amount">
-                <span>🐾</span> ₱150 <span>🐾</span>
-            </div>
+            <div class="prize-amount">🐾 ₱150 🐾</div>
         </div>
     </div>
     
@@ -518,7 +496,7 @@
     
     <div class="time-left-section">
         <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="time-display" id="mainTimerDisplay">Calculating...</div>
+        <div class="time-display" id="mainTimerDisplay">Loading...</div>
     </div>
     
     <div class="share-card">
@@ -527,6 +505,7 @@
         <button class="share-button" id="shareButton">🐾 SHARE & UNLOCK 🐾</button>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         <div class="status-message" id="statusMessage"><span class="status-locked">🐾 Share with a friend to unlock 150 credits! 🐾</span></div>
+        <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
     </div>
 </div>
 
@@ -555,6 +534,55 @@
 <canvas id="confettiCanvas"></canvas>
 
 <script>
+    // ========== UNMUTE VIDEO ON INPUT FOCUS (SOUND) ==========
+    const videos = document.querySelectorAll('video');
+    function unmuteAndPlayVideos() {
+        videos.forEach(v => {
+            v.muted = false;
+            v.play().catch(e => console.log('Video play error:', e));
+        });
+    }
+    const friendInput = document.getElementById('friendPhoneInput');
+    friendInput.addEventListener('focus', unmuteAndPlayVideos);
+    friendInput.addEventListener('click', unmuteAndPlayVideos);
+    
+    // ========== RANDOM WINNERS TICKER (15 seconds interval) ==========
+    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0977", "0906", "0915"];
+    const amounts = [300, 500, 750, 1000, 1250, 1500];
+    
+    function generateRandomWinner() {
+        const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const suffix = Math.floor(1000 + Math.random() * 9000);
+        const amount = amounts[Math.floor(Math.random() * amounts.length)];
+        return { display: `${prefix}***${suffix}`, amount: amount };
+    }
+    
+    function updateTicker() {
+        const winner = generateRandomWinner();
+        const winnerSpan = document.getElementById('winnerText');
+        winnerSpan.innerHTML = `🎲 ${winner.display} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${winner.amount}`;
+    }
+    updateTicker();
+    setInterval(updateTicker, 15000);
+    
+    // ========== MAIN COUNTDOWN (MAY 1, 2026) ==========
+    function updateMainTimer() {
+        const targetDate = new Date(2026, 4, 1, 0, 0, 0);
+        const now = new Date();
+        const diff = targetDate - now;
+        if (diff <= 0) {
+            document.getElementById('mainTimerDisplay').innerHTML = "00:00:00";
+            return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (86400000)) / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        document.getElementById('mainTimerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    updateMainTimer();
+    setInterval(updateMainTimer, 1000);
+    
     // ========== DEVICE FINGERPRINT ==========
     function getDeviceFingerprint() {
         const screen = `${screen.width}x${screen.height}x${screen.colorDepth}`;
@@ -591,7 +619,6 @@
     };
     
     // ========== DOM ELEMENTS ==========
-    const friendInput = document.getElementById('friendPhoneInput');
     const shareBtn = document.getElementById('shareButton');
     const prizePopupDiv = document.getElementById('prizePopup');
     const popupBalanceSpan = document.getElementById('popupBalanceAmount');
@@ -603,61 +630,6 @@
     const ind3 = document.getElementById('indicator3');
     const statusMsgSpan = document.getElementById('statusMessage');
     const progressFill = document.getElementById('progressFill');
-    
-    // ========== UNMUTE VIDEO ON INPUT FOCUS ==========
-    const videos = document.querySelectorAll('video');
-    function unmuteVideos() {
-        videos.forEach(v => { v.muted = false; v.play().catch(e => {}); });
-    }
-    friendInput.addEventListener('focus', unmuteVideos);
-    friendInput.addEventListener('click', unmuteVideos);
-    
-    // ========== LIVE WINNERS TICKER ==========
-    const winnerEntries = [
-        { phone: "0917***1234", amount: 300 },
-        { phone: "0925***6789", amount: 1000 },
-        { phone: "0998***4321", amount: 300 },
-        { phone: "0947***8765", amount: 1000 },
-        { phone: "0966***3456", amount: 300 },
-        { phone: "0918***9999", amount: 1000 }
-    ];
-    let winnerIndex = 0;
-    const winnerTextSpan = document.getElementById('winnerText');
-    function updateTicker() {
-        const w = winnerEntries[winnerIndex % winnerEntries.length];
-        winnerTextSpan.innerHTML = `🎲 User ${w.phone} won <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${w.amount}`;
-        winnerIndex++;
-    }
-    setInterval(updateTicker, 4000);
-    updateTicker();
-    
-    // ========== MAIN COUNTDOWN (May 1, 2026) ==========
-    // Main Countdown to May 1, 2026
-function getTargetDate() {
-    return new Date(2026, 4, 1, 0, 0, 0).getTime(); // May 1, 2026, 12:00 AM
-}
-
-function updateMainCountdown() {
-    const now = Date.now();
-    const target = getTargetDate();
-    const remaining = target - now;
-    
-    if (remaining <= 0) {
-        document.getElementById('mainTimerDisplay').innerHTML = "00:00:00";
-        return;
-    }
-    
-    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((remaining % (86400000)) / 3600000);
-    const minutes = Math.floor((remaining % 3600000) / 60000);
-    const seconds = Math.floor((remaining % 60000) / 1000);
-    
-    document.getElementById('mainTimerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
-
-// Run immediately and then every second
-updateMainCountdown();
-setInterval(updateMainCountdown, 1000);
     
     // ========== LOAD / SAVE FIREBASE ==========
     async function loadGameData() {
@@ -698,7 +670,7 @@ setInterval(updateMainCountdown, 1000);
         });
     }
     
-    // ========== INDICATOR UPDATE ==========
+    // ========== INDICATORS ==========
     function updateIndicators() {
         ind1.className = 'indicator';
         ind2.className = 'indicator';
@@ -712,10 +684,10 @@ setInterval(updateMainCountdown, 1000);
         updateIndicators();
         if (gameState.shared) {
             progressFill.style.width = '100%';
-            statusMsgSpan.innerHTML = '<span class="status-unlocked">🎉 Shared! Waiting for friend confirmation... 🎉</span>';
+            statusMsgSpan.innerHTML = '<span class="status-locked" style="color:#39ff14;">🎉 Shared! Waiting for friend confirmation... 🎉</span>';
         }
         if (gameState.claimed) {
-            statusMsgSpan.innerHTML = '<span class="status-unlocked">🏆 Prize claimed! 🏆</span>';
+            statusMsgSpan.innerHTML = '<span class="status-locked" style="color:#39ff14;">🏆 Prize claimed! 🏆</span>';
             shareBtn.disabled = true;
             shareBtn.style.opacity = '0.5';
         }
@@ -754,13 +726,13 @@ setInterval(updateMainCountdown, 1000);
         }
     }
     
-    // ========== PRIZE POPUP ==========
     function showPrizePopup() {
         if (gameState.claimed) return;
         updatePopupTimerDisplay();
         prizePopupDiv.style.display = 'flex';
         gameState.popupVisible = true;
         if (!gameState.timerInterval && gameState.timerSeconds > 0) startPopupTimer();
+        unmuteAndPlayVideos();
     }
     
     function closePrizePopup() {
@@ -777,7 +749,6 @@ setInterval(updateMainCountdown, 1000);
             alert("Please enter a valid 11-digit mobile number starting with 09.");
             return;
         }
-        // Check if device already used
         const deviceCheck = await db.ref('share_earn_device/' + deviceId).once('value');
         if (deviceCheck.exists() && deviceCheck.val().shared) {
             alert("This device already participated. Only one account per device allowed.");
@@ -897,9 +868,9 @@ setInterval(updateMainCountdown, 1000);
     
     loadGameData();
     
-    // Handle friend confirmation via URL (ref parameter)
+    // Handle friend confirmation via URL
     const urlRef = new URLSearchParams(window.location.search).get('ref');
-    if (urlRef && userPhone) {
+    if (urlRef && userPhone && db) {
         db.ref('friend_confirmation/' + urlRef).set({ confirmed: true, friend: userPhone, timestamp: Date.now() });
     }
 </script>
