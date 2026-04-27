@@ -27,7 +27,7 @@ function updateTicker() {
     const winner = generateRandomWinner();
     const winnerSpan = document.getElementById('winnerText');
     if (winnerSpan) {
-        winnerSpan.innerHTML = `🎲 ${winner.display} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${winner.amount}`;
+        winnerSpan.innerHTML = `🎲 ${winner.display} withdrew <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${winner.amount}`;
     }
 }
 
