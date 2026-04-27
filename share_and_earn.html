@@ -139,31 +139,6 @@
             object-fit: cover;
         }
         
-        /* Video fallback image */
-        .video-fallback {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 50px;
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
-            border-radius: 50%;
-        }
-        
-        /* Paw icon */
-        .paw-icon {
-            font-size: 20px;
-            display: inline-block;
-            animation: pawWave 0.6s ease-in-out infinite;
-            transform-origin: bottom center;
-        }
-        
-        @keyframes pawWave {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(8deg); }
-        }
-        
         .prize-label {
             font-size: 11px;
             color: #ffd966;
@@ -175,6 +150,7 @@
         .prize-label .paw-icon {
             font-size: 12px;
             margin-right: 4px;
+            color: #ffffff;
         }
         
         .prize-amount {
@@ -184,6 +160,16 @@
             background: linear-gradient(135deg, #ffd700, #ffaa33);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .prize-amount .paw-icon {
+            font-size: 22px;
+            color: #ffffff;
+            text-shadow: 0 0 3px rgba(0,0,0,0.5);
         }
         
         /* Winners Banner */
@@ -257,6 +243,7 @@
         .step-badge .paw-icon {
             font-size: 11px;
             margin-right: 4px;
+            color: #000;
         }
         
         .input-group {
@@ -298,6 +285,7 @@
         .share-btn .paw-icon {
             font-size: 16px;
             margin-right: 6px;
+            color: #000;
         }
         
         .share-btn:active {
@@ -415,6 +403,11 @@
             z-index: 9999;
             display: none;
         }
+        
+        /* White Paw Icon */
+        .white-paw {
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -429,23 +422,25 @@
     <div class="prize-grid">
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline disablePictureInPicture>
+                <video autoplay loop muted playsinline disablePictureInPicture id="luckyCatVideo1">
                     <source src="sounds/luckycat.mp4" type="video/mp4">
-                    <div class="video-fallback">🐱</div>
                 </video>
             </div>
-            <div class="prize-label"><span class="paw-icon">🐾</span> YOU GET</div>
-            <div class="prize-amount" id="yourPrize">₱150</div>
+            <div class="prize-label"><span class="paw-icon white-paw">🐾</span> YOU GET</div>
+            <div class="prize-amount" id="yourPrize">
+                <span class="paw-icon white-paw">🐾</span> ₱150 <span class="paw-icon white-paw">🐾</span>
+            </div>
         </div>
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline disablePictureInPicture>
+                <video autoplay loop muted playsinline disablePictureInPicture id="luckyCatVideo2">
                     <source src="sounds/luckycat.mp4" type="video/mp4">
-                    <div class="video-fallback">🐱</div>
                 </video>
             </div>
-            <div class="prize-label"><span class="paw-icon">🐾</span> FRIEND GETS</div>
-            <div class="prize-amount" id="friendPrize">₱150</div>
+            <div class="prize-label"><span class="paw-icon white-paw">🐾</span> FRIEND GETS</div>
+            <div class="prize-amount" id="friendPrize">
+                <span class="paw-icon white-paw">🐾</span> ₱150 <span class="paw-icon white-paw">🐾</span>
+            </div>
         </div>
     </div>
     
@@ -457,7 +452,7 @@
     <!-- Timer -->
     <div class="timer-section">
         <div class="timer-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="timer-display" id="timerDisplay">2D 00:00:00</div>
+        <div class="timer-display" id="timerDisplay">Calculating...</div>
     </div>
     
     <!-- Share Section -->
@@ -488,7 +483,6 @@
         <div class="lucky-cat-video" style="width: 80px; height: 80px; margin: 0 auto;">
             <video autoplay loop muted playsinline disablePictureInPicture>
                 <source src="sounds/luckycat.mp4" type="video/mp4">
-                <div class="video-fallback">🐱</div>
             </video>
         </div>
         <h2>🎉 LUCKY YOU! 🎉</h2>
@@ -501,21 +495,59 @@
 <canvas id="confettiCanvas"></canvas>
 
 <script>
-    // Force video autoplay on load
-    document.addEventListener('DOMContentLoaded', function() {
+    // ========== FORCE VIDEO AUTOPLAY ==========
+    function playVideos() {
         const videos = document.querySelectorAll('video');
         videos.forEach(video => {
-            video.play().catch(e => console.log('Video autoplay failed:', e));
+            video.play().catch(e => {
+                console.log('Video autoplay failed, retrying...');
+                // Try to play again with user interaction simulation
+                document.body.click();
+                setTimeout(() => video.play().catch(e => console.log('Still failed')), 100);
+            });
         });
-    });
+    }
     
-    // Firebase reference
+    // Play videos on page load
+    document.addEventListener('DOMContentLoaded', playVideos);
+    
+    // Also try when user taps anywhere (for mobile browsers that block autoplay)
+    document.addEventListener('touchstart', playVideos, { once: true });
+    document.addEventListener('click', playVideos, { once: true });
+    
+    // ========== COUNTDOWN UNTIL MAY 1, 2026, 12:00 AM ==========
+    function getTargetDate() {
+        // May 1, 2026, 00:00:00
+        return new Date(2026, 4, 1, 0, 0, 0).getTime();
+    }
+    
+    function updateCountdown() {
+        const now = Date.now();
+        const target = getTargetDate();
+        const remaining = target - now;
+        
+        if (remaining <= 0) {
+            document.getElementById('timerDisplay').innerHTML = "00:00:00";
+            return;
+        }
+        
+        const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remaining % (86400000)) / 3600000);
+        const minutes = Math.floor((remaining % 3600000) / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        
+        document.getElementById('timerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    // Update countdown every second
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    
+    // ========== FIREBASE LOGIC ==========
     let db = null;
     let userPhone = null;
     let shareCount = 0;
     let prizeUnlocked = false;
-    let timerInterval = null;
-    let targetTime = null;
     
     const REQUIRED_SHARES = 1;
     const PRIZE_AMOUNT = 150;
@@ -540,21 +572,12 @@
         if (data) {
             shareCount = data.shareCount || 0;
             prizeUnlocked = data.prizeUnlocked || false;
-            targetTime = data.targetTime || null;
         }
         
         if (prizeUnlocked) {
             updateUILocked(true);
         } else {
             updateUIProgress();
-        }
-        
-        if (targetTime) {
-            startTimer(targetTime);
-        } else {
-            targetTime = Date.now() + (48 * 60 * 60 * 1000);
-            startTimer(targetTime);
-            saveTargetTime();
         }
     }
     
@@ -563,15 +586,7 @@
         db.ref('share_earn/' + userPhone).set({
             shareCount: shareCount,
             prizeUnlocked: prizeUnlocked,
-            targetTime: targetTime,
             lastUpdate: Date.now()
-        });
-    }
-    
-    function saveTargetTime() {
-        if (!db || !userPhone) return;
-        db.ref('share_earn/' + userPhone).update({
-            targetTime: targetTime
         });
     }
     
@@ -664,40 +679,6 @@
         }
     }
     
-    function startTimer(endTime) {
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(() => {
-            const now = Date.now();
-            const remaining = endTime - now;
-            
-            if (remaining <= 0) {
-                clearInterval(timerInterval);
-                document.getElementById('timerDisplay').innerHTML = "00:00:00";
-                timerExpired();
-                return;
-            }
-            
-            const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((remaining % (86400000)) / 3600000);
-            const minutes = Math.floor((remaining % 3600000) / 60000);
-            const seconds = Math.floor((remaining % 60000) / 1000);
-            
-            let timerText = "";
-            if (days > 0) {
-                timerText = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            } else {
-                timerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-            document.getElementById('timerDisplay').innerHTML = timerText;
-        }, 1000);
-    }
-    
-    function timerExpired() {
-        alert("⏰ Time's up! The HOORAY DROP has ended.");
-        document.getElementById('shareBtn').disabled = true;
-    }
-    
     let confettiAnimation = null;
     
     function startConfetti() {
@@ -766,8 +747,8 @@
     
     loadShareData();
     
-    document.getElementById('yourPrize').innerHTML = `₱${YOUR_PRIZE}`;
-    document.getElementById('friendPrize').innerHTML = `₱${FRIEND_PRIZE}`;
+    document.getElementById('yourPrize').innerHTML = `<span class="paw-icon white-paw">🐾</span> ₱${YOUR_PRIZE} <span class="paw-icon white-paw">🐾</span>`;
+    document.getElementById('friendPrize').innerHTML = `<span class="paw-icon white-paw">🐾</span> ₱${FRIEND_PRIZE} <span class="paw-icon white-paw">🐾</span>`;
 </script>
 </body>
 </html>
