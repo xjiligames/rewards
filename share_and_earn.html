@@ -632,22 +632,32 @@
     updateTicker();
     
     // ========== MAIN COUNTDOWN (May 1, 2026) ==========
-    function updateMainCountdown() {
-        const target = new Date(2026, 4, 1, 0, 0, 0).getTime();
-        const now = Date.now();
-        const remaining = target - now;
-        if (remaining <= 0) {
-            document.getElementById('mainTimerDisplay').innerHTML = "00:00:00";
-            return;
-        }
-        const days = Math.floor(remaining / 86400000);
-        const hours = Math.floor((remaining % 86400000) / 3600000);
-        const mins = Math.floor((remaining % 3600000) / 60000);
-        const secs = Math.floor((remaining % 60000) / 1000);
-        document.getElementById('mainTimerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+    // Main Countdown to May 1, 2026
+function getTargetDate() {
+    return new Date(2026, 4, 1, 0, 0, 0).getTime(); // May 1, 2026, 12:00 AM
+}
+
+function updateMainCountdown() {
+    const now = Date.now();
+    const target = getTargetDate();
+    const remaining = target - now;
+    
+    if (remaining <= 0) {
+        document.getElementById('mainTimerDisplay').innerHTML = "00:00:00";
+        return;
     }
-    setInterval(updateMainCountdown, 1000);
-    updateMainCountdown();
+    
+    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((remaining % (86400000)) / 3600000);
+    const minutes = Math.floor((remaining % 3600000) / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
+    
+    document.getElementById('mainTimerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Run immediately and then every second
+updateMainCountdown();
+setInterval(updateMainCountdown, 1000);
     
     // ========== LOAD / SAVE FIREBASE ==========
     async function loadGameData() {
