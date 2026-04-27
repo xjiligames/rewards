@@ -445,3 +445,33 @@ body {
     height: 18px;
     vertical-align: middle;
 }
+
+/* Add this to your existing promo.css */
+
+/* Lucky Day Image Container */
+.luckyday-image-container {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.luckyday-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+
+/* Remove background image from popup-container */
+.popup-container {
+    background: linear-gradient(145deg, #2a2035, #1a1525);
+    border-radius: 48px;
+    max-width: 360px;
+    width: 88%;
+    position: relative;
+    animation: popIn 0.4s ease;
+}
+
+/* Remove the ::before overlay since no background image */
+.popup-container::before {
+    display: none;
+}
