@@ -41,6 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Test ticker
     const winnerSpan = document.getElementById('winnerText');
     if (winnerSpan) {
-        winnerSpan.innerHTML = '🎲 0917***1234 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱150';
+        winnerSpan.innerHTML = ' 0917***1234 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱150';
     }
 });
