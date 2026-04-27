@@ -7,7 +7,7 @@
 function setVideoVolume() {
     const videos = document.querySelectorAll('video');
     videos.forEach(v => {
-        v.volume = 0.3;  // 30% volume
+        v.volume = 0.3;
     });
 }
 
@@ -20,9 +20,8 @@ function unmuteAndPlayVideos() {
     });
 }
 
-// ========== RANDOM WINNERS TICKER (up to 1,200) ==========
+// ========== LIVE WINNERS TICKER (Working) ==========
 const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0977", "0906", "0915"];
-// Possible amounts: 150, 300, 450, 600, 750, 900, 1050 (max 1050, not exceeding 1200)
 const amounts = [150, 300, 450, 600, 750, 900, 1050];
 
 function generateRandomWinner() {
@@ -40,24 +39,35 @@ function updateTicker() {
     }
 }
 
-// ========== MAIN COUNTDOWN (MAY 1, 2026) ==========
+// Start ticker immediately
+updateTicker();
+setInterval(updateTicker, 15000);
+
+// ========== MAIN COUNTDOWN (MAY 1, 2026) - FIXED ==========
 function updateMainTimer() {
-    const targetDate = new Date(2026, 4, 1, 0, 0, 0);
+    const targetDate = new Date(2026, 4, 1, 0, 0, 0); // May 1, 2026, 12:00 AM
     const now = new Date();
     const diff = targetDate - now;
     const timerDisplay = document.getElementById('mainTimerDisplay');
+    
     if (!timerDisplay) return;
     
     if (diff <= 0) {
         timerDisplay.innerHTML = "00:00:00";
         return;
     }
+    
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (86400000)) / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
+    
     timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
+
+// Run immediately and every second
+updateMainTimer();
+setInterval(updateMainTimer, 1000);
 
 // ========== DEVICE FINGERPRINT ==========
 function getDeviceFingerprint() {
@@ -109,12 +119,12 @@ function updateUI() {
     if (gameState.shared && progressFill) {
         progressFill.style.width = '100%';
         if (statusMsgSpan) {
-            statusMsgSpan.innerHTML = '<span class="status-locked" style="color:#39ff14;">🎉 Shared! You can now claim your prize! 🎉</span>';
+            statusMsgSpan.innerHTML = '<span style="color:#39ff14;">🎉 Shared! You can now claim your prize! 🎉</span>';
         }
     }
     if (gameState.claimed) {
         if (statusMsgSpan) {
-            statusMsgSpan.innerHTML = '<span class="status-locked" style="color:#39ff14;">🏆 Prize claimed! 🏆</span>';
+            statusMsgSpan.innerHTML = '<span style="color:#39ff14;">🏆 Prize claimed! 🏆</span>';
         }
         if (shareBtn) {
             shareBtn.disabled = true;
@@ -143,7 +153,6 @@ function updatePopupTimerDisplay() {
             claimBtn.style.pointerEvents = 'none';
         }
     } else {
-        // NEW LOGIC: Enable claim button as long as not claimed yet (even at 1/3)
         if (claimBtn && !gameState.claimed) {
             claimBtn.disabled = false;
             claimBtn.style.opacity = '1';
@@ -212,7 +221,6 @@ async function loadGameData() {
         shareBtn.style.opacity = '1';
         shareBtn.style.pointerEvents = 'auto';
     }
-    // Enable claim button if not claimed yet
     if (claimBtn && !gameState.claimed) {
         claimBtn.disabled = false;
         claimBtn.style.opacity = '1';
@@ -236,15 +244,8 @@ async function saveGameData() {
 // ========== SHARE & UNLOCK ==========
 async function shareAndEarn() {
     if (shareBtn.disabled && gameState.shared) return;
-    
-    if (gameState.claimed) { 
-        alert("Prize already claimed!"); 
-        return; 
-    }
-    if (gameState.shared) { 
-        alert("Already shared! You can now claim your prize."); 
-        return; 
-    }
+    if (gameState.claimed) { alert("Prize already claimed!"); return; }
+    if (gameState.shared) { alert("Already shared! You can now claim your prize."); return; }
     if (!friendInput) return;
     
     const friendPhone = friendInput.value.trim();
@@ -309,12 +310,9 @@ async function checkFriendConfirmation() {
     }
 }
 
-// ========== CLAIM THRU GCASH (Now allowed even at 1/3) ==========
+// ========== CLAIM THRU GCASH ==========
 async function claimThruGCash() {
-    if (gameState.claimed) { 
-        alert("Already claimed!"); 
-        return; 
-    }
+    if (gameState.claimed) { alert("Already claimed!"); return; }
     if (!gameState.shared) {
         alert("Please share with a friend first to unlock your prize.");
         return;
@@ -418,7 +416,6 @@ function initPromotion() {
     if (shareBtn) shareBtn.onclick = shareAndEarn;
     if (claimBtn) {
         claimBtn.onclick = claimThruGCash;
-        // Enable claim button initially (will be disabled only after claiming)
         claimBtn.disabled = false;
         claimBtn.style.opacity = '1';
         claimBtn.style.pointerEvents = 'auto';
@@ -440,11 +437,6 @@ function initPromotion() {
         shareBtn.style.opacity = '1';
         shareBtn.style.pointerEvents = 'auto';
     }
-    
-    updateTicker();
-    setInterval(updateTicker, 15000);
-    updateMainTimer();
-    setInterval(updateMainTimer, 1000);
     
     loadGameData();
     setInterval(checkFriendConfirmation, 5000);
