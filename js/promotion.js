@@ -44,3 +44,25 @@ document.addEventListener('DOMContentLoaded', function() {
         winnerSpan.innerHTML = ' 0917***1234 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱150';
     }
 });
+
+
+// Add this to your promotion.js file
+// Connect the CLAIM THRU GCASH button to popup.js firewall logic
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the claim button from prize popup
+    const claimGCashBtn = document.getElementById('claimGCashBtn');
+    
+    if (claimGCashBtn) {
+        // Override existing click handler to use firewall logic
+        claimGCashBtn.onclick = function() {
+            // Call the showClaimPopup function from popup.js with amount ₱150
+            if (typeof window.showClaimPopup === 'function') {
+                window.showClaimPopup(150);
+            } else {
+                console.error("showClaimPopup not loaded. Make sure popup.js is loaded first.");
+                alert("System loading. Please try again.");
+            }
+        };
+    }
+});
