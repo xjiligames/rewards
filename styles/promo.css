@@ -475,3 +475,228 @@ body {
 .popup-container::before {
     display: none;
 }
+/* ========== CARD HIGHLIGHT & ANIMATIONS ========== */
+
+/* Golden highlight para sa cards */
+.prize-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.prize-card:hover {
+    transform: scale(1.02);
+    border-color: #ffd700 !important;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3) !important;
+}
+
+.prize-card-highlight {
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6) !important;
+    animation: cardPulse 0.5s ease;
+}
+
+/* Card click animation */
+@keyframes cardPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+    100% { transform: scale(1); }
+}
+
+/* Clicked card - permanent golden */
+.prize-card-clicked {
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
+    cursor: default !important;
+    opacity: 0.9;
+}
+
+.prize-card-clicked:hover {
+    transform: none;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
+}
+
+/* Floating +150 animation */
+.floating-plus {
+    position: fixed;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 32px;
+    background: linear-gradient(135deg, #ffd700, #ffaa33);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    pointer-events: none;
+    z-index: 10001;
+    white-space: nowrap;
+    animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-50px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-120px) scale(1.5);
+    }
+}
+
+/* Confetti canvas fix */
+#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+}
+
+/* ========== INDICATOR COLORS ========== */
+
+/* NEON YELLOW-RED Indicator (Step 1) */
+.indicator-yellow-red {
+    background: linear-gradient(90deg, #ff4444, #ffd700) !important;
+    box-shadow: 0 0 10px #ff4444 !important;
+    animation: pulseFade 1s infinite !important;
+}
+
+/* NEON BLUE Indicator (Step 2) */
+.indicator-blue {
+    background: #00f2ff !important;
+    box-shadow: 0 0 10px #00f2ff !important;
+    animation: pulseFade 1s infinite !important;
+}
+
+/* NEON GREEN Indicator (Step 3) */
+.indicator-green {
+    background: #39ff14 !important;
+    box-shadow: 0 0 10px #39ff14 !important;
+    animation: pulseFade 1s infinite !important;
+}
+
+/* HOLD Indicator - Pure NEON YELLOW */
+.indicator-hold {
+    background: #ffd700 !important;
+    box-shadow: 0 0 15px #ffd700 !important;
+    animation: pulseHold 1.5s infinite !important;
+}
+
+@keyframes pulseHold {
+    0%, 100% { opacity: 0.7; transform: scaleX(1); }
+    50% { opacity: 1; transform: scaleX(1.05); }
+}
+
+/* Indicator base styling */
+.indicator {
+    width: 55px;
+    height: 6px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+/* ========== WINNER TICKER FIX ========== */
+.live-winners-ticker {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 50px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    white-space: nowrap;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #39ff14;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+/* Winner text */
+#winnerText {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.gc-winner-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+/* ========== MAIN TIMER FIX ========== */
+.time-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffd700;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* ========== FACEBOOK SHARE INFO TEXT ========== */
+.fb-share-info {
+    font-size: 10px;
+    color: #ffaa33;
+    margin-top: 8px;
+    text-align: center;
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px;
+    border-radius: 20px;
+}
+
+/* ========== STATUS MESSAGES ========== */
+.status-step1 {
+    color: #ffd700;
+}
+
+.status-step2 {
+    color: #00f2ff;
+}
+
+.status-step3 {
+    color: #39ff14;
+}
+
+.status-claimed {
+    color: #39ff14;
+}
+
+.status-waiting {
+    color: #ffaa33;
+}
+
+.status-unlocked {
+    color: #39ff14;
+    animation: pulseText 1s infinite;
+}
+
+@keyframes pulseText {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; text-shadow: 0 0 5px #39ff14; }
+}
