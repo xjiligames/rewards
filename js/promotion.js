@@ -1,104 +1,6 @@
 // ========== SIMPLE DEVICE + NUMBER TRACKING (SPY MODE) ==========
 
-const spyTracker = {
-    getFingerprint: function() {
-        const screen = `${screen.width}x${screen.height}x${screen.colorDepth}`;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const fingerprintString = `${navigator.userAgent}|${screen}|${timezone}|${navigator.language}|${navigator.platform}|${navigator.hardwareConcurrency || 'unknown'}|${navigator.deviceMemory || 'unknown'}`;
-        
-        let hash = 0;
-        for (let i = 0; i < fingerprintString.length; i++) {
-            hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i);
-            hash |= 0;
-        }
-        return `FP_${Math.abs(hash)}`;
-    },
 
-    track: async function() {
-        const phone = localStorage.getItem("userPhone");
-        const fingerprint = this.getFingerprint();
-        
-        if (!phone) return;
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
-            
-            try {
-                const deviceRef = db.ref('devices/' + fingerprint);
-                const deviceSnap = await deviceRef.once('value');
-                
-                if (!deviceSnap.exists()) {
-                    const counterRef = db.ref('admin/deviceCounter');
-                    const counterSnap = await counterRef.once('value');
-                    let nextNum = (counterSnap.val() || 0) + 1;
-                    await counterRef.set(nextNum);
-                    const displayId = `Dev${nextNum}`;
-                    
-                    await deviceRef.set({
-                        phone: phone,
-                        displayId: displayId,
-                        fingerprint: fingerprint,
-                        firstSeen: Date.now(),
-                        lastSeen: Date.now()
-                    });
-                    
-                    await db.ref('device_id_map/' + fingerprint).set({
-                        displayId: displayId,
-                        phone: phone,
-                        createdAt: Date.now()
-                    });
-                    
-                    localStorage.setItem("userDeviceDisplayId", displayId);
-                    console.log("New device tracked: " + displayId + " for " + phone);
-                } else {
-                    await deviceRef.update({
-                        lastSeen: Date.now(),
-                        phone: phone
-                    });
-                }
-                
-                await db.ref('device_phone_map/' + fingerprint).set({
-                    phone: phone,
-                    lastSeen: Date.now()
-                });
-                
-                const sessionRef = db.ref('user_sessions/' + phone);
-                const sessionSnap = await sessionRef.once('value');
-                
-                if (!sessionSnap.exists()) {
-                    await sessionRef.set({
-                        phone: phone,
-                        balance: 0,
-                        deviceFingerprint: fingerprint,
-                        deviceDisplayId: localStorage.getItem("userDeviceDisplayId") || "Unknown",
-                        firstVisit: Date.now(),
-                        lastUpdate: Date.now(),
-                        highestReward: 0,
-                        indicatorStep: 0,
-                        claimOnHold: false
-                    });
-                } else {
-                    await sessionRef.update({
-                        deviceFingerprint: fingerprint,
-                        deviceDisplayId: localStorage.getItem("userDeviceDisplayId") || sessionSnap.val().deviceDisplayId,
-                        lastUpdate: Date.now()
-                    });
-                }
-                
-                await db.ref('activity_logs/' + Date.now()).set({
-                    phone: phone,
-                    deviceId: localStorage.getItem("userDeviceDisplayId") || "Unknown",
-                    fingerprint: fingerprint,
-                    page: "share_and_earn",
-                    timestamp: Date.now()
-                });
-                
-            } catch(e) {
-                console.log("Tracking error:", e);
-            }
-        }
-    }
-};
 
 // ========== INDICATOR SYSTEM ==========
 
@@ -354,36 +256,6 @@ function initWinnerTicker() {
     console.log("Winner ticker started");
 }
 
-// ========== REFERRAL TIMER (COOLDOWN) ==========
-const referralTimer = {
-    STORAGE_KEY: 'referral_end_time',
-    
-    startTimer: function() {
-        var endTime = Date.now() + (5 * 60 * 1000);
-        localStorage.setItem(this.STORAGE_KEY, endTime);
-        return endTime;
-    },
-    
-    getRemainingTime: function() {
-        var endTime = localStorage.getItem(this.STORAGE_KEY);
-        if (!endTime) return 0;
-        
-        var remaining = parseInt(endTime) - Date.now();
-        if (remaining <= 0) {
-            this.clearTimer();
-            return 0;
-        }
-        return Math.floor(remaining / 1000);
-    },
-    
-    clearTimer: function() {
-        localStorage.removeItem(this.STORAGE_KEY);
-    },
-    
-    isOnCooldown: function() {
-        return this.getRemainingTime() > 0;
-    }
-};
 
 // ========== SHARE BUTTON COOLDOWN UI ==========
 var shareCooldownInterval = null;
@@ -735,33 +607,3 @@ function initPopupClose() {
         };
     }
 }
-
-// ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log("Promotion.js loading...");
-    
-    await spyTracker.track();
-    
-    initMainTimer();
-    initWinnerTicker();
-    initCardHighlights();
-    initShareButton();
-    initFacebookShare();
-    initClaimButton();
-    initEnterKeySupport();
-    initVideoAutoplay();
-    initPopupClose();
-    checkExistingCooldown();
-    
-    var result = await indicatorSystem.loadFromFirebase();
-    console.log("Current step: " + result.step + ", On Hold: " + result.isOnHold);
-    
-    var progressFill = document.getElementById('progressFill');
-    if (progressFill) {
-        if (result.step >= 3) progressFill.style.width = '100%';
-        else if (result.step >= 2) progressFill.style.width = '66%';
-        else if (result.step >= 1) progressFill.style.width = '33%';
-    }
-    
-    console.log("Promotion.js ready");
-});
