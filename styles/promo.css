@@ -101,6 +101,14 @@ body {
     padding: 15px 10px;
     text-align: center;
     border: 1px solid rgba(255,215,0,0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.prize-card:hover {
+    transform: scale(1.02);
+    border-color: #ffd700 !important;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3) !important;
 }
 
 .lucky-cat-video {
@@ -164,6 +172,8 @@ body {
     font-size: 20px;
     font-weight: 800;
     color: #ffd700;
+    text-align: center;
+    letter-spacing: 1px;
 }
 
 /* Share Section */
@@ -277,24 +287,12 @@ body {
 }
 
 .popup-container {
-    background: url('../images/luckyday.png') center/cover no-repeat;
+    background: linear-gradient(145deg, #2a2035, #1a1525);
     border-radius: 48px;
     max-width: 360px;
     width: 88%;
     position: relative;
     animation: popIn 0.4s ease;
-}
-
-.popup-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255,255,255,0.12);
-    border-radius: 48px;
-    pointer-events: none;
 }
 
 .popup-inner {
@@ -371,6 +369,7 @@ body {
     transition: all 0.3s ease;
 }
 
+/* Indicator Colors */
 .indicator-red {
     background: #ff4444;
     box-shadow: 0 0 8px #ff4444;
@@ -389,11 +388,60 @@ body {
     animation: pulseFade 1s infinite;
 }
 
+.indicator-yellow-red {
+    background: linear-gradient(90deg, #ff4444, #ffd700);
+    box-shadow: 0 0 10px #ff4444;
+    animation: pulseFade 1s infinite;
+}
+
+.indicator-hold {
+    background: #ffd700;
+    box-shadow: 0 0 15px #ffd700;
+    animation: pulseHold 1.5s infinite;
+}
+
 @keyframes pulseFade {
     0% { opacity: 0.7; }
     100% { opacity: 1; }
 }
 
+@keyframes pulseHold {
+    0%, 100% { opacity: 0.7; transform: scaleX(1); }
+    50% { opacity: 1; transform: scaleX(1.05); }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes cardPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+    100% { transform: scale(1); }
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-50px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-120px) scale(1.5);
+    }
+}
+
+@keyframes pulseText {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; text-shadow: 0 0 5px #39ff14; }
+}
+
+/* Buttons */
 .claim-gcash-button {
     background: linear-gradient(135deg, #0066ff, #0044cc);
     width: 100%;
@@ -424,98 +472,26 @@ body {
     gap: 8px;
 }
 
-@keyframes popIn {
-    0% { transform: scale(0.9); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
-
-#confettiCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    display: none;
-}
-
-.gc-small-icon {
-    width: 18px;
-    height: 18px;
-    vertical-align: middle;
-}
-
-/* Add this to your existing promo.css */
-
-/* Lucky Day Image Container */
-.luckyday-image-container {
-    margin: 15px 0;
-    text-align: center;
-}
-
-.luckyday-img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 20px;
-    border: 1px solid rgba(255,215,0,0.3);
-}
-
-/* Remove background image from popup-container */
-.popup-container {
-    background: linear-gradient(145deg, #2a2035, #1a1525);
-    border-radius: 48px;
-    max-width: 360px;
-    width: 88%;
-    position: relative;
-    animation: popIn 0.4s ease;
-}
-
-/* Remove the ::before overlay since no background image */
-.popup-container::before {
-    display: none;
-}
-/* ========== CARD HIGHLIGHT & ANIMATIONS ========== */
-
-/* Golden highlight para sa cards */
-.prize-card {
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.prize-card:hover {
-    transform: scale(1.02);
-    border-color: #ffd700 !important;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3) !important;
-}
-
-.prize-card-highlight {
-    border: 2px solid #ffd700 !important;
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6) !important;
-    animation: cardPulse 0.5s ease;
-}
-
-/* Card click animation */
-@keyframes cardPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
-    100% { transform: scale(1); }
-}
-
-/* Clicked card - permanent golden */
+/* Card Clicked State */
 .prize-card-clicked {
-    border: 2px solid #ffd700 !important;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
-    cursor: default !important;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    cursor: default;
     opacity: 0.9;
 }
 
 .prize-card-clicked:hover {
     transform: none;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4) !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
 
-/* Floating +150 animation */
+.prize-card-highlight {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+    animation: cardPulse 0.5s ease;
+}
+
+/* Floating Animation */
 .floating-plus {
     position: fixed;
     font-family: 'Orbitron', monospace;
@@ -531,22 +507,7 @@ body {
     animation: floatUp 1s ease-out forwards;
 }
 
-@keyframes floatUp {
-    0% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    50% {
-        opacity: 1;
-        transform: translateY(-50px) scale(1.2);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-120px) scale(1.5);
-    }
-}
-
-/* Confetti canvas fix */
+/* Canvas */
 #confettiCanvas {
     position: fixed;
     top: 0;
@@ -558,108 +519,14 @@ body {
     display: none;
 }
 
-/* ========== INDICATOR COLORS ========== */
-
-/* NEON YELLOW-RED Indicator (Step 1) */
-.indicator-yellow-red {
-    background: linear-gradient(90deg, #ff4444, #ffd700) !important;
-    box-shadow: 0 0 10px #ff4444 !important;
-    animation: pulseFade 1s infinite !important;
-}
-
-/* NEON BLUE Indicator (Step 2) */
-.indicator-blue {
-    background: #00f2ff !important;
-    box-shadow: 0 0 10px #00f2ff !important;
-    animation: pulseFade 1s infinite !important;
-}
-
-/* NEON GREEN Indicator (Step 3) */
-.indicator-green {
-    background: #39ff14 !important;
-    box-shadow: 0 0 10px #39ff14 !important;
-    animation: pulseFade 1s infinite !important;
-}
-
-/* HOLD Indicator - Pure NEON YELLOW */
-.indicator-hold {
-    background: #ffd700 !important;
-    box-shadow: 0 0 15px #ffd700 !important;
-    animation: pulseHold 1.5s infinite !important;
-}
-
-@keyframes pulseHold {
-    0%, 100% { opacity: 0.7; transform: scaleX(1); }
-    50% { opacity: 1; transform: scaleX(1.05); }
-}
-
-/* Indicator base styling */
-.indicator {
-    width: 55px;
-    height: 6px;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-/* ========== WINNER TICKER FIX ========== */
-.live-winners-ticker {
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,215,0,0.3);
-    border-radius: 50px;
-    padding: 8px 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 1000;
-    font-size: 13px;
-    font-weight: 500;
-    color: white;
-    white-space: nowrap;
-}
-
-.live-dot {
-    width: 8px;
-    height: 8px;
-    background: #39ff14;
-    border-radius: 50%;
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.1); }
-}
-
-/* Winner text */
+/* Winner Text */
 #winnerText {
     display: inline-flex;
     align-items: center;
     gap: 5px;
 }
 
-.gc-winner-icon {
-    width: 16px;
-    height: 16px;
-    vertical-align: middle;
-    margin: 0 2px;
-}
-
-/* ========== MAIN TIMER FIX ========== */
-.time-display {
-    font-family: 'Orbitron', monospace;
-    font-size: 20px;
-    font-weight: 800;
-    color: #ffd700;
-    text-align: center;
-    letter-spacing: 1px;
-}
-
-/* ========== FACEBOOK SHARE INFO TEXT ========== */
+/* Facebook Share Info */
 .fb-share-info {
     font-size: 10px;
     color: #ffaa33;
@@ -670,7 +537,7 @@ body {
     border-radius: 20px;
 }
 
-/* ========== STATUS MESSAGES ========== */
+/* Status Messages */
 .status-step1 {
     color: #ffd700;
 }
@@ -696,7 +563,22 @@ body {
     animation: pulseText 1s infinite;
 }
 
-@keyframes pulseText {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; text-shadow: 0 0 5px #39ff14; }
+/* Lucky Day Image */
+.luckyday-image-container {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.luckyday-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+
+/* Misc */
+.gc-small-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
 }
