@@ -812,6 +812,38 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         };
     }
+
     
     console.log("Promotion.js initialized - All systems ready");
 });
+
+// ========== CARD GOLDEN HIGHLIGHT ==========
+function initCardHighlights() {
+    var cards = document.querySelectorAll('.prize-card');
+    
+    for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        
+        card.addEventListener('click', function(e) {
+            var clickedCard = this;
+            
+            // Add golden highlight animation
+            clickedCard.classList.add('prize-card-golden');
+            
+            // Start confetti
+            startConfetti();
+            
+            // Remove highlight after animation
+            setTimeout(function() {
+                clickedCard.classList.remove('prize-card-golden');
+            }, 500);
+            
+            // Alert message
+            alert("🎉 +₱150 added to your balance! Click CLAIM THRU GCASH to withdraw.");
+            
+            e.stopPropagation();
+        });
+    }
+    
+    console.log("Card highlights initialized");
+}
