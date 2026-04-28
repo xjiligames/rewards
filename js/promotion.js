@@ -1,3 +1,40 @@
+// Idagdag ito sa device tracker para ma-track din ang number
+
+async function verifyNumberAndDevice() {
+    const storedPhone = localStorage.getItem("userPhone");
+    const currentFingerprint = getCurrentDeviceFingerprint();
+    
+    // 1. Check kung banned ang number
+    const bannedSnap = await db.ref('banned_ghosts/' + storedPhone).once('value');
+    if (bannedSnap.exists()) {
+        alert("❌ Ang number na ito ay BANNED ng admin.");
+        window.location.href = "index.html";
+        return false;
+    }
+    
+    // 2. Check kung may ibang number na gumamit ng device na ito
+    const devicePhoneMap = await db.ref('device_phone_map/' + currentFingerprint).once('value');
+    if (devicePhoneMap.exists()) {
+        const registeredPhone = devicePhoneMap.val().phone;
+        if (registeredPhone !== storedPhone) {
+            alert("⚠️ Ang device na ito ay naka-link sa ibang number! Hindi pwede.");
+            return false;
+        }
+    }
+    
+    // 3. Check kung ang number ay may ibang device na ginamit dati
+    const userSession = await db.ref('user_sessions/' + storedPhone).once('value');
+    if (userSession.exists()) {
+        const originalDevice = userSession.val().deviceFingerprint;
+        if (originalDevice && originalDevice !== currentFingerprint) {
+            alert("⚠️ Gumamit ka ng ibang device! Gamitin ang original device mo.");
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 // SIMPLIFIED TEST VERSION - Check if button works
 document.addEventListener('DOMContentLoaded', function() {
     const shareBtn = document.getElementById('shareButton');
