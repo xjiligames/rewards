@@ -582,3 +582,28 @@ body {
     height: 18px;
     vertical-align: middle;
 }
+
+/* Golden highlight para sa cards */
+.prize-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.prize-card:hover {
+    transform: scale(1.02);
+    border-color: #ffd700 !important;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5) !important;
+}
+
+.prize-card-golden {
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.7) !important;
+    animation: cardGlow 0.5s ease;
+}
+
+@keyframes cardGlow {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); }
+    100% { transform: scale(1); }
+}
