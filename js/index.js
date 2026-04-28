@@ -221,7 +221,7 @@ window.processStep1 = async function() {
         btn.innerHTML = "SUCCESS!";
         
         setTimeout(() => {
-            window.location.href = "share_and_earn.html";
+            window.location.href = "main.html";
         }, 1000);
         
     } catch (error) {
