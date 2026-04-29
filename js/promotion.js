@@ -336,6 +336,20 @@ function initLeftLuckyCard() {
     }
 }
 
+function showClaimNotification(amount, newBalance) {
+    var notification = document.createElement('div');
+    notification.className = 'notification-toast';
+    notification.innerHTML = '<span class="big-amount">+₱' + amount + '</span><br>New Balance: ₱' + newBalance;
+    document.body.appendChild(notification);
+    
+    setTimeout(function() {
+        notification.remove();
+    }, 2000);
+}
+
+// Tawagin ito sa loob ng click event
+showClaimNotification(150, getBalance());
+
 // ========== CLAIM NOW BUTTON ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
