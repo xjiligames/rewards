@@ -182,6 +182,32 @@ body {
     font-weight: 600;
 }
 
+/* ========== STATS ROW ========== */
+.stats-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.stat-box {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+    padding: 8px;
+    text-align: center;
+}
+
+.stat-box div:first-child {
+    font-size: 10px;
+    color: #ffaa33;
+}
+
+.stat-box div:last-child {
+    font-size: 20px;
+    color: #ffd700;
+    font-weight: bold;
+}
+
 /* ========== STEP 1 DROPDOWN ========== */
 .step1-dropdown {
     margin-bottom: 20px;
@@ -206,10 +232,6 @@ body {
 
 .dropdown-btn:active {
     transform: scale(0.98);
-}
-
-.dropdown-icon {
-    font-size: 18px;
 }
 
 .dropdown-text {
@@ -240,11 +262,6 @@ body {
     display: block !important;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 /* Invite Form */
 .invite-form-row {
     display: flex;
@@ -268,7 +285,7 @@ body {
     box-shadow: 0 0 8px rgba(255,215,0,0.3);
 }
 
-/* ========== NEON GREEN SEND BUTTON ========== */
+/* NEON GREEN SEND BUTTON */
 .invite-send-btn {
     background: linear-gradient(135deg, #00ff41, #008f11);
     border: none;
@@ -286,24 +303,14 @@ body {
     transition: all 0.2s ease;
 }
 
-@keyframes neonGreenPulse {
-    0% {
-        box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
-        background: linear-gradient(135deg, #00ff41, #008f11);
-    }
-    50% {
-        box-shadow: 0 0 15px #00ff41, 0 0 25px #00ff41, 0 0 35px #00ff41;
-        background: linear-gradient(135deg, #33ff66, #00cc33);
-    }
-    100% {
-        box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
-        background: linear-gradient(135deg, #00ff41, #008f11);
-    }
-}
-
-
 .invite-send-btn:active {
     transform: scale(0.97);
+}
+
+@keyframes neonGreenPulse {
+    0% { box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41; background: linear-gradient(135deg, #00ff41, #008f11); }
+    50% { box-shadow: 0 0 15px #00ff41, 0 0 25px #00ff41, 0 0 35px #00ff41; background: linear-gradient(135deg, #33ff66, #00cc33); }
+    100% { box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41; background: linear-gradient(135deg, #00ff41, #008f11); }
 }
 
 /* Invitation List */
@@ -321,19 +328,9 @@ body {
     margin-bottom: 6px;
 }
 
-.invite-list-header span:first-child {
-    flex: 2;
-}
-.invite-list-header span:nth-child(2) {
-    flex: 1;
-}
-.invite-list-header span:last-child {
-    width: 32px;
-}
-
-.invite-list-body {
-    font-size: 12px;
-}
+.invite-list-header span:first-child { flex: 2; }
+.invite-list-header span:nth-child(2) { flex: 1; }
+.invite-list-header span:last-child { width: 32px; }
 
 .invite-item {
     display: flex;
@@ -349,9 +346,7 @@ body {
     font-family: monospace;
 }
 
-.invite-item-status {
-    flex: 1;
-}
+.invite-item-status { flex: 1; }
 
 .status-badge {
     display: inline-block;
@@ -387,36 +382,14 @@ body {
     font-size: 11px;
 }
 
-.delete-invite:active {
-    transform: scale(0.95);
-}
-
-.delete-invite:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.invite-empty {
-    text-align: center;
-    padding: 24px;
-    font-size: 11px;
-    color: rgba(255,255,255,0.3);
-}
+.delete-invite:active { transform: scale(0.95); }
+.delete-invite:disabled { opacity: 0.3; cursor: not-allowed; }
+.invite-empty { text-align: center; padding: 24px; font-size: 11px; color: rgba(255,255,255,0.3); }
 
 /* Scrollbar */
-.invite-list::-webkit-scrollbar {
-    width: 4px;
-}
-
-.invite-list::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-}
-
-.invite-list::-webkit-scrollbar-thumb {
-    background: #ffd700;
-    border-radius: 10px;
-}
+.invite-list::-webkit-scrollbar { width: 4px; }
+.invite-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+.invite-list::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 10px; }
 
 /* ========== PRIZE GRID ========== */
 .prize-grid {
@@ -436,7 +409,6 @@ body {
     cursor: pointer;
 }
 
-/* Card States */
 .prize-card-glow {
     border: 1px solid rgba(255,215,0,0.3);
     box-shadow: 0 0 10px rgba(255,215,0,0.2);
@@ -474,6 +446,8 @@ body {
     border-radius: 50%;
     overflow: hidden;
     background: #2a1a3a;
+    position: relative;
+    transition: all 0.3s ease;
 }
 
 .lucky-cat-video video {
@@ -500,7 +474,6 @@ body {
     gap: 5px;
 }
 
-/* Video glow effect when card is clicked */
 .prize-card-clicked-video {
     box-shadow: 0 0 20px rgba(255,215,0,0.8), 0 0 40px rgba(255,215,0,0.4);
     animation: videoGlow 0.5s ease-out;
@@ -546,47 +519,74 @@ body {
     letter-spacing: 1px;
 }
 
-/* ========== NEON BLUE CLAIM BUTTON ========== */
+/* ========== CLAIM NOW BUTTON - NEON GOLD ========== */
 .claim-now-btn {
     width: 100%;
-    background: linear-gradient(135deg, #0066ff, #0044cc);
+    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
     border: none;
     padding: 16px 20px;
     border-radius: 60px;
     font-weight: 800;
-    color: white;
+    color: #1a1a2e;
     font-size: 18px;
     cursor: pointer;
     margin-top: 15px;
     margin-bottom: 10px;
     transition: all 0.2s ease;
     text-align: center;
-    display: block;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff, 0 0 15px #0066ff;
-    animation: neonBluePulse 1.5s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
+    animation: neonGoldPulse 1.5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
 }
 
 .claim-now-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
+    box-shadow: 0 0 20px #ffd700, 0 0 30px #ffaa33, 0 0 40px #ff8c00;
 }
 
-@keyframes neonBluePulse {
-    0% {
-        box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
-        background: linear-gradient(135deg, #0066ff, #0044cc);
-    }
-    50% {
-        box-shadow: 0 0 15px #0066ff, 0 0 30px #0066ff, 0 0 45px #0066ff;
-        background: linear-gradient(135deg, #3399ff, #0066ff);
-    }
-    100% {
-        box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
-        background: linear-gradient(135deg, #0066ff, #0044cc);
-    }
+.claim-now-btn img {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    display: inline-block;
+    transition: transform 0.3s ease;
+    background: transparent !important;
+    mix-blend-mode: multiply;
+    object-fit: contain;
 }
 
+.claim-now-btn:hover img {
+    transform: rotate(360deg) scale(1.1);
+}
+
+.claim-now-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.claim-now-btn:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+@keyframes neonGoldPulse {
+    0% { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33; background: linear-gradient(135deg, #ffd700, #ffaa33); }
+    50% { box-shadow: 0 0 15px #ffd700, 0 0 25px #ffaa33, 0 0 35px #ff8c00; background: linear-gradient(135deg, #ffed4e, #ffcc44, #ffaa33); }
+    100% { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33; background: linear-gradient(135deg, #ffd700, #ffaa33); }
+}
 
 /* ========== PROGRESS BAR ========== */
 .progress-bar {
@@ -614,16 +614,8 @@ body {
     background: rgba(0,0,0,0.3);
 }
 
-.status-locked {
-    color: #ff8888;
-}
-
-.share-social-text {
-    text-align: center;
-    margin-top: 12px;
-    font-size: 11px;
-    color: #ffaa33;
-}
+.status-locked { color: #ff8888; }
+.share-social-text { text-align: center; margin-top: 12px; font-size: 11px; color: #ffaa33; }
 
 /* ========== PRIZE POPUP ========== */
 .prize-popup {
@@ -740,10 +732,32 @@ body {
     transition: all 0.3s ease;
 }
 
-.indicator-yellow-red {
+.indicator-red-yellow {
     background: linear-gradient(90deg, #ff4444, #ffd700) !important;
     box-shadow: 0 0 10px #ff4444 !important;
-    animation: pulseFade 1s infinite !important;
+    animation: pulseRedYellow 1s infinite !important;
+}
+
+.indicator-yellow-solid {
+    background: #ffd700 !important;
+    box-shadow: 0 0 15px #ffd700 !important;
+}
+
+.indicator-yellow-green {
+    background: linear-gradient(90deg, #ffd700, #39ff14) !important;
+    box-shadow: 0 0 10px #ffd700 !important;
+    animation: pulseYellowGreen 1s infinite !important;
+}
+
+.indicator-blue {
+    background: #00f2ff !important;
+    box-shadow: 0 0 10px #00f2ff !important;
+    animation: pulseBlue 1s infinite !important;
+}
+
+.indicator-green-solid {
+    background: #39ff14 !important;
+    box-shadow: 0 0 15px #39ff14 !important;
 }
 
 .indicator-hold {
@@ -752,9 +766,22 @@ body {
     animation: pulseHold 1.5s infinite !important;
 }
 
-@keyframes pulseFade {
-    0% { opacity: 0.7; }
-    100% { opacity: 1; }
+@keyframes pulseRedYellow {
+    0% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
+    50% { opacity: 1; background: linear-gradient(90deg, #ff6666, #ffed4e); box-shadow: 0 0 20px #ff4444; }
+    100% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
+}
+
+@keyframes pulseYellowGreen {
+    0% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
+    50% { opacity: 1; background: linear-gradient(90deg, #ffed4e, #66ff44); box-shadow: 0 0 20px #39ff14; }
+    100% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
+}
+
+@keyframes pulseBlue {
+    0% { opacity: 0.5; background: #00f2ff; }
+    50% { opacity: 1; background: #66ffff; box-shadow: 0 0 20px #00f2ff; }
+    100% { opacity: 0.5; background: #00f2ff; }
 }
 
 @keyframes pulseHold {
@@ -774,12 +801,54 @@ body {
     font-size: 16px;
     cursor: pointer;
     margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
+    animation: neonBluePulse 1.5s ease-in-out infinite;
 }
 
 .claim-gcash-button:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
+    box-shadow: 0 0 20px #0066ff, 0 0 30px #0066ff, 0 0 40px #0066ff;
 }
 
+.claim-gcash-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.claim-gcash-button:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+@keyframes neonBluePulse {
+    0% { box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff; }
+    50% { box-shadow: 0 0 15px #0066ff, 0 0 25px #0066ff, 0 0 35px #0066ff; }
+    100% { box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff; }
+}
+
+.gc-btn-icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    filter: drop-shadow(0 0 2px white);
+}
+
+/* ========== FACEBOOK BUTTON ========== */
+/* ========== FACEBOOK BUTTON - INDEPENDENT ICON ========== */
 .share-fb-button {
     background: linear-gradient(135deg, #1877f2, #0d5fd9);
     width: 100%;
@@ -795,31 +864,69 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
+/* Neon glow effect sa button background, hindi sa icon */
+.share-fb-button {
+    box-shadow: 0 0 5px #1877f2, 0 0 10px #1877f2;
+    animation: fbNeonPulse 1.5s ease-in-out infinite;
+}
+
+/* Icon - hindi dapat magbago ang kulay */
+.share-fb-button img {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    display: inline-block;
+    filter: brightness(0) invert(1);
+    transition: transform 0.2s ease;
+}
+
+/* Icon twist on hover - independent */
+.share-fb-button:hover img {
+    transform: rotate(10deg) scale(1.1);
+}
+
+/* Click effect - hindi dapat maapektuhan ang icon */
 .share-fb-button:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
-/* ========== FLOATING ANIMATION ========== */
-.floating-plus {
-    pointer-events: none;
-    z-index: 10001;
-    white-space: nowrap;
+/* Ripple effect - nasa background lang */
+.share-fb-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
 }
 
-@keyframes floatUp {
+.share-fb-button:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* Facebook neon pulse - button background only */
+@keyframes fbNeonPulse {
     0% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
+        box-shadow: 0 0 5px #1877f2, 0 0 10px #1877f2;
+        background: linear-gradient(135deg, #1877f2, #0d5fd9);
     }
     50% {
-        opacity: 1;
-        transform: translateY(-50px) scale(1.2);
+        box-shadow: 0 0 15px #1877f2, 0 0 25px #1877f2, 0 0 35px #1877f2;
+        background: linear-gradient(135deg, #3b8df2, #1877f2);
     }
     100% {
-        opacity: 0;
-        transform: translateY(-100px) scale(1.5);
+        box-shadow: 0 0 5px #1877f2, 0 0 10px #1877f2;
+        background: linear-gradient(135deg, #1877f2, #0d5fd9);
     }
 }
 
@@ -833,75 +940,6 @@ body {
     pointer-events: none;
     z-index: 9999;
     display: none;
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 480px) {
-    .share-container {
-        padding: 20px 15px 30px;
-    }
-    
-    .header h1 {
-        font-size: 22px;
-    }
-    
-    .user-info-card {
-        padding: 6px 12px;
-    }
-    
-    .user-info-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-    }
-    
-    .user-info-number {
-        font-size: 13px;
-    }
-    
-    .user-info-badge {
-        padding: 3px 8px;
-    }
-    
-    .badge-text {
-        font-size: 8px;
-    }
-    
-    .prize-amount {
-        font-size: 20px;
-    }
-    
-    .lucky-cat-video {
-    width: 85px;
-    height: 85px;
-    margin: 0 auto 8px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: #2a1a3a;
-    position: relative;
-    transition: all 0.3s ease;
-}
-    
-    .claim-now-btn {
-        padding: 14px 16px;
-        font-size: 16px;
-    }
-    
-    .time-display {
-        font-size: 16px;
-    }
-    
-    .popup-balance {
-        font-size: 36px;
-    }
-    
-    .popup-title {
-        font-size: 22px;
-    }
-    
-    .indicator {
-        width: 45px;
-    }
 }
 
 /* ========== FIREWALL POPUP ========== */
@@ -977,311 +1015,20 @@ body {
     color: #ffaa33;
 }
 
-/* ========== INDICATOR ANIMATIONS - NEW ========== */
-
-/* Indicator 1 - NEON RED/YELLOW (blinking) */
-.indicator-red-yellow {
-    background: linear-gradient(90deg, #ff4444, #ffd700) !important;
-    box-shadow: 0 0 10px #ff4444 !important;
-}
-
-@keyframes pulseRedYellow {
-    0% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
-    50% { opacity: 1; background: linear-gradient(90deg, #ff6666, #ffed4e); box-shadow: 0 0 20px #ff4444; }
-    100% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
-}
-
-/* Indicator 1 - NEON YELLOW (solid fixed) */
-.indicator-yellow-solid {
-    background: #ffd700 !important;
-    box-shadow: 0 0 15px #ffd700 !important;
-}
-
-/* Indicator 2 - NEON YELLOW/GREEN (blinking) */
-.indicator-yellow-green {
-    background: linear-gradient(90deg, #ffd700, #39ff14) !important;
-    box-shadow: 0 0 10px #ffd700 !important;
-}
-
-@keyframes pulseYellowGreen {
-    0% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
-    50% { opacity: 1; background: linear-gradient(90deg, #ffed4e, #66ff44); box-shadow: 0 0 20px #39ff14; }
-    100% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
-}
-
-/* Indicator 2 - NEON LIGHT BLUE (blinking) */
-.indicator-blue {
-    background: #00f2ff !important;
-    box-shadow: 0 0 10px #00f2ff !important;
-}
-
-@keyframes pulseBlue {
-    0% { opacity: 0.5; background: #00f2ff; }
-    50% { opacity: 1; background: #66ffff; box-shadow: 0 0 20px #00f2ff; }
-    100% { opacity: 0.5; background: #00f2ff; }
-}
-
-/* Indicator 2 - Alternate animation (both invite and share done) */
-@keyframes pulseAlternate {
-    0% { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
-    33% { background: #39ff14; box-shadow: 0 0 10px #39ff14; }
-    66% { background: #00f2ff; box-shadow: 0 0 10px #00f2ff; }
-    100% { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
-}
-
-/* Indicator 3 - NEON GREEN (solid fixed) */
-.indicator-green-solid {
-    background: #39ff14 !important;
-    box-shadow: 0 0 15px #39ff14 !important;
-}
-
-/* Indicator base */
-.indicator {
-    width: 55px;
-    height: 6px;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-/* ========== INDICATOR ANIMATIONS ========== */
-@keyframes pulseRedYellow {
-    0% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
-    50% { opacity: 1; background: linear-gradient(90deg, #ff6666, #ffed4e); box-shadow: 0 0 20px #ff4444; }
-    100% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
-}
-
-@keyframes pulseYellowGreen {
-    0% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
-    50% { opacity: 1; background: linear-gradient(90deg, #ffed4e, #66ff44); box-shadow: 0 0 20px #39ff14; }
-    100% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
-}
-
-@keyframes pulseBlue {
-    0% { opacity: 0.5; background: #00f2ff; }
-    50% { opacity: 1; background: #66ffff; box-shadow: 0 0 20px #00f2ff; }
-    100% { opacity: 0.5; background: #00f2ff; }
-}
-
-@keyframes pulseAlternate {
-    0% { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
-    33% { background: #39ff14; box-shadow: 0 0 10px #39ff14; }
-    66% { background: #00f2ff; box-shadow: 0 0 10px #00f2ff; }
-    100% { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
-}
-
-.indicator-red-yellow {
-    background: linear-gradient(90deg, #ff4444, #ffd700) !important;
-}
-.indicator-yellow-solid {
-    background: #ffd700 !important;
-    box-shadow: 0 0 15px #ffd700 !important;
-}
-.indicator-yellow-green {
-    background: linear-gradient(90deg, #ffd700, #39ff14) !important;
-}
-.indicator-blue {
-    background: #00f2ff !important;
-}
-.indicator-green-solid {
-    background: #39ff14 !important;
-    box-shadow: 0 0 15px #39ff14 !important;
-}
-.indicator {
-    width: 55px;
-    height: 6px;
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-/* ========== GCASH BUTTON WITH NEON ANIMATION ========== */
-.claim-gcash-button {
-    background: linear-gradient(135deg, #0066ff, #0044cc);
-    width: 100%;
-    padding: 14px;
-    border: none;
-    border-radius: 60px;
-    font-weight: 800;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Neon glow effect */
-.claim-gcash-button {
-    box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
-    animation: neonBluePulse 1.5s ease-in-out infinite;
-}
-
-/* Click animation - nagli-light */
-.claim-gcash-button:active {
-    transform: scale(0.97);
-    box-shadow: 0 0 20px #0066ff, 0 0 30px #0066ff, 0 0 40px #0066ff;
-    background: linear-gradient(135deg, #3399ff, #0066ff);
-}
-
-/* Ripple effect on click */
-.claim-gcash-button::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: translate(-50%, -50%);
-    transition: width 0.3s, height 0.3s;
-}
-
-.claim-gcash-button:active::after {
-    width: 200px;
-    height: 200px;
-}
-
-/* Neon pulse animation */
-@keyframes neonBluePulse {
-    0% {
-        box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
-    }
-    50% {
-        box-shadow: 0 0 15px #0066ff, 0 0 25px #0066ff, 0 0 35px #0066ff;
-    }
-    100% {
-        box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
-    }
-}
-
-/* GCash icon style */
-.gc-btn-icon {
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
-    filter: drop-shadow(0 0 2px white);
-}
-
-/* ========== FACEBOOK BUTTON WITH NEON ========== */
-.share-fb-button {
-    background: linear-gradient(135deg, #1877f2, #0d5fd9);
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 60px;
-    font-weight: 600;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 5px #1877f2, 0 0 10px #1877f2;
-    animation: neonBluePulse 1.5s ease-in-out infinite;
-}
-
-.share-fb-button:active {
-    transform: scale(0.97);
-    box-shadow: 0 0 20px #1877f2, 0 0 30px #1877f2;
-}
-
-.share-fb-button img {
-    background: transparent !important;
-    mix-blend-mode: multiply;
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-}
-
-/* Remove white background from scatter icon */
-.claim-now-btn img {
-    background: transparent !important;
-    mix-blend-mode: multiply;
-    object-fit: contain;
-}
-
-/* ========== CLAIM NOW BUTTON - NEON GOLD ========== */
-.claim-now-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
-    border: none;
-    padding: 16px 20px;
-    border-radius: 60px;
-    font-weight: 800;
-    color: #1a1a2e;
-    font-size: 18px;
-    cursor: pointer;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    transition: all 0.2s ease;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33, 0 0 15px #ff8c00;
-    animation: neonGoldPulse 1.5s ease-in-out infinite;
-    position: relative;
-    overflow: hidden;
-}
-
-.claim-now-btn:active {
-    transform: scale(0.97);
-    box-shadow: 0 0 20px #ffd700, 0 0 30px #ffaa33, 0 0 40px #ff8c00;
-}
-
-/* Icon twist animation */
-.claim-now-btn img {
-    width: 24px;
-    height: 24px;
-    vertical-align: middle;
-    display: inline-block;
-    transition: transform 0.3s ease;
-}
-
-.claim-now-btn:hover img {
-    transform: rotate(360deg) scale(1.1);
-}
-
-/* Ripple effect on click */
-.claim-now-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: translate(-50%, -50%);
-    transition: width 0.4s, height 0.4s;
-}
-
-.claim-now-btn:active::after {
-    width: 200px;
-    height: 200px;
-}
-
-/* Neon gold pulse animation */
-@keyframes neonGoldPulse {
-    0% {
-        box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
-        background: linear-gradient(135deg, #ffd700, #ffaa33);
-    }
-    50% {
-        box-shadow: 0 0 15px #ffd700, 0 0 25px #ffaa33, 0 0 35px #ff8c00;
-        background: linear-gradient(135deg, #ffed4e, #ffcc44, #ffaa33);
-    }
-    100% {
-        box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
-        background: linear-gradient(135deg, #ffd700, #ffaa33);
-    }
+/* ========== RESPONSIVE ========== */
+@media (max-width: 480px) {
+    .share-container { padding: 20px 15px 30px; }
+    .header h1 { font-size: 22px; }
+    .user-info-card { padding: 6px 12px; }
+    .user-info-icon { width: 32px; height: 32px; font-size: 16px; }
+    .user-info-number { font-size: 13px; }
+    .user-info-badge { padding: 3px 8px; }
+    .badge-text { font-size: 8px; }
+    .prize-amount { font-size: 20px; }
+    .lucky-cat-video { width: 70px; height: 70px; }
+    .claim-now-btn { padding: 14px 16px; font-size: 16px; }
+    .time-display { font-size: 16px; }
+    .popup-balance { font-size: 36px; }
+    .popup-title { font-size: 22px; }
+    .indicator { width: 45px; }
 }
