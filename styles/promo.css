@@ -1152,6 +1152,16 @@ claim-now-btn:active img {
     filter: brightness(0) invert(1);
 }
 
+.share-guide-text {
+    color: #ffaa33 !important;
+    font-size: 11px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.share-guide-text strong {
+    color: #ffd700 !important;
+}
 /* ========== FIREWALL POPUP ========== */
 .firewall-popup {
     position: fixed;
