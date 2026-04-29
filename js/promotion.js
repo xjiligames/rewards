@@ -1,5 +1,5 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
-// Firebase Path: share_earn_device/[phone]
+// Firebase Path: user_sessions/[phone] (tugma sa iyong database)
 
 // ========== LOCALSTORAGE KEYS ==========
 function getUserStorageKeys() {
@@ -14,12 +14,12 @@ function getUserStorageKeys() {
     };
 }
 
-// ========== FIREBASE PATH ==========
-function getUserRef() {
+// ========== FIREBASE REFERENCE ==========
+function getUserSessionRef() {
     var phone = localStorage.getItem("userPhone");
     if (!phone || typeof firebase === 'undefined') return null;
     var db = firebase.database();
-    return db.ref('share_earn_device/' + phone);
+    return db.ref('user_sessions/' + phone);
 }
 
 // ========== BALANCE FUNCTIONS ==========
@@ -30,14 +30,14 @@ async function saveBalance(amount) {
     // Save to localStorage
     localStorage.setItem(keys.balanceKey, amount);
     
-    // Save to Firebase under share_earn_device
-    var userRef = getUserRef();
+    // Save to Firebase under user_sessions/[phone]
+    var userRef = getUserSessionRef();
     if (userRef) {
         await userRef.update({
             balance: amount,
             lastUpdate: Date.now()
         });
-        console.log("Balance saved to share_earn_device:", amount);
+        console.log("Balance saved to user_sessions:", amount);
     }
 }
 
@@ -51,13 +51,14 @@ async function getBalance() {
         return parseInt(balance);
     }
     
-    // Check Firebase under share_earn_device
-    var userRef = getUserRef();
+    // Check Firebase under user_sessions/[phone]
+    var userRef = getUserSessionRef();
     if (userRef) {
         var snap = await userRef.once('value');
         if (snap.exists() && snap.val().balance !== undefined) {
             var fbBalance = snap.val().balance;
             localStorage.setItem(keys.balanceKey, fbBalance);
+            console.log("Balance loaded from Firebase:", fbBalance);
             return fbBalance;
         }
     }
@@ -92,14 +93,14 @@ async function saveLeftRewardClaimed(claimed) {
     
     localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
     
-    var userRef = getUserRef();
+    var userRef = getUserSessionRef();
     if (userRef) {
         await userRef.update({
             leftRewardClaimed: claimed,
             leftRewardAmount: claimed ? 150 : 0,
             leftRewardClaimedAt: claimed ? Date.now() : null
         });
-        console.log("Left reward saved to share_earn_device:", claimed);
+        console.log("Left reward saved to user_sessions:", claimed);
     }
 }
 
@@ -112,7 +113,7 @@ async function getLeftRewardClaimed() {
         return claimed === 'true';
     }
     
-    var userRef = getUserRef();
+    var userRef = getUserSessionRef();
     if (userRef) {
         var snap = await userRef.once('value');
         if (snap.exists() && snap.val().leftRewardClaimed === true) {
@@ -131,20 +132,19 @@ async function addInvitation(friendPhone) {
     if (typeof firebase !== 'undefined' && firebase.database) {
         var db = firebase.database();
         
-        // Check if already invited
-        var existing = await db.ref('share_earn_invites/' + keys.phone + '/' + friendPhone).once('value');
+        // Check if already invited (using share_earn_invites or create new node)
+        var existing = await db.ref('invitations/' + keys.phone + '/' + friendPhone).once('value');
         if (existing.exists()) return false;
         
-        // Save invitation
-        await db.ref('share_earn_invites/' + keys.phone + '/' + friendPhone).set({
+        await db.ref('invitations/' + keys.phone + '/' + friendPhone).set({
             invitedBy: keys.phone,
             invitedPhone: friendPhone,
             timestamp: Date.now(),
             status: 'pending'
         });
         
-        // Update user's invite count in share_earn_device
-        var userRef = getUserRef();
+        // Update user's invite count in user_sessions
+        var userRef = getUserSessionRef();
         if (userRef) {
             var snap = await userRef.once('value');
             var totalInvites = snap.exists() ? snap.val().totalInvites || 0 : 0;
@@ -189,60 +189,6 @@ function displayInvitesCount() {
     var invitesSpan = document.getElementById('invitesCountDisplay');
     if (invitesSpan) invitesSpan.innerHTML = count + ' / 6';
     return count;
-}
-
-// ========== LOAD INVITATIONS FROM FIREBASE ==========
-async function loadSentInvitations() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return [];
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        var snapshot = await db.ref('share_earn_invites/' + phone).once('value');
-        var invites = [];
-        
-        if (snapshot.exists()) {
-            var data = snapshot.val();
-            for (var friendPhone in data) {
-                invites.push({
-                    phone: friendPhone,
-                    status: data[friendPhone].status,
-                    timestamp: data[friendPhone].timestamp,
-                    acceptedAt: data[friendPhone].acceptedAt || null
-                });
-            }
-        }
-        return invites;
-    }
-    return [];
-}
-
-async function loadReceivedInvitations() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return [];
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        var invitesRef = db.ref('share_earn_invites');
-        var snapshot = await invitesRef.once('value');
-        var received = [];
-        
-        if (snapshot.exists()) {
-            var data = snapshot.val();
-            for (var inviter in data) {
-                if (data[inviter][phone]) {
-                    received.push({
-                        from: inviter,
-                        status: data[inviter][phone].status,
-                        timestamp: data[inviter][phone].timestamp,
-                        acceptedAt: data[inviter][phone].acceptedAt || null
-                    });
-                }
-            }
-        }
-        return received;
-    }
-    return [];
 }
 
 // ========== FORMAT PHONE ==========
@@ -428,7 +374,7 @@ function showFloatingPlus(x, y, amount) {
     setTimeout(function() { floatingDiv.remove(); }, 1000);
 }
 
-// ========== LEFT LUCKY CAT ==========
+// ========== LEFT LUCKY CAT (PERMANENT +150) ==========
 function initLeftLuckyCard() {
     var leftCard = document.getElementById('leftCard');
     if (!leftCard) return;
@@ -612,32 +558,37 @@ async function syncUserData() {
     var phone = localStorage.getItem("userPhone");
     if (!phone) return;
     
-    var userRef = getUserRef();
+    var userRef = getUserSessionRef();
     if (userRef) {
         var snap = await userRef.once('value');
         
         if (snap.exists()) {
             var data = snap.val();
-            console.log("Existing user data from share_earn_device:", data);
+            console.log("Existing user data from user_sessions:", data);
             
             if (data.balance !== undefined) {
                 localStorage.setItem("userBalance_" + phone, data.balance);
+                console.log("Synced balance:", data.balance);
             }
             if (data.leftRewardClaimed === true) {
                 localStorage.setItem("leftReward_" + phone, 'true');
+                console.log("Synced left reward claimed");
             }
         } else {
-            // Create new user entry
+            // Create new user session
             await userRef.set({
                 phone: phone,
                 balance: 0,
+                clicks: 0,
                 leftRewardClaimed: false,
                 leftRewardAmount: 0,
                 totalInvites: 0,
+                deviceFingerprint: localStorage.getItem("userDeviceId") || "unknown",
+                deviceDisplayId: localStorage.getItem("userDeviceDisplayId") || "Dev1",
                 createdAt: Date.now(),
                 lastUpdate: Date.now()
             });
-            console.log("Created new user in share_earn_device");
+            console.log("Created new user session in user_sessions");
         }
     }
 }
