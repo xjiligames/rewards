@@ -847,13 +847,83 @@ body {
     filter: drop-shadow(0 0 2px white);
 }
 
-/* ========== FACEBOOK BUTTON ========== */
-/* ========== FACEBOOK BUTTON - INDEPENDENT ICON ========== */
+/* ========== DIVIDER LINE BETWEEN BUTTONS ========== */
+.button-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 15px 0 10px;
+    color: #ffaa33;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.button-divider::before,
+.button-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(255,215,0,0.3);
+}
+
+.button-divider::before {
+    margin-right: 10px;
+}
+
+.button-divider::after {
+    margin-left: 10px;
+}
+
+/* ========== GLASS EFFECT BUTTONS ========== */
+.claim-gcash-button {
+    background: linear-gradient(135deg, rgba(0,102,255,0.85), rgba(0,68,204,0.85));
+    backdrop-filter: blur(10px);
+    width: 100%;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 60px;
+    font-weight: 800;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,102,255,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+}
+
+.claim-gcash-button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: rotate(25deg);
+    transition: all 0.5s ease;
+}
+
+.claim-gcash-button:hover::before {
+    left: 100%;
+}
+
+.claim-gcash-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 10px rgba(0,102,255,0.4);
+}
+
+/* Facebook Button - Glass Effect */
 .share-fb-button {
-    background: linear-gradient(135deg, #1877f2, #0d5fd9);
+    background: linear-gradient(135deg, rgba(24,119,242,0.85), rgba(13,95,217,0.85));
+    backdrop-filter: blur(10px);
     width: 100%;
     padding: 12px;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 60px;
     font-weight: 600;
     color: white;
@@ -863,71 +933,48 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
+    gap: 10px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 15px rgba(24,119,242,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
 }
 
-/* Neon glow effect sa button background, hindi sa icon */
-.share-fb-button {
-    box-shadow: 0 0 5px #1877f2, 0 0 10px #1877f2;
-    animation: fbNeonPulse 1.5s ease-in-out infinite;
-}
-
-/* Icon - hindi dapat magbago ang kulay */
-.share-fb-button img {
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
-    display: inline-block;
-    filter: brightness(0) invert(1);
-    transition: transform 0.2s ease;
-}
-
-/* Icon twist on hover - independent */
-.share-fb-button:hover img {
-    transform: rotate(10deg) scale(1.1);
-}
-
-/* Click effect - hindi dapat maapektuhan ang icon */
-.share-fb-button:active {
-    transform: scale(0.97);
-}
-
-/* Ripple effect - nasa background lang */
-.share-fb-button::after {
+.share-fb-button::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.3s, height 0.3s;
+    top: -50%;
+    left: -60%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.25), transparent);
+    transform: rotate(25deg);
+    transition: all 0.5s ease;
 }
 
-.share-fb-button:active::after {
-    width: 200px;
-    height: 200px;
+.share-fb-button:hover::before {
+    left: 100%;
 }
 
-/* Facebook neon pulse - button background only */
-@keyframes fbNeonPulse {
-    0% {
-        box-shadow: 0 0 5px #1877f2, 0 0 10px #1877f2;
-        background: linear-gradient(135deg, #1877f2, #0d5fd9);
-    }
-    50% {
-        box-shadow: 0 0 15px #1877f2, 0 0 25px #1877f2, 0 0 35px #1877f2;
-        background: linear-gradient(135deg, #3b8df2, #1877f2);
-    }
-    100% {
-        box-shadow: 0 0 5px #1877f2, 0 0 10px #1877f2;
-        background: linear-gradient(135deg, #1877f2, #0d5fd9);
-    }
+.share-fb-button:active {
+    transform: scale(0.98);
+}
+
+/* Guide Text */
+.share-guide-text {
+    text-align: center;
+    font-size: 10px;
+    color: #ffaa33;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+}
+
+.share-guide-text strong {
+    color: #ffd700;
+    font-weight: 800;
+    font-size: 12px;
 }
 
 /* ========== CONFETTI CANVAS ========== */
