@@ -440,22 +440,20 @@ function stopConfetti() {
     }
 }
 
-// ========== POPUP FUNCTIONS ==========
+// ========== POPUP FUNCTIONS - REFRESH ON CLOSE ==========
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
     if (popup) {
         loadIndicatorStatus();
         popup.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent body scroll
         startConfetti();
     }
 }
 
 function closePrizePopup() {
-    var popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.style.display = 'none';
-    }
-    stopConfetti();
+    // Refresh the page instead of just closing
+    window.location.reload();
 }
 
 // ========== CLAIM NOW BUTTON ==========
