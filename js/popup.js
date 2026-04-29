@@ -475,12 +475,16 @@ window.showClaimPopup = showClaimPopup;
 window.onClaimAction = onClaimAction;
 
 // ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', function() { 
+ocument.addEventListener('DOMContentLoaded', function() { 
     hidePendingStatus();
     listenToFirewallChanges();
     getFirewallStatus().then(status => {
         console.log("Initial firewall status:", status);
         cachedFirewallStatus = status;
     });
-    console.log("Popup.js loaded - Ready for main.html and share_and_earn.html");
+
+    // Check for existing timer
+    checkTimerOnLoad();
+    
+    console.log("Popup.js loaded - Ready with 1-minute transition timer");
 });
