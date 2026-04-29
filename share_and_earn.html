@@ -32,7 +32,7 @@
         <h1>LUCKY DROP 🐾</h1>
     </div>
     
-    <!-- USER INFO SECTION - IMPROVED DESIGN -->
+    <!-- USER INFO CARD -->
     <div class="user-info-card">
         <div class="user-info-icon">📱</div>
         <div class="user-info-text">
@@ -45,6 +45,38 @@
         </div>
     </div>
     
+    <!-- STEP 1 DROPDOWN BUTTON -->
+    <div class="step1-dropdown">
+        <button class="dropdown-btn" id="dropdownBtn">
+            <span class="dropdown-icon">📋</span>
+            <span class="dropdown-text">STEP 1 - INVITATION DASHBOARD</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
+        
+        <!-- DROPDOWN CONTENT (Invitation Dashboard) -->
+        <div class="dropdown-content" id="dropdownContent">
+            <div class="invite-form-section">
+                <div class="invite-form-title">📨 SEND NEW INVITATION</div>
+                <div class="invite-form-row">
+                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button class="invite-send-btn" id="sendInviteBtn">📤 SEND INVITATION</button>
+                </div>
+            </div>
+            
+            <div class="invite-list-section">
+                <div class="invite-list-header">
+                    <span>📞 Mobile Number</span>
+                    <span>✅ Status</span>
+                    <span>🗑️ Action</span>
+                </div>
+                <div class="invite-list-body" id="inviteListBody">
+                    <div class="invite-empty">No invitations sent yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PRIZE GRID -->
     <div class="prize-grid">
         <div class="prize-card" id="leftCard">
             <div class="lucky-cat-video">
@@ -75,17 +107,15 @@
         <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
     </div>
     
-    <div class="share-card">
-        <div class="step-badge">📱 STEP 1 - SHARE WITH FRIEND 📱</div>
-        <input type="tel" id="friendPhoneInput" class="input-field" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <button class="share-button" id="shareButton">🐾 SHARE & UNLOCK 🐾</button>
-        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="status-message" id="statusMessage"><span class="status-locked">Click the GOLDEN CARD to claim ₱150!</span></div>
-        <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
-    </div>
+    <!-- CLAIM BUTTON (replacing old share button) -->
+    <button class="claim-now-btn" id="claimNowBtn">💰 CLAIM NOW!!</button>
+    
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="status-message" id="statusMessage"><span class="status-locked">Click the GOLDEN CARD to claim ₱150!</span></div>
+    <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
 </div>
 
-<!-- Prize Popup -->
+<!-- PRIZE POPUP -->
 <div id="prizePopup" class="prize-popup">
     <div class="popup-container">
         <div class="popup-inner">
@@ -120,78 +150,80 @@
 <script src="js/popup.js"></script>
 <script src="js/promotion.js"></script>
 
-<!-- SIMPLE TIMER & WINNER TICKER -->
+<!-- TIMER & TICKER -->
 <script>
-    // Simple countdown timer
+    // Countdown Timer
     (function() {
         var timerDisplay = document.getElementById('mainTimerDisplay');
         if (!timerDisplay) return;
-        
         var targetDate = new Date(2026, 4, 1, 0, 0, 0);
-        
         function updateTimer() {
             var now = new Date();
             var diff = targetDate - now;
-            
-            if (diff <= 0) {
-                timerDisplay.innerHTML = "00D 00:00:00";
-                return;
-            }
-            
+            if (diff <= 0) { timerDisplay.innerHTML = "00D 00:00:00"; return; }
             var days = Math.floor(diff / (1000 * 60 * 60 * 24));
             var hours = Math.floor((diff % (86400000)) / 3600000);
             var mins = Math.floor((diff % 3600000) / 60000);
             var secs = Math.floor((diff % 60000) / 1000);
-            
-            timerDisplay.innerHTML = days + "D " + 
-                hours.toString().padStart(2, '0') + ":" + 
-                mins.toString().padStart(2, '0') + ":" + 
-                secs.toString().padStart(2, '0');
+            timerDisplay.innerHTML = days + "D " + hours.toString().padStart(2,'0') + ":" + mins.toString().padStart(2,'0') + ":" + secs.toString().padStart(2,'0');
         }
-        
         updateTimer();
         setInterval(updateTimer, 1000);
     })();
     
-    // Simple winner ticker with GCash icon
-(function() {
-    var winnerSpan = document.getElementById('winnerText');
-    if (!winnerSpan) return;
-    
-    var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-    var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
-    
-    function generateWinner() {
-        var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        var last4 = Math.floor(1000 + Math.random() * 9000);
-        var amount = amounts[Math.floor(Math.random() * amounts.length)];
-        // GCash icon image tag
-        return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
-    }
-    
-    winnerSpan.innerHTML = generateWinner();
-    
-    setInterval(function() {
+    // Winner Ticker
+    (function() {
+        var winnerSpan = document.getElementById('winnerText');
+        if (!winnerSpan) return;
+        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
+        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+        function generateWinner() {
+            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            var last4 = Math.floor(1000 + Math.random() * 9000);
+            var amount = amounts[Math.floor(Math.random() * amounts.length)];
+            return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
+        }
         winnerSpan.innerHTML = generateWinner();
-    }, 15000);
-})();
+        setInterval(function() { winnerSpan.innerHTML = generateWinner(); }, 15000);
+    })();
     
-    // Display user phone
+    // User Phone Display
     var userPhone = localStorage.getItem("userPhone");
     var display = document.getElementById('userPhoneDisplay');
     if (display) {
-        // Format phone number display (0917****567)
         if (userPhone && userPhone.length === 11) {
-            var formattedPhone = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
-            display.innerText = formattedPhone;
+            display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
         } else {
             display.innerText = userPhone || 'Not logged in';
         }
     }
-    
     if (!userPhone) {
         alert("Please login first.");
         window.location.href = "index.html";
+    }
+    
+    // Dropdown Toggle
+    var dropdownBtn = document.getElementById('dropdownBtn');
+    var dropdownContent = document.getElementById('dropdownContent');
+    if (dropdownBtn && dropdownContent) {
+        dropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownContent.classList.toggle('show');
+            var arrow = dropdownBtn.querySelector('.dropdown-arrow');
+            if (dropdownContent.classList.contains('show')) {
+                arrow.innerHTML = '▲';
+            } else {
+                arrow.innerHTML = '▼';
+            }
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                dropdownContent.classList.remove('show');
+                var arrow = dropdownBtn.querySelector('.dropdown-arrow');
+                arrow.innerHTML = '▼';
+            }
+        });
     }
 </script>
 
