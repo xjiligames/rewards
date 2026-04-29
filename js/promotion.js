@@ -470,18 +470,23 @@ function initClaimNowButton() {
         claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
         
         newBtn.onclick = function() {
-            if (!getLeftRewardClaimed()) {
-                alert("Click the GOLDEN CARD first to claim your ₱150!");
-                return;
-            }
+            console.log("CLAIM NOW button clicked");
             
+            // Remove the left reward check - always show popup
             var popupBalance = document.getElementById('popupBalanceAmount');
             if (popupBalance) {
                 popupBalance.innerHTML = '₱' + getBalance();
             }
             
-            showPrizePopup();
+            // Use popup.js firewall logic directly
+            if (typeof window.showClaimPopup === 'function') {
+                window.showClaimPopup(150);
+            } else {
+                showPrizePopup();
+            }
         };
+        
+        console.log("CLAIM NOW button ready - always clickable");
     }
 }
 
