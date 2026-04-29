@@ -328,6 +328,13 @@ function initClaimNowButton() {
         var newBtn = claimNowBtn.cloneNode(true);
         claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
         claimNowBtn = newBtn;
+
+        var icon = document.createElement('img');
+        icon.src = 'images/scatter_icon.jpg';
+        icon.className = 'claim-icon';
+        icon.style.width = '24px';
+        icon.style.height = '24px';
+        icon.style.marginRight = '8px';
         
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
