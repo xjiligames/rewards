@@ -963,71 +963,71 @@ body {
     display: none;
 }
 
-//* ========== SHARE ON FACEBOOK BUTTON - REMASTERED ========== */
+/* ========== SHARE ON FACEBOOK BUTTON - NEON SKY BLUE ========== */
 .share-fb-button {
-    background: linear-gradient(135deg, #1877f2, #0d5fd9);
+    background: linear-gradient(135deg, #00b4d8, #0077b6, #023e8a);
     width: 100%;
-    padding: 12px 20px;
+    padding: 14px 20px;
     border: none;
     border-radius: 60px;
-    font-weight: 600;
+    font-weight: 700;
     color: white;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
     margin-top: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6;
+    animation: neonSkyPulse 1.5s ease-in-out infinite;
     transition: all 0.2s ease;
 }
 
 .share-fb-button:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
+/* Neon sky blue pulse animation */
+@keyframes neonSkyPulse {
+    0% {
+        box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6;
+        background: linear-gradient(135deg, #00b4d8, #0077b6);
+    }
+    50% {
+        box-shadow: 0 0 15px #00b4d8, 0 0 25px #0077b6, 0 0 35px #00b4d8;
+        background: linear-gradient(135deg, #48cae4, #0096c7, #0077b6);
+    }
+    100% {
+        box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6;
+        background: linear-gradient(135deg, #00b4d8, #0077b6);
+    }
+}
+
+/* Shine effect on hover */
+.share-fb-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.share-fb-button:hover::before {
+    left: 100%;
+}
+
+/* Facebook icon */
 .share-fb-button img {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     display: inline-block;
-}
-
-/* Divider between buttons */
-.button-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 15px 0;
-    gap: 10px;
-}
-
-.button-divider span:first-child,
-.button-divider span:last-child {
-    flex: 1;
-    height: 1px;
-    background: rgba(255,215,0,0.3);
-}
-
-.button-divider span:nth-child(2) {
-    font-size: 11px;
-    color: #ffaa33;
-    padding: 0 10px;
-}
-
-/* Guide Text */
-.share-guide-text {
-    text-align: center;
-    font-size: 10px;
-    color: #ffaa33;
-    margin-top: 10px;
-    padding: 6px 12px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 20px;
-}
-
-.share-guide-text strong {
-    color: #ffd700;
-    font-weight: 800;
+    filter: brightness(0) invert(1);
 }
 
 /* ========== FIREWALL POPUP ========== */
