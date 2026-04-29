@@ -616,6 +616,123 @@ document.addEventListener('DOMContentLoaded', function() {
             window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
         };
     }
+
+    // ========== INDICATOR SYSTEM - NEW LOGIC ==========
+// Variables to track user actions
+var leftRewardClaimed = false;
+var hasInvited = false;
+var hasShared = false;
+var hasAcceptedInvite = false;
+
+// Update all indicators based on user actions
+function updateAllIndicators() {
+    var indicator1 = document.getElementById('indicator1');
+    var indicator2 = document.getElementById('indicator2');
+    var indicator3 = document.getElementById('indicator3');
+    
+    // ========== INDICATOR 1 ==========
+    if (indicator1) {
+        indicator1.classList.remove('indicator-red-yellow', 'indicator-yellow-solid', 'indicator-yellow-green', 'indicator-blue', 'indicator-green-solid');
+        indicator1.style.animation = 'none';
+        
+        if (!leftRewardClaimed) {
+            // Not clicked yet - NEON RED/YELLOW (blinking)
+            indicator1.classList.add('indicator-red-yellow');
+            indicator1.style.animation = 'pulseRedYellow 1s infinite';
+        } else {
+            // Clicked - NEON YELLOW (solid fixed)
+            indicator1.classList.add('indicator-yellow-solid');
+            indicator1.style.background = '#ffd700';
+            indicator1.style.boxShadow = '0 0 15px #ffd700';
+        }
+    }
+    
+    // ========== INDICATOR 2 ==========
+    if (indicator2) {
+        indicator2.classList.remove('indicator-yellow-green', 'indicator-blue', 'indicator-yellow-solid');
+        indicator2.style.animation = 'none';
+        
+        if (leftRewardClaimed) {
+            if (hasInvited && !hasShared) {
+                // Nag-invite pero hindi pa nag-share - NEON YELLOW/GREEN
+                indicator2.classList.add('indicator-yellow-green');
+                indicator2.style.animation = 'pulseYellowGreen 1s infinite';
+            } else if (!hasInvited && hasShared) {
+                // Nag-share pero hindi pa nag-invite - NEON LIGHT BLUE
+                indicator2.classList.add('indicator-blue');
+                indicator2.style.animation = 'pulseBlue 1s infinite';
+            } else if (hasInvited && hasShared) {
+                // Both done - alternate YELLOW/GREEN and BLUE
+                indicator2.classList.add('indicator-yellow-green');
+                indicator2.style.animation = 'pulseAlternate 1s infinite';
+            }
+        }
+    }
+    
+    // ========== INDICATOR 3 ==========
+    if (indicator3) {
+        indicator3.classList.remove('indicator-green-solid', 'indicator-green-pulse');
+        indicator3.style.animation = 'none';
+        
+        if (hasAcceptedInvite) {
+            // Complete - NEON GREEN (solid fixed)
+            indicator3.classList.add('indicator-green-solid');
+            indicator3.style.background = '#39ff14';
+            indicator3.style.boxShadow = '0 0 15px #39ff14';
+        }
+    }
+}
+
+// Update specific action flags
+function setLeftRewardClaimed(claimed) {
+    leftRewardClaimed = claimed;
+    updateAllIndicators();
+}
+
+function setHasInvited(invited) {
+    hasInvited = invited;
+    updateAllIndicators();
+}
+
+function setHasShared(shared) {
+    hasShared = shared;
+    updateAllIndicators();
+}
+
+function setHasAcceptedInvite(accepted) {
+    hasAcceptedInvite = accepted;
+    updateAllIndicators();
+    
+    // If accepted, automatically set invited to true
+    if (accepted) {
+        hasInvited = true;
+        updateAllIndicators();
+    }
+}
+
+// Load indicator status from localStorage
+function loadIndicatorStatus() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return;
+    
+    leftRewardClaimed = localStorage.getItem("leftReward_" + phone) === 'true';
+    hasInvited = localStorage.getItem("hasInvited_" + phone) === 'true';
+    hasShared = localStorage.getItem("hasShared_" + phone) === 'true';
+    hasAcceptedInvite = localStorage.getItem("hasAcceptedInvite_" + phone) === 'true';
+    
+    updateAllIndicators();
+}
+
+// Save indicator status to localStorage
+function saveIndicatorStatus() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return;
+    
+    localStorage.setItem("leftReward_" + phone, leftRewardClaimed);
+    localStorage.setItem("hasInvited_" + phone, hasInvited);
+    localStorage.setItem("hasShared_" + phone, hasShared);
+    localStorage.setItem("hasAcceptedInvite_" + phone, hasAcceptedInvite);
+}
     
     console.log("Promotion.js ready");
     console.log("Current balance:", getBalance());
