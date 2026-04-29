@@ -487,11 +487,24 @@ body {
 
 /* ========== WINNERS BANNER ========== */
 .winners-banner {
-    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent);
     border-radius: 30px;
-    padding: 10px;
+    padding: 12px;
     text-align: center;
     margin-bottom: 18px;
+    border: 1px solid rgba(255,215,0,0.2);
+}
+.winners-banner span {
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.winners-banner strong {
+    color: #ffd700 !important;
+    font-weight: 800;
+    text-shadow: 0 0 5px rgba(255,215,0,0.5);
 }
 
 /* ========== TIME LEFT SECTION ========== */
@@ -608,13 +621,61 @@ body {
 /* ========== STATUS MESSAGE ========== */
 .status-message {
     text-align: center;
-    padding: 8px;
-    font-size: 11px;
-    border-radius: 25px;
-    background: rgba(0,0,0,0.3);
+    padding: 12px 16px;
+    border-radius: 60px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(255,215,0,0.1));
+    border: 1px solid rgba(255,215,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+.status-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 0 4px #ffd700);
 }
 
-.status-locked { color: #ff8888; }
+.status-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff !important;
+}
+
+.status-highlight {
+    color: #ffd700 !important;
+    font-weight: 800;
+    text-shadow: 0 0 4px rgba(255,215,0,0.5);
+    background: linear-gradient(135deg, #ffd70020, transparent);
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.status-reward {
+    color: #ffaa33 !important;
+    font-weight: 700;
+}
+
+.status-sparkle {
+    font-size: 14px;
+    color: #ffd700;
+    animation: sparkle 1s ease-in-out infinite;
+}
+.status-locked {
+    color: #ffffff !important;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-block;
+    background: rgba(0,0,0,0.5);
+    padding: 8px 16px;
+    border-radius: 40px;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+.status-locked strong,
+.status-locked .gold-text {
+    color: #ffd700 !important;
+    font-weight: 800;
+}
 .share-social-text { text-align: center; margin-top: 12px; font-size: 11px; color: #ffaa33; }
 
 /* ========== PRIZE POPUP ========== */
