@@ -1,108 +1,400 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
 
 // ========== GLOBAL VARIABLES ==========
-var youGetClicked = false;
-var currentStep = 0;
+var leftRewardClaimed = false;
+var rightRewardAmount = 0;        // Total na pwedeng i-claim sa right cat (150 per accepted invite)
+var rightRewardClaimed = 0;       // Ilan na ang na-claim
+var remainingInvites = 6;
+var acceptedInvitesCount = 0;
 
-// ========== MAIN TIMER (DROP ENDS IN - May 1, 2026) ==========
-function initMainTimer() {
-    var timerDisplay = document.getElementById('mainTimerDisplay');
-    if (!timerDisplay) return;
+// ========== INITIALIZE PARTICIPANT ==========
+async function initParticipant() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return;
     
-    var target = new Date(2026, 4, 1, 0, 0, 0);
-    
-    function updateTimer() {
-        var now = new Date();
-        var diff = target - now;
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        var participantRef = db.ref('participants/' + phone);
+        var snapshot = await participantRef.once('value');
         
-        if (diff > 0) {
-            var days = Math.floor(diff / (1000*60*60*24));
-            var hours = Math.floor((diff % (86400000)) / 3600000);
-            var mins = Math.floor((diff % 3600000) / 60000);
-            var secs = Math.floor((diff % 60000) / 1000);
-            timerDisplay.innerHTML = days + "D " + 
-                hours.toString().padStart(2,'0') + ":" + 
-                mins.toString().padStart(2,'0') + ":" + 
-                secs.toString().padStart(2,'0');
+        if (!snapshot.exists()) {
+            // New participant
+            await participantRef.set({
+                phone: phone,
+                firstVisit: Date.now(),
+                lastActive: Date.now(),
+                totalInvites: 0,
+                acceptedInvites: 0,
+                remainingInvites: 6,
+                leftRewardClaimed: false,
+                rightRewardClaimed: 0,
+                rightRewardTotal: 0
+            });
+            remainingInvites = 6;
+            acceptedInvitesCount = 0;
+            rightRewardAmount = 0;
         } else {
-            timerDisplay.innerHTML = "00D 00:00:00";
+            // Existing participant
+            var data = snapshot.val();
+            remainingInvites = data.remainingInvites || 6;
+            acceptedInvitesCount = data.acceptedInvites || 0;
+            leftRewardClaimed = data.leftRewardClaimed || false;
+            rightRewardClaimed = data.rightRewardClaimed || 0;
+            rightRewardAmount = acceptedInvitesCount * 150;  // 150 per accepted invite
+            
+            // Update UI based on saved data
+            updateLeftCardVisual();
+            updateRightCardVisual();
         }
     }
-    
-    updateTimer();
-    setInterval(updateTimer, 1000);
 }
 
-// ========== WINNER TICKER ==========
-function initWinnerTicker() {
-    var winnerSpan = document.getElementById('winnerText');
-    if (!winnerSpan) return;
+// ========== CREATE INVITATION ==========
+async function createInvitation(friendPhone) {
+    var userPhone = localStorage.getItem("userPhone");
+    if (!userPhone) return false;
     
-    var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-    var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
-    
-    function generateRandomWinner() {
-        var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        var last4 = Math.floor(1000 + Math.random() * 9000);
-        var amount = amounts[Math.floor(Math.random() * amounts.length)];
-        return prefix + "***" + last4 + ' withdrawn ₱' + amount;
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        
+        // Check remaining invites
+        var participantSnap = await db.ref('participants/' + userPhone).once('value');
+        var remaining = participantSnap.exists() ? participantSnap.val().remainingInvites : 6;
+        
+        if (remaining <= 0) {
+            alert("You have reached the maximum of 6 invites!");
+            return false;
+        }
+        
+        // Check if already invited this person
+        var inviteRef = db.ref('invitations/' + userPhone + '/' + friendPhone);
+        var existingInvite = await inviteRef.once('value');
+        
+        if (existingInvite.exists()) {
+            alert("You already invited this person!");
+            return false;
+        }
+        
+        // Create invitation
+        await inviteRef.set({
+            invitedBy: userPhone,
+            invitedPhone: friendPhone,
+            timestamp: Date.now(),
+            status: 'pending'
+        });
+        
+        // Update participant invites count
+        var newRemaining = remaining - 1;
+        await db.ref('participants/' + userPhone).update({
+            totalInvites: (participantSnap.val().totalInvites || 0) + 1,
+            remainingInvites: newRemaining,
+            lastActive: Date.now()
+        });
+        
+        remainingInvites = newRemaining;
+        return true;
     }
-    
-    winnerSpan.innerHTML = generateRandomWinner();
-    setInterval(function() {
-        winnerSpan.innerHTML = generateRandomWinner();
-    }, 15000);
+    return false;
 }
 
-// ========== INDICATOR SYSTEM ==========
-function updateIndicator(step) {
-    var indicator1 = document.getElementById('indicator1');
-    var indicator2 = document.getElementById('indicator2');
-    var indicator3 = document.getElementById('indicator3');
+// ========== ACCEPT INVITATION (User2 nag-accept) ==========
+async function acceptInvitation(inviterPhone) {
+    var currentUserPhone = localStorage.getItem("userPhone");
+    if (!currentUserPhone) return false;
     
-    // Reset all indicators
-    if (indicator1) {
-        indicator1.classList.remove('indicator-yellow-red', 'indicator-hold');
-        indicator1.style.background = 'rgba(255,255,255,0.2)';
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        
+        // Update invitation status
+        var inviteRef = db.ref('invitations/' + inviterPhone + '/' + currentUserPhone);
+        await inviteRef.update({
+            status: 'accepted',
+            acceptedAt: Date.now()
+        });
+        
+        // Update inviter's accepted invites count
+        var inviterRef = db.ref('participants/' + inviterPhone);
+        var inviterSnap = await inviterRef.once('value');
+        
+        if (inviterSnap.exists()) {
+            var newAccepted = (inviterSnap.val().acceptedInvites || 0) + 1;
+            var newRightTotal = newAccepted * 150;
+            
+            await inviterRef.update({
+                acceptedInvites: newAccepted,
+                rightRewardTotal: newRightTotal,
+                lastActive: Date.now()
+            });
+            
+            // If this is the current user, update their right reward amount
+            if (inviterPhone === localStorage.getItem("userPhone")) {
+                acceptedInvitesCount = newAccepted;
+                rightRewardAmount = newRightTotal;
+                updateRightCardVisual();
+                
+                // Show notification
+                var statusMsg = document.getElementById('statusMessage');
+                if (statusMsg) {
+                    statusMsg.innerHTML = '🎉 A friend accepted your invite! +₱150 available on FRIEND GETS card!';
+                }
+            }
+        }
+        
+        return true;
     }
-    if (indicator2) {
-        indicator2.classList.remove('indicator-blue');
-        indicator2.style.background = 'rgba(255,255,255,0.2)';
+    return false;
+}
+
+// ========== LEFT LUCKY CAT (YOU GET - One time ₱150) ==========
+function initLeftLuckyCat() {
+    var leftCard = document.querySelector('.prize-card:first-child');
+    if (!leftCard) return;
+    
+    if (leftRewardClaimed) {
+        // Already claimed - permanent golden sunray
+        leftCard.style.border = '3px solid #ffd700';
+        leftCard.style.boxShadow = '0 0 30px rgba(255,215,0,0.7), 0 0 15px rgba(255,215,0,0.4)';
+        leftCard.style.cursor = 'default';
+        leftCard.style.background = 'radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05))';
+    } else {
+        // Not claimed yet
+        leftCard.style.cursor = 'pointer';
+        leftCard.style.transition = 'all 0.3s ease';
+        
+        // Hover effect - sunray golden aura
+        leftCard.addEventListener('mouseenter', function() {
+            if (!leftRewardClaimed) {
+                this.style.border = '2px solid #ffd700';
+                this.style.boxShadow = '0 0 30px rgba(255,215,0,0.6), 0 0 15px rgba(255,215,0,0.3)';
+                this.style.transform = 'scale(1.02)';
+            }
+        });
+        
+        leftCard.addEventListener('mouseleave', function() {
+            if (!leftRewardClaimed) {
+                this.style.border = '1px solid rgba(255,215,0,0.3)';
+                this.style.boxShadow = '0 0 10px rgba(255,215,0,0.2)';
+                this.style.transform = 'scale(1)';
+            }
+        });
+        
+        leftCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            if (leftRewardClaimed) {
+                alert("You already claimed your ₱150!");
+                return;
+            }
+            
+            // Get position for floating animation
+            var rect = this.getBoundingClientRect();
+            var x = rect.left + rect.width / 2;
+            var y = rect.top + rect.height / 2;
+            
+            // Mark as claimed
+            leftRewardClaimed = true;
+            
+            // Update Firebase
+            var phone = localStorage.getItem("userPhone");
+            if (typeof firebase !== 'undefined' && firebase.database) {
+                var db = firebase.database();
+                db.ref('participants/' + phone).update({
+                    leftRewardClaimed: true,
+                    leftRewardAmount: 150,
+                    leftRewardClaimedAt: Date.now()
+                });
+            }
+            
+            // Update UI - permanent golden sunray effect
+            this.style.border = '3px solid #ffd700';
+            this.style.boxShadow = '0 0 35px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.5)';
+            this.style.cursor = 'default';
+            this.style.background = 'radial-gradient(circle, rgba(255,215,0,0.2), rgba(255,215,0,0.05))';
+            
+            // Show floating +150
+            showFloatingPlus(x, y, 150);
+            startConfetti();
+            
+            // Update progress bar
+            var progressFill = document.getElementById('progressFill');
+            if (progressFill) progressFill.style.width = '33%';
+            
+            var statusMsg = document.getElementById('statusMessage');
+            if (statusMsg) {
+                statusMsg.innerHTML = '🎉 +₱150 claimed! Invite friends to get more from FRIEND GETS card!';
+            }
+            
+            console.log("Left Lucky Cat claimed! +₱150");
+        });
     }
-    if (indicator3) {
-        indicator3.classList.remove('indicator-green');
-        indicator3.style.background = 'rgba(255,255,255,0.2)';
+}
+
+// ========== RIGHT LUCKY CAT (FRIEND GETS - ₱150 per accepted invite) ==========
+function initRightLuckyCat() {
+    var rightCard = document.querySelector('.prize-card:last-child');
+    if (!rightCard) return;
+    
+    // Calculate available reward (acceptedInvitesCount * 150) - already claimed
+    var availableReward = rightRewardAmount - (rightRewardClaimed * 150);
+    
+    function updateRightCardDisplay() {
+        var available = rightRewardAmount - (rightRewardClaimed * 150);
+        
+        if (available <= 0 && rightRewardAmount > 0) {
+            // All rewards claimed - permanent golden sunray
+            rightCard.style.border = '3px solid #ffd700';
+            rightCard.style.boxShadow = '0 0 30px rgba(255,215,0,0.7)';
+            rightCard.style.cursor = 'default';
+            rightCard.style.background = 'radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05))';
+            rightCard.style.opacity = '0.8';
+        } else if (rightRewardAmount > 0) {
+            // Has available rewards - pulsating golden sunray
+            rightCard.style.border = '2px solid #ffd700';
+            rightCard.style.boxShadow = '0 0 25px rgba(255,215,0,0.5)';
+            rightCard.style.cursor = 'pointer';
+            rightCard.style.animation = 'pulseGold 1.5s infinite';
+            rightCard.style.background = 'radial-gradient(circle, rgba(255,215,0,0.1), transparent)';
+        } else {
+            // No rewards yet - subtle glow
+            rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
+            rightCard.style.boxShadow = '0 0 5px rgba(255,215,0,0.1)';
+            rightCard.style.cursor = 'default';
+            rightCard.style.animation = 'none';
+        }
     }
     
-    if (step === 0) {
-        // Not clicked yet - NEON RED / NEON YELLOW (pulsing)
-        if (indicator1) {
-            indicator1.classList.add('indicator-yellow-red');
-            indicator1.style.animation = 'pulseFade 1s infinite';
+    // Hover effect only if rewards available
+    rightCard.addEventListener('mouseenter', function() {
+        var available = rightRewardAmount - (rightRewardClaimed * 150);
+        if (available > 0 && rightRewardAmount > 0) {
+            this.style.boxShadow = '0 0 40px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.4)';
+            this.style.transform = 'scale(1.02)';
         }
-    } else if (step === 1) {
-        // Clicked - NEON YELLOW (solid glow)
-        if (indicator1) {
-            indicator1.classList.add('indicator-hold');
-            indicator1.style.background = '#ffd700';
-            indicator1.style.boxShadow = '0 0 15px #ffd700';
+    });
+    
+    rightCard.addEventListener('mouseleave', function() {
+        var available = rightRewardAmount - (rightRewardClaimed * 150);
+        if (available > 0 && rightRewardAmount > 0) {
+            this.style.boxShadow = '0 0 25px rgba(255,215,0,0.5)';
+            this.style.transform = 'scale(1)';
+        } else if (rightRewardAmount > 0) {
+            this.style.boxShadow = '0 0 25px rgba(255,215,0,0.5)';
+            this.style.transform = 'scale(1)';
+        } else {
+            this.style.boxShadow = '0 0 5px rgba(255,215,0,0.1)';
+            this.style.transform = 'scale(1)';
         }
+    });
+    
+    rightCard.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        var available = rightRewardAmount - (rightRewardClaimed * 150);
+        
+        if (rightRewardAmount === 0) {
+            alert("No rewards yet! Invite friends to earn ₱150 each.");
+            return;
+        }
+        
+        if (available <= 0) {
+            alert("You already claimed all your rewards from invites!");
+            return;
+        }
+        
+        // Claim one reward (₱150)
+        var rect = this.getBoundingClientRect();
+        var x = rect.left + rect.width / 2;
+        var y = rect.top + rect.height / 2;
+        
+        rightRewardClaimed++;
+        var newAvailable = rightRewardAmount - (rightRewardClaimed * 150);
+        
+        // Update Firebase
+        var phone = localStorage.getItem("userPhone");
+        if (typeof firebase !== 'undefined' && firebase.database) {
+            var db = firebase.database();
+            db.ref('participants/' + phone).update({
+                rightRewardClaimed: rightRewardClaimed,
+                lastClaimAt: Date.now()
+            });
+        }
+        
+        // Show floating +150
+        showFloatingPlus(x, y, 150);
+        startConfetti();
+        
+        // Update card visual
+        updateRightCardDisplay();
+        
+        // Update progress bar
+        var progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            var totalSteps = (rightRewardAmount / 150) + (leftRewardClaimed ? 1 : 0);
+            var completedSteps = rightRewardClaimed + (leftRewardClaimed ? 1 : 0);
+            var percent = (completedSteps / totalSteps) * 100;
+            progressFill.style.width = Math.min(percent, 100) + '%';
+        }
+        
+        var statusMsg = document.getElementById('statusMessage');
+        if (statusMsg) {
+            statusMsg.innerHTML = '🎉 +₱150 claimed! ' + (newAvailable > 0 ? newAvailable + ' more available!' : 'All rewards claimed!');
+        }
+        
+        console.log("Right Lucky Cat claimed! +₱150. Remaining: " + newAvailable);
+    });
+    
+    updateRightCardDisplay();
+}
+
+function updateRightCardVisual() {
+    var rightCard = document.querySelector('.prize-card:last-child');
+    if (!rightCard) return;
+    
+    var available = rightRewardAmount - (rightRewardClaimed * 150);
+    
+    if (available <= 0 && rightRewardAmount > 0) {
+        rightCard.style.border = '3px solid #ffd700';
+        rightCard.style.boxShadow = '0 0 30px rgba(255,215,0,0.7)';
+        rightCard.style.cursor = 'default';
+        rightCard.style.background = 'radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05))';
+    } else if (rightRewardAmount > 0) {
+        rightCard.style.border = '2px solid #ffd700';
+        rightCard.style.boxShadow = '0 0 25px rgba(255,215,0,0.5)';
+        rightCard.style.cursor = 'pointer';
+        rightCard.style.animation = 'pulseGold 1.5s infinite';
+    } else {
+        rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
+        rightCard.style.boxShadow = '0 0 5px rgba(255,215,0,0.1)';
+        rightCard.style.cursor = 'default';
+        rightCard.style.animation = 'none';
+    }
+}
+
+function updateLeftCardVisual() {
+    var leftCard = document.querySelector('.prize-card:first-child');
+    if (!leftCard) return;
+    
+    if (leftRewardClaimed) {
+        leftCard.style.border = '3px solid #ffd700';
+        leftCard.style.boxShadow = '0 0 30px rgba(255,215,0,0.7), 0 0 15px rgba(255,215,0,0.4)';
+        leftCard.style.cursor = 'default';
+        leftCard.style.background = 'radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05))';
     }
 }
 
 // ========== FLOATING +150 ANIMATION ==========
-function showFloatingPlus(x, y) {
+function showFloatingPlus(x, y, amount) {
     var floatingDiv = document.createElement('div');
     floatingDiv.className = 'floating-plus';
-    floatingDiv.innerHTML = '+₱150';
+    floatingDiv.innerHTML = '+₱' + amount;
     floatingDiv.style.position = 'fixed';
     floatingDiv.style.left = x + 'px';
     floatingDiv.style.top = y + 'px';
     floatingDiv.style.color = '#ffd700';
-    floatingDiv.style.fontSize = '32px';
+    floatingDiv.style.fontSize = '36px';
     floatingDiv.style.fontWeight = 'bold';
     floatingDiv.style.fontFamily = 'Orbitron, monospace';
-    floatingDiv.style.textShadow = '0 0 10px #ffaa33';
+    floatingDiv.style.textShadow = '0 0 15px #ffaa33';
     floatingDiv.style.pointerEvents = 'none';
     floatingDiv.style.zIndex = '10001';
     floatingDiv.style.animation = 'floatUp 1s ease-out forwards';
@@ -114,190 +406,8 @@ function showFloatingPlus(x, y) {
     }, 1000);
 }
 
-// ========== CONFETTI ==========
-var confettiAnimation = null;
-var confettiTimeout = null;
-
-function startConfetti() {
-    var canvas = document.getElementById('confettiCanvas');
-    if (!canvas) return;
-    
-    stopConfetti();
-    
-    canvas.style.display = 'block';
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    var ctx = canvas.getContext('2d');
-    
-    var particles = [];
-    for (var i = 0; i < 100; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 6 + 2,
-            color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
-            speed: Math.random() * 3 + 2
-        });
-    }
-    
-    function draw() {
-        if (!canvas || canvas.style.display === 'none') return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        for (var j = 0; j < particles.length; j++) {
-            var p = particles[j];
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-            p.y += p.speed;
-            if (p.y > canvas.height) {
-                p.y = -p.size;
-                p.x = Math.random() * canvas.width;
-            }
-        }
-        
-        confettiAnimation = requestAnimationFrame(draw);
-    }
-    
-    draw();
-    
-    if (confettiTimeout) clearTimeout(confettiTimeout);
-    confettiTimeout = setTimeout(function() {
-        stopConfetti();
-    }, 3000);
-}
-
-function stopConfetti() {
-    if (confettiAnimation) {
-        cancelAnimationFrame(confettiAnimation);
-        confettiAnimation = null;
-    }
-    var canvas = document.getElementById('confettiCanvas');
-    if (canvas) {
-        var ctx = canvas.getContext('2d');
-        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.style.display = 'none';
-    }
-}
-
-// ========== LUCKY CAT CARD EFFECTS ==========
-function initLuckyCatCard() {
-    var youGetCard = document.querySelector('.prize-card:first-child');
-    if (!youGetCard) return;
-    
-    // Check if already clicked from localStorage
-    var phone = localStorage.getItem("userPhone");
-    var storageKey = "luckyCatClicked_" + phone;
-    youGetClicked = localStorage.getItem(storageKey) === 'true';
-    
-    // Update indicator based on click status
-    if (youGetClicked) {
-        currentStep = 1;
-        updateIndicator(1);
-        youGetCard.style.border = '2px solid #ffd700';
-        youGetCard.style.boxShadow = '0 0 15px rgba(255,215,0,0.5)';
-        youGetCard.style.cursor = 'default';
-    } else {
-        currentStep = 0;
-        updateIndicator(0);
-        youGetCard.style.cursor = 'pointer';
-        
-        // Initial slight golden glow
-        youGetCard.style.transition = 'all 0.3s ease';
-        youGetCard.style.border = '1px solid rgba(255,215,0,0.3)';
-        youGetCard.style.boxShadow = '0 0 5px rgba(255,215,0,0.2)';
-        
-        // Hover effect - sunray golden aura
-        youGetCard.addEventListener('mouseenter', function() {
-            if (!youGetClicked) {
-                this.style.border = '2px solid #ffd700';
-                this.style.boxShadow = '0 0 25px rgba(255,215,0,0.6), 0 0 10px rgba(255,215,0,0.4)';
-                this.style.transform = 'scale(1.02)';
-            }
-        });
-        
-        youGetCard.addEventListener('mouseleave', function() {
-            if (!youGetClicked) {
-                this.style.border = '1px solid rgba(255,215,0,0.3)';
-                this.style.boxShadow = '0 0 5px rgba(255,215,0,0.2)';
-                this.style.transform = 'scale(1)';
-            }
-        });
-        
-        // Click event - no popup, just +150 effect
-        youGetCard.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            if (youGetClicked) {
-                alert("You already claimed your ₱150!");
-                return;
-            }
-            
-            // Get click position for floating animation
-            var rect = this.getBoundingClientRect();
-            var x = rect.left + rect.width / 2;
-            var y = rect.top + rect.height / 2;
-            
-            // Mark as clicked
-            youGetClicked = true;
-            localStorage.setItem(storageKey, 'true');
-            
-            // Update UI
-            this.style.border = '2px solid #ffd700';
-            this.style.boxShadow = '0 0 15px rgba(255,215,0,0.5)';
-            this.style.cursor = 'default';
-            
-            // Update indicator to 1/1 (NEON YELLOW)
-            currentStep = 1;
-            updateIndicator(1);
-            
-            // Show floating +150
-            showFloatingPlus(x, y);
-            
-            // Start confetti
-            startConfetti();
-            
-            // Update progress bar to 1/3
-            var progressFill = document.getElementById('progressFill');
-            if (progressFill) progressFill.style.width = '33%';
-            
-            // Update status message
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '🎉 +₱150 added! Click CLAIM THRU GCASH to withdraw!';
-            }
-            
-            console.log("Lucky Cat clicked! +₱150 added");
-        });
-    }
-    
-    console.log("Lucky cat card initialized - Clicked: " + youGetClicked);
-}
-
-// ========== FRIEND CARD (FRIEND GETS) ==========
-function initFriendCard() {
-    var friendCard = document.querySelector('.prize-card:last-child');
-    if (!friendCard) return;
-    
-    // Simple hover effect for friend card
-    friendCard.addEventListener('mouseenter', function() {
-        this.style.border = '2px solid #ffd700';
-        this.style.boxShadow = '0 0 20px rgba(255,215,0,0.4)';
-        this.style.transform = 'scale(1.02)';
-    });
-    
-    friendCard.addEventListener('mouseleave', function() {
-        this.style.border = '1px solid rgba(255,215,0,0.2)';
-        this.style.boxShadow = 'none';
-        this.style.transform = 'scale(1)';
-    });
-    
-    friendCard.addEventListener('click', function() {
-        alert("📱 Share this link with your friend! They will get ₱150 too!");
-    });
-}
-
 // ========== SHARE BUTTON ==========
-function handleShare() {
+async function handleShare() {
     var friendPhone = document.getElementById('friendPhoneInput').value.trim();
     var userPhone = localStorage.getItem("userPhone");
     
@@ -311,106 +421,70 @@ function handleShare() {
         return;
     }
     
-    document.getElementById('friendPhoneInput').value = '';
+    var success = await createInvitation(friendPhone);
     
-    var progressFill = document.getElementById('progressFill');
-    if (progressFill && !youGetClicked) progressFill.style.width = '33%';
-    else if (progressFill && youGetClicked) progressFill.style.width = '66%';
-    
-    var statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = '✅ Friend invited! Share on Facebook to complete!';
-    }
-    
-    var message = "REFERRAL INVITE!\nUser: " + userPhone + "\nFriend: " + friendPhone;
-    fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent(message))
-        .catch(function(e) { console.log("Telegram error:", e); });
-    
-    alert("Invitation sent to " + friendPhone);
-}
-
-function initShareButton() {
-    var shareBtn = document.getElementById('shareButton');
-    if (shareBtn) {
-        var newShareBtn = shareBtn.cloneNode(true);
-        shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
-        newShareBtn.onclick = handleShare;
+    if (success) {
+        document.getElementById('friendPhoneInput').value = '';
+        
+        var statusMsg = document.getElementById('statusMessage');
+        if (statusMsg) {
+            statusMsg.innerHTML = '✅ Invitation sent! Remaining invites: ' + remainingInvites;
+        }
+        
+        alert("Invitation sent to " + friendPhone);
     }
 }
 
-// ========== FACEBOOK SHARE ==========
-function handleFacebookShare() {
-    var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-    window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=400');
+// ========== CHECK EXISTING INVITES ==========
+async function checkExistingInvites() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return;
     
-    var progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '100%';
-    
-    var statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = '✅ All steps completed! You can now claim!';
-    }
-}
-
-function initFacebookShare() {
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.onclick = handleFacebookShare;
-    }
-}
-
-// ========== CLAIM BUTTON ==========
-function handleClaimGCash() {
-    if (!youGetClicked) {
-        alert("⚠️ Click the LUCKY CAT card first to get your ₱150!");
-        return;
-    }
-    
-    alert("💰 ₱150 claimed! Thank you for playing Lucky Drop!");
-    
-    var progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = '100%';
-    
-    var statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = '✅ ₱150 claimed successfully!';
-    }
-}
-
-function initClaimButton() {
-    var claimBtn = document.getElementById('claimGCashBtn');
-    if (claimBtn) {
-        claimBtn.onclick = handleClaimGCash;
-    }
-}
-
-// ========== ENTER KEY SUPPORT ==========
-function initEnterKeySupport() {
-    var friendInput = document.getElementById('friendPhoneInput');
-    var shareBtn = document.getElementById('shareButton');
-    
-    if (friendInput && shareBtn) {
-        friendInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                shareBtn.click();
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        
+        var invitesRef = db.ref('invitations');
+        var snapshot = await invitesRef.once('value');
+        
+        if (snapshot.exists()) {
+            var invites = snapshot.val();
+            for (var inviter in invites) {
+                if (invites[inviter][phone] && invites[inviter][phone].status === 'pending') {
+                    await acceptInvitation(inviter);
+                    console.log("Auto-accepted invitation from: " + inviter);
+                }
             }
-        });
+        }
     }
 }
 
-// ========== VIDEO AUTOPLAY ==========
-function initVideoAutoplay() {
-    var video = document.querySelector('.lucky-cat-video video');
-    if (video) {
-        video.play().catch(function(e) {
-            console.log("Autoplay blocked:", e);
-        });
+// ========== CSS ANIMATION FOR PULSE GOLD ==========
+function addPulseGoldAnimation() {
+    if (!document.querySelector('#pulseGoldStyle')) {
+        var style = document.createElement('style');
+        style.id = 'pulseGoldStyle';
+        style.textContent = `
+            @keyframes pulseGold {
+                0% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+                50% { box-shadow: 0 0 35px rgba(255,215,0,0.8), 0 0 15px rgba(255,215,0,0.5); }
+                100% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+            }
+            @keyframes floatUp {
+                0% { opacity: 1; transform: translateY(0) scale(1); }
+                50% { opacity: 1; transform: translateY(-50px) scale(1.2); }
+                100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+            }
+        `;
+        document.head.appendChild(style);
     }
 }
 
-// ========== DISPLAY USER PHONE ==========
-function initUserDisplay() {
+// ========== INITIALIZE ==========
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log("Promotion.js loading...");
+    
+    addPulseGoldAnimation();
+    
     var userPhone = localStorage.getItem("userPhone");
     var display = document.getElementById('userPhoneDisplay');
     if (display) {
@@ -420,33 +494,48 @@ function initUserDisplay() {
     if (!userPhone) {
         alert("Please login first.");
         window.location.href = "index.html";
+        return;
     }
-}
-
-// ========== NO POPUP - REMOVE X BUTTON FUNCTIONALITY ==========
-// The prizePopup should NOT have an X button that causes issues
-// Make sure the popup close only happens via outside click if needed
-
-// ========== INITIALIZE ALL ==========
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("Promotion.js loading...");
     
-    initUserDisplay();
+    await initParticipant();
+    await checkExistingInvites();
+    
     initMainTimer();
     initWinnerTicker();
-    initLuckyCatCard();    // Main lucky cat with +150 effect
-    initFriendCard();       // Friend card with share message
+    initLeftLuckyCat();
+    initRightLuckyCat();
     initShareButton();
-    initFacebookShare();
-    initClaimButton();
-    initEnterKeySupport();
-    initVideoAutoplay();
     
-    // Hide prizePopup completely - NO POPUP ON CARD CLICK
-    var prizePopup = document.getElementById('prizePopup');
-    if (prizePopup) {
-        prizePopup.style.display = 'none';
+    var fbBtn = document.getElementById('shareFBBtn');
+    if (fbBtn) {
+        fbBtn.onclick = function() {
+            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
+        };
     }
     
-    console.log("Promotion.js ready - Lucky Cat ready to click!");
+    var claimBtn = document.getElementById('claimGCashBtn');
+    if (claimBtn) {
+        claimBtn.onclick = function() {
+            alert("💰 Please click the LUCKY CAT cards to claim your rewards!");
+        };
+    }
+    
+    var friendInput = document.getElementById('friendPhoneInput');
+    var shareBtn = document.getElementById('shareButton');
+    if (friendInput && shareBtn) {
+        friendInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                shareBtn.click();
+            }
+        });
+    }
+    
+    var video = document.querySelector('.lucky-cat-video video');
+    if (video) {
+        video.play().catch(function(e) { console.log("Autoplay blocked:", e); });
+    }
+    
+    console.log("Promotion.js ready");
 });
