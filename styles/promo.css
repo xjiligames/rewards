@@ -675,6 +675,34 @@ body::before {
         border-radius: 15px;
     }
 
+/* REMASTERED SHARE GUIDE SECTION */
+.share-guide-text {
+    color: #ffffff; /* Gawing puti ang base font */
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05); /* Sobrang nipis na white background para umangat sa black */
+    border-radius: 15px;
+    border: 1px dashed rgba(0, 212, 255, 0.3); /* Neon blue border para sa "share" vibe */
+    line-height: 1.6;
+}
+
+/* Para sa highlight na +₱150 */
+.share-guide-text strong {
+    color: #ffd700; /* Gold color para sa pera/credits */
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    font-weight: 800;
+}
+
+/* Icon (Loudspeaker) color fix */
+.share-guide-text span.icon {
+    font-size: 18px;
+    margin-right: 5px;
+    filter: drop-shadow(0 0 5px #00d4ff);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .share-container { padding: 20px 15px 30px; }
