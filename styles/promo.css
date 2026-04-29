@@ -1304,70 +1304,34 @@ body::before {
     100% { opacity: 1; transform: scale(1); }
 }
 
-/* ========== BACK BUTTON ========== */
+/* ========== BACK BUTTON (SAME AS CLAIM NOW) ========== */
 .back-btn {
-    background: linear-gradient(135deg, #334155, #1e293b);
+    width: 100%;
+    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
     border: none;
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-weight: 600;
-    color: white;
-    font-size: 14px;
+    padding: 14px 20px;
+    border-radius: 60px;
+    font-weight: 800;
+    color: #1a1a2e;
+    font-size: 16px;
     cursor: pointer;
-    margin-top: 8px;
-    margin-bottom: 8px;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    transition: all 0.2s ease;
+    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    width: 100%;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.back-btn:active {
-    transform: scale(0.97);
-}
-
-.back-icon {
-    width: 18px;
-    height: 18px;
-    display: inline-block;
+    gap: 10px;
+    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
+    animation: neonGoldPulse 1.5s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
 }
 
 .back-btn:active {
     transform: scale(0.97);
     box-shadow: 0 0 20px #ffd700, 0 0 30px #ffaa33, 0 0 40px #ff8c00;
-}
-
-.back-btn:active img {
-    animation: twistClick 0.3s ease-out;
-}
-
-@keyframes twistClick {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.back-icon {
-    width: 24px;
-    height: 24px;
-    transition: transform 0.2s ease;
-}
-
-.back-btn img {
-    width: 24px;
-    height: 24px;
-    vertical-align: middle;
-    display: inline-block;
-    transition: transform 0.3s ease;
-    background: transparent !important;
-    mix-blend-mode: multiply;
-    object-fit: contain;
-}
-
-.back-btn:hover img {
-    transform: rotate(360deg) scale(1.1);
 }
 
 .back-btn::after {
@@ -1388,9 +1352,9 @@ body::before {
     height: 200px;
 }
 
-@keyframes neonGoldPulse {
-    0% { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33; background: linear-gradient(135deg, #ffd700, #ffaa33); }
-    50% { box-shadow: 0 0 15px #ffd700, 0 0 25px #ffaa33, 0 0 35px #ff8c00; background: linear-gradient(135deg, #ffed4e, #ffcc44, #ffaa33); }
-    100% { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33; background: linear-gradient(135deg, #ffd700, #ffaa33); }
+.back-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    filter: drop-shadow(0 0 2px #ffaa33);
 }
-
