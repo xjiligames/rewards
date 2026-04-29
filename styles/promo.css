@@ -461,7 +461,7 @@ body::before {
 
 .share-social-text { text-align: center; margin-top: 12px; font-size: 11px; color: #ffaa33; }
 
-/* ========== BUTTONS ========== */
+/* ========== CLAIM THRU GCASH BUTTON ========== */
 .claim-gcash-button {
     background: linear-gradient(135deg, #0066ff, #0044cc);
     width: 100%;
@@ -477,13 +477,20 @@ body::before {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
-    animation: neonBluePulse 1.5s ease-in-out infinite;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
-.claim-gcash-button:active { transform: scale(0.97); }
-.gc-btn-icon { width: 20px; height: 20px; vertical-align: middle; }
+
+.claim-gcash-button:active {
+    transform: scale(0.97);
+}
+
+.claim-gcash-button img {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    background: transparent;
+}
 
 .button-divider { display: flex; align-items: center; text-align: center; margin: 15px 0; gap: 10px; }
 .button-divider span:first-child, .button-divider span:last-child { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.5), transparent); }
