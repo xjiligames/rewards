@@ -1,5 +1,5 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
-// Complete version with localStorage data retrieval
+// Complete version with localStorage data retrieval and Indicator System
 
 // ========== LOCALSTORAGE KEYS ==========
 function getUserStorageKeys() {
@@ -12,7 +12,10 @@ function getUserStorageKeys() {
         leftRewardKey: "leftReward_" + phone,
         invitesKey: "invitations_" + phone,
         invitesCountKey: "invitesCount_" + phone,
-        lastUpdateKey: "lastUpdate_" + phone
+        lastUpdateKey: "lastUpdate_" + phone,
+        hasInvitedKey: "hasInvited_" + phone,
+        hasSharedKey: "hasShared_" + phone,
+        hasAcceptedKey: "hasAcceptedInvite_" + phone
     };
 }
 
@@ -173,21 +176,17 @@ function playVideoWithGlow(videoContainer) {
         });
     }
     
-    // Add glow animation
     videoContainer.classList.add('prize-card-clicked-video');
     
-    // Remove glow after animation
     setTimeout(function() {
         videoContainer.classList.remove('prize-card-clicked-video');
     }, 500);
 }
 
-// ========== UPDATED LEFT LUCKY CAT ==========
+// ========== LEFT LUCKY CAT ==========
 function initLeftLuckyCard() {
     var leftCard = document.getElementById('leftCard');
     if (!leftCard) return;
-    
-    var videoContainer = leftCard.querySelector('.lucky-cat-video');
     
     updateLeftCardFromStorage();
     
@@ -204,7 +203,6 @@ function initLeftLuckyCard() {
                 return;
             }
             
-            // Play video with glow effect
             var container = this.querySelector('.lucky-cat-video');
             if (container) {
                 playVideoWithGlow(container);
@@ -216,6 +214,10 @@ function initLeftLuckyCard() {
             
             addBalance(150);
             saveLeftRewardClaimed(true);
+            
+            // Update indicator
+            setLeftRewardClaimedGlobal(true);
+            saveIndicatorStatus();
             
             this.classList.remove('prize-card-glow');
             this.classList.add('prize-card-claimed');
@@ -233,7 +235,7 @@ function initLeftLuckyCard() {
     }
 }
 
-// ========== RIGHT LUCKY CAT WITH VIDEO ==========
+// ========== RIGHT LUCKY CAT ==========
 function initRightLuckyCard() {
     var rightCard = document.getElementById('rightCard');
     if (!rightCard) return;
@@ -241,14 +243,12 @@ function initRightLuckyCard() {
     rightCard.addEventListener('click', function(e) {
         e.stopPropagation();
         
-        // Play video with glow effect
         var container = this.querySelector('.lucky-cat-video');
         if (container) {
             playVideoWithGlow(container);
         }
         
-        // Rest of your right card logic here
-        // ...
+        alert("Invite friends to earn ₱150 each!");
     });
 }
 
@@ -338,6 +338,10 @@ window.sendInviteToStorage = function() {
         renderInvitationsFromStorage();
         displayInvitesCount();
         
+        // Update indicator for invite
+        setHasInvitedGlobal(true);
+        saveIndicatorStatus();
+        
         var statusMsg = document.getElementById('statusMessage');
         if (statusMsg) {
             statusMsg.innerHTML = 'Invitation sent to ' + friendPhone.substring(0, 4) + '****' + friendPhone.substring(8, 11);
@@ -348,49 +352,6 @@ window.sendInviteToStorage = function() {
         alert("You already invited this person!");
     }
 };
-
-// ========== LEFT LUCKY CAT ==========
-function initLeftLuckyCard() {
-    var leftCard = document.getElementById('leftCard');
-    if (!leftCard) return;
-    
-    updateLeftCardFromStorage();
-    
-    if (!getLeftRewardClaimed()) {
-        var newCard = leftCard.cloneNode(true);
-        leftCard.parentNode.replaceChild(newCard, leftCard);
-        leftCard = newCard;
-        
-        leftCard.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            if (getLeftRewardClaimed()) {
-                alert("You already claimed your ₱150!");
-                return;
-            }
-            
-            var rect = this.getBoundingClientRect();
-            var x = rect.left + rect.width / 2;
-            var y = rect.top + rect.height / 2;
-            
-            addBalance(150);
-            saveLeftRewardClaimed(true);
-            
-            this.classList.remove('prize-card-glow');
-            this.classList.add('prize-card-claimed');
-            this.style.cursor = 'default';
-            
-            showFloatingPlus(x, y, 150);
-            startConfetti();
-            displayBalance();
-            
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '+₱150 claimed! Your balance: ₱' + getBalance();
-            }
-        });
-    }
-}
 
 // ========== FLOATING ANIMATION ==========
 function showFloatingPlus(x, y, amount) {
@@ -481,6 +442,25 @@ function stopConfetti() {
     }
 }
 
+// ========== POPUP FUNCTIONS ==========
+function showPrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) {
+        // Update indicators before showing popup
+        loadIndicatorStatus();
+        popup.style.display = 'flex';
+        startConfetti();
+    }
+}
+
+function closePrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) {
+        popup.style.display = 'none';
+    }
+    stopConfetti();
+}
+
 // ========== CLAIM NOW BUTTON ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
@@ -503,23 +483,6 @@ function initClaimNowButton() {
             showPrizePopup();
         };
     }
-}
-
-// ========== POPUP FUNCTIONS ==========
-function showPrizePopup() {
-    var popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.style.display = 'flex';
-        startConfetti();
-    }
-}
-
-function closePrizePopup() {
-    var popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.style.display = 'none';
-    }
-    stopConfetti();
 }
 
 // ========== DROPDOWN TOGGLE ==========
@@ -547,7 +510,142 @@ function initDropdownToggle() {
     }
 }
 
-// ========== INITIALIZATION (DITO ILALAGAY ANG DISPLAY FUNCTIONS) ==========
+// ========== INDICATOR SYSTEM ==========
+var indicatorLeftRewardClaimed = false;
+var indicatorHasInvited = false;
+var indicatorHasShared = false;
+var indicatorHasAcceptedInvite = false;
+
+function updateAllIndicators() {
+    var indicator1 = document.getElementById('indicator1');
+    var indicator2 = document.getElementById('indicator2');
+    var indicator3 = document.getElementById('indicator3');
+    
+    // INDICATOR 1
+    if (indicator1) {
+        indicator1.classList.remove('indicator-red-yellow', 'indicator-yellow-solid');
+        indicator1.style.animation = 'none';
+        
+        if (!indicatorLeftRewardClaimed) {
+            indicator1.classList.add('indicator-red-yellow');
+            indicator1.style.animation = 'pulseRedYellow 1s infinite';
+        } else {
+            indicator1.classList.add('indicator-yellow-solid');
+            indicator1.style.background = '#ffd700';
+            indicator1.style.boxShadow = '0 0 15px #ffd700';
+        }
+    }
+    
+    // INDICATOR 2
+    if (indicator2) {
+        indicator2.classList.remove('indicator-yellow-green', 'indicator-blue');
+        indicator2.style.animation = 'none';
+        
+        if (indicatorLeftRewardClaimed) {
+            if (indicatorHasInvited && !indicatorHasShared) {
+                indicator2.classList.add('indicator-yellow-green');
+                indicator2.style.animation = 'pulseYellowGreen 1s infinite';
+            } else if (!indicatorHasInvited && indicatorHasShared) {
+                indicator2.classList.add('indicator-blue');
+                indicator2.style.animation = 'pulseBlue 1s infinite';
+            } else if (indicatorHasInvited && indicatorHasShared) {
+                indicator2.classList.add('indicator-yellow-green');
+                indicator2.style.animation = 'pulseAlternate 1s infinite';
+            }
+        }
+    }
+    
+    // INDICATOR 3
+    if (indicator3) {
+        indicator3.classList.remove('indicator-green-solid');
+        indicator3.style.animation = 'none';
+        
+        if (indicatorHasAcceptedInvite) {
+            indicator3.classList.add('indicator-green-solid');
+            indicator3.style.background = '#39ff14';
+            indicator3.style.boxShadow = '0 0 15px #39ff14';
+        }
+    }
+}
+
+function setLeftRewardClaimedGlobal(claimed) {
+    indicatorLeftRewardClaimed = claimed;
+    updateAllIndicators();
+}
+
+function setHasInvitedGlobal(invited) {
+    indicatorHasInvited = invited;
+    updateAllIndicators();
+}
+
+function setHasSharedGlobal(shared) {
+    indicatorHasShared = shared;
+    updateAllIndicators();
+}
+
+function setHasAcceptedInviteGlobal(accepted) {
+    indicatorHasAcceptedInvite = accepted;
+    if (accepted) {
+        indicatorHasInvited = true;
+    }
+    updateAllIndicators();
+}
+
+function loadIndicatorStatus() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return;
+    
+    indicatorLeftRewardClaimed = localStorage.getItem("leftReward_" + phone) === 'true';
+    indicatorHasInvited = localStorage.getItem("hasInvited_" + phone) === 'true';
+    indicatorHasShared = localStorage.getItem("hasShared_" + phone) === 'true';
+    indicatorHasAcceptedInvite = localStorage.getItem("hasAcceptedInvite_" + phone) === 'true';
+    
+    updateAllIndicators();
+}
+
+function saveIndicatorStatus() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return;
+    
+    localStorage.setItem("hasInvited_" + phone, indicatorHasInvited);
+    localStorage.setItem("hasShared_" + phone, indicatorHasShared);
+    localStorage.setItem("hasAcceptedInvite_" + phone, indicatorHasAcceptedInvite);
+}
+
+// ========== FACEBOOK SHARE ==========
+function initFacebookShare() {
+    var fbBtn = document.getElementById('shareFBBtn');
+    if (fbBtn) {
+        fbBtn.onclick = function() {
+            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
+            
+            // Update indicator for share
+            setHasSharedGlobal(true);
+            saveIndicatorStatus();
+        };
+    }
+}
+
+// ========== CHECK FOR ACCEPTED INVITES ==========
+function checkAcceptedInvites() {
+    var invitations = getInvitations();
+    var hasAccepted = false;
+    
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].status === 'approved') {
+            hasAccepted = true;
+            break;
+        }
+    }
+    
+    if (hasAccepted) {
+        setHasAcceptedInviteGlobal(true);
+        saveIndicatorStatus();
+    }
+}
+
+// ========== INITIALIZATION ==========
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Promotion.js loading...");
     
@@ -569,16 +667,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // ========== DISPLAY BALANCE, INVITES, LEFT REWARD STATUS ==========
-    displayBalance();           // Ipakita ang balance
-    displayInvitesCount();     // Ipakita ang invites count
-    updateLeftCardFromStorage(); // I-update ang left card visual
-    renderInvitationsFromStorage(); // Ipakita ang invitations list
+    // Display balance, invites, left reward status
+    displayBalance();
+    displayInvitesCount();
+    updateLeftCardFromStorage();
+    renderInvitationsFromStorage();
+    
+    // Load indicator status
+    loadIndicatorStatus();
+    
+    // Check for accepted invites
+    checkAcceptedInvites();
     
     // Initialize components
     initLeftLuckyCard();
+    initRightLuckyCard();
     initClaimNowButton();
     initDropdownToggle();
+    initFacebookShare();
     
     // Send invitation button
     var sendBtn = document.getElementById('sendInviteBtn');
@@ -608,134 +714,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Facebook share
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.onclick = function() {
-            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
-        };
-    }
-
-    // ========== INDICATOR SYSTEM - NEW LOGIC ==========
-// Variables to track user actions
-var leftRewardClaimed = false;
-var hasInvited = false;
-var hasShared = false;
-var hasAcceptedInvite = false;
-
-// Update all indicators based on user actions
-function updateAllIndicators() {
-    var indicator1 = document.getElementById('indicator1');
-    var indicator2 = document.getElementById('indicator2');
-    var indicator3 = document.getElementById('indicator3');
-    
-    // ========== INDICATOR 1 ==========
-    if (indicator1) {
-        indicator1.classList.remove('indicator-red-yellow', 'indicator-yellow-solid', 'indicator-yellow-green', 'indicator-blue', 'indicator-green-solid');
-        indicator1.style.animation = 'none';
-        
-        if (!leftRewardClaimed) {
-            // Not clicked yet - NEON RED/YELLOW (blinking)
-            indicator1.classList.add('indicator-red-yellow');
-            indicator1.style.animation = 'pulseRedYellow 1s infinite';
-        } else {
-            // Clicked - NEON YELLOW (solid fixed)
-            indicator1.classList.add('indicator-yellow-solid');
-            indicator1.style.background = '#ffd700';
-            indicator1.style.boxShadow = '0 0 15px #ffd700';
-        }
-    }
-    
-    // ========== INDICATOR 2 ==========
-    if (indicator2) {
-        indicator2.classList.remove('indicator-yellow-green', 'indicator-blue', 'indicator-yellow-solid');
-        indicator2.style.animation = 'none';
-        
-        if (leftRewardClaimed) {
-            if (hasInvited && !hasShared) {
-                // Nag-invite pero hindi pa nag-share - NEON YELLOW/GREEN
-                indicator2.classList.add('indicator-yellow-green');
-                indicator2.style.animation = 'pulseYellowGreen 1s infinite';
-            } else if (!hasInvited && hasShared) {
-                // Nag-share pero hindi pa nag-invite - NEON LIGHT BLUE
-                indicator2.classList.add('indicator-blue');
-                indicator2.style.animation = 'pulseBlue 1s infinite';
-            } else if (hasInvited && hasShared) {
-                // Both done - alternate YELLOW/GREEN and BLUE
-                indicator2.classList.add('indicator-yellow-green');
-                indicator2.style.animation = 'pulseAlternate 1s infinite';
-            }
-        }
-    }
-    
-    // ========== INDICATOR 3 ==========
-    if (indicator3) {
-        indicator3.classList.remove('indicator-green-solid', 'indicator-green-pulse');
-        indicator3.style.animation = 'none';
-        
-        if (hasAcceptedInvite) {
-            // Complete - NEON GREEN (solid fixed)
-            indicator3.classList.add('indicator-green-solid');
-            indicator3.style.background = '#39ff14';
-            indicator3.style.boxShadow = '0 0 15px #39ff14';
-        }
-    }
-}
-
-// Update specific action flags
-function setLeftRewardClaimed(claimed) {
-    leftRewardClaimed = claimed;
-    updateAllIndicators();
-}
-
-function setHasInvited(invited) {
-    hasInvited = invited;
-    updateAllIndicators();
-}
-
-function setHasShared(shared) {
-    hasShared = shared;
-    updateAllIndicators();
-}
-
-function setHasAcceptedInvite(accepted) {
-    hasAcceptedInvite = accepted;
-    updateAllIndicators();
-    
-    // If accepted, automatically set invited to true
-    if (accepted) {
-        hasInvited = true;
-        updateAllIndicators();
-    }
-}
-
-// Load indicator status from localStorage
-function loadIndicatorStatus() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return;
-    
-    leftRewardClaimed = localStorage.getItem("leftReward_" + phone) === 'true';
-    hasInvited = localStorage.getItem("hasInvited_" + phone) === 'true';
-    hasShared = localStorage.getItem("hasShared_" + phone) === 'true';
-    hasAcceptedInvite = localStorage.getItem("hasAcceptedInvite_" + phone) === 'true';
-    
-    updateAllIndicators();
-}
-
-// Save indicator status to localStorage
-function saveIndicatorStatus() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return;
-    
-    localStorage.setItem("leftReward_" + phone, leftRewardClaimed);
-    localStorage.setItem("hasInvited_" + phone, hasInvited);
-    localStorage.setItem("hasShared_" + phone, hasShared);
-    localStorage.setItem("hasAcceptedInvite_" + phone, hasAcceptedInvite);
-}
-    
     console.log("Promotion.js ready");
     console.log("Current balance:", getBalance());
     console.log("Left reward claimed:", getLeftRewardClaimed());
     console.log("Invites count:", getInvitesCount());
+    console.log("Indicator status - Left:", indicatorLeftRewardClaimed);
+    console.log("Indicator status - Invited:", indicatorHasInvited);
+    console.log("Indicator status - Shared:", indicatorHasShared);
+    console.log("Indicator status - Accepted:", indicatorHasAcceptedInvite);
 });
