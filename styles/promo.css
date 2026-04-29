@@ -812,6 +812,44 @@ body::before {
 .luckyday-img:hover {
     transform: scale(1.05);
 
+    /* Timer Styling with Thrill Effect */
+.timer-active {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: #39ff14; /* Green start */
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+    animation: pulseSecond 1s infinite;
+    display: block;
+    margin-top: 10px;
+}
+
+@keyframes pulseSecond {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Kapag malapit na maubos (Red alert) */
+.timer-low {
+    color: #ff3131 !important;
+    text-shadow: 0 0 20px rgba(255, 49, 49, 0.8) !important;
+    animation: shakeUrgent 0.2s infinite !important;
+}
+
+@keyframes shakeUrgent {
+    0% { transform: translate(1px, 1px); }
+    50% { transform: translate(-1px, -1px); }
+    100% { transform: translate(1px, -1px); }
+}
+
+/* Siguraduhing clickable ang button */
+.claim-gcash-button {
+    pointer-events: auto !important; /* Force clickable */
+    z-index: 100;
+    position: relative;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .share-container { padding: 20px 15px 30px; }
