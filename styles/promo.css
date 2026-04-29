@@ -1200,3 +1200,10 @@ body {
     height: 20px;
     object-fit: contain;
 }
+
+/* Remove white background from scatter icon */
+.claim-now-btn img {
+    background: transparent !important;
+    mix-blend-mode: multiply;
+    object-fit: contain;
+}
