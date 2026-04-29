@@ -24,7 +24,7 @@
 <!-- WINNER TICKER -->
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
-    <span id="winnerText">0917***4256 withdrawn ₱1,200</span>
+    <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
 </div>
 
 <div class="share-container">
@@ -153,27 +153,28 @@
         setInterval(updateTimer, 1000);
     })();
     
-    // Simple winner ticker
-    (function() {
-        var winnerSpan = document.getElementById('winnerText');
-        if (!winnerSpan) return;
-        
-        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
-        
-        function generateWinner() {
-            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            var last4 = Math.floor(1000 + Math.random() * 9000);
-            var amount = amounts[Math.floor(Math.random() * amounts.length)];
-            return prefix + "***" + last4 + ' withdrawn ₱' + amount;
-        }
-        
+    // Simple winner ticker with GCash icon
+(function() {
+    var winnerSpan = document.getElementById('winnerText');
+    if (!winnerSpan) return;
+    
+    var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
+    var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+    
+    function generateWinner() {
+        var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        var last4 = Math.floor(1000 + Math.random() * 9000);
+        var amount = amounts[Math.floor(Math.random() * amounts.length)];
+        // GCash icon image tag
+        return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
+    }
+    
+    winnerSpan.innerHTML = generateWinner();
+    
+    setInterval(function() {
         winnerSpan.innerHTML = generateWinner();
-        
-        setInterval(function() {
-            winnerSpan.innerHTML = generateWinner();
-        }, 15000);
-    })();
+    }, 15000);
+})();
     
     // Display user phone
     var userPhone = localStorage.getItem("userPhone");
