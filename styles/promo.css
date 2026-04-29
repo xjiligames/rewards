@@ -1192,3 +1192,11 @@ body {
     transform: scale(0.97);
     box-shadow: 0 0 20px #1877f2, 0 0 30px #1877f2;
 }
+
+.share-fb-button img {
+    background: transparent !important;
+    mix-blend-mode: multiply;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
