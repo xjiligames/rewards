@@ -21,7 +21,7 @@
 </head>
 <body>
 
-<!-- WINNER TICKER - Static na hindi naglo-load -->
+<!-- WINNER TICKER -->
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
     <span id="winnerText">0917***4256 withdrawn ₱1,200</span>
@@ -32,9 +32,17 @@
         <h1>LUCKY DROP 🐾</h1>
     </div>
     
-    <div class="user-info">
-        <span>📱 Logged in as:</span>
-        <span id="userPhoneDisplay">Loading...</span>
+    <!-- USER INFO SECTION - IMPROVED DESIGN -->
+    <div class="user-info-card">
+        <div class="user-info-icon">📱</div>
+        <div class="user-info-text">
+            <span class="user-info-label">Logged in as</span>
+            <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+        </div>
+        <div class="user-info-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-text">Active</span>
+        </div>
     </div>
     
     <div class="prize-grid">
@@ -62,7 +70,6 @@
         <span>🌟 <strong>LUCKY WINNERS</strong>🌟<br> will receive <strong>150</strong> Credits</span>
     </div>
     
-    <!-- MAIN TIMER - Simple HTML/CSS lang -->
     <div class="time-left-section">
         <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
         <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
@@ -113,9 +120,9 @@
 <script src="js/popup.js"></script>
 <script src="js/promotion.js"></script>
 
-<!-- SIMPLE TIMER - Diretso sa HTML, hindi na sa JS -->
+<!-- SIMPLE TIMER & WINNER TICKER -->
 <script>
-    // Simple countdown timer - direct sa HTML
+    // Simple countdown timer
     (function() {
         var timerDisplay = document.getElementById('mainTimerDisplay');
         if (!timerDisplay) return;
@@ -146,7 +153,7 @@
         setInterval(updateTimer, 1000);
     })();
     
-    // Simple winner ticker - direct sa HTML
+    // Simple winner ticker
     (function() {
         var winnerSpan = document.getElementById('winnerText');
         if (!winnerSpan) return;
@@ -161,10 +168,8 @@
             return prefix + "***" + last4 + ' withdrawn ₱' + amount;
         }
         
-        // Initial text
         winnerSpan.innerHTML = generateWinner();
         
-        // Update every 15 seconds
         setInterval(function() {
             winnerSpan.innerHTML = generateWinner();
         }, 15000);
@@ -173,7 +178,15 @@
     // Display user phone
     var userPhone = localStorage.getItem("userPhone");
     var display = document.getElementById('userPhoneDisplay');
-    if (display) display.innerText = userPhone || 'Not logged in';
+    if (display) {
+        // Format phone number display (0917****567)
+        if (userPhone && userPhone.length === 11) {
+            var formattedPhone = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
+            display.innerText = formattedPhone;
+        } else {
+            display.innerText = userPhone || 'Not logged in';
+        }
+    }
     
     if (!userPhone) {
         alert("Please login first.");
