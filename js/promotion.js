@@ -1,65 +1,156 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
-// Using localStorage for data storage
+// Complete version with localStorage data retrieval
 
-// ========== GLOBAL VARIABLES ==========
-var leftRewardClaimed = false;
-var userBalance = 0;
-var invitationsList = [];
-
-// ========== LOAD DATA FROM LOCALSTORAGE ==========
-function loadUserData() {
+// ========== LOCALSTORAGE KEYS ==========
+function getUserStorageKeys() {
     var phone = localStorage.getItem("userPhone");
-    if (!phone) return;
+    if (!phone) return null;
     
-    // Load left reward status
-    var leftKey = "leftReward_" + phone;
-    leftRewardClaimed = localStorage.getItem(leftKey) === 'true';
+    return {
+        phone: phone,
+        balanceKey: "userBalance_" + phone,
+        leftRewardKey: "leftReward_" + phone,
+        invitesKey: "invitations_" + phone,
+        invitesCountKey: "invitesCount_" + phone,
+        lastUpdateKey: "lastUpdate_" + phone
+    };
+}
+
+// ========== SAVE BALANCE ==========
+function saveBalance(amount) {
+    var keys = getUserStorageKeys();
+    if (!keys) return;
     
-    // Load user balance
-    var balanceKey = "userBalance_" + phone;
-    userBalance = parseInt(localStorage.getItem(balanceKey)) || 0;
+    localStorage.setItem(keys.balanceKey, amount);
+    localStorage.setItem(keys.lastUpdateKey, Date.now());
+    console.log("Balance saved:", amount);
+}
+
+// ========== GET BALANCE ==========
+function getBalance() {
+    var keys = getUserStorageKeys();
+    if (!keys) return 0;
     
-    // Load invitations
-    var invitesKey = "invitations_" + phone;
-    var storedInvites = localStorage.getItem(invitesKey);
+    var balance = localStorage.getItem(keys.balanceKey);
+    return balance ? parseInt(balance) : 0;
+}
+
+// ========== SAVE LEFT REWARD STATUS ==========
+function saveLeftRewardClaimed(claimed) {
+    var keys = getUserStorageKeys();
+    if (!keys) return;
     
-    if (storedInvites) {
-        invitationsList = JSON.parse(storedInvites);
-    } else {
-        invitationsList = [];
+    localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
+    console.log("Left reward status saved:", claimed);
+}
+
+// ========== GET LEFT REWARD STATUS ==========
+function getLeftRewardClaimed() {
+    var keys = getUserStorageKeys();
+    if (!keys) return false;
+    
+    var status = localStorage.getItem(keys.leftRewardKey);
+    return status === 'true';
+}
+
+// ========== SAVE INVITATIONS LIST ==========
+function saveInvitations(invitations) {
+    var keys = getUserStorageKeys();
+    if (!keys) return;
+    
+    localStorage.setItem(keys.invitesKey, JSON.stringify(invitations));
+    localStorage.setItem(keys.invitesCountKey, invitations.length);
+    console.log("Invitations saved:", invitations.length);
+}
+
+// ========== GET INVITATIONS LIST ==========
+function getInvitations() {
+    var keys = getUserStorageKeys();
+    if (!keys) return [];
+    
+    var invites = localStorage.getItem(keys.invitesKey);
+    return invites ? JSON.parse(invites) : [];
+}
+
+// ========== GET INVITES COUNT ==========
+function getInvitesCount() {
+    var keys = getUserStorageKeys();
+    if (!keys) return 0;
+    
+    var count = localStorage.getItem(keys.invitesCountKey);
+    return count ? parseInt(count) : 0;
+}
+
+// ========== ADD INVITATION ==========
+function addInvitation(friendPhone) {
+    var invitations = getInvitations();
+    
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].phone === friendPhone) {
+            return false;
+        }
     }
     
-    console.log("Data loaded - Left claimed:", leftRewardClaimed);
-    console.log("Data loaded - Balance:", userBalance);
-    console.log("Data loaded - Invitations:", invitationsList.length);
+    invitations.push({
+        phone: friendPhone,
+        status: 'pending',
+        timestamp: Date.now()
+    });
+    
+    saveInvitations(invitations);
+    return true;
 }
 
-// ========== SAVE DATA TO LOCALSTORAGE ==========
-function saveUserData() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return;
+// ========== DELETE INVITATION ==========
+function deleteInvitationByPhone(friendPhone) {
+    var invitations = getInvitations();
+    var newInvites = [];
     
-    var balanceKey = "userBalance_" + phone;
-    localStorage.setItem(balanceKey, userBalance.toString());
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].phone !== friendPhone) {
+            newInvites.push(invitations[i]);
+        }
+    }
     
-    var invitesKey = "invitations_" + phone;
-    localStorage.setItem(invitesKey, JSON.stringify(invitationsList));
+    saveInvitations(newInvites);
 }
 
-// ========== UPDATE BALANCE DISPLAY ==========
-function updateBalanceDisplay() {
+// ========== ADD BALANCE ==========
+function addBalance(amount) {
+    var currentBalance = getBalance();
+    var newBalance = currentBalance + amount;
+    saveBalance(newBalance);
+    return newBalance;
+}
+
+// ========== DISPLAY BALANCE ==========
+function displayBalance() {
+    var balance = getBalance();
     var balanceSpan = document.getElementById('userBalanceDisplay');
     if (balanceSpan) {
-        balanceSpan.innerHTML = '₱' + userBalance;
+        balanceSpan.innerHTML = '₱' + balance;
     }
+    return balance;
+}
+
+// ========== DISPLAY INVITES COUNT ==========
+function displayInvitesCount() {
+    var count = getInvitesCount();
+    var invitesSpan = document.getElementById('invitesCountDisplay');
+    if (invitesSpan) {
+        invitesSpan.innerHTML = count + ' / 6';
+    }
+    return count;
 }
 
 // ========== UPDATE LEFT CARD VISUAL ==========
-function updateLeftCardVisual() {
+function updateLeftCardFromStorage() {
     var leftCard = document.getElementById('leftCard');
+    var leftClaimed = getLeftRewardClaimed();
+    
     if (!leftCard) return;
     
-    if (leftRewardClaimed) {
+    if (leftClaimed) {
         leftCard.classList.add('prize-card-claimed');
         leftCard.classList.remove('prize-card-glow');
         leftCard.style.cursor = 'default';
@@ -70,19 +161,21 @@ function updateLeftCardVisual() {
     }
 }
 
-// ========== RENDER INVITATIONS LIST (MINI DASHBOARD) ==========
-function renderInvitationsList() {
+// ========== RENDER INVITATIONS LIST ==========
+function renderInvitationsFromStorage() {
+    var invitations = getInvitations();
     var listBody = document.getElementById('inviteListBody');
+    
     if (!listBody) return;
     
-    if (invitationsList.length === 0) {
+    if (invitations.length === 0) {
         listBody.innerHTML = '<div class="invite-empty">No invitations sent</div>';
         return;
     }
     
     var html = '';
-    for (var i = 0; i < invitationsList.length; i++) {
-        var inv = invitationsList[i];
+    for (var i = 0; i < invitations.length; i++) {
+        var inv = invitations[i];
         var formattedPhone = inv.phone.substring(0, 4) + '****' + inv.phone.substring(8, 11);
         var statusClass = inv.status === 'approved' ? 'approved' : 'pending';
         var statusText = inv.status === 'approved' ? 'APPROVED' : 'PENDING';
@@ -92,20 +185,49 @@ function renderInvitationsList() {
         html += '<div class="invite-item-phone">' + formattedPhone + '</div>';
         html += '<div class="invite-item-status"><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>';
         html += '<div class="invite-item-action">';
-        html += '<button class="delete-invite" onclick="deleteInvitation(\'' + inv.phone + '\')" ' + disabled + '>✕</button>';
+        html += '<button class="delete-invite" onclick="deleteInviteFromStorage(\'' + inv.phone + '\')" ' + disabled + '>✕</button>';
         html += '</div>';
         html += '</div>';
     }
     listBody.innerHTML = html;
 }
 
+// ========== DELETE INVITE ==========
+window.deleteInviteFromStorage = function(friendPhone) {
+    var invitations = getInvitations();
+    var invite = null;
+    
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].phone === friendPhone) {
+            invite = invitations[i];
+            break;
+        }
+    }
+    
+    if (invite && invite.status === 'approved') {
+        alert("Cannot delete approved invitation!");
+        return;
+    }
+    
+    if (confirm("Delete invitation?")) {
+        deleteInvitationByPhone(friendPhone);
+        renderInvitationsFromStorage();
+        displayInvitesCount();
+        
+        var statusMsg = document.getElementById('statusMessage');
+        if (statusMsg) {
+            statusMsg.innerHTML = 'Invitation deleted';
+        }
+    }
+};
+
 // ========== SEND INVITATION ==========
-window.sendInvitation = function() {
+window.sendInviteToStorage = function() {
     var friendPhone = document.getElementById('friendPhoneInput').value.trim();
     var userPhone = localStorage.getItem("userPhone");
     
     if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-        alert("Please enter valid 11-digit number starting with 09");
+        alert("Enter valid 11-digit number starting with 09");
         return;
     }
     
@@ -114,82 +236,36 @@ window.sendInvitation = function() {
         return;
     }
     
-    // Check if already invited
-    var alreadyInvited = false;
-    for (var i = 0; i < invitationsList.length; i++) {
-        if (invitationsList[i].phone === friendPhone) {
-            alreadyInvited = true;
-            break;
-        }
-    }
-    
-    if (alreadyInvited) {
-        alert("You already invited this person!");
+    var invitesCount = getInvitesCount();
+    if (invitesCount >= 6) {
+        alert("Maximum 6 invites only!");
         return;
     }
     
-    // Add new invitation
-    invitationsList.push({
-        phone: friendPhone,
-        status: 'pending',
-        timestamp: Date.now()
-    });
-    
-    saveUserData();
-    renderInvitationsList();
-    
-    document.getElementById('friendPhoneInput').value = '';
-    
-    var statusMsg = document.getElementById('statusMessage');
-    if (statusMsg) {
-        statusMsg.innerHTML = 'Invitation sent to ' + friendPhone.substring(0, 4) + '****' + friendPhone.substring(8, 11);
-    }
-    
-    alert("Invitation sent to " + friendPhone);
-};
-
-// ========== DELETE INVITATION ==========
-window.deleteInvitation = function(friendPhone) {
-    var invite = null;
-    for (var i = 0; i < invitationsList.length; i++) {
-        if (invitationsList[i].phone === friendPhone) {
-            invite = invitationsList[i];
-            break;
-        }
-    }
-    
-    if (invite && invite.status === 'approved') {
-        alert("Cannot delete approved invitation. User already claimed reward.");
-        return;
-    }
-    
-    if (confirm("Delete invitation to " + friendPhone + "?")) {
-        var newList = [];
-        for (var i = 0; i < invitationsList.length; i++) {
-            if (invitationsList[i].phone !== friendPhone) {
-                newList.push(invitationsList[i]);
-            }
-        }
-        invitationsList = newList;
-        saveUserData();
-        renderInvitationsList();
+    if (addInvitation(friendPhone)) {
+        document.getElementById('friendPhoneInput').value = '';
+        renderInvitationsFromStorage();
+        displayInvitesCount();
         
         var statusMsg = document.getElementById('statusMessage');
         if (statusMsg) {
-            statusMsg.innerHTML = 'Invitation deleted.';
+            statusMsg.innerHTML = 'Invitation sent to ' + friendPhone.substring(0, 4) + '****' + friendPhone.substring(8, 11);
         }
+        
+        alert("Invitation sent!");
+    } else {
+        alert("You already invited this person!");
     }
 };
 
-// ========== LEFT LUCKY CAT (YOU GET - ₱150) ==========
-function initLeftLuckyCat() {
+// ========== LEFT LUCKY CAT ==========
+function initLeftLuckyCard() {
     var leftCard = document.getElementById('leftCard');
     if (!leftCard) return;
     
-    updateLeftCardVisual();
+    updateLeftCardFromStorage();
     
-    if (!leftRewardClaimed) {
-        // Remove existing listeners
+    if (!getLeftRewardClaimed()) {
         var newCard = leftCard.cloneNode(true);
         leftCard.parentNode.replaceChild(newCard, leftCard);
         leftCard = newCard;
@@ -197,7 +273,7 @@ function initLeftLuckyCat() {
         leftCard.addEventListener('click', function(e) {
             e.stopPropagation();
             
-            if (leftRewardClaimed) {
+            if (getLeftRewardClaimed()) {
                 alert("You already claimed your ₱150!");
                 return;
             }
@@ -206,53 +282,26 @@ function initLeftLuckyCat() {
             var x = rect.left + rect.width / 2;
             var y = rect.top + rect.height / 2;
             
-            // Add ₱150 to balance
-            userBalance += 150;
-            leftRewardClaimed = true;
+            addBalance(150);
+            saveLeftRewardClaimed(true);
             
-            // Save to localStorage
-            var phone = localStorage.getItem("userPhone");
-            localStorage.setItem("leftReward_" + phone, 'true');
-            localStorage.setItem("userBalance_" + phone, userBalance.toString());
-            
-            // Update UI
             this.classList.remove('prize-card-glow');
             this.classList.add('prize-card-claimed');
             this.style.cursor = 'default';
             
             showFloatingPlus(x, y, 150);
             startConfetti();
-            
-            updateBalanceDisplay();
+            displayBalance();
             
             var statusMsg = document.getElementById('statusMessage');
             if (statusMsg) {
-                statusMsg.innerHTML = '+₱150 claimed! Your balance: ₱' + userBalance;
+                statusMsg.innerHTML = '+₱150 claimed! Your balance: ₱' + getBalance();
             }
-            
-            updateIndicator(1);
         });
     }
 }
 
-// ========== INDICATOR SYSTEM ==========
-function updateIndicator(step) {
-    var indicator1 = document.getElementById('indicator1');
-    
-    if (indicator1) {
-        indicator1.classList.remove('indicator-yellow-red', 'indicator-hold');
-        
-        if (step === 0) {
-            indicator1.classList.add('indicator-yellow-red');
-        } else if (step === 1) {
-            indicator1.classList.add('indicator-hold');
-            indicator1.style.background = '#ffd700';
-            indicator1.style.boxShadow = '0 0 15px #ffd700';
-        }
-    }
-}
-
-// ========== FLOATING +150 ANIMATION ==========
+// ========== FLOATING ANIMATION ==========
 function showFloatingPlus(x, y, amount) {
     var floatingDiv = document.createElement('div');
     floatingDiv.className = 'floating-plus';
@@ -341,6 +390,30 @@ function stopConfetti() {
     }
 }
 
+// ========== CLAIM NOW BUTTON ==========
+function initClaimNowButton() {
+    var claimNowBtn = document.getElementById('claimNowBtn');
+    
+    if (claimNowBtn) {
+        var newBtn = claimNowBtn.cloneNode(true);
+        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
+        
+        newBtn.onclick = function() {
+            if (!getLeftRewardClaimed()) {
+                alert("Click the GOLDEN CARD first to claim your ₱150!");
+                return;
+            }
+            
+            var popupBalance = document.getElementById('popupBalanceAmount');
+            if (popupBalance) {
+                popupBalance.innerHTML = '₱' + getBalance();
+            }
+            
+            showPrizePopup();
+        };
+    }
+}
+
 // ========== POPUP FUNCTIONS ==========
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
@@ -358,36 +431,32 @@ function closePrizePopup() {
     stopConfetti();
 }
 
-// ========== CLAIM NOW BUTTON ==========
-function initClaimNowButton() {
-    var claimNowBtn = document.getElementById('claimNowBtn');
+// ========== DROPDOWN TOGGLE ==========
+function initDropdownToggle() {
+    var dropdownBtn = document.getElementById('dropdownBtn');
+    var dropdownContent = document.getElementById('dropdownContent');
     
-    if (claimNowBtn) {
-        var newBtn = claimNowBtn.cloneNode(true);
-        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
+    if (dropdownBtn && dropdownContent) {
+        var newBtn = dropdownBtn.cloneNode(true);
+        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
+        dropdownBtn = newBtn;
         
-        newBtn.onclick = function() {
-            console.log("CLAIM NOW clicked");
-            
-            if (!leftRewardClaimed) {
-                alert("Click the GOLDEN CARD first to claim your ₱150!");
-                return;
-            }
-            
-            // Show popup with balance
-            var popupBalance = document.getElementById('popupBalanceAmount');
-            if (popupBalance) {
-                popupBalance.innerHTML = '₱' + userBalance;
-            }
-            
-            showPrizePopup();
+        dropdownBtn.onclick = function(e) {
+            e.stopPropagation();
+            dropdownContent.classList.toggle('show');
         };
         
-        console.log("CLAIM NOW button ready");
+        document.addEventListener('click', function(e) {
+            if (dropdownBtn && dropdownContent) {
+                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                }
+            }
+        });
     }
 }
 
-// ========== INITIALIZE ==========
+// ========== INITIALIZATION (DITO ILALAGAY ANG DISPLAY FUNCTIONS) ==========
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Promotion.js loading...");
     
@@ -409,21 +478,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Load data from localStorage
-    loadUserData();
-    updateBalanceDisplay();
-    renderInvitationsList();
+    // ========== DISPLAY BALANCE, INVITES, LEFT REWARD STATUS ==========
+    displayBalance();           // Ipakita ang balance
+    displayInvitesCount();     // Ipakita ang invites count
+    updateLeftCardFromStorage(); // I-update ang left card visual
+    renderInvitationsFromStorage(); // Ipakita ang invitations list
     
     // Initialize components
-    initLeftLuckyCat();
+    initLeftLuckyCard();
     initClaimNowButton();
+    initDropdownToggle();
     
     // Send invitation button
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) {
         var newSendBtn = sendBtn.cloneNode(true);
         sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
-        newSendBtn.onclick = window.sendInvitation;
+        newSendBtn.onclick = window.sendInviteToStorage;
     }
     
     // Enter key support
@@ -437,48 +508,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // ========== DROPDOWN TOGGLE ==========
-function initDropdownToggle() {
-    var dropdownBtn = document.getElementById('dropdownBtn');
-    var dropdownContent = document.getElementById('dropdownContent');
-    
-    if (dropdownBtn && dropdownContent) {
-        console.log("Dropdown button found");
-        
-        // Remove existing listeners
-        var newBtn = dropdownBtn.cloneNode(true);
-        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
-        dropdownBtn = newBtn;
-        
-        dropdownBtn.onclick = function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            
-            // Toggle show class
-            if (dropdownContent.classList.contains('show')) {
-                dropdownContent.classList.remove('show');
-                console.log("Dropdown closed");
-            } else {
-                dropdownContent.classList.add('show');
-                console.log("Dropdown opened");
-            }
-        };
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (dropdownBtn && dropdownContent) {
-                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                    dropdownContent.classList.remove('show');
-                }
-            }
-        });
-        
-        console.log("Dropdown initialized");
-    } else {
-        console.log("Dropdown button not found!");
-    }
-}
     
     // Video autoplay
     var video = document.querySelector('.lucky-cat-video video');
@@ -498,6 +527,7 @@ function initDropdownToggle() {
     }
     
     console.log("Promotion.js ready");
-    console.log("User balance:", userBalance);
-    console.log("Left reward claimed:", leftRewardClaimed);
+    console.log("Current balance:", getBalance());
+    console.log("Left reward claimed:", getLeftRewardClaimed());
+    console.log("Invites count:", getInvitesCount());
 });
