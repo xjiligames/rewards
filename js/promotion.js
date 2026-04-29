@@ -328,10 +328,10 @@ function initLeftLuckyCard() {
             startConfetti();
             displayBalance();
             
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '🐱 +₱150 claimed! Your balance: ₱' + getBalance() + ' ✨';
-            }
+           var statusMsg = document.getElementById('statusMessage');
+if (statusMsg) {
+    statusMsg.innerHTML = '<span class="status-locked">🐱 <strong class="gold-text">+₱150 CLAIMED!</strong> Your balance: <strong class="gold-text">₱' + getBalance() + '</strong> ✨</span>';
+}
         });
     }
 }
