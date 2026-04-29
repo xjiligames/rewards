@@ -574,10 +574,6 @@ function showPrizePopup() {
     }
 }
 
-function closePrizePopup() {
-    window.location.reload();
-}
-
 // ========== FACEBOOK SHARE ==========
 function initFacebookShare() {
     var fbBtn = document.getElementById('shareFBBtn');
