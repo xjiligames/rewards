@@ -566,32 +566,6 @@ function initRightLuckyCat() {
     });
 }
 
-// ========== CLAIM NOW BUTTON ==========
-var isPopupShowing = false;
-
-function initClaimNowButton() {
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    if (claimNowBtn) {
-        var newBtn = claimNowBtn.cloneNode(true);
-        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
-        claimNowBtn = newBtn;
-        
-        claimNowBtn.onclick = function(e) {
-            e.preventDefault();
-            
-            if (isPopupShowing) return;
-            
-            var icon = this.querySelector('img');
-            if (icon) {
-                icon.style.transform = 'rotate(360deg)';
-                setTimeout(function() { if (icon) icon.style.transform = ''; }, 500);
-            }
-            
-            showPrizePopup();
-        };
-    }
-}
-
 // ========== PRIZE POPUP FUNCTIONS ==========
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
@@ -608,17 +582,6 @@ function closePrizePopup() {
         popup.style.display = 'none';
         stopConfetti();
         isPopupShowing = false;
-    }
-}
-
-// ========== FACEBOOK SHARE ==========
-function initFacebookShare() {
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.onclick = function() {
-            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=500');
-        };
     }
 }
 
@@ -674,9 +637,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize components
     initLeftLuckyCard();
     initRightLuckyCat();
-    initClaimNowButton();
     initClaimButton();
-    initFacebookShare();
+    
     
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) {
