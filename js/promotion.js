@@ -161,6 +161,97 @@ function updateLeftCardFromStorage() {
     }
 }
 
+// ========== PLAY VIDEO WITH GLOW EFFECT ==========
+function playVideoWithGlow(videoContainer) {
+    if (!videoContainer) return;
+    
+    var video = videoContainer.querySelector('video');
+    if (video) {
+        video.currentTime = 0;
+        video.play().catch(function(e) {
+            console.log("Video play error:", e);
+        });
+    }
+    
+    // Add glow animation
+    videoContainer.classList.add('prize-card-clicked-video');
+    
+    // Remove glow after animation
+    setTimeout(function() {
+        videoContainer.classList.remove('prize-card-clicked-video');
+    }, 500);
+}
+
+// ========== UPDATED LEFT LUCKY CAT ==========
+function initLeftLuckyCard() {
+    var leftCard = document.getElementById('leftCard');
+    if (!leftCard) return;
+    
+    var videoContainer = leftCard.querySelector('.lucky-cat-video');
+    
+    updateLeftCardFromStorage();
+    
+    if (!getLeftRewardClaimed()) {
+        var newCard = leftCard.cloneNode(true);
+        leftCard.parentNode.replaceChild(newCard, leftCard);
+        leftCard = newCard;
+        
+        leftCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            if (getLeftRewardClaimed()) {
+                alert("You already claimed your ₱150!");
+                return;
+            }
+            
+            // Play video with glow effect
+            var container = this.querySelector('.lucky-cat-video');
+            if (container) {
+                playVideoWithGlow(container);
+            }
+            
+            var rect = this.getBoundingClientRect();
+            var x = rect.left + rect.width / 2;
+            var y = rect.top + rect.height / 2;
+            
+            addBalance(150);
+            saveLeftRewardClaimed(true);
+            
+            this.classList.remove('prize-card-glow');
+            this.classList.add('prize-card-claimed');
+            this.style.cursor = 'default';
+            
+            showFloatingPlus(x, y, 150);
+            startConfetti();
+            displayBalance();
+            
+            var statusMsg = document.getElementById('statusMessage');
+            if (statusMsg) {
+                statusMsg.innerHTML = '+₱150 claimed! Your balance: ₱' + getBalance();
+            }
+        });
+    }
+}
+
+// ========== RIGHT LUCKY CAT WITH VIDEO ==========
+function initRightLuckyCard() {
+    var rightCard = document.getElementById('rightCard');
+    if (!rightCard) return;
+    
+    rightCard.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        // Play video with glow effect
+        var container = this.querySelector('.lucky-cat-video');
+        if (container) {
+            playVideoWithGlow(container);
+        }
+        
+        // Rest of your right card logic here
+        // ...
+    });
+}
+
 // ========== RENDER INVITATIONS LIST ==========
 function renderInvitationsFromStorage() {
     var invitations = getInvitations();
