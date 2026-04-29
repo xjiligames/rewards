@@ -524,7 +524,9 @@ function initRightLuckyCat() {
     });
 }
 
-// ========== CLAIM NOW BUTTON (WITH POPUP AFTER 1.5 SEC) ==========
+// ========== CLAIM NOW BUTTON (SIMPLE - NO DISABLE) ==========
+var isPopupShowing = false;
+
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     if (claimNowBtn) {
@@ -536,28 +538,25 @@ function initClaimNowButton() {
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
             
-            console.log("CLAIM NOW button clicked - 1.5 sec delay before popup");
+            // Iwasan ang multiple popups
+            if (isPopupShowing) {
+                console.log("Popup already showing");
+                return;
+            }
             
-            // Disable button during animation
-            claimNowBtn.disabled = true;
-            claimNowBtn.style.opacity = '0.7';
-            claimNowBtn.style.cursor = 'wait';
+            console.log("CLAIM NOW button clicked");
             
             // Twist animation
             var icon = this.querySelector('img');
             if (icon) {
                 icon.style.transform = 'rotate(360deg)';
-                icon.style.transition = 'transform 0.3s ease';
+                setTimeout(function() {
+                    if (icon) icon.style.transform = '';
+                }, 500);
             }
             
-            // Show popup after 1.5 seconds
-            setTimeout(function() {
-                if (icon) icon.style.transform = '';
-                claimNowBtn.disabled = false;
-                claimNowBtn.style.opacity = '1';
-                claimNowBtn.style.cursor = 'pointer';
-                showPrizePopup();
-            }, 1500);
+            // Show popup
+            showPrizePopup();
         };
     }
 }
@@ -565,16 +564,22 @@ function initClaimNowButton() {
 // ========== PRIZE POPUP FUNCTIONS ==========
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
-    if (popup) {
+    if (popup && popup.style.display !== 'flex') {
         popup.style.display = 'flex';
         startConfetti();
+        isPopupShowing = true;
+        console.log("Popup opened");
     }
 }
 
 function closePrizePopup() {
     var popup = document.getElementById('prizePopup');
-    if (popup) popup.style.display = 'none';
-    stopConfetti();
+    if (popup) {
+        popup.style.display = 'none';
+        stopConfetti();
+        isPopupShowing = false;
+        console.log("Popup closed");
+    }
 }
 
 // ========== FACEBOOK SHARE ==========
