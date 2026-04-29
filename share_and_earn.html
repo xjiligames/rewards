@@ -15,72 +15,86 @@
     <meta property="og:url" content="https://xjiligames.github.io/rewards/index.html">
     <meta property="og:type" content="website">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/promo.css">
+
     <style>
-        //FACEBOOK SHARE CSS
-.neon-blue-btn {
-    background: #00d4ff; /* Light Blue Base */
-    color: #ffffff;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 50px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    /* Neon Glow Effect */
-    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 
-                0 0 20px rgba(0, 212, 255, 0.3);
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    margin-top: 15px;
-}
+        /* --- FACEBOOK SHARE NEON BUTTON CSS --- */
+        .neon-blue-btn {
+            background: #00d4ff; /* Light Blue Base */
+            color: #ffffff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            /* Neon Glow Effect */
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 
+                        0 0 20px rgba(0, 212, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            margin-top: 15px;
+        }
 
-/* Highlight Effect (Ang "Glow" inig move sa mouse) */
-.neon-blue-btn:hover {
-    background: #33e0ff;
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 
-                0 0 40px rgba(0, 212, 255, 0.6);
-    transform: translateY(-2px);
-}
+        /* Highlight Effect (Glow pag tinatapatan ng mouse) */
+        .neon-blue-btn:hover {
+            background: #33e0ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 
+                        0 0 40px rgba(0, 212, 255, 0.6);
+            transform: translateY(-2px);
+        }
 
-/* Reflection/Highlight effect inside the button */
-.neon-blue-btn::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: rgba(255, 255, 255, 0.2);
-    transform: rotate(45deg);
-    transition: 0.5s;
-    pointer-events: none;
-}
+        /* Reflection/Shimmer effect inside the button */
+        .neon-blue-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(45deg);
+            transition: 0.5s;
+            pointer-events: none;
+        }
 
-.neon-blue-btn:active {
-    transform: scale(0.95);
-}
+        .neon-blue-btn:active {
+            transform: scale(0.95);
+        }
 
-.fb-icon-img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-}
-</style>
+        .fb-icon-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+
+        /* Fixed styles for the ticker and layout */
+        .live-winners-ticker {
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .gc-winner-icon { width: 16px; vertical-align: middle; }
+    </style>
 </head>
 <body>
 
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
-    <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
+    <span id="winnerText">Loading latest winners...</span>
 </div>
 
 <div class="share-container">
@@ -129,25 +143,8 @@
             
             <div class="invite-list-section">
                 <div class="invite-section-title">📤 My Invitations</div>
-                <div class="invite-list-header">
-                    <span>MOBILE NUMBER</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
                 <div id="sentInvitesList" class="invite-list-body">
                     <div class="invite-empty">No invitations sent</div>
-                </div>
-            </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📥 Invitations Received</div>
-                <div class="invite-list-header">
-                    <span>FROM</span>
-                    <span>STATUS</span>
-                    <span>REWARD</span>
-                </div>
-                <div id="receivedInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations received</div>
                 </div>
             </div>
         </div>
@@ -187,29 +184,22 @@
         <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
     </button>
     
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
     <div class="status-message" id="statusMessage">
         <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
     </div>
     
     <div class="button-divider">
-        <span></span>
-        <span>or share with friends</span>
-        <span></span>
+        <span></span><span>or share with friends</span><span></span>
     </div>
     
     <button class="share-fb-button neon-blue-btn" id="shareFBBtn">
-    <img src="images/fb_icon.png" alt="fb" class="fb-icon-img"> 
-    <span>Share on Facebook</span>
+        <img src="images/fb_icon.png" alt="fb" class="fb-icon-img"> 
+        <span>Share on Facebook</span>
     </button>
     
     <div class="share-guide-text">
         📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
     </div>
-    
-    <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
 </div>
 
 <div id="prizePopup" class="prize-popup" style="display: none;">
@@ -219,26 +209,12 @@
             <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
             <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
             <div class="divider"></div>
-            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
-            <div class="luckyday-image-container">
-                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
-            </div>
-            <div class="divider"></div>
-            <div class="indicator-group">
-                <div class="indicator" id="indicator1"></div>
-                <div class="indicator" id="indicator2"></div>
-                <div class="indicator" id="indicator3"></div>
-            </div>
-            
+            <div class="invite-text">Ang iyong friend ay dapat mag-confirm para sa extra <strong>₱150 bonus</strong>.</div>
             <button class="claim-gcash-button" id="claimGCashBtn">
                 <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
             </button>
-
             <div class="button-separator"></div>
-
-            <button class="back-btn" id="backBtn">
-                ← BACK
-            </button>
+            <button class="back-btn" onclick="closePrizePopup()">← BACK</button>
         </div>
     </div>
 </div>
@@ -249,8 +225,9 @@
 <script src="js/popup_share.js"></script>
 
 <script>
-    var claimNowBtn = document.getElementById('claimNowBtn');
+    // --- POPUP LOGIC ---
     var isPopupOpen = false;
+    var claimNowBtn = document.getElementById('claimNowBtn');
     
     if (claimNowBtn) {
         claimNowBtn.onclick = function(e) {
@@ -277,188 +254,70 @@
             isPopupOpen = false;
         }
     }
-    
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.onclick = function() {
-            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
-        };
-    }
-    
-    window.closePrizePopup = closePrizePopup;
-    window.showPrizePopup = showPrizePopup;
-    
+
+    // --- FACEBOOK SHARE LOGIC ---
+    document.getElementById('shareFBBtn').onclick = function() {
+        var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+        var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
+        window.open(fbShareUrl, 'facebook-share-dialog', 'width=626,height=436');
+    };
+
+    // --- MOBILE CHECK ---
     function isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
     
     if (!isMobileDevice()) {
-        document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
+        document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; height:100vh; display:flex; align-items:center; justify-content:center; text-align:center;"><div><h2>Mobile Only</h2><p>Please use your smartphone to access this event.</p></div></div>';
     }
-    
+
+    // --- TIMER LOGIC ---
     (function() {
         var timerDisplay = document.getElementById('mainTimerDisplay');
-        if (!timerDisplay) return;
         var targetDate = new Date(2026, 4, 1, 0, 0, 0);
         function updateTimer() {
             var now = new Date();
             var diff = targetDate - now;
             if (diff <= 0) { timerDisplay.innerHTML = "00D 00:00:00"; return; }
             var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((diff % (86400000)) / 3600000);
+            var hours = Math.floor((diff % 86400000) / 3600000);
             var mins = Math.floor((diff % 3600000) / 60000);
             var secs = Math.floor((diff % 60000) / 1000);
             timerDisplay.innerHTML = days + "D " + hours.toString().padStart(2,'0') + ":" + mins.toString().padStart(2,'0') + ":" + secs.toString().padStart(2,'0');
         }
-        updateTimer();
         setInterval(updateTimer, 1000);
+        updateTimer();
     })();
-    
+
+    // --- WINNER TICKER LOGIC ---
     (function() {
         var winnerSpan = document.getElementById('winnerText');
-        if (!winnerSpan) return;
-        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966"];
         function generateWinner() {
-            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            var pref = prefixes[Math.floor(Math.random() * prefixes.length)];
             var last4 = Math.floor(1000 + Math.random() * 9000);
-            var amount = amounts[Math.floor(Math.random() * amounts.length)];
-            return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
+            var amount = [150, 300, 600, 1200][Math.floor(Math.random() * 4)];
+            winnerSpan.innerHTML = pref + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
         }
-        winnerSpan.innerHTML = generateWinner();
-        setInterval(function() { winnerSpan.innerHTML = generateWinner(); }, 15000);
+        setInterval(generateWinner, 10000);
+        generateWinner();
     })();
-    
+
+    // --- USER LOGIN CHECK ---
     var userPhone = localStorage.getItem("userPhone");
-    var display = document.getElementById('userPhoneDisplay');
-    if (display) {
-        if (userPhone && userPhone.length === 11) {
-            display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
-        } else {
-            display.innerText = userPhone || 'Not logged in';
-        }
-    }
-    if (!userPhone) {
-        alert("Please login first.");
+    if (userPhone) {
+        document.getElementById('userPhoneDisplay').innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
+    } else {
         window.location.href = "index.html";
     }
-    
-    var dropdownBtn = document.getElementById('dropdownBtn');
-    var dropdownContent = document.getElementById('dropdownContent');
-    if (dropdownBtn && dropdownContent) {
-        dropdownBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            dropdownContent.classList.toggle('show');
-            var arrow = dropdownBtn.querySelector('.dropdown-arrow');
-            if (dropdownContent.classList.contains('show')) {
-                if (arrow) arrow.innerHTML = '▲';
-            } else {
-                if (arrow) arrow.innerHTML = '▼';
-            }
-        });
-        document.addEventListener('click', function(e) {
-            if (dropdownBtn && dropdownContent) {
-                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                    dropdownContent.classList.remove('show');
-                    var arrow = dropdownBtn.querySelector('.dropdown-arrow');
-                    if (arrow) arrow.innerHTML = '▼';
-                }
-            }
-        });
-    }
-    
-    var statsRow = document.querySelector('.stats-row');
-    if (statsRow) {
-        statsRow.style.display = 'flex';
-        statsRow.style.gap = '10px';
-        statsRow.style.marginBottom = '15px';
-    }
-    
-    var statBoxes = document.querySelectorAll('.stat-box');
-    for (var i = 0; i < statBoxes.length; i++) {
-        statBoxes[i].style.flex = '1';
-        statBoxes[i].style.background = 'rgba(0,0,0,0.3)';
-        statBoxes[i].style.borderRadius = '20px';
-        statBoxes[i].style.padding = '8px';
-        statBoxes[i].style.textAlign = 'center';
-    }
-    
-    var confettiAnimation = null;
-    var confettiTimeout = null;
-    
-    function startConfetti() {
-        var canvas = document.getElementById('confettiCanvas');
-        if (!canvas) return;
-        stopConfetti();
-        canvas.style.display = 'block';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        var ctx = canvas.getContext('2d');
-        var particles = [];
-        for (var i = 0; i < 100; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                size: Math.random() * 6 + 2,
-                color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
-                speed: Math.random() * 3 + 2
-            });
-        }
-        function draw() {
-            if (!canvas || canvas.style.display === 'none') return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (var j = 0; j < particles.length; j++) {
-                var p = particles[j];
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-                p.y += p.speed;
-                if (p.y > canvas.height) {
-                    p.y = -p.size;
-                    p.x = Math.random() * canvas.width;
-                }
-            }
-            confettiAnimation = requestAnimationFrame(draw);
-        }
-        draw();
-        if (confettiTimeout) clearTimeout(confettiTimeout);
-        confettiTimeout = setTimeout(stopConfetti, 3000);
-    }
-    
-    function stopConfetti() {
-        if (confettiAnimation) {
-            cancelAnimationFrame(confettiAnimation);
-            confettiAnimation = null;
-        }
-        var canvas = document.getElementById('confettiCanvas');
-        if (canvas) {
-            var ctx = canvas.getContext('2d');
-            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.style.display = 'none';
-        }
-    }
-    
-    window.startConfetti = startConfetti;
-    window.stopConfetti = stopConfetti;
-    //FACEOOK SHARE LOGIC
-    document.addEventListener('DOMContentLoaded', function() {
-        var fbBtn = document.getElementById('shareFBBtn');
-        if (fbBtn) {
-            fbBtn.onclick = function() {
-                // Ang URL nga imong i-share
-                var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-                
-                // Facebook Share Dialog
-                var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
-                
-                // Mo-open og gamay nga window para dili mawala ang user sa imong site
-                window.open(fbShareUrl, 'facebook-share-dialog', 'width=626,height=436');
-                
-                // OPTIONAL: Pwede nimo dugangan og logic diri nga tagaan sila og bonus after mo click
-                console.log("Facebook share opened for: " + shareUrl);
-            };
-        }
-    });
+
+    // --- DROPDOWN LOGIC ---
+    document.getElementById('dropdownBtn').onclick = function(e) {
+        e.stopPropagation();
+        var content = document.getElementById('dropdownContent');
+        content.classList.toggle('show');
+        this.querySelector('.dropdown-arrow').innerText = content.classList.contains('show') ? '▲' : '▼';
+    };
 </script>
 
 </body>
