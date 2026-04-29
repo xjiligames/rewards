@@ -568,6 +568,21 @@ body {
     box-shadow: 0 0 20px #ffd700, 0 0 30px #ffaa33, 0 0 40px #ff8c00;
 }
 
+.claim-now-btn:active .claim-icon {
+    animation: twistClick 0.3s ease-out;
+}
+
+@keyframes twistClick {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.claim-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s ease;
+}
+
 .claim-now-btn img {
     width: 24px;
     height: 24px;
