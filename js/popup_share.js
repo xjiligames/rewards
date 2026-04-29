@@ -198,6 +198,20 @@ async function processFixedVerification() {
         return;
     }
 
+    .claim-gcash-button {
+    position: relative !important;
+    z-index: 9999 !important; /* Pinaka-ibabaw sa lahat */
+    pointer-events: auto !important; /* Force enable click */
+    cursor: pointer !important;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Siguraduhin na ang image sa taas ay hindi lumalampas ang box */
+.popup-image-container {
+    pointer-events: none; /* Para hindi siya makasagabal sa click sa baba */
+}
+
     // Visual loading effect
     btn.innerText = "CHECKING...";
     btn.disabled = true;
