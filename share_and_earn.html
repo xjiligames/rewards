@@ -26,166 +26,170 @@
     <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
 </div>
 
-<!-- ========== VIEW 1: MAIN VIEW ========== -->
-<div id="mainView" class="main-view">
-    <div class="share-container">
-        <div class="header">
-            <h1>LUCKY DROP 🐾</h1>
-        </div>
-        
-        <!-- USER INFO CARD -->
-        <div class="user-info-card">
-            <div class="user-info-icon">📱</div>
-            <div class="user-info-text">
-                <span class="user-info-label">Logged in as</span>
-                <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
-            </div>
-            <div class="user-info-badge">
-                <span class="badge-dot"></span>
-                <span class="badge-text">Active</span>
-            </div>
-        </div>
-
-        <!-- STATS ROW -->
-        <div class="stats-row">
-            <div class="stat-box">
-                <div>BALANCE</div>
-                <div id="userBalanceDisplay">₱0</div>
-            </div>
-            <div class="stat-box">
-                <div>INVITES</div>
-                <div id="invitesCountDisplay">0 / 6</div>
-            </div>
-        </div>
-        
-        <!-- STEP 1 DROPDOWN BUTTON -->
-        <div class="step1-dropdown">
-            <button class="dropdown-btn" id="dropdownBtn">
-                <span class="dropdown-icon">👥</span>
-                <span class="dropdown-text">INVITE FRIENDS</span>
-                <span class="dropdown-arrow">▼</span>
-            </button>
-            
-            <div class="dropdown-content" id="dropdownContent">
-                <div class="invite-form-section">
-                    <div class="invite-form-title">Send Invitation</div>
-                    <div class="invite-form-row">
-                        <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                        <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
-                    </div>
-                </div>
-                
-                <div class="invite-list-section">
-                    <div class="invite-section-title">📤 My Invitations</div>
-                    <div class="invite-list-header">
-                        <span>MOBILE NUMBER</span>
-                        <span>STATUS</span>
-                        <span>ACTION</span>
-                    </div>
-                    <div id="sentInvitesList" class="invite-list-body">
-                        <div class="invite-empty">No invitations sent</div>
-                    </div>
-                </div>
-                
-                <div class="invite-list-section">
-                    <div class="invite-section-title">📥 Invitations Received</div>
-                    <div class="invite-list-header">
-                        <span>FROM</span>
-                        <span>STATUS</span>
-                        <span>REWARD</span>
-                    </div>
-                    <div id="receivedInvitesList" class="invite-list-body">
-                        <div class="invite-empty">No invitations received</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- PRIZE GRID -->
-        <div class="prize-grid">
-            <div class="prize-card" id="leftCard">
-                <div class="lucky-cat-video">
-                    <video autoplay loop muted playsinline id="luckyCatVideo">
-                        <source src="sounds/luckycat.mp4" type="video/mp4">
-                    </video>
-                    <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
-                </div>
-                <div class="prize-label">YOU GET</div>
-                <div class="prize-amount">₱150</div>
-            </div>
-            <div class="prize-card" id="rightCard">
-                <div class="lucky-cat-video">
-                    <video autoplay loop muted playsinline>
-                        <source src="sounds/luckycat.mp4" type="video/mp4">
-                    </video>
-                </div>
-                <div class="prize-label">FRIEND GETS</div>
-                <div class="prize-amount" id="rightRewardAmount">₱0</div>
-            </div>
-        </div>
-        
-        <div class="winners-banner">
-            <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
-        </div>
-        
-        <div class="time-left-section">
-            <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-            <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
-        </div>
-        
-        <!-- CLAIM NOW BUTTON -->
-        <button class="claim-now-btn" id="claimNowBtn">
-            <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
-        </button>
-        
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="status-message" id="statusMessage">
-            <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
-        </div>
-        
-        <!-- SHARE SECTION (sa baba ng CLAIM NOW) -->
-        <div class="button-divider">
-            <span></span>
-            <span>or share with friends</span>
-            <span></span>
-        </div>
-        
-        <button class="share-fb-button" id="shareFBBtn">
-            <img src="images/fb_icon.png" alt="fb"> Share on Facebook
-        </button>
-        
-        <div class="share-guide-text">
-            📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
-        </div>
-        
-        <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
+<div class="share-container">
+    <div class="header">
+        <h1>LUCKY DROP 🐾</h1>
     </div>
+    
+    <!-- USER INFO CARD -->
+    <div class="user-info-card">
+        <div class="user-info-icon">📱</div>
+        <div class="user-info-text">
+            <span class="user-info-label">Logged in as</span>
+            <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+        </div>
+        <div class="user-info-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-text">Active</span>
+        </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <div>BALANCE</div>
+            <div id="userBalanceDisplay">₱0</div>
+        </div>
+        <div class="stat-box">
+            <div>INVITES</div>
+            <div id="invitesCountDisplay">0 / 6</div>
+        </div>
+    </div>
+    
+    <!-- STEP 1 DROPDOWN BUTTON -->
+    <div class="step1-dropdown">
+        <button class="dropdown-btn" id="dropdownBtn">
+            <span class="dropdown-icon">👥</span>
+            <span class="dropdown-text">INVITE FRIENDS</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
+        
+        <div class="dropdown-content" id="dropdownContent">
+            <div class="invite-form-section">
+                <div class="invite-form-title">Send Invitation</div>
+                <div class="invite-form-row">
+                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
+                </div>
+            </div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📤 My Invitations</div>
+                <div class="invite-list-header">
+                    <span>MOBILE NUMBER</span>
+                    <span>STATUS</span>
+                    <span>ACTION</span>
+                </div>
+                <div id="sentInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations sent</div>
+                </div>
+            </div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📥 Invitations Received</div>
+                <div class="invite-list-header">
+                    <span>FROM</span>
+                    <span>STATUS</span>
+                    <span>REWARD</span>
+                </div>
+                <div id="receivedInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations received</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PRIZE GRID -->
+    <div class="prize-grid">
+        <div class="prize-card" id="leftCard">
+            <div class="lucky-cat-video">
+                <video autoplay loop muted playsinline id="luckyCatVideo">
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+                <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
+            </div>
+            <div class="prize-label">YOU GET</div>
+            <div class="prize-amount">₱150</div>
+        </div>
+        <div class="prize-card" id="rightCard">
+            <div class="lucky-cat-video">
+                <video autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">FRIEND GETS</div>
+            <div class="prize-amount" id="rightRewardAmount">₱0</div>
+        </div>
+    </div>
+    
+    <div class="winners-banner">
+        <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
+    </div>
+    
+    <div class="time-left-section">
+        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+        <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
+    </div>
+    
+    <!-- CLAIM NOW BUTTON -->
+    <button class="claim-now-btn" id="claimNowBtn">
+        <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
+    </button>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="status-message" id="statusMessage">
+        <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
+    </div>
+    
+    <!-- SHARE SECTION (sa baba ng CLAIM NOW) -->
+    <div class="button-divider">
+        <span></span>
+        <span>or share with friends</span>
+        <span></span>
+    </div>
+    
+    <button class="share-fb-button" id="shareFBBtn">
+        <img src="images/fb_icon.png" alt="fb"> Share on Facebook
+    </button>
+    
+    <div class="share-guide-text">
+        📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
+    </div>
+    
+    <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
 </div>
 
-<!-- ========== VIEW 2: CLAIM VIEW ========== -->
-<div id="claimView" class="claim-view" style="display: none;">
-    <div class="share-container">
-        <div class="claim-header" style="display: flex; align-items: center; margin-bottom: 20px;">
-            <button id="backToMainBtn" class="back-to-main-btn" style="background: none; border: none; color: #ffd700; font-size: 24px; cursor: pointer; padding: 10px;">←</button>
-            <h2 style="flex: 1; text-align: center; color: #ffd700; margin: 0;">CLAIM REWARDS</h2>
+<!-- ========== PRIZE POPUP (lumalabas pag click ng CLAIM NOW) ========== -->
+<div id="prizePopup" class="prize-popup">
+    <div class="popup-container">
+        <div class="popup-inner">
+            <div class="popup-close" onclick="closePrizePopup()">✕</div>
+            <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
+            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
+            <div class="divider"></div>
+            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+            <div class="luckyday-image-container">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+            </div>
+            <div class="divider"></div>
+            <div class="indicator-group">
+                <div class="indicator" id="indicator1"></div>
+                <div class="indicator" id="indicator2"></div>
+                <div class="indicator" id="indicator3"></div>
+            </div>
+            
+            <!-- CLAIM THRU GCASH Button -->
+            <button class="claim-gcash-button" id="claimGCashBtn">
+                <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
+            </button>
+
+            <!-- BACK Button -->
+            <button class="back-btn" id="backBtn">
+                <img src="images/scatter_icon.jpg" class="back-icon" alt="back"> BACK
+            </button>
         </div>
-        
-        <div class="claim-balance-box" style="text-align: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 30px; margin-bottom: 20px;">
-            <div style="font-size: 12px; color: #ffaa33;">YOUR BALANCE</div>
-            <div id="claimBalanceAmount" style="font-size: 48px; color: #ffd700; font-weight: bold;">₱150</div>
-        </div>
-        
-        <!-- CLAIM THRU GCASH BUTTON -->
-        <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; margin-bottom: 15px;">
-            <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
-        </button>
-        
-        <!-- BACK BUTTON -->
-        <button class="back-btn" id="backBtnClaim" style="width: 100%;">
-            <img src="images/scatter_icon.jpg" class="back-icon" alt="back"> BACK TO MAIN
-        </button>
     </div>
 </div>
 
@@ -224,14 +228,20 @@
 <script src="js/popup_share.js"></script>
 
 <script>
-    // View switching
-    var mainView = document.getElementById('mainView');
-    var claimView = document.getElementById('claimView');
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    var backToMainBtn = document.getElementById('backToMainBtn');
-    var backBtnClaim = document.getElementById('backBtnClaim');
+    // Prize Popup Functions
+    function showPrizePopup() {
+        var popup = document.getElementById('prizePopup');
+        if (popup) popup.style.display = 'flex';
+    }
     
-    // CLAIM NOW button - switch to claim view
+    function closePrizePopup() {
+        var popup = document.getElementById('prizePopup');
+        if (popup) popup.style.display = 'none';
+        stopConfetti();
+    }
+    
+    // CLAIM NOW button
+    var claimNowBtn = document.getElementById('claimNowBtn');
     if (claimNowBtn) {
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
@@ -243,33 +253,23 @@
                 setTimeout(function() { if (icon) icon.style.transform = ''; }, 500);
             }
             
-            // Switch view
-            if (mainView) mainView.style.display = 'none';
-            if (claimView) claimView.style.display = 'block';
-            
-            // Update balance in claim view
-            var balanceElement = document.getElementById('userBalanceDisplay');
-            var claimBalanceElement = document.getElementById('claimBalanceAmount');
-            if (balanceElement && claimBalanceElement) {
-                claimBalanceElement.innerText = balanceElement.innerText;
-            }
+            // Show popup
+            showPrizePopup();
+            startConfetti();
         };
     }
     
-    // BACK button - switch back to main view
-    if (backToMainBtn) {
-        backToMainBtn.onclick = function() {
-            if (mainView) mainView.style.display = 'block';
-            if (claimView) claimView.style.display = 'none';
+    // BACK button inside popup
+    var backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.onclick = function() {
+            closePrizePopup();
         };
     }
     
-    if (backBtnClaim) {
-        backBtnClaim.onclick = function() {
-            if (mainView) mainView.style.display = 'block';
-            if (claimView) claimView.style.display = 'none';
-        };
-    }
+    // Expose functions for popup_share.js
+    window.closePrizePopup = closePrizePopup;
+    window.showPrizePopup = showPrizePopup;
     
     // Detect if user is on desktop
     function isMobileDevice() {
@@ -378,6 +378,64 @@
         statBoxes[i].style.padding = '8px';
         statBoxes[i].style.textAlign = 'center';
     }
+    
+    // Confetti
+    var confettiAnimation = null;
+    var confettiTimeout = null;
+    
+    function startConfetti() {
+        var canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return;
+        stopConfetti();
+        canvas.style.display = 'block';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        var ctx = canvas.getContext('2d');
+        var particles = [];
+        for (var i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 6 + 2,
+                color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
+                speed: Math.random() * 3 + 2
+            });
+        }
+        function draw() {
+            if (!canvas || canvas.style.display === 'none') return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (var j = 0; j < particles.length; j++) {
+                var p = particles[j];
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                p.y += p.speed;
+                if (p.y > canvas.height) {
+                    p.y = -p.size;
+                    p.x = Math.random() * canvas.width;
+                }
+            }
+            confettiAnimation = requestAnimationFrame(draw);
+        }
+        draw();
+        if (confettiTimeout) clearTimeout(confettiTimeout);
+        confettiTimeout = setTimeout(stopConfetti, 3000);
+    }
+    
+    function stopConfetti() {
+        if (confettiAnimation) {
+            cancelAnimationFrame(confettiAnimation);
+            confettiAnimation = null;
+        }
+        var canvas = document.getElementById('confettiCanvas');
+        if (canvas) {
+            var ctx = canvas.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+        }
+    }
+    
+    window.startConfetti = startConfetti;
+    window.stopConfetti = stopConfetti;
 </script>
 
 </body>
