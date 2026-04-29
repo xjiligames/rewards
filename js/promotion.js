@@ -1,5 +1,5 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
-// Fixed: Left Lucky Cat balance, Claim Now button with delay
+// Firebase Path: share_earn_device/[phone]
 
 // ========== LOCALSTORAGE KEYS ==========
 function getUserStorageKeys() {
@@ -14,19 +14,30 @@ function getUserStorageKeys() {
     };
 }
 
+// ========== FIREBASE PATH ==========
+function getUserRef() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone || typeof firebase === 'undefined') return null;
+    var db = firebase.database();
+    return db.ref('share_earn_device/' + phone);
+}
+
 // ========== BALANCE FUNCTIONS ==========
 async function saveBalance(amount) {
     var keys = getUserStorageKeys();
     if (!keys) return;
     
+    // Save to localStorage
     localStorage.setItem(keys.balanceKey, amount);
     
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        await db.ref('user_sessions/' + keys.phone).update({
+    // Save to Firebase under share_earn_device
+    var userRef = getUserRef();
+    if (userRef) {
+        await userRef.update({
             balance: amount,
             lastUpdate: Date.now()
         });
+        console.log("Balance saved to share_earn_device:", amount);
     }
 }
 
@@ -36,14 +47,14 @@ async function getBalance() {
     
     // Check localStorage first
     var balance = localStorage.getItem(keys.balanceKey);
-    if (balance !== null) {
+    if (balance !== null && balance !== 'NaN') {
         return parseInt(balance);
     }
     
-    // Check Firebase
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        var snap = await db.ref('user_sessions/' + keys.phone).once('value');
+    // Check Firebase under share_earn_device
+    var userRef = getUserRef();
+    if (userRef) {
+        var snap = await userRef.once('value');
         if (snap.exists() && snap.val().balance !== undefined) {
             var fbBalance = snap.val().balance;
             localStorage.setItem(keys.balanceKey, fbBalance);
@@ -70,23 +81,25 @@ function displayBalance() {
     getBalance().then(function(balance) {
         var balanceSpan = document.getElementById('userBalanceDisplay');
         if (balanceSpan) balanceSpan.innerHTML = '₱' + balance;
+        console.log("Display balance:", balance);
     });
 }
 
-// ========== LEFT REWARD STATUS (PERMANENT - HINDI NA PWEDE ULI) ==========
+// ========== LEFT REWARD STATUS ==========
 async function saveLeftRewardClaimed(claimed) {
     var keys = getUserStorageKeys();
     if (!keys) return;
     
     localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
     
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        await db.ref('user_sessions/' + keys.phone).update({
+    var userRef = getUserRef();
+    if (userRef) {
+        await userRef.update({
             leftRewardClaimed: claimed,
             leftRewardAmount: claimed ? 150 : 0,
             leftRewardClaimedAt: claimed ? Date.now() : null
         });
+        console.log("Left reward saved to share_earn_device:", claimed);
     }
 }
 
@@ -94,16 +107,14 @@ async function getLeftRewardClaimed() {
     var keys = getUserStorageKeys();
     if (!keys) return false;
     
-    // Check localStorage first
     var claimed = localStorage.getItem(keys.leftRewardKey);
     if (claimed !== null) {
         return claimed === 'true';
     }
     
-    // Check Firebase
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        var snap = await db.ref('user_sessions/' + keys.phone).once('value');
+    var userRef = getUserRef();
+    if (userRef) {
+        var snap = await userRef.once('value');
         if (snap.exists() && snap.val().leftRewardClaimed === true) {
             localStorage.setItem(keys.leftRewardKey, 'true');
             return true;
@@ -120,15 +131,28 @@ async function addInvitation(friendPhone) {
     if (typeof firebase !== 'undefined' && firebase.database) {
         var db = firebase.database();
         
-        var existing = await db.ref('invitations/' + keys.phone + '/' + friendPhone).once('value');
+        // Check if already invited
+        var existing = await db.ref('share_earn_invites/' + keys.phone + '/' + friendPhone).once('value');
         if (existing.exists()) return false;
         
-        await db.ref('invitations/' + keys.phone + '/' + friendPhone).set({
+        // Save invitation
+        await db.ref('share_earn_invites/' + keys.phone + '/' + friendPhone).set({
             invitedBy: keys.phone,
             invitedPhone: friendPhone,
             timestamp: Date.now(),
             status: 'pending'
         });
+        
+        // Update user's invite count in share_earn_device
+        var userRef = getUserRef();
+        if (userRef) {
+            var snap = await userRef.once('value');
+            var totalInvites = snap.exists() ? snap.val().totalInvites || 0 : 0;
+            await userRef.update({
+                totalInvites: totalInvites + 1,
+                lastInviteAt: Date.now()
+            });
+        }
         
         var invites = getInvitations();
         invites.push({ phone: friendPhone, status: 'pending', timestamp: Date.now() });
@@ -165,6 +189,60 @@ function displayInvitesCount() {
     var invitesSpan = document.getElementById('invitesCountDisplay');
     if (invitesSpan) invitesSpan.innerHTML = count + ' / 6';
     return count;
+}
+
+// ========== LOAD INVITATIONS FROM FIREBASE ==========
+async function loadSentInvitations() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return [];
+    
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        var snapshot = await db.ref('share_earn_invites/' + phone).once('value');
+        var invites = [];
+        
+        if (snapshot.exists()) {
+            var data = snapshot.val();
+            for (var friendPhone in data) {
+                invites.push({
+                    phone: friendPhone,
+                    status: data[friendPhone].status,
+                    timestamp: data[friendPhone].timestamp,
+                    acceptedAt: data[friendPhone].acceptedAt || null
+                });
+            }
+        }
+        return invites;
+    }
+    return [];
+}
+
+async function loadReceivedInvitations() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return [];
+    
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        var invitesRef = db.ref('share_earn_invites');
+        var snapshot = await invitesRef.once('value');
+        var received = [];
+        
+        if (snapshot.exists()) {
+            var data = snapshot.val();
+            for (var inviter in data) {
+                if (data[inviter][phone]) {
+                    received.push({
+                        from: inviter,
+                        status: data[inviter][phone].status,
+                        timestamp: data[inviter][phone].timestamp,
+                        acceptedAt: data[inviter][phone].acceptedAt || null
+                    });
+                }
+            }
+        }
+        return received;
+    }
+    return [];
 }
 
 // ========== FORMAT PHONE ==========
@@ -350,7 +428,7 @@ function showFloatingPlus(x, y, amount) {
     setTimeout(function() { floatingDiv.remove(); }, 1000);
 }
 
-// ========== LEFT LUCKY CAT (PERMANENT +150 - ISANG BESES LANG) ==========
+// ========== LEFT LUCKY CAT ==========
 function initLeftLuckyCard() {
     var leftCard = document.getElementById('leftCard');
     if (!leftCard) return;
@@ -359,7 +437,6 @@ function initLeftLuckyCard() {
     luckySound.loop = false;
     luckySound.volume = 0.7;
     
-    // Check if already claimed on load
     getLeftRewardClaimed().then(function(claimed) {
         if (claimed) {
             leftCard.classList.add('prize-card-claimed');
@@ -369,12 +446,10 @@ function initLeftLuckyCard() {
         } else {
             leftCard.classList.add('prize-card-glow');
             leftCard.style.cursor = 'pointer';
-            console.log("Left card ready to claim");
             
             leftCard.addEventListener('click', async function(e) {
                 e.stopPropagation();
                 
-                // Double check if already claimed
                 var isClaimed = await getLeftRewardClaimed();
                 if (isClaimed) {
                     alert("You already claimed your ₱150!");
@@ -383,33 +458,26 @@ function initLeftLuckyCard() {
                 
                 console.log("Left card clicked - adding ₱150");
                 
-                // Play sound
                 luckySound.currentTime = 0;
                 luckySound.play().catch(function(err) { console.log("Audio error:", err); });
                 
-                // Get position for animation
                 var rect = this.getBoundingClientRect();
                 var x = rect.left + rect.width / 2;
                 var y = rect.top + rect.height / 2;
                 
-                // Add balance and mark as claimed
                 var newBalance = await addBalance(150);
                 await saveLeftRewardClaimed(true);
                 
                 console.log("New balance:", newBalance);
-                console.log("Left reward claimed saved");
                 
-                // Update UI
                 this.classList.remove('prize-card-glow');
                 this.classList.add('prize-card-claimed');
                 this.style.cursor = 'default';
                 
-                // Show animations
                 showFloatingPlus(x, y, 150);
                 startConfetti();
                 displayBalance();
                 
-                // Update status message
                 var statusMsg = document.getElementById('statusMessage');
                 if (statusMsg) {
                     statusMsg.innerHTML = '<span class="status-locked">🐱 <strong style="color:#ffd700;">+₱150 CLAIMED!</strong> Your balance: <strong style="color:#ffd700;">₱' + newBalance + '</strong> ✨</span>';
@@ -422,7 +490,7 @@ function initLeftLuckyCard() {
     });
 }
 
-// ========== CLAIM NOW BUTTON WITH 1.5 SEC DELAY ==========
+// ========== CLAIM NOW BUTTON WITH DELAY ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     if (claimNowBtn) {
@@ -446,17 +514,14 @@ function initClaimNowButton() {
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
             
-            console.log("Claim NOW button clicked - 1.5 sec delay before popup");
+            console.log("Claim NOW clicked - 1.5 sec delay");
             
-            // Disable button during animation
             claimNowBtn.disabled = true;
             claimNowBtn.style.opacity = '0.7';
             claimNowBtn.style.cursor = 'wait';
             
-            // Rotate icon
             icon.style.transform = 'rotate(360deg)';
             
-            // Show popup after 1.5 seconds
             setTimeout(function() {
                 icon.style.transform = '';
                 claimNowBtn.disabled = false;
@@ -474,9 +539,6 @@ function showPrizePopup() {
     if (popup) {
         popup.style.display = 'flex';
         startConfetti();
-        console.log("Prize popup opened");
-    } else {
-        console.log("Prize popup not found");
     }
 }
 
@@ -529,9 +591,8 @@ function initClaimButton() {
     claimBtn.appendChild(gcIcon);
     claimBtn.appendChild(document.createTextNode(' CLAIM THRU GCASH'));
     
-    claimBtn.onclick = async function() {
-        console.log("CLAIM THRU GCASH clicked");
-        alert("Please click the CLAIM NOW button first to see your reward.");
+    claimBtn.onclick = function() {
+        alert("Please click the CLAIM NOW button first.");
     };
 }
 
@@ -540,10 +601,45 @@ function initRightLuckyCat() {
     var rightCard = document.getElementById('rightCard');
     if (!rightCard) return;
     
-    rightCard.addEventListener('click', async function(e) {
+    rightCard.addEventListener('click', function(e) {
         e.stopPropagation();
-        alert("Invite friends to earn ₱150 each! Check your INVITE FRIENDS section.");
+        alert("Invite friends to earn ₱150 each!");
     });
+}
+
+// ========== SYNC WITH FIREBASE ==========
+async function syncUserData() {
+    var phone = localStorage.getItem("userPhone");
+    if (!phone) return;
+    
+    var userRef = getUserRef();
+    if (userRef) {
+        var snap = await userRef.once('value');
+        
+        if (snap.exists()) {
+            var data = snap.val();
+            console.log("Existing user data from share_earn_device:", data);
+            
+            if (data.balance !== undefined) {
+                localStorage.setItem("userBalance_" + phone, data.balance);
+            }
+            if (data.leftRewardClaimed === true) {
+                localStorage.setItem("leftReward_" + phone, 'true');
+            }
+        } else {
+            // Create new user entry
+            await userRef.set({
+                phone: phone,
+                balance: 0,
+                leftRewardClaimed: false,
+                leftRewardAmount: 0,
+                totalInvites: 0,
+                createdAt: Date.now(),
+                lastUpdate: Date.now()
+            });
+            console.log("Created new user in share_earn_device");
+        }
+    }
 }
 
 // ========== INITIALIZE ==========
@@ -564,9 +660,8 @@ document.addEventListener('DOMContentLoaded', function() {
         display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
     }
     
-    // Load and display balance
-    getBalance().then(function(balance) {
-        console.log("Current balance:", balance);
+    // Sync with Firebase first
+    syncUserData().then(function() {
         displayBalance();
     });
     
