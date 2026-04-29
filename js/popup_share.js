@@ -406,3 +406,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log("Popup_share.js loaded - Firewall ready");
 });
+
+// ========== CLOSE PRIZE POPUP ==========
+function closePrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) {
+        popup.style.display = 'none';
+    }
+    stopConfetti();
+}
