@@ -336,9 +336,46 @@ function initClaimNowButton() {
         icon.style.height = '24px';
         icon.style.marginRight = '8px';
         
-        claimNowBtn.onclick = function(e) {
-            e.preventDefault();
-            showPrizePopup();
+        // Disable button during animation
+            claimNowBtn.disabled = true;
+            claimNowBtn.style.opacity = '0.7';
+            claimNowBtn.style.cursor = 'wait';
+            
+            // Twist animation - mahina to mabilis
+            icon.style.transform = 'rotate(0deg)';
+            
+            setTimeout(function() {
+                icon.style.transform = 'rotate(90deg)';
+            }, 100);
+            
+            setTimeout(function() {
+                icon.style.transform = 'rotate(180deg)';
+            }, 250);
+            
+            setTimeout(function() {
+                icon.style.transform = 'rotate(270deg)';
+            }, 450);
+            
+            setTimeout(function() {
+                icon.style.transform = 'rotate(360deg)';
+            }, 700);
+            
+            setTimeout(function() {
+                icon.style.transform = 'rotate(450deg)';
+            }, 1000);
+            
+            setTimeout(function() {
+                icon.style.transform = 'rotate(540deg)';
+            }, 1300);
+            
+            // Show popup after 1.5 seconds
+            setTimeout(function() {
+                claimNowBtn.disabled = false;
+                claimNowBtn.style.opacity = '1';
+                claimNowBtn.style.cursor = 'pointer';
+                icon.style.transform = '';
+                showPrizePopup();
+            }, 1500);
         };
     }
 }
