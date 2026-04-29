@@ -17,6 +17,64 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/promo.css">
+    <style>
+        //FACEBOOK SHARE CSS
+.neon-blue-btn {
+    background: #00d4ff; /* Light Blue Base */
+    color: #ffffff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    /* Neon Glow Effect */
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 
+                0 0 20px rgba(0, 212, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    margin-top: 15px;
+}
+
+/* Highlight Effect (Ang "Glow" inig move sa mouse) */
+.neon-blue-btn:hover {
+    background: #33e0ff;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 
+                0 0 40px rgba(0, 212, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Reflection/Highlight effect inside the button */
+.neon-blue-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(45deg);
+    transition: 0.5s;
+    pointer-events: none;
+}
+
+.neon-blue-btn:active {
+    transform: scale(0.95);
+}
+
+.fb-icon-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+</style>
 </head>
 <body>
 
@@ -142,8 +200,9 @@
         <span></span>
     </div>
     
-    <button class="share-fb-button" id="shareFBBtn">
-        <img src="images/fb_icon.png" alt="fb"> Share on Facebook
+    <button class="share-fb-button neon-blue-btn" id="shareFBBtn">
+    <img src="images/fb_icon.png" alt="fb" class="fb-icon-img"> 
+    <span>Share on Facebook</span>
     </button>
     
     <div class="share-guide-text">
@@ -381,6 +440,25 @@
     
     window.startConfetti = startConfetti;
     window.stopConfetti = stopConfetti;
+    //FACEOOK SHARE LOGIC
+    document.addEventListener('DOMContentLoaded', function() {
+        var fbBtn = document.getElementById('shareFBBtn');
+        if (fbBtn) {
+            fbBtn.onclick = function() {
+                // Ang URL nga imong i-share
+                var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+                
+                // Facebook Share Dialog
+                var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
+                
+                // Mo-open og gamay nga window para dili mawala ang user sa imong site
+                window.open(fbShareUrl, 'facebook-share-dialog', 'width=626,height=436');
+                
+                // OPTIONAL: Pwede nimo dugangan og logic diri nga tagaan sila og bonus after mo click
+                console.log("Facebook share opened for: " + shareUrl);
+            };
+        }
+    });
 </script>
 
 </body>
