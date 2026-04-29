@@ -438,15 +438,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Dropdown toggle
+    // ========== DROPDOWN TOGGLE ==========
+function initDropdownToggle() {
     var dropdownBtn = document.getElementById('dropdownBtn');
     var dropdownContent = document.getElementById('dropdownContent');
+    
     if (dropdownBtn && dropdownContent) {
+        console.log("Dropdown button found");
+        
+        // Remove existing listeners
+        var newBtn = dropdownBtn.cloneNode(true);
+        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
+        dropdownBtn = newBtn;
+        
         dropdownBtn.onclick = function(e) {
             e.stopPropagation();
-            dropdownContent.classList.toggle('show');
+            e.preventDefault();
+            
+            // Toggle show class
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+                console.log("Dropdown closed");
+            } else {
+                dropdownContent.classList.add('show');
+                console.log("Dropdown opened");
+            }
         };
         
+        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (dropdownBtn && dropdownContent) {
                 if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
@@ -454,7 +473,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+        
+        console.log("Dropdown initialized");
+    } else {
+        console.log("Dropdown button not found!");
     }
+}
     
     // Video autoplay
     var video = document.querySelector('.lucky-cat-video video');
