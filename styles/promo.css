@@ -556,6 +556,12 @@ body {
     position: relative;
     overflow: hidden;
 }
+.claim-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+}
 
 .claim-now-btn:active {
     transform: scale(0.97);
@@ -1005,12 +1011,12 @@ body {
 }
 
 /* Facebook Icon Style */
-.share-fb-button img {
-    background: transparent !important;
-    filter: brightness(0) invert(1);
-    width: 20px;
+width: 20px;
     height: 20px;
     display: inline-block;
+    vertical-align: middle;
+    filter: none;  
+    background: transparent;
 }
 
 /* Guide Text sa Baba ng Button */
