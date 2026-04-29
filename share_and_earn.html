@@ -48,7 +48,7 @@
     <div class="stats-row">
         <div class="stat-box">
             <div>BALANCE</div>
-            <div id="userBalanceDisplay" style="font-size: 24px;">₱150</div>
+            <div id="userBalanceDisplay">₱0</div>
         </div>
         <div class="stat-box">
             <div>INVITES</div>
@@ -57,60 +57,57 @@
     </div>
     
     <!-- STEP 1 DROPDOWN BUTTON -->
-<div class="step1-dropdown">
-    <button class="dropdown-btn" id="dropdownBtn">
-        <span class="dropdown-icon">👥</span>
-        <span class="dropdown-text">INVITE FRIENDS</span>
-        <span class="dropdown-arrow">▼</span>
-    </button>
-    
-    <div class="dropdown-content" id="dropdownContent">
-        <!-- Send Invitation Section -->
-        <div class="invite-form-section">
-            <div class="invite-form-title">Send Invitation</div>
-            <div class="invite-form-row">
-                <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
-            </div>
-        </div>
+    <div class="step1-dropdown">
+        <button class="dropdown-btn" id="dropdownBtn">
+            <span class="dropdown-icon">👥</span>
+            <span class="dropdown-text">INVITE FRIENDS</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
         
-        <!-- My Invitations (Sent) -->
-        <div class="invite-list-section">
-            <div class="invite-section-title">📤 My Invitations</div>
-            <div class="invite-list-header">
-                <span>MOBILE NUMBER</span>
-                <span>STATUS</span>
-                <span>ACTION</span>
+        <div class="dropdown-content" id="dropdownContent">
+            <div class="invite-form-section">
+                <div class="invite-form-title">Send Invitation</div>
+                <div class="invite-form-row">
+                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
+                </div>
             </div>
-            <div id="sentInvitesList" class="invite-list-body">
-                <div class="invite-empty">No invitations sent</div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📤 My Invitations</div>
+                <div class="invite-list-header">
+                    <span>MOBILE NUMBER</span>
+                    <span>STATUS</span>
+                    <span>ACTION</span>
+                </div>
+                <div id="sentInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations sent</div>
+                </div>
             </div>
-        </div>
-        
-        <!-- Invitations Received -->
-        <div class="invite-list-section">
-            <div class="invite-section-title">📥 Invitations Received</div>
-            <div class="invite-list-header">
-                <span>FROM</span>
-                <span>STATUS</span>
-                <span>REWARD</span>
-            </div>
-            <div id="receivedInvitesList" class="invite-list-body">
-                <div class="invite-empty">No invitations received</div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📥 Invitations Received</div>
+                <div class="invite-list-header">
+                    <span>FROM</span>
+                    <span>STATUS</span>
+                    <span>REWARD</span>
+                </div>
+                <div id="receivedInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations received</div>
+                </div>
             </div>
         </div>
     </div>
-</div>
     
     <!-- PRIZE GRID -->
     <div class="prize-grid">
         <div class="prize-card" id="leftCard">
             <div class="lucky-cat-video">
-    <video autoplay loop muted playsinline id="luckyCatVideo">
-        <source src="sounds/luckycat.mp4" type="video/mp4">
-    </video>
-    <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
-</div>
+                <video autoplay loop muted playsinline id="luckyCatVideo">
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+                <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
+            </div>
             <div class="prize-label">YOU GET</div>
             <div class="prize-amount">₱150</div>
         </div>
@@ -126,8 +123,8 @@
     </div>
     
     <div class="winners-banner">
-    <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
-</div>
+        <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
+    </div>
     
     <div class="time-left-section">
         <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
@@ -136,21 +133,21 @@
     
     <!-- CLAIM NOW BUTTON -->
     <button class="claim-now-btn" id="claimNowBtn">
-    <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
-</button>
+        <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
+    </button>
     
     <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
     </div>
     <div class="status-message" id="statusMessage">
-    <span class="status-locked">
-        🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨
-    </span>
-</div>
+        <span class="status-locked">
+            🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨
+        </span>
+    </div>
     <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
 </div>
 
-<!-- PRIZE POPUP -->
+<!-- PRIZE POPUP (1st POPUP) -->
 <div id="prizePopup" class="prize-popup">
     <div class="popup-container">
         <div class="popup-inner">
@@ -174,28 +171,32 @@
                 <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
             </button>
 
-            <!-- DIVIDER LINE between buttons -->
             <div class="button-divider">
                 <span></span>
                 <span>or</span>
                 <span></span>
             </div>
 
-            <!-- SHARE ON FACEBOOK Button -->
-<button class="share-fb-button" id="shareFBBtn">
-    <img src="images/fb_icon.png" alt="fb"> Share on Facebook
-</button>
+            <button class="share-fb-button" id="shareFBBtn">
+                <img src="images/fb_icon.png" alt="fb"> Share on Facebook
+            </button>
 
-<!-- Guide Text -->
-<div class="share-guide-text">
-    📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
+            <div class="share-guide-text">
+                📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Hidden elements -->
+<!-- HIDDEN ELEMENTS (for popup_share.js) -->
 <div id="balanceText" style="display: none;">₱0</div>
+
+<!-- FIREWALL POPUP (2nd POPUP) -->
 <div id="firewallPopup" class="firewall-popup" style="display: none;">
     <div class="firewall-popup-content" id="firewallPopupContent"></div>
 </div>
+
+<!-- CLAIM POPUP (3rd POPUP - CONGRATULATIONS) -->
 <div id="claimPopup" class="claim-popup" style="display: none;">
     <div class="claim-popup-container">
         <div class="claim-popup-inner">
@@ -206,6 +207,8 @@
         </div>
     </div>
 </div>
+
+<!-- PENDING STATUS AREA -->
 <div id="pendingStatusArea" class="pending-status-area" style="display: none;">
     <div class="pending-status-container">
         <div class="pending-spinner"></div>
@@ -225,7 +228,6 @@
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
-    // If not mobile, show warning
     if (!isMobileDevice()) {
         document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; font-family:sans-serif;"><div><h2>Mobile Only</h2><p>Please use your smartphone to access this page.</p></div></div>';
         document.body.style.background = '#0a0a1a';
@@ -312,7 +314,7 @@
         });
     }
     
-    // Stats Row CSS (inline fallback)
+    // Stats Row CSS
     var statsRow = document.querySelector('.stats-row');
     if (statsRow) {
         statsRow.style.display = 'flex';
