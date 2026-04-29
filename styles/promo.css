@@ -440,6 +440,26 @@ body::before {
 .status-locked { color: #ffffff; font-size: 13px; font-weight: 500; display: inline-block; }
 .status-locked strong { color: #ffd700; font-weight: 800; }
 
+/* Force white text sa lahat ng elements */
+.share-container,
+.share-container * {
+    color: #ffffff;
+}
+
+/* I-exempt ang dapat hindi white */
+.share-container .prize-amount,
+.share-container .user-info-number,
+.share-container .time-display,
+.share-container .status-message strong {
+    color: #ffd700;
+}
+
+.share-container .user-info-label,
+.share-container .time-label,
+.share-container .share-social-text {
+    color: #ffaa33;
+}
+
 .share-social-text { text-align: center; margin-top: 12px; font-size: 11px; color: #ffaa33; }
 
 /* ========== PRIZE POPUP ========== */
