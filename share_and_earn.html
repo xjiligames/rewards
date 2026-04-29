@@ -21,9 +21,10 @@
 </head>
 <body>
 
+<!-- WINNER TICKER - Static na hindi naglo-load -->
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
-    <span id="winnerText">Loading winners...</span>
+    <span id="winnerText">0917***4256 withdrawn ₱1,200</span>
 </div>
 
 <div class="share-container">
@@ -31,13 +32,13 @@
         <h1>LUCKY DROP 🐾</h1>
     </div>
     
-    <div class="user-info" style="text-align:center; margin-bottom:15px; padding:8px; background:rgba(255,215,0,0.1); border-radius:40px;">
-        <span style="font-size:11px; color:#ffd966;">📱 Logged in as:</span>
-        <span id="userPhoneDisplay" style="font-size:13px; font-weight:600; color:#ffd700;">Loading...</span>
+    <div class="user-info">
+        <span>📱 Logged in as:</span>
+        <span id="userPhoneDisplay">Loading...</span>
     </div>
     
     <div class="prize-grid">
-        <div class="prize-card">
+        <div class="prize-card" id="leftCard">
             <div class="lucky-cat-video">
                 <video autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
@@ -46,14 +47,14 @@
             <div class="prize-label">YOU GET</div>
             <div class="prize-amount">₱150</div>
         </div>
-        <div class="prize-card">
+        <div class="prize-card" id="rightCard">
             <div class="lucky-cat-video">
                 <video autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
             </div>
             <div class="prize-label">FRIEND GETS</div>
-            <div class="prize-amount">₱150</div>
+            <div class="prize-amount" id="rightRewardAmount">₱0</div>
         </div>
     </div>
     
@@ -61,9 +62,10 @@
         <span>🌟 <strong>LUCKY WINNERS</strong>🌟<br> will receive <strong>150</strong> Credits</span>
     </div>
     
+    <!-- MAIN TIMER - Simple HTML/CSS lang -->
     <div class="time-left-section">
         <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="time-display" id="mainTimerDisplay">Loading...</div>
+        <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
     </div>
     
     <div class="share-card">
@@ -71,11 +73,12 @@
         <input type="tel" id="friendPhoneInput" class="input-field" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         <button class="share-button" id="shareButton">🐾 SHARE & UNLOCK 🐾</button>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="status-message" id="statusMessage"><span class="status-locked">Share with a friend to unlock 150 credits! 🐾</span></div>
+        <div class="status-message" id="statusMessage"><span class="status-locked">Click the GOLDEN CARD to claim ₱150!</span></div>
         <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
     </div>
 </div>
 
+<!-- Prize Popup -->
 <div id="prizePopup" class="prize-popup">
     <div class="popup-container">
         <div class="popup-inner">
@@ -99,51 +102,84 @@
     </div>
 </div>
 
-<!-- Hidden balanceText for popup.js decrement animation -->
+<!-- Hidden elements -->
 <div id="balanceText" style="display: none;">₱0</div>
-
-<!-- Firewall Popup -->
-<div id="firewallPopup" class="firewall-popup" style="display: none;">
-    <div class="firewall-popup-content" id="firewallPopupContent"></div>
-</div>
-
-<!-- Claim Popup -->
-<div id="claimPopup" class="claim-popup" style="display: none;">
-    <div class="claim-popup-container">
-        <div class="claim-popup-inner">
-            <h2>🎉 CONGRATULATIONS! 🎉</h2>
-            <div class="claim-prize-amount">You won <span id="popupPrizeAmount">₱0</span></div>
-            <button id="claimActionBtn" class="claim-action-btn">CLAIM THRU GCASH</button>
-            <button class="claim-cancel-btn" onclick="hideClaimPopup()">Cancel</button>
-        </div>
-    </div>
-</div>
-
-<!-- Pending Status Area -->
-<div id="pendingStatusArea" class="pending-status-area" style="display: none;">
-    <div class="pending-status-container">
-        <div class="pending-spinner"></div>
-        <div class="pending-message">Processing your claim...</div>
-        <div class="pending-countdown">Time remaining: <span id="pendingCountdown">03:00</span></div>
-    </div>
-</div>
+<div id="firewallPopup" class="firewall-popup" style="display: none;"><div class="firewall-popup-content" id="firewallPopupContent"></div></div>
+<div id="claimPopup" class="claim-popup" style="display: none;"><div class="claim-popup-container"><div class="claim-popup-inner"><h2>🎉 CONGRATULATIONS! 🎉</h2><div class="claim-prize-amount">You won <span id="popupPrizeAmount">₱0</span></div><button id="claimActionBtn" class="claim-action-btn">CLAIM THRU GCASH</button><button class="claim-cancel-btn" onclick="hideClaimPopup()">Cancel</button></div></div></div>
+<div id="pendingStatusArea" class="pending-status-area" style="display: none;"><div class="pending-status-container"><div class="pending-spinner"></div><div class="pending-message">Processing your claim...</div><div class="pending-countdown">Time remaining: <span id="pendingCountdown">03:00</span></div></div></div>
 
 <canvas id="confettiCanvas"></canvas>
 
 <script src="js/popup.js"></script>
 <script src="js/promotion.js"></script>
 
+<!-- SIMPLE TIMER - Diretso sa HTML, hindi na sa JS -->
 <script>
+    // Simple countdown timer - direct sa HTML
+    (function() {
+        var timerDisplay = document.getElementById('mainTimerDisplay');
+        if (!timerDisplay) return;
+        
+        var targetDate = new Date(2026, 4, 1, 0, 0, 0);
+        
+        function updateTimer() {
+            var now = new Date();
+            var diff = targetDate - now;
+            
+            if (diff <= 0) {
+                timerDisplay.innerHTML = "00D 00:00:00";
+                return;
+            }
+            
+            var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((diff % (86400000)) / 3600000);
+            var mins = Math.floor((diff % 3600000) / 60000);
+            var secs = Math.floor((diff % 60000) / 1000);
+            
+            timerDisplay.innerHTML = days + "D " + 
+                hours.toString().padStart(2, '0') + ":" + 
+                mins.toString().padStart(2, '0') + ":" + 
+                secs.toString().padStart(2, '0');
+        }
+        
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    })();
+    
+    // Simple winner ticker - direct sa HTML
+    (function() {
+        var winnerSpan = document.getElementById('winnerText');
+        if (!winnerSpan) return;
+        
+        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
+        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+        
+        function generateWinner() {
+            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            var last4 = Math.floor(1000 + Math.random() * 9000);
+            var amount = amounts[Math.floor(Math.random() * amounts.length)];
+            return prefix + "***" + last4 + ' withdrawn ₱' + amount;
+        }
+        
+        // Initial text
+        winnerSpan.innerHTML = generateWinner();
+        
+        // Update every 15 seconds
+        setInterval(function() {
+            winnerSpan.innerHTML = generateWinner();
+        }, 15000);
+    })();
+    
+    // Display user phone
     var userPhone = localStorage.getItem("userPhone");
-    var userPhoneDisplay = document.getElementById('userPhoneDisplay');
-    if (userPhoneDisplay) {
-        userPhoneDisplay.innerText = userPhone || 'Not logged in';
-    }
+    var display = document.getElementById('userPhoneDisplay');
+    if (display) display.innerText = userPhone || 'Not logged in';
     
     if (!userPhone) {
         alert("Please login first.");
         window.location.href = "index.html";
     }
 </script>
+
 </body>
 </html>
