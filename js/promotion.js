@@ -466,27 +466,43 @@ function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     
     if (claimNowBtn) {
+        // Clone to remove existing listeners
         var newBtn = claimNowBtn.cloneNode(true);
         claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
+        claimNowBtn = newBtn;
         
-        newBtn.onclick = function() {
+        // Clear existing content and add icon + text
+        claimNowBtn.innerHTML = '';
+        
+        // Create icon element
+        var icon = document.createElement('img');
+        icon.src = 'images/scatter_icon.jpeg';
+        icon.style.width = '20px';
+        icon.style.height = '20px';
+        icon.style.verticalAlign = 'middle';
+        icon.style.marginRight = '8px';
+        icon.style.display = 'inline-block';
+        
+        // Add text node
+        var textNode = document.createTextNode(' CLAIM NOW');
+        
+        // Append to button
+        claimNowBtn.appendChild(icon);
+        claimNowBtn.appendChild(textNode);
+        
+        // Add click event
+        claimNowBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             console.log("CLAIM NOW button clicked");
             
-            // Remove the left reward check - always show popup
-            var popupBalance = document.getElementById('popupBalanceAmount');
-            if (popupBalance) {
-                popupBalance.innerHTML = '₱' + getBalance();
-            }
-            
-            // Use popup.js firewall logic directly
-            if (typeof window.showClaimPopup === 'function') {
-                window.showClaimPopup(150);
-            } else {
-                showPrizePopup();
-            }
+            // Show popup directly
+            showPrizePopup();
         };
         
-        console.log("CLAIM NOW button ready - always clickable");
+        console.log("CLAIM NOW button ready with scatter icon");
+    } else {
+        console.log("CLAIM NOW button not found");
     }
 }
 
