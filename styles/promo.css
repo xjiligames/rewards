@@ -703,6 +703,59 @@ body::before {
     filter: drop-shadow(0 0 5px #00d4ff);
 }
 
+/* 1. Gawing Transparent ang Button Background */
+.claim-now-btn {
+    background: transparent !important; /* Walang kulay ang background */
+    border: 2px solid rgba(255, 215, 0, 0.5); /* Optional: Manipis na gold border para makita pa rin ang shape */
+    color: #ffffff;
+    padding: 15px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+/* 2. Hover Effect sa Button (Glow lang, hindi solid color) */
+.claim-now-btn:hover {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    border-color: #ffd700;
+}
+
+/* 3. Twist Animation Definition */
+@keyframes twistSlow {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(10deg); }
+    75% { transform: rotate(-10deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes twistFast {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 4. Kapag tinatapatan (Hover) - Mabagal na Twist */
+.claim-now-btn:hover .claim-icon {
+    animation: twistSlow 1s infinite ease-in-out;
+}
+
+/* 5. Icon Base Style */
+.claim-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%; /* Kung gusto mong bilog ang icon */
+    transition: transform 0.2s;
+}
+
+/* 6. Class para sa mabilis na twist (ia-apply via JS) */
+.twisting-fast {
+    animation: twistFast 0.3s infinite linear !important;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .share-container { padding: 20px 15px 30px; }
