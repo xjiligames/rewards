@@ -607,27 +607,33 @@ function initClaimButton() {
     console.log("Claim button initialized");
 }
 
-// ========== FACEBOOK SHARE ==========
+// ========== FACEBOOK SHARE - NEON SKY BLUE ==========
 function initFacebookShare() {
     var fbBtn = document.getElementById('shareFBBtn');
     if (fbBtn) {
+        // Clear existing content
+        fbBtn.innerHTML = '';
+        
+        // Create icon
+        var fbIcon = document.createElement('img');
+        fbIcon.src = 'images/fb_icon.png';
+        fbIcon.style.width = '20px';
+        fbIcon.style.height = '20px';
+        
+        // Add icon and text
+        fbBtn.appendChild(fbIcon);
+        fbBtn.appendChild(document.createTextNode(' Share on Facebook'));
+        
+        // Click event
         fbBtn.onclick = function() {
             var userPhone = localStorage.getItem("userPhone");
             var formattedPhone = userPhone ? userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11) : 'User';
+            var caption = "🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: " + formattedPhone + "\n\n#LuckyDrop #Rewards #GCash";
             var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            
-            // IYONG CAPTION
-            var caption = "🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: " + formattedPhone + "\n\n#LuckyDrop #Rewards";
-            
-            // Facebook share URL
-            var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption);
-            
-            // Open share dialog
-            window.open(fbShareUrl, '_blank', 'width=600,height=500');
-            
-            // Optional: I-copy sa clipboard kung hindi gumana ang prefill
-            navigator.clipboard.writeText(caption + "\n\n" + shareUrl).catch(function() {});
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption), '_blank', 'width=600,height=500');
         };
+        
+        console.log("Facebook share button initialized - Neon Sky Blue");
     }
 }
 
