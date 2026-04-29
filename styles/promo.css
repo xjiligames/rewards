@@ -60,6 +60,32 @@ body {
     50% { opacity: 0.5; transform: scale(1.1); }
 }
 
+/* Desktop view - warning message */
+@media (min-width: 768px) {
+    body::before {
+        content: "Please use your mobile phone to access this page";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #0a0a1a;
+        color: #ffd700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        text-align: center;
+        padding: 20px;
+        z-index: 99999;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .share-container, .live-winners-ticker {
+        display: none;
+    }
+}
+
 /* ========== MAIN CONTAINER ========== */
 .share-container {
     max-width: 450px;
