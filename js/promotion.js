@@ -623,6 +623,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (display) {
         display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
     }
+
+    var video = document.getElementById('luckyCatVideo');
+    if (video) {
+        video.loop = true;
+        video.play().catch(function(e) {
+            console.log("Video autoplay error:", e);
+        });
+    }
     
     displayBalance();
     displayInvitesCount();
