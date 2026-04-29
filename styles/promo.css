@@ -639,65 +639,45 @@ body {
     transition: width 0.3s;
 }
 
-/* ========== STATUS MESSAGE ========== */
+/* ========== STATUS MESSAGE - REMASTERED ========== */
 .status-message {
     text-align: center;
     padding: 12px 16px;
     border-radius: 60px;
-    background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(255,215,0,0.1));
+    background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(255,215,0,0.15));
     border: 1px solid rgba(255,215,0,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
     margin: 15px 0;
-}
-.status-icon {
-    font-size: 24px;
-    filter: drop-shadow(0 0 4px #ffd700);
+    transition: all 0.3s ease;
 }
 
-.status-text {
-    font-size: 13px;
-    font-weight: 500;
-    color: #ffffff !important;
+/* Claim success message style */
+.status-success {
+    background: linear-gradient(135deg, rgba(57,255,20,0.2), rgba(255,215,0,0.1));
+    border: 1px solid #39ff14;
+    animation: successPulse 0.5s ease-out;
 }
 
-.status-highlight {
-    color: #ffd700 !important;
-    font-weight: 800;
-    text-shadow: 0 0 4px rgba(255,215,0,0.5);
-    background: linear-gradient(135deg, #ffd70020, transparent);
-    padding: 2px 8px;
-    border-radius: 20px;
+@keyframes successPulse {
+    0% { transform: scale(1); background: rgba(57,255,20,0.4); }
+    50% { transform: scale(1.02); background: rgba(57,255,20,0.2); }
+    100% { transform: scale(1); background: rgba(57,255,20,0.1); }
 }
 
-.status-reward {
-    color: #ffaa33 !important;
-    font-weight: 700;
-}
-
-.status-sparkle {
-    font-size: 14px;
+.status-message .claim-amount {
     color: #ffd700;
-    animation: sparkle 1s ease-in-out infinite;
-}
-.status-locked {
-    color: #ffffff !important;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 900;
+    text-shadow: 0 0 5px #ffaa33;
     display: inline-block;
-    background: rgba(0,0,0,0.5);
-    padding: 8px 16px;
-    border-radius: 40px;
-    border: 1px solid rgba(255,215,0,0.3);
+    margin-right: 5px;
 }
-.status-locked strong,
-.status-locked .gold-text {
-    color: #ffd700 !important;
-    font-weight: 800;
+
+.status-message .balance-amount {
+    color: #39ff14;
+    font-size: 18px;
+    font-weight: 900;
+    text-shadow: 0 0 5px #39ff14;
 }
-.share-social-text { text-align: center; margin-top: 12px; font-size: 11px; color: #ffaa33; }
 
 /* ========== PRIZE POPUP ========== */
 .prize-popup {
