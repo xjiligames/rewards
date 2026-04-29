@@ -647,6 +647,15 @@ body::before {
     display: none;
 }
 
+/* Fix para sa Facebook icon - alisin ang white background */
+.share-fb-btn img,
+.share-fb-button img,
+#shareFBBtn img {
+    background: transparent !important;
+    mix-blend-mode: multiply;
+    filter: brightness(0) invert(1);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .share-container { padding: 20px 15px 30px; }
