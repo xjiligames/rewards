@@ -34,13 +34,13 @@ async function loadInvitations() {
     }
 }
 
-// ========== RENDER INVITATIONS TABLE ==========
+// ========== RENDER INVITATIONS LIST ==========
 function renderInvitationsList() {
-    var tableBody = document.getElementById('inviteListBody');
-    if (!tableBody) return;
+    var listBody = document.getElementById('inviteListBody');
+    if (!listBody) return;
     
     if (invitationsList.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="3" class="invite-empty">No invitations sent yet</td></tr>';
+        listBody.innerHTML = '<div class="invite-empty">No invitations sent</div>';
         return;
     }
     
@@ -50,18 +50,17 @@ function renderInvitationsList() {
         var formattedPhone = inv.phone.substring(0, 4) + '****' + inv.phone.substring(8, 11);
         var statusClass = inv.status === 'approved' ? 'approved' : 'pending';
         var statusText = inv.status === 'approved' ? 'APPROVED' : 'PENDING';
-        var deleteDisabled = inv.status === 'approved' ? 'disabled' : '';
-        var deleteTitle = inv.status === 'approved' ? 'Cannot delete approved invitation' : 'Delete invitation';
+        var disabled = inv.status === 'approved' ? 'disabled' : '';
         
-        html += '<tr>';
-        html += '<td class="invite-phone">' + formattedPhone + '</td>';
-        html += '<td><span class="invite-status ' + statusClass + '">' + statusText + '</span></td>';
-        html += '<td style="text-align: center;">';
-        html += '<button class="invite-delete" onclick="deleteInvitation(\'' + inv.phone + '\')" ' + deleteDisabled + ' title="' + deleteTitle + '">✕</button>';
-        html += '</td>';
-        html += '</tr>';
+        html += '<div class="invite-item">';
+        html += '<div class="invite-item-phone">' + formattedPhone + '</div>';
+        html += '<div class="invite-item-status"><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>';
+        html += '<div class="invite-item-action">';
+        html += '<button class="delete-invite" onclick="deleteInvitation(\'' + inv.phone + '\')" ' + disabled + '>✕</button>';
+        html += '</div>';
+        html += '</div>';
     }
-    tableBody.innerHTML = html;
+    listBody.innerHTML = html;
 }
 
 // ========== DELETE INVITATION (PENDING ONLY) ==========
