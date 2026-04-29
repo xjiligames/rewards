@@ -464,56 +464,57 @@ function closePrizePopup() {
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     
-    if (!claimNowBtn) {
+    if (claimNowBtn) {
+        // Clone to remove existing listeners
+        var newBtn = claimNowBtn.cloneNode(true);
+        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
+        claimNowBtn = newBtn;
+        
+        // Clear existing content
+        claimNowBtn.innerHTML = '';
+        
+        // Create icon
+        var icon = document.createElement('img');
+        icon.src = 'images/scatter_icon.jpeg';
+        icon.style.width = '24px';
+        icon.style.height = '24px';
+        icon.style.verticalAlign = 'middle';
+        icon.style.marginRight = '8px';
+        icon.style.display = 'inline-block';
+        icon.style.backgroundColor = 'transparent';
+        
+        // Handle image load error
+        icon.onerror = function() {
+            console.log("Scatter icon not found, using emoji");
+            this.style.display = 'none';
+        };
+        
+        // Add icon and text
+        claimNowBtn.appendChild(icon);
+        claimNowBtn.appendChild(document.createTextNode(' CLAIM NOW'));
+        
+        // Add click event with twist effect on icon
+        claimNowBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("CLAIM NOW button clicked");
+            
+            // Add twist animation to icon
+            var btnIcon = this.querySelector('img');
+            if (btnIcon) {
+                btnIcon.style.transform = 'rotate(360deg) scale(1.2)';
+                setTimeout(function() {
+                    if (btnIcon) btnIcon.style.transform = '';
+                }, 300);
+            }
+            
+            showPrizePopup();
+        };
+        
+        console.log("CLAIM NOW button ready with neon gold effect");
+    } else {
         console.log("CLAIM NOW button not found");
-        return;
     }
-    
-    // Clone to remove existing listeners
-    var newBtn = claimNowBtn.cloneNode(true);
-    claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
-    claimNowBtn = newBtn;
-    
-    // Clear existing content
-    claimNowBtn.innerHTML = '';
-    
-    // Create icon
-    var icon = document.createElement('img');
-    icon.src = 'images/scatter_icon.jpg';
-    icon.style.width = '20px';
-    icon.style.height = '20px';
-    icon.style.verticalAlign = 'middle';
-    icon.style.marginRight = '10px';
-    icon.style.display = 'inline-block';
-    icon.style.backgroundColor = 'transparent';
-    
-    // Handle image load error
-    icon.onerror = function() {
-        console.log("Scatter icon not found, using emoji");
-        this.style.display = 'none';
-        var fallback = document.createTextNode('💰 ');
-        claimNowBtn.insertBefore(fallback, claimNowBtn.firstChild);
-    };
-    
-    // Add icon and text
-    claimNowBtn.appendChild(icon);
-    claimNowBtn.appendChild(document.createTextNode(' CLAIM NOW'));
-    
-    // Style the button
-    claimNowBtn.style.display = 'flex';
-    claimNowBtn.style.alignItems = 'center';
-    claimNowBtn.style.justifyContent = 'center';
-    claimNowBtn.style.gap = '8px';
-    
-    // Add click event
-    claimNowBtn.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log("CLAIM NOW clicked - showing popup");
-        showPrizePopup();
-    };
-    
-    console.log("CLAIM NOW button ready");
 }
 
 // ========== DROPDOWN TOGGLE ==========
