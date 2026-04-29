@@ -20,205 +20,182 @@
 </head>
 <body>
 
-<!-- WINNER TICKER -->
+<!-- WINNER TICKER (always visible) -->
 <div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
     <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
 </div>
 
-<div class="share-container">
-    <div class="header">
-        <h1>LUCKY DROP 🐾</h1>
-    </div>
-    
-    <!-- USER INFO CARD -->
-    <div class="user-info-card">
-        <div class="user-info-icon">📱</div>
-        <div class="user-info-text">
-            <span class="user-info-label">Logged in as</span>
-            <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+<!-- ========== VIEW 1: MAIN VIEW (default visible) ========== -->
+<div id="mainView" class="main-view">
+    <div class="share-container">
+        <div class="header">
+            <h1>LUCKY DROP 🐾</h1>
         </div>
-        <div class="user-info-badge">
-            <span class="badge-dot"></span>
-            <span class="badge-text">Active</span>
+        
+        <!-- USER INFO CARD -->
+        <div class="user-info-card">
+            <div class="user-info-icon">📱</div>
+            <div class="user-info-text">
+                <span class="user-info-label">Logged in as</span>
+                <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+            </div>
+            <div class="user-info-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Active</span>
+            </div>
         </div>
-    </div>
 
-    <!-- STATS ROW -->
-    <div class="stats-row">
-        <div class="stat-box">
-            <div>BALANCE</div>
-            <div id="userBalanceDisplay">₱0</div>
+        <!-- STATS ROW -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div>BALANCE</div>
+                <div id="userBalanceDisplay">₱0</div>
+            </div>
+            <div class="stat-box">
+                <div>INVITES</div>
+                <div id="invitesCountDisplay">0 / 6</div>
+            </div>
         </div>
-        <div class="stat-box">
-            <div>INVITES</div>
-            <div id="invitesCountDisplay">0 / 6</div>
+        
+        <!-- STEP 1 DROPDOWN BUTTON -->
+        <div class="step1-dropdown">
+            <button class="dropdown-btn" id="dropdownBtn">
+                <span class="dropdown-icon">👥</span>
+                <span class="dropdown-text">INVITE FRIENDS</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            
+            <div class="dropdown-content" id="dropdownContent">
+                <div class="invite-form-section">
+                    <div class="invite-form-title">Send Invitation</div>
+                    <div class="invite-form-row">
+                        <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
+                    </div>
+                </div>
+                
+                <div class="invite-list-section">
+                    <div class="invite-section-title">📤 My Invitations</div>
+                    <div class="invite-list-header">
+                        <span>MOBILE NUMBER</span>
+                        <span>STATUS</span>
+                        <span>ACTION</span>
+                    </div>
+                    <div id="sentInvitesList" class="invite-list-body">
+                        <div class="invite-empty">No invitations sent</div>
+                    </div>
+                </div>
+                
+                <div class="invite-list-section">
+                    <div class="invite-section-title">📥 Invitations Received</div>
+                    <div class="invite-list-header">
+                        <span>FROM</span>
+                        <span>STATUS</span>
+                        <span>REWARD</span>
+                    </div>
+                    <div id="receivedInvitesList" class="invite-list-body">
+                        <div class="invite-empty">No invitations received</div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <!-- STEP 1 DROPDOWN BUTTON -->
-    <div class="step1-dropdown">
-        <button class="dropdown-btn" id="dropdownBtn">
-            <span class="dropdown-icon">👥</span>
-            <span class="dropdown-text">INVITE FRIENDS</span>
-            <span class="dropdown-arrow">▼</span>
+        
+        <!-- PRIZE GRID -->
+        <div class="prize-grid">
+            <div class="prize-card" id="leftCard">
+                <div class="lucky-cat-video">
+                    <video autoplay loop muted playsinline id="luckyCatVideo">
+                        <source src="sounds/luckycat.mp4" type="video/mp4">
+                    </video>
+                    <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
+                </div>
+                <div class="prize-label">YOU GET</div>
+                <div class="prize-amount">₱150</div>
+            </div>
+            <div class="prize-card" id="rightCard">
+                <div class="lucky-cat-video">
+                    <video autoplay loop muted playsinline>
+                        <source src="sounds/luckycat.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="prize-label">FRIEND GETS</div>
+                <div class="prize-amount" id="rightRewardAmount">₱0</div>
+            </div>
+        </div>
+        
+        <div class="winners-banner">
+            <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
+        </div>
+        
+        <div class="time-left-section">
+            <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+            <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
+        </div>
+        
+        <!-- CLAIM NOW BUTTON -->
+        <button class="claim-now-btn" id="claimNowBtn">
+            <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
         </button>
         
-        <div class="dropdown-content" id="dropdownContent">
-            <div class="invite-form-section">
-                <div class="invite-form-title">Send Invitation</div>
-                <div class="invite-form-row">
-                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
-                </div>
-            </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📤 My Invitations</div>
-                <div class="invite-list-header">
-                    <span>MOBILE NUMBER</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
-                <div id="sentInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations sent</div>
-                </div>
-            </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📥 Invitations Received</div>
-                <div class="invite-list-header">
-                    <span>FROM</span>
-                    <span>STATUS</span>
-                    <span>REWARD</span>
-                </div>
-                <div id="receivedInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations received</div>
-                </div>
-            </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
         </div>
-    </div>
-    
-    <!-- PRIZE GRID -->
-    <div class="prize-grid">
-        <div class="prize-card" id="leftCard">
-            <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline id="luckyCatVideo">
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-                <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
-            </div>
-            <div class="prize-label">YOU GET</div>
-            <div class="prize-amount">₱150</div>
+        <div class="status-message" id="statusMessage">
+            <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
         </div>
-        <div class="prize-card" id="rightCard">
-            <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-            </div>
-            <div class="prize-label">FRIEND GETS</div>
-            <div class="prize-amount" id="rightRewardAmount">₱0</div>
-        </div>
-    </div>
-    
-    <div class="winners-banner">
-        <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
-    </div>
-    
-    <div class="time-left-section">
-        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
-    </div>
-    
-    <!-- CLAIM NOW BUTTON -->
-    <button class="claim-now-btn" id="claimNowBtn">
-        <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
-    </button>
-
-     <div class="button-divider">
-                <span></span>
-                <span>or</span>
-                <span></span>
-            </div>
-
-            <button class="share-fb-button" id="shareFBBtn">
-                <img src="images/fb_icon.png" alt="fb"> Share on Facebook
-            </button>
-
-            <div class="share-guide-text">
-                📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
-            </div>
-        </div>
+        <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
     </div>
 </div>
-    
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
-    <div class="status-message" id="statusMessage">
-        <span class="status-locked">
-            🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨
-        </span>
-    </div>
-    <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
-</div>
 
-<!-- PRIZE POPUP (1st POPUP) -->
-<div id="prizePopup" class="prize-popup">
-    <div class="popup-container">
-        <div class="popup-inner">
-            <div class="popup-close" onclick="closePrizePopup()">✕</div>
-            <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
-            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
-            <div class="divider"></div>
-            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
-            <div class="luckyday-image-container">
-                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
-            </div>
-            <div class="divider"></div>
-            <div class="indicator-group">
-                <div class="indicator" id="indicator1"></div>
-                <div class="indicator" id="indicator2"></div>
-                <div class="indicator" id="indicator3"></div>
-            </div>
-            
-            <!-- CLAIM THRU GCASH Button -->
-            <button class="claim-gcash-button" id="claimGCashBtn">
-                <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
-            </button>
-
-            <div class="button-divider">
-                <span></span>
-                <span>or</span>
-                <span></span>
-            </div>
-
-            <button class="share-fb-button" id="shareFBBtn">
-                <img src="images/fb_icon.png" alt="fb"> Share on Facebook
-            </button>
-
-            <div class="share-guide-text">
-                📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
-            </div>
+<!-- ========== VIEW 2: CLAIM VIEW (hidden by default) ========== -->
+<div id="claimView" class="claim-view" style="display: none;">
+    <div class="share-container">
+        <div class="claim-header" style="display: flex; align-items: center; margin-bottom: 20px;">
+            <button id="backToMainBtn" class="back-to-main-btn" style="background: none; border: none; color: #ffd700; font-size: 24px; cursor: pointer;">←</button>
+            <h2 style="flex: 1; text-align: center; color: #ffd700;">CLAIM REWARDS</h2>
+        </div>
+        
+        <div class="claim-balance-box" style="text-align: center; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 30px; margin-bottom: 20px;">
+            <div style="font-size: 12px; color: #ffaa33;">YOUR BALANCE</div>
+            <div id="claimBalanceAmount" style="font-size: 48px; color: #ffd700; font-weight: bold;">₱150</div>
+        </div>
+        
+        <!-- CLAIM THRU GCASH BUTTON -->
+        <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; margin-bottom: 15px;">
+            <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
+        </button>
+        
+        <!-- BACK BUTTON -->
+        <button class="back-btn" id="backBtnClaim" style="width: 100%;">
+            <img src="images/scatter_icon.jpg" class="back-icon"> BACK TO MAIN
+        </button>
+        
+        <div class="button-divider" style="margin: 20px 0;">
+            <span></span>
+            <span>or</span>
+            <span></span>
+        </div>
+        
+        <button class="share-fb-button" id="shareFBBtnClaim">
+            <img src="images/fb_icon.png" alt="fb"> Share on Facebook
+        </button>
+        
+        <div class="share-guide-text">
+            📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
         </div>
     </div>
 </div>
 
-    <!-- BACK Button -->
-<button class="back-btn" id="backBtn">
-    <img src="images/scatter_icon.jpg" class="back-icon" alt="back"> BACK
-</button>
-
-<!-- HIDDEN ELEMENTS (for popup_share.js) -->
+<!-- HIDDEN ELEMENTS -->
 <div id="balanceText" style="display: none;">₱0</div>
 
-<!-- FIREWALL POPUP (2nd POPUP) -->
+<!-- FIREWALL POPUP -->
 <div id="firewallPopup" class="firewall-popup" style="display: none;">
     <div class="firewall-popup-content" id="firewallPopupContent"></div>
 </div>
 
-<!-- CLAIM POPUP (3rd POPUP - CONGRATULATIONS) -->
+<!-- CLAIM POPUP (CONGRATULATIONS) -->
 <div id="claimPopup" class="claim-popup" style="display: none;">
     <div class="claim-popup-container">
         <div class="claim-popup-inner">
@@ -245,6 +222,41 @@
 <script src="js/popup_share.js"></script>
 
 <script>
+    // View switching
+    var mainView = document.getElementById('mainView');
+    var claimView = document.getElementById('claimView');
+    
+    // CLAIM NOW button - switch to claim view
+    document.getElementById('claimNowBtn').onclick = function(e) {
+        e.preventDefault();
+        
+        // Animate icon
+        var icon = this.querySelector('img');
+        if (icon) {
+            icon.style.transform = 'rotate(360deg)';
+            setTimeout(function() { icon.style.transform = ''; }, 500);
+        }
+        
+        // Switch view
+        mainView.style.display = 'none';
+        claimView.style.display = 'block';
+        
+        // Update balance in claim view
+        var balance = document.getElementById('userBalanceDisplay').innerText;
+        document.getElementById('claimBalanceAmount').innerText = balance;
+    };
+    
+    // BACK button - switch back to main view
+    document.getElementById('backToMainBtn').onclick = function() {
+        mainView.style.display = 'block';
+        claimView.style.display = 'none';
+    };
+    
+    document.getElementById('backBtnClaim').onclick = function() {
+        mainView.style.display = 'block';
+        claimView.style.display = 'none';
+    };
+    
     // Detect if user is on desktop
     function isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
