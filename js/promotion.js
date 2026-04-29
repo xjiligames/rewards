@@ -440,23 +440,127 @@ function initLeftLuckyCard() {
     luckySound.loop = false;
     luckySound.volume = 0.7;
     
-    // Check kung na-claim na
-    getLeftRewardClaimed().then(function(claimed) {
+    // Function to update left card visual based on claim status
+    function updateLeftCardVisual(claimed) {
         if (claimed) {
             leftCard.classList.add('prize-card-claimed');
             leftCard.classList.remove('prize-card-glow');
             leftCard.style.cursor = 'default';
-            console.log("Left card already claimed - disabled");
+            leftCard.style.opacity = '0.9';
+            console.log("Left card is claimed - disabled");
         } else {
             leftCard.classList.add('prize-card-glow');
+            leftCard.classList.remove('prize-card-claimed');
             leftCard.style.cursor = 'pointer';
+            leftCard.style.opacity = '1';
+            console.log("Left card is ready to claim");
+        }
+    }
+    
+    // Function to load data from Firebase using phone number
+    async function loadUserDataFromFirebase() {
+        var userPhone = localStorage.getItem("userPhone");
+        if (!userPhone) {
+            console.log("No user phone found");
+            return false;
+        }
+        
+        if (typeof firebase !== 'undefined' && firebase.database) {
+            var db = firebase.database();
+            
+            try {
+                var snap = await db.ref('user_sessions/' + userPhone).once('value');
+                
+                if (snap.exists()) {
+                    var data = snap.val();
+                    console.log("User data from Firebase:", data);
+                    
+                    // Load balance
+                    if (data.balance !== undefined) {
+                        var keys = getUserStorageKeys();
+                        if (keys) {
+                            localStorage.setItem(keys.balanceKey, data.balance);
+                        }
+                        displayBalance();
+                        console.log("Balance loaded:", data.balance);
+                    }
+                    
+                    // Load left reward status
+                    if (data.leftRewardClaimed === true) {
+                        var keys = getUserStorageKeys();
+                        if (keys) {
+                            localStorage.setItem(keys.leftRewardKey, 'true');
+                        }
+                        updateLeftCardVisual(true);
+                        console.log("Left reward claimed status loaded: true");
+                        return true;
+                    } else {
+                        updateLeftCardVisual(false);
+                        return false;
+                    }
+                } else {
+                    console.log("No existing user data");
+                    updateLeftCardVisual(false);
+                    return false;
+                }
+            } catch(e) {
+                console.error("Error loading user data:", e);
+                updateLeftCardVisual(false);
+                return false;
+            }
+        } else {
+            console.log("Firebase not available");
+            // Check localStorage only
+            var keys = getUserStorageKeys();
+            if (keys) {
+                var claimed = localStorage.getItem(keys.leftRewardKey) === 'true';
+                updateLeftCardVisual(claimed);
+                return claimed;
+            }
+            return false;
+        }
+    }
+    
+    // Function to save claim to Firebase
+    async function saveClaimToFirebase(newBalance) {
+        var userPhone = localStorage.getItem("userPhone");
+        if (!userPhone) return;
+        
+        if (typeof firebase !== 'undefined' && firebase.database) {
+            var db = firebase.database();
+            
+            try {
+                await db.ref('user_sessions/' + userPhone).update({
+                    balance: newBalance,
+                    leftRewardClaimed: true,
+                    leftRewardAmount: 150,
+                    leftRewardClaimedAt: Date.now(),
+                    lastUpdate: Date.now()
+                });
+                console.log("Claim saved to Firebase for user:", userPhone);
+            } catch(e) {
+                console.error("Error saving to Firebase:", e);
+            }
+        }
+    }
+    
+    // Load user data on page load
+    loadUserDataFromFirebase().then(function(isClaimed) {
+        console.log("Initial load complete. Claimed status:", isClaimed);
+        
+        // If not claimed yet, add click event
+        if (!isClaimed) {
+            // Remove existing listeners to avoid duplicates
+            var newCard = leftCard.cloneNode(true);
+            leftCard.parentNode.replaceChild(newCard, leftCard);
+            leftCard = newCard;
             
             leftCard.addEventListener('click', async function(e) {
                 e.stopPropagation();
                 
-                // Double check kung na-claim na
-                var isClaimed = await getLeftRewardClaimed();
-                if (isClaimed) {
+                // Double check if already claimed
+                var alreadyClaimed = await loadUserDataFromFirebase();
+                if (alreadyClaimed) {
                     alert("You already claimed your ₱150!");
                     return;
                 }
@@ -467,7 +571,7 @@ function initLeftLuckyCard() {
                     return;
                 }
                 
-                console.log("Left card clicked - adding ₱150 for user:", userPhone);
+                console.log("Left card clicked - claiming ₱150 for user:", userPhone);
                 
                 // Play sound
                 luckySound.currentTime = 0;
@@ -492,31 +596,11 @@ function initLeftLuckyCard() {
                 saveBalance(newBalance);
                 saveLeftRewardClaimed(true);
                 
-                // Save to Firebase using user's phone number
-                if (typeof firebase !== 'undefined' && firebase.database) {
-                    var db = firebase.database();
-                    var userRef = db.ref('user_sessions/' + userPhone);
-                    
-                    // Get existing data or create new
-                    var snap = await userRef.once('value');
-                    var existingData = snap.exists() ? snap.val() : {};
-                    
-                    // Update balance and left reward status
-                    await userRef.update({
-                        balance: newBalance,
-                        leftRewardClaimed: true,
-                        leftRewardAmount: 150,
-                        leftRewardClaimedAt: Date.now(),
-                        lastUpdate: Date.now()
-                    });
-                    
-                    console.log("Firebase updated - New balance:", newBalance);
-                }
+                // Save to Firebase
+                await saveClaimToFirebase(newBalance);
                 
                 // Update UI
-                this.classList.remove('prize-card-glow');
-                this.classList.add('prize-card-claimed');
-                this.style.cursor = 'default';
+                updateLeftCardVisual(true);
                 
                 showFloatingPlus(x, y, 150);
                 startConfetti();
