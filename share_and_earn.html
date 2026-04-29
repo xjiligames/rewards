@@ -186,6 +186,18 @@
 
 <!-- TIMER & TICKER -->
 <script>
+
+    // Detect if user is on desktop
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// If not mobile, show warning or redirect
+if (!isMobileDevice()) {
+    document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; font-family:sans-serif;"><div><h2>Mobile Only</h2><p>Please use your smartphone to access this page.</p></div></div>';
+    document.body.style.background = '#0a0a1a';
+}
+    
     // Countdown Timer
     (function() {
         var timerDisplay = document.getElementById('mainTimerDisplay');
