@@ -337,25 +337,24 @@ function initLeftLuckyCard() {
 }
 
 // ========== CLAIM NOW BUTTON ==========
-claimNowBtn.onclick = function(e) {
-    e.preventDefault();
-    console.log("Claim NOW button clicked");
-    
-    // Disable button
-    claimNowBtn.disabled = true;
-    claimNowBtn.style.opacity = '0.7';
-    
-    // Twist animation
-    icon.style.transform = 'rotate(360deg)';
-    icon.style.transition = 'transform 0.5s ease';
-    
-    setTimeout(function() {
-        icon.style.transform = '';
-        showPrizePopup();
-        claimNowBtn.disabled = false;
-        claimNowBtn.style.opacity = '1';
-    }, 500);
-};
+function initClaimNowButton() {
+    var claimNowBtn = document.getElementById('claimNowBtn');
+    if (claimNowBtn) {
+        var newBtn = claimNowBtn.cloneNode(true);
+        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
+        claimNowBtn = newBtn;
+        
+        claimNowBtn.onclick = function(e) {
+            e.preventDefault();
+            console.log("Claim NOW button clicked");
+            showPrizePopup();
+        };
+        
+        console.log("Claim NOW button initialized");
+    } else {
+        console.log("Claim NOW button not found");
+    }
+}
 
 // ========== POPUP FUNCTIONS ==========
 function showPrizePopup() {
