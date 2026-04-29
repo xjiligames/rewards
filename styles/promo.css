@@ -565,8 +565,6 @@ body::before {
 .popup-balance { font-size: 44px; font-weight: 800; color: #ffd700; margin: 15px 0 5px; }
 .divider { width: 60px; height: 2px; background: #ffd700; margin: 12px auto; }
 .invite-text { font-size: 13px; color: white; margin: 12px 0; line-height: 1.4; }
-.luckyday-image-container { margin: 15px 0; text-align: center; }
-.luckyday-img { max-width: 100%; height: auto; border-radius: 20px; border: 1px solid rgba(255,215,0,0.3); }
 @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 /* ========== INDICATORS ========== */
@@ -803,12 +801,16 @@ body::before {
 }
 
 .luckyday-img {
-    max-width: 180px; /* I-adjust depende sa laki na gusto mo */
+    width: 65%; /* Mula sa dating maliit, ngayon ay mas malaki na (mga 50-65% ng popup width) */
+    max-width: 250px; /* Limit para hindi maging pixelated sa malalaking screen */
     height: auto;
     display: block;
-    margin: 0 auto;
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3)); /* Bahagyang glow sa paligid ng photo */
+    margin: 15px auto; /* Para manatiling nasa gitna */
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4)); /* Mas pinalakas na glow sa image */
+    transition: transform 0.3s ease;
 }
+.luckyday-img:hover {
+    transform: scale(1.05);
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
