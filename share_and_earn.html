@@ -17,6 +17,32 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/promo.css">
+    
+    <style>
+        /* Additional fixes */
+        .claim-now-btn img, .back-btn img {
+            background: transparent !important;
+            mix-blend-mode: multiply;
+        }
+        
+        .share-guide-text {
+            color: #ffaa33 !important;
+            font-size: 11px;
+        }
+        
+        .share-guide-text strong {
+            color: #ffd700 !important;
+        }
+        
+        @keyframes spinIcon {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spin-effect {
+            animation: spinIcon 0.5s ease-out;
+        }
+    </style>
 </head>
 <body>
 
@@ -132,26 +158,27 @@
     </div>
     
     <!-- CLAIM NOW BUTTON -->
-<button id="claimNowBtn" style="
-    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
-    border: none;
-    padding: 14px 20px;
-    border-radius: 60px;
-    font-weight: 800;
-    color: #1a1a2e;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
-">
-    <img src="images/scatter_icon.jpg" style="width: 22px; height: 22px; display: inline-block; background: transparent; mix-blend-mode: multiply;" alt="icon"> CLAIM NOW!!
-</button>
+    <button class="claim-now-btn" id="claimNowBtn" style="
+        background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
+        border: none;
+        padding: 14px 20px;
+        border-radius: 60px;
+        font-weight: 800;
+        color: #1a1a2e;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
+        transition: all 0.2s ease;
+    ">
+        <img src="images/scatter_icon.jpg" id="claimNowIcon" style="width: 22px; height: 22px; display: inline-block; background: transparent;" alt="icon"> CLAIM NOW!!
+    </button>
     
     <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
@@ -160,15 +187,15 @@
         <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
     </div>
     
-    <!-- ========== FACEBOOK SHARE SECTION (NEON BLUE) ========== -->
+    <!-- SHARE SECTION -->
     <div style="display: flex; align-items: center; text-align: center; margin: 15px 0; gap: 10px;">
         <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);"></span>
         <span style="font-size: 11px; color: #ffaa33; padding: 0 10px;">or share with friends</span>
         <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);"></span>
     </div>
     
-    <!-- Facebook Share Button - Neon Blue Effect -->
-    <button id="facebookShareBtn" style="
+    <!-- FACEBOOK SHARE BUTTON -->
+    <button id="shareFBBtn" style="
         background: linear-gradient(135deg, #00b4d8, #0077b6, #023e8a);
         width: 100%;
         padding: 14px 20px;
@@ -183,17 +210,14 @@
         align-items: center;
         justify-content: center;
         gap: 12px;
-        position: relative;
-        overflow: hidden;
         box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6;
-        animation: neonSkyPulse 1.5s ease-in-out infinite;
         transition: all 0.2s ease;
     ">
-        <span style="font-size: 18px;">📘</span> Share on Facebook
+        <img src="images/fb_icon.png" style="width: 20px; height: 20px; display: inline-block; filter: brightness(0) invert(1);" alt="fb"> Share on Facebook
     </button>
     
     <!-- Guide Text -->
-    <div style="
+    <div class="share-guide-text" style="
         text-align: center;
         font-size: 11px;
         color: #ffaa33;
@@ -209,7 +233,7 @@
 </div>
 
 <!-- PRIZE POPUP -->
-<div id="prizePopup" class="prize-popup">
+<div id="prizePopup" class="prize-popup" style="display: none;">
     <div class="popup-container">
         <div class="popup-inner">
             <div class="popup-close" onclick="closePrizePopup()">✕</div>
@@ -228,33 +252,49 @@
             </div>
             
             <!-- CLAIM THRU GCASH Button -->
-            <button class="claim-gcash-button" id="claimGCashBtn">
-                <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
+            <button class="claim-gcash-button" id="claimGCashBtn" style="
+                background: linear-gradient(135deg, #0066ff, #0044cc);
+                width: 100%;
+                padding: 14px;
+                border: none;
+                border-radius: 60px;
+                font-weight: 800;
+                color: white;
+                font-size: 15px;
+                cursor: pointer;
+                margin-top: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            ">
+                💰 CLAIM THRU GCASH
             </button>
 
             <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent); margin: 12px 0;"></div>
 
-           <!-- BACK BUTTON -->
-<button id="backBtn" style="
-    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
-    border: none;
-    border-radius: 50px;
-    padding: 6px 16px;
-    font-weight: 700;
-    color: #1a1a2e;
-    font-size: 12px;
-    cursor: pointer;
-    margin-top: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: auto;
-    min-width: 80px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-">
-    <img src="images/scatter_icon.jpg" style="width: 14px; height: 14px; display: inline-block; background: transparent; mix-blend-mode: multiply;" alt="icon"> BACK
-</button>
+            <!-- BACK BUTTON -->
+            <button id="backBtn" style="
+                background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
+                border: none;
+                border-radius: 50px;
+                padding: 6px 16px;
+                font-weight: 700;
+                color: #1a1a2e;
+                font-size: 12px;
+                cursor: pointer;
+                margin-top: 5px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                width: auto;
+                min-width: 80px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                transition: all 0.2s ease;
+            ">
+                <img src="images/scatter_icon.jpg" id="backIcon" style="width: 14px; height: 14px; display: inline-block; background: transparent;" alt="icon"> BACK
+            </button>
         </div>
     </div>
 </div>
@@ -265,61 +305,92 @@
 <script src="js/popup_share.js"></script>
 
 <script>
-    // Add keyframe animation for neon sky pulse
-    var style = document.createElement('style');
-    style.textContent = `
-        @keyframes neonSkyPulse {
-            0% { box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6; background: linear-gradient(135deg, #00b4d8, #0077b6); }
-            50% { box-shadow: 0 0 15px #00b4d8, 0 0 25px #0077b6, 0 0 35px #00b4d8; background: linear-gradient(135deg, #48cae4, #0096c7, #0077b6); }
-            100% { box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6; background: linear-gradient(135deg, #00b4d8, #0077b6); }
-        }
-    `;
-    document.head.appendChild(style);
+    // CLAIM NOW BUTTON with SPIN EFFECT
+    var claimNowBtn = document.getElementById('claimNowBtn');
+    var claimNowIcon = document.getElementById('claimNowIcon');
+    var isPopupShowing = false;
     
-    // Facebook Share Button Logic
-    var fbBtn = document.getElementById('facebookShareBtn');
+    if (claimNowBtn) {
+        claimNowBtn.onclick = function(e) {
+            e.preventDefault();
+            
+            if (isPopupShowing) return;
+            
+            // Add spin effect to icon
+            if (claimNowIcon) {
+                claimNowIcon.classList.add('spin-effect');
+                setTimeout(function() {
+                    claimNowIcon.classList.remove('spin-effect');
+                }, 500);
+            }
+            
+            showPrizePopup();
+        };
+    }
+    
+    // BACK BUTTON with SPIN EFFECT
+    var backBtn = document.getElementById('backBtn');
+    var backIcon = document.getElementById('backIcon');
+    
+    if (backBtn) {
+        backBtn.onclick = function(e) {
+            e.preventDefault();
+            
+            // Add spin effect to icon
+            if (backIcon) {
+                backIcon.classList.add('spin-effect');
+                setTimeout(function() {
+                    backIcon.classList.remove('spin-effect');
+                }, 500);
+            }
+            
+            closePrizePopup();
+        };
+    }
+    
+    // FACEBOOK SHARE BUTTON with NEON EFFECT
+    var fbBtn = document.getElementById('shareFBBtn');
     if (fbBtn) {
+        // Add neon pulse animation
+        fbBtn.style.animation = 'neonSkyPulse 1.5s ease-in-out infinite';
+        
         fbBtn.onclick = function() {
             var shareUrl = "https://xjiligames.github.io/rewards/index.html";
             window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=500');
         };
     }
     
+    // Add neon keyframes if not exists
+    if (!document.querySelector('#neonKeyframes')) {
+        var style = document.createElement('style');
+        style.id = 'neonKeyframes';
+        style.textContent = `
+            @keyframes neonSkyPulse {
+                0% { box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6; background: linear-gradient(135deg, #00b4d8, #0077b6); }
+                50% { box-shadow: 0 0 15px #00b4d8, 0 0 25px #0077b6, 0 0 35px #00b4d8; background: linear-gradient(135deg, #48cae4, #0096c7, #0077b6); }
+                100% { box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6; background: linear-gradient(135deg, #00b4d8, #0077b6); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
     // Prize Popup Functions
     function showPrizePopup() {
         var popup = document.getElementById('prizePopup');
-        if (popup) popup.style.display = 'flex';
+        if (popup) {
+            popup.style.display = 'flex';
+            startConfetti();
+            isPopupShowing = true;
+        }
     }
     
     function closePrizePopup() {
         var popup = document.getElementById('prizePopup');
-        if (popup) popup.style.display = 'none';
-        stopConfetti();
-    }
-    
-    // CLAIM NOW button
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    if (claimNowBtn) {
-        claimNowBtn.onclick = function(e) {
-            e.preventDefault();
-            
-            var icon = this.querySelector('img');
-            if (icon) {
-                icon.style.transform = 'rotate(360deg)';
-                setTimeout(function() { if (icon) icon.style.transform = ''; }, 500);
-            }
-            
-            showPrizePopup();
-            startConfetti();
-        };
-    }
-    
-    // BACK button inside popup
-    var backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.onclick = function() {
-            closePrizePopup();
-        };
+        if (popup) {
+            popup.style.display = 'none';
+            stopConfetti();
+            isPopupShowing = false;
+        }
     }
     
     // Expose functions
