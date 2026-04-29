@@ -375,7 +375,6 @@ body::before {
 .time-label { font-size: 10px; color: #ffaa33; text-transform: uppercase; letter-spacing: 1px; }
 .time-display { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 800; color: #ffd700; text-align: center; letter-spacing: 1px; }
 
-/* ========== CLAIM NOW BUTTON ========== */
 .claim-now-btn {
     width: 100%;
     background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
@@ -397,13 +396,36 @@ body::before {
     position: relative;
     overflow: hidden;
 }
-.claim-now-btn:active { transform: scale(0.97); }
-.claim-now-btn:active .claim-icon { animation: twistClick 0.3s ease-out; }
-@keyframes twistClick { 100% { transform: rotate(360deg); } }
 
-.claim-icon, .claim-now-btn img { width: 24px; height: 24px; display: inline-block; vertical-align: middle; transition: transform 0.3s ease; }
-.claim-now-btn:hover img { transform: rotate(360deg) scale(1.1); }
+.claim-now-btn:active {
+    transform: scale(0.97);
+}
 
+/* Icon twist on click */
+.claim-now-btn:active .claim-icon {
+    animation: twistClick 0.3s ease-out;
+}
+
+@keyframes twistClick {
+    100% { transform: rotate(360deg); }
+}
+
+/* Icon style */
+.claim-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    transition: transform 0.3s ease;
+    background: transparent;
+}
+
+/* Icon twist on hover */
+.claim-now-btn:hover .claim-icon {
+    transform: rotate(360deg) scale(1.1);
+}
+
+/* Ripple effect */
 .claim-now-btn::after {
     content: '';
     position: absolute;
@@ -416,7 +438,27 @@ body::before {
     transform: translate(-50%, -50%);
     transition: width 0.4s, height 0.4s;
 }
-.claim-now-btn:active::after { width: 200px; height: 200px; }
+
+.claim-now-btn:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* Neon pulse animation */
+@keyframes neonGoldPulse {
+    0% {
+        box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
+        background: linear-gradient(135deg, #ffd700, #ffaa33);
+    }
+    50% {
+        box-shadow: 0 0 15px #ffd700, 0 0 25px #ffaa33, 0 0 35px #ff8c00;
+        background: linear-gradient(135deg, #ffed4e, #ffcc44, #ffaa33);
+    }
+    100% {
+        box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
+        background: linear-gradient(135deg, #ffd700, #ffaa33);
+    }
+}
 
 @keyframes neonGoldPulse {
     0% { box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33; background: linear-gradient(135deg, #ffd700, #ffaa33); }
