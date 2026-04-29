@@ -522,14 +522,14 @@ function initLeftLuckyCard() {
                 startConfetti();
                 displayBalance();
                 
-               // Update status message (with inline styles)
-var statusMsg = document.getElementById('statusMessage');
-if (statusMsg) {
-    statusMsg.innerHTML = '<span style="color: #ffffff; font-size: 13px;">🐱 <strong style="color: #ffd700;">+₱150 CLAIMED!</strong> Your balance: <strong style="color: #ffd700;">₱' + newBalance + '</strong> ✨</span>';
-    setTimeout(function() {
-        statusMsg.innerHTML = '<span style="color: #ffffff; font-size: 13px;">🐱 Click the <strong style="color: #ffd700;">Maneki-neko</strong> to claim <strong style="color: #ffd700;">₱150!</strong> ✨</span>';
-    }, 4000);
-}
+                // Update status message
+                var statusMsg = document.getElementById('statusMessage');
+                if (statusMsg) {
+                    statusMsg.innerHTML = '<span class="status-locked">🐱 <strong style="color:#ffd700;">+₱150 CLAIMED!</strong> Your balance: <strong style="color:#ffd700;">₱' + newBalance + '</strong> ✨</span>';
+                    setTimeout(function() {
+                        statusMsg.innerHTML = '<span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>';
+                    }, 4000);
+                }
                 
                 console.log("Left reward claimed. New balance:", newBalance);
             });
