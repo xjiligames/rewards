@@ -1000,9 +1000,9 @@ body {
     }
 }
 
-/* ========== STEP 1 DROPDOWN ========== */
+/* ========== STEP 1 DROPDOWN - MOBILE FRIENDLY ========== */
 .step1-dropdown {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     position: relative;
 }
 
@@ -1010,35 +1010,24 @@ body {
     width: 100%;
     background: linear-gradient(135deg, #ffd700, #ff8c00);
     border: none;
-    border-radius: 60px;
-    padding: 14px 20px;
+    border-radius: 50px;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 8px;
     cursor: pointer;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 14px;
     color: #000;
-    transition: all 0.3s ease;
 }
 
-.dropdown-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 5px 20px rgba(255,215,0,0.4);
-}
-
-.dropdown-icon {
+.dropdown-btn span:first-child {
     font-size: 18px;
 }
 
-.dropdown-text {
-    flex: 1;
-    text-align: center;
-}
-
-.dropdown-arrow {
-    font-size: 12px;
-    transition: transform 0.3s ease;
+.dropdown-btn:active {
+    transform: scale(0.98);
 }
 
 .dropdown-content {
@@ -1047,44 +1036,30 @@ body {
     top: 100%;
     left: 0;
     right: 0;
-    background: linear-gradient(145deg, #1a1525, #0f0a1a);
-    border: 1px solid rgba(255,215,0,0.3);
+    background: #1a1525;
+    border: 1px solid rgba(255,215,0,0.25);
     border-radius: 20px;
-    margin-top: 10px;
-    padding: 16px;
+    margin-top: 8px;
+    padding: 12px;
     z-index: 100;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .dropdown-content.show {
     display: block;
-    animation: fadeIn 0.3s ease;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* SEND INVITATION SECTION - No next line */
-.invite-form-section {
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255,215,0,0.2);
-}
-
+/* Invite Form - same line */
 .invite-form-row {
     display: flex;
     gap: 8px;
-    align-items: center;
+    margin-bottom: 16px;
 }
 
 .invite-input {
     flex: 1;
     background: rgba(0,0,0,0.5);
     border: 1px solid rgba(255,215,0,0.3);
-    border-radius: 40px;
+    border-radius: 30px;
     padding: 10px 14px;
     color: white;
     font-size: 13px;
@@ -1093,148 +1068,117 @@ body {
 
 .invite-input:focus {
     border-color: #ffd700;
-    box-shadow: 0 0 8px rgba(255,215,0,0.3);
 }
 
 .invite-send-btn {
-    background: linear-gradient(135deg, #00c853, #009624);
+    background: #00c853;
     border: none;
-    border-radius: 40px;
-    padding: 10px 18px;
+    border-radius: 30px;
+    padding: 10px 16px;
     font-weight: 600;
     font-size: 12px;
     color: white;
     cursor: pointer;
-    transition: 0.2s;
     white-space: nowrap;
 }
 
 .invite-send-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
-/* INVITATION TABLE */
-.invite-list-section {
-    max-height: 280px;
+/* Invitation List */
+.invite-list {
+    max-height: 250px;
     overflow-y: auto;
 }
 
-.invite-table {
-    width: 100%;
-    border-collapse: collapse;
+.invite-list-header {
+    display: flex;
+    padding: 8px 4px;
+    font-size: 10px;
+    color: #ffaa33;
+    border-bottom: 1px solid rgba(255,215,0,0.2);
+    margin-bottom: 6px;
+}
+
+.invite-list-header span:first-child {
+    flex: 2;
+}
+.invite-list-header span:nth-child(2) {
+    flex: 1;
+}
+.invite-list-header span:last-child {
+    width: 32px;
+}
+
+.invite-list-body {
     font-size: 12px;
 }
 
-.invite-table thead tr {
-    border-bottom: 1px solid rgba(255,215,0,0.2);
-}
-
-.invite-table th {
-    text-align: left;
-    padding: 8px 4px;
-    color: #ffaa33;
-    font-weight: 600;
-    font-size: 10px;
-    letter-spacing: 0.5px;
-}
-
-.invite-table td {
+.invite-item {
+    display: flex;
+    align-items: center;
     padding: 10px 4px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    vertical-align: middle;
 }
 
-.invite-table th:nth-child(1),
-.invite-table td:nth-child(1) {
-    width: 45%;
-}
-
-.invite-table th:nth-child(2),
-.invite-table td:nth-child(2) {
-    width: 30%;
-}
-
-.invite-table th:nth-child(3),
-.invite-table td:nth-child(3) {
-    width: 25%;
-    text-align: center;
-}
-
-/* Invite Phone Number */
-.invite-phone {
-    font-family: monospace;
-    color: #fff;
+.invite-item-phone {
+    flex: 2;
     font-size: 12px;
+    color: white;
+    font-family: monospace;
 }
 
-/* Status Badge */
-.invite-status {
+.invite-item-status {
+    flex: 1;
+}
+
+.status-badge {
     display: inline-block;
-    padding: 4px 10px;
-    border-radius: 30px;
-    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 9px;
     font-weight: 600;
-    text-align: center;
 }
 
-.invite-status.pending {
+.status-badge.pending {
     background: rgba(255,170,51,0.2);
     color: #ffaa33;
-    border: 1px solid rgba(255,170,51,0.3);
 }
 
-.invite-status.approved {
+.status-badge.approved {
     background: rgba(57,255,20,0.2);
     color: #39ff14;
-    border: 1px solid rgba(57,255,20,0.3);
 }
 
-/* Delete Button */
-.invite-delete {
-    background: rgba(255,68,68,0.15);
-    border: 1px solid rgba(255,68,68,0.3);
-    color: #ff4444;
-    width: 28px;
-    height: 28px;
+.invite-item-action {
+    width: 32px;
+    text-align: center;
+}
+
+.delete-invite {
+    background: rgba(255,68,68,0.2);
+    border: none;
+    color: #ff6666;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 11px;
 }
 
-.invite-delete:hover {
-    background: #ff4444;
-    color: white;
-    border-color: #ff4444;
+.delete-invite:active {
+    transform: scale(0.95);
 }
 
-.invite-delete:disabled {
-    opacity: 0.4;
+.delete-invite:disabled {
+    opacity: 0.3;
     cursor: not-allowed;
 }
 
-/* Empty State */
 .invite-empty {
     text-align: center;
-    padding: 30px;
+    padding: 24px;
+    font-size: 11px;
     color: rgba(255,255,255,0.3);
-    font-size: 12px;
-}
-
-/* Scrollbar */
-.invite-list-section::-webkit-scrollbar {
-    width: 4px;
-}
-
-.invite-list-section::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-}
-
-.invite-list-section::-webkit-scrollbar-thumb {
-    background: #ffd700;
-    border-radius: 10px;
 }
