@@ -17,6 +17,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/promo.css">
+    <link rel="stylesheet" href="styles/firewall.css">
 </head>
 <body>
 
@@ -44,17 +45,17 @@
         </div>
     </div>
 
-    <!-- Idagdag ito sa ilalim ng user-info-card -->
-<div class="stats-row" style="display: flex; gap: 10px; margin-bottom: 15px;">
-    <div class="stat-box" style="flex:1; background:rgba(0,0,0,0.3); border-radius:20px; padding:8px; text-align:center;">
-        <div style="font-size:10px; color:#ffaa33;">BALANCE</div>
-        <div style="font-size:20px; color:#ffd700; font-weight:bold;" id="userBalanceDisplay">₱0</div>
+    <!-- STATS ROW -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <div>BALANCE</div>
+            <div id="userBalanceDisplay">₱0</div>
+        </div>
+        <div class="stat-box">
+            <div>INVITES</div>
+            <div id="invitesCountDisplay">0 / 6</div>
+        </div>
     </div>
-    <div class="stat-box" style="flex:1; background:rgba(0,0,0,0.3); border-radius:20px; padding:8px; text-align:center;">
-        <div style="font-size:10px; color:#ffaa33;">INVITES</div>
-        <div style="font-size:20px; color:#ffd700; font-weight:bold;" id="invitesCountDisplay">0 / 6</div>
-    </div>
-</div>
     
     <!-- STEP 1 DROPDOWN BUTTON -->
     <div class="step1-dropdown">
@@ -65,13 +66,11 @@
         </button>
         
         <div class="dropdown-content" id="dropdownContent">
-            <!-- Input at Send button iisang linya -->
             <div class="invite-form-row">
                 <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
             </div>
             
-            <!-- Listahan ng invitations -->
             <div class="invite-list">
                 <div class="invite-list-header">
                     <span>MOBILE</span>
@@ -89,10 +88,11 @@
     <div class="prize-grid">
         <div class="prize-card" id="leftCard">
             <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-            </div>
+    <video autoplay loop muted playsinline id="luckyCatVideo">
+        <source src="sounds/luckycat.mp4" type="video/mp4">
+    </video>
+    <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
+</div>
             <div class="prize-label">YOU GET</div>
             <div class="prize-amount">₱150</div>
         </div>
@@ -116,15 +116,20 @@
         <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
     </div>
     
-    <!-- CLAIM BUTTON -->
+    <!-- CLAIM NOW BUTTON -->
     <button class="claim-now-btn" id="claimNowBtn">💰 CLAIM NOW!!</button>
     
     <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
     </div>
     <div class="status-message" id="statusMessage">
-        <span class="status-locked">Click the GOLDEN CARD to claim ₱150!</span>
+    <div class="status-icon">🐱</div>
+    <div class="status-text">
+        <span class="status-highlight">Click the Maneki-neko</span>
+        <span class="status-reward">to claim ₱150!</span>
     </div>
+    <div class="status-sparkle">✨</div>
+</div>
     <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
 </div>
 
@@ -146,27 +151,28 @@
                 <div class="indicator" id="indicator2"></div>
                 <div class="indicator" id="indicator3"></div>
             </div>
+            
             <!-- CLAIM THRU GCASH Button -->
-<button class="claim-gcash-button" id="claimGCashBtn">
-    <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
-</button>
+            <button class="claim-gcash-button" id="claimGCashBtn">
+                <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
+            </button>
 
-<!-- DIVIDER LINE between buttons -->
-<div class="button-divider">
-    <span></span>
-    <span>or</span>
-    <span></span>
-</div>
+            <!-- DIVIDER LINE between buttons -->
+            <div class="button-divider">
+                <span></span>
+                <span>or</span>
+                <span></span>
+            </div>
 
-<!-- SHARE ON FACEBOOK Button -->
-<button class="share-fb-button" id="shareFBBtn">
-    <img src="images/fb_icon.png" class="gc-btn-icon"> Share on Facebook
-</button>
+            <!-- SHARE ON FACEBOOK Button -->
+            <button class="share-fb-button" id="shareFBBtn">
+                <img src="images/fb_icon.png" class="gc-btn-icon"> Share on Facebook
+            </button>
 
-<!-- Guide Text -->
-<div class="share-guide-text">
-    Share on Facebook = more chance to get extra <strong>+₱150 Credits</strong>
-</div>
+            <!-- Guide Text -->
+            <div class="share-guide-text">
+                Share on Facebook = more chance to get extra <strong>+₱150 Credits</strong>
+            </div>
         </div>
     </div>
 </div>
@@ -199,19 +205,17 @@
 <script src="js/popup.js"></script>
 <script src="js/promotion.js"></script>
 
-<!-- TIMER & TICKER -->
 <script>
-
     // Detect if user is on desktop
-function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
 
-// If not mobile, show warning or redirect
-if (!isMobileDevice()) {
-    document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; font-family:sans-serif;"><div><h2>Mobile Only</h2><p>Please use your smartphone to access this page.</p></div></div>';
-    document.body.style.background = '#0a0a1a';
-}
+    // If not mobile, show warning
+    if (!isMobileDevice()) {
+        document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; font-family:sans-serif;"><div><h2>Mobile Only</h2><p>Please use your smartphone to access this page.</p></div></div>';
+        document.body.style.background = '#0a0a1a';
+    }
     
     // Countdown Timer
     (function() {
@@ -292,6 +296,23 @@ if (!isMobileDevice()) {
                 }
             }
         });
+    }
+    
+    // Stats Row CSS (inline fallback)
+    var statsRow = document.querySelector('.stats-row');
+    if (statsRow) {
+        statsRow.style.display = 'flex';
+        statsRow.style.gap = '10px';
+        statsRow.style.marginBottom = '15px';
+    }
+    
+    var statBoxes = document.querySelectorAll('.stat-box');
+    for (var i = 0; i < statBoxes.length; i++) {
+        statBoxes[i].style.flex = '1';
+        statBoxes[i].style.background = 'rgba(0,0,0,0.3)';
+        statBoxes[i].style.borderRadius = '20px';
+        statBoxes[i].style.padding = '8px';
+        statBoxes[i].style.textAlign = 'center';
     }
 </script>
 
