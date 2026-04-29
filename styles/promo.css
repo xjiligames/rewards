@@ -756,6 +756,60 @@ body::before {
     animation: twistFast 0.3s infinite linear !important;
 }
 
+/* 1. Neon Light Blue Button Style */
+.claim-gcash-button {
+    background: #00d4ff; /* Light Blue Base */
+    color: #ffffff;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    position: relative;
+    /* Glow Animation */
+    animation: neonPulse 1.5s infinite ease-in-out;
+    transition: all 0.3s ease;
+}
+
+/* 2. Glow Up Effect Animation */
+@keyframes neonPulse {
+    0% {
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.2);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(0, 212, 255, 0.9), 0 0 45px rgba(0, 212, 255, 0.5);
+        transform: scale(1.02); /* Bahagyang lalaki ang button */
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.2);
+        transform: scale(1);
+    }
+}
+
+/* 3. Image container sa loob ng popup */
+.popup-image-container {
+    text-align: center;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.luckyday-img {
+    max-width: 180px; /* I-adjust depende sa laki na gusto mo */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3)); /* Bahagyang glow sa paligid ng photo */
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .share-container { padding: 20px 15px 30px; }
