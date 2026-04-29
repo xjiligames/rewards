@@ -600,9 +600,19 @@ function initFacebookShare() {
         fbBtn.onclick = function() {
             var userPhone = localStorage.getItem("userPhone");
             var formattedPhone = userPhone ? userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11) : 'User';
-            var caption = "🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: " + formattedPhone + "\n\n#LuckyDrop #Rewards #GCash";
             var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption), '_blank', 'width=600,height=500');
+            
+            // IYONG CAPTION
+            var caption = "🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: " + formattedPhone + "\n\n#LuckyDrop #Rewards";
+            
+            // Facebook share URL
+            var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption);
+            
+            // Open share dialog
+            window.open(fbShareUrl, '_blank', 'width=600,height=500');
+            
+            // Optional: I-copy sa clipboard kung hindi gumana ang prefill
+            navigator.clipboard.writeText(caption + "\n\n" + shareUrl).catch(function() {});
         };
     }
 }
