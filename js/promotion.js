@@ -479,7 +479,7 @@ function initClaimNowButton() {
     
     // Create icon
     var icon = document.createElement('img');
-    icon.src = 'images/scatter_icon.jpeg';
+    icon.src = 'images/scatter_icon.jpg';
     icon.style.width = '20px';
     icon.style.height = '20px';
     icon.style.verticalAlign = 'middle';
