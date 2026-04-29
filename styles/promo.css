@@ -663,6 +663,18 @@ body::before {
     filter: brightness(0) invert(1);
 }
 
+.claim-now-btn {
+        margin-top: 30px; /* Ito ang magbibigay ng espasyo sa taas ng button */
+        /* ... panatilihin ang ibang existing styles mo ... */
+    }
+
+.time-left-section {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05); /* Optional: nilagyan ng background para mas hiwalay tingnan */
+        border-radius: 15px;
+    }
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .share-container { padding: 20px 15px 30px; }
