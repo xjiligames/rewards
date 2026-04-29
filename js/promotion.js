@@ -337,70 +337,36 @@ function initLeftLuckyCard() {
 }
 
 // ========== CLAIM NOW BUTTON ==========
-function initClaimNowButton() {
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    if (claimNowBtn) {
-        var newBtn = claimNowBtn.cloneNode(true);
-        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
-        claimNowBtn = newBtn;
-
-        var icon = document.createElement('img');
-        icon.src = 'images/scatter_icon.jpg';
-        icon.className = 'claim-icon';
-        icon.style.width = '24px';
-        icon.style.height = '24px';
-        icon.style.marginRight = '8px';
-        
-        // Disable button during animation
-            claimNowBtn.disabled = true;
-            claimNowBtn.style.opacity = '0.7';
-            claimNowBtn.style.cursor = 'wait';
-            
-            // Twist animation - mahina to mabilis
-            icon.style.transform = 'rotate(0deg)';
-            
-            setTimeout(function() {
-                icon.style.transform = 'rotate(90deg)';
-            }, 100);
-            
-            setTimeout(function() {
-                icon.style.transform = 'rotate(180deg)';
-            }, 250);
-            
-            setTimeout(function() {
-                icon.style.transform = 'rotate(270deg)';
-            }, 450);
-            
-            setTimeout(function() {
-                icon.style.transform = 'rotate(360deg)';
-            }, 700);
-            
-            setTimeout(function() {
-                icon.style.transform = 'rotate(450deg)';
-            }, 1000);
-            
-            setTimeout(function() {
-                icon.style.transform = 'rotate(540deg)';
-            }, 1300);
-            
-            // Show popup after 1.5 seconds
-            setTimeout(function() {
-                claimNowBtn.disabled = false;
-                claimNowBtn.style.opacity = '1';
-                claimNowBtn.style.cursor = 'pointer';
-                icon.style.transform = '';
-                showPrizePopup();
-            }, 1500);
-        };
-    }
-}
+claimNowBtn.onclick = function(e) {
+    e.preventDefault();
+    console.log("Claim NOW button clicked");
+    
+    // Disable button
+    claimNowBtn.disabled = true;
+    claimNowBtn.style.opacity = '0.7';
+    
+    // Twist animation
+    icon.style.transform = 'rotate(360deg)';
+    icon.style.transition = 'transform 0.5s ease';
+    
+    setTimeout(function() {
+        icon.style.transform = '';
+        showPrizePopup();
+        claimNowBtn.disabled = false;
+        claimNowBtn.style.opacity = '1';
+    }, 500);
+};
 
 // ========== POPUP FUNCTIONS ==========
 function showPrizePopup() {
+    console.log("showPrizePopup called");
     var popup = document.getElementById('prizePopup');
+    console.log("Popup element:", popup);
     if (popup) {
         popup.style.display = 'flex';
         startConfetti();
+    } else {
+        console.log("Popup element not found!");
     }
 }
 
