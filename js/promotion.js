@@ -1,237 +1,894 @@
-// ========== PROMOTION.JS - UPDATED WITH DROPDOWN ==========
+/* ========== PROMO PAGE STYLES - Lucky Drop ========== */
 
-// Global Variables
-var leftRewardClaimed = false;
-var rightRewardAmount = 0;
-var rightRewardClaimed = 0;
-var remainingInvites = 6;
-var acceptedInvitesCount = 0;
-var invitationsList = [];
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
-// ========== LOAD INVITATIONS FROM FIREBASE ==========
-async function loadInvitations() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return;
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        var invitesRef = db.ref('invitations/' + phone);
-        var snapshot = await invitesRef.once('value');
-        
-        invitationsList = [];
-        if (snapshot.exists()) {
-            var data = snapshot.val();
-            for (var friendPhone in data) {
-                invitationsList.push({
-                    phone: friendPhone,
-                    status: data[friendPhone].status,
-                    timestamp: data[friendPhone].timestamp,
-                    acceptedAt: data[friendPhone].acceptedAt || null
-                });
-            }
-        }
-        renderInvitationsList();
+body {
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2a 50%, #0a0a1a 100%);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* ========== WINNER TICKER ========== */
+.live-winners-ticker {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 50px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    font-size: 13px;
+    font-weight: 500;
+    color: white;
+    white-space: nowrap;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #39ff14;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+.gc-winner-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+/* ========== MAIN CONTAINER ========== */
+.share-container {
+    max-width: 450px;
+    width: 100%;
+    background: linear-gradient(145deg, #1a1525, #0f0a1a);
+    border-radius: 48px;
+    padding: 25px 20px 35px;
+    border: 1px solid rgba(255,215,0,0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    margin-top: 50px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 26px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffd700, #ffaa33, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+}
+
+/* ========== USER INFO CARD ========== */
+.user-info-card {
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05));
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 60px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(5px);
+}
+
+.user-info-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255,215,0,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.user-info-text {
+    flex: 1;
+    margin-left: 12px;
+}
+
+.user-info-label {
+    font-size: 10px;
+    color: #ffaa33;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+}
+
+.user-info-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffd700;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 0.5px;
+    display: block;
+}
+
+.user-info-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(57, 255, 20, 0.15);
+    padding: 5px 12px;
+    border-radius: 30px;
+}
+
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    background: #39ff14;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+.badge-text {
+    font-size: 10px;
+    color: #39ff14;
+    font-weight: 600;
+}
+
+/* ========== STEP 1 DROPDOWN ========== */
+.step1-dropdown {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.dropdown-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border: none;
+    border-radius: 60px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 14px;
+    color: #000;
+    transition: all 0.3s ease;
+}
+
+.dropdown-btn:active {
+    transform: scale(0.98);
+}
+
+.dropdown-icon {
+    font-size: 18px;
+}
+
+.dropdown-text {
+    flex: 1;
+    text-align: center;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: linear-gradient(145deg, #1a1525, #0f0a1a);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 20px;
+    margin-top: 10px;
+    padding: 16px;
+    z-index: 100;
+}
+
+.dropdown-content.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Invite Form */
+.invite-form-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.invite-input {
+    flex: 1;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 30px;
+    padding: 10px 14px;
+    color: white;
+    font-size: 13px;
+    outline: none;
+}
+
+.invite-input:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(255,215,0,0.3);
+}
+
+.invite-send-btn {
+    background: linear-gradient(135deg, #00c853, #009624);
+    border: none;
+    border-radius: 30px;
+    padding: 10px 18px;
+    font-weight: 600;
+    font-size: 12px;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.invite-send-btn:active {
+    transform: scale(0.98);
+}
+
+/* Invitation List */
+.invite-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.invite-list-header {
+    display: flex;
+    padding: 8px 4px;
+    font-size: 10px;
+    color: #ffaa33;
+    border-bottom: 1px solid rgba(255,215,0,0.2);
+    margin-bottom: 6px;
+}
+
+.invite-list-header span:first-child {
+    flex: 2;
+}
+.invite-list-header span:nth-child(2) {
+    flex: 1;
+}
+.invite-list-header span:last-child {
+    width: 32px;
+}
+
+.invite-list-body {
+    font-size: 12px;
+}
+
+.invite-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.invite-item-phone {
+    flex: 2;
+    font-size: 12px;
+    color: white;
+    font-family: monospace;
+}
+
+.invite-item-status {
+    flex: 1;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.status-badge.pending {
+    background: rgba(255,170,51,0.2);
+    color: #ffaa33;
+}
+
+.status-badge.approved {
+    background: rgba(57,255,20,0.2);
+    color: #39ff14;
+}
+
+.invite-item-action {
+    width: 32px;
+    text-align: center;
+}
+
+.delete-invite {
+    background: rgba(255,68,68,0.2);
+    border: none;
+    color: #ff6666;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.delete-invite:active {
+    transform: scale(0.95);
+}
+
+.delete-invite:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.invite-empty {
+    text-align: center;
+    padding: 24px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+}
+
+/* Scrollbar */
+.invite-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.invite-list::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.invite-list::-webkit-scrollbar-thumb {
+    background: #ffd700;
+    border-radius: 10px;
+}
+
+/* ========== PRIZE GRID ========== */
+.prize-grid {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.prize-card {
+    flex: 1;
+    background: linear-gradient(145deg, #2a2035, #1a1525);
+    border-radius: 32px;
+    padding: 15px 10px;
+    text-align: center;
+    border: 1px solid rgba(255,215,0,0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+/* Card States */
+.prize-card-glow {
+    border: 1px solid rgba(255,215,0,0.3);
+    box-shadow: 0 0 10px rgba(255,215,0,0.2);
+}
+
+.prize-card-pulse {
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 0 25px rgba(255,215,0,0.5) !important;
+    animation: pulseGold 1.5s infinite !important;
+}
+
+.prize-card-claimed {
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 35px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.4) !important;
+    background: radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05)) !important;
+    cursor: default !important;
+}
+
+.prize-card:hover:not(.prize-card-claimed) {
+    transform: scale(1.02);
+    border: 2px solid #ffd700 !important;
+    box-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 15px rgba(255,215,0,0.3) !important;
+}
+
+@keyframes pulseGold {
+    0% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+    50% { box-shadow: 0 0 35px rgba(255,215,0,0.8), 0 0 15px rgba(255,215,0,0.5); }
+    100% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+}
+
+.lucky-cat-video {
+    width: 85px;
+    height: 85px;
+    margin: 0 auto 8px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #2a1a3a;
+}
+
+.lucky-cat-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.prize-label {
+    font-size: 11px;
+    color: #ffd966;
+    margin: 8px 0 5px;
+}
+
+.prize-amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 24px;
+    font-weight: 900;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* ========== WINNERS BANNER ========== */
+.winners-banner {
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.1), transparent);
+    border-radius: 30px;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+/* ========== TIME LEFT SECTION ========== */
+.time-left-section {
+    background: rgba(0,0,0,0.4);
+    border-radius: 40px;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.time-label {
+    font-size: 10px;
+    color: #ffaa33;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.time-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 800;
+    color: #ffd700;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* ========== CLAIM NOW BUTTON ========== */
+.claim-now-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #0066ff, #0044cc);
+    border: none;
+    padding: 16px 20px;
+    border-radius: 60px;
+    font-weight: 800;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+    text-align: center;
+    display: block;
+    box-shadow: 0 4px 15px rgba(0,102,255,0.3);
+}
+
+.claim-now-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0,102,255,0.2);
+}
+
+/* ========== PROGRESS BAR ========== */
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    margin: 15px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    transition: width 0.3s;
+}
+
+/* ========== STATUS MESSAGE ========== */
+.status-message {
+    text-align: center;
+    padding: 8px;
+    font-size: 11px;
+    border-radius: 25px;
+    background: rgba(0,0,0,0.3);
+}
+
+.status-locked {
+    color: #ff8888;
+}
+
+.share-social-text {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 11px;
+    color: #ffaa33;
+}
+
+/* ========== PRIZE POPUP ========== */
+.prize-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(12px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-container {
+    background: linear-gradient(145deg, #2a2035, #1a1525);
+    border-radius: 48px;
+    max-width: 360px;
+    width: 88%;
+    position: relative;
+    animation: popIn 0.4s ease;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+
+.popup-inner {
+    position: relative;
+    z-index: 1;
+    padding: 30px 25px;
+    text-align: center;
+}
+
+.popup-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 22px;
+    cursor: pointer;
+    color: white;
+    background: rgba(0,0,0,0.5);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.popup-close:active {
+    transform: scale(0.95);
+    background: #ff4444;
+}
+
+.popup-title {
+    color: #ffd700;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.popup-balance {
+    font-size: 44px;
+    font-weight: 800;
+    color: #ffd700;
+    margin: 15px 0 5px;
+}
+
+.divider {
+    width: 60px;
+    height: 2px;
+    background: #ffd700;
+    margin: 12px auto;
+}
+
+.invite-text {
+    font-size: 13px;
+    color: white;
+    margin: 12px 0;
+    line-height: 1.4;
+}
+
+.luckyday-image-container {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.luckyday-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ========== INDICATORS ========== */
+.indicator-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.indicator {
+    width: 55px;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.indicator-yellow-red {
+    background: linear-gradient(90deg, #ff4444, #ffd700) !important;
+    box-shadow: 0 0 10px #ff4444 !important;
+    animation: pulseFade 1s infinite !important;
+}
+
+.indicator-hold {
+    background: #ffd700 !important;
+    box-shadow: 0 0 15px #ffd700 !important;
+    animation: pulseHold 1.5s infinite !important;
+}
+
+@keyframes pulseFade {
+    0% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+@keyframes pulseHold {
+    0%, 100% { opacity: 0.7; transform: scaleX(1); }
+    50% { opacity: 1; transform: scaleX(1.05); }
+}
+
+/* ========== BUTTONS ========== */
+.claim-gcash-button {
+    background: linear-gradient(135deg, #0066ff, #0044cc);
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 60px;
+    font-weight: 800;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 12px;
+}
+
+.claim-gcash-button:active {
+    transform: scale(0.98);
+}
+
+.share-fb-button {
+    background: linear-gradient(135deg, #1877f2, #0d5fd9);
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 60px;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.share-fb-button:active {
+    transform: scale(0.98);
+}
+
+/* ========== FLOATING ANIMATION ========== */
+.floating-plus {
+    pointer-events: none;
+    z-index: 10001;
+    white-space: nowrap;
+}
+
+@keyframes floatUp {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateY(-50px) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-100px) scale(1.5);
     }
 }
 
-// ========== RENDER INVITATIONS LIST ==========
-function renderInvitationsList() {
-    var listBody = document.getElementById('inviteListBody');
-    if (!listBody) return;
-    
-    if (invitationsList.length === 0) {
-        listBody.innerHTML = '<div class="invite-empty">No invitations sent</div>';
-        return;
-    }
-    
-    var html = '';
-    for (var i = 0; i < invitationsList.length; i++) {
-        var inv = invitationsList[i];
-        var formattedPhone = inv.phone.substring(0, 4) + '****' + inv.phone.substring(8, 11);
-        var statusClass = inv.status === 'approved' ? 'approved' : 'pending';
-        var statusText = inv.status === 'approved' ? 'APPROVED' : 'PENDING';
-        var disabled = inv.status === 'approved' ? 'disabled' : '';
-        
-        html += '<div class="invite-item">';
-        html += '<div class="invite-item-phone">' + formattedPhone + '</div>';
-        html += '<div class="invite-item-status"><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>';
-        html += '<div class="invite-item-action">';
-        html += '<button class="delete-invite" onclick="deleteInvitation(\'' + inv.phone + '\')" ' + disabled + '>✕</button>';
-        html += '</div>';
-        html += '</div>';
-    }
-    listBody.innerHTML = html;
+/* ========== CONFETTI CANVAS ========== */
+#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
 }
 
-// ========== DELETE INVITATION (PENDING ONLY) ==========
-window.deleteInvitation = async function(friendPhone) {
-    var userPhone = localStorage.getItem("userPhone");
-    if (!userPhone) return;
-    
-    var invite = invitationsList.find(function(i) { return i.phone === friendPhone; });
-    if (invite && invite.status === 'approved') {
-        alert("Cannot delete approved invitation. User already claimed reward.");
-        return;
+/* ========== RESPONSIVE ========== */
+@media (max-width: 480px) {
+    .share-container {
+        padding: 20px 15px 30px;
     }
     
-    if (confirm("Delete invitation to " + friendPhone + "?")) {
-        if (typeof firebase !== 'undefined' && firebase.database) {
-            var db = firebase.database();
-            await db.ref('invitations/' + userPhone + '/' + friendPhone).remove();
-            
-            // Update remaining invites
-            var participantRef = db.ref('participants/' + userPhone);
-            var snapshot = await participantRef.once('value');
-            if (snapshot.exists()) {
-                var newRemaining = (snapshot.val().remainingInvites || 0) + 1;
-                await participantRef.update({ remainingInvites: newRemaining });
-                remainingInvites = newRemaining;
-            }
-            
-            await loadInvitations();
-            
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '✅ Invitation deleted. You have ' + remainingInvites + ' invites left.';
-            }
-        }
-    }
-};
-
-// ========== SEND INVITATION ==========
-async function sendInvitation() {
-    var friendPhone = document.getElementById('friendPhoneInput').value.trim();
-    var userPhone = localStorage.getItem("userPhone");
-    
-    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-        alert("Please enter valid 11-digit number starting with 09");
-        return;
+    .header h1 {
+        font-size: 22px;
     }
     
-    if (friendPhone === userPhone) {
-        alert("You cannot invite yourself!");
-        return;
+    .user-info-card {
+        padding: 6px 12px;
     }
     
-    if (remainingInvites <= 0) {
-        alert("You have reached the maximum of 6 invites!");
-        return;
+    .user-info-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
     }
     
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        
-        var inviteRef = db.ref('invitations/' + userPhone + '/' + friendPhone);
-        var existingInvite = await inviteRef.once('value');
-        
-        if (existingInvite.exists()) {
-            alert("You already invited this person!");
-            return;
-        }
-        
-        await inviteRef.set({
-            invitedBy: userPhone,
-            invitedPhone: friendPhone,
-            timestamp: Date.now(),
-            status: 'pending'
-        });
-        
-        var participantRef = db.ref('participants/' + userPhone);
-        var participantSnap = await participantRef.once('value');
-        var newRemaining = (participantSnap.val().remainingInvites || 6) - 1;
-        await participantRef.update({
-            totalInvites: (participantSnap.val().totalInvites || 0) + 1,
-            remainingInvites: newRemaining,
-            lastActive: Date.now()
-        });
-        
-        remainingInvites = newRemaining;
-        document.getElementById('friendPhoneInput').value = '';
-        await loadInvitations();
-        
-        var statusMsg = document.getElementById('statusMessage');
-        if (statusMsg) {
-            statusMsg.innerHTML = '✅ Invitation sent! Remaining invites: ' + remainingInvites;
-        }
+    .user-info-number {
+        font-size: 13px;
+    }
+    
+    .user-info-badge {
+        padding: 3px 8px;
+    }
+    
+    .badge-text {
+        font-size: 8px;
+    }
+    
+    .prize-amount {
+        font-size: 20px;
+    }
+    
+    .lucky-cat-video {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .claim-now-btn {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+    
+    .time-display {
+        font-size: 16px;
+    }
+    
+    .popup-balance {
+        font-size: 36px;
+    }
+    
+    .popup-title {
+        font-size: 22px;
+    }
+    
+    .indicator {
+        width: 45px;
     }
 }
 
-// ========== ACCEPT INVITATION (when friend clicks lucky cat) ==========
-async function acceptInvitation(inviterPhone) {
-    var currentUserPhone = localStorage.getItem("userPhone");
-    if (!currentUserPhone) return false;
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        
-        var inviteRef = db.ref('invitations/' + inviterPhone + '/' + currentUserPhone);
-        var inviteSnap = await inviteRef.once('value');
-        
-        if (!inviteSnap.exists()) return false;
-        if (inviteSnap.val().status === 'approved') return false;
-        
-        await inviteRef.update({
-            status: 'approved',
-            acceptedAt: Date.now()
-        });
-        
-        var inviterRef = db.ref('participants/' + inviterPhone);
-        var inviterSnap = await inviterRef.once('value');
-        
-        if (inviterSnap.exists()) {
-            var newAccepted = (inviterSnap.val().acceptedInvites || 0) + 1;
-            var newRightTotal = newAccepted * 150;
-            
-            await inviterRef.update({
-                acceptedInvites: newAccepted,
-                rightRewardTotal: newRightTotal,
-                lastActive: Date.now()
-            });
-            
-            if (inviterPhone === localStorage.getItem("userPhone")) {
-                acceptedInvitesCount = newAccepted;
-                rightRewardAmount = newRightTotal;
-                updateRightCardVisual();
-                updateRightRewardDisplay();
-                
-                var statusMsg = document.getElementById('statusMessage');
-                if (statusMsg) {
-                    statusMsg.innerHTML = '🎉 A friend accepted your invite! +₱150 available!';
-                }
-            }
-        }
-        return true;
-    }
-    return false;
+/* ========== FIREWALL POPUP ========== */
+.firewall-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 10001;
+    display: none;
+    align-items: center;
+    justify-content: center;
 }
 
-// ========== INITIALIZE ==========
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log("Promotion.js loading...");
-    
-    var userPhone = localStorage.getItem("userPhone");
-    if (!userPhone) {
-        alert("Please login first.");
-        window.location.href = "index.html";
-        return;
-    }
-    
-    // Send Invitation Button
-    var sendBtn = document.getElementById('sendInviteBtn');
-    if (sendBtn) {
-        sendBtn.onclick = sendInvitation;
-    }
-    
-    // Claim Now Button (replaces old share button)
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    if (claimNowBtn) {
-        claimNowBtn.onclick = function() {
-            showPrizePopup();
-        };
-    }
-    
-    // Load invitations
-    await loadInvitations();
-    
-    console.log("Promotion.js ready");
-});
+.firewall-popup-content {
+    background: linear-gradient(145deg, #2a2035, #1a1525);
+    border-radius: 48px;
+    max-width: 360px;
+    width: 88%;
+    padding: 30px 25px;
+    text-align: center;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+
+/* ========== PENDING STATUS ========== */
+.pending-status-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 10002;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.pending-status-container {
+    text-align: center;
+    background: linear-gradient(145deg, #2a2035, #1a1525);
+    padding: 30px;
+    border-radius: 48px;
+    border: 1px solid rgba(255,215,0,0.3);
+}
+
+.pending-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255,215,0,0.3);
+    border-top-color: #ffd700;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.pending-message {
+    color: #ffd700;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.pending-countdown {
+    font-family: 'Orbitron', monospace;
+    font-size: 24px;
+    color: #ffaa33;
+}
