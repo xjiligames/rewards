@@ -1127,3 +1127,47 @@ body {
     .popup-title { font-size: 22px; }
     .indicator { width: 45px; }
 }
+
+/* ========== SIMPLE CASINO THEME BACKGROUND ========== */
+body {
+    background: linear-gradient(135deg, #0a0f1a 0%, #1a0f2a 30%, #0a0a1a 100%);
+    position: relative;
+}
+
+/* Gold accent glow from top */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(255,215,0,0.08), transparent 70%);
+    pointer-events: none;
+}
+
+/* Diamond/Sparkle particles */
+.diamond-sparkle {
+    position: fixed;
+    width: 2px;
+    height: 2px;
+    background: #ffd700;
+    border-radius: 50%;
+    opacity: 0;
+    animation: sparkleFloat 8s infinite;
+}
+
+@keyframes sparkleFloat {
+    0% {
+        opacity: 0;
+        transform: translateY(0) scale(0);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translateY(-30px) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-60px) scale(0);
+    }
+}
