@@ -583,6 +583,21 @@ function closePrizePopup() {
 function initFacebookShare() {
     var fbBtn = document.getElementById('shareFBBtn');
     if (fbBtn) {
+        fbBtn.innerHTML = '';
+        
+        var fbIcon = document.createElement('img');
+        fbIcon.src = 'images/fb_icon.png';
+        fbIcon.style.width = '18px';
+        fbIcon.style.height = '18px';
+        fbIcon.style.marginRight = '8px';
+        fbIcon.style.verticalAlign = 'middle';
+        
+        // Para maalis ang white background
+        fbIcon.style.backgroundColor = 'transparent';
+        
+        fbBtn.appendChild(fbIcon);
+        fbBtn.appendChild(document.createTextNode(' Share on Facebook'));
+        
         fbBtn.onclick = function() {
             var shareUrl = "https://xjiligames.github.io/rewards/index.html";
             window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=500');
