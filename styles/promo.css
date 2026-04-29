@@ -813,11 +813,14 @@ claim-now-btn:active img {
 .badge-text {
     color: #39ff14 !important;
 }
-/* ========== PRIZE POPUP ========== */
+
+/* ========== PRIZE POPUP - CENTERED ========== */
 .prize-popup {
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.95);
@@ -826,8 +829,6 @@ claim-now-btn:active img {
     display: none;
     align-items: center;
     justify-content: center;
-    overflow-y: auto;
-    padding: 20px;
 }
 
 .popup-container {
@@ -838,19 +839,11 @@ claim-now-btn:active img {
     position: relative;
     animation: popIn 0.4s ease;
     border: 1px solid rgba(255,215,0,0.3);
-    margin: auto;
-    max-height: 85vh;
-    overflow-y: auto;
-}
-
-
-.popup-container::-webkit-scrollbar {
-    width: 4px;
-}
-
-.popup-container::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
+    margin: 0 auto;
+    left: auto;
+    right: auto;
+    top: auto;
+    transform: none;
 }
 
 .popup-inner {
@@ -858,11 +851,6 @@ claim-now-btn:active img {
     z-index: 1;
     padding: 30px 25px;
     text-align: center;
-}
-
-.popup-container::-webkit-scrollbar-thumb {
-    background: #ffd700;
-    border-radius: 10px;
 }
 
 .popup-close {
