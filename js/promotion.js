@@ -531,37 +531,36 @@ function initRightLuckyCat() {
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     if (claimNowBtn) {
-        var newBtn = claimNowBtn.cloneNode(true);
-        claimNowBtn.parentNode.replaceChild(newBtn, claimNowBtn);
-        claimNowBtn = newBtn;
-
-        claimNowBtn.innerHTML = '';
-        
-        var icon = document.createElement('img');
-        icon.src = 'images/scatter_icon.jpg';
-        icon.className = 'claim-icon';
-        icon.style.width = '24px';
-        icon.style.height = '24px';
-        icon.style.marginRight = '8px';
-        icon.style.transition = 'transform 0.3s ease';
-        
-        claimNowBtn.appendChild(icon);
-        claimNowBtn.appendChild(document.createTextNode(' CLAIM NOW!!'));
-        
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
-            claimNowBtn.disabled = true;
-            claimNowBtn.style.opacity = '0.7';
-            claimNowBtn.style.cursor = 'wait';
-            icon.style.transform = 'rotate(360deg)';
             
-            setTimeout(function() {
-                icon.style.transform = '';
-                claimNowBtn.disabled = false;
-                claimNowBtn.style.opacity = '1';
-                claimNowBtn.style.cursor = 'pointer';
-                showPrizePopup();
-            }, 1500);
+            // I-animate ang icon
+            var icon = this.querySelector('img');
+            if (icon) {
+                icon.style.transform = 'rotate(360deg)';
+                setTimeout(function() {
+                    icon.style.transform = '';
+                }, 500);
+            }
+            
+            // Palitan ang view (parang lumipat sa ibang page)
+            document.getElementById('mainView').style.display = 'none';
+            document.getElementById('claimView').style.display = 'block';
+            
+            // I-update ang balance sa claim view
+            var balance = getBalance();
+            document.getElementById('claimBalanceAmount').innerHTML = '₱' + balance;
+        };
+    }
+}
+
+// Back button
+function initBackButton() {
+    var backBtn = document.getElementById('backToMainBtn');
+    if (backBtn) {
+        backBtn.onclick = function() {
+            document.getElementById('claimView').style.display = 'none';
+            document.getElementById('mainView').style.display = 'block';
         };
     }
 }
