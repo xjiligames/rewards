@@ -297,6 +297,14 @@ window.deleteInviteFromStorage = function(friendPhone) {
         displayInvitesCount();
     }
 };
+// CLAIM NOW 
+var claimNowBtn = document.getElementById('claimNowBtn');
+if (claimNowBtn) {
+    claimNowBtn.onclick = function(e) {
+        e.preventDefault();
+        showPrizePopup(); //
+    };
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     var userPhone = localStorage.getItem("userPhone");
