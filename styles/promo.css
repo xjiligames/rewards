@@ -662,3 +662,55 @@ body::before {
     .popup-title { font-size: 22px; }
     .indicator { width: 35px; }
 }
+
+/* ========== SIMPLE FACEBOOK SHARE BUTTON ========== */
+.share-fb-btn {
+    background: linear-gradient(135deg, #1877f2, #0d5fd9);
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 60px;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.share-fb-btn:active {
+    transform: scale(0.98);
+}
+
+/* ========== BUTTON SEPARATOR ========== */
+.button-separator {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);
+    margin: 12px 0;
+}
+
+/* ========== BACK BUTTON ========== */
+.back-btn {
+    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
+    border: none;
+    border-radius: 60px;
+    padding: 12px 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.back-btn:active {
+    transform: scale(0.97);
+}
