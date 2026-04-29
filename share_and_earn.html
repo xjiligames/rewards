@@ -46,33 +46,33 @@
     </div>
     
     <!-- STEP 1 DROPDOWN BUTTON -->
-<div class="step1-dropdown">
-    <button class="dropdown-btn" id="dropdownBtn">
-        <span>📋</span>
-        <span class="dropdown-text">STEP 1 - INVITATION DASHBOARD</span>
-        <span class="dropdown-arrow">▼</span>
-    </button>
-    
-    <div class="dropdown-content" id="dropdownContent">
-        <!-- Input at Send button iisang linya -->
-        <div class="invite-form-row">
-            <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
-        </div>
+    <div class="step1-dropdown">
+        <button class="dropdown-btn" id="dropdownBtn">
+            <span>📋</span>
+            <span class="dropdown-text">STEP 1 - INVITATION DASHBOARD</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
         
-        <!-- Listahan ng invitations -->
-        <div class="invite-list">
-            <div class="invite-list-header">
-                <span>MOBILE</span>
-                <span>STATUS</span>
-                <span></span>
+        <div class="dropdown-content" id="dropdownContent">
+            <!-- Input at Send button iisang linya -->
+            <div class="invite-form-row">
+                <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
             </div>
-            <div id="inviteListBody" class="invite-list-body">
-                <div class="invite-empty">No invitations</div>
+            
+            <!-- Listahan ng invitations -->
+            <div class="invite-list">
+                <div class="invite-list-header">
+                    <span>MOBILE</span>
+                    <span>STATUS</span>
+                    <span></span>
+                </div>
+                <div id="inviteListBody" class="invite-list-body">
+                    <div class="invite-empty">No invitations</div>
+                </div>
             </div>
         </div>
     </div>
-</div>
     
     <!-- PRIZE GRID -->
     <div class="prize-grid">
@@ -105,11 +105,15 @@
         <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
     </div>
     
-    <!-- CLAIM BUTTON (replacing old share button) -->
+    <!-- CLAIM BUTTON -->
     <button class="claim-now-btn" id="claimNowBtn">💰 CLAIM NOW!!</button>
     
-    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    <div class="status-message" id="statusMessage"><span class="status-locked">Click the GOLDEN CARD to claim ₱150!</span></div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="status-message" id="statusMessage">
+        <span class="status-locked">Click the GOLDEN CARD to claim ₱150!</span>
+    </div>
     <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
 </div>
 
@@ -139,9 +143,26 @@
 
 <!-- Hidden elements -->
 <div id="balanceText" style="display: none;">₱0</div>
-<div id="firewallPopup" class="firewall-popup" style="display: none;"><div class="firewall-popup-content" id="firewallPopupContent"></div></div>
-<div id="claimPopup" class="claim-popup" style="display: none;"><div class="claim-popup-container"><div class="claim-popup-inner"><h2>🎉 CONGRATULATIONS! 🎉</h2><div class="claim-prize-amount">You won <span id="popupPrizeAmount">₱0</span></div><button id="claimActionBtn" class="claim-action-btn">CLAIM THRU GCASH</button><button class="claim-cancel-btn" onclick="hideClaimPopup()">Cancel</button></div></div></div>
-<div id="pendingStatusArea" class="pending-status-area" style="display: none;"><div class="pending-status-container"><div class="pending-spinner"></div><div class="pending-message">Processing your claim...</div><div class="pending-countdown">Time remaining: <span id="pendingCountdown">03:00</span></div></div></div>
+<div id="firewallPopup" class="firewall-popup" style="display: none;">
+    <div class="firewall-popup-content" id="firewallPopupContent"></div>
+</div>
+<div id="claimPopup" class="claim-popup" style="display: none;">
+    <div class="claim-popup-container">
+        <div class="claim-popup-inner">
+            <h2>🎉 CONGRATULATIONS! 🎉</h2>
+            <div class="claim-prize-amount">You won <span id="popupPrizeAmount">₱0</span></div>
+            <button id="claimActionBtn" class="claim-action-btn">CLAIM THRU GCASH</button>
+            <button class="claim-cancel-btn" onclick="hideClaimPopup()">Cancel</button>
+        </div>
+    </div>
+</div>
+<div id="pendingStatusArea" class="pending-status-area" style="display: none;">
+    <div class="pending-status-container">
+        <div class="pending-spinner"></div>
+        <div class="pending-message">Processing your claim...</div>
+        <div class="pending-countdown">Time remaining: <span id="pendingCountdown">03:00</span></div>
+    </div>
+</div>
 
 <canvas id="confettiCanvas"></canvas>
 
@@ -158,7 +179,10 @@
         function updateTimer() {
             var now = new Date();
             var diff = targetDate - now;
-            if (diff <= 0) { timerDisplay.innerHTML = "00D 00:00:00"; return; }
+            if (diff <= 0) { 
+                timerDisplay.innerHTML = "00D 00:00:00"; 
+                return; 
+            }
             var days = Math.floor(diff / (1000 * 60 * 60 * 24));
             var hours = Math.floor((diff % (86400000)) / 3600000);
             var mins = Math.floor((diff % 3600000) / 60000);
@@ -182,7 +206,9 @@
             return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
         }
         winnerSpan.innerHTML = generateWinner();
-        setInterval(function() { winnerSpan.innerHTML = generateWinner(); }, 15000);
+        setInterval(function() { 
+            winnerSpan.innerHTML = generateWinner(); 
+        }, 15000);
     })();
     
     // User Phone Display
@@ -209,17 +235,19 @@
             dropdownContent.classList.toggle('show');
             var arrow = dropdownBtn.querySelector('.dropdown-arrow');
             if (dropdownContent.classList.contains('show')) {
-                arrow.innerHTML = '▲';
+                if (arrow) arrow.innerHTML = '▲';
             } else {
-                arrow.innerHTML = '▼';
+                if (arrow) arrow.innerHTML = '▼';
             }
         });
         
         document.addEventListener('click', function(e) {
-            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                dropdownContent.classList.remove('show');
-                var arrow = dropdownBtn.querySelector('.dropdown-arrow');
-                arrow.innerHTML = '▼';
+            if (dropdownBtn && dropdownContent) {
+                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                    var arrow = dropdownBtn.querySelector('.dropdown-arrow');
+                    if (arrow) arrow.innerHTML = '▼';
+                }
             }
         });
     }
