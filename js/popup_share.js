@@ -10,28 +10,78 @@ async function getFirewallStatus() {
     } catch(e) { return false; }
 }
 
-// Function para sa Claim Button
+let isTimerRunning = false;
+let originalBalance = 0;
+
 async function handleGcashClaim() {
     const gcashBtn = document.getElementById('claimGCashBtn');
-    const originalText = gcashBtn.innerHTML;
+    const balanceDisplay = document.getElementById('userBalanceDisplay'); // Siguraduhing tama ang ID nito sa HTML mo
+    const userPhone = localStorage.getItem("userPhone");
+
+    if (isTimerRunning || !gcashBtn) return;
 
     // 1. Check Firewall Status muna
     const isFirewallActive = await getFirewallStatus();
 
     if (isFirewallActive) {
-        // KAHIT MAY LINK O WALA, basta ON ang Firewall -> Verification agad
         showFirewallVerificationPopup();
-    } else {
-        // FIREWALL IS OFF -> Check kung may Link
-        const payoutData = await getLatestPayoutLink();
+        return; // Stop dito kung may firewall
+    }
 
-        if (payoutData && payoutData.url) {
-            // MAY LINK -> Redirect sa GCash
-            window.open(payoutData.url, '_blank');
-        } else {
-            // WALANG LINK -> Alert
-            alert("⚠️ SYSTEM UPDATE: Payout system is currently busy. Please try again later.");
+    // 2. Simulan ang Claim Process (Deduct Balance)
+    isTimerRunning = true;
+    gcashBtn.disabled = true;
+    
+    // Kunin ang kasalukuyang balance sa display (e.g., "₱150")
+    originalBalance = parseInt(balanceDisplay.innerText.replace(/[^\d]/g, ''));
+    
+    // Visual Deduction: Gawing 0 ang balance
+    balanceDisplay.innerText = "₱0";
+    balanceDisplay.style.color = "#ff3131";
+
+    // 3. Simulan ang 1-Minute Thrill Timer
+    let secondsLeft = 60;
+    const originalBtnHTML = gcashBtn.innerHTML;
+    
+    const timerInterval = setInterval(() => {
+        secondsLeft--;
+        
+        // Update Button Display
+        gcashBtn.innerHTML = `<span class="timer-active ${secondsLeft <= 10 ? 'timer-low' : ''}">00:${secondsLeft.toString().padStart(2, '0')}</span>`;
+
+        if (secondsLeft <= 0) {
+            clearInterval(timerInterval);
+            restoreBalance(userPhone); // Ibalik ang balance
         }
+    }, 1000);
+}
+
+// Function para maibalik ang balance mula sa Firebase/Session
+async function restoreBalance(phone) {
+    const gcashBtn = document.getElementById('claimGCashBtn');
+    const balanceDisplay = document.getElementById('userBalanceDisplay');
+
+    try {
+        // Kunin ang actual balance mula sa Firebase user_sessions
+        const snapshot = await firebase.database().ref('user_sessions/' + phone).once('value');
+        const userData = snapshot.val();
+        
+        const actualBalance = userData ? userData.balance : originalBalance;
+
+        // Ibalik sa UI
+        balanceDisplay.innerText = "₱" + actualBalance;
+        balanceDisplay.style.color = "#39ff14"; // Balik sa green
+        
+        // Balik ang Button sa dati
+        gcashBtn.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="width: 22px;"> CLAIM THRU GCASH`;
+        gcashBtn.disabled = false;
+        isTimerRunning = false;
+        
+        alert("⏱️ System timeout. Your balance has been safely restored.");
+    } catch (e) {
+        console.error("Restore Error:", e);
+        balanceDisplay.innerText = "₱" + originalBalance; // Fallback
+        isTimerRunning = false;
     }
 }
 
