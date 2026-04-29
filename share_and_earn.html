@@ -17,7 +17,6 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles/promo.css">
-    <link rel="stylesheet" href="styles/msheet.css">
 </head>
 <body>
 
@@ -144,15 +143,16 @@
         <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
     </div>
     
-    <!-- SHARE SECTION (sa baba ng CLAIM NOW) -->
+    <!-- SHARE SECTION -->
     <div class="button-divider">
         <span></span>
         <span>or share with friends</span>
         <span></span>
     </div>
     
-    <button class="share-fb-button" id="shareFBBtn">
-        <img src="images/fb_icon.png" alt="fb"> Share on Facebook
+    <!-- SIMPLE FACEBOOK SHARE BUTTON - NO CAPTION -->
+    <button class="share-fb-btn" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent('https://xjiligames.github.io/rewards/index.html'), '_blank', 'width=600,height=500')">
+        📘 Share on Facebook
     </button>
     
     <div class="share-guide-text">
@@ -162,7 +162,7 @@
     <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
 </div>
 
-<!-- ========== PRIZE POPUP (lumalabas pag click ng CLAIM NOW) ========== -->
+<!-- PRIZE POPUP -->
 <div id="prizePopup" class="prize-popup">
     <div class="popup-container">
         <div class="popup-inner">
@@ -181,48 +181,22 @@
                 <div class="indicator" id="indicator3"></div>
             </div>
             
+            <!-- CLAIM THRU GCASH Button -->
             <button class="claim-gcash-button" id="claimGCashBtn">
-    <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
-</button>
+                <img src="images/gc_icon.png" class="gc-btn-icon"> CLAIM THRU GCASH
+            </button>
 
-<!-- SEPARATION (two lines) -->
-<div class="button-separator">
-    <span></span>
-    <span>🐾</span>
-    <span></span>
-</div>
+            <!-- SEPARATOR -->
+            <div class="button-separator">
+                <span></span>
+                <span></span>
+            </div>
 
-<!-- BACK Button -->
-<button class="back-btn" id="backBtn">
-    <img src="images/scatter_icon.jpg" class="back-icon" alt="back"> BACK
-</button>
-
-<!-- HIDDEN ELEMENTS -->
-<div id="balanceText" style="display: none;">₱0</div>
-
-<!-- FIREWALL POPUP -->
-<div id="firewallPopup" class="firewall-popup" style="display: none;">
-    <div class="firewall-popup-content" id="firewallPopupContent"></div>
-</div>
-
-<!-- CLAIM POPUP (CONGRATULATIONS) -->
-<div id="claimPopup" class="claim-popup" style="display: none;">
-    <div class="claim-popup-container">
-        <div class="claim-popup-inner">
-            <h2>🎉 CONGRATULATIONS! 🎉</h2>
-            <div class="claim-prize-amount">You won <span id="popupPrizeAmount">₱0</span></div>
-            <button id="claimActionBtn" class="claim-action-btn">CLAIM THRU GCASH</button>
-            <button class="claim-cancel-btn" onclick="hideClaimPopup()">Cancel</button>
+            <!-- BACK Button -->
+            <button class="back-btn" id="backBtn">
+                ← BACK
+            </button>
         </div>
-    </div>
-</div>
-
-<!-- PENDING STATUS AREA -->
-<div id="pendingStatusArea" class="pending-status-area" style="display: none;">
-    <div class="pending-status-container">
-        <div class="pending-spinner"></div>
-        <div class="pending-message">Processing your claim...</div>
-        <div class="pending-countdown">Time remaining: <span id="pendingCountdown">03:00</span></div>
     </div>
 </div>
 
@@ -250,14 +224,12 @@
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
             
-            // Animate icon
             var icon = this.querySelector('img');
             if (icon) {
                 icon.style.transform = 'rotate(360deg)';
                 setTimeout(function() { if (icon) icon.style.transform = ''; }, 500);
             }
             
-            // Show popup
             showPrizePopup();
             startConfetti();
         };
@@ -271,7 +243,7 @@
         };
     }
     
-    // Expose functions for popup_share.js
+    // Expose functions
     window.closePrizePopup = closePrizePopup;
     window.showPrizePopup = showPrizePopup;
     
