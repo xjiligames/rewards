@@ -649,12 +649,16 @@ function initFacebookShare() {
     var fbBtn = document.getElementById('shareFBBtn');
     if (fbBtn) {
         fbBtn.onclick = function() {
-            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
+            var userPhone = localStorage.getItem("userPhone");
+            var formattedPhone = userPhone ? userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11) : 'User';
             
-            // Update indicator for share
-            setHasSharedGlobal(true);
-            saveIndicatorStatus();
+            // Pre-caption for Facebook post
+            var caption = `🎉 FREE +₱300 GCASH CREDITS! 🎉\n\nUse my referral code: ${formattedPhone}\n\n#LuckyDrop #Rewards';
+            
+            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+            var fbShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl) + '&quote=' + encodeURIComponent(caption);
+            
+            window.open(fbShareUrl, '_blank', 'width=600,height=500');
         };
     }
 }
