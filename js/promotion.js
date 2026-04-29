@@ -154,7 +154,7 @@ window.deleteInvitation = async function(friendPhone) {
 };
 
 // ========== SEND INVITATION ==========
-async function sendInvitation() {
+window.sendInvitation = async function() {
     var friendPhone = document.getElementById('friendPhoneInput').value.trim();
     var userPhone = localStorage.getItem("userPhone");
     
@@ -208,8 +208,10 @@ async function sendInvitation() {
         if (statusMsg) {
             statusMsg.innerHTML = 'Invitation sent! Remaining invites: ' + remainingInvites;
         }
+        
+        alert("Invitation sent to " + friendPhone);
     }
-}
+};
 
 // ========== ACCEPT INVITATION ==========
 async function acceptInvitation(inviterPhone) {
@@ -559,7 +561,7 @@ function closePrizePopup() {
     stopConfetti();
 }
 
-// ========== CLAIM NOW BUTTON ==========
+// ========== CLAIM NOW BUTTON - CONNECT TO POPUP.JS ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     if (claimNowBtn) {
@@ -568,7 +570,14 @@ function initClaimNowButton() {
                 alert("Click the GOLDEN CARD first to claim your ₱150!");
                 return;
             }
-            showPrizePopup();
+            
+            // Use popup.js firewall logic
+            if (typeof window.showClaimPopup === 'function') {
+                window.showClaimPopup(150);
+            } else {
+                // Fallback if popup.js is not loaded
+                showPrizePopup();
+            }
         };
     }
 }
@@ -577,7 +586,11 @@ function initClaimNowButton() {
 function initSendInviteButton() {
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) {
-        sendBtn.onclick = sendInvitation;
+        // Remove existing listeners
+        var newSendBtn = sendBtn.cloneNode(true);
+        sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
+        newSendBtn.onclick = window.sendInvitation;
+        console.log("Send button initialized");
     }
 }
 
