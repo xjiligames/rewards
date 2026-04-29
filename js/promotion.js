@@ -33,10 +33,25 @@ function getBalance() {
     return balance ? parseInt(balance) : 0;
 }
 
-function addBalance(amount) {
+// ========== ADD BALANCE TO LOCALSTORAGE AND FIREBASE ==========
+async function addBalance(amount) {
     var currentBalance = getBalance();
     var newBalance = currentBalance + amount;
     saveBalance(newBalance);
+    
+    // Save to Firebase
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var phone = localStorage.getItem("userPhone");
+        if (phone) {
+            var db = firebase.database();
+            await db.ref('user_sessions/' + phone).update({
+                balance: newBalance,
+                lastUpdate: Date.now()
+            });
+            console.log("Balance saved to Firebase:", newBalance);
+        }
+    }
+    
     return newBalance;
 }
 
