@@ -950,3 +950,69 @@ body {
     font-size: 24px;
     color: #ffaa33;
 }
+
+/* ========== INDICATOR ANIMATIONS - NEW ========== */
+
+/* Indicator 1 - NEON RED/YELLOW (blinking) */
+.indicator-red-yellow {
+    background: linear-gradient(90deg, #ff4444, #ffd700) !important;
+    box-shadow: 0 0 10px #ff4444 !important;
+}
+
+@keyframes pulseRedYellow {
+    0% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
+    50% { opacity: 1; background: linear-gradient(90deg, #ff6666, #ffed4e); box-shadow: 0 0 20px #ff4444; }
+    100% { opacity: 0.5; background: linear-gradient(90deg, #ff4444, #ffd700); }
+}
+
+/* Indicator 1 - NEON YELLOW (solid fixed) */
+.indicator-yellow-solid {
+    background: #ffd700 !important;
+    box-shadow: 0 0 15px #ffd700 !important;
+}
+
+/* Indicator 2 - NEON YELLOW/GREEN (blinking) */
+.indicator-yellow-green {
+    background: linear-gradient(90deg, #ffd700, #39ff14) !important;
+    box-shadow: 0 0 10px #ffd700 !important;
+}
+
+@keyframes pulseYellowGreen {
+    0% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
+    50% { opacity: 1; background: linear-gradient(90deg, #ffed4e, #66ff44); box-shadow: 0 0 20px #39ff14; }
+    100% { opacity: 0.5; background: linear-gradient(90deg, #ffd700, #39ff14); }
+}
+
+/* Indicator 2 - NEON LIGHT BLUE (blinking) */
+.indicator-blue {
+    background: #00f2ff !important;
+    box-shadow: 0 0 10px #00f2ff !important;
+}
+
+@keyframes pulseBlue {
+    0% { opacity: 0.5; background: #00f2ff; }
+    50% { opacity: 1; background: #66ffff; box-shadow: 0 0 20px #00f2ff; }
+    100% { opacity: 0.5; background: #00f2ff; }
+}
+
+/* Indicator 2 - Alternate animation (both invite and share done) */
+@keyframes pulseAlternate {
+    0% { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
+    33% { background: #39ff14; box-shadow: 0 0 10px #39ff14; }
+    66% { background: #00f2ff; box-shadow: 0 0 10px #00f2ff; }
+    100% { background: #ffd700; box-shadow: 0 0 10px #ffd700; }
+}
+
+/* Indicator 3 - NEON GREEN (solid fixed) */
+.indicator-green-solid {
+    background: #39ff14 !important;
+    box-shadow: 0 0 15px #39ff14 !important;
+}
+
+/* Indicator base */
+.indicator {
+    width: 55px;
+    height: 6px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
