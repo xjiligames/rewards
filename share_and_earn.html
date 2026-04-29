@@ -46,35 +46,42 @@
     </div>
     
     <!-- STEP 1 DROPDOWN BUTTON -->
-    <div class="step1-dropdown">
-        <button class="dropdown-btn" id="dropdownBtn">
-            <span class="dropdown-icon">📋</span>
-            <span class="dropdown-text">STEP 1 - INVITATION DASHBOARD</span>
-            <span class="dropdown-arrow">▼</span>
-        </button>
-        
-        <!-- DROPDOWN CONTENT (Invitation Dashboard) -->
-        <div class="dropdown-content" id="dropdownContent">
-            <div class="invite-form-section">
-                <div class="invite-form-title">📨 SEND NEW INVITATION</div>
-                <div class="invite-form-row">
-                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    <button class="invite-send-btn" id="sendInviteBtn">📤 SEND INVITATION</button>
-                </div>
-            </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-list-header">
-                    <span>📞 Mobile Number</span>
-                    <span>✅ Status</span>
-                    <span>🗑️ Action</span>
-                </div>
-                <div class="invite-list-body" id="inviteListBody">
-                    <div class="invite-empty">No invitations sent yet</div>
-                </div>
+<div class="step1-dropdown">
+    <button class="dropdown-btn" id="dropdownBtn">
+        <span class="dropdown-icon">📋</span>
+        <span class="dropdown-text">STEP 1 - INVITATION DASHBOARD</span>
+        <span class="dropdown-arrow">▼</span>
+    </button>
+    
+    <!-- DROPDOWN CONTENT (Invitation Dashboard) -->
+    <div class="dropdown-content" id="dropdownContent">
+        <!-- SEND INVITATION SECTION -->
+        <div class="invite-form-section">
+            <div class="invite-form-row">
+                <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter friend's mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <button class="invite-send-btn" id="sendInviteBtn">SEND INVITATION</button>
             </div>
         </div>
+        
+        <!-- INVITATION LIST TABLE -->
+        <div class="invite-list-section">
+            <table class="invite-table">
+                <thead>
+                    <tr>
+                        <th>MOBILE NUMBER</th>
+                        <th>STATUS</th>
+                        <th>ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="inviteListBody">
+                    <tr>
+                        <td colspan="3" class="invite-empty">No invitations sent yet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+</div>
     
     <!-- PRIZE GRID -->
     <div class="prize-grid">
