@@ -614,16 +614,6 @@ function initFacebookShare() {
         // Clear existing content
         fbBtn.innerHTML = '';
         
-        // Create icon
-        var fbIcon = document.createElement('img');
-        fbIcon.src = 'images/fb_icon.png';
-        fbIcon.style.width = '20px';
-        fbIcon.style.height = '20px';
-        
-        // Add icon and text
-        fbBtn.appendChild(fbIcon);
-        fbBtn.appendChild(document.createTextNode(' Share on Facebook'));
-        
         // Click event
         fbBtn.onclick = function() {
             var userPhone = localStorage.getItem("userPhone");
