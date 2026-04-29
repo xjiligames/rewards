@@ -431,7 +431,7 @@ function showFloatingPlus(x, y, amount) {
     setTimeout(function() { floatingDiv.remove(); }, 1000);
 }
 
-// ========== LEFT LUCKY CAT ==========
+// ========== LEFT LUCKY CAT (WITH FIREBASE SYNC) ==========
 function initLeftLuckyCard() {
     var leftCard = document.getElementById('leftCard');
     if (!leftCard) return;
@@ -440,40 +440,101 @@ function initLeftLuckyCard() {
     luckySound.loop = false;
     luckySound.volume = 0.7;
     
-    updateLeftCardFromStorage();
-    
-    if (!getLeftRewardClaimed()) {
-        leftCard.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (getLeftRewardClaimed()) {
-                alert("You already claimed your ₱150!");
-                return;
-            }
-            luckySound.currentTime = 0;
-            luckySound.play().catch(function(err) { console.log("Audio error:", err); });
+    // Check kung na-claim na
+    getLeftRewardClaimed().then(function(claimed) {
+        if (claimed) {
+            leftCard.classList.add('prize-card-claimed');
+            leftCard.classList.remove('prize-card-glow');
+            leftCard.style.cursor = 'default';
+            console.log("Left card already claimed - disabled");
+        } else {
+            leftCard.classList.add('prize-card-glow');
+            leftCard.style.cursor = 'pointer';
             
-            var rect = this.getBoundingClientRect();
-            var x = rect.left + rect.width / 2;
-            var y = rect.top + rect.height / 2;
-            var newBalance = addBalance(150);
-            saveLeftRewardClaimed(true);
-            
-            this.classList.remove('prize-card-glow');
-            this.classList.add('prize-card-claimed');
-            this.style.cursor = 'default';
-            showFloatingPlus(x, y, 150);
-            startConfetti();
-            displayBalance();
-            
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '<span class="status-locked">🐱 <strong style="color:#ffd700;">+₱150 CLAIMED!</strong> Your balance: <strong style="color:#ffd700;">₱' + newBalance + '</strong> ✨</span>';
-                setTimeout(function() {
-                    statusMsg.innerHTML = '<span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>';
-                }, 4000);
-            }
-        });
-    }
+            leftCard.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                
+                // Double check kung na-claim na
+                var isClaimed = await getLeftRewardClaimed();
+                if (isClaimed) {
+                    alert("You already claimed your ₱150!");
+                    return;
+                }
+                
+                var userPhone = localStorage.getItem("userPhone");
+                if (!userPhone) {
+                    alert("User not found. Please login again.");
+                    return;
+                }
+                
+                console.log("Left card clicked - adding ₱150 for user:", userPhone);
+                
+                // Play sound
+                luckySound.currentTime = 0;
+                luckySound.play().catch(function(err) { console.log("Audio error:", err); });
+                
+                // Get position for floating animation
+                var rect = this.getBoundingClientRect();
+                var x = rect.left + rect.width / 2;
+                var y = rect.top + rect.height / 2;
+                
+                // Get current balance
+                var currentBalance = await getBalance();
+                var newBalance = currentBalance + 150;
+                
+                // Check limit
+                if (newBalance > 1200) {
+                    alert("Maximum balance of ₱1200 reached!");
+                    return;
+                }
+                
+                // Save to localStorage
+                saveBalance(newBalance);
+                saveLeftRewardClaimed(true);
+                
+                // Save to Firebase using user's phone number
+                if (typeof firebase !== 'undefined' && firebase.database) {
+                    var db = firebase.database();
+                    var userRef = db.ref('user_sessions/' + userPhone);
+                    
+                    // Get existing data or create new
+                    var snap = await userRef.once('value');
+                    var existingData = snap.exists() ? snap.val() : {};
+                    
+                    // Update balance and left reward status
+                    await userRef.update({
+                        balance: newBalance,
+                        leftRewardClaimed: true,
+                        leftRewardAmount: 150,
+                        leftRewardClaimedAt: Date.now(),
+                        lastUpdate: Date.now()
+                    });
+                    
+                    console.log("Firebase updated - New balance:", newBalance);
+                }
+                
+                // Update UI
+                this.classList.remove('prize-card-glow');
+                this.classList.add('prize-card-claimed');
+                this.style.cursor = 'default';
+                
+                showFloatingPlus(x, y, 150);
+                startConfetti();
+                displayBalance();
+                
+               // Update status message (with inline styles)
+var statusMsg = document.getElementById('statusMessage');
+if (statusMsg) {
+    statusMsg.innerHTML = '<span style="color: #ffffff; font-size: 13px;">🐱 <strong style="color: #ffd700;">+₱150 CLAIMED!</strong> Your balance: <strong style="color: #ffd700;">₱' + newBalance + '</strong> ✨</span>';
+    setTimeout(function() {
+        statusMsg.innerHTML = '<span style="color: #ffffff; font-size: 13px;">🐱 Click the <strong style="color: #ffd700;">Maneki-neko</strong> to claim <strong style="color: #ffd700;">₱150!</strong> ✨</span>';
+    }, 4000);
+}
+                
+                console.log("Left reward claimed. New balance:", newBalance);
+            });
+        }
+    });
 }
 
 // ========== RIGHT LUCKY CAT ==========
