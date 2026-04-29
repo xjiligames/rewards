@@ -509,26 +509,31 @@ function initClaimNowButton() {
 // ========== CLAIM THRU GCASH BUTTON ==========
 function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
+    
     if (claimBtn) {
-        claimBtn.innerHTML = '';
+        // Remove existing listeners
+        var newBtn = claimBtn.cloneNode(true);
+        claimBtn.parentNode.replaceChild(newBtn, claimBtn);
+        claimBtn = newBtn;
         
-        var gcIcon = document.createElement('img');
-        gcIcon.src = 'images/gc_icon.png';
-        gcIcon.className = 'gc-btn-icon';
-        gcIcon.style.width = '20px';
-        gcIcon.style.height = '20px';
-        gcIcon.style.marginRight = '8px';
+        // Make sure it's clickable
+        claimBtn.style.cursor = 'pointer';
+        claimBtn.disabled = false;
         
-        claimBtn.appendChild(gcIcon);
-        claimBtn.appendChild(document.createTextNode(' CLAIM THRU GCASH'));
-        
-        claimBtn.onclick = function() {
+        claimBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("CLAIM THRU GCASH button inside popup clicked");
+            
+            // Call popup.js function
             if (typeof window.showClaimPopup === 'function') {
                 window.showClaimPopup(150);
             } else {
                 alert("System loading. Please try again.");
             }
         };
+        
+        console.log("CLAIM THRU GCASH button initialized");
     }
 }
 
