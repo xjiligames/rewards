@@ -585,19 +585,7 @@ function closePrizePopup() {
     }
 }
 
-// ========== CLAIM THRU GCASH BUTTON ==========
-function initClaimButton() {
-    var claimBtn = document.getElementById('claimGCashBtn');
-    if (claimBtn) {
-        claimBtn.onclick = function() {
-            if (typeof window.handleClaimThruGCashShare === 'function') {
-                window.handleClaimThruGCashShare();
-            } else {
-                alert("System loading. Please refresh.");
-            }
-        };
-    }
-}
+
 
 // ========== EXPOSE FUNCTIONS ==========
 window.showPrizePopup = showPrizePopup;
@@ -637,7 +625,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize components
     initLeftLuckyCard();
     initRightLuckyCat();
-    initClaimButton();
     
     
     var sendBtn = document.getElementById('sendInviteBtn');
