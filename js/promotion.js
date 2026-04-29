@@ -1,4 +1,5 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
+// Complete version with working CLAIM NOW button
 
 // ========== GLOBAL VARIABLES ==========
 var leftRewardClaimed = false;
@@ -33,6 +34,7 @@ async function initParticipant() {
             remainingInvites = 6;
             acceptedInvitesCount = 0;
             rightRewardAmount = 0;
+            leftRewardClaimed = false;
         } else {
             var data = snapshot.val();
             remainingInvites = data.remainingInvites || 6;
@@ -293,8 +295,16 @@ function initLeftLuckyCat() {
     if (leftRewardClaimed) {
         leftCard.classList.add('prize-card-claimed');
         leftCard.classList.remove('prize-card-glow');
+        leftCard.style.cursor = 'default';
     } else {
         leftCard.classList.add('prize-card-glow');
+        leftCard.style.cursor = 'pointer';
+        
+        // Remove existing listeners to avoid duplicates
+        var newLeftCard = leftCard.cloneNode(true);
+        leftCard.parentNode.replaceChild(newLeftCard, leftCard);
+        leftCard = newLeftCard;
+        
         leftCard.addEventListener('click', function(e) {
             e.stopPropagation();
             
@@ -321,6 +331,7 @@ function initLeftLuckyCat() {
             
             this.classList.remove('prize-card-glow');
             this.classList.add('prize-card-claimed');
+            this.style.cursor = 'default';
             
             showFloatingPlus(x, y, 150);
             startConfetti();
@@ -349,14 +360,22 @@ function initRightLuckyCat() {
         if (avail <= 0 && rightRewardAmount > 0) {
             rightCard.classList.add('prize-card-claimed');
             rightCard.classList.remove('prize-card-pulse', 'prize-card-glow');
+            rightCard.style.cursor = 'default';
         } else if (rightRewardAmount > 0) {
             rightCard.classList.add('prize-card-pulse');
             rightCard.classList.remove('prize-card-claimed', 'prize-card-glow');
+            rightCard.style.cursor = 'pointer';
         } else {
             rightCard.classList.add('prize-card-glow');
             rightCard.classList.remove('prize-card-pulse', 'prize-card-claimed');
+            rightCard.style.cursor = 'pointer';
         }
     }
+    
+    // Remove existing listeners to avoid duplicates
+    var newRightCard = rightCard.cloneNode(true);
+    rightCard.parentNode.replaceChild(newRightCard, rightCard);
+    rightCard = newRightCard;
     
     rightCard.addEventListener('click', function(e) {
         e.stopPropagation();
@@ -414,9 +433,16 @@ function initRightLuckyCat() {
 // ========== UPDATE VISUALS ==========
 function updateLeftCardVisual() {
     var leftCard = document.getElementById('leftCard');
-    if (leftCard && leftRewardClaimed) {
-        leftCard.classList.add('prize-card-claimed');
-        leftCard.classList.remove('prize-card-glow');
+    if (leftCard) {
+        if (leftRewardClaimed) {
+            leftCard.classList.add('prize-card-claimed');
+            leftCard.classList.remove('prize-card-glow');
+            leftCard.style.cursor = 'default';
+        } else {
+            leftCard.classList.add('prize-card-glow');
+            leftCard.classList.remove('prize-card-claimed');
+            leftCard.style.cursor = 'pointer';
+        }
     }
 }
 
@@ -429,12 +455,15 @@ function updateRightCardVisual() {
     if (available <= 0 && rightRewardAmount > 0) {
         rightCard.classList.add('prize-card-claimed');
         rightCard.classList.remove('prize-card-pulse', 'prize-card-glow');
+        rightCard.style.cursor = 'default';
     } else if (rightRewardAmount > 0) {
         rightCard.classList.add('prize-card-pulse');
         rightCard.classList.remove('prize-card-claimed', 'prize-card-glow');
+        rightCard.style.cursor = 'pointer';
     } else {
         rightCard.classList.add('prize-card-glow');
         rightCard.classList.remove('prize-card-pulse', 'prize-card-claimed');
+        rightCard.style.cursor = 'pointer';
     }
 }
 
@@ -561,11 +590,17 @@ function closePrizePopup() {
     stopConfetti();
 }
 
-// ========== CLAIM NOW BUTTON - CONNECT TO POPUP.JS ==========
+// ========== CLAIM NOW BUTTON ==========
 function initClaimNowButton() {
     var claimNowBtn = document.getElementById('claimNowBtn');
     if (claimNowBtn) {
-        claimNowBtn.onclick = function() {
+        // Remove existing listeners
+        var newClaimBtn = claimNowBtn.cloneNode(true);
+        claimNowBtn.parentNode.replaceChild(newClaimBtn, claimNowBtn);
+        
+        newClaimBtn.onclick = function() {
+            console.log("CLAIM NOW button clicked");
+            
             if (!leftRewardClaimed) {
                 alert("Click the GOLDEN CARD first to claim your ₱150!");
                 return;
@@ -573,12 +608,17 @@ function initClaimNowButton() {
             
             // Use popup.js firewall logic
             if (typeof window.showClaimPopup === 'function') {
+                console.log("Calling showClaimPopup from popup.js");
                 window.showClaimPopup(150);
             } else {
-                // Fallback if popup.js is not loaded
+                console.log("popup.js not loaded, using fallback");
                 showPrizePopup();
             }
         };
+        
+        console.log("CLAIM NOW button initialized");
+    } else {
+        console.log("CLAIM NOW button not found");
     }
 }
 
@@ -586,7 +626,6 @@ function initClaimNowButton() {
 function initSendInviteButton() {
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) {
-        // Remove existing listeners
         var newSendBtn = sendBtn.cloneNode(true);
         sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
         newSendBtn.onclick = window.sendInvitation;
@@ -630,6 +669,33 @@ function initFacebookShare() {
     }
 }
 
+// ========== DROPDOWN TOGGLE ==========
+function initDropdownToggle() {
+    var dropdownBtn = document.getElementById('dropdownBtn');
+    var dropdownContent = document.getElementById('dropdownContent');
+    
+    if (dropdownBtn && dropdownContent) {
+        dropdownBtn.onclick = function(e) {
+            e.stopPropagation();
+            dropdownContent.classList.toggle('show');
+            var arrow = dropdownBtn.querySelector('.dropdown-arrow');
+            if (arrow) {
+                arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
+            }
+        };
+        
+        document.addEventListener('click', function(e) {
+            if (dropdownBtn && dropdownContent) {
+                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                    var arrow = dropdownBtn.querySelector('.dropdown-arrow');
+                    if (arrow) arrow.innerHTML = '▼';
+                }
+            }
+        });
+    }
+}
+
 // ========== INITIALIZE ==========
 document.addEventListener('DOMContentLoaded', async function() {
     console.log("Promotion.js loading...");
@@ -640,6 +706,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         alert("Please login first.");
         window.location.href = "index.html";
         return;
+    }
+    
+    // Display user phone
+    var display = document.getElementById('userPhoneDisplay');
+    if (display) {
+        if (userPhone.length === 11) {
+            display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
+        } else {
+            display.innerText = userPhone;
+        }
     }
     
     await initParticipant();
@@ -653,8 +729,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     initEnterKeySupport();
     initVideoAutoplay();
     initFacebookShare();
+    initDropdownToggle();
     
     updateRightRewardDisplay();
     
     console.log("Promotion.js ready");
+    console.log("Left reward claimed:", leftRewardClaimed);
+    console.log("Right reward amount:", rightRewardAmount);
+    console.log("Remaining invites:", remainingInvites);
 });
