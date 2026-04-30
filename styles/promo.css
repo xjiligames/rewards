@@ -479,30 +479,22 @@ body::before {
 }
 
 /* ========== COMMON STYLES (both cards) ========== */
-/* TANGGALIN ANG WHITE BACKGROUND NG VIDEO */
-.lucky-cat-video video {
-    width: 120%; /* Bahagyang palakihin para mas maganda ang fit */
-    height: auto;
-    
-    /* MAGIC PARA SA WHITE BACKGROUND: */
+.lucky-cat-video {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 8px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #2a1a3a;
+    position: relative;
+    transition: all 0.3s ease;
     mix-blend-mode: multiply; 
-    
-    /* Optional: Dagdagan natin ng kaunting contrast para hindi magmukhang maputla ang pusa */
-    filter: contrast(1.1) brightness(1.1);
-    
-    /* Siguraduhin na walang default background ang video element */
     background-color: transparent;
-}
 
 /* Siguraduhin na ang container ay walang kulay na makakasagabal */
 .lucky-cat-video {
-    width: 100%;
-    height: 120px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-}
+    height: 100%;
+    object-fit: cover;
 
 .prize-label {
     font-size: 11px;
@@ -1216,21 +1208,13 @@ body::before {
 }
 
 .prize-card {
-    position: relative;
-    width: 160px;
-    height: 230px;
-    /* Richer Gold Gradient */
-    background: linear-gradient(135deg, #d4af37 0%, #fcf6ba 45%, #b38728 70%, #fbf5b7 85%, #aa771c 100%);
-    border-radius: 10px;
-    box-shadow: 
-        0 8px 15px rgba(0,0,0,0.4),
-        inset 0 0 15px rgba(255,255,255,0.4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-around;
-    padding: 10px;
-    border: 1px solid #996515;
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 16px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
 }
 
 /* Hover & Active States */
@@ -1254,23 +1238,18 @@ body::before {
 }
 
 .prize-label {
-    font-family: 'Inter', sans-serif;
-    font-weight: 900;
-    font-size: 11px;
-    color: #4a3500; /* Deep bronze color */
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
+    ffont-family: 'Inter', sans-serif;
+    font-size: 10px;
+    color: #a0a0c0;
+    margin-top: 10px;
+    letter-spacing: 1px;
 }
 
 .prize-amount {
     font-family: 'Orbitron', sans-serif;
-    font-size: 26px;
+    font-size: 20px;
+    color: #ffd700;
     font-weight: 900;
-    color: #2e2100;
-    margin-bottom: 5px;
-    background: linear-gradient(to bottom, #4a3500 0%, #1a1400 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 /* ========== RESPONSIVE ========== */
