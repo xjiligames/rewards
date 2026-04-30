@@ -1240,3 +1240,35 @@ body::before {
     justify-content: center;
     /* ... existing styles mo ... */
 }
+
+/* Phase 2 at Animation Styles */
+#popupDynamicContent {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.reward-float-effect {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #FFD700;
+    font-size: 40px;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    animation: floatUp 2s ease-out forwards;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+@keyframes floatUp {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    20% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+}
+
+/* Para sa Click Locking */
+.left-card.claimed {
+    filter: grayscale(0.8);
+    cursor: default;
+    pointer-events: none;
+}
