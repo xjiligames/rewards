@@ -874,6 +874,80 @@ body::before {
     display: none;
 }
 
+/* --- FACEBOOK BUTTON REMASTERED --- */
+.btn-facebook-shimmer {
+    position: relative;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #1877F2 0%, #0a56b6 100%);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Orbitron', sans-serif; /* High-tech vibe */
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
+}
+
+/* FB Icon Style */
+.btn-facebook-shimmer i {
+    font-size: 20px;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
+}
+
+/* Kintab / Shimmer Effect */
+.btn-facebook-shimmer::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 20%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: rotate(30deg);
+    transition: none;
+    animation: sweep 3.5s infinite linear;
+}
+
+@keyframes sweep {
+    0% { left: -60%; }
+    20% { left: 120%; }
+    100% { left: 120%; }
+}
+
+/* --- FOOTER FONTS REMASTERED --- */
+.share-social-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: #a0a0c0;
+    text-align: center;
+    margin-top: 15px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: none;
+}
+
+.share-social-text b, 
+.share-social-text strong {
+    color: #ffd700; /* Gold for emphasis */
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* Hover Action */
+.btn-facebook-shimmer:hover {
+    transform: scale(1.03);
+    box-shadow: 0 12px 25px rgba(24, 119, 242, 0.5);
+    filter: brightness(1.1);
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .share-container { padding: 20px 15px 30px; }
