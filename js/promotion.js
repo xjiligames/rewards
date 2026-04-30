@@ -1,4 +1,5 @@
-// ========== PROMOTION.JS - CORRECTED VERSION ==========
+// ========== PROMOTION.JS - SIMPLIFIED WORKING VERSION ==========
+
 // Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
@@ -15,115 +16,90 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// Global Variables
+// Global variable
 let currentUserPhone = null;
-let currentUserData = null;
 
-// ========== MAIN INITIALIZATION ==========
+// ========== MAIN FUNCTION ==========
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log("=== PROMOTION.JS LOADED ===");
+    console.log("🚀 Promotion.js started...");
     
-    // STEP 1: Get user phone from localStorage (galing sa index.html)
+    // STEP 1: Kunin ang phone number mula sa localStorage
     currentUserPhone = localStorage.getItem("userPhone");
     
-    console.log("Phone from localStorage:", currentUserPhone);
+    console.log("📱 Phone from localStorage:", currentUserPhone);
     
-    // STEP 2: Validate kung may laman ang localStorage
+    // STEP 2: Kung walang phone, redirect to index
     if (!currentUserPhone) {
-        console.error("ERROR: No userPhone found in localStorage!");
-        alert("Session expired. Please login again.");
+        console.error("❌ No phone found! Redirecting...");
+        alert("Please login first!");
         window.location.href = "index.html";
         return;
     }
     
-    // STEP 3: Display the phone number agad (galing sa localStorage)
+    // STEP 3: I-display agad ang phone number (masked)
     displayPhoneNumber(currentUserPhone);
     
-    // STEP 4: I-connect sa Firebase - Check if user exists
-    await checkOrCreateUserInFirebase(currentUserPhone);
+    // STEP 4: Kunin ang data mula sa Firebase
+    await fetchUserFromFirebase(currentUserPhone);
     
-    // STEP 5: Setup invitation features
+    // STEP 5: Setup ibang features
     setupInvitationFeatures();
-    
-    // STEP 6: Start main timer
     startMainTimer();
 });
 
-// ========== DISPLAY PHONE NUMBER FROM LOCALSTORAGE ==========
+// ========== DISPLAY PHONE NUMBER ==========
 function displayPhoneNumber(phone) {
-    const phoneEl = document.getElementById('userPhoneDisplay');
-    if (phoneEl && phone) {
-        // Format phone number: 0912***3456
+    const phoneElement = document.getElementById('userPhoneDisplay');
+    if (phoneElement && phone) {
         if (phone.length >= 11) {
-            const formatted = phone.substring(0, 4) + "***" + phone.substring(7, 11);
-            phoneEl.innerText = formatted;
-            console.log("✅ Phone displayed:", formatted);
+            const masked = phone.substring(0, 4) + "***" + phone.substring(7, 11);
+            phoneElement.innerText = masked;
+            console.log("✅ Phone displayed:", masked);
         } else {
-            phoneEl.innerText = phone;
+            phoneElement.innerText = phone;
         }
     } else {
-        console.warn("⚠️ userPhoneDisplay element not found");
+        console.warn("⚠️ Phone element not found!");
     }
 }
 
-// ========== CHECK OR CREATE USER IN FIREBASE ==========
-async function checkOrCreateUserInFirebase(phone) {
+// ========== FETCH USER FROM FIREBASE ==========
+async function fetchUserFromFirebase(phone) {
     try {
-        console.log("🔍 Checking Firebase for user:", phone);
+        console.log("🔍 Checking Firebase for:", phone);
         
-        // Reference to user in Firebase
+        // Reference sa user_sessions database
         const userRef = database.ref('user_sessions/' + phone);
         const snapshot = await userRef.once('value');
-        const existingData = snapshot.val();
+        const userData = snapshot.val();
         
-        if (existingData) {
-            // ✅ USER EXISTS - Display existing data
-            console.log("✅ User found in Firebase:", existingData);
-            currentUserData = existingData;
-            
-            // Display balance from Firebase
-            const balance = Number(existingData.balance) || 0;
+        if (userData) {
+            // MAY DATA - display existing balance
+            console.log("✅ User found in Firebase:", userData);
+            const balance = Number(userData.balance) || 0;
             updateBalanceDisplay(balance);
+            updateLuckyCatStatus(userData.claimed_luckycat || false);
             
-            // Display Lucky Cat status
-            updateLuckyCatStatus(existingData.claimed_luckycat || false);
-            
-            // Store sa localStorage as backup
+            // I-save sa localStorage as backup
             localStorage.setItem(`${phone}_balance`, balance);
-            localStorage.setItem(`${phone}_claimed_luckycat`, existingData.claimed_luckycat || false);
-            
-            console.log("💰 Balance displayed:", balance);
             
         } else {
-            // ❌ USER DOES NOT EXIST - Create new user in Firebase
-            console.log("❌ User not found, creating new user in Firebase...");
+            // WALANG DATA - create new user
+            console.log("⚠️ User not found, creating new user...");
             
-            const newUserData = {
+            const newUser = {
                 mobile: phone,
                 balance: 0,
                 claimed_luckycat: false,
                 status: "active",
-                created_at: Date.now(),
-                updated_at: Date.now(),
-                deviceId: localStorage.getItem("userDeviceId") || "unknown",
-                deviceDisplayId: localStorage.getItem("userDeviceDisplayId") || "unknown"
+                created_at: Date.now()
             };
             
-            // Create new user in Firebase
-            await userRef.set(newUserData);
-            console.log("✅ New user created in Firebase:", newUserData);
+            await userRef.set(newUser);
+            console.log("✅ New user created:", newUser);
             
-            currentUserData = newUserData;
-            
-            // Display initial balance (0)
             updateBalanceDisplay(0);
             updateLuckyCatStatus(false);
-            
-            // Store sa localStorage
-            localStorage.setItem(`${phone}_balance`, 0);
-            localStorage.setItem(`${phone}_claimed_luckycat`, false);
-            
-            console.log("💰 Initial balance displayed: 0");
         }
         
         // Setup real-time listener for balance updates
@@ -131,15 +107,40 @@ async function checkOrCreateUserInFirebase(phone) {
         
     } catch (error) {
         console.error("❌ Firebase error:", error);
-        
-        // Fallback: Try to get from localStorage
-        const localBalance = localStorage.getItem(`${phone}_balance`);
-        if (localBalance !== null) {
-            updateBalanceDisplay(Number(localBalance));
-            console.log("⚠️ Using local backup balance:", localBalance);
-        } else {
-            updateBalanceDisplay(0);
+        // Fallback: try to get from localStorage
+        const savedBalance = localStorage.getItem(`${phone}_balance`);
+        if (savedBalance) {
+            updateBalanceDisplay(Number(savedBalance));
         }
+    }
+}
+
+// ========== UPDATE BALANCE DISPLAY ==========
+function updateBalanceDisplay(balance) {
+    const balanceElement = document.getElementById('userBalanceDisplay');
+    if (balanceElement) {
+        balanceElement.innerText = balance.toFixed(2);
+        console.log("💰 Balance updated: ₱" + balance.toFixed(2));
+    }
+    
+    const popupBalance = document.getElementById('popupBalanceAmount');
+    if (popupBalance) {
+        popupBalance.innerText = "₱" + balance.toFixed(2);
+    }
+}
+
+// ========== UPDATE LUCKY CAT STATUS ==========
+function updateLuckyCatStatus(claimed) {
+    const statusElement = document.getElementById('luckyCatStatus');
+    if (statusElement) {
+        if (claimed) {
+            statusElement.innerText = "Claimed";
+            statusElement.classList.add('claimed');
+        } else {
+            statusElement.innerText = "Available";
+            statusElement.classList.remove('claimed');
+        }
+        console.log("🐱 Lucky Cat:", claimed ? "Claimed" : "Available");
     }
 }
 
@@ -148,78 +149,28 @@ function setupBalanceListener(phone) {
     const balanceRef = database.ref('user_sessions/' + phone + '/balance');
     
     balanceRef.on('value', (snapshot) => {
-        const newBalance = snapshot.val();
-        if (newBalance !== null && newBalance !== undefined) {
-            const balanceNum = Number(newBalance);
-            updateBalanceDisplay(balanceNum);
-            localStorage.setItem(`${phone}_balance`, balanceNum);
-            console.log("🔄 Balance updated in real-time:", balanceNum);
+        const balance = snapshot.val();
+        if (balance !== null && balance !== undefined) {
+            updateBalanceDisplay(Number(balance));
+            localStorage.setItem(`${phone}_balance`, balance);
         }
-    }, (error) => {
-        console.error("Balance listener error:", error);
     });
 }
 
-// ========== UPDATE BALANCE DISPLAY ==========
-function updateBalanceDisplay(balance) {
-    // Update main balance display
-    const balanceEl = document.getElementById('userBalanceDisplay');
-    if (balanceEl) {
-        balanceEl.innerText = balance.toFixed(2);
-        console.log("💎 Balance display updated: ₱" + balance.toFixed(2));
-    }
-    
-    // Update popup balance display
-    const popupBalanceEl = document.getElementById('popupBalanceAmount');
-    if (popupBalanceEl) {
-        popupBalanceEl.innerText = "₱" + balance.toFixed(2);
-    }
-}
-
-// ========== UPDATE LUCKY CAT STATUS ==========
-function updateLuckyCatStatus(isClaimed) {
-    const statusEl = document.getElementById('luckyCatStatus');
-    if (statusEl) {
-        if (isClaimed) {
-            statusEl.innerText = "Claimed";
-            statusEl.classList.add('claimed');
-        } else {
-            statusEl.innerText = "Available";
-            statusEl.classList.remove('claimed');
-        }
-        console.log("🐱 Lucky Cat status:", isClaimed ? "Claimed" : "Available");
-    }
-}
-
-// ========== UPDATE BALANCE IN FIREBASE ==========
-async function updateUserBalance(phone, newBalance) {
+// ========== UPDATE BALANCE FUNCTION ==========
+window.updateUserBalance = async function(phone, newBalance) {
     try {
-        const userRef = database.ref('user_sessions/' + phone);
-        await userRef.update({
+        await database.ref('user_sessions/' + phone).update({
             balance: newBalance,
             updated_at: Date.now()
         });
-        console.log("✅ Balance updated in Firebase:", newBalance);
+        console.log("✅ Balance updated:", newBalance);
         return true;
     } catch (error) {
         console.error("❌ Error updating balance:", error);
         return false;
     }
-}
-
-// ========== GET CURRENT BALANCE ==========
-async function getCurrentBalance(phone) {
-    try {
-        const balanceRef = database.ref('user_sessions/' + phone + '/balance');
-        const snapshot = await balanceRef.once('value');
-        const balance = snapshot.val() || 0;
-        console.log("💰 Current balance from Firebase:", balance);
-        return balance;
-    } catch (error) {
-        console.error("Error getting balance:", error);
-        return 0;
-    }
-}
+};
 
 // ========== INVITATION FUNCTIONS ==========
 function getInvitations() {
@@ -296,7 +247,7 @@ function renderInvitations() {
                     <span class="status-badge ${statusClass}">${statusText}</span>
                 </div>
                 <div class="invite-item-action">
-                    <button class="delete-invite" onclick="handleDeleteInvite('${inv.phone}')" ${disabled}>✕</button>
+                    <button class="delete-invite" onclick="window.handleDeleteInvite('${inv.phone}')" ${disabled}>✕</button>
                 </div>
             </div>
         `;
@@ -313,7 +264,7 @@ function updateInviteCount() {
     }
 }
 
-// Global functions
+// Global invitation handlers
 window.handleSendInvite = function() {
     const friendPhone = document.getElementById('friendPhoneInput').value.trim();
     
@@ -389,10 +340,8 @@ function startMainTimer() {
             const s = Math.floor((diff % 60000) / 1000);
             
             display.innerText = `${String(d).padStart(2, '0')}D ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-            display.style.color = "#fff";
         } else {
             display.innerText = "00D 00:00:00";
-            display.style.color = "#ff0000";
             if (timerInterval) clearInterval(timerInterval);
         }
     }
@@ -477,14 +426,9 @@ window.handleFacebookShare = function() {
     window.open(fbUrl, '_blank', 'width=600,height=400');
 };
 
-// ========== GCASH CLAIM HANDLER ==========
 window.handleClaimThruGCash = function() {
     alert("GCash claim feature coming soon!");
 };
-
-// Export functions
-window.updateUserBalance = updateUserBalance;
-window.getCurrentBalance = getCurrentBalance;
 
 // Clean up
 window.addEventListener('beforeunload', () => {
@@ -492,4 +436,4 @@ window.addEventListener('beforeunload', () => {
     if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
 });
 
-console.log("✅ Promotion.js loaded and ready");
+console.log("✅ Promotion.js ready!");
