@@ -488,13 +488,13 @@ body::before {
     background: #2a1a3a;
     position: relative;
     transition: all 0.3s ease;
-    mix-blend-mode: multiply; 
-    background-color: transparent;
+}
 
-/* Siguraduhin na ang container ay walang kulay na makakasagabal */
-.lucky-cat-video {
+.lucky-cat-video video {
+    width: 100%;
     height: 100%;
     object-fit: cover;
+}
 
 .prize-label {
     font-size: 11px;
@@ -534,46 +534,49 @@ body::before {
 }
 
 /* ========== TIME LEFT SECTION ========== */
-/* Container design */
+
 .time-left-section {
-    background: linear-gradient(180deg, #0a0a1a 0%, #1a1a2e 100%);
-    border: 2px solid #ffd700;
-    border-radius: 15px;
-    padding: 20px;
-    margin: 25px auto;
-    width: 90%;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-}
+    background: rgba(255, 255, 255, 0.05); /* Very subtle gray background para umangat sa pure black */
+    border: 1px solid rgba(255, 215, 0, 0.3); /* Gold border highlight */
+    border-radius: 12px;
+    padding: 15px;
+    margin: 20px 0;
+    text-align: center;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 
-/* Ang font na Orbitron at Thrill Effect */
-.thrill-timer {
-    font-family: 'Orbitron', sans-serif; /* Siguradong Orbitron ang font */
-    font-size: 32px;
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
-    transition: all 0.1s ease-in-out;
 
-/* Thrill Animation: Nag-sh-shake at nag-f-flash ng bahagya */
-.timer-tick {
-    animation: tick-shake 0.3s ease-out;
-}
 
-@keyframes tick-shake {
-    0% { transform: scale(1); text-shadow: 0 0 10px #00d4ff; }
-    50% { transform: scale(1.05); text-shadow: 0 0 25px #ffd700, 0 0 35px #ffd700; color: #ffd700; }
-    100% { transform: scale(1); text-shadow: 0 0 10px #00d4ff; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 .time-label {
-    color: #ffd700;
+    color: #ffd700; /* Gold color para sa label */
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
     font-weight: 800;
-    font-size: 13px;
-    margin-bottom: 10px;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
     text-transform: uppercase;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
 }
-    
+
 .glowing-timer {
     color: #ffffff; /* Puting text para kitang-kita */
     font-family: 'Orbitron', sans-serif; /* Gamit ang font na gusto mo */
@@ -1238,7 +1241,7 @@ body::before {
 }
 
 .prize-label {
-    ffont-family: 'Inter', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 10px;
     color: #a0a0c0;
     margin-top: 10px;
