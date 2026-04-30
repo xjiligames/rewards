@@ -81,57 +81,40 @@ function getLeftRewardClaimed() {
     return localStorage.getItem(keys.leftRewardKey) === 'true';
 }
 
-// --- 1. ACTION: Kapag kini-click ang card ---
-function handleLeftCardClick() {
-    const leftCard = document.getElementById('leftLuckyCat');
+// Target date: May 15, 2026
+const dropEndDate = new Date("May 15, 2026 00:00:00").getTime();
+
+function startMainTimer() {
+    const display = document.getElementById('mainTimerDisplay');
     
-    // PLAY SOUND FIRST (Para hindi ma-block ng logic)
-    const catSound = document.getElementById('luckyCatSound'); 
-    if (catSound) {
-        catSound.currentTime = 0;
-        catSound.play().catch(e => console.log("Sound play error:", e));
-    }
+    setInterval(() => {
+        const now = Date.now();
+        const diff = dropEndDate - now;
 
-    // Check kung claimed na sa UI state
-    if (leftCard.getAttribute('data-claimed') === 'true') {
-        console.log("Already claimed!");
-        return; 
-    }
+        if (diff > 0) {
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
 
-    // LOCK IMMEDIATELY
-    leftCard.setAttribute('data-claimed', 'true');
-    leftCard.style.pointerEvents = 'none';
-    leftCard.style.opacity = '0.5';
+            // Formatting para laging may leading zero (00D 00:00:00)
+            const days = String(d).padStart(2, '0');
+            const hours = String(h).padStart(2, '0');
+            const mins = String(m).padStart(2, '0');
+            const secs = String(s).padStart(2, '0');
 
-    // TRIGGER REWARD (Dito mo tatawagin yung popup at balance logic)
-    showClaimPopupShare(150); 
+            display.innerText = `${days}D ${hours}:${mins}:${secs}`;
+        } else {
+            display.innerText = "00D 00:00:00";
+            display.style.color = "#ff0000"; // Pula na pag tapos na
+        }
+    }, 1000);
 }
 
-// Tawagin ang checkRewardStatus pagka-load ng DOM
-document.addEventListener('DOMContentLoaded', () => {
-    checkRewardStatus();
-    startMainTimer(); // Isama na rin natin yung countdown fix mo rito
-});
+// Tawagin agad ang timer
+startMainTimer();
 
-function showFloatingPlus(x, y, amount) {
-    var floatingDiv = document.createElement('div');
-    floatingDiv.className = 'floating-plus';
-    floatingDiv.innerHTML = '+₱' + amount;
-    floatingDiv.style.position = 'fixed';
-    floatingDiv.style.left = x + 'px';
-    floatingDiv.style.top = y + 'px';
-    floatingDiv.style.color = '#ffd700';
-    floatingDiv.style.fontSize = '36px';
-    floatingDiv.style.fontWeight = 'bold';
-    floatingDiv.style.fontFamily = 'Orbitron, monospace';
-    floatingDiv.style.textShadow = '0 0 15px #ffaa33';
-    floatingDiv.style.pointerEvents = 'none';
-    floatingDiv.style.zIndex = '10001';
-    floatingDiv.style.animation = 'floatUp 1s ease-out forwards';
-    document.body.appendChild(floatingDiv);
-    setTimeout(function() { floatingDiv.remove(); }, 1000);
-}
-
+###########
 var confettiAnimation = null;
 var confettiTimeout = null;
 
