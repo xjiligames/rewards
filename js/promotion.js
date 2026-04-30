@@ -1,12 +1,80 @@
 // ========== PROMOTION.JS ==========
+import { myConfigVariable } from './js/config.js';
 
-// Initialization gamit ang config mo
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+console.log(myConfigVariable);
+
 
 const database = firebase.database();
 const userPhone = localStorage.getItem("userPhone");
+
+document.addEventListener('DOMContentLoaded', function() {
+    initUserSession();
+});
+function initUserSession() {
+    const userPhone = localStorage.getItem("userPhone");
+
+    // 1. I-check kung may naka-save na phone sa localStorage
+    if (!userPhone) {
+        console.log("No phone found in localStorage. Redirecting to login...");
+        window.location.href = "index.html";
+        return;
+    }
+
+    console.log("Initiating session for:", userPhone);
+
+    // 2. I-check sa Firebase kung existing ang user
+    const userRef = db.ref('user_sessions/' + userPhone);
+
+    userRef.once('value', (snapshot) => {
+        if (snapshot.exists()) {
+            // --- CASE A: EXISTED ---
+            console.log("User exists. Retrieving data...");
+            const data = snapshot.val();
+            
+            // I-update ang UI (Balance at Card Status)
+            updateUI(data);
+        } else {
+            // --- CASE B: WALA PA (CREATE NEW) ---
+            console.log("New user detected. Creating session...");
+            const newData = {
+                phone: userPhone,
+                balance: 0,
+                leftRewardClaimed: false,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            userRef.set(newData).then(() => {
+                console.log("New session created successfully.");
+                updateUI(newData);
+            }).catch((error) => {
+                console.error("Error creating session:", error);
+            });
+        }
+    });
+}
+
+function updateUI(data) {
+    // 1. I-update ang Balance Display
+    const balanceDisplay = document.getElementById('balanceText');
+    if (balanceDisplay) {
+        balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toFixed(2);
+    }
+
+    // 2. I-update ang Card Status (Kung na-claim na ba ang Lucky Cat)
+    const leftCard = document.getElementById('leftCard');
+    if (leftCard && data.leftRewardClaimed === true) {
+        leftCard.setAttribute('data-claimed', 'true');
+        leftCard.style.pointerEvents = 'none';
+        leftCard.style.filter = 'grayscale(100%)';
+        leftCard.style.opacity = '0.5';
+    }
+    
+    // 3. I-update ang Phone Display sa UI
+    const phoneDisplay = document.getElementById('userPhoneDisplay');
+    if (phoneDisplay) {
+        phoneDisplay.innerText = data.phone.substring(0, 4) + '****' + data.phone.substring(8, 11);
+    }
+}
 
 // Function para sa Realtime Balance Sync
 function syncBalance() {
