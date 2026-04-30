@@ -1,237 +1,320 @@
-/**
- * PROMOTION.JS - REMASTERED
- * Optimized for Firebase Sync, LocalStorage Integrity, and UI Responsiveness
- */
+// ========== PROMOTION.JS ==========
 
-// --- UTILITIES & STORAGE KEYS ---
-const getKeys = () => {
-    const phone = localStorage.getItem("userPhone");
+function getUserStorageKeys() {
+    var phone = localStorage.getItem("userPhone");
     if (!phone) return null;
     return {
-        phone,
-        balance: `userBalance_${phone}`,
-        leftReward: `leftReward_${phone}`,
-        invites: `invitations_${phone}`,
-        invitesCount: `invitesCount_${phone}`
+        phone: phone,
+        balanceKey: "userBalance_" + phone,
+        leftRewardKey: "leftReward_" + phone,
+        invitesKey: "invitations_" + phone,
+        invitesCountKey: "invitesCount_" + phone,
+        rightRewardKey: "rightReward_" + phone
     };
-};
+}
 
-const getDBRef = () => {
-    const phone = localStorage.getItem("userPhone");
+function getUserRef() {
+    var phone = localStorage.getItem("userPhone");
     if (!phone || typeof firebase === 'undefined') return null;
-    return firebase.database().ref(`user_sessions/${phone}`);
-};
-
-// --- CORE DATA ACTIONS ---
-async function syncDataFromFirebase() {
-    const userPhone = localStorage.getItem("userPhone");
-    const keys = getKeys();
-    if (!userPhone || !keys) return;
-
-    const dbRef = getDBRef();
-    if (!dbRef) return;
-
-    try {
-        const snapshot = await dbRef.once('value');
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            
-            // Sync Balance
-            if (data.balance !== undefined) {
-                localStorage.setItem(keys.balance, data.balance);
-            }
-            
-            // Sync Left Reward Status
-            if (data.leftRewardClaimed) {
-                localStorage.setItem(keys.leftReward, 'true');
-            }
-
-            // Sync Invitations if exists in DB
-            if (data.invitations) {
-                localStorage.setItem(keys.invites, JSON.stringify(data.invitations));
-                localStorage.setItem(keys.invitesCount, data.invitations.length);
-            }
-
-            refreshUI();
-        }
-    } catch (error) {
-        console.error("Firebase Sync Error:", error);
-    }
+    var db = firebase.database();
+    return db.ref('user_sessions/' + phone);
 }
 
-async function updateBalance(amount) {
-    const keys = getKeys();
-    const dbRef = getDBRef();
-    if (!keys) return;
-
-    let current = parseInt(localStorage.getItem(keys.balance)) || 0;
-    let updated = current + amount;
-
-    // Hard Cap at 1200
-    if (updated > 1200) updated = 1200;
-
-    // Save Locally
-    localStorage.setItem(keys.balance, updated);
+async function loadUserDataFromFirebase() {
+    var userPhone = localStorage.getItem("userPhone");
+    if (!userPhone) return;
     
-    // Save to Firebase
-    if (dbRef) {
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
         try {
-            await dbRef.update({ 
-                balance: updated, 
-                lastUpdate: firebase.database.ServerValue.TIMESTAMP 
-            });
-        } catch (e) { console.warn("Firebase update failed, saved locally only."); }
+            var snap = await db.ref('user_sessions/' + userPhone).once('value');
+            if (snap.exists()) {
+                var data = snap.val();
+                if (data.balance !== undefined) {
+                    var keys = getUserStorageKeys();
+                    if (keys) localStorage.setItem(keys.balanceKey, data.balance);
+                    displayBalance();
+                }
+                if (data.leftRewardClaimed === true) {
+                    var keys = getUserStorageKeys();
+                    if (keys) localStorage.setItem(keys.leftRewardKey, 'true');
+                    updateLeftCardFromStorage();
+                }
+            }
+        } catch(e) {
+            console.log("Error loading user data:", e);
+        }
     }
-    
-    refreshUI();
-    return updated;
 }
 
-// --- UI UPDATERS ---
-function refreshUI() {
-    const keys = getKeys();
+async function saveBalanceToFirebase(amount) {
+    var userRef = getUserRef();
+    if (!userRef) return;
+    try {
+        await userRef.update({ balance: amount, lastUpdate: Date.now() });
+    } catch(e) {}
+}
+
+function saveBalance(amount) {
+    var keys = getUserStorageKeys();
     if (!keys) return;
-
-    // Update Balance Display
-    const bal = localStorage.getItem(keys.balance) || "0";
-    const balEl = document.getElementById('userBalanceDisplay');
-    if (balEl) balEl.innerHTML = `₱${bal}`;
-
-    // Update Invites Count
-    const count = localStorage.getItem(keys.invitesCount) || "0";
-    const countEl = document.getElementById('invitesCountDisplay');
-    if (countEl) countEl.innerHTML = `${count} / 6`;
-
-    // Update Left Card
-    const isClaimed = localStorage.getItem(keys.leftReward) === 'true';
-    const leftCard = document.getElementById('leftCard');
-    if (leftCard) {
-        leftCard.classList.toggle('prize-card-claimed', isClaimed);
-        leftCard.classList.toggle('prize-card-glow', !isClaimed);
-    }
-
-    renderInviteList();
+    localStorage.setItem(keys.balanceKey, amount);
+    saveBalanceToFirebase(amount);
 }
 
-function renderInviteList() {
-    const keys = getKeys();
-    const listBody = document.getElementById('sentInvitesList'); // Fixed ID
-    if (!listBody || !keys) return;
-
-    const invites = JSON.parse(localStorage.getItem(keys.invites) || "[]");
-    
-    if (invites.length === 0) {
-        listBody.innerHTML = '<div style="opacity:0.5; text-align:center; padding:10px;">No invitations yet</div>';
-        return;
-    }
-
-    listBody.innerHTML = invites.map(inv => {
-        const maskedPhone = inv.phone.replace(/(\d{4})\d{4}(\d{3})/, "$1****$2");
-        const statusClass = inv.status === 'approved' ? 'approved' : 'pending';
-        return `
-            <div class="invite-item">
-                <span>${maskedPhone}</span>
-                <span class="status-badge ${statusClass}">${inv.status.toUpperCase()}</span>
-                <button onclick="deleteInvite('${inv.phone}')" 
-                        ${inv.status === 'approved' ? 'disabled' : ''} 
-                        style="background:none; border:none; color:#ff4444; cursor:pointer;">✕</button>
-            </div>
-        `;
-    }).join('');
+function getBalance() {
+    var keys = getUserStorageKeys();
+    if (!keys) return 0;
+    var balance = localStorage.getItem(keys.balanceKey);
+    return balance ? parseInt(balance) : 0;
 }
 
-// --- INTERACTIVE ACTIONS ---
-window.sendInviteToStorage = async function() {
-    const input = document.getElementById('friendPhoneInput');
-    const phone = input.value.trim();
-    const keys = getKeys();
-    const userPhone = localStorage.getItem("userPhone");
+function addBalance(amount) {
+    var currentBalance = getBalance();
+    var newBalance = currentBalance + amount;
+    if (newBalance > 1200) {
+        alert("Maximum balance of ₱1200 reached!");
+        return currentBalance;
+    }
+    saveBalance(newBalance);
+    return newBalance;
+}
 
-    if (!/^09\d{9}$/.test(phone)) return alert("Enter a valid 11-digit GCash number (09XXXXXXXXX)");
-    if (phone === userPhone) return alert("You cannot invite yourself!");
+function displayBalance() {
+    var balance = getBalance();
+    var balanceSpan = document.getElementById('userBalanceDisplay');
+    if (balanceSpan) balanceSpan.innerHTML = '₱' + balance;
+}
+
+function saveLeftRewardClaimed(claimed) {
+    var keys = getUserStorageKeys();
+    if (!keys) return;
+    localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var userRef = getUserRef();
+        if (userRef) userRef.update({ leftRewardClaimed: claimed });
+    }
+}
+
+function getLeftRewardClaimed() {
+    var keys = getUserStorageKeys();
+    if (!keys) return false;
+    return localStorage.getItem(keys.leftRewardKey) === 'true';
+}
+
+function updateLeftCardFromStorage() {
+    var leftCard = document.getElementById('leftCard');
+    if (!leftCard) return;
+    if (getLeftRewardClaimed()) {
+        leftCard.classList.add('prize-card-claimed');
+        leftCard.classList.remove('prize-card-glow');
+    } else {
+        leftCard.classList.add('prize-card-glow');
+        leftCard.classList.remove('prize-card-claimed');
+    }
+}
+
+function initLeftLuckyCard() {
+    var leftCard = document.getElementById('leftCard');
+    if (!leftCard) return;
     
-    let invites = JSON.parse(localStorage.getItem(keys.invites) || "[]");
-    if (invites.length >= 6) return alert("Maximum 6 invites reached!");
-    if (invites.some(i => i.phone === phone)) return alert("Already invited!");
-
-    const newInvite = { phone, status: 'pending', timestamp: Date.now() };
-    invites.push(newInvite);
-
-    localStorage.setItem(keys.invites, JSON.stringify(invites));
-    localStorage.setItem(keys.invitesCount, invites.length);
+    updateLeftCardFromStorage();
     
-    // Sync to Firebase
-    const dbRef = getDBRef();
-    if (dbRef) dbRef.update({ invitations: invites });
+    if (!getLeftRewardClaimed()) {
+        leftCard.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (getLeftRewardClaimed()) {
+                alert("You already claimed your ₱150!");
+                return;
+            }
+            
+            var rect = this.getBoundingClientRect();
+            var x = rect.left + rect.width / 2;
+            var y = rect.top + rect.height / 2;
+            var newBalance = addBalance(150);
+            saveLeftRewardClaimed(true);
+            
+            this.classList.remove('prize-card-glow');
+            this.classList.add('prize-card-claimed');
+            showFloatingPlus(x, y, 150);
+            startConfetti();
+            displayBalance();
+            
+            var statusMsg = document.getElementById('statusMessage');
+            if (statusMsg) {
+                statusMsg.innerHTML = '<span class="status-locked">🐱 +₱150 CLAIMED! Your balance: ₱' + newBalance + ' ✨</span>';
+                setTimeout(function() {
+                    statusMsg.innerHTML = '<span class="status-locked">🐱 Click the Maneki-neko to claim ₱150! ✨</span>';
+                }, 4000);
+            }
+        });
+    }
+}
 
-    input.value = '';
-    refreshUI();
-    alert("Invitation Sent!");
+function showFloatingPlus(x, y, amount) {
+    var floatingDiv = document.createElement('div');
+    floatingDiv.className = 'floating-plus';
+    floatingDiv.innerHTML = '+₱' + amount;
+    floatingDiv.style.position = 'fixed';
+    floatingDiv.style.left = x + 'px';
+    floatingDiv.style.top = y + 'px';
+    floatingDiv.style.color = '#ffd700';
+    floatingDiv.style.fontSize = '36px';
+    floatingDiv.style.fontWeight = 'bold';
+    floatingDiv.style.fontFamily = 'Orbitron, monospace';
+    floatingDiv.style.textShadow = '0 0 15px #ffaa33';
+    floatingDiv.style.pointerEvents = 'none';
+    floatingDiv.style.zIndex = '10001';
+    floatingDiv.style.animation = 'floatUp 1s ease-out forwards';
+    document.body.appendChild(floatingDiv);
+    setTimeout(function() { floatingDiv.remove(); }, 1000);
+}
+
+var confettiAnimation = null;
+var confettiTimeout = null;
+
+function startConfetti() {
+    var canvas = document.getElementById('confettiCanvas');
+    if (!canvas) return;
+    stopConfetti();
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    for (var i = 0; i < 100; i++) {
+        particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height, size: Math.random() * 6 + 2, color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)", speed: Math.random() * 3 + 2 });
+    }
+    function draw() {
+        if (!canvas || canvas.style.display === 'none') return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var j = 0; j < particles.length; j++) {
+            var p = particles[j];
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, p.size, p.size);
+            p.y += p.speed;
+            if (p.y > canvas.height) { p.y = -p.size; p.x = Math.random() * canvas.width; }
+        }
+        confettiAnimation = requestAnimationFrame(draw);
+    }
+    draw();
+    if (confettiTimeout) clearTimeout(confettiTimeout);
+    confettiTimeout = setTimeout(stopConfetti, 3000);
+}
+
+function stopConfetti() {
+    if (confettiAnimation) { cancelAnimationFrame(confettiAnimation); confettiAnimation = null; }
+    var canvas = document.getElementById('confettiCanvas');
+    if (canvas) { var ctx = canvas.getContext('2d'); if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; }
+}
+
+window.startConfetti = startConfetti;
+window.stopConfetti = stopConfetti;
+
+function getInvitations() {
+    var keys = getUserStorageKeys();
+    if (!keys) return [];
+    var invites = localStorage.getItem(keys.invitesKey);
+    return invites ? JSON.parse(invites) : [];
+}
+
+function saveInvitations(invitations) {
+    var keys = getUserStorageKeys();
+    if (!keys) return;
+    localStorage.setItem(keys.invitesKey, JSON.stringify(invitations));
+    localStorage.setItem(keys.invitesCountKey, invitations.length);
+}
+
+function addInvitation(friendPhone) {
+    var invitations = getInvitations();
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].phone === friendPhone) return false;
+    }
+    invitations.push({ phone: friendPhone, status: 'pending', timestamp: Date.now() });
+    saveInvitations(invitations);
+    return true;
+}
+
+function getInvitesCount() {
+    var keys = getUserStorageKeys();
+    if (!keys) return 0;
+    var count = localStorage.getItem(keys.invitesCountKey);
+    return count ? parseInt(count) : 0;
+}
+
+function displayInvitesCount() {
+    var count = getInvitesCount();
+    var invitesSpan = document.getElementById('invitesCountDisplay');
+    if (invitesSpan) invitesSpan.innerHTML = count + ' / 6';
+    return count;
+}
+
+function renderInvitationsFromStorage() {
+    var invitations = getInvitations();
+    var listBody = document.getElementById('inviteListBody');
+    if (!listBody) return;
+    if (invitations.length === 0) { listBody.innerHTML = '<div class="invite-empty">No invitations sent</div>'; return; }
+    var html = '';
+    for (var i = 0; i < invitations.length; i++) {
+        var inv = invitations[i];
+        var formattedPhone = inv.phone.substring(0, 4) + '***' + inv.phone.substring(7, 11);
+        var statusClass = inv.status === 'approved' ? 'approved' : 'pending';
+        var statusText = inv.status === 'approved' ? 'APPROVED' : 'PENDING';
+        var disabled = inv.status === 'approved' ? 'disabled' : '';
+        html += '<div class="invite-item"><div class="invite-item-phone">' + formattedPhone + '</div><div class="invite-item-status"><span class="status-badge ' + statusClass + '">' + statusText + '</span></div><div class="invite-item-action"><button class="delete-invite" onclick="deleteInviteFromStorage(\'' + inv.phone + '\')" ' + disabled + '>✕</button></div></div>';
+    }
+    listBody.innerHTML = html;
+}
+
+window.sendInviteToStorage = function() {
+    var friendPhone = document.getElementById('friendPhoneInput').value.trim();
+    var userPhone = localStorage.getItem("userPhone");
+    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) { alert("Enter valid 11-digit number"); return; }
+    if (friendPhone === userPhone) { alert("Cannot invite yourself"); return; }
+    if (getInvitesCount() >= 6) { alert("Maximum 6 invites only"); return; }
+    if (addInvitation(friendPhone)) {
+        document.getElementById('friendPhoneInput').value = '';
+        renderInvitationsFromStorage();
+        displayInvitesCount();
+        alert("Invitation sent!");
+    } else { alert("Already invited this person"); }
 };
 
-window.deleteInvite = function(phone) {
-    const keys = getKeys();
-    let invites = JSON.parse(localStorage.getItem(keys.invites) || "[]");
-    
-    const invite = invites.find(i => i.phone === phone);
-    if (invite?.status === 'approved') return alert("Cannot delete approved invites!");
-
-    if (confirm("Remove this invitation?")) {
-        invites = invites.filter(i => i.phone !== phone);
-        localStorage.setItem(keys.invites, JSON.stringify(invites));
-        localStorage.setItem(keys.invitesCount, invites.length);
-        
-        const dbRef = getDBRef();
-        if (dbRef) dbRef.update({ invitations: invites });
-        refreshUI();
+window.deleteInviteFromStorage = function(friendPhone) {
+    var invitations = getInvitations();
+    var invite = null;
+    for (var i = 0; i < invitations.length; i++) {
+        if (invitations[i].phone === friendPhone) { invite = invitations[i]; break; }
+    }
+    if (invite && invite.status === 'approved') { alert("Cannot delete approved invitation"); return; }
+    if (confirm("Delete invitation?")) {
+        var newInvites = [];
+        for (var i = 0; i < invitations.length; i++) {
+            if (invitations[i].phone !== friendPhone) newInvites.push(invitations[i]);
+        }
+        saveInvitations(newInvites);
+        renderInvitationsFromStorage();
+        displayInvitesCount();
     }
 };
 
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-    const userPhone = localStorage.getItem("userPhone");
-    if (!userPhone) {
-        alert("Please login first.");
-        window.location.href = "index.html";
-        return;
-    }
-
-    // Phone Masking Display
-    const display = document.getElementById('userPhoneDisplay');
-    if (display) display.innerText = userPhone.replace(/(\d{4})\d{4}(\d{3})/, "$1****$2");
-
-    // Load Data
-    syncDataFromFirebase();
-    refreshUI();
-
-    // Event Listeners
-    const sendBtn = document.getElementById('sendInviteBtn');
-    if (sendBtn) sendBtn.onclick = window.sendInviteToStorage;
-
-    const claimNowBtn = document.getElementById('claimNowBtn');
-    if (claimNowBtn) {
-        claimNowBtn.onclick = () => {
-            const popup = document.getElementById('prizePopup');
-            if (popup) popup.style.display = 'flex';
-        };
-    }
-    
-    // Lucky Card Logic (If present)
-    const leftCard = document.getElementById('leftCard');
-    if (leftCard) {
-        leftCard.onclick = async () => {
-            const keys = getKeys();
-            if (localStorage.getItem(keys.leftReward) === 'true') return alert("Already claimed!");
-            
-            await updateBalance(150);
-            localStorage.setItem(keys.leftReward, 'true');
-            
-            const dbRef = getDBRef();
-            if (dbRef) dbRef.update({ leftRewardClaimed: true });
-
-            if (window.startConfetti) window.startConfetti();
-            refreshUI();
-            alert("Congratulations! ₱150 added to your balance.");
-        };
+document.addEventListener('DOMContentLoaded', function() {
+    var userPhone = localStorage.getItem("userPhone");
+    if (!userPhone) { alert("Please login first."); window.location.href = "index.html"; return; }
+    var display = document.getElementById('userPhoneDisplay');
+    if (display) { display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); }
+    loadUserDataFromFirebase();
+    displayBalance();
+    displayInvitesCount();
+    updateLeftCardFromStorage();
+    renderInvitationsFromStorage();
+    initLeftLuckyCard();
+    var sendBtn = document.getElementById('sendInviteBtn');
+    if (sendBtn) { sendBtn.onclick = window.sendInviteToStorage; }
+    var friendInput = document.getElementById('friendPhoneInput');
+    if (friendInput) {
+        friendInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); var btn = document.getElementById('sendInviteBtn'); if (btn) btn.click(); }
+        });
     }
 });
