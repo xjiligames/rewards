@@ -843,18 +843,25 @@ body::before {
     100% { transform: translate(1px, -1px); }
 }
 
-/* Siguraduhing clickable ang button */
-.claim-gcash-button {
-    pointer-events: auto !important; /* Force clickable */
-    z-index: 100;
-    position: relative;
-}
-
+/* Puwersahin ang button na maging clickable */
 #claimGCashBtn {
     position: relative !important;
-    z-index: 9999 !important;
-    pointer-events: auto !important;
+    z-index: 999999 !important; /* Pinaka-ibabaw sa lahat */
+    pointer-events: auto !important; /* Siguradong tumatanggap ng click */
     cursor: pointer !important;
+}
+
+/* Siguraduhin na ang mga image o divider ay hindi nakaharang */
+.popup-image-container, 
+.luckyday-img, 
+.popup-divider {
+    pointer-events: none !important; /* Lulusot ang click sa ilalim nito */
+}
+
+/* Siguraduhin na ang container ay hindi 'disabled' */
+.popup-container {
+    pointer-events: auto !important;
+}
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
