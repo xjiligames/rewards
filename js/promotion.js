@@ -17,24 +17,83 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 // Local Auth...
-document.addEventListener('DOMContentLoaded', function() {
-    // Kunin ang phone number mula sa local storage
+document.addEventListener('DOMContentLoaded', async function() {
+    // 1. Kunin ang phone number mula sa local storage
     const savedPhone = localStorage.getItem("userPhone");
 
-    if (savedPhone) {
-        // Gamitin ang savedPhone para i-load ang data mula sa Firebase
-        database.ref('user_sessions/' + savedPhone).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                document.getElementById('userPhoneDisplay').innerText = data.mobile;
-                document.getElementById('balanceAmount').innerText = "₱" + (data.balance || 0);
+    // 2. Security Check: Ibalik sa index kung walang session
+    if (!savedPhone) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    const userRef = database.ref('user_sessions/' + savedPhone);
+
+    try {
+        // 3. I-check kung existing o kailangang gawan ng bagong data
+        const snapshot = await userRef.once('value');
+
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            updateAllDisplays(userData);
+        } else {
+            // New Data Creation
+            const newUserData = {
+                mobile: savedPhone,
+                balance: 0.00,
+                status: "active",
+                created_at: firebase.database.ServerValue.TIMESTAMP
+            };
+            await userRef.set(newUserData);
+            updateAllDisplays(newUserData);
+        }
+
+        // 4. Real-time Listener (Para sa auto-update ng Balance)
+        userRef.on('value', (snap) => {
+            if (snap.exists()) {
+                updateAllDisplays(snap.val());
             }
         });
-    } else {
-        // Kung walang data sa local storage, balik sa index
-        window.location.href = "index.html";
+
+    } catch (error) {
+        console.error("Connection Error:", error);
     }
 });
+
+// Function para i-update ang lahat ng UI elements sa screen
+function updateAllDisplays(data) {
+    // A. I-display ang Phone Number
+    const phoneEl = document.getElementById('userPhoneDisplay');
+    if (phoneEl) {
+        // I-format ang phone (hal: 0912****789) para sa privacy
+        const p = data.mobile;
+        phoneEl.innerText = p.substring(0, 4) + "****" + p.substring(8, 11);
+    }
+
+    // B. I-display ang Balance (Mini Dashboard Remastered)
+    const balanceEl = document.getElementById('userBalanceDisplay');
+    if (balanceEl) {
+        const currentBalance = parseFloat(data.balance || 0).toFixed(2);
+        balanceEl.innerText = currentBalance;
+    }
+}
+
+function updateDashboardUI(data) {
+    const phoneDisplay = document.getElementById('userPhoneDisplay');
+    const balanceDisplay = document.getElementById('balanceAmount');
+
+    if (phoneDisplay) phoneDisplay.innerText = data.mobile;
+    if (balanceDisplay) balanceDisplay.innerText = "₱" + (data.balance || 0).toFixed(2);
+}
+
+function setupRealtimeListener(ref) {
+    ref.on('value', (snapshot) => {
+        const updatedData = snapshot.val();
+        if (updatedData) {
+            updateDashboardUI(updatedData);
+        }
+    });
+}
 
 // --- 1. Realtime Balance Callback ---
 function syncBalance() {
