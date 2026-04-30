@@ -337,33 +337,21 @@ window.handleFacebookShare = function() {
     return false;
 };
 
-window.handleCardActivation = function() {
-    const leftVideo = document.getElementById('leftCatVideo');
-    const rightVideo = document.getElementById('rightCatVideo');
+function enableSounds() {
+    const leftVid = document.getElementById('leftCatVideo');
+    const rightVid = document.getElementById('rightCatVideo');
 
-    // 1. Unmute at i-set ang volume sa 35%
-    leftVideo.muted = false;
-    leftVideo.volume = 0.35; 
+    // I-unmute ang Left Video at i-set ang volume
+    leftVid.muted = false;
+    leftVid.volume = 0.35; // Eto yung -35 (0.35 in code)
+
+    // I-unmute din ang Right Video para sabay sila
+    rightVid.muted = false;
+    rightVid.volume = 0.35;
+
+    // Siguraduhin na nag-ple-play sila (minsan nagpo-pause ang browser pag na-unmute)
+    leftVid.play();
+    rightVid.play();
     
-    // 2. Play the video
-    leftVideo.play().catch(error => {
-        console.log("Autoplay blocked, user interaction required: ", error);
-    });
-
-    // 3. Optional: Isabay ang right video pero manatiling muted 
-    // para maganda tignan ang dashboard transition
-    rightVideo.play();
-
-    // 4. Add "Active" visual effect sa CSS
-    document.getElementById('leftCard').classList.add('card-active');
-};
-
-window.addEventListener('DOMContentLoaded', (event) => {
-    const scatterIcon = document.querySelector('.sliding-scatter');
-    
-    // Opsyonal: Lagyan ng delay bago bumagsak ang coin (0.5 seconds)
-    setTimeout(() => {
-        scatterIcon.style.opacity = "1";
-        // Dito pwede mong i-play ang sound effect ng bumabagsak na barya kung meron ka
-    }, 500);
-});
+    console.log("Sounds activated at 35% volume");
+}
