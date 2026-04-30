@@ -1,306 +1,115 @@
-// ========== PROMOTION.JS ==========
-
-// config.js
-const firebaseConfig = {
-  apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
-  authDomain: "casinorewards-95502.firebaseapp.com",
-  databaseURL: "https://casinorewards-95502-default-rtdb.firebaseio.com",
-  projectId: "casinorewards-95502",
-  storageBucket: "casinorewards-95502.firebasestorage.app",
-  messagingSenderId: "768311187647",
-  appId: "1:768311187647:web:e26e8a5134a003ef634e0a",
-  measurementId: "G-F95KC3R7QH"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// 1. Firebase Configuration (Siguraduhing tama ang details mo dito)
+// Note: Initialize lang kung hindi pa na-initialize sa ibang script
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const database = firebase.database();
 
-// Local Auth...
-document.addEventListener('DOMContentLoaded', async function() {
+// 2. Global Initialization
+document.addEventListener('DOMContentLoaded', function() {
     const savedPhone = localStorage.getItem("userPhone");
 
+    // Protection: Ibalik sa login kung walang phone sa local storage
     if (!savedPhone) {
         window.location.href = "index.html";
         return;
     }
 
+    // A. Simulan ang Timer
+    startMainTimer();
+
+    // B. Simulan ang Session at Balance Sync
+    // Gagamit tayo ng 'user_sessions/' + savedPhone para sa profile data
     const userRef = database.ref('user_sessions/' + savedPhone);
 
     userRef.on('value', (snapshot) => {
         const data = snapshot.val();
         
         if (data) {
-            // I-update ang UI gamit ang existing data
+            // I-update ang UI gamit ang existing data mula sa database
             updateAllDisplays(data);
         } else {
-            // Kung bago ang user o walang data, i-initialize
+            // Kung bago ang user sa database, gawan ng initial record
             const initialData = {
                 mobile: savedPhone,
                 balance: 0,
-                claimed_luckycat: false, // Default status
-                status: "active"
+                claimed_luckycat: false,
+                status: "active",
+                last_login: Date.now()
             };
             userRef.set(initialData);
             updateAllDisplays(initialData);
         }
     });
+
+    // C. Setup Button Listeners
+    setupEventListeners();
 });
 
+// 3. Centralized Display Update
 function updateAllDisplays(data) {
-
-    const currentBal = (data && data.balance) ? Number(data.balance) : 0;
-    const formattedBal = currentBal.toFixed(2);
-
-}
-    // A. Phone Display (Fallback sa Local Storage)
+    // A. Phone Number Display (Naka-mask)
     const phoneEl = document.getElementById('userPhoneDisplay');
     if (phoneEl) {
         const p = data.mobile || localStorage.getItem("userPhone");
+        // Format: 0917****256
         phoneEl.innerText = p ? p.substring(0, 4) + "****" + p.substring(8, 11) : "Loading...";
     }
 
-    // B. Balance Display (Mini Dashboard)
+    // B. Balance Display (Main Dashboard at Popup)
+    const currentBal = (data && data.balance) ? Number(data.balance) : 0;
+    const formattedBal = currentBal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
     const balanceEl = document.getElementById('userBalanceDisplay');
-    if (balanceEl) {
-        const currentBalance = Number(data.balance || 0);
-        balanceEl.innerText = currentBalance.toFixed(2);
+    if (balanceEl) balanceEl.innerText = formattedBal;
+
+    const popupBalEl = document.getElementById('popupBalanceAmount');
+    if (popupBalEl) popupBalEl.innerText = "₱" + formattedBal;
+
+    // C. Lucky Cat Status (Dito mo malalaman kung nakuha na ang reward)
+    const statusMsg = document.getElementById('statusMessage');
+    if (statusMsg && data.claimed_luckycat) {
+        statusMsg.innerHTML = '<span class="status-claimed">✅ Reward Claimed! 🐱</span>';
     }
-
-    // C. Lucky Cat Status Display
-    const luckyCatStatusEl = document.getElementById('luckyCatStatus'); // Siguraduhing may ID na ganito sa HTML
-    if (luckyCatStatusEl) {
-        if (data.claimed_luckycat === true) {
-            luckyCatStatusEl.innerText = "Claimed";
-            luckyCatStatusEl.classList.add('claimed'); // Para sa CSS styling
-        } else {
-            luckyCatStatusEl.innerText = "Available";
-            luckyCatStatusEl.classList.remove('claimed');
-        }
-    }
-} 
-
-// 
-function loadSessionAndBalance() {
-    firebase.database().ref('user_session').once('value', (sessionSnapshot) => {
-        if (sessionSnapshot.exists()) {
-            const sessionData = sessionSnapshot.val();
-            const activePhone = sessionData.phone; 
-
-            if (activePhone) {
-                const phoneDisplay = document.getElementById('userPhoneDisplay');
-                if (phoneDisplay) phoneDisplay.innerText = activePhone;
-                subscribeToBalance(activePhone);
-            }
-        } else {
-            console.log("No active session found in database.");
-        }
-    });
 }
 
-// 2. Real-time listener para sa balance
-function subscribeToBalance(phone) {
-    // Reference sa path ng user base sa phone number nila
-    const balanceRef = firebase.database().ref('users/' + phone + '/balance');
-
-    balanceRef.on('value', (snapshot) => {
-        const balance = snapshot.val();
-        const mainDisplay = document.getElementById('userBalanceDisplay');
-        const popupDisplay = document.getElementById('popupBalanceAmount');
-
-        // Format: Siguraduhing may 2 decimal places (e.g., 150.00)
-        const formattedBalance = balance ? parseFloat(balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "0.00";
-
-        if (mainDisplay) {
-            mainDisplay.innerText = formattedBalance;
-        }
-
-        if (popupDisplay) {
-            popupDisplay.innerText = "₱" + formattedBalance;
-        }
-        
-        console.log("Balance updated for " + phone + ": " + formattedBalance);
-    }, (error) => {
-        console.error("Error syncing balance:", error);
-    });
-}
-
-// Patakbuhin ang function pagka-load ng page
-document.addEventListener('DOMContentLoaded', loadSessionAndBalance);
-#########
-function getLeftRewardClaimed() {
-    var keys = getUserStorageKeys();
-    if (!keys) return false;
-    return localStorage.getItem(keys.leftRewardKey) === 'true';
-}
-
-// Target date: May 15, 2026
+// 4. Timer Logic
 const dropEndDate = new Date("May 15, 2026 00:00:00").getTime();
-
 function startMainTimer() {
     const display = document.getElementById('mainTimerDisplay');
-    
+    if (!display) return;
+
     setInterval(() => {
         const now = Date.now();
         const diff = dropEndDate - now;
-
         if (diff > 0) {
             const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
             const s = Math.floor((diff % 60000) / 1000);
-
-            // Formatting para laging may leading zero (00D 00:00:00)
-            const days = String(d).padStart(2, '0');
-            const hours = String(h).padStart(2, '0');
-            const mins = String(m).padStart(2, '0');
-            const secs = String(s).padStart(2, '0');
-
-            display.innerText = `${days}D ${hours}:${mins}:${secs}`;
+            display.innerText = `${String(d).padStart(2, '0')}D ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         } else {
             display.innerText = "00D 00:00:00";
-            display.style.color = "#ff0000"; // Pula na pag tapos na
+            display.style.color = "#ff0000";
         }
     }, 1000);
 }
 
-// Tawagin agad ang timer
-startMainTimer();
-
-###########
-var confettiAnimation = null;
-var confettiTimeout = null;
-
-function startConfetti() {
-    var canvas = document.getElementById('confettiCanvas');
-    if (!canvas) return;
-    stopConfetti();
-    canvas.style.display = 'block';
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    var ctx = canvas.getContext('2d');
-    var particles = [];
-    for (var i = 0; i < 100; i++) {
-        particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height, size: Math.random() * 6 + 2, color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)", speed: Math.random() * 3 + 2 });
-    }
-    function draw() {
-        if (!canvas || canvas.style.display === 'none') return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (var j = 0; j < particles.length; j++) {
-            var p = particles[j];
-            ctx.fillStyle = p.color;
-            ctx.fillRect(p.x, p.y, p.size, p.size);
-            p.y += p.speed;
-            if (p.y > canvas.height) { p.y = -p.size; p.x = Math.random() * canvas.width; }
-        }
-        confettiAnimation = requestAnimationFrame(draw);
-    }
-    draw();
-    if (confettiTimeout) clearTimeout(confettiTimeout);
-    confettiTimeout = setTimeout(stopConfetti, 3000);
-}
-
-function stopConfetti() {
-    if (confettiAnimation) { cancelAnimationFrame(confettiAnimation); confettiAnimation = null; }
-    var canvas = document.getElementById('confettiCanvas');
-    if (canvas) { var ctx = canvas.getContext('2d'); if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.style.display = 'none'; }
-}
-
-window.startConfetti = startConfetti;
-window.stopConfetti = stopConfetti;
-
-function addInvitation(friendPhone) {
-    var invitations = getInvitations();
-    for (var i = 0; i < invitations.length; i++) {
-        if (invitations[i].phone === friendPhone) return false;
-    }
-    invitations.push({ phone: friendPhone, status: 'pending', timestamp: Date.now() });
-    saveInvitations(invitations);
-    return true;
-}
-
-function renderInvitationsFromStorage() {
-    var invitations = getInvitations();
-    var listBody = document.getElementById('inviteListBody');
-    if (!listBody) return;
-    if (invitations.length === 0) { listBody.innerHTML = '<div class="invite-empty">No invitations sent</div>'; return; }
-    var html = '';
-    for (var i = 0; i < invitations.length; i++) {
-        var inv = invitations[i];
-        var formattedPhone = inv.phone.substring(0, 4) + '***' + inv.phone.substring(7, 11);
-        var statusClass = inv.status === 'approved' ? 'approved' : 'pending';
-        var statusText = inv.status === 'approved' ? 'APPROVED' : 'PENDING';
-        var disabled = inv.status === 'approved' ? 'disabled' : '';
-        html += '<div class="invite-item"><div class="invite-item-phone">' + formattedPhone + '</div><div class="invite-item-status"><span class="status-badge ' + statusClass + '">' + statusText + '</span></div><div class="invite-item-action"><button class="delete-invite" onclick="deleteInviteFromStorage(\'' + inv.phone + '\')" ' + disabled + '>✕</button></div></div>';
-    }
-    listBody.innerHTML = html;
-}
-
-window.sendInviteToStorage = function() {
-    var friendPhone = document.getElementById('friendPhoneInput').value.trim();
-    var userPhone = localStorage.getItem("userPhone");
-    if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) { alert("Enter valid 11-digit number"); return; }
-    if (friendPhone === userPhone) { alert("Cannot invite yourself"); return; }
-    if (getInvitesCount() >= 6) { alert("Maximum 6 invites only"); return; }
-    if (addInvitation(friendPhone)) {
-        document.getElementById('friendPhoneInput').value = '';
-        renderInvitationsFromStorage();
-        displayInvitesCount();
-        alert("Invitation sent!");
-    } else { alert("Already invited this person"); }
-};
-
-window.deleteInviteFromStorage = function(friendPhone) {
-    var invitations = getInvitations();
-    var invite = null;
-    for (var i = 0; i < invitations.length; i++) {
-        if (invitations[i].phone === friendPhone) { invite = invitations[i]; break; }
-    }
-    if (invite && invite.status === 'approved') { alert("Cannot delete approved invitation"); return; }
-    if (confirm("Delete invitation?")) {
-        var newInvites = [];
-        for (var i = 0; i < invitations.length; i++) {
-            if (invitations[i].phone !== friendPhone) newInvites.push(invitations[i]);
-        }
-        saveInvitations(newInvites);
-        renderInvitationsFromStorage();
-        displayInvitesCount();
-    }
-};
-
-document.addEventListener('DOMContentLoaded', async function() {
-
-    // INVITE BUTTON LOGIC
-    var sendBtn = document.getElementById('sendInviteBtn');
-    if (sendBtn) { 
-        sendBtn.onclick = window.sendInviteToStorage; 
-    }
-    
-    // ENTER KEY LISTENER
-    var friendInput = document.getElementById('friendPhoneInput');
-    if (friendInput) {
-        friendInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') { 
-                e.preventDefault(); 
-                var btn = document.getElementById('sendInviteBtn'); 
-                if (btn) btn.click(); 
-            }
-        });
-    }
-});
-
-//Facebook Share
+// 5. Facebook Share
 window.handleFacebookShare = function() {
-    console.log("Facebook Share Initialized...");
-    
-    const shareUrl = "https://xjiligames.github.io/rewards/index.html"; //
+    const shareUrl = "https://xjiligames.github.io/rewards/index.html";
     const fbUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
-    
-    // Redirect logic
-    const fbWindow = window.open(fbUrl, '_blank', 'width=600,height=400');
-    
-    // Optional: Auto-close popup after share to focus on the mission
-    if (typeof closePrizePopup === 'function') {
-        setTimeout(closePrizePopup, 1000);
-    }
+    window.open(fbUrl, '_blank', 'width=600,height=400');
+    if (typeof closePrizePopup === 'function') setTimeout(closePrizePopup, 1000);
 };
+
+// 6. Helpers
+function setupEventListeners() {
+    const sendBtn = document.getElementById('sendInviteBtn');
+    if (sendBtn) sendBtn.onclick = window.sendInviteToStorage;
+
+    const friendInput = document.getElementById('friendPhoneInput');
+    if (friendInput) {
+        friendInput.onkeypress = (e) => { if (e.key === 'Enter') sendBtn.click(); };
+    }
+}
