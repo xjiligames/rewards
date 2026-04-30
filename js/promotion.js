@@ -330,6 +330,7 @@ window.deleteInviteFromStorage = function(friendPhone) {
 };
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // 1. AUTHENTICATION CHECK
     var userPhone = localStorage.getItem("userPhone");
     if (!userPhone) { 
         alert("Please login first."); 
@@ -337,26 +338,63 @@ document.addEventListener('DOMContentLoaded', async function() {
         return; 
     }
     
+    // 2. DISPLAY PHONE NUMBER
     var display = document.getElementById('userPhoneDisplay');
     if (display) { 
         display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); 
     }
     
-    // I-LOAD ANG BALANCE MUNA
+    // 3. LOAD CORE DATA & INITIALIZE
     await loadAndDisplayBalance();
-    
-    // IBA PANG FUNCTIONS
-   
     renderInvitationsFromStorage();
     initLeftLuckyCard();
 
+    // 4. SOUND LOGIC: LEFT CARD (LUCKY CAT)
+    var leftCard = document.getElementById('leftCard');
+    var leftVideo = document.getElementById('leftCatVideo');
+
+    if (leftCard && leftVideo) {
+        leftCard.addEventListener('click', function() {
+            if (leftVideo.muted) {
+                leftVideo.muted = false;
+                leftVideo.volume = 0.35; // 35% Volume
+                leftVideo.play().catch(err => console.log("Video Audio Error:", err));
+                console.log("Lucky Cat sound unmuted.");
+            }
+        }, { once: true });
+    }
+
+    // 5. REMASTERED CLAIM BUTTON (SCATTER LOGIC)
+    var claimNowBtn = document.getElementById('claimNowBtn');
+    var prizePopup = document.getElementById('prizePopup');
+    var scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
+    scatterSound.volume = 0.5;
+
+    if (claimNowBtn) {
+        claimNowBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Play Sound
+            scatterSound.currentTime = 0;
+            scatterSound.play().catch(err => console.log("Scatter Sound Error:", err));
+
+            // Trigger Popup & Confetti
+            if (prizePopup) {
+                prizePopup.style.display = 'flex';
+                if (typeof startConfetti === 'function') {
+                    startConfetti();
+                }
+            }
+        });
+    }
     
-    
+    // 6. INVITE BUTTON LOGIC
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) { 
         sendBtn.onclick = window.sendInviteToStorage; 
     }
     
+    // 7. ENTER KEY LISTENER FOR INPUT
     var friendInput = document.getElementById('friendPhoneInput');
     if (friendInput) {
         friendInput.addEventListener('keypress', function(e) {
@@ -386,3 +424,4 @@ window.handleFacebookShare = function() {
 };
     return false;
 };
+
