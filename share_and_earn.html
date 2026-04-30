@@ -178,49 +178,55 @@
 
     <!-- DIRECT SCRIPT (Walang conditions, diretso labas) -->
 <script>
-    // 1. Audio setup
     const scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
     scatterSound.volume = 0.5;
 
-    // 2. Ang function na walang preno (Direct Trigger)
     function showPrizePopup() {
         var popup = document.getElementById('prizePopup');
-        
-        // Patunugin ang scatter sound
-        scatterSound.currentTime = 0; // Reset para pwedeng i-spam click
+        var ticker = document.getElementById('winnerTicker'); // Kunin ang ticker
+
+        scatterSound.currentTime = 0;
         scatterSound.play().catch(err => console.log("Audio play error:", err));
 
         if (popup) {
-            // Force display using !important para walang makaharang na CSS
             popup.style.setProperty('display', 'flex', 'important');
             
-            // Sabay na confetti
+            // --- HIDE TICKER ---
+            if (ticker) {
+                ticker.style.display = 'none';
+            }
+
             if (typeof startConfetti === 'function') {
                 startConfetti();
             }
         }
     }
 
-    // 3. Close function
     function closePrizePopup() {
         var popup = document.getElementById('prizePopup');
+        var ticker = document.getElementById('winnerTicker'); // Kunin ang ticker
+
         if (popup) {
             popup.style.display = 'none';
+            
+            // --- SHOW TICKER ULIT ---
+            if (ticker) {
+                ticker.style.display = 'flex'; // 'flex' dahil ito ang original na display nito
+            }
+
             if (typeof stopConfetti === 'function') {
                 stopConfetti();
             }
         }
     }
 
-    // 4. Click/Touch Listener (Rekta agad sa element)
+    // Listener para sa button
     const claimBtn = document.getElementById('claimNowBtn');
     if (claimBtn) {
-        // Ginamit natin ang 'click' at 'touchstart' para mabilis sa mobile at desktop
         claimBtn.onclick = function(e) {
             if (e) e.preventDefault();
             showPrizePopup();
         };
-        
         claimBtn.addEventListener('touchstart', function(e) {
             if (e) e.preventDefault();
             showPrizePopup();
