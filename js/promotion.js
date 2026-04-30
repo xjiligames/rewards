@@ -21,8 +21,7 @@ const userPhone = localStorage.getItem("userPhone");
 // --- 1. Realtime Balance Callback ---
 function syncBalance() {
     if (!userPhone) return;
-
-    // Gamitin ang 'database' variable mula sa config.js
+    
     const balanceRef = database.ref('user_sessions/' + userPhone + '/balance');
     
     balanceRef.on('value', (snapshot) => {
@@ -31,7 +30,6 @@ function syncBalance() {
         
         console.log("Callback triggered! New balance:", currentBalance);
 
-        // Update lahat ng element na may ganitong ID
         const elements = ['userBalanceDisplay', 'popupBalanceAmount', 'balanceText'];
         elements.forEach(id => {
             const el = document.getElementById(id);
@@ -39,6 +37,8 @@ function syncBalance() {
         });
     });
 }
+
+
 
 // --- 2. Reward Claim Callback (Transaction) ---
 function claimCatReward() {
