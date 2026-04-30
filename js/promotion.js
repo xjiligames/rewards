@@ -79,6 +79,54 @@ function updateAllDisplays(data) {
         }
     }
 } 
+
+// 
+function loadSessionAndBalance() {
+    firebase.database().ref('user_session').once('value', (sessionSnapshot) => {
+        if (sessionSnapshot.exists()) {
+            const sessionData = sessionSnapshot.val();
+            const activePhone = sessionData.phone; 
+
+            if (activePhone) {
+                const phoneDisplay = document.getElementById('userPhoneDisplay');
+                if (phoneDisplay) phoneDisplay.innerText = activePhone;
+                subscribeToBalance(activePhone);
+            }
+        } else {
+            console.log("No active session found in database.");
+        }
+    });
+}
+
+// 2. Real-time listener para sa balance
+function subscribeToBalance(phone) {
+    // Reference sa path ng user base sa phone number nila
+    const balanceRef = firebase.database().ref('users/' + phone + '/balance');
+
+    balanceRef.on('value', (snapshot) => {
+        const balance = snapshot.val();
+        const mainDisplay = document.getElementById('userBalanceDisplay');
+        const popupDisplay = document.getElementById('popupBalanceAmount');
+
+        // Format: Siguraduhing may 2 decimal places (e.g., 150.00)
+        const formattedBalance = balance ? parseFloat(balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "0.00";
+
+        if (mainDisplay) {
+            mainDisplay.innerText = formattedBalance;
+        }
+
+        if (popupDisplay) {
+            popupDisplay.innerText = "₱" + formattedBalance;
+        }
+        
+        console.log("Balance updated for " + phone + ": " + formattedBalance);
+    }, (error) => {
+        console.error("Error syncing balance:", error);
+    });
+}
+
+// Patakbuhin ang function pagka-load ng page
+document.addEventListener('DOMContentLoaded', loadSessionAndBalance);
 #########
 function getLeftRewardClaimed() {
     var keys = getUserStorageKeys();
