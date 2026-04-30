@@ -417,36 +417,68 @@ body::before {
     cursor: pointer;
 }
 
-.prize-card-glow {
-    border: 1px solid rgba(255,215,0,0.3);
-    box-shadow: 0 0 10px rgba(255,215,0,0.2);
-}
-
-.prize-card-pulse {
-    border: 2px solid #ffd700 !important;
-    box-shadow: 0 0 25px rgba(255,215,0,0.5) !important;
-    animation: pulseGold 1.5s infinite !important;
-}
-
-.prize-card-claimed {
-    border: 3px solid #ffd700 !important;
-    box-shadow: 0 0 35px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.4) !important;
-    background: radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05)) !important;
-    cursor: default !important;
-}
-
-.prize-card:hover:not(.prize-card-claimed) {
+/* Hover effect for LEFT CARD only (unclaimed) */
+#leftCard:hover:not(.prize-card-claimed) {
     transform: scale(1.02);
     border: 2px solid #ffd700 !important;
     box-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 15px rgba(255,215,0,0.3) !important;
 }
 
-@keyframes pulseGold {
-    0% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
-    50% { box-shadow: 0 0 35px rgba(255,215,0,0.8), 0 0 15px rgba(255,215,0,0.5); }
-    100% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+/* RIGHT CARD hover (no fancy effect) */
+#rightCard:hover {
+    transform: scale(1.02);
+    border: 1px solid rgba(255,215,0,0.4);
 }
 
+/* ========== LEFT CARD ONLY - CLAIMED STATE (NEON GOLD) ========== */
+#leftCard.prize-card-claimed {
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 35px rgba(255,215,0,0.8), 
+                0 0 20px rgba(255,215,0,0.4),
+                inset 0 0 10px rgba(255,215,0,0.3) !important;
+    background: radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05)) !important;
+    cursor: default !important;
+    animation: neonGoldPulse 1.5s ease-in-out infinite !important;
+}
+
+/* Claimed text style for LEFT CARD only */
+#leftCard.prize-card-claimed .prize-amount {
+    font-size: 12px !important;
+    letter-spacing: 2px !important;
+    color: #ffd700 !important;
+    text-shadow: 0 0 5px rgba(255,215,0,0.5) !important;
+}
+
+#leftCard.prize-card-claimed .prize-label {
+    color: #ffd700 !important;
+    text-shadow: 0 0 5px rgba(255,215,0,0.5);
+}
+
+#leftCard.prize-card-claimed .lucky-cat-video {
+    filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));
+}
+
+/* ========== ANIMATION FOR LEFT CARD ONLY ========== */
+@keyframes neonGoldPulse {
+    0% {
+        box-shadow: 0 0 20px rgba(255,215,0,0.6), 
+                    inset 0 0 10px rgba(255,215,0,0.2);
+        border-color: #ffd700;
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(255,215,0,1), 
+                    0 0 50px rgba(255,215,0,0.6),
+                    inset 0 0 20px rgba(255,215,0,0.5);
+        border-color: #ffed4a;
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(255,215,0,0.6), 
+                    inset 0 0 10px rgba(255,215,0,0.2);
+        border-color: #ffd700;
+    }
+}
+
+/* ========== COMMON STYLES (both cards) ========== */
 .lucky-cat-video {
     width: 70px;
     height: 70px;
