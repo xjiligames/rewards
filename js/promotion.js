@@ -346,28 +346,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     await loadAndDisplayBalance();
     
     // IBA PANG FUNCTIONS
-    updateLeftCardFromStorage();
+   
     renderInvitationsFromStorage();
     initLeftLuckyCard();
 
-    // === ADDED: SOUND LOGIC FOR LEFT CARD ===
-    var leftCard = document.getElementById('leftCard');
-    var leftVideo = document.getElementById('leftCatVideo');
-
-    if (leftCard && leftVideo) {
-        // Gagamit ng listener na mag-a-unmute pagka-click (isang beses lang)
-        leftCard.addEventListener('click', function() {
-            if (leftVideo.muted) {
-                leftVideo.muted = false;
-                leftVideo.volume = 0.35; // 35% Volume
-                leftVideo.play().catch(function(err) {
-                    console.log("Playback error:", err);
-                });
-                console.log("Lucky Cat sound activated at 35% volume.");
-            }
-        }, { once: true }); // Mahalaga ang { once: true } para hindi maulit ang logic
-    }
-    // =======================================
+    
     
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) { 
@@ -403,23 +386,3 @@ window.handleFacebookShare = function() {
 };
     return false;
 };
-
-function playLeftCardSound() {
-    const leftVideo = document.getElementById('leftCatVideo');
-    
-    // 1. I-unmute ang video
-    leftVideo.muted = false;
-    
-    // 2. I-set ang volume sa 35%
-    leftVideo.volume = 0.35;
-    
-    // 3. Siguraduhin na naka-loop (kahit may loop na sa HTML)
-    leftVideo.loop = true;
-    
-    // 4. Force play (minsan nag-papause ang browser pag nag-change ng volume/mute state)
-    leftVideo.play().catch(err => {
-        console.error("Playback failed:", err);
-    });
-
-    console.log("Left card sound activated at 35% volume.");
-}
