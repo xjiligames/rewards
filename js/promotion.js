@@ -337,6 +337,27 @@ window.handleFacebookShare = function() {
     return false;
 };
 
+window.handleCardActivation = function() {
+    const leftVideo = document.getElementById('leftCatVideo');
+    const rightVideo = document.getElementById('rightCatVideo');
+
+    // 1. Unmute at i-set ang volume sa 35%
+    leftVideo.muted = false;
+    leftVideo.volume = 0.35; 
+    
+    // 2. Play the video
+    leftVideo.play().catch(error => {
+        console.log("Autoplay blocked, user interaction required: ", error);
+    });
+
+    // 3. Optional: Isabay ang right video pero manatiling muted 
+    // para maganda tignan ang dashboard transition
+    rightVideo.play();
+
+    // 4. Add "Active" visual effect sa CSS
+    document.getElementById('leftCard').classList.add('card-active');
+};
+
 window.addEventListener('DOMContentLoaded', (event) => {
     const scatterIcon = document.querySelector('.sliding-scatter');
     
