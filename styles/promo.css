@@ -649,24 +649,30 @@ body::before {
 }
 
 .share-guide-text {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
     text-align: center;
-    font-size: 11px;
-    color: #ffaa33;
-    margin-top: 12px;
-    padding: 6px 12px;
-    background: rgba(0,0,0,0.3);
-    border-radius: 20px;
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 1px dashed rgba(0, 212, 255, 0.3);
+    line-height: 1.6;
 }
+
 
 .share-guide-text strong {
-    color: #ffd700;
+    color: #ffd700; 
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    font-weight: 800;
 }
 
-.share-social-text {
-    text-align: center;
-    margin-top: 12px;
-    font-size: 11px;
-    color: #ffaa33;
+/* Icon (Loudspeaker) color fix */
+.share-guide-text span.icon {
+    font-size: 18px;
+    margin-right: 5px;
+    filter: drop-shadow(0 0 5px #00d4ff);
 }
 
 /* ========== PRIZE POPUP ========== */
@@ -769,21 +775,41 @@ body::before {
 
 /* ========== BUTTONS INSIDE POPUP ========== */
 .claim-gcash-button {
-    background: linear-gradient(135deg, #0066ff, #0044cc);
-    width: 100%;
-    padding: 14px;
+    background: #00d4ff; /* Light Blue Base */
+    color: #ffffff;
     border: none;
-    border-radius: 60px;
+    padding: 15px 30px;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
     font-weight: 800;
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-    margin-top: 12px;
+    text-transform: uppercase;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: all 0.2s ease;
+    gap: 10px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    position: relative;
+    /* Glow Animation */
+    animation: neonPulse 1.5s infinite ease-in-out;
+    transition: all 0.3s ease;
+}
+
+/* 2. Glow Up Effect Animation */
+@keyframes neonPulse {
+    0% {
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.2);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(0, 212, 255, 0.9), 0 0 45px rgba(0, 212, 255, 0.5);
+        transform: scale(1.02); /* Bahagyang lalaki ang button */
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.2);
+        transform: scale(1);
+    }
 }
 
 .claim-gcash-button:active {
