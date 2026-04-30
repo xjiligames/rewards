@@ -48,6 +48,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function updateAllDisplays(data) {
+
+    const currentBal = (data && data.balance) ? Number(data.balance) : 0;
+    const formattedBal = currentBal.toFixed(2);
+
+}
     // A. Phone Display (Fallback sa Local Storage)
     const phoneEl = document.getElementById('userPhoneDisplay');
     if (phoneEl) {
