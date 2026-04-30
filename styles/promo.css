@@ -1081,36 +1081,54 @@ body::before {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
-/* TWISTING SCATTER ICON LOGIC */
-.dashboard-action {
-    position: relative;
-    z-index: 2;
-}
-
-.scatter-link {
-    display: block;
-    text-decoration: none;
-}
-
-.twisting-scatter {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
+/* --- THE COIN DROP & TWIST SEQUENCE --- */
+.sliding-scatter {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
     border: 2px solid #ffd700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    animation: permanentTwist 3s linear infinite; /* Non-stop twist */
-    transition: transform 0.3s ease;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    background: #000;
+    
+    /* Animation: tatakbo lang ng isang beses (for intro) o infinite kung gusto mo */
+    animation: coinIntroSequence 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    cursor: pointer;
 }
 
-.twisting-scatter:hover {
-    filter: brightness(1.2);
+@keyframes coinIntroSequence {
+    /* 1. BUMAGSAK (JUMP/DROP) */
+    0% {
+        transform: translateY(-500px) scale(0.5) rotate(0deg);
+        opacity: 0;
+    }
+    20% {
+        transform: translateY(0) scale(1.2) rotate(0deg); /* Pagbagsak na may konting bounce */
+        opacity: 1;
+    }
+    25% {
+        transform: translateY(-15px) scale(1); /* Maliit na bounce pataas */
+    }
+    30% {
+        transform: translateY(0); /* Final land */
+    }
+
+    /* 2. TWIST PAPUNTA LEFT */
+    45% {
+        transform: translateX(-35px) rotate(-25deg); /* Sliding twist to left */
+    }
+
+    /* 3. TWIST PAPUNTA RIGHT */
+    65% {
+        transform: translateX(10px) rotate(25deg); /* Balik sa right */
+    }
+
+    /* 4. NAKA-HOLD NG TWIST (FINAL STATE) */
+    85%, 100% {
+        transform: translateX(0) rotate(15deg); /* Naka-tilt o hold ang twist sa dulo */
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); /* Mas maliwanag sa dulo */
+    }
 }
 
-/* Permanent Twist Animation */
-@keyframes permanentTwist {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
 
 /* Para sa Mobile responsiveness */
 @media (max-width: 360px) {
