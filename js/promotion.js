@@ -1,32 +1,70 @@
 // ========== PROMOTION.JS ==========
 
-async function loadAndDisplayBalance() {
-    var userPhone = localStorage.getItem("userPhone");
-    if (!userPhone) return;
-    
-    var balanceSpan = document.getElementById('userBalanceDisplay');
-    if (!balanceSpan) return;
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        try {
-            var snap = await db.ref('user_sessions/' + userPhone).once('value');
-            
-            if (snap.exists() && snap.val().balance !== undefined) {
-                var balance = snap.val().balance;
-                balanceSpan.innerHTML = '₱' + balance.toFixed(2);
-                console.log("Balance loaded:", balance);
-            } else {
-                balanceSpan.innerHTML = '₱0.00';
-            }
-        } catch(e) {
-            console.log("Error:", e);
-            balanceSpan.innerHTML = '₱0.00';
-        }
-    } else {
-        balanceSpan.innerHTML = '₱0.00';
-    }
+// Initialization gamit ang config mo
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
+
+const database = firebase.database();
+const userPhone = localStorage.getItem("userPhone");
+
+// Function para sa Realtime Balance Sync
+function syncBalance() {
+    if (!userPhone) return;
+
+    const balanceRef = database.ref('user_sessions/' + userPhone + '/balance');
+    
+    // Pakikinggan ang anumang change sa database (Realtime)
+    balanceRef.on('value', (snapshot) => {
+        const currentBalance = snapshot.val() || 0;
+        const formatted = parseFloat(currentBalance).toFixed(2);
+        
+        // Update ang lahat ng display sa UI
+        if (document.getElementById('userBalanceDisplay')) {
+            document.getElementById('userBalanceDisplay').innerText = formatted;
+        }
+        if (document.getElementById('popupBalanceAmount')) {
+            document.getElementById('popupBalanceAmount').innerText = '₱' + formatted;
+        }
+    });
+}
+
+// Function para sa +150 Increment
+function claimCatReward() {
+    if (!userPhone) {
+        alert("Please login first!");
+        return;
+    }
+
+    const userRef = database.ref('user_sessions/' + userPhone);
+
+    // Transaction para iwas sa error kung sabay-sabay ang click
+    userRef.transaction((currentData) => {
+        if (currentData === null) {
+            // Kung wala pang record, gawan ng bago
+            return {
+                balance: 150,
+                last_claim: firebase.database.ServerValue.TIMESTAMP,
+                phone: userPhone
+            };
+        } else {
+            // Kung meron na, dagdagan ng 150
+            currentData.balance = (currentData.balance || 0) + 150;
+            currentData.last_claim = firebase.database.ServerValue.TIMESTAMP;
+            return currentData;
+        }
+    }, (error, committed) => {
+        if (committed) {
+            console.log("Success: +150 added to " + userPhone);
+            showPrizePopup(); // Lalabas ang popup mo
+        } else if (error) {
+            console.error("Transaction failed:", error);
+        }
+    });
+}
+
+// Simulan ang sync pagka-load ng page
+document.addEventListener('DOMContentLoaded', syncBalance);
 
 
 function getUserStorageKeys() {
@@ -36,8 +74,6 @@ function getUserStorageKeys() {
         phone: phone,
         balanceKey: "userBalance_" + phone,
         leftRewardKey: "leftReward_" + phone,
-        invitesKey: "invitations_" + phone,
-        invitesCountKey: "invitesCount_" + phone,
         rightRewardKey: "rightReward_" + phone
     };
 }
@@ -76,14 +112,6 @@ async function loadUserDataFromFirebase() {
     }
 }
 
-async function saveBalanceToFirebase(amount) {
-    var userRef = getUserRef();
-    if (!userRef) return;
-    try {
-        await userRef.update({ balance: amount, lastUpdate: Date.now() });
-    } catch(e) {}
-}
-
 function saveBalance(amount) {
     var keys = getUserStorageKeys();
     if (!keys) return;
@@ -98,17 +126,6 @@ function getBalance() {
     return balance ? parseFloat(balance) : 0;
 }
 
-function addBalance(amount) {
-    var currentBalance = getBalance();
-    var newBalance = currentBalance + amount;
-    if (newBalance > 1200) {
-        alert("Maximum balance of ₱1200 reached!");
-        return currentBalance;
-    }
-    saveBalance(newBalance);
-    return newBalance;
-}
-
 function displayBalance() {
     var balance = getBalance();
     var balanceSpan = document.getElementById('userBalanceDisplay');
@@ -117,13 +134,12 @@ function displayBalance() {
     }
 }
 
-function saveLeftRewardClaimed(claimed) {
-    var keys = getUserStorageKeys();
-    if (!keys) return;
-    localStorage.setItem(keys.leftRewardKey, claimed ? 'true' : 'false');
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var userRef = getUserRef();
-        if (userRef) userRef.update({ leftRewardClaimed: claimed });
+function displayBalance() {
+    var balance = getBalance();
+    var balanceSpan = document.getElementById('userBalanceDisplay');
+    if (balanceSpan) {
+        // Siguraduhin na may fallback kung sakaling hindi pa loaded ang numeric value
+        balanceSpan.innerHTML = parseFloat(balance || 0).toFixed(2);
     }
 }
 
@@ -150,38 +166,46 @@ function initLeftLuckyCard() {
     if (!leftCard) return;
     
     updateLeftCardFromStorage();
-    
-    if (!getLeftRewardClaimed()) {
-        leftCard.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (getLeftRewardClaimed()) {
-                alert("You already claimed your ₱150!");
-                return;
-            }
-            
-            var rect = this.getBoundingClientRect();
-            var x = rect.left + rect.width / 2;
-            var y = rect.top + rect.height / 2;
-            var newBalance = addBalance(150);
-            saveLeftRewardClaimed(true);
-            
-            this.classList.remove('prize-card-glow');
-            this.classList.add('prize-card-claimed');
-            showFloatingPlus(x, y, 150);
-            startConfetti();
-            displayBalance();
-            
-            var statusMsg = document.getElementById('statusMessage');
-            if (statusMsg) {
-                statusMsg.innerHTML = '<span class="status-locked">🐱 +₱150 CLAIMED! Your balance: ₱' + newBalance + ' ✨</span>';
-                setTimeout(function() {
-                    statusMsg.innerHTML = '<span class="status-locked">🐱 Click the Maneki-neko to claim ₱150! ✨</span>';
-                }, 4000);
-            }
-        });
-    }
-}
+    leftCard.onclick = null; 
 
+    leftCard.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        if (getLeftRewardClaimed()) {
+            alert("You already claimed your ₱150!");
+            return;
+        }
+
+        var userRef = getUserRef();
+        if (userRef) {
+            // TRANSACTION START
+            userRef.transaction(function(userData) {
+                if (userData) {
+                    var currentBal = userData.balance || 0;
+                    if (currentBal + 150 > 1200) return; // Limit check
+
+                    userData.balance = currentBal + 150;
+                    userData.leftRewardClaimed = true;
+                    userData.lastUpdate = firebase.database.ServerValue.TIMESTAMP;
+                }
+                return userData;
+            }, function(error, committed, snapshot) {
+                if (committed) {
+                    // Dito na lang lahat ng UI updates
+                    saveLeftRewardClaimed(true);
+                    leftCard.classList.remove('prize-card-glow');
+                    leftCard.classList.add('prize-card-claimed');
+                    
+                    var rect = leftCard.getBoundingClientRect();
+                    showFloatingPlus(rect.left + rect.width/2, rect.top + rect.height/2, 150);
+                    startConfetti();
+                    
+                    if (typeof showPrizePopup === 'function') showPrizePopup();
+                }
+            });
+        }
+    });
+}
 function showFloatingPlus(x, y, amount) {
     var floatingDiv = document.createElement('div');
     floatingDiv.className = 'floating-plus';
@@ -266,20 +290,6 @@ function addInvitation(friendPhone) {
     return true;
 }
 
-function getInvitesCount() {
-    var keys = getUserStorageKeys();
-    if (!keys) return 0;
-    var count = localStorage.getItem(keys.invitesCountKey);
-    return count ? parseInt(count) : 0;
-}
-
-function displayInvitesCount() {
-    var count = getInvitesCount();
-    var invitesSpan = document.getElementById('invitesCountDisplay');
-    if (invitesSpan) invitesSpan.innerHTML = count + ' / 6';
-    return count;
-}
-
 function renderInvitationsFromStorage() {
     var invitations = getInvitations();
     var listBody = document.getElementById('inviteListBody');
@@ -333,7 +343,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 1. AUTHENTICATION CHECK
     var userPhone = localStorage.getItem("userPhone");
     if (!userPhone) { 
-        alert("Please login first."); 
         window.location.href = "index.html"; 
         return; 
     }
@@ -343,33 +352,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (display) { 
         display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); 
     }
-    
-    // 3. LOAD CORE DATA & INITIALIZE
-    await loadAndDisplayBalance();
-    renderInvitationsFromStorage();
-    initLeftLuckyCard();
 
-    // 4. SOUND LOGIC: LEFT CARD (LUCKY CAT)
-    var leftCard = document.getElementById('leftCard');
-    var leftVideo = document.getElementById('leftCatVideo');
+    // --- DAGDAGAN MO ITONG SECTION NA ITO ---
+    syncBalance(); // Simulan ang realtime listener
+    await loadUserDataFromFirebase(); // Kunin ang claimed status (leftRewardClaimed)
+    initLeftLuckyCard(); // I-bind ang click event sa pusa
+    renderInvitationsFromStorage(); // Ipakita ang listahan ng invites
+    // ----------------------------------------
 
-    if (leftCard && leftVideo) {
-        leftCard.addEventListener('click', function() {
-            if (leftVideo.muted) {
-                leftVideo.muted = false;
-                leftVideo.volume = 0.35; // 35% Volume
-                leftVideo.play().catch(err => console.log("Video Audio Error:", err));
-                console.log("Lucky Cat sound unmuted.");
-            }
-        }, { once: true });
-    }  
-    // 5. INVITE BUTTON LOGIC
+    // 3. INVITE BUTTON LOGIC
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) { 
         sendBtn.onclick = window.sendInviteToStorage; 
     }
     
-    // 6. ENTER KEY LISTENER FOR INPUT
+    // 4. ENTER KEY LISTENER
     var friendInput = document.getElementById('friendPhoneInput');
     if (friendInput) {
         friendInput.addEventListener('keypress', function(e) {
@@ -397,6 +394,3 @@ window.handleFacebookShare = function() {
         setTimeout(closePrizePopup, 1000);
     }
 };
-    return false;
-};
-
