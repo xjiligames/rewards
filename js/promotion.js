@@ -2,18 +2,19 @@
 
 // config.js
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "iponhub-xxxx.firebaseapp.com",
-    databaseURL: "https://iponhub-xxxx.firebaseio.com",
-    projectId: "iponhub-xxxx",
-    storageBucket: "iponhub-xxxx.appspot.com",
-    messagingSenderId: "xxxx",
-    appId: "xxxx"
+  apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
+  authDomain: "casinorewards-95502.firebaseapp.com",
+  databaseURL: "https://casinorewards-95502-default-rtdb.firebaseio.com",
+  projectId: "casinorewards-95502",
+  storageBucket: "casinorewards-95502.firebasestorage.app",
+  messagingSenderId: "768311187647",
+  appId: "1:768311187647:web:e26e8a5134a003ef634e0a",
+  measurementId: "G-F95KC3R7QH"
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database(); // Gamitin natin ang 'database' consistently
+const database = firebase.database();
 
 // 
 const userPhone = localStorage.getItem("userPhone");
