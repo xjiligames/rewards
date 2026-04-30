@@ -300,22 +300,41 @@ window.deleteInviteFromStorage = function(friendPhone) {
     }
 };
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     var userPhone = localStorage.getItem("userPhone");
-    if (!userPhone) { alert("Please login first."); window.location.href = "index.html"; return; }
+    if (!userPhone) { 
+        alert("Please login first."); 
+        window.location.href = "index.html"; 
+        return; 
+    }
+    
     var display = document.getElementById('userPhoneDisplay');
-    if (display) { display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); }
-    loadUserDataFromFirebase();
+    if (display) { 
+        display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); 
+    }
+    
+    // MAGHINTAY NA MA-LOAD ANG DATA MULA SA FIREBASE
+    await loadUserDataFromFirebase();
+    
+    // PAGKATAPOS MA-LOAD, TSAKA I-DISPLAY ANG BALANCE
     displayBalance();
     updateLeftCardFromStorage();
     renderInvitationsFromStorage();
     initLeftLuckyCard();
+    
     var sendBtn = document.getElementById('sendInviteBtn');
-    if (sendBtn) { sendBtn.onclick = window.sendInviteToStorage; }
+    if (sendBtn) { 
+        sendBtn.onclick = window.sendInviteToStorage; 
+    }
+    
     var friendInput = document.getElementById('friendPhoneInput');
     if (friendInput) {
         friendInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') { e.preventDefault(); var btn = document.getElementById('sendInviteBtn'); if (btn) btn.click(); }
+            if (e.key === 'Enter') { 
+                e.preventDefault(); 
+                var btn = document.getElementById('sendInviteBtn'); 
+                if (btn) btn.click(); 
+            }
         });
     }
 });
