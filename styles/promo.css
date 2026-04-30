@@ -621,42 +621,7 @@ body::before {
 
 //SHARE ON FB CSS
 
-/* FACEBOOK BUTTON REMASTERED */
-.btn-facebook-shimmer {
-    background: #1877F2;
-    color: white !important;
-    border: none;
-    padding: 15px 25px;
-    border-radius: 50px;
-    font-weight: 800;
-    font-family: 'Inter', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
-    width: 100%;
-    margin: 10px 0;
-}
 
-/* Kintab Effect Layer */
-.btn-facebook-shimmer::after {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 50%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    animation: shimmerEffect 3s infinite;
-}
-
-@keyframes shimmerEffect {
-    0% { left: -100%; }
-    30% { left: 100%; }
-    100% { left: 100%; }
-}
 
 /* Font Glow */
 .btn-facebook-shimmer span {
