@@ -1,4 +1,4 @@
-// ========== PROMOTION.JS - SIMPLIFIED WORKING VERSION ==========
+// ========== PROMOTION.JS - WITH REDIRECT LOGIC ==========
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -28,21 +28,34 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     console.log("📱 Phone from localStorage:", currentUserPhone);
     
-    // STEP 2: Kung walang phone, redirect to index
-    if (!currentUserPhone) {
-        console.error("❌ No phone found! Redirecting...");
-        alert("Please login first!");
+    // STEP 2: CHECK KUNG WALANG MOBILE NUMBER - REDIRECT TO INDEX
+    if (!currentUserPhone || currentUserPhone === "" || currentUserPhone === "null" || currentUserPhone === "undefined") {
+        console.warn("⚠️ No mobile number found in localStorage!");
+        
+        // Show alert message
+        alert("No session found. Please login first!");
+        
+        // Redirect to index.html
+        window.location.href = "index.html";
+        return; // Stop execution
+    }
+    
+    // STEP 3: VALIDATE PHONE NUMBER FORMAT (11 digits, starts with 09)
+    if (currentUserPhone.length !== 11 || !currentUserPhone.startsWith('09')) {
+        console.warn("⚠️ Invalid phone number format:", currentUserPhone);
+        alert("Invalid phone number format. Please login again.");
+        localStorage.removeItem("userPhone"); // Clear invalid data
         window.location.href = "index.html";
         return;
     }
     
-    // STEP 3: I-display agad ang phone number (masked)
+    // STEP 4: I-display agad ang phone number (masked)
     displayPhoneNumber(currentUserPhone);
     
-    // STEP 4: Kunin ang data mula sa Firebase
+    // STEP 5: Kunin ang data mula sa Firebase
     await fetchUserFromFirebase(currentUserPhone);
     
-    // STEP 5: Setup ibang features
+    // STEP 6: Setup ibang features
     setupInvitationFeatures();
     startMainTimer();
 });
@@ -92,7 +105,9 @@ async function fetchUserFromFirebase(phone) {
                 balance: 0,
                 claimed_luckycat: false,
                 status: "active",
-                created_at: Date.now()
+                created_at: Date.now(),
+                deviceId: localStorage.getItem("userDeviceId") || "unknown",
+                deviceDisplayId: localStorage.getItem("userDeviceDisplayId") || "unknown"
             };
             
             await userRef.set(newUser);
@@ -107,6 +122,13 @@ async function fetchUserFromFirebase(phone) {
         
     } catch (error) {
         console.error("❌ Firebase error:", error);
+        
+        // Check if error is permission denied
+        if (error.code === 'PERMISSION_DENIED') {
+            console.error("Database permission denied! Check Firebase rules.");
+            alert("Database connection error. Please try again later.");
+        }
+        
         // Fallback: try to get from localStorage
         const savedBalance = localStorage.getItem(`${phone}_balance`);
         if (savedBalance) {
@@ -154,6 +176,8 @@ function setupBalanceListener(phone) {
             updateBalanceDisplay(Number(balance));
             localStorage.setItem(`${phone}_balance`, balance);
         }
+    }, (error) => {
+        console.error("Balance listener error:", error);
     });
 }
 
@@ -169,6 +193,17 @@ window.updateUserBalance = async function(phone, newBalance) {
     } catch (error) {
         console.error("❌ Error updating balance:", error);
         return false;
+    }
+};
+
+// ========== GET CURRENT BALANCE ==========
+window.getCurrentBalance = async function(phone) {
+    try {
+        const snapshot = await database.ref('user_sessions/' + phone + '/balance').once('value');
+        return snapshot.val() || 0;
+    } catch (error) {
+        console.error("Error getting balance:", error);
+        return 0;
     }
 };
 
@@ -430,10 +465,28 @@ window.handleClaimThruGCash = function() {
     alert("GCash claim feature coming soon!");
 };
 
-// Clean up
+// ========== SESSION CHECK FUNCTION (can be called anytime) ==========
+window.checkUserSession = function() {
+    const phone = localStorage.getItem("userPhone");
+    if (!phone || phone === "" || phone === "null") {
+        window.location.href = "index.html";
+        return false;
+    }
+    return true;
+};
+
+// ========== LOGOUT FUNCTION ==========
+window.logoutUser = function() {
+    localStorage.removeItem("userPhone");
+    localStorage.removeItem("userDeviceId");
+    localStorage.removeItem("userDeviceDisplayId");
+    window.location.href = "index.html";
+};
+
+// Clean up on page unload
 window.addEventListener('beforeunload', () => {
     if (timerInterval) clearInterval(timerInterval);
     if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
 });
 
-console.log("✅ Promotion.js ready!");
+console.log("✅ Promotion.js ready with redirect logic!");
