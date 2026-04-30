@@ -1,5 +1,34 @@
 // ========== PROMOTION.JS ==========
 
+async function loadAndDisplayBalance() {
+    var userPhone = localStorage.getItem("userPhone");
+    if (!userPhone) return;
+    
+    var balanceSpan = document.getElementById('userBalanceDisplay');
+    if (!balanceSpan) return;
+    
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        var db = firebase.database();
+        try {
+            var snap = await db.ref('user_sessions/' + userPhone).once('value');
+            
+            if (snap.exists() && snap.val().balance !== undefined) {
+                var balance = snap.val().balance;
+                balanceSpan.innerHTML = '₱' + balance.toFixed(2);
+                console.log("Balance loaded:", balance);
+            } else {
+                balanceSpan.innerHTML = '₱0.00';
+            }
+        } catch(e) {
+            console.log("Error:", e);
+            balanceSpan.innerHTML = '₱0.00';
+        }
+    } else {
+        balanceSpan.innerHTML = '₱0.00';
+    }
+}
+
+
 function getUserStorageKeys() {
     var phone = localStorage.getItem("userPhone");
     if (!phone) return null;
@@ -313,11 +342,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); 
     }
     
-    // MAGHINTAY NA MA-LOAD ANG DATA MULA SA FIREBASE
-    await loadUserDataFromFirebase();
+    // I-LOAD ANG BALANCE MUNA
+    await loadAndDisplayBalance();
     
-    // PAGKATAPOS MA-LOAD, TSAKA I-DISPLAY ANG BALANCE
-    displayBalance();
+    // IBA PANG FUNCTIONS
     updateLeftCardFromStorage();
     renderInvitationsFromStorage();
     initLeftLuckyCard();
