@@ -81,7 +81,8 @@
                     <span>STATUS</span>
                     <span>ACTION</span>
                 </div>
-                <div id="sentInvitesList" class="invite-list-body">
+                <!-- FIXED: Ito ang id na hinahanap ng promotion.js -->
+                <div id="inviteListBody" class="invite-list-body">
                     <div class="invite-empty">No invitations sent</div>
                 </div>
             </div>
@@ -108,7 +109,7 @@
                 </video>
             </div>
             <div class="prize-label">YOU GET</div>
-            <div class="prize-amount">₱0</div>
+            <div class="prize-amount" id="leftRewardAmount">₱0</div> <!-- FIXED: Added ID -->
         </div>
 
         <div class="prize-card" id="rightCard">
@@ -144,7 +145,7 @@
             <div class="popup-inner">
                 <div class="popup-close" onclick="closePrizePopup()">✕</div>
                 <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
-                <div class="prize-amount">₱<span id="popupBalanceDisplay">0</span></div>
+                <div class="prize-amount">₱<span id="popupBalanceAmount">0</span></div> <!-- FIXED: Changed from popupBalanceDisplay -->
                 <div class="divider"></div>
                 <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
                 <div class="luckyday-image-container">
@@ -225,9 +226,10 @@
 
     <canvas id="confettiCanvas"></canvas>
 
-    <!-- SCRIPTS -->
-    <script src="js/promotion.js"></script>
+    <!-- SCRIPTS - ORDER IS IMPORTANT -->
+    <!-- FIXED: Load config first, then promotion.js -->
     <script src="js/config.js"></script>
+    <script src="js/promotion.js"></script>
     <script src="js/popup_share.js"></script>
 
     <script>
