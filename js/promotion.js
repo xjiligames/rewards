@@ -17,48 +17,57 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 // Local Auth...
-document.addEventListener('DOMContentLoaded', async function() {
-    // 1. Kunin ang phone number mula sa local storage
+document.addEventListener('DOMContentLoaded', function() {
     const savedPhone = localStorage.getItem("userPhone");
 
-    // 2. Security Check: Ibalik sa index kung walang session
     if (!savedPhone) {
         window.location.href = "index.html";
         return;
     }
 
+    // Reference sa Firebase
     const userRef = database.ref('user_sessions/' + savedPhone);
 
-    try {
-        // 3. I-check kung existing o kailangang gawan ng bagong data
-        const snapshot = await userRef.once('value');
-
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            updateAllDisplays(userData);
-        } else {
-            // New Data Creation
-            const newUserData = {
-                mobile: savedPhone,
-                balance: 0.00,
-                status: "active",
-                created_at: firebase.database.ServerValue.TIMESTAMP
-            };
-            await userRef.set(newUserData);
-            updateAllDisplays(newUserData);
-        }
-
-        // 4. Real-time Listener (Para sa auto-update ng Balance)
-        userRef.on('value', (snap) => {
-            if (snap.exists()) {
-                updateAllDisplays(snap.val());
-            }
-        });
-
-    } catch (error) {
-        console.error("Connection Error:", error);
-    }
+    // REAL-TIME LISTENER
+    userRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        
+        // Kahit null ang data sa Firebase, itutuloy pa rin ang display gamit ang localStorage
+        updateAllDisplays(data);
+    }, (error) => {
+        console.error("Firebase Sync Error:", error);
+        // Fallback kahit may error sa connection
+        updateAllDisplays(null);
+    });
 });
+
+function updateAllDisplays(data) {
+    const phoneEl = document.getElementById('userPhoneDisplay');
+    const balanceEl = document.getElementById('userBalanceDisplay');
+
+    // 1. PHONE DISPLAY LOGIC (Fallback to Local Storage)
+    if (phoneEl) {
+        // Priority 1: data.mobile | Priority 2: data.phone | Priority 3: localStorage
+        const p = (data && data.mobile) ? data.mobile : 
+                  (data && data.phone) ? data.phone : 
+                  localStorage.getItem("userPhone");
+
+        if (p) {
+            const phoneStr = String(p);
+            // I-format para sa privacy: 0912****789
+            phoneEl.innerText = phoneStr.substring(0, 4) + "****" + phoneStr.substring(8, 11);
+        } else {
+            phoneEl.innerText = "Unknown";
+        }
+    }
+
+    // 2. BALANCE DISPLAY LOGIC
+    if (balanceEl) {
+        // Kung walang data mula sa Firebase, default sa 0.00
+        const currentBalance = (data && data.balance) ? parseFloat(data.balance) : 0;
+        balanceEl.innerText = currentBalance.toFixed(2);
+    }
+}
 
 // Function para i-update ang lahat ng UI elements sa screen
 function updateAllDisplays(data) {
