@@ -349,6 +349,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     updateLeftCardFromStorage();
     renderInvitationsFromStorage();
     initLeftLuckyCard();
+
+    // === ADDED: SOUND LOGIC FOR LEFT CARD ===
+    var leftCard = document.getElementById('leftCard');
+    var leftVideo = document.getElementById('leftCatVideo');
+
+    if (leftCard && leftVideo) {
+        // Gagamit ng listener na mag-a-unmute pagka-click (isang beses lang)
+        leftCard.addEventListener('click', function() {
+            if (leftVideo.muted) {
+                leftVideo.muted = false;
+                leftVideo.volume = 0.35; // 35% Volume
+                leftVideo.play().catch(function(err) {
+                    console.log("Playback error:", err);
+                });
+                console.log("Lucky Cat sound activated at 35% volume.");
+            }
+        }, { once: true }); // Mahalaga ang { once: true } para hindi maulit ang logic
+    }
+    // =======================================
     
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) { 
