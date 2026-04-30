@@ -1081,51 +1081,61 @@ body::before {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
+// SCATTER EFFECT TWIST
 .sliding-scatter {
     width: 52px;
     height: 52px;
-    border-radius: 12px;
-    mix-blend-mode: multiply;
+    /* Tinanggal ang mix-blend-mode para malinaw ang kulay */
     
-    /* 3D PERSPECTIVE SETUP */
-    transform-style: preserve-3d;
+    /* Ginawang rounded para tago ang puting kanto ng JPG */
+    border-radius: 50%; 
+    border: 2px solid #ffd700;
     
-    /* ADDING THICKNESS VIA MULTIPLE SHADOWS */
-    /* Ito ang magmumukhang "gilid" o edge ng coin */
+    /* 3D EDGE EFFECT: Ito ang magmumukhang makapal na barya */
     filter: 
-        drop-shadow(1px 0px 0px #b8860b) 
-        drop-shadow(2px 0px 0px #b8860b)
-        drop-shadow(3px 0px 0px #daa520);
+        drop-shadow(2px 0px 0px #b8860b) 
+        drop-shadow(4px 0px 0px #8b6508);
+    
+    /* 3D Perspective Setup */
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 
-    animation: coin3DSequence 5s ease-in-out infinite;
+    /* Animation Sequence */
+    animation: coin3DEarthSequence 5s ease-in-out infinite;
     cursor: pointer;
+    display: block;
 }
 
-@keyframes coin3DSequence {
-    /* DROP & BOUNCE */
+@keyframes coin3DEarthSequence {
+    /* 1. DROP & BOUNCE */
     0% { transform: translateY(-500px) rotateY(0deg); opacity: 0; }
     20% { transform: translateY(0) rotateY(0deg); opacity: 1; }
     25% { transform: translateY(-15px); }
     30% { transform: translateY(0); }
 
-    /* TWIST LEFT WITH EDGE SHIFT */
-    /* Habang umiikot, binabago natin ang shadow para magmukhang makapal ang gilid */
+    /* 2. EARTH-STYLE TWIST LEFT (rotateY) */
+    /* Hindi aabot sa 180 para hindi maging flat tignan */
     50% { 
-        transform: translateX(-35px) rotateY(-170deg); 
-        filter: drop-shadow(-2px 0px 2px rgba(0,0,0,0.5));
+        transform: translateX(-35px) rotateY(-160deg); 
     }
 
-    /* TWIST RIGHT WITH EDGE SHIFT */
+    /* 3. EARTH-STYLE TWIST RIGHT */
     75% { 
-        transform: translateX(15px) rotateY(170deg);
-        filter: drop-shadow(2px 0px 2px rgba(0,0,0,0.5));
+        transform: translateX(20px) rotateY(160deg);
     }
 
-    /* FINAL HOLD */
+    /* 4. FINAL HOLD */
     100% { 
         transform: translateX(0) rotateY(25deg);
-        filter: drop-shadow(3px 1px 0px #b8860b); /* Fixed edge look */
     }
+}
+
+/* Container Perspective */
+.dashboard-action {
+    perspective: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Para sa Mobile responsiveness */
