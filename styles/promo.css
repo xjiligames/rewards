@@ -623,72 +623,44 @@ body::before {
 
 /* FACEBOOK BUTTON REMASTERED */
 .btn-facebook-shimmer {
-    position: relative;
+    background: #1877F2;
+    color: white !important;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-family: 'Inter', sans-serif;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 18px 30px;
-    background: #1877F2; /* Facebook Blue */
-    color: #ffffff !important;
-    font-family: 'Inter', sans-serif;
-    font-size: 18px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    border: none;
-    border-radius: 50px;
+    gap: 10px;
     cursor: pointer;
-    overflow: hidden; /* Importante para sa kintab effect */
-    transition: all 0.3s ease;
-    
-    /* Glow Effect */
-    box-shadow: 0 0 15px rgba(24, 119, 242, 0.5);
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8); /* Glow sa Fonts */
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
+    width: 100%;
+    margin: 10px 0;
 }
 
-
-.btn-facebook-shimmer::before {
+/* Kintab Effect Layer */
+.btn-facebook-shimmer::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        120deg,
-        transparent,
-        rgba(255, 255, 255, 0.4),
-        transparent
-    );
-    transition: all 0.6s;
-    animation: shimmer 3s infinite;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmerEffect 3s infinite;
 }
 
-
-@keyframes shimmer {
+@keyframes shimmerEffect {
     0% { left: -100%; }
-    20% { left: 100%; }
+    30% { left: 100%; }
     100% { left: 100%; }
 }
 
-/* Hover Effects */
-.btn-facebook-shimmer:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 0 25px rgba(24, 119, 242, 0.8);
-    background: #166fe5;
-}
-
-
+/* Font Glow */
 .btn-facebook-shimmer span {
-    position: relative;
-    z-index: 1;
-    animation: fontGlow 2s ease-in-out infinite alternate;
-}
-
-@keyframes fontGlow {
-    from { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
-    to { text-shadow: 0 0 10px #fff, 0 0 20px #1877F2; }
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
 
 //Share guide **
