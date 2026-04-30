@@ -1193,3 +1193,50 @@ body::before {
     .popup-title { font-size: 22px; }
     .indicator { width: 35px; }
 }
+
+/* Container para sa icon para ma-handle ang transparency */
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.claim-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    opacity: 0.6; /* Gawing transparent ang icon */
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    /* Permanent slow twist (Parang Earth) */
+    animation: permanentTwist 8s linear infinite; 
+}
+
+/* Pag tinapat ang cursor o finger (Hover/Active) */
+.claim-now-btn:hover .claim-icon,
+.claim-now-btn:active .claim-icon {
+    opacity: 1; /* Mawawala ang transparency */
+    animation: mediumSpin 1.5s linear infinite; /* Mag-i-spin ng medium speed */
+}
+
+/* Keyframes para sa mabagal na rotation (Earth style) */
+@keyframes permanentTwist {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Keyframes para sa medium spin kapag naka-hover */
+@keyframes mediumSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Optional: Idagdag ang shimmer sa button para mas maganda */
+.claim-now-btn {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* ... existing styles mo ... */
+}
