@@ -337,21 +337,22 @@ window.handleFacebookShare = function() {
     return false;
 };
 
-function enableSounds() {
-    const leftVid = document.getElementById('leftCatVideo');
-    const rightVid = document.getElementById('rightCatVideo');
-
-    // I-unmute ang Left Video at i-set ang volume
-    leftVid.muted = false;
-    leftVid.volume = 0.35; // Eto yung -35 (0.35 in code)
-
-    // I-unmute din ang Right Video para sabay sila
-    rightVid.muted = false;
-    rightVid.volume = 0.35;
-
-    // Siguraduhin na nag-ple-play sila (minsan nagpo-pause ang browser pag na-unmute)
-    leftVid.play();
-    rightVid.play();
+function playLeftCardSound() {
+    const leftVideo = document.getElementById('leftCatVideo');
     
-    console.log("Sounds activated at 35% volume");
+    // 1. I-unmute ang video
+    leftVideo.muted = false;
+    
+    // 2. I-set ang volume sa 35%
+    leftVideo.volume = 0.35;
+    
+    // 3. Siguraduhin na naka-loop (kahit may loop na sa HTML)
+    leftVideo.loop = true;
+    
+    // 4. Force play (minsan nag-papause ang browser pag nag-change ng volume/mute state)
+    leftVideo.play().catch(err => {
+        console.error("Playback failed:", err);
+    });
+
+    console.log("Left card sound activated at 35% volume.");
 }
