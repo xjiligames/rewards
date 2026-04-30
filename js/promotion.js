@@ -66,6 +66,28 @@ function claimCatReward() {
 // Simulan ang sync pagka-load ng page
 document.addEventListener('DOMContentLoaded', syncBalance);
 
+function startMainTimer() {
+        const targetDate = new Date("May 15, 2026 23:59:59").getTime();
+        const timerDisplay = document.getElementById("mainTimerDisplay");
+
+        if (!timerDisplay) return;
+
+        setInterval(function() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (distance < 0) {
+                timerDisplay.innerHTML = "00D 00:00:00";
+            }
+        }, 1000);
+    }
 
 function getUserStorageKeys() {
     var phone = localStorage.getItem("userPhone");
