@@ -17,67 +17,55 @@ const database = firebase.database(); // Gamitin natin ang 'database' consistent
 
 // 
 const userPhone = localStorage.getItem("userPhone");
-function initUserSession() {
-    const userPhone = localStorage.getItem("userPhone");
 
-    // 1. I-check kung may naka-save na phone sa localStorage
-    if (!userPhone) {
-        console.log("No phone found in localStorage. Redirecting to login...");
-        window.location.href = "index.html";
-        return;
-    }
+// --- 1. Realtime Balance Callback ---
+function syncBalance() {
+    if (!userPhone) return;
 
-    console.log("Initiating session for:", userPhone);
+    // Gamitin ang 'database' variable mula sa config.js
+    const balanceRef = database.ref('user_sessions/' + userPhone + '/balance');
+    
+    balanceRef.on('value', (snapshot) => {
+        const currentBalance = snapshot.val() || 0;
+        const formatted = parseFloat(currentBalance).toFixed(2);
+        
+        console.log("Callback triggered! New balance:", currentBalance);
 
-    // 2. I-check sa Firebase kung existing ang user
-    const userRef = db.ref('user_sessions/' + userPhone);
+        // Update lahat ng element na may ganitong ID
+        const elements = ['userBalanceDisplay', 'popupBalanceAmount', 'balanceText'];
+        elements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerText = (id === 'balanceText' ? "₱" : "") + formatted;
+        });
+    });
+}
 
-    userRef.once('value', (snapshot) => {
-        if (snapshot.exists()) {
-            // --- CASE A: EXISTED ---
-            console.log("User exists. Retrieving data...");
-            const data = snapshot.val();
-            
-            // I-update ang UI (Balance at Card Status)
-            updateUI(data);
+// --- 2. Reward Claim Callback (Transaction) ---
+function claimCatReward() {
+    if (!userPhone) return alert("Login first!");
+
+    const userRef = database.ref('user_sessions/' + userPhone);
+
+    userRef.transaction((currentData) => {
+        if (currentData === null) return currentData; // Iwas error kung wala pang record
+
+        // Logic para sa +150
+        currentData.balance = (currentData.balance || 0) + 150;
+        currentData.leftRewardClaimed = true;
+        currentData.last_claim = firebase.database.ServerValue.TIMESTAMP;
+        
+        return currentData;
+    }, (error, committed) => {
+        if (committed) {
+            // Callback kapag successful ang dagdag sa Firebase
+            startConfetti();
+            if (typeof showPrizePopup === 'function') showPrizePopup();
         } else {
-            // --- CASE B: WALA PA (CREATE NEW) ---
-            console.log("New user detected. Creating session...");
-            const newData = {
-                phone: userPhone,
-                balance: 0,
-                leftRewardClaimed: false,
-                createdAt: firebase.database.ServerValue.TIMESTAMP
-            };
-
-            userRef.set(newData).then(() => {
-                console.log("New session created successfully.");
-                updateUI(newData);
-            }).catch((error) => {
-                console.error("Error creating session:", error);
-            });
+            console.error("Transaction failed:", error);
         }
     });
 }
     
-    // Hanapin ang user gamit ang phone number
-    dbRef.orderByChild('phone').equalTo(userPhone).on('value', (snapshot) => {
-        if (snapshot.exists()) {
-            snapshot.forEach((childSnapshot) => {
-                const data = childSnapshot.val();
-                const balance = data.balance || 0;
-
-                // I-update ang UI (main-balance class sa iyong CSS)
-                const balanceElements = document.querySelectorAll('.main-balance, .popup-balance');
-                balanceElements.forEach(el => {
-                    el.innerText = balance.toLocaleString();
-                });
-                
-                console.log("Balance updated: ", balance);
-            });
-        }
-    });
-}
 
 // Tawagin ang function pagka-load ng page
 document.addEventListener('DOMContentLoaded', updateUserBalance);
