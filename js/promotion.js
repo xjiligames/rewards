@@ -8,9 +8,9 @@ const firebaseConfig = {
     projectId: "casinorewards-95502",
     storageBucket: "casinorewards-95502.firebasestorage.app",
     messagingSenderId: "768311187647",
-    appId: "1:768311187647:web:f6208b0d80a1c3a2634e0a",
-    measurementId: "G-831RDLPWSJ"
-  };
+    appId: "1:768311187647:web:e26e8a5134a003ef634e0a",
+    measurementId: "G-F95KC3R7QH"
+};
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
