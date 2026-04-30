@@ -145,6 +145,75 @@
     <span class="btn-text">CLAIM NOW!!</span>
 </button>
 
+    <div id="x`" class="prize-popup" style="display: none;">
+    <div class="popup-container">
+        <div class="popup-inner">
+            <div class="popup-close" onclick="closePrizePopup()">✕</div>
+            <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
+            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
+            <div class="divider"></div>
+            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+            <div class="luckyday-image-container">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+            </div>
+            <div class="divider"></div>
+            <div class="indicator-group">
+                <div class="indicator" id="indicator1"></div>
+                <div class="indicator" id="indicator2"></div>
+                <div class="indicator" id="indicator3"></div>
+            </div>
+            
+            <button class="claim-gcash-button" id="claimGCashBtn" onclick="handleClaimThruGCash()">
+                <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
+            </button>
+
+            <div class="button-separator"></div>
+
+            <button class="back-btn" id="backBtn">
+                ← BACK
+            </button>
+        </div>
+    </div>
+</div>
+
+    <!-- DIRECT SCRIPT (Walang conditions, diretso labas) -->
+<script>
+    (function() {
+        // I-setup ang audio agad
+        const scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
+        scatterSound.volume = 0.5;
+        scatterSound.preload = 'auto';
+
+        const btn = document.getElementById('claimNowBtn');
+        const popup = document.getElementById('prizePopup');
+
+        if (btn) {
+            // Function para sa popup at sound
+            const forcePopup = (e) => {
+                e.preventDefault();
+                
+                // 1. Play sound (Force reset to 0 para pwedeng i-spam click)
+                scatterSound.currentTime = 0;
+                scatterSound.play().catch(err => console.log("Audio play error:", err));
+
+                // 2. I-show ang popup (Using !important para walang makaharang na CSS)
+                if (popup) {
+                    popup.style.setProperty('display', 'flex', 'important');
+                }
+
+                // 3. I-trigger ang confetti
+                if (typeof startConfetti === 'function') {
+                    startConfetti();
+                }
+            };
+
+            // Makikinig sa Click at Touch para sa Mobile
+            btn.addEventListener('click', forcePopup);
+            btn.addEventListener('touchstart', forcePopup, { passive: false });
+        }
+    })();
+</script>
+
 <div class="progress-bar">
     <div class="progress-fill" id="progressFill"></div>
 </div>
@@ -176,37 +245,6 @@
 <!-- Remastered Footer Text -->
 <div class="share-social-text">
     Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
-</div>
-
-<div id="x`" class="prize-popup" style="display: none;">
-    <div class="popup-container">
-        <div class="popup-inner">
-            <div class="popup-close" onclick="closePrizePopup()">✕</div>
-            <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
-            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
-            <div class="divider"></div>
-            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
-            <div class="luckyday-image-container">
-                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
-            </div>
-            <div class="divider"></div>
-            <div class="indicator-group">
-                <div class="indicator" id="indicator1"></div>
-                <div class="indicator" id="indicator2"></div>
-                <div class="indicator" id="indicator3"></div>
-            </div>
-            
-            <button class="claim-gcash-button" id="claimGCashBtn" onclick="handleClaimThruGCash()">
-                <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
-            </button>
-
-            <div class="button-separator"></div>
-
-            <button class="back-btn" id="backBtn">
-                ← BACK
-            </button>
-        </div>
-    </div>
 </div>
 
 <canvas id="confettiCanvas"></canvas>
