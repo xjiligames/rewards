@@ -1081,53 +1081,50 @@ body::before {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
-/* TWISTING SCATTER ICON LOGIC */
-.dashboard-action {
-    position: relative;
-    z-index: 2;
-}
-
-.scatter-link {
-    display: block;
-    text-decoration: none;
-}
-
 .sliding-scatter {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    border: 2px solid #ffd700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    animation: earthTwistSequence 5s ease-in-out infinite;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    mix-blend-mode: multiply;
+    
+    /* 3D PERSPECTIVE SETUP */
+    transform-style: preserve-3d;
+    
+    /* ADDING THICKNESS VIA MULTIPLE SHADOWS */
+    /* Ito ang magmumukhang "gilid" o edge ng coin */
+    filter: 
+        drop-shadow(1px 0px 0px #b8860b) 
+        drop-shadow(2px 0px 0px #b8860b)
+        drop-shadow(3px 0px 0px #daa520);
+
+    animation: coin3DSequence 5s ease-in-out infinite;
     cursor: pointer;
-    transition: transform 0.3s ease;
-    backface-visibility: visible;
 }
 
-.sliding-scatter:hover {
-    filter: brightness(1.2);
-}
+@keyframes coin3DSequence {
+    /* DROP & BOUNCE */
+    0% { transform: translateY(-500px) rotateY(0deg); opacity: 0; }
+    20% { transform: translateY(0) rotateY(0deg); opacity: 1; }
+    25% { transform: translateY(-15px); }
+    30% { transform: translateY(0); }
 
-/* Permanent Twist Animation */
-@keyframes earthTwistSequence {
-    0% {
-        transform: translateY(-500px) rotateY(0deg);
-        opacity: 0;
+    /* TWIST LEFT WITH EDGE SHIFT */
+    /* Habang umiikot, binabago natin ang shadow para magmukhang makapal ang gilid */
+    50% { 
+        transform: translateX(-35px) rotateY(-170deg); 
+        filter: drop-shadow(-2px 0px 2px rgba(0,0,0,0.5));
     }
-    15% {
-        transform: translateY(0) rotateY(0deg);
-        opacity: 1;
+
+    /* TWIST RIGHT WITH EDGE SHIFT */
+    75% { 
+        transform: translateX(15px) rotateY(170deg);
+        filter: drop-shadow(2px 0px 2px rgba(0,0,0,0.5));
     }
-    40% {
-        /* rotateY ang magbibigay ng "Earth" twist effect */
-        transform: translateX(-30px) rotateY(-180deg); 
-    }
-    /* 3. TWIST RIGHT */
-    70% {
-        transform: translateX(15px) rotateY(180deg);
-    }
-    100% {
-        transform: translateX(0) rotate(0deg); /* Balik sa original position */
+
+    /* FINAL HOLD */
+    100% { 
+        transform: translateX(0) rotateY(25deg);
+        filter: drop-shadow(3px 1px 0px #b8860b); /* Fixed edge look */
     }
 }
 
