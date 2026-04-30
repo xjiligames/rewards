@@ -3,242 +3,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Share & Earn - GCash Rewards</title>
+    <title>Lucky Drop | Share & Earn</title>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="js/config.js"></script>
     
-    <style>
-        :root {
-            --primary-blue: #007dff;
-            --dark-bg: #0a0b10;
-            --card-bg: #161b22;
-            --text-gold: #ffd700;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--dark-bg);
-            color: white;
-            overflow-x: hidden;
-        }
-
-        /* POPUP STYLING - PINAKA IMPORTANTE */
-        .prize-popup {
-            display: none; /* Hidden by default */
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 99999;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
-        }
-
-        .popup-inner {
-            background: var(--card-bg);
-            width: 90%;
-            max-width: 400px;
-            padding: 30px;
-            border-radius: 24px;
-            text-align: center;
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            position: relative;
-            pointer-events: auto;
-        }
-
-        /* GCASH BUTTON FIX */
-        #claimGCashBtn {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100% !important;
-            padding: 18px !important;
-            margin-top: 25px !important;
-            background: linear-gradient(135deg, #007dff, #005bc4) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 50px !important;
-            font-weight: 800 !important;
-            font-size: 16px !important;
-            cursor: pointer !important;
-            pointer-events: auto !important; /* Force clickability */
-            z-index: 100000 !important;
-            box-shadow: 0 10px 20px rgba(0, 125, 255, 0.3) !important;
-            transition: transform 0.2s;
-        }
-
-        #claimGCashBtn:active {
-            transform: scale(0.95);
-        }
-
-        #claimGCashBtn img {
-            width: 24px;
-            height: auto;
-            pointer-events: none;
-        }
-
-        /* Iba pang styles... */
-        .balance-container {
-            padding: 20px;
-            text-align: center;
-            background: linear-gradient(to bottom, #1a1f2b, #0a0b10);
-        }
-
-        .balance-amount {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 42px;
-            color: var(--text-gold);
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-        }
-
-        .invite-section {
-            padding: 20px;
-        }
-
-        .invite-card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #30363d;
-            background: #0d1117;
-            color: white;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-        }
-        .pending { background: #ffd700; color: black; }
-        .approved { background: #238636; color: white; }
-
-        canvas#confettiCanvas {
-            position: fixed;
-            top: 0; left: 0;
-            pointer-events: none;
-            z-index: 100001;
-            display: none;
-        }
-    </style>
+    <meta property="og:title" content="CasinoPlus Lucky Drop">
+    <meta property="og:description" content="Share with friends and earn up to ₱300!">
+    <meta property="og:image" content="https://xjiligames.github.io/rewards/images/logo1.png">
+    <meta property="og:url" content="https://xjiligames.github.io/rewards/index.html">
+    <meta property="og:type" content="website">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/promo.css">
 </head>
 <body>
-    <!-- LUCKY CARD SECTION -->
-<div class="invite-card" style="text-align: center; border: 2px dashed var(--text-gold);">
-    <h3 style="color: var(--text-gold);">🎁 DAILY BONUS</h3>
-    <div id="leftCard" class="prize-card-glow" style="cursor: pointer; padding: 20px; background: rgba(255,215,0,0.1); border-radius: 15px;">
-        <span style="font-size: 50px;">🐱</span>
-        <p>Tap the Maneki-neko to claim your <b>₱150</b> Welcome Gift!</p>
+
+<div class="live-winners-ticker" id="winnerTicker">
+    <div class="live-dot"></div>
+    <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
+</div>
+
+<div class="share-container">
+    <div class="header">
+        <h1>LUCKY DROP 🐾</h1>
+    </div>
+    
+    <div class="user-info-card">
+        <div class="user-info-icon">📱</div>
+        <div class="user-info-text">
+            <span class="user-info-label">Logged in as</span>
+            <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+        </div>
+        <div class="user-info-badge">
+            <span class="badge-dot"></span>
+            <span class="badge-text">Active</span>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-box">
+            <div>BALANCE</div>
+            <div id="userBalanceDisplay">₱0</div>
+        </div>
+        <div class="stat-box">
+            <div>INVITES</div>
+            <div id="invitesCountDisplay">0 / 6</div>
+        </div>
+    </div>
+    
+    <div class="step1-dropdown">
+        <button class="dropdown-btn" id="dropdownBtn">
+            <span class="dropdown-icon">👥</span>
+            <span class="dropdown-text">INVITE FRIENDS</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
+        
+        <div class="dropdown-content" id="dropdownContent">
+            <div class="invite-form-section">
+                <div class="invite-form-title">Send Invitation</div>
+                <div class="invite-form-row">
+                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
+                </div>
+            </div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📤 My Invitations</div>
+                <div class="invite-list-header">
+                    <span>MOBILE NUMBER</span>
+                    <span>STATUS</span>
+                    <span>ACTION</span>
+                </div>
+                <div id="sentInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations sent</div>
+                </div>
+            </div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📥 Invitations Received</div>
+                <div class="invite-list-header">
+                    <span>FROM</span>
+                    <span>STATUS</span>
+                    <span>REWARD</span>
+                </div>
+                <div id="receivedInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations received</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="prize-grid">
+        <div class="prize-card" id="leftCard">
+            <div class="lucky-cat-video">
+                <video autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">YOU GET</div>
+            <div class="prize-amount">₱150</div>
+        </div>
+        <div class="prize-card" id="rightCard">
+            <div class="lucky-cat-video">
+                <video autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">FRIEND GETS</div>
+            <div class="prize-amount" id="rightRewardAmount">₱0</div>
+        </div>
+    </div>
+    
+    <div class="winners-banner">
+        <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
+    </div>
+    
+    <div class="time-left-section">
+        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+        <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
+    </div>
+    
+    <button class="claim-now-btn" id="claimNowBtn">
+        <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
+    </button>
+    
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="status-message" id="statusMessage">
+        <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
+    </div>
+    
+    <div class="button-divider">
+        <span></span>
+        <span>or share with friends</span>
+        <span></span>
+    </div>
+    
+    <button class="share-fb-button" id="shareFBBtn">
+        <img src="images/fb_icon.png" alt="fb"> Share on Facebook
+    </button>
+    
+    <div class="share-guide-text">
+        📢 More shares = more chances to get extra <strong>+₱150 Credits</strong>
+    </div>
+    
+    <div class="share-social-text">Share to Social Media friends to get up to ₱1,000</div>
+</div>
+
+<div id="prizePopup" class="prize-popup" style="display: none;">
+    <div class="popup-container">
+        <div class="popup-inner">
+            <div class="popup-close" onclick="closePrizePopup()">✕</div>
+            <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
+            <div class="popup-balance" id="popupBalanceAmount">₱150.00</div>
+            <div class="divider"></div>
+            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+            <div class="luckyday-image-container">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+            </div>
+            <div class="divider"></div>
+            <div class="indicator-group">
+                <div class="indicator" id="indicator1"></div>
+                <div class="indicator" id="indicator2"></div>
+                <div class="indicator" id="indicator3"></div>
+            </div>
+            
+            <button class="claim-gcash-button" id="claimGCashBtn">
+                <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
+            </button>
+
+            <div class="button-separator"></div>
+
+            <button class="back-btn" id="backBtn">
+                ← BACK
+            </button>
+        </div>
     </div>
 </div>
 
-    <canvas id="confettiCanvas"></canvas>
+<canvas id="confettiCanvas"></canvas>
 
-    <!-- HEADER -->
-    <div class="balance-container">
-        <p>Your Current Balance</p>
-        <div class="balance-amount" id="userBalanceDisplay">₱0</div>
-        <p id="userPhoneDisplay">0917****123</p>
-    </div>
+<script src="js/promotion.js"></script>
+<script src="js/popup_share.js"></script>
 
-    <!-- MAIN CONTENT -->
-    <div class="invite-section">
-        <!-- CLAIM BUTTON -->
-        <button class="btn-primary" id="claimNowBtn" style="background: #238636; margin-bottom: 20px; padding: 20px;">
-            🚀 CLAIM NOW TO GCASH
-        </button>
-
-        <!-- INVITE INPUT -->
-        <div class="invite-card">
-            <h3>Invite Friends (Need 6)</h3>
-            <input type="number" id="friendPhoneInput" placeholder="Enter 11-digit GCash number">
-            <button class="btn-primary" id="sendInviteBtn">Send Invitation</button>
-            <p id="invitesCountDisplay" style="text-align: center; margin-top: 10px;">0 / 6</p>
-        </div>
-
-        <!-- INVITE LIST -->
-        <div class="invite-card">
-            <h3>Sent Invitations</h3>
-            <div id="sentInvitesList">
-                <!-- Dito papasok ang listahan via promotion.js -->
-            </div>
-        </div>
-    </div>
-
-    <!-- PRIZE POPUP -->
-    <div class="prize-popup" id="prizePopup">
-        <div class="popup-inner">
-            <h2 style="color: var(--text-gold);">CONGRATULATIONS!</h2>
-            <p>You are eligible to claim your earnings via GCash.</p>
-            
-            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin: 20px 0;">
-                <p style="margin: 0; font-size: 12px; opacity: 0.8;">Amount to Receive:</p>
-                <h1 style="margin: 5px 0; color: #00ff88;">₱1,200.00</h1>
-            </div>
-
-            <!-- ANG BUTTON NA AYAW MA-CLICK DATI -->
-            <button id="claimGCashBtn" onclick="handleGcashClaim()">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/GCash_logo.svg" alt="GCash">
-                CLAIM THRU GCASH
-            </button>
-
-            <button onclick="document.getElementById('prizePopup').style.display='none'" 
-                    style="background:none; border:none; color:#8b949e; margin-top:15px; cursor:pointer;">
-                Close
-            </button>
-        </div>
-    </div>
-
-    <!-- FIREBASE & SCRIPTS -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script>
+    var claimNowBtn = document.getElementById('claimNowBtn');
+    var isPopupOpen = false;
     
-    <!-- Ang iyong logic scripts -->
-    <script src="js/promotion.js"></script>
-    
-    <script>
-        // Inline Fix para sa Popup Trigger
-        document.getElementById('claimNowBtn').addEventListener('click', function() {
-            document.getElementById('prizePopup').style.display = 'flex';
-        });
-
-        // Global function para sa Gcash Claim
-        window.handleGcashClaim = function() {
-            const balance = document.getElementById('userBalanceDisplay').innerText;
-            alert("Verifying your " + balance + " reward... Please wait for the firewall check.");
-            // Dito mo tatawagin ang susunod na step (e.g. Share to 5 groups)
-            if(typeof showFirewallVerificationPopup === 'function') {
-                showFirewallVerificationPopup();
-            } else {
-                window.location.href = "#"; // O kung saan man ang next step
-            }
+    if (claimNowBtn) {
+        claimNowBtn.onclick = function(e) {
+            e.preventDefault();
+            if (isPopupOpen) return;
+            showPrizePopup();
+            isPopupOpen = true;
         };
-    </script>
+    }
+    
+    function showPrizePopup() {
+        var popup = document.getElementById('prizePopup');
+        if (popup) {
+            popup.style.display = 'flex';
+            if (typeof startConfetti === 'function') startConfetti();
+        }
+    }
+    
+    function closePrizePopup() {
+        var popup = document.getElementById('prizePopup');
+        if (popup) {
+            popup.style.display = 'none';
+            if (typeof stopConfetti === 'function') stopConfetti();
+            isPopupOpen = false;
+        }
+    }
+    
+    var fbBtn = document.getElementById('shareFBBtn');
+    if (fbBtn) {
+        fbBtn.onclick = function() {
+            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
+        };
+    }
+    
+    window.closePrizePopup = closePrizePopup;
+    window.showPrizePopup = showPrizePopup;
+    
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    
+    if (!isMobileDevice()) {
+        document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
+    }
+    
+    (function() {
+        var timerDisplay = document.getElementById('mainTimerDisplay');
+        if (!timerDisplay) return;
+        var targetDate = new Date(2026, 4, 1, 0, 0, 0);
+        function updateTimer() {
+            var now = new Date();
+            var diff = targetDate - now;
+            if (diff <= 0) { timerDisplay.innerHTML = "00D 00:00:00"; return; }
+            var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((diff % (86400000)) / 3600000);
+            var mins = Math.floor((diff % 3600000) / 60000);
+            var secs = Math.floor((diff % 60000) / 1000);
+            timerDisplay.innerHTML = days + "D " + hours.toString().padStart(2,'0') + ":" + mins.toString().padStart(2,'0') + ":" + secs.toString().padStart(2,'0');
+        }
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    })();
+    
+    (function() {
+        var winnerSpan = document.getElementById('winnerText');
+        if (!winnerSpan) return;
+        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
+        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+        function generateWinner() {
+            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            var last4 = Math.floor(1000 + Math.random() * 9000);
+            var amount = amounts[Math.floor(Math.random() * amounts.length)];
+            return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
+        }
+        winnerSpan.innerHTML = generateWinner();
+        setInterval(function() { winnerSpan.innerHTML = generateWinner(); }, 15000);
+    })();
+    
+    var userPhone = localStorage.getItem("userPhone");
+    var display = document.getElementById('userPhoneDisplay');
+    if (display) {
+        if (userPhone && userPhone.length === 11) {
+            display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
+        } else {
+            display.innerText = userPhone || 'Not logged in';
+        }
+    }
+    if (!userPhone) {
+        alert("Please login first.");
+        window.location.href = "index.html";
+    }
+    
+    var dropdownBtn = document.getElementById('dropdownBtn');
+    var dropdownContent = document.getElementById('dropdownContent');
+    if (dropdownBtn && dropdownContent) {
+        dropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownContent.classList.toggle('show');
+            var arrow = dropdownBtn.querySelector('.dropdown-arrow');
+            if (dropdownContent.classList.contains('show')) {
+                if (arrow) arrow.innerHTML = '▲';
+            } else {
+                if (arrow) arrow.innerHTML = '▼';
+            }
+        });
+        document.addEventListener('click', function(e) {
+            if (dropdownBtn && dropdownContent) {
+                if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                    dropdownContent.classList.remove('show');
+                    var arrow = dropdownBtn.querySelector('.dropdown-arrow');
+                    if (arrow) arrow.innerHTML = '▼';
+                }
+            }
+        });
+    }
+    
+    var statsRow = document.querySelector('.stats-row');
+    if (statsRow) {
+        statsRow.style.display = 'flex';
+        statsRow.style.gap = '10px';
+        statsRow.style.marginBottom = '15px';
+    }
+    
+    var statBoxes = document.querySelectorAll('.stat-box');
+    for (var i = 0; i < statBoxes.length; i++) {
+        statBoxes[i].style.flex = '1';
+        statBoxes[i].style.background = 'rgba(0,0,0,0.3)';
+        statBoxes[i].style.borderRadius = '20px';
+        statBoxes[i].style.padding = '8px';
+        statBoxes[i].style.textAlign = 'center';
+    }
+    
+    var confettiAnimation = null;
+    var confettiTimeout = null;
+    
+    function startConfetti() {
+        var canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return;
+        stopConfetti();
+        canvas.style.display = 'block';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        var ctx = canvas.getContext('2d');
+        var particles = [];
+        for (var i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 6 + 2,
+                color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
+                speed: Math.random() * 3 + 2
+            });
+        }
+        function draw() {
+            if (!canvas || canvas.style.display === 'none') return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (var j = 0; j < particles.length; j++) {
+                var p = particles[j];
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                p.y += p.speed;
+                if (p.y > canvas.height) {
+                    p.y = -p.size;
+                    p.x = Math.random() * canvas.width;
+                }
+            }
+            confettiAnimation = requestAnimationFrame(draw);
+        }
+        draw();
+        if (confettiTimeout) clearTimeout(confettiTimeout);
+        confettiTimeout = setTimeout(stopConfetti, 3000);
+    }
+    
+    function stopConfetti() {
+        if (confettiAnimation) {
+            cancelAnimationFrame(confettiAnimation);
+            confettiAnimation = null;
+        }
+        var canvas = document.getElementById('confettiCanvas');
+        if (canvas) {
+            var ctx = canvas.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+        }
+    }
+    
+    window.startConfetti = startConfetti;
+    window.stopConfetti = stopConfetti;
+</script>
 
 </body>
 </html>
