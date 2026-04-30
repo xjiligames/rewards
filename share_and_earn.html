@@ -55,46 +55,48 @@
     </div>
     
     <div class="step1-dropdown">
-        <button class="dropdown-btn" id="dropdownBtn">
-            <span class="dropdown-icon">👥</span>
-            <span class="dropdown-text">INVITE FRIENDS</span>
-            <span class="dropdown-arrow">▼</span>
-        </button>
+    <button class="dropdown-btn" id="dropdownBtn">
+        <span class="dropdown-icon">👥</span>
+        <span class="dropdown-text">INVITE FRIENDS</span>
+        <span class="dropdown-arrow">▼</span>
+    </button>
+    
+    <div class="dropdown-content" id="dropdownContent">
+        <!-- COMPACT INVITE FORM -->
+        <div class="invite-form-container">
+            <div class="invite-input-wrapper">
+                <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
+            </div>
+        </div>
         
-        <div class="dropdown-content" id="dropdownContent">
-            <div class="invite-form-section">
-                <div class="invite-form-title">Send Invitation</div>
-                <div class="invite-form-row">
-                    <input type="tel" id="friendPhoneInput" class="invite-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    <button class="invite-send-btn" id="sendInviteBtn">SEND</button>
-                </div>
+        <!-- MY INVITATIONS SECTION -->
+        <div class="invite-list-section">
+            <div class="invite-section-title">📤 My Invitations</div>
+            <div class="invite-list-header">
+                <span>MOBILE NUMBER</span>
+                <span>STATUS</span>
+                <span>ACTION</span>
             </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📤 My Invitations</div>
-                <div class="invite-list-header">
-                    <span>MOBILE NUMBER</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
-                <div id="sentInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations sent</div>
-                </div>
+            <div id="sentInvitesList" class="invite-list-body">
+                <div class="invite-empty">No invitations sent</div>
             </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📥 Invitations Received</div>
-                <div class="invite-list-header">
-                    <span>FROM</span>
-                    <span>STATUS</span>
-                    <span>REWARD</span>
-                </div>
-                <div id="receivedInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations received</div>
-                </div>
+        </div>
+        
+        <!-- RECEIVED SECTION -->
+        <div class="invite-list-section">
+            <div class="invite-section-title">📥 Invitations Received</div>
+            <div class="invite-list-header">
+                <span>FROM</span>
+                <span>STATUS</span>
+                <span>REWARD</span>
+            </div>
+            <div id="receivedInvitesList" class="invite-list-body">
+                <div class="invite-empty">No invitations received</div>
             </div>
         </div>
     </div>
+</div>
     
     <div class="prize-grid">
         <div class="prize-card" id="leftCard">
@@ -159,7 +161,7 @@
 
 <!-- Remastered Footer Text -->
 <div class="share-social-text">
-    Share to <strong>Social Media</strong> friends to get up to <strong>₱1,000</strong>
+    Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
 </div>
 
 <div id="prizePopup" class="prize-popup" style="display: none;">
