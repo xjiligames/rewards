@@ -470,12 +470,7 @@ window.deleteInviteFromStorage = function(friendPhone) {
 };
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // 1. AUTHENTICATION CHECK
-    var userPhone = localStorage.getItem("userPhone");
-    if (!userPhone) { 
-        window.location.href = "index.html"; 
-        return; 
-    }
+   
     
     // 2. DISPLAY PHONE NUMBER
     var display = document.getElementById('userPhoneDisplay');
