@@ -53,6 +53,37 @@ function initUserSession() {
     });
 }
 
+// Function para i-retrieve ang balanse mula sa Firebase
+function updateUserBalance() {
+    // Kunin ang phone number mula sa session (halimbawa)
+    const userPhone = localStorage.getItem('userPhone'); 
+    
+    if (!userPhone) return;
+
+    const dbRef = firebase.database().ref('user_sessions');
+    
+    // Hanapin ang user gamit ang phone number
+    dbRef.orderByChild('phone').equalTo(userPhone).on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+                const balance = data.balance || 0;
+
+                // I-update ang UI (main-balance class sa iyong CSS)
+                const balanceElements = document.querySelectorAll('.main-balance, .popup-balance');
+                balanceElements.forEach(el => {
+                    el.innerText = balance.toLocaleString();
+                });
+                
+                console.log("Balance updated: ", balance);
+            });
+        }
+    });
+}
+
+// Tawagin ang function pagka-load ng page
+document.addEventListener('DOMContentLoaded', updateUserBalance);
+
 function updateUI(data) {
     // 1. I-update ang Balance Display
     const balanceDisplay = document.getElementById('balanceText');
