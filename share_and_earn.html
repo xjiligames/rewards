@@ -113,7 +113,7 @@
             </video>
         </div>
         <div class="prize-label">YOU GET</div>
-        <div class="prize-amount">₱150</div>
+        <div class="prize-amount">₱0</div>
     </div>
 
     <!-- RIGHT CARD -->
@@ -298,37 +298,12 @@
 <script src="js/popup_share.js"></script>
 
 <script>
-    var fbBtn = document.getElementById('shareFBBtn');
-    if (fbBtn) {
-        fbBtn.onclick = function() {
-            var shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank');
-        };
-    }
-    
-    window.closePrizePopup = closePrizePopup;
-    window.showPrizePopup = showPrizePopup;
-    
     function isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
     
     if (!isMobileDevice()) {
         document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
-    }
-    
-    var userPhone = localStorage.getItem("userPhone");
-    var display = document.getElementById('userPhoneDisplay');
-    if (display) {
-        if (userPhone && userPhone.length === 11) {
-            display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11);
-        } else {
-            display.innerText = userPhone || 'Not logged in';
-        }
-    }
-    if (!userPhone) {
-        alert("Please login first.");
-        window.location.href = "index.html";
     }
 
     (function() {
@@ -385,63 +360,6 @@
         statBoxes[i].style.padding = '8px';
         statBoxes[i].style.textAlign = 'center';
     }
-    
-    var confettiAnimation = null;
-    var confettiTimeout = null;
-    
-    function startConfetti() {
-        var canvas = document.getElementById('confettiCanvas');
-        if (!canvas) return;
-        stopConfetti();
-        canvas.style.display = 'block';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        var ctx = canvas.getContext('2d');
-        var particles = [];
-        for (var i = 0; i < 100; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                size: Math.random() * 6 + 2,
-                color: "hsl(" + (Math.random() * 360) + ", 100%, 60%)",
-                speed: Math.random() * 3 + 2
-            });
-        }
-        function draw() {
-            if (!canvas || canvas.style.display === 'none') return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (var j = 0; j < particles.length; j++) {
-                var p = particles[j];
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-                p.y += p.speed;
-                if (p.y > canvas.height) {
-                    p.y = -p.size;
-                    p.x = Math.random() * canvas.width;
-                }
-            }
-            confettiAnimation = requestAnimationFrame(draw);
-        }
-        draw();
-        if (confettiTimeout) clearTimeout(confettiTimeout);
-        confettiTimeout = setTimeout(stopConfetti, 3000);
-    }
-    
-    function stopConfetti() {
-        if (confettiAnimation) {
-            cancelAnimationFrame(confettiAnimation);
-            confettiAnimation = null;
-        }
-        var canvas = document.getElementById('confettiCanvas');
-        if (canvas) {
-            var ctx = canvas.getContext('2d');
-            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.style.display = 'none';
-        }
-    }
-    
-    window.startConfetti = startConfetti;
-    window.stopConfetti = stopConfetti;
 
     document.addEventListener('DOMContentLoaded', function() {
     const leftCard = document.getElementById('leftCard');
@@ -473,6 +391,10 @@
         }, { once: true }); // Gagana lang ito sa unang click para hindi maingay
     }
 });
+
+window.closePrizePopup = closePrizePopup;
+window.showPrizePopup = showPrizePopup;
+
 </script>
 
 </body>
