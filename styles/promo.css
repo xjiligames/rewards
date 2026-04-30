@@ -843,23 +843,43 @@ body::before {
     100% { transform: translate(1px, -1px); }
 }
 
-/* Puwersahin ang button na maging clickable */
+/* SIGURADONG CLICKABLE FIX */
 #claimGCashBtn {
+    display: flex !important; /* Siguradong kita */
+    visibility: visible !important;
     position: relative !important;
-    z-index: 999999 !important; /* Pinaka-ibabaw sa lahat */
-    pointer-events: auto !important; /* Siguradong tumatanggap ng click */
+    z-index: 9999999 !important; /* Pinaka-mataas na level */
+    pointer-events: auto !important; /* Puwersahang clickable */
     cursor: pointer !important;
+    
+    /* Neon Blue Style para magmukhang clickable talaga */
+    background: #00d4ff !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 15px 30px !important;
+    border-radius: 50px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    width: 100% !important;
+    margin-top: 20px !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.6) !important;
 }
 
-/* Siguraduhin na ang mga image o divider ay hindi nakaharang */
+/* Tanggalin ang harang ng mga elements sa paligid */
+.popup-inner, .popup-container {
+    pointer-events: auto !important;
+}
+
 .popup-image-container, 
 .luckyday-img, 
-.popup-divider {
-    pointer-events: none !important; /* Lulusot ang click sa ilalim nito */
+.divider, 
+.invite-text {
+    pointer-events: none !important; /* Lulusot ang click dito patungo sa button */
 }
 
-/* Siguraduhin na ang container ay hindi 'disabled' */
-.popup-container {
+/* Siguraduhin na ang overlay ay hindi "dead zone" */
+.prize-popup {
     pointer-events: auto !important;
 }
 
