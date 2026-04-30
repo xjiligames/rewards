@@ -318,3 +318,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Gawing global ang function para ma-detect ng onclick
+window.handleFacebookShare = function() {
+    console.log("Facebook share triggered...");
+    
+    // URL na ishe-share (Siguraduhin na tama ito)
+    var shareUrl = "https://xjiligames.github.io/rewards/index.html";
+    
+    // Facebook Share Dialog URL
+    var fbWindow = window.open(
+        'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), 
+        'facebook-share-dialog', 
+        'width=626,height=436'
+    );
+
+    // Logic para sa popup_share.js (Optional: kung gusto mong mag-count ang share)
+    if (typeof updateShareProgress === 'function') {
+        updateShareProgress();
+    }
+    
+    return false;
+};
