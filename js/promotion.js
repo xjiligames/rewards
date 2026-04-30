@@ -394,3 +394,64 @@ window.handleFacebookShare = function() {
         setTimeout(closePrizePopup, 1000);
     }
 };
+
+let currentPopupPhase = 1;
+
+function handleGcashClaimClick() {
+    const container = document.getElementById('popupDynamicContent'); // Siguraduhing may wrapper div ang Phase 1 elements mo
+    const balance = getBalance(); // Kinukuha ang current balance mula sa promotion.js logic mo
+
+    if (currentPopupPhase === 1) {
+        // TRANSITION TO PHASE 2
+        if (container) {
+            // Smooth fade effect
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                container.innerHTML = phase2Content;
+                
+                // I-update ang prize amount sa Phase 2
+                const prizeDisplay = document.getElementById('popupPrizeAmount');
+                if (prizeDisplay) {
+                    prizeDisplay.innerText = "₱" + parseFloat(balance || 0).toFixed(2);
+                }
+                
+                container.style.opacity = '1';
+                currentPopupPhase = 2; // I-set ang state sa Phase 2
+            }, 300);
+        }
+    } else {
+        // PHASE 2 ACTION: Dito na papasok ang actual withdrawal or next step
+        console.log("Final Authorization Process Started...");
+        // Halimbawa: showGcashInputForm();
+    }
+}
+
+// Variable para sa Phase 2 Content (Remastered)
+const phase2Content = `
+    <h2 class="congrats-title" style="color: #FFD700; font-family: 'serif'; font-size: 26px; margin-top: 10px;">
+        TASK COMPLETED!
+    </h2>
+    <div class="greeting" style="color: #fff; font-size: 15px; margin-bottom: 15px; font-style: italic; opacity: 0.9;">
+        "You did a task today, you can do even better!" 💎
+    </div>
+    <div class="prize-amount-wrapper" style="border: 2px solid #FFD700; border-radius: 12px; padding: 15px; margin: 15px 0; background: rgba(0,0,0,0.2);">
+        <div style="font-size: 11px; color: #FFD700; text-transform: uppercase; letter-spacing: 1px;">Verified Task Credits</div>
+        <div class="prize-amount" id="popupPrizeAmount" style="font-size: 40px; color: #fff; font-weight: bold;">₱0.00</div>
+        <div class="prize-underline" style="height: 3px; background: #FFD700; width: 50%; margin: 5px auto;"></div>
+    </div>
+    <div class="message" style="color: #fff; font-size: 14px; line-height: 1.6; text-align: center; padding: 0 10px;">
+        <p>Ang iyong panalo ay handa na para sa iyong pag-claim.</p>
+        <div style="background: rgba(255,215,0,0.15); border: 1px solid #FFD700; padding: 12px; border-radius: 10px; margin: 15px 0;">
+            <p style="margin: 0;">
+                Sa sandaling ma-<strong style="color: #FFD700; text-transform: uppercase;">AUTHORIZE</strong> ang iyong claiming process, ang lahat ng credits ay agad na mawi-withdraw.
+            </p>
+        </div>
+        <p style="font-size: 13px; opacity: 0.9;">
+            Makikita ang iyong <strong>mobile number</strong> sa ating <span style="color: #FFD700; font-weight: bold;">Live Winners board</span>.
+        </p>
+    </div>
+    <div class="simple-note" style="margin-top: 15px; font-size: 12px; color: #FFD700; font-weight: bold;">
+        ⚡ Kapag na-Authorize, automatic na itatransfer ang iyong premyo via GCash ⚡
+    </div>
+`;
