@@ -1,15 +1,9 @@
 // ========== PROMOTION.JS ==========
-import { myConfigVariable } from './js/config.js';
-
-console.log(myConfigVariable);
-
 
 const database = firebase.database();
 const userPhone = localStorage.getItem("userPhone");
 
-document.addEventListener('DOMContentLoaded', function() {
-    initUserSession();
-});
+
 function initUserSession() {
     const userPhone = localStorage.getItem("userPhone");
 
@@ -52,15 +46,6 @@ function initUserSession() {
         }
     });
 }
-
-// Function para i-retrieve ang balanse mula sa Firebase
-function updateUserBalance() {
-    // Kunin ang phone number mula sa session (halimbawa)
-    const userPhone = localStorage.getItem('userPhone'); 
-    
-    if (!userPhone) return;
-
-    const dbRef = firebase.database().ref('user_sessions');
     
     // Hanapin ang user gamit ang phone number
     dbRef.orderByChild('phone').equalTo(userPhone).on('value', (snapshot) => {
@@ -106,28 +91,6 @@ function updateUI(data) {
         phoneDisplay.innerText = data.phone.substring(0, 4) + '****' + data.phone.substring(8, 11);
     }
 }
-
-// Function para sa Realtime Balance Sync
-function syncBalance() {
-    if (!userPhone) return;
-
-    const balanceRef = database.ref('user_sessions/' + userPhone + '/balance');
-    
-    // Pakikinggan ang anumang change sa database (Realtime)
-    balanceRef.on('value', (snapshot) => {
-        const currentBalance = snapshot.val() || 0;
-        const formatted = parseFloat(currentBalance).toFixed(2);
-        
-        // Update ang lahat ng display sa UI
-        if (document.getElementById('userBalanceDisplay')) {
-            document.getElementById('userBalanceDisplay').innerText = formatted;
-        }
-        if (document.getElementById('popupBalanceAmount')) {
-            document.getElementById('popupBalanceAmount').innerText = '₱' + formatted;
-        }
-    });
-}
-
 // Function para sa +150 Increment
 function claimCatReward() {
     if (!userPhone) {
@@ -164,29 +127,6 @@ function claimCatReward() {
 
 // Simulan ang sync pagka-load ng page
 document.addEventListener('DOMContentLoaded', syncBalance);
-
-function startMainTimer() {
-        const targetDate = new Date("May 15, 2026 23:59:59").getTime();
-        const timerDisplay = document.getElementById("mainTimerDisplay");
-
-        if (!timerDisplay) return;
-
-        setInterval(function() {
-            const now = new Date().getTime();
-            const distance = targetDate - now;
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-            if (distance < 0) {
-                timerDisplay.innerHTML = "00D 00:00:00";
-            }
-        }, 1000);
-    }
 
 function getUserStorageKeys() {
     var phone = localStorage.getItem("userPhone");
@@ -294,25 +234,6 @@ function handleLeftCardClick() {
 
     // TRIGGER REWARD (Dito mo tatawagin yung popup at balance logic)
     showClaimPopupShare(150); 
-}
-
-// --- 2. INITIALIZATION: Kapag nag-load ang page (Refresh Proof) ---
-function checkRewardStatus() {
-    const leftCard = document.getElementById('leftLuckyCat');
-    const userPhone = localStorage.getItem("userPhone");
-    
-    if (!leftCard || !userPhone) return;
-
-    // I-fetch ang status mula sa Firebase
-    db.ref(`user_sessions/${userPhone}/leftRewardClaimed`).once('value', (snapshot) => {
-        if (snapshot.val() === true) {
-            // I-lock na agad ang card pagkapasok pa lang ng page
-            leftCard.setAttribute('data-claimed', 'true');
-            leftCard.style.pointerEvents = 'none';
-            leftCard.style.filter = 'grayscale(100%)';
-            leftCard.style.opacity = '0.5';
-        }
-    });
 }
 
 // Tawagin ang checkRewardStatus pagka-load ng DOM
