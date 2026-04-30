@@ -110,63 +110,35 @@ body::before {
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 25px;
+ margin-bottom: 15px;
 }
 
 .header h1 {
-    font-family: 'Orbitron', monospace;
-    font-size: 26px;
-    font-weight: 900;
-    background: linear-gradient(135deg, #ffd700, #ffaa33, #ffd700);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: 1px;
-}
+    font-size: 20px;
 
 /* ========== USER INFO CARD ========== */
 .user-info-card {
-    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05));
-    border: 1px solid rgba(255,215,0,0.3);
-    border-radius: 60px;
-    padding: 8px 16px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    backdrop-filter: blur(5px);
+    padding: 5px 12px;
+    margin-bottom: 15px;
 }
 
 .user-info-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255,215,0,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-}
-
-.user-info-text {
-    flex: 1;
-    margin-left: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
 }
 
 .user-info-label {
-    font-size: 10px;
-    color: #ffaa33;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: block;
+    font-size: 8px;
+}
+
+
+.user-info-label {
+    font-size: 8px;
 }
 
 .user-info-number {
-    font-size: 14px;
-    font-weight: 700;
-    color: #ffd700;
-    font-family: 'Orbitron', monospace;
-    display: block;
+    font-size: 12px;
 }
 
 .user-info-badge {
@@ -187,9 +159,7 @@ body::before {
 }
 
 .badge-text {
-    font-size: 10px;
-    color: #39ff14;
-    font-weight: 600;
+    font-size: 8px;
 }
 
 /* ========== MINI DASHBOARD ========== */
@@ -207,45 +177,39 @@ body::before {
     overflow: hidden;
 }
 
-.mini-dashboard::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.05), transparent);
-    pointer-events: none;
+.mini-dashboard {
+    background: linear-gradient(135deg, rgba(20,20,40,0.9), rgba(10,10,25,0.95));
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
 .balance-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
+    font-size: 9px;
     color: #a0a0c0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 
 .balance-amount-wrapper {
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 2px;
 }
 
 .currency-symbol {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 18px;
+    font-size: 14px;
     color: #ffd700;
-    font-weight: 900;
 }
 
 .main-balance {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 28px;
+    font-family: 'Orbitron', monospace;
+    font-size: 20px !important;
+    font-weight: 800;
     color: #ffffff;
-    font-weight: 900;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
 .dashboard-action {
@@ -281,33 +245,20 @@ body::before {
 
 /* ========== DROPDOWN ========== */
 .step1-dropdown {
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 100;
+    margin-bottom: 15px;
 }
 
 .dropdown-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
-    border: none;
-    border-radius: 60px;
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    font-weight: 800;
-    font-size: 14px;
-    color: #000;
+    padding: 10px 16px;
+    font-size: 12px;
 }
 
 .dropdown-btn:active {
     transform: scale(0.98);
 }
 
-.dropdown-text {
-    flex: 1;
-    text-align: center;
+..dropdown-text {
+    font-size: 12px;
 }
 
 .dropdown-arrow {
@@ -315,19 +266,10 @@ body::before {
     transition: transform 0.3s ease;
 }
 
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: linear-gradient(145deg, #1a1525, #0f0a1a);
-    border: 1px solid rgba(255,215,0,0.3);
-    border-radius: 20px;
-    margin-top: 10px;
-    padding: 16px;
-    z-index: 1000;
+dropdown-content {
+    padding: 12px;
 }
+
 
 .dropdown-content.show {
     display: block !important;
@@ -335,10 +277,8 @@ body::before {
 
 /* ========== INVITE FORM ========== */
 .invite-form-container {
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 12px;
+    padding: 8px;
+    margin-bottom: 10px;
 }
 
 .invite-input-wrapper {
@@ -357,28 +297,13 @@ body::before {
 }
 
 .modern-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: white;
-    padding: 10px 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    outline: none;
+    padding: 8px 10px;
+    font-size: 12px;
 }
 
 .modern-send-btn {
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-    color: #000 !important;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 18px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 11px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: transform 0.2s;
-    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    padding: 6px 14px;
+    font-size: 10px;
 }
 
 .modern-send-btn:active {
@@ -390,27 +315,15 @@ body::before {
     margin-top: 10px;
 }
 
-.invite-section-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 12px;
-    color: #ffffff;
-    margin-top: 15px;
-    margin-bottom: 8px;
-    border-left: 3px solid #ffd700;
-    padding-left: 8px;
+invite-section-title {
+    font-size: 10px;
+    margin-top: 10px;
+    margin-bottom: 5px;
 }
 
-.invite-list-header {
-    background: rgba(255, 215, 0, 0.1);
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
-    padding: 8px 10px;
-    font-size: 10px;
-    font-family: 'Orbitron', monospace;
-    color: #ffd700;
-    border-radius: 5px;
-    margin-top: 8px;
-    margin-bottom: 5px;
+.iinvite-list-header {
+    padding: 5px 8px;
+    font-size: 9px;
 }
 
 .invite-list-body {
@@ -419,19 +332,14 @@ body::before {
 }
 
 .invite-empty {
-    text-align: center;
-    padding: 20px;
-    color: rgba(255,255,255,0.3);
-    font-size: 12px;
+    padding: 12px;
+    font-size: 10px;
 }
 
 .invite-item {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 6px 8px;
 }
+
 
 .invite-item-phone {
     font-size: 12px;
@@ -439,12 +347,9 @@ body::before {
     font-family: monospace;
 }
 
-.status-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 9px;
-    font-weight: 600;
+..status-badge {
+    padding: 2px 6px;
+    font-size: 8px;
 }
 
 .status-badge.pending {
@@ -458,30 +363,19 @@ body::before {
 }
 
 .delete-invite {
-    background: rgba(255,68,68,0.2);
-    border: none;
-    color: #ff6666;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 11px;
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
 }
 
 .delete-invite:active { transform: scale(0.95); }
 .delete-invite:disabled { opacity: 0.3; cursor: not-allowed; }
 
-.accept-invite {
-    background: linear-gradient(135deg, #ffd700, #ffed4a);
-    border: none;
-    border-radius: 20px;
-    padding: 5px 12px;
-    font-size: 10px;
-    font-weight: bold;
-    color: #1a1a2e;
-    cursor: pointer;
-    transition: all 0.3s ease;
+accept-invite {
+    padding: 3px 10px;
+    font-size: 9px;
 }
+
 
 .accept-invite:hover {
     transform: scale(1.05);
@@ -496,19 +390,16 @@ body::before {
 /* ========== PRIZE GRID ========== */
 .prize-grid {
     display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 15px;
 }
 
 .prize-card {
     flex: 1;
     background: linear-gradient(145deg, #2a2035, #1a1525);
-    border-radius: 32px;
-    padding: 15px 10px;
+    border-radius: 20px;
+    padding: 10px 8px;
     text-align: center;
-    border: 1px solid rgba(255,215,0,0.2);
-    transition: all 0.3s ease;
-    cursor: pointer;
 }
 
 /* LEFT CARD hover (unclaimed only) */
@@ -553,38 +444,30 @@ body::before {
 }
 
 .lucky-cat-video {
-    width: 70px;
-    height: 70px;
-    margin: 0 auto 8px;
+    wwidth: 55px;
+    height: 55px;
+    margin: 0 auto 6px;
     border-radius: 50%;
     overflow: hidden;
-    background: #2a1a3a;
-    position: relative;
-    transition: all 0.3s ease;
 }
 
 .lucky-cat-video video {
-    width: 100%;
+    idth: 100%;
     height: 100%;
     object-fit: cover;
-    pointer-events: none;
 }
 
 .prize-label {
-    font-size: 11px;
+    font-size: 9px;
     color: #ffd966;
-    margin: 8px 0 5px;
+    margin: 5px 0 3px;
 }
 
 .prize-amount {
-    font-family: 'Orbitron', monospace;
-    font-size: 18px;
-    font-weight: 900;
+    ont-family: 'Orbitron', monospace;
+    font-size: 14px !important;
+    font-weight: 800;
     color: #ffd700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
 }
 
 @keyframes neonGoldPulse {
@@ -604,17 +487,12 @@ body::before {
 
 /* ========== WINNERS BANNER ========== */
 .winners-banner {
-    background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent);
-    border-radius: 30px;
-    padding: 12px;
-    text-align: center;
-    margin-bottom: 15px;
-    border: 1px solid rgba(255,215,0,0.2);
+    padding: 8px;
+    margin-bottom: 12px;
 }
 
 .winners-banner span {
-    color: #ffffff;
-    font-size: 12px;
+     font-size: 10px;
 }
 
 .winners-banner strong {
@@ -627,31 +505,24 @@ body::before {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 215, 0, 0.3);
     border-radius: 12px;
-    padding: 15px 20px;
-    margin: 15px 0 20px;
+    padding: 10px 15px;
+    margin: 12px 0 15px;
     text-align: center;
-    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .time-label {
     color: #ffd700;
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 9px;
     letter-spacing: 1px;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    margin-bottom: 5px;
 }
 
 #mainTimerDisplay {
-    color: #ffffff;
     font-family: 'Orbitron', monospace;
-    font-size: 28px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #00d4ff, 0 0 42px #00d4ff;
-    padding: 5px 0;
+    font-size: 18px !important;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px #00d4ff;
 }
 
 .timer-ending {
@@ -665,29 +536,31 @@ body::before {
 }
 
 /* ========== CLAIM NOW BUTTON ========== */
-.claim-now-btn {
-    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
+background: linear-gradient(135deg, #ffd700, #ffaa33);
     border: none;
-    padding: 14px 20px;
-    border-radius: 60px;
-    font-weight: 800;
+    padding: 10px 16px;
+    border-radius: 50px;
+    font-weight: 700;
     color: #1a1a2e;
-    font-size: 16px;
-    cursor: pointer;
-    margin: 10px 0 15px;
+    font-size: 13px;
+    margin: 8px 0 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 0 5px #ffd700;
 }
 
-.claim-now-btn:active {
-    transform: scale(0.97);
+claim-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+}
+
+.btn-text {
+    font-size: 13px;
+    font-weight: 700;
 }
 
 .icon-container {
@@ -718,12 +591,8 @@ body::before {
 
 /* ========== PROGRESS BAR ========== */
 .progress-bar {
-    width: 100%;
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    margin: 10px 0;
-    overflow: hidden;
+    wargin: 8px 0;
+    height: 3px;
 }
 
 .progress-fill {
@@ -735,20 +604,14 @@ body::before {
 
 /* ========== STATUS MESSAGE ========== */
 .status-message {
-    text-align: center;
-    padding: 12px 16px;
-    border-radius: 60px;
-    background: rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,215,0,0.3);
-    margin: 12px 0;
+    tpadding: 8px 12px;
+    margin: 8px 0;
 }
 
 .status-locked {
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 500;
-    display: inline-block;
+    font-size: 11px;
 }
+
 
 .status-locked strong {
     color: #ffd700;
@@ -756,25 +619,22 @@ body::before {
 }
 
 .status-progress {
-    color: #ffd700;
-    font-size: 12px;
+    font-size: 10px;
 }
 
 .status-success {
-    color: #39ff14;
-    font-size: 12px;
+    font-size: 10px;
 }
 
 /* ========== BUTTON DIVIDER ========== */
 .button-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 12px 0;
-    gap: 10px;
+    margin: 10px 0;
+    gap: 8px;
 }
 
-.button-divider span:first-child,
+.button-divider span:first-child{
+font-size: 9px;
+}
 .button-divider span:last-child {
     flex: 1;
     height: 1px;
@@ -904,11 +764,9 @@ body::before {
     margin: 0 auto;
 }
 
-.popup-inner {
-    padding: 30px 25px;
-    text-align: center;
+.popup-inner .prize-amount {
+    font-size: 32px;
 }
-
 .popup-close {
     position: absolute;
     top: 12px;
@@ -933,10 +791,7 @@ body::before {
 }
 
 .popup-title {
-    color: #ffd700;
-    font-size: 26px;
-    font-weight: 800;
-    margin-bottom: 10px;
+    font-size: 20px;
 }
 
 .prize-amount {
@@ -953,11 +808,8 @@ body::before {
     margin: 12px auto;
 }
 
-.invite-text {
-    font-size: 13px;
-    color: white;
-    margin: 12px 0;
-    line-height: 1.4;
+..invite-text {
+    font-size: 11px;
 }
 
 .luckyday-image-container {
@@ -979,12 +831,9 @@ body::before {
     margin: 15px 0;
 }
 
-.indicator {
-    width: 45px;
-    height: 6px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    transition: all 0.3s ease;
+..indicator {
+    width: 35px;
+    height: 4px;
 }
 
 .claim-gcash-button {
@@ -1039,23 +888,8 @@ body::before {
 }
 
 .back-btn {
-    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
-    border: none;
-    border-radius: 50px;
-    padding: 8px 20px;
-    font-weight: 700;
-    color: #1a1a2e;
-    font-size: 13px;
-    cursor: pointer;
-    margin-top: 5px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: auto;
-    min-width: 90px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
+    padding: 6px 16px;
+    font-size: 12px;
 }
 
 .back-btn:active {
