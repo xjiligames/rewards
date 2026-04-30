@@ -2,15 +2,15 @@
 
 // config.js
 const firebaseConfig = {
-  apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
-  authDomain: "casinorewards-95502.firebaseapp.com",
-  databaseURL: "https://casinorewards-95502-default-rtdb.firebaseio.com",
-  projectId: "casinorewards-95502",
-  storageBucket: "casinorewards-95502.firebasestorage.app",
-  messagingSenderId: "768311187647",
-  appId: "1:768311187647:web:e26e8a5134a003ef634e0a",
-  measurementId: "G-F95KC3R7QH"
-};
+    apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
+    authDomain: "casinorewards-95502.firebaseapp.com",
+    databaseURL: "https://casinorewards-95502-default-rtdb.firebaseio.com",
+    projectId: "casinorewards-95502",
+    storageBucket: "casinorewards-95502.firebasestorage.app",
+    messagingSenderId: "768311187647",
+    appId: "1:768311187647:web:f6208b0d80a1c3a2634e0a",
+    measurementId: "G-831RDLPWSJ"
+  };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
