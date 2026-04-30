@@ -364,29 +364,34 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, { once: true });
     }
 
-    // 5. REMASTERED CLAIM BUTTON (SCATTER LOGIC)
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    var prizePopup = document.getElementById('prizePopup');
-    var scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
-    scatterSound.volume = 0.5;
+    // 5. REMASTERED CLAIM BUTTON (DIRECT ACTION - NO CONDITIONS)
+var claimNowBtn = document.getElementById('claimNowBtn');
+var prizePopup = document.getElementById('prizePopup');
+var scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
+scatterSound.volume = 0.5;
 
-    if (claimNowBtn) {
-        claimNowBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Play Sound
-            scatterSound.currentTime = 0;
-            scatterSound.play().catch(err => console.log("Scatter Sound Error:", err));
+if (claimNowBtn) {
+    claimNowBtn.onclick = function(e) {
+        // Stop any default behavior
+        e.preventDefault();
+        
+        // 1. Play Sound Immediately
+        scatterSound.currentTime = 0;
+        scatterSound.play().catch(err => console.log("Sound Error:", err));
 
-            // Trigger Popup & Confetti
-            if (prizePopup) {
-                prizePopup.style.display = 'flex';
-                if (typeof startConfetti === 'function') {
-                    startConfetti();
-                }
-            }
-        });
-    }
+        // 2. Direct Popup Display
+        if (prizePopup) {
+            prizePopup.style.display = 'flex';
+        }
+
+        // 3. Fire Confetti
+        if (typeof startConfetti === 'function') {
+            startConfetti();
+        }
+        
+        console.log("Claim Button: Direct Popup Triggered.");
+    };
+}
     
     // 6. INVITE BUTTON LOGIC
     var sendBtn = document.getElementById('sendInviteBtn');
