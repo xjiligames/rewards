@@ -1337,3 +1337,34 @@ body::before {
     color: #fbbf24; /* Gold color flash */
     transform: scale(1.1);
 }
+
+/* Accept button style */
+.accept-invite {
+    background: linear-gradient(135deg, #ffd700, #ffed4a);
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.accept-invite:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Right card claimed effect */
+#rightCard.prize-card-claimed {
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 35px rgba(255,215,0,0.8) !important;
+    animation: neonGoldPulse 1.5s infinite !important;
+}
+
+@keyframes neonGoldPulse {
+    0% { box-shadow: 0 0 20px rgba(255,215,0,0.6); }
+    50% { box-shadow: 0 0 50px rgba(255,215,0,1); }
+    100% { box-shadow: 0 0 20px rgba(255,215,0,0.6); }
+}
