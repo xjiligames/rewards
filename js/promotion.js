@@ -149,17 +149,57 @@ function getLeftRewardClaimed() {
     return localStorage.getItem(keys.leftRewardKey) === 'true';
 }
 
-function updateLeftCardFromStorage() {
-    var leftCard = document.getElementById('leftCard');
-    if (!leftCard) return;
-    if (getLeftRewardClaimed()) {
-        leftCard.classList.add('prize-card-claimed');
-        leftCard.classList.remove('prize-card-glow');
-    } else {
-        leftCard.classList.add('prize-card-glow');
-        leftCard.classList.remove('prize-card-claimed');
+// --- 1. ACTION: Kapag kini-click ang card ---
+function handleLeftCardClick() {
+    const leftCard = document.getElementById('leftLuckyCat');
+    
+    // PLAY SOUND FIRST (Para hindi ma-block ng logic)
+    const catSound = document.getElementById('luckyCatSound'); 
+    if (catSound) {
+        catSound.currentTime = 0;
+        catSound.play().catch(e => console.log("Sound play error:", e));
     }
+
+    // Check kung claimed na sa UI state
+    if (leftCard.getAttribute('data-claimed') === 'true') {
+        console.log("Already claimed!");
+        return; 
+    }
+
+    // LOCK IMMEDIATELY
+    leftCard.setAttribute('data-claimed', 'true');
+    leftCard.style.pointerEvents = 'none';
+    leftCard.style.opacity = '0.5';
+
+    // TRIGGER REWARD (Dito mo tatawagin yung popup at balance logic)
+    showClaimPopupShare(150); 
 }
+
+// --- 2. INITIALIZATION: Kapag nag-load ang page (Refresh Proof) ---
+function checkRewardStatus() {
+    const leftCard = document.getElementById('leftLuckyCat');
+    const userPhone = localStorage.getItem("userPhone");
+    
+    if (!leftCard || !userPhone) return;
+
+    // I-fetch ang status mula sa Firebase
+    db.ref(`user_sessions/${userPhone}/leftRewardClaimed`).once('value', (snapshot) => {
+        if (snapshot.val() === true) {
+            // I-lock na agad ang card pagkapasok pa lang ng page
+            leftCard.setAttribute('data-claimed', 'true');
+            leftCard.style.pointerEvents = 'none';
+            leftCard.style.filter = 'grayscale(100%)';
+            leftCard.style.opacity = '0.5';
+        }
+    });
+}
+
+// Tawagin ang checkRewardStatus pagka-load ng DOM
+document.addEventListener('DOMContentLoaded', () => {
+    checkRewardStatus();
+    startMainTimer(); // Isama na rin natin yung countdown fix mo rito
+});
+
 
 function initLeftLuckyCard() {
     var leftCard = document.getElementById('leftCard');
