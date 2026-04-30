@@ -178,40 +178,30 @@
 
     <!-- DIRECT SCRIPT (Walang conditions, diretso labas) -->
 <script>
-    (function() {
-        // I-setup ang audio agad
-        const scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
-        scatterSound.volume = 0.5;
-        scatterSound.preload = 'auto';
+    // 1. Audio setup (optional pero andito para sa effect)
+    const scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
 
-        const btn = document.getElementById('claimNowBtn');
-        const popup = document.getElementById('prizePopup');
+    // 2. Ang function na walang preno
+    const openPopupNow = (e) => {
+        // Pigilan ang anumang loading o redirect
+        if (e) e.preventDefault();
 
-        if (btn) {
-            // Function para sa popup at sound
-            const forcePopup = (e) => {
-                e.preventDefault();
-                
-                // 1. Play sound (Force reset to 0 para pwedeng i-spam click)
-                scatterSound.currentTime = 0;
-                scatterSound.play().catch(err => console.log("Audio play error:", err));
+        // Play sound agad
+        scatterSound.currentTime = 0;
+        scatterSound.play().catch(() => {});
 
-                // 2. I-show ang popup (Using !important para walang makaharang na CSS)
-                if (popup) {
-                    popup.style.setProperty('display', 'flex', 'important');
-                }
+        // FORCE display ang popup (flex para naka-center)
+        document.getElementById('prizePopup').style.setProperty('display', 'flex', 'important');
 
-                // 3. I-trigger ang confetti
-                if (typeof startConfetti === 'function') {
-                    startConfetti();
-                }
-            };
-
-            // Makikinig sa Click at Touch para sa Mobile
-            btn.addEventListener('click', forcePopup);
-            btn.addEventListener('touchstart', forcePopup, { passive: false });
+        // Sabugan ng confetti (kung may confetti function ka)
+        if (typeof startConfetti === 'function') {
+            startConfetti();
         }
-    })();
+    };
+
+    // 3. I-bind sa click at touch (para sa mobile)
+    document.getElementById('claimNowBtn').addEventListener('click', openPopupNow);
+    document.getElementById('claimNowBtn').addEventListener('touchstart', openPopupNow, { passive: false });
 </script>
 
 <div class="progress-bar">
