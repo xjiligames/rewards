@@ -192,33 +192,94 @@ body::before {
     font-weight: 600;
 }
 
-/* ========== STATS ROW ========== */
-.stats-row {
+/* ========== MINI DASHBOARD ========== */
+.mini-dashboard {
+    background: linear-gradient(135deg, rgba(20, 20, 40, 0.9) 0%, rgba(10, 10, 25, 0.95) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 16px;
+    padding: 20px;
     display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
 }
 
-.stat-box {
-    flex: 1;
-    background: rgba(0,0,0,0.3);
-    border-radius: 20px;
-    padding: 8px;
-    text-align: center;
+.mini-dashboard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.05), transparent);
+    pointer-events: none;
 }
 
-.stat-box div:first-child {
-    font-size: 10px;
-    color: #ffaa33;
+.balance-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #a0a0c0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
 }
 
-.stat-box div:last-child {
-    font-size: 20px;
+.balance-amount-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.currency-symbol {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
     color: #ffd700;
-    font-weight: bold;
+    font-weight: 900;
 }
 
-/* ========== STEP 1 DROPDOWN ========== */
+.main-balance {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px;
+    color: #ffffff;
+    font-weight: 900;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-action {
+    perspective: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scatter-link {
+    display: block;
+    text-decoration: none;
+}
+
+.twisting-scatter {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    animation: permanentTwist 3s linear infinite;
+    transition: transform 0.3s ease;
+}
+
+.twisting-scatter:hover {
+    filter: brightness(1.2);
+}
+
+@keyframes permanentTwist {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========== DROPDOWN ========== */
 .step1-dropdown {
     margin-bottom: 20px;
     position: relative;
@@ -272,89 +333,111 @@ body::before {
     display: block !important;
 }
 
-/* Invite Form */
-.invite-form-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
+/* ========== INVITE FORM ========== */
+.invite-form-container {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 12px;
 }
 
-.invite-input {
+.invite-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #1a1a2e;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    padding: 4px;
+    transition: all 0.3s ease;
+}
+
+.invite-input-wrapper:focus-within {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.modern-input {
     flex: 1;
-    background: rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,215,0,0.3);
-    border-radius: 30px;
-    padding: 10px 14px;
+    background: transparent;
+    border: none;
     color: white;
-    font-size: 13px;
+    padding: 10px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
     outline: none;
 }
 
-.invite-input:focus {
-    border-color: #ffd700;
-    box-shadow: 0 0 8px rgba(255,215,0,0.3);
-}
-
-.invite-send-btn {
-    background: linear-gradient(135deg, #00ff41, #008f11);
+.modern-send-btn {
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    color: #000 !important;
     border: none;
-    border-radius: 30px;
-    padding: 12px 24px;
-    font-weight: 700;
-    font-size: 14px;
-    color: white;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    font-weight: 900;
     cursor: pointer;
-    white-space: nowrap;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
-    animation: neonGreenPulse 1.5s ease-in-out infinite;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
 }
 
-.invite-send-btn:active {
-    transform: scale(0.97);
+.modern-send-btn:active {
+    transform: scale(0.95);
 }
 
-@keyframes neonGreenPulse {
-    0% { box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41; background: linear-gradient(135deg, #00ff41, #008f11); }
-    50% { box-shadow: 0 0 15px #00ff41, 0 0 25px #00ff41, 0 0 35px #00ff41; background: linear-gradient(135deg, #33ff66, #00cc33); }
-    100% { box-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41; background: linear-gradient(135deg, #00ff41, #008f11); }
+/* ========== INVITATION LIST ========== */
+.invite-list-section {
+    margin-top: 10px;
 }
 
-/* Invitation List */
-.invite-list {
-    max-height: 250px;
-    overflow-y: auto;
+.invite-section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: #ffffff;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    border-left: 3px solid #ffd700;
+    padding-left: 8px;
 }
 
 .invite-list-header {
-    display: flex;
-    padding: 8px 4px;
+    background: rgba(255, 215, 0, 0.1);
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    padding: 8px 10px;
     font-size: 10px;
-    color: #ffaa33;
-    border-bottom: 1px solid rgba(255,215,0,0.2);
-    margin-bottom: 6px;
+    font-family: 'Orbitron', monospace;
+    color: #ffd700;
+    border-radius: 5px;
+    margin-top: 8px;
+    margin-bottom: 5px;
 }
 
-.invite-list-header span:first-child { flex: 2; }
-.invite-list-header span:nth-child(2) { flex: 1; }
-.invite-list-header span:last-child { width: 32px; }
+.invite-list-body {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.invite-empty {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+}
 
 .invite-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
     align-items: center;
-    padding: 10px 4px;
+    padding: 10px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .invite-item-phone {
-    flex: 2;
     font-size: 12px;
     color: white;
     font-family: monospace;
 }
-
-.invite-item-status { flex: 1; }
 
 .status-badge {
     display: inline-block;
@@ -374,11 +457,6 @@ body::before {
     color: #39ff14;
 }
 
-.invite-item-action {
-    width: 32px;
-    text-align: center;
-}
-
 .delete-invite {
     background: rgba(255,68,68,0.2);
     border: none;
@@ -392,12 +470,28 @@ body::before {
 
 .delete-invite:active { transform: scale(0.95); }
 .delete-invite:disabled { opacity: 0.3; cursor: not-allowed; }
-.invite-empty { text-align: center; padding: 24px; font-size: 11px; color: rgba(255,255,255,0.3); }
+
+.accept-invite {
+    background: linear-gradient(135deg, #ffd700, #ffed4a);
+    border: none;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.accept-invite:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
 
 /* Scrollbar */
-.invite-list::-webkit-scrollbar { width: 4px; }
-.invite-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
-.invite-list::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 10px; }
+.invite-list-body::-webkit-scrollbar { width: 4px; }
+.invite-list-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+.invite-list-body::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 10px; }
 
 /* ========== PRIZE GRID ========== */
 .prize-grid {
@@ -417,31 +511,28 @@ body::before {
     cursor: pointer;
 }
 
-/* Hover effect for LEFT CARD only (unclaimed) */
+/* LEFT CARD hover (unclaimed only) */
 #leftCard:hover:not(.prize-card-claimed) {
     transform: scale(1.02);
     border: 2px solid #ffd700 !important;
     box-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 15px rgba(255,215,0,0.3) !important;
 }
 
-/* RIGHT CARD hover (no fancy effect) */
+/* RIGHT CARD hover */
 #rightCard:hover {
     transform: scale(1.02);
     border: 1px solid rgba(255,215,0,0.4);
 }
 
-/* ========== LEFT CARD ONLY - CLAIMED STATE (NEON GOLD) ========== */
+/* LEFT CARD CLAIMED STATE - NEON GOLD */
 #leftCard.prize-card-claimed {
     border: 3px solid #ffd700 !important;
-    box-shadow: 0 0 35px rgba(255,215,0,0.8), 
-                0 0 20px rgba(255,215,0,0.4),
-                inset 0 0 10px rgba(255,215,0,0.3) !important;
+    box-shadow: 0 0 35px rgba(255,215,0,0.8), 0 0 20px rgba(255,215,0,0.4), inset 0 0 10px rgba(255,215,0,0.3) !important;
     background: radial-gradient(circle, rgba(255,215,0,0.15), rgba(255,215,0,0.05)) !important;
     cursor: default !important;
     animation: neonGoldPulse 1.5s ease-in-out infinite !important;
 }
 
-/* Claimed text style for LEFT CARD only */
 #leftCard.prize-card-claimed .prize-amount {
     font-size: 12px !important;
     letter-spacing: 2px !important;
@@ -454,31 +545,13 @@ body::before {
     text-shadow: 0 0 5px rgba(255,215,0,0.5);
 }
 
-#leftCard.prize-card-claimed .lucky-cat-video {
-    filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));
+/* RIGHT CARD CLAIMED STATE */
+#rightCard.prize-card-claimed {
+    border: 3px solid #ffd700 !important;
+    box-shadow: 0 0 35px rgba(255,215,0,0.8) !important;
+    animation: neonGoldPulse 1.5s infinite !important;
 }
 
-/* ========== ANIMATION FOR LEFT CARD ONLY ========== */
-@keyframes neonGoldPulse {
-    0% {
-        box-shadow: 0 0 20px rgba(255,215,0,0.6), 
-                    inset 0 0 10px rgba(255,215,0,0.2);
-        border-color: #ffd700;
-    }
-    50% {
-        box-shadow: 0 0 35px rgba(255,215,0,1), 
-                    0 0 50px rgba(255,215,0,0.6),
-                    inset 0 0 20px rgba(255,215,0,0.5);
-        border-color: #ffed4a;
-    }
-    100% {
-        box-shadow: 0 0 20px rgba(255,215,0,0.6), 
-                    inset 0 0 10px rgba(255,215,0,0.2);
-        border-color: #ffd700;
-    }
-}
-
-/* ========== COMMON STYLES (both cards) ========== */
 .lucky-cat-video {
     width: 70px;
     height: 70px;
@@ -494,6 +567,7 @@ body::before {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    pointer-events: none;
 }
 
 .prize-label {
@@ -513,13 +587,28 @@ body::before {
     gap: 5px;
 }
 
+@keyframes neonGoldPulse {
+    0% {
+        box-shadow: 0 0 20px rgba(255,215,0,0.6), inset 0 0 10px rgba(255,215,0,0.2);
+        border-color: #ffd700;
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(255,215,0,1), 0 0 50px rgba(255,215,0,0.6), inset 0 0 20px rgba(255,215,0,0.5);
+        border-color: #ffed4a;
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(255,215,0,0.6), inset 0 0 10px rgba(255,215,0,0.2);
+        border-color: #ffd700;
+    }
+}
+
 /* ========== WINNERS BANNER ========== */
 .winners-banner {
     background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent);
     border-radius: 30px;
     padding: 12px;
     text-align: center;
-    margin-bottom: 18px;
+    margin-bottom: 15px;
     border: 1px solid rgba(255,215,0,0.2);
 }
 
@@ -533,74 +622,46 @@ body::before {
     font-weight: 800;
 }
 
-/* ========== TIME LEFT SECTION ========== */
-
+/* ========== TIME LEFT SECTION - FIXED ========== */
 .time-left-section {
-    background: rgba(255, 255, 255, 0.05); /* Very subtle gray background para umangat sa pure black */
-    border: 1px solid rgba(255, 215, 0, 0.3); /* Gold border highlight */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.3);
     border-radius: 12px;
-    padding: 15px;
-    margin: 20px 0;
+    padding: 15px 20px;
+    margin: 15px 0 20px;
     text-align: center;
     box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 .time-label {
-    color: #ffd700; /* Gold color para sa label */
+    color: #ffd700;
     font-family: 'Inter', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: 1px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     text-transform: uppercase;
     text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
 }
 
-.glowing-timer {
-    color: #ffffff; /* Puting text para kitang-kita */
-    font-family: 'Orbitron', sans-serif; /* Gamit ang font na gusto mo */
+#mainTimerDisplay {
+    color: #ffffff;
+    font-family: 'Orbitron', monospace;
     font-size: 28px;
     font-weight: 900;
     letter-spacing: 2px;
-    /* Neon Blue Glow effect */
-    text-shadow: 
-        0 0 7px #fff,
-        0 0 10px #fff,
-        0 0 21px #00d4ff,
-        0 0 42px #00d4ff;
+    text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #00d4ff, 0 0 42px #00d4ff;
     padding: 5px 0;
-}
-
-/* Optional: Animation para sa "Ending Soon" look */
-@keyframes pulse-red {
-    0% { text-shadow: 0 0 10px #ff0000; color: #ff4444; }
-    50% { text-shadow: 0 0 20px #ff0000; color: #ffffff; }
-    100% { text-shadow: 0 0 10px #ff0000; color: #ff4444; }
 }
 
 .timer-ending {
     animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red {
+    0% { text-shadow: 0 0 10px #ff0000; color: #ff4444; }
+    50% { text-shadow: 0 0 20px #ff0000; color: #ffffff; }
+    100% { text-shadow: 0 0 10px #ff0000; color: #ff4444; }
 }
 
 /* ========== CLAIM NOW BUTTON ========== */
@@ -613,8 +674,7 @@ body::before {
     color: #1a1a2e;
     font-size: 16px;
     cursor: pointer;
-    margin-top: 15px;
-    margin-bottom: 10px;
+    margin: 10px 0 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -622,17 +682,38 @@ body::before {
     width: 100%;
     box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
     transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .claim-now-btn:active {
     transform: scale(0.97);
 }
 
+.icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .claim-icon {
-    width: 22px;
-    height: 22px;
-    display: inline-block;
-    background: transparent;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    opacity: 0.6;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    animation: permanentTwist 8s linear infinite;
+}
+
+.claim-now-btn:hover .claim-icon,
+.claim-now-btn:active .claim-icon {
+    opacity: 1;
+    animation: mediumSpin 1.5s linear infinite;
+}
+
+@keyframes mediumSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 /* ========== PROGRESS BAR ========== */
@@ -641,7 +722,7 @@ body::before {
     height: 4px;
     background: rgba(255,255,255,0.1);
     border-radius: 2px;
-    margin: 15px 0;
+    margin: 10px 0;
     overflow: hidden;
 }
 
@@ -659,7 +740,7 @@ body::before {
     border-radius: 60px;
     background: rgba(0,0,0,0.5);
     border: 1px solid rgba(255,215,0,0.3);
-    margin: 15px 0;
+    margin: 12px 0;
 }
 
 .status-locked {
@@ -674,12 +755,22 @@ body::before {
     font-weight: 800;
 }
 
-/* ========== SHARE SECTION ========== */
+.status-progress {
+    color: #ffd700;
+    font-size: 12px;
+}
+
+.status-success {
+    color: #39ff14;
+    font-size: 12px;
+}
+
+/* ========== BUTTON DIVIDER ========== */
 .button-divider {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: 15px 0;
+    margin: 12px 0;
     gap: 10px;
 }
 
@@ -696,42 +787,95 @@ body::before {
     padding: 0 10px;
 }
 
-//SHARE ON FB CSS
-
-
-
-/* Font Glow */
-.btn-facebook-shimmer span {
-    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+/* ========== FACEBOOK BUTTON ========== */
+.btn-facebook-shimmer {
+    position: relative;
+    width: 100%;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #1877F2 0%, #0a56b6 100%);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
+    margin-bottom: 12px;
 }
 
-//Share guide **
+.btn-facebook-shimmer i {
+    font-size: 18px;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
+}
+
+.btn-facebook-shimmer::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 20%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: rotate(30deg);
+    transition: none;
+    animation: sweep 3.5s infinite linear;
+}
+
+@keyframes sweep {
+    0% { left: -60%; }
+    20% { left: 120%; }
+    100% { left: 120%; }
+}
+
+.btn-facebook-shimmer:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 25px rgba(24, 119, 242, 0.5);
+    filter: brightness(1.1);
+}
+
+/* ========== SHARE SOCIAL TEXT ========== */
+.share-social-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #a0a0c0;
+    text-align: center;
+    margin-top: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    line-height: 1.4;
+}
+
+.share-social-text b, 
+.share-social-text strong {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
 
 .share-guide-text {
     color: #ffffff;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     text-align: center;
-    margin-top: 20px;
-    padding: 15px;
+    margin-top: 15px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
+    border-radius: 12px;
     border: 1px dashed rgba(0, 212, 255, 0.3);
-    line-height: 1.6;
+    line-height: 1.5;
 }
-
 
 .share-guide-text strong {
-    color: #ffd700; 
+    color: #ffd700;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
     font-weight: 800;
-}
-
-/* Icon (Loudspeaker) color fix */
-.share-guide-text span.icon {
-    font-size: 18px;
-    margin-right: 5px;
-    filter: drop-shadow(0 0 5px #00d4ff);
 }
 
 /* ========== PRIZE POPUP ========== */
@@ -792,9 +936,10 @@ body::before {
     color: #ffd700;
     font-size: 26px;
     font-weight: 800;
+    margin-bottom: 10px;
 }
 
-.popup-balance {
+.prize-amount {
     font-size: 44px;
     font-weight: 800;
     color: #ffd700;
@@ -827,13 +972,21 @@ body::before {
     border: 1px solid rgba(255,215,0,0.3);
 }
 
-@keyframes popIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+.indicator-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 15px 0;
 }
 
-/* ========== BUTTONS INSIDE POPUP ========== */
-/* ========== CLAIM THRU GCASH BUTTON ========== */
+.indicator {
+    width: 45px;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
 .claim-gcash-button {
     background: linear-gradient(135deg, #0066ff, #0044cc);
     width: 100%;
@@ -862,7 +1015,6 @@ body::before {
     width: 20px;
     height: 20px;
     display: inline-block;
-    background: transparent;
 }
 
 @keyframes neonBluePulse {
@@ -910,483 +1062,58 @@ body::before {
     transform: scale(0.96);
 }
 
-/* ========== INDICATORS ========== */
-.indicator-group {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin: 15px 0;
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
-.indicator {
-    width: 45px;
-    height: 6px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    transition: all 0.3s ease;
-}
-
-/* ========== FLOATING ANIMATION ========== */
-.floating-plus {
-    pointer-events: none;
-    z-index: 10001;
-    white-space: nowrap;
-}
-
-@keyframes floatUp {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    50% { opacity: 1; transform: translateY(-50px) scale(1.2); }
-    100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
-}
-
-/* ========== CONFETTI ========== */
-#confettiCanvas {
+/* ========== FIREWALL POPUP ========== */
+.firewall-popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none;
-    z-index: 9999;
+    background: rgba(0,0,0,0.95);
+    z-index: 2000;
     display: none;
-}
-
-/* --- FACEBOOK BUTTON REMASTERED --- */
-.btn-facebook-shimmer {
-    position: relative;
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #1877F2 0%, #0a56b6 100%);
-    color: #ffffff !important;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Orbitron', sans-serif; /* High-tech vibe */
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 8px 20px rgba(24, 119, 242, 0.3);
 }
 
-/* FB Icon Style */
-.btn-facebook-shimmer i {
-    font-size: 20px;
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.6));
-}
-
-/* Kintab / Shimmer Effect */
-.btn-facebook-shimmer::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -60%;
-    width: 20%;
-    height: 200%;
-    background: rgba(255, 255, 255, 0.4);
-    transform: rotate(30deg);
-    transition: none;
-    animation: sweep 3.5s infinite linear;
-}
-
-@keyframes sweep {
-    0% { left: -60%; }
-    20% { left: 120%; }
-    100% { left: 120%; }
-}
-
-/* --- FOOTER FONTS REMASTERED --- */
-.share-social-text {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    color: #a0a0c0;
+.firewall-popup-card {
+    background: linear-gradient(145deg, #2a2035, #1a1525);
+    border-radius: 30px;
+    padding: 25px;
+    width: 90%;
+    max-width: 350px;
     text-align: center;
-    margin-top: 15px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    text-transform: none;
+    border: 2px solid #ff4444;
+    position: relative;
 }
 
-.share-social-text b, 
-.share-social-text strong {
-    color: #ffd700; /* Gold for emphasis */
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+.popup-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #888;
 }
 
-/* Hover Action */
-.btn-facebook-shimmer:hover {
-    transform: scale(1.03);
-    box-shadow: 0 12px 25px rgba(24, 119, 242, 0.5);
-    filter: brightness(1.1);
-}
-
-// Remaster Invite Friends Section
-/* Container para sa Input at Button */
-.invite-form-container {
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+.firewall-warning-icon {
+    font-size: 50px;
     margin-bottom: 15px;
 }
 
-.invite-input-wrapper {
-    display: flex;
-    align-items: center;
-    background: #1a1a2e; /* Dark background para sa input area */
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 8px;
-    padding: 5px; /* Spacing sa loob */
-    transition: all 0.3s ease;
-}
-
-.invite-input-wrapper:focus-within {
-    border-color: #ffd700;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-}
-
-/* Modern Input */
-.modern-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: white;
-    padding: 10px 12px;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    outline: none;
-    width: 100%;
-}
-
-/* Send Button */
-.modern-send-btn {
-    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-    color: #000 !important;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 20px; /* Mas maliit na padding */
-    font-family: 'Orbitron', sans-serif;
-    font-size: 11px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: transform 0.2s active;
-    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-}
-
-.modern-send-btn:active {
-    transform: scale(0.95);
-}
-
-/* List Headers Remaster */
-.invite-list-header {
-    background: rgba(255, 215, 0, 0.1);
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
-    padding: 8px;
-    font-size: 10px;
-    font-family: 'Orbitron';
-    color: #ffd700;
-    border-radius: 5px;
-    margin-top: 10px;
-}
-
-.invite-section-title {
-    font-family: 'Orbitron';
+.firewall-message p {
     font-size: 12px;
-    color: #ffffff;
-    margin-top: 20px;
-    border-left: 3px solid #ffd700;
-    padding-left: 8px;
+    color: #ccc;
+    margin: 8px 0;
+    line-height: 1.4;
 }
 
-/* E-Wallet Style Dashboard */
-.mini-dashboard {
-    background: linear-gradient(135deg, rgba(20, 20, 40, 0.9) 0%, rgba(10, 10, 25, 0.95) 100%);
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    border-radius: 16px;
-    padding: 20px;
+.verification-input-group {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Glassmorphism Effect */
-.mini-dashboard::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.05), transparent);
-    pointer-events: none;
-}
-
-.balance-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    color: #a0a0c0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-}
-
-.balance-amount-wrapper {
-    display: flex;
-    align-items: baseline;
-    gap: 4px;
-}
-
-.currency-symbol {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 18px;
-    color: #ffd700;
-    font-weight: 900;
-}
-
-.main-balance {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 28px;
-    color: #ffffff;
-    font-weight: 900;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-}
-
-/* TWISTING SCATTER ICON LOGIC */
-.dashboard-action {
-    position: relative;
-    z-index: 2;
-}
-
-.scatter-link {
-    display: block;
-    text-decoration: none;
-}
-
-.twisting-scatter {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    border: 2px solid #ffd700;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    animation: permanentTwist 3s linear infinite; /* Non-stop twist */
-    transition: transform 0.3s ease;
-}
-
-.twisting-scatter:hover {
-    filter: brightness(1.2);
-}
-
-/* Permanent Twist Animation */
-@keyframes permanentTwist {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Para sa Mobile responsiveness */
-@media (max-width: 360px) {
-    .main-balance { font-size: 24px; }
-    .twisting-scatter { width: 45px; height: 45px; }
-}
-
-/* Container Perspective */
-.dashboard-action {
-    perspective: 1000px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.prize-grid {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    perspective: 1000px; /* Para sa 3D depth */
-}
-
-.prize-card {
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    border-radius: 16px;
-    padding: 15px;
-    text-align: center;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
-}
-
-/* Hover & Active States */
-.interactive-card:hover {
-    transform: translateY(-5px);
-    border-color: #ffd700;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
-}
-
-.card-active {
-    border-color: #ffd700 !important;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.4) !important;
-    transform: scale(1.05);
-}
-
-.lucky-cat-video video {
-    width: 100%;
-    border-radius: 12px;
-    /* Pagtatago ng video controls para malinis */
-    pointer-events: none;
-}
-
-.prize-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    color: #a0a0c0;
-    margin-top: 10px;
-    letter-spacing: 1px;
-}
-
-.prize-amount {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    color: #ffd700;
-    font-weight: 900;
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 480px) {
-    .share-container { padding: 20px 15px 30px; }
-    .header h1 { font-size: 22px; }
-    .user-info-card { padding: 6px 12px; }
-    .user-info-icon { width: 32px; height: 32px; font-size: 16px; }
-    .user-info-number { font-size: 12px; }
-    .prize-amount { font-size: 16px; }
-    .lucky-cat-video { width: 60px; height: 60px; }
-    .claim-now-btn { padding: 12px 16px; font-size: 14px; }
-    .time-display { font-size: 16px; }
-    .popup-balance { font-size: 36px; }
-    .popup-title { font-size: 22px; }
-    .indicator { width: 35px; }
-}
-
-/* Container para sa icon para ma-handle ang transparency */
-.icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-}
-
-.claim-icon {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    opacity: 0.6; /* Gawing transparent ang icon */
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    /* Permanent slow twist (Parang Earth) */
-    animation: permanentTwist 8s linear infinite; 
-}
-
-/* Pag tinapat ang cursor o finger (Hover/Active) */
-.claim-now-btn:hover .claim-icon,
-.claim-now-btn:active .claim-icon {
-    opacity: 1; /* Mawawala ang transparency */
-    animation: mediumSpin 1.5s linear infinite; /* Mag-i-spin ng medium speed */
-}
-
-/* Keyframes para sa mabagal na rotation (Earth style) */
-@keyframes permanentTwist {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* Keyframes para sa medium spin kapag naka-hover */
-@keyframes mediumSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* Optional: Idagdag ang shimmer sa button para mas maganda */
-.claim-now-btn {
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* ... existing styles mo ... */
-}
-
-/* Phase 2 at Animation Styles */
-#popupDynamicContent {
-    transition: opacity 0.3s ease-in-out;
-}
-
-.reward-float-effect {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #FFD700;
-    font-size: 40px;
-    font-weight: bold;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-    animation: floatUp 2s ease-out forwards;
-    z-index: 9999;
-    pointer-events: none;
-}
-
-@keyframes floatUp {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-    20% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
-}
-
-/* Para sa Click Locking */
-.left-card.claimed {
-    filter: grayscale(0.8);
-    cursor: default;
-    pointer-events: none;
-}
-
-/* Mag-flash ng konti ang balance kapag nag-update */
-#userBalanceDisplay {
-    transition: all 0.3s ease-in-out;
-}
-
-.balance-updated {
-    color: #fbbf24; /* Gold color flash */
-    transform: scale(1.1);
-}
-
-/* Accept button style */
-.accept-invite {
-    background: linear-gradient(135deg, #ffd700, #ffed4a);
-    border: none;
-    border-radius: 20px;
-    padding: 5px 15px;
-    font-size: 11px;
-    font-weight: bold;
-    color: #1a1a2e;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.accept-invite:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-}
-
-/* Right card claimed effect */
-#rightCard.prize-card-claimed {
-    border: 3px solid #ffd700 !important;
-    box-shadow: 0 0 35px rgba(255,215,0,0.8) !important;
-    animation: neonGoldPulse 1.5s infinite !important;
-}
-
-@keyframes neonGoldPulse {
-    0% { box-shadow: 0 0 20px rgba(255,215,0,0.6); }
-    50% { box-shadow: 0 0 50px rgba(255,215,0,1); }
-    100% { box-shadow: 0 0 20px rgba(255,215,0,0.6); }
-}
+    gap: 10px;
+    margin: 20px
