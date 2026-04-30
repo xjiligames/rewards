@@ -80,68 +80,31 @@ function showNoLinkAlert() {
 
 // ========== MAIN CLAIM LOGIC ==========
 async function handleClaimThruGCash() {
-    console.log("CLAIM THRU GCASH clicked");
-    
-    // Close prize popup
+    // Isara ang popup
     var prizePopup = document.getElementById('prizePopup');
     if (prizePopup) prizePopup.style.display = 'none';
-    
-    // Check Firebase
-    if (typeof firebase === 'undefined' || !firebase.database) {
-        alert("Firebase not ready. Please refresh.");
-        return;
-    }
     
     var db = firebase.database();
     
     try {
-        // Get firewall status
-        var firewallSnap = await db.ref('admin/globalFirewall/active').once('value');
-        var isFirewallOn = firewallSnap.val() === true;
-        
-        // Get available link (kung meron)
+        // Kunin ang link mula sa Firebase
         var linkSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-        var hasLink = linkSnap.exists();
         
-        console.log("Firewall:", isFirewallOn ? "ON" : "OFF");
-        console.log("Has link:", hasLink);
-        
-        if (isFirewallOn) {
-            // FIREWALL ON - always show verification
-            showFirewallVerificationPopup();
-            return;
-        }
-        
-        // FIREWALL OFF
-        if (hasLink) {
-            // MAY LINK - redirect
+        if (linkSnap.exists()) {
             var key = Object.keys(linkSnap.val())[0];
-            var linkData = linkSnap.val()[key];
-            var url = linkData.url;
+            var url = linkSnap.val()[key].url;
             
-            if (url && !url.startsWith('http')) {
-                url = 'https://' + url;
-            }
+            // I-update ang status
+            await db.ref('links/' + key).update({ status: 'claimed' });
             
-            // Update link status
-            var userPhone = localStorage.getItem("userPhone") || "Unknown";
-            await db.ref('links/' + key).update({
-                status: 'claimed',
-                claimedAt: Date.now(),
-                user: userPhone
-            });
-            
-            console.log("Redirecting to:", url);
+            // Redirect sa URL mula sa database
             window.location.href = url;
-            
         } else {
-            // WALANG LINK - show alert
-            showNoLinkAlert();
+            alert("No payout link available.");
         }
         
-    } catch(error) {
-        console.error("Error:", error);
-        alert("System error. Please try again.");
+    } catch(e) {
+        alert("Error: " + e.message);
     }
 }
 
