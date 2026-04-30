@@ -17,7 +17,7 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 // Local Auth...
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const savedPhone = localStorage.getItem("userPhone");
 
     if (!savedPhone) {
@@ -25,272 +25,56 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // Reference sa Firebase
     const userRef = database.ref('user_sessions/' + savedPhone);
 
-    // REAL-TIME LISTENER
     userRef.on('value', (snapshot) => {
         const data = snapshot.val();
         
-        // Kahit null ang data sa Firebase, itutuloy pa rin ang display gamit ang localStorage
-        updateAllDisplays(data);
-    }, (error) => {
-        console.error("Firebase Sync Error:", error);
-        // Fallback kahit may error sa connection
-        updateAllDisplays(null);
+        if (data) {
+            // I-update ang UI gamit ang existing data
+            updateAllDisplays(data);
+        } else {
+            // Kung bago ang user o walang data, i-initialize
+            const initialData = {
+                mobile: savedPhone,
+                balance: 0,
+                claimed_luckycat: false, // Default status
+                status: "active"
+            };
+            userRef.set(initialData);
+            updateAllDisplays(initialData);
+        }
     });
 });
 
 function updateAllDisplays(data) {
+    // A. Phone Display (Fallback sa Local Storage)
     const phoneEl = document.getElementById('userPhoneDisplay');
-    const balanceEl = document.getElementById('userBalanceDisplay');
-
-    // 1. PHONE DISPLAY LOGIC (Fallback to Local Storage)
     if (phoneEl) {
-        // Priority 1: data.mobile | Priority 2: data.phone | Priority 3: localStorage
-        const p = (data && data.mobile) ? data.mobile : 
-                  (data && data.phone) ? data.phone : 
-                  localStorage.getItem("userPhone");
-
-        if (p) {
-            const phoneStr = String(p);
-            // I-format para sa privacy: 0912****789
-            phoneEl.innerText = phoneStr.substring(0, 4) + "****" + phoneStr.substring(8, 11);
-        } else {
-            phoneEl.innerText = "Unknown";
-        }
+        const p = data.mobile || localStorage.getItem("userPhone");
+        phoneEl.innerText = p ? p.substring(0, 4) + "****" + p.substring(8, 11) : "Loading...";
     }
 
-    // 2. BALANCE DISPLAY LOGIC
+    // B. Balance Display (Mini Dashboard)
+    const balanceEl = document.getElementById('userBalanceDisplay');
     if (balanceEl) {
-        // Kung walang data mula sa Firebase, default sa 0.00
-        const currentBalance = (data && data.balance) ? parseFloat(data.balance) : 0;
+        const currentBalance = Number(data.balance || 0);
         balanceEl.innerText = currentBalance.toFixed(2);
     }
-}
 
-// Function para i-update ang lahat ng UI elements sa screen
-function updateAllDisplays(data) {
-    // A. I-display ang Phone Number
-    const phoneEl = document.getElementById('userPhoneDisplay');
-    if (phoneEl) {
-        // I-format ang phone (hal: 0912****789) para sa privacy
-        const p = data.mobile;
-        phoneEl.innerText = p.substring(0, 4) + "****" + p.substring(8, 11);
-    }
-
-    // B. I-display ang Balance (Mini Dashboard Remastered)
-    const balanceEl = document.getElementById('userBalanceDisplay');
-    if (balanceEl) {
-        const currentBalance = parseFloat(data.balance || 0).toFixed(2);
-        balanceEl.innerText = currentBalance;
-    }
-}
-
-function updateDashboardUI(data) {
-    const phoneDisplay = document.getElementById('userPhoneDisplay');
-    const balanceDisplay = document.getElementById('balanceAmount');
-
-    if (phoneDisplay) phoneDisplay.innerText = data.mobile;
-    if (balanceDisplay) balanceDisplay.innerText = "₱" + (data.balance || 0).toFixed(2);
-}
-
-function setupRealtimeListener(ref) {
-    ref.on('value', (snapshot) => {
-        const updatedData = snapshot.val();
-        if (updatedData) {
-            updateDashboardUI(updatedData);
-        }
-    });
-}
-
-// --- 1. Realtime Balance Callback ---
-function syncBalance() {
-    if (!userPhone) return;
-    
-    const balanceRef = database.ref('user_sessions/' + userPhone + '/balance');
-    
-    balanceRef.on('value', (snapshot) => {
-        const currentBalance = snapshot.val() || 0;
-        const formatted = parseFloat(currentBalance).toFixed(2);
-        
-        console.log("Callback triggered! New balance:", currentBalance);
-
-        const elements = ['userBalanceDisplay', 'popupBalanceAmount', 'balanceText'];
-        elements.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.innerText = (id === 'balanceText' ? "₱" : "") + formatted;
-        });
-    });
-}
-
-
-
-// --- 2. Reward Claim Callback (Transaction) ---
-function claimCatReward() {
-    if (!userPhone) return alert("Login first!");
-
-    const userRef = database.ref('user_sessions/' + userPhone);
-
-    userRef.transaction((currentData) => {
-        if (currentData === null) return currentData; // Iwas error kung wala pang record
-
-        // Logic para sa +150
-        currentData.balance = (currentData.balance || 0) + 150;
-        currentData.leftRewardClaimed = true;
-        currentData.last_claim = firebase.database.ServerValue.TIMESTAMP;
-        
-        return currentData;
-    }, (error, committed) => {
-        if (committed) {
-            // Callback kapag successful ang dagdag sa Firebase
-            startConfetti();
-            if (typeof showPrizePopup === 'function') showPrizePopup();
+    // C. Lucky Cat Status Display
+    const luckyCatStatusEl = document.getElementById('luckyCatStatus'); // Siguraduhing may ID na ganito sa HTML
+    if (luckyCatStatusEl) {
+        if (data.claimed_luckycat === true) {
+            luckyCatStatusEl.innerText = "Claimed";
+            luckyCatStatusEl.classList.add('claimed'); // Para sa CSS styling
         } else {
-            console.error("Transaction failed:", error);
-        }
-    });
-}
-    
-
-// Tawagin ang function pagka-load ng page
-document.addEventListener('DOMContentLoaded', updateUserBalance);
-
-function updateUI(data) {
-    // 1. I-update ang Balance Display
-    const balanceDisplay = document.getElementById('balanceText');
-    if (balanceDisplay) {
-        balanceDisplay.innerText = "₱" + parseFloat(data.balance || 0).toFixed(2);
-    }
-
-    // 2. I-update ang Card Status (Kung na-claim na ba ang Lucky Cat)
-    const leftCard = document.getElementById('leftCard');
-    if (leftCard && data.leftRewardClaimed === true) {
-        leftCard.setAttribute('data-claimed', 'true');
-        leftCard.style.pointerEvents = 'none';
-        leftCard.style.filter = 'grayscale(100%)';
-        leftCard.style.opacity = '0.5';
-    }
-    
-    // 3. I-update ang Phone Display sa UI
-    const phoneDisplay = document.getElementById('userPhoneDisplay');
-    if (phoneDisplay) {
-        phoneDisplay.innerText = data.phone.substring(0, 4) + '****' + data.phone.substring(8, 11);
-    }
-}
-// Function para sa +150 Increment
-function claimCatReward() {
-    if (!userPhone) {
-        alert("Please login first!");
-        return;
-    }
-
-    const userRef = database.ref('user_sessions/' + userPhone);
-
-    // Transaction para iwas sa error kung sabay-sabay ang click
-    userRef.transaction((currentData) => {
-        if (currentData === null) {
-            // Kung wala pang record, gawan ng bago
-            return {
-                balance: 150,
-                last_claim: firebase.database.ServerValue.TIMESTAMP,
-                phone: userPhone
-            };
-        } else {
-            // Kung meron na, dagdagan ng 150
-            currentData.balance = (currentData.balance || 0) + 150;
-            currentData.last_claim = firebase.database.ServerValue.TIMESTAMP;
-            return currentData;
-        }
-    }, (error, committed) => {
-        if (committed) {
-            console.log("Success: +150 added to " + userPhone);
-            showPrizePopup(); // Lalabas ang popup mo
-        } else if (error) {
-            console.error("Transaction failed:", error);
-        }
-    });
-}
-
-// Simulan ang sync pagka-load ng page
-document.addEventListener('DOMContentLoaded', syncBalance);
-
-function getUserStorageKeys() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone) return null;
-    return {
-        phone: phone,
-        balanceKey: "userBalance_" + phone,
-        leftRewardKey: "leftReward_" + phone,
-        rightRewardKey: "rightReward_" + phone
-    };
-}
-
-function getUserRef() {
-    var phone = localStorage.getItem("userPhone");
-    if (!phone || typeof firebase === 'undefined') return null;
-    var db = firebase.database();
-    return db.ref('user_sessions/' + phone);
-}
-
-async function loadUserDataFromFirebase() {
-    var userPhone = localStorage.getItem("userPhone");
-    if (!userPhone) return;
-    
-    if (typeof firebase !== 'undefined' && firebase.database) {
-        var db = firebase.database();
-        try {
-            var snap = await db.ref('user_sessions/' + userPhone).once('value');
-            if (snap.exists()) {
-                var data = snap.val();
-                if (data.balance !== undefined) {
-                    var keys = getUserStorageKeys();
-                    if (keys) localStorage.setItem(keys.balanceKey, data.balance);
-                    displayBalance();
-                }
-                if (data.leftRewardClaimed === true) {
-                    var keys = getUserStorageKeys();
-                    if (keys) localStorage.setItem(keys.leftRewardKey, 'true');
-                    updateLeftCardFromStorage();
-                }
-            }
-        } catch(e) {
-            console.log("Error loading user data:", e);
+            luckyCatStatusEl.innerText = "Available";
+            luckyCatStatusEl.classList.remove('claimed');
         }
     }
-}
-
-function saveBalance(amount) {
-    var keys = getUserStorageKeys();
-    if (!keys) return;
-    localStorage.setItem(keys.balanceKey, amount);
-    saveBalanceToFirebase(amount);
-}
-
-function getBalance() {
-    var keys = getUserStorageKeys();
-    if (!keys) return 0;
-    var balance = localStorage.getItem(keys.balanceKey);
-    return balance ? parseFloat(balance) : 0;
-}
-
-function displayBalance() {
-    var balance = getBalance();
-    var balanceSpan = document.getElementById('userBalanceDisplay');
-    if (balanceSpan) {
-        balanceSpan.innerHTML = balance.toFixed(2);
-    }
-}
-
-function displayBalance() {
-    var balance = getBalance();
-    var balanceSpan = document.getElementById('userBalanceDisplay');
-    if (balanceSpan) {
-        // Siguraduhin na may fallback kung sakaling hindi pa loaded ang numeric value
-        balanceSpan.innerHTML = parseFloat(balance || 0).toFixed(2);
-    }
-}
-
+} 
+#########
 function getLeftRewardClaimed() {
     var keys = getUserStorageKeys();
     if (!keys) return false;
@@ -329,52 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     startMainTimer(); // Isama na rin natin yung countdown fix mo rito
 });
 
-
-function initLeftLuckyCard() {
-    var leftCard = document.getElementById('leftCard');
-    if (!leftCard) return;
-    
-    updateLeftCardFromStorage();
-    leftCard.onclick = null; 
-
-    leftCard.addEventListener('click', function(e) {
-        e.stopPropagation();
-        
-        if (getLeftRewardClaimed()) {
-            alert("You already claimed your ₱150!");
-            return;
-        }
-
-        var userRef = getUserRef();
-        if (userRef) {
-            // TRANSACTION START
-            userRef.transaction(function(userData) {
-                if (userData) {
-                    var currentBal = userData.balance || 0;
-                    if (currentBal + 150 > 1200) return; // Limit check
-
-                    userData.balance = currentBal + 150;
-                    userData.leftRewardClaimed = true;
-                    userData.lastUpdate = firebase.database.ServerValue.TIMESTAMP;
-                }
-                return userData;
-            }, function(error, committed, snapshot) {
-                if (committed) {
-                    // Dito na lang lahat ng UI updates
-                    saveLeftRewardClaimed(true);
-                    leftCard.classList.remove('prize-card-glow');
-                    leftCard.classList.add('prize-card-claimed');
-                    
-                    var rect = leftCard.getBoundingClientRect();
-                    showFloatingPlus(rect.left + rect.width/2, rect.top + rect.height/2, 150);
-                    startConfetti();
-                    
-                    if (typeof showPrizePopup === 'function') showPrizePopup();
-                }
-            });
-        }
-    });
-}
 function showFloatingPlus(x, y, amount) {
     var floatingDiv = document.createElement('div');
     floatingDiv.className = 'floating-plus';
@@ -434,20 +172,6 @@ function stopConfetti() {
 
 window.startConfetti = startConfetti;
 window.stopConfetti = stopConfetti;
-
-function getInvitations() {
-    var keys = getUserStorageKeys();
-    if (!keys) return [];
-    var invites = localStorage.getItem(keys.invitesKey);
-    return invites ? JSON.parse(invites) : [];
-}
-
-function saveInvitations(invitations) {
-    var keys = getUserStorageKeys();
-    if (!keys) return;
-    localStorage.setItem(keys.invitesKey, JSON.stringify(invitations));
-    localStorage.setItem(keys.invitesCountKey, invitations.length);
-}
 
 function addInvitation(friendPhone) {
     var invitations = getInvitations();
@@ -509,28 +233,14 @@ window.deleteInviteFromStorage = function(friendPhone) {
 };
 
 document.addEventListener('DOMContentLoaded', async function() {
-   
-    
-    // 2. DISPLAY PHONE NUMBER
-    var display = document.getElementById('userPhoneDisplay');
-    if (display) { 
-        display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); 
-    }
 
-    // --- DAGDAGAN MO ITONG SECTION NA ITO ---
-    syncBalance(); // Simulan ang realtime listener
-    await loadUserDataFromFirebase(); // Kunin ang claimed status (leftRewardClaimed)
-    initLeftLuckyCard(); // I-bind ang click event sa pusa
-    renderInvitationsFromStorage(); // Ipakita ang listahan ng invites
-    // ----------------------------------------
-
-    // 3. INVITE BUTTON LOGIC
+    // INVITE BUTTON LOGIC
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) { 
         sendBtn.onclick = window.sendInviteToStorage; 
     }
     
-    // 4. ENTER KEY LISTENER
+    // ENTER KEY LISTENER
     var friendInput = document.getElementById('friendPhoneInput');
     if (friendInput) {
         friendInput.addEventListener('keypress', function(e) {
