@@ -16,8 +16,25 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// 
-const userPhone = localStorage.getItem("userPhone");
+// Local Auth...
+document.addEventListener('DOMContentLoaded', function() {
+    // Kunin ang phone number mula sa local storage
+    const savedPhone = localStorage.getItem("userPhone");
+
+    if (savedPhone) {
+        // Gamitin ang savedPhone para i-load ang data mula sa Firebase
+        database.ref('user_sessions/' + savedPhone).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                document.getElementById('userPhoneDisplay').innerText = data.mobile;
+                document.getElementById('balanceAmount').innerText = "₱" + (data.balance || 0);
+            }
+        });
+    } else {
+        // Kung walang data sa local storage, balik sa index
+        window.location.href = "index.html";
+    }
+});
 
 // --- 1. Realtime Balance Callback ---
 function syncBalance() {
