@@ -972,7 +972,7 @@ body::before {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
 
-/* Ang Modernong Input */
+/* Modern Input */
 .modern-input {
     flex: 1;
     background: transparent;
@@ -985,7 +985,7 @@ body::before {
     width: 100%;
 }
 
-/* Ang Maliit at Proportional na Send Button */
+/* Send Button */
 .modern-send-btn {
     background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
     color: #000 !important;
