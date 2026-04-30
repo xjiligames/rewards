@@ -336,3 +336,13 @@ window.handleFacebookShare = function() {
 };
     return false;
 };
+
+window.addEventListener('DOMContentLoaded', (event) => {
+    const scatterIcon = document.querySelector('.sliding-scatter');
+    
+    // Opsyonal: Lagyan ng delay bago bumagsak ang coin (0.5 seconds)
+    setTimeout(() => {
+        scatterIcon.style.opacity = "1";
+        // Dito pwede mong i-play ang sound effect ng bumabagsak na barya kung meron ka
+    }, 500);
+});
