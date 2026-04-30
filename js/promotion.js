@@ -1,9 +1,22 @@
 // ========== PROMOTION.JS ==========
 
-const database = firebase.database();
+// config.js
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "iponhub-xxxx.firebaseapp.com",
+    databaseURL: "https://iponhub-xxxx.firebaseio.com",
+    projectId: "iponhub-xxxx",
+    storageBucket: "iponhub-xxxx.appspot.com",
+    messagingSenderId: "xxxx",
+    appId: "xxxx"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database(); // Gamitin natin ang 'database' consistently
+
+// 
 const userPhone = localStorage.getItem("userPhone");
-
-
 function initUserSession() {
     const userPhone = localStorage.getItem("userPhone");
 
