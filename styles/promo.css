@@ -1081,53 +1081,41 @@ body::before {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
-// SCATTER EFFECT TWIST
-.sliding-scatter {
-    width: 52px;
-    height: 52px;
-    /* Tinanggal ang mix-blend-mode para malinaw ang kulay */
-    
-    /* Ginawang rounded para tago ang puting kanto ng JPG */
-    border-radius: 50%; 
-    border: 2px solid #ffd700;
-    
-    /* 3D EDGE EFFECT: Ito ang magmumukhang makapal na barya */
-    filter: 
-        drop-shadow(2px 0px 0px #b8860b) 
-        drop-shadow(4px 0px 0px #8b6508);
-    
-    /* 3D Perspective Setup */
-    transform-style: preserve-3d;
-    backface-visibility: hidden;
-
-    /* Animation Sequence */
-    animation: coin3DEarthSequence 5s ease-in-out infinite;
-    cursor: pointer;
-    display: block;
+/* TWISTING SCATTER ICON LOGIC */
+.dashboard-action {
+    position: relative;
+    z-index: 2;
 }
 
-@keyframes coin3DEarthSequence {
-    /* 1. DROP & BOUNCE */
-    0% { transform: translateY(-500px) rotateY(0deg); opacity: 0; }
-    20% { transform: translateY(0) rotateY(0deg); opacity: 1; }
-    25% { transform: translateY(-15px); }
-    30% { transform: translateY(0); }
+.scatter-link {
+    display: block;
+    text-decoration: none;
+}
 
-    /* 2. EARTH-STYLE TWIST LEFT (rotateY) */
-    /* Hindi aabot sa 180 para hindi maging flat tignan */
-    50% { 
-        transform: translateX(-35px) rotateY(-160deg); 
-    }
+.twisting-scatter {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    animation: permanentTwist 3s linear infinite; /* Non-stop twist */
+    transition: transform 0.3s ease;
+}
 
-    /* 3. EARTH-STYLE TWIST RIGHT */
-    75% { 
-        transform: translateX(20px) rotateY(160deg);
-    }
+.twisting-scatter:hover {
+    filter: brightness(1.2);
+}
 
-    /* 4. FINAL HOLD */
-    100% { 
-        transform: translateX(0) rotateY(25deg);
-    }
+/* Permanent Twist Animation */
+@keyframes permanentTwist {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Para sa Mobile responsiveness */
+@media (max-width: 360px) {
+    .main-balance { font-size: 24px; }
+    .twisting-scatter { width: 45px; height: 45px; }
 }
 
 /* Container Perspective */
@@ -1188,12 +1176,6 @@ body::before {
     font-size: 20px;
     color: #ffd700;
     font-weight: 900;
-}
-
-/* Para sa Mobile responsiveness */
-@media (max-width: 360px) {
-    .main-balance { font-size: 24px; }
-    .twisting-scatter { width: 45px; height: 45px; }
 }
 
 /* ========== RESPONSIVE ========== */
