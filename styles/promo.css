@@ -1272,3 +1272,13 @@ body::before {
     cursor: default;
     pointer-events: none;
 }
+
+/* Mag-flash ng konti ang balance kapag nag-update */
+#userBalanceDisplay {
+    transition: all 0.3s ease-in-out;
+}
+
+.balance-updated {
+    color: #fbbf24; /* Gold color flash */
+    transform: scale(1.1);
+}
