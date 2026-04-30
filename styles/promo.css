@@ -774,53 +774,51 @@ body::before {
 }
 
 /* ========== BUTTONS INSIDE POPUP ========== */
+/* ========== CLAIM THRU GCASH BUTTON ========== */
 .claim-gcash-button {
-    background: #00d4ff; /* Light Blue Base */
-    color: #ffffff;
+    background: linear-gradient(135deg, #0066ff, #0044cc);
+    width: 100%;
+    padding: 14px;
     border: none;
-    padding: 15px 30px;
-    border-radius: 50px;
-    font-family: 'Inter', sans-serif;
+    border-radius: 60px;
     font-weight: 800;
-    text-transform: uppercase;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 10px;
-    position: relative;
-    /* Glow Animation */
-    animation: neonPulse 1.5s infinite ease-in-out;
-    transition: all 0.3s ease;
-}
-
-/* 2. Glow Up Effect Animation */
-@keyframes neonPulse {
-    0% {
-        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.2);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 0 25px rgba(0, 212, 255, 0.9), 0 0 45px rgba(0, 212, 255, 0.5);
-        transform: scale(1.02); /* Bahagyang lalaki ang button */
-    }
-    100% {
-        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.2);
-        transform: scale(1);
-    }
+    gap: 8px;
+    box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
+    animation: neonBluePulse 1.5s ease-in-out infinite;
+    transition: all 0.2s ease;
 }
 
 .claim-gcash-button:active {
     transform: scale(0.97);
 }
 
-.gc-icon {
+.claim-gcash-button img {
     width: 20px;
     height: 20px;
     display: inline-block;
     background: transparent;
+}
+
+@keyframes neonBluePulse {
+    0% {
+        box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
+        background: linear-gradient(135deg, #0066ff, #0044cc);
+    }
+    50% {
+        box-shadow: 0 0 15px #0066ff, 0 0 25px #0066ff, 0 0 35px #0066ff;
+        background: linear-gradient(135deg, #3399ff, #0066ff);
+    }
+    100% {
+        box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff;
+        background: linear-gradient(135deg, #0066ff, #0044cc);
+    }
 }
 
 .button-separator {
