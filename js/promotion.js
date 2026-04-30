@@ -362,44 +362,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log("Lucky Cat sound unmuted.");
             }
         }, { once: true });
-    }
-
-    // 5. REMASTERED CLAIM BUTTON (DIRECT ACTION - NO CONDITIONS)
-var claimNowBtn = document.getElementById('claimNowBtn');
-var prizePopup = document.getElementById('prizePopup');
-var scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
-scatterSound.volume = 0.5;
-
-if (claimNowBtn) {
-    claimNowBtn.onclick = function(e) {
-        // Stop any default behavior
-        e.preventDefault();
-        
-        // 1. Play Sound Immediately
-        scatterSound.currentTime = 0;
-        scatterSound.play().catch(err => console.log("Sound Error:", err));
-
-        // 2. Direct Popup Display
-        if (prizePopup) {
-            prizePopup.style.display = 'flex';
-        }
-
-        // 3. Fire Confetti
-        if (typeof startConfetti === 'function') {
-            startConfetti();
-        }
-        
-        console.log("Claim Button: Direct Popup Triggered.");
-    };
-}
-    
-    // 6. INVITE BUTTON LOGIC
+    }  
+    // 5. INVITE BUTTON LOGIC
     var sendBtn = document.getElementById('sendInviteBtn');
     if (sendBtn) { 
         sendBtn.onclick = window.sendInviteToStorage; 
     }
     
-    // 7. ENTER KEY LISTENER FOR INPUT
+    // 6. ENTER KEY LISTENER FOR INPUT
     var friendInput = document.getElementById('friendPhoneInput');
     if (friendInput) {
         friendInput.addEventListener('keypress', function(e) {
