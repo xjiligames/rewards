@@ -1081,61 +1081,54 @@ body::before {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
-/* --- THE ULTIMATE COIN SEQUENCE --- */
-.sliding-scatter {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
-    /* Blend mode para mawala ang puting background ng JPG */
-    mix-blend-mode: multiply; 
-    
-    /* Animation: 4 seconds intro sequence */
-    animation: coinIntroSequence 4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    cursor: pointer;
-    display: block;
-}
-
-@keyframes coinIntroSequence {
-    /* 1. DROP & JUMP (0% - 30%) */
-    0% {
-        transform: translateY(-500px) rotate(0deg);
-        opacity: 0;
-    }
-    20% {
-        transform: translateY(0) scaleY(0.7) scaleX(1.3); /* "Squash" effect paglapag */
-        opacity: 1;
-    }
-    25% {
-        transform: translateY(-20px) scale(1); /* "Stretch" effect pataas */
-    }
-    30% {
-        transform: translateY(0); /* Final landing */
-    }
-
-    /* 2. TWIST LEFT (30% - 50%) */
-    50% {
-        transform: translateX(-30px) rotate(-25deg); /* Sliding twist to left */
-    }
-
-    /* 3. TWIST RIGHT (50% - 75%) */
-    75% {
-        transform: translateX(15px) rotate(25deg); /* Sliding twist to right */
-    }
-
-    /* 4. FINAL HOLD (75% - 100%) */
-    100% {
-        transform: translateX(0) rotate(15deg); /* Naka-stay na naka-tilt */
-    }
-}
-
-/* Container para hindi "maputol" ang animation */
+/* TWISTING SCATTER ICON LOGIC */
 .dashboard-action {
     position: relative;
-    width: 80px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    z-index: 2;
+}
+
+.scatter-link {
+    display: block;
+    text-decoration: none;
+}
+
+.sliding-scatter {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    animation: earthTwistSequence 5s ease-in-out infinite;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    backface-visibility: visible;
+}
+
+.sliding-scatter:hover {
+    filter: brightness(1.2);
+}
+
+/* Permanent Twist Animation */
+@keyframes earthTwistSequence {
+    0% {
+        transform: translateY(-500px) rotateY(0deg);
+        opacity: 0;
+    }
+    15% {
+        transform: translateY(0) rotateY(0deg);
+        opacity: 1;
+    }
+    40% {
+        /* rotateY ang magbibigay ng "Earth" twist effect */
+        transform: translateX(-30px) rotateY(-180deg); 
+    }
+    /* 3. TWIST RIGHT */
+    70% {
+        transform: translateX(15px) rotateY(180deg);
+    }
+    100% {
+        transform: translateX(0) rotate(0deg); /* Balik sa original position */
+    }
 }
 
 /* Para sa Mobile responsiveness */
