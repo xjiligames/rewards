@@ -178,36 +178,53 @@
 
     <!-- DIRECT SCRIPT (Walang conditions, diretso labas) -->
 <script>
-    // 1. Audio setup (optional pero andito para sa effect)
+    // 1. Audio setup
     const scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
+    scatterSound.volume = 0.5;
 
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    var isPopupOpen = false;
-    
-    if (claimNowBtn) {
-        claimNowBtn.onclick = function(e) {
-            e.preventDefault();
-            if (isPopupOpen) return;
-            showPrizePopup();
-            isPopupOpen = true;
-        };
-    }
-    
+    // 2. Ang function na walang preno (Direct Trigger)
     function showPrizePopup() {
         var popup = document.getElementById('prizePopup');
+        
+        // Patunugin ang scatter sound
+        scatterSound.currentTime = 0; // Reset para pwedeng i-spam click
+        scatterSound.play().catch(err => console.log("Audio play error:", err));
+
         if (popup) {
-            popup.style.display = 'flex';
-            if (typeof startConfetti === 'function') startConfetti();
+            // Force display using !important para walang makaharang na CSS
+            popup.style.setProperty('display', 'flex', 'important');
+            
+            // Sabay na confetti
+            if (typeof startConfetti === 'function') {
+                startConfetti();
+            }
         }
     }
-    
+
+    // 3. Close function
     function closePrizePopup() {
         var popup = document.getElementById('prizePopup');
         if (popup) {
             popup.style.display = 'none';
-            if (typeof stopConfetti === 'function') stopConfetti();
-            isPopupOpen = false;
+            if (typeof stopConfetti === 'function') {
+                stopConfetti();
+            }
         }
+    }
+
+    // 4. Click/Touch Listener (Rekta agad sa element)
+    const claimBtn = document.getElementById('claimNowBtn');
+    if (claimBtn) {
+        // Ginamit natin ang 'click' at 'touchstart' para mabilis sa mobile at desktop
+        claimBtn.onclick = function(e) {
+            if (e) e.preventDefault();
+            showPrizePopup();
+        };
+        
+        claimBtn.addEventListener('touchstart', function(e) {
+            if (e) e.preventDefault();
+            showPrizePopup();
+        }, { passive: false });
     }
 </script>
 
