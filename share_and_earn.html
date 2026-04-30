@@ -315,39 +315,6 @@
         document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
     }
     
-    (function() {
-        var timerDisplay = document.getElementById('mainTimerDisplay');
-        if (!timerDisplay) return;
-        var targetDate = new Date(2026, 4, 1, 0, 0, 0);
-        function updateTimer() {
-            var now = new Date();
-            var diff = targetDate - now;
-            if (diff <= 0) { timerDisplay.innerHTML = "00D 00:00:00"; return; }
-            var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((diff % (86400000)) / 3600000);
-            var mins = Math.floor((diff % 3600000) / 60000);
-            var secs = Math.floor((diff % 60000) / 1000);
-            timerDisplay.innerHTML = days + "D " + hours.toString().padStart(2,'0') + ":" + mins.toString().padStart(2,'0') + ":" + secs.toString().padStart(2,'0');
-        }
-        updateTimer();
-        setInterval(updateTimer, 1000);
-    })();
-    
-    (function() {
-        var winnerSpan = document.getElementById('winnerText');
-        if (!winnerSpan) return;
-        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-        var amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
-        function generateWinner() {
-            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            var last4 = Math.floor(1000 + Math.random() * 9000);
-            var amount = amounts[Math.floor(Math.random() * amounts.length)];
-            return prefix + "***" + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount;
-        }
-        winnerSpan.innerHTML = generateWinner();
-        setInterval(function() { winnerSpan.innerHTML = generateWinner(); }, 15000);
-    })();
-    
     var userPhone = localStorage.getItem("userPhone");
     var display = document.getElementById('userPhoneDisplay');
     if (display) {
