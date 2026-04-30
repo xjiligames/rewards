@@ -104,25 +104,28 @@
 </div>
     
     <div class="prize-grid">
-        <div class="prize-card" id="leftCard">
-            <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-            </div>
-            <div class="prize-label">YOU GET</div>
-            <div class="prize-amount">₱150</div>
+    <!-- LEFT CARD: Interactive Trigger -->
+    <div class="prize-card interactive-card" id="leftCard" onclick="handleCardActivation()">
+        <div class="lucky-cat-video">
+            <video id="leftCatVideo" loop playsinline muted>
+                <source src="sounds/luckycat.mp4" type="video/mp4">
+            </video>
         </div>
-        <div class="prize-card" id="rightCard">
-            <div class="lucky-cat-video">
-                <video autoplay loop muted playsinline>
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-            </div>
-            <div class="prize-label">FRIEND GETS</div>
-            <div class="prize-amount" id="rightRewardAmount">₱0</div>
-        </div>
+        <div class="prize-label">YOU GET</div>
+        <div class="prize-amount">₱150</div>
     </div>
+
+    <!-- RIGHT CARD -->
+    <div class="prize-card" id="rightCard">
+        <div class="lucky-cat-video">
+            <video id="rightCatVideo" loop playsinline muted>
+                <source src="sounds/luckycat.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="prize-label">FRIEND GETS</div>
+        <div class="prize-amount" id="rightRewardAmount">₱0</div>
+    </div>
+</div>
     
     <div class="winners-banner">
         <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
