@@ -66,7 +66,7 @@ function getBalance() {
     var keys = getUserStorageKeys();
     if (!keys) return 0;
     var balance = localStorage.getItem(keys.balanceKey);
-    return balance ? parseInt(balance) : 0;
+    return balance ? parseFloat(balance) : 0;
 }
 
 function addBalance(amount) {
@@ -83,7 +83,9 @@ function addBalance(amount) {
 function displayBalance() {
     var balance = getBalance();
     var balanceSpan = document.getElementById('userBalanceDisplay');
-    if (balanceSpan) balanceSpan.innerHTML = '₱' + balance;
+    if (balanceSpan) {
+        balanceSpan.innerHTML = balance.toFixed(2);
+    }
 }
 
 function saveLeftRewardClaimed(claimed) {
@@ -305,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (display) { display.innerText = userPhone.substring(0, 4) + '****' + userPhone.substring(8, 11); }
     loadUserDataFromFirebase();
     displayBalance();
-    displayInvitesCount();
     updateLeftCardFromStorage();
     renderInvitationsFromStorage();
     initLeftLuckyCard();
