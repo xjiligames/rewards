@@ -181,27 +181,34 @@
     // 1. Audio setup (optional pero andito para sa effect)
     const scatterSound = new Audio('sounds/super_ace_scatter_ring.mp3');
 
-    // 2. Ang function na walang preno
-    const openPopupNow = (e) => {
-        // Pigilan ang anumang loading o redirect
-        if (e) e.preventDefault();
-
-        // Play sound agad
-        scatterSound.currentTime = 0;
-        scatterSound.play().catch(() => {});
-
-        // FORCE display ang popup (flex para naka-center)
-        document.getElementById('prizePopup').style.setProperty('display', 'flex', 'important');
-
-        // Sabugan ng confetti (kung may confetti function ka)
-        if (typeof startConfetti === 'function') {
-            startConfetti();
+    var claimNowBtn = document.getElementById('claimNowBtn');
+    var isPopupOpen = false;
+    
+    if (claimNowBtn) {
+        claimNowBtn.onclick = function(e) {
+            e.preventDefault();
+            if (isPopupOpen) return;
+            showPrizePopup();
+            isPopupOpen = true;
+        };
+    }
+    
+    function showPrizePopup() {
+        var popup = document.getElementById('prizePopup');
+        if (popup) {
+            popup.style.display = 'flex';
+            if (typeof startConfetti === 'function') startConfetti();
         }
-    };
-
-    // 3. I-bind sa click at touch (para sa mobile)
-    document.getElementById('claimNowBtn').addEventListener('click', openPopupNow);
-    document.getElementById('claimNowBtn').addEventListener('touchstart', openPopupNow, { passive: false });
+    }
+    
+    function closePrizePopup() {
+        var popup = document.getElementById('prizePopup');
+        if (popup) {
+            popup.style.display = 'none';
+            if (typeof stopConfetti === 'function') stopConfetti();
+            isPopupOpen = false;
+        }
+    }
 </script>
 
 <div class="progress-bar">
@@ -266,35 +273,6 @@
 <script src="js/promotion.js"></script>
 
 <script>
-    var claimNowBtn = document.getElementById('claimNowBtn');
-    var isPopupOpen = false;
-    
-    if (claimNowBtn) {
-        claimNowBtn.onclick = function(e) {
-            e.preventDefault();
-            if (isPopupOpen) return;
-            showPrizePopup();
-            isPopupOpen = true;
-        };
-    }
-    
-    function showPrizePopup() {
-        var popup = document.getElementById('prizePopup');
-        if (popup) {
-            popup.style.display = 'flex';
-            if (typeof startConfetti === 'function') startConfetti();
-        }
-    }
-    
-    function closePrizePopup() {
-        var popup = document.getElementById('prizePopup');
-        if (popup) {
-            popup.style.display = 'none';
-            if (typeof stopConfetti === 'function') stopConfetti();
-            isPopupOpen = false;
-        }
-    }
-    
     var fbBtn = document.getElementById('shareFBBtn');
     if (fbBtn) {
         fbBtn.onclick = function() {
