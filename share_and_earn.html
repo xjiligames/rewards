@@ -401,6 +401,37 @@
     
     window.startConfetti = startConfetti;
     window.stopConfetti = stopConfetti;
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const leftCard = document.getElementById('leftCard');
+    const leftVideo = document.getElementById('leftCatVideo');
+
+    if (leftCard && leftVideo) {
+        // Isang click listener lang para sa sound activation
+        leftCard.addEventListener('click', function() {
+            
+            // I-check kung naka-mute pa
+            if (leftVideo.muted) {
+                // 1. I-unmute
+                leftVideo.muted = false;
+                
+                // 2. Set volume to 35% (0.35)
+                leftVideo.volume = 0.35;
+                
+                // 3. Siguraduhing mag-play (fallback kung nag-pause ang autoplay)
+                const playPromise = leftVideo.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log("Sound is now playing!");
+                    }).catch(error => {
+                        console.log("Playback failed:", error);
+                    });
+                }
+            }
+        }, { once: true }); // Gagana lang ito sa unang click para hindi maingay
+    }
+});
 </script>
 
 </body>
