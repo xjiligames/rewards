@@ -636,7 +636,7 @@ window.LuckyCatModule = (function() {
     
     function updateUI() {
         if (leftReward) {
-            leftReward.innerHTML = isClaimed ? 'CLAIMED' : '+150';  // +150 instead of ₱150
+            leftReward.innerHTML = isClaimed ? 'CLAIMED' : '+₱150';
             if (isClaimed) {
                 leftReward.style.fontSize = '12px';
                 leftReward.style.letterSpacing = '2px';
