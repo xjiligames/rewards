@@ -410,15 +410,9 @@ window.LuckyCatModule = (function() {
             // Video sound on first click only
             const leftVideo = document.getElementById('leftCatVideo');
             if (leftVideo) {
-                leftCard.addEventListener('click', function() {
-                    if (leftVideo && leftVideo.muted) {
-                        leftVideo.muted = false;
-                        leftVideo.volume = 0.35;
-                        leftVideo.play().catch(e => console.log(e));
-                    }
-                }, { once: true });
+                leftVideo.loop = true;
+                leftVideo.muted = true;  // Start muted, i-unmute sa claim
             }
-        }
         
         // Update UI based on saved state
         updateUI();
@@ -629,119 +623,190 @@ window.ConfettiModule = (function() {
     return { start: start, stop: stop };
 })();
 
-// ========== LUCKY CAT MODULE - Default +150 ==========
+// ========== MODULE 8: LUCKY CAT (ADDED - PRIORITY) ==========
 window.LuckyCatModule = (function() {
-    let leftCard = document.getElementById('leftCard');
-    let leftReward = document.getElementById('leftRewardAmount');
-    let luckyCatStatus = document.getElementById('luckyCatStatus');
+    'use strict';
+    
+    let leftCard = null;
+    let leftReward = null;
+    let luckyCatStatus = null;
     let isClaimed = false;
     let claimInProgress = false;
     
-    function updateUI() {
-        if (leftReward) {
-            leftReward.innerHTML = isClaimed ? 'CLAIMED' : '+150';  // +150 instead of ₱150
-            if (isClaimed) {
-                leftReward.style.fontSize = '12px';
-                leftReward.style.letterSpacing = '2px';
-            } else {
-                leftReward.style.fontSize = '18px';
-                leftReward.style.letterSpacing = 'normal';
-            }
-        }
-        if (leftCard && isClaimed) {
-            leftCard.style.opacity = '0.8';
-            leftCard.style.pointerEvents = 'none';
-        }
-        if (luckyCatStatus) {
-            luckyCatStatus.innerText = isClaimed ? 'Claimed' : 'Available';
-        }
-    }
-    
-    async function checkStatusFromFirebase() {
-        const userPhone = localStorage.getItem("userPhone");
-        if (!userPhone) return;
+    function init() {
+        leftCard = document.getElementById('leftCard');
+        leftReward = document.getElementById('leftRewardAmount');
+        luckyCatStatus = document.getElementById('luckyCatStatus');
         
-        try {
-            const snapshot = await firebase.database().ref('user_sessions/' + userPhone).once('value');
-            const data = snapshot.val();
-            if (data && data.claimed_luckycat === true) {
-                isClaimed = true;
-                updateUI();
-                console.log('✅ LuckyCat already claimed in Firebase');
-            } else {
-                isClaimed = false;
-                updateUI();
+        if (leftCard) {
+            const newCard = leftCard.cloneNode(true);
+            leftCard.parentNode.replaceChild(newCard, leftCard);
+            leftCard = newCard;
+            leftCard.addEventListener('click', handleClaim);
+            
+            const leftVideo = document.getElementById('leftCatVideo');
+            if (leftVideo) {
+                leftCard.addEventListener('click', function() {
+                    if (leftVideo && leftVideo.muted) {
+                        leftVideo.muted = false;
+                        leftVideo.volume = 0.35;
+                        leftVideo.play().catch(e => console.log(e));
+                    }
+                }, { once: true });
             }
-        } catch(e) {
-            console.error('Firebase check error:', e);
         }
+        
+        updateUI();
+        console.log('✅ LuckyCat Module ready');
     }
     
-    async function claim() {
+    function handleClaim(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
         if (isClaimed) {
             alert("You have already claimed the Lucky Cat bonus!");
             return;
         }
-        if (claimInProgress) return;
         
-        claimInProgress = true;
-        
-        // Double check Firebase
-        const userPhone = localStorage.getItem("userPhone");
-        const snapshot = await firebase.database().ref('user_sessions/' + userPhone).once('value');
-        if (snapshot.val()?.claimed_luckycat === true) {
-            isClaimed = true;
-            updateUI();
-            alert("You have already claimed!");
-            claimInProgress = false;
+        if (claimInProgress) {
+            alert("Please wait, processing your claim...");
             return;
         }
         
-        // Add to balance
-        if (window.PromotionCore) {
-            window.PromotionCore.addToBalance(150);
+        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
+        if (userRef) {
+            userRef.once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.claimed_luckycat === true) {
+                    isClaimed = true;
+                    updateUI();
+                    alert("You have already claimed the Lucky Cat bonus!");
+                    return;
+                }
+                processClaim();
+            }).catch(() => processClaim());
         } else {
-            const balanceEl = document.getElementById('userBalanceDisplay');
-            let currentBalance = parseFloat(balanceEl?.innerText || 0);
-            let newBalance = currentBalance + 150;
-            if (balanceEl) balanceEl.innerText = newBalance.toFixed(2);
+            processClaim();
+        }
+    }
+    
+    function processClaim() {
+        claimInProgress = true;
+
+        const leftVideo = document.getElementById('leftCatVideo');
+        if (leftVideo) {
+            leftVideo.muted = false;
+            leftVideo.volume = 0.35;
+            leftVideo.loop = true;
+            leftVideo.play().catch(e => console.log('Video play error:', e));
         }
         
-        // Mark as claimed
+        if (leftCard) {
+            leftCard.style.pointerEvents = 'none';
+            leftCard.style.opacity = '0.8';
+        }
+        
+        if (window.PromotionCore) {
+            window.PromotionCore.playSound('claim');
+        }
+        
+        if (window.ConfettiModule) {
+            window.ConfettiModule.start();
+        }
+        
+        if (window.PromotionCore) {
+            window.PromotionCore.addToBalance(150, true);
+        }
+        
         isClaimed = true;
         updateUI();
         
-        // Save to Firebase
-        await firebase.database().ref('user_sessions/' + userPhone).update({
-            claimed_luckycat: true,
-            luckycat_claimed_at: Date.now()
+        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
+        if (userRef) {
+            userRef.update({ 
+                claimed_luckycat: true,
+                luckycat_claimed_at: Date.now()
+            }).catch(e => console.error('Firebase save error:', e));
+        }
+        
+        const userPhone = window.PromotionCore ? window.PromotionCore.getUserPhone() : null;
+        if (userPhone) {
+            localStorage.setItem(`${userPhone}_claimed_luckycat`, 'true');
+        }
+        
+        // Trigger event para sa Right Card
+        const event = new CustomEvent('luckycat:claimed', {
+            detail: { amount: 150, timestamp: Date.now() }
         });
+        window.dispatchEvent(event);
+        console.log('🔄 Left Card: Triggered invitation approval event');
         
-        // Save to localStorage
-        localStorage.setItem(`${userPhone}_claimed_luckycat`, 'true');
+        setTimeout(() => {
+            alert("🎉 Congratulations! You received ₱150 bonus!");
+        }, 500);
         
-        // Play sound and confetti
-        if (window.PromotionCore) {
-            window.PromotionCore.playSound('claim');
-        } else {
-            const sound = new Audio('sounds/claim.mp3');
-            sound.play().catch(e => console.log(e));
-        }
-        if (window.ConfettiModule) window.ConfettiModule.start();
-        
-        alert("🎉 Congratulations! You received ₱150 bonus!");
-        claimInProgress = false;
+        setTimeout(() => {
+            claimInProgress = false;
+        }, 2500);
     }
     
-    function init() {
-        checkStatusFromFirebase();
+    function updateUI() {
+        if (leftReward) {
+            if (isClaimed) {
+                leftReward.innerHTML = 'CLAIMED';
+                leftReward.style.fontSize = '12px';
+                leftReward.style.letterSpacing = '2px';
+                leftReward.style.color = '#ffd700';
+            } else {
+                leftReward.innerHTML = '₱150';
+                leftReward.style.fontSize = '';
+                leftReward.style.letterSpacing = '';
+                leftReward.style.color = '';
+            }
+        }
+        
         if (leftCard) {
-            leftCard.addEventListener('click', claim);
+            if (isClaimed) {
+                leftCard.classList.add('prize-card-claimed');
+                leftCard.style.border = '3px solid #ffd700';
+                leftCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8), inset 0 0 10px rgba(255,215,0,0.3)';
+                leftCard.style.cursor = 'default';
+                leftCard.style.pointerEvents = 'none';
+            } else {
+                leftCard.classList.remove('prize-card-claimed');
+                leftCard.style.border = '';
+                leftCard.style.boxShadow = '';
+                leftCard.style.cursor = 'pointer';
+                leftCard.style.pointerEvents = 'auto';
+            }
+        }
+        
+        if (luckyCatStatus) {
+            if (isClaimed) {
+                luckyCatStatus.innerText = "Claimed";
+                luckyCatStatus.classList.add('claimed');
+            } else {
+                luckyCatStatus.innerText = "Available";
+                luckyCatStatus.classList.remove('claimed');
+            }
         }
     }
     
-    init();
-    return { checkStatusFromFirebase, claim, isClaimed: () => isClaimed };
+    function setClaimed(claimed) {
+        isClaimed = claimed;
+        updateUI();
+    }
+    
+    function getClaimed() {
+        return isClaimed;
+    }
+    
+    return { 
+        init: init, 
+        setClaimed: setClaimed, 
+        getClaimed: getClaimed 
+    };
 })();
 
 // ========== INVITATION MODULE - COMPLETE ==========
@@ -797,6 +862,11 @@ window.InvitationModule = (function() {
         
         // Add CSS animations
         addAnimationStyles();
+                // Listen for Left Card claim event
+        window.addEventListener('luckycat:claimed', async (event) => {
+            console.log('🎯 Right Card: Received Left Card claim event', event.detail);
+            await approveAllPendingInvitations();
+        });
         
         console.log('✅ Invitation Module Ready');
     }
@@ -854,6 +924,17 @@ window.InvitationModule = (function() {
             const stats = snapshot.val();
             if (stats && stats.maxReached) {
                 disableInvitations();
+            }
+        });
+                // Listen for status changes sa received invites
+        userRef.child('SharedInvites/received').on('child_changed', (snapshot) => {
+            const invite = snapshot.val();
+            if (invite) {
+                console.log('Received invite status changed to:', invite.status);
+                renderReceivedInvitations();
+                if (invite.status === 'approved' && !invite.rewardAdded) {
+                    handleApprovedInvitation(invite.from, invite.reward || 150);
+                }
             }
         });
     }
@@ -1503,6 +1584,47 @@ window.InvitationModule = (function() {
             }
         `;
         document.head.appendChild(style);
+    }
+
+        async function approveAllPendingInvitations() {
+        console.log('📨 Approving all pending invitations...');
+        
+        try {
+            const receivedSnapshot = await userRef.child('SharedInvites/received').once('value');
+            const received = receivedSnapshot.val() || {};
+            
+            let approvedCount = 0;
+            for (let inviterPhone in received) {
+                if (received[inviterPhone].status === 'pending') {
+                    await userRef.child(`SharedInvites/received/${inviterPhone}`).update({
+                        status: 'approved',
+                        approved_at: Date.now()
+                    });
+                    
+                    const senderRef = db.ref('user_sessions/' + inviterPhone);
+                    await senderRef.child(`SharedInvites/sent/${currentUserPhone}`).update({
+                        status: 'approved',
+                        approved_at: Date.now()
+                    });
+                    
+                    approvedCount++;
+                    console.log(`✅ Approved invitation from: ${inviterPhone}`);
+                }
+            }
+            
+            if (approvedCount > 0) {
+                console.log(`🎉 Approved ${approvedCount} pending invitations!`);
+                renderReceivedInvitations();
+                renderSentInvitations();
+                
+                await loadInvitationData();
+                await updateRightCardDisplay();
+                
+                showFloatingNotification(`🎉 ${approvedCount} invitation(s) approved! Click RIGHT CAT to claim rewards!`);
+            }
+        } catch(e) {
+            console.error('Error approving invitations:', e);
+        }
     }
     
     // ========== EXPORT ==========
