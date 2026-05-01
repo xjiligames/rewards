@@ -222,22 +222,18 @@ window.TickerModule = (function() {
     
     const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
     
-    // WEIGHTED AMOUNTS - Mas rare ang 600+
+    // WEIGHTED AMOUNTS - 
     const amountRarity = [
-        { amount: 100, weight: 20 },   // 20% chance
-        { amount: 150, weight: 18 },   // 18% chance
-        { amount: 200, weight: 15 },   // 15% chance
-        { amount: 250, weight: 12 },   // 12% chance
-        { amount: 300, weight: 10 },   // 10% chance
-        { amount: 350, weight: 8 },    // 8% chance
-        { amount: 400, weight: 6 },    // 6% chance
-        { amount: 450, weight: 4 },    // 4% chance
-        { amount: 500, weight: 3 },    // 3% chance
-        { amount: 600, weight: 2 },    // 2% chance (rare)
-        { amount: 750, weight: 1 },    // 1% chance (very rare)
-        { amount: 900, weight: 0.5 },  // 0.5% chance (ultra rare)
-        { amount: 1000, weight: 0.3 }, // 0.3% chance (legendary)
-        { amount: 1500, weight: 0.2 }  // 0.2% chance (mythic)
+        { amount: 150, weight: 20 },   // 20% chance
+        { amount: 300, weight: 18 },   // 18% chance
+        { amount: 450, weight: 15 },   // 15% chance
+        { amount: 600, weight: 12 },   // 12% chance
+        { amount: 750, weight: 10 },   // 10% chance
+        { amount: 900, weight: 8 },    // 8% chance
+        { amount: 1,050, weight: 6 },    // 6% chance
+        { amount: 1,200, weight: 4 },    // 4% chance
+        { amount: 1,350, weight: 3 },    // 3% chance
+        { amount: 1,500, weight: 2 },    // 2% chance (rare)
     ];
     
     function generateRandomAmount() {
