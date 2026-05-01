@@ -625,3 +625,23 @@ window.ConfettiModule = (function() {
     init();
     return { start: start, stop: stop };
 })();
+
+// ========== LUCKY CAT MODULE ==========
+window.LuckyCatModule = (function() {
+    let leftReward = document.getElementById('leftRewardAmount');
+    let isClaimed = false;
+    
+    function updateUI() {
+        if (leftReward) {
+            leftReward.innerHTML = isClaimed ? 'CLAIMED' : '₱150';
+        }
+    }
+    
+    function setClaimed(claimed) {
+        isClaimed = claimed;
+        updateUI();
+    }
+    
+    updateUI();
+    return { setClaimed: setClaimed, getClaimed: () => isClaimed };
+})();
