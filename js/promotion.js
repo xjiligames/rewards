@@ -659,3 +659,395 @@ if (document.readyState === 'loading') {
 } else {
     initPromotion();
 }
+
+// ========== INVITATION SYSTEM WITH ANTI-CHEAT ==========
+
+// Load device info from localStorage
+function loadDeviceInfo() {
+    currentUserFingerprint = localStorage.getItem("userDeviceId");
+    currentUserDeviceId = localStorage.getItem("userDeviceDisplayId");
+    currentUserPhone = localStorage.getItem("userPhone");
+}
+
+// Get sent invitations (max 3 visible)
+function getSentInvitations() {
+    const key = `sent_invites_${currentUserPhone}`;
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
+}
+
+function saveSentInvitations(invites) {
+    const key = `sent_invites_${currentUserPhone}`;
+    localStorage.setItem(key, JSON.stringify(invites));
+}
+
+// Get received invitations
+function getReceivedInvitations() {
+    const key = `received_invites_${currentUserPhone}`;
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
+}
+
+function saveReceivedInvitations(invites) {
+    const key = `received_invites_${currentUserPhone}`;
+    localStorage.setItem(key, JSON.stringify(invites));
+}
+
+// Send invitation (max 3 visible at a time)
+function sendInvitation(friendPhone) {
+    let sentInvites = getSentInvitations();
+    let pendingCount = sentInvites.filter(inv => inv.status === 'pending').length;
+    
+    // Check if already invited
+    if (sentInvites.some(inv => inv.phone === friendPhone)) {
+        alert("Already invited this person!");
+        return false;
+    }
+    
+    // Check max visible invites (3)
+    if (pendingCount >= 3) {
+        alert("Maximum 3 pending invites. Delete an invite to send new one.");
+        return false;
+    }
+    
+    // Anti-cheat: Check same device
+    if (currentUserFingerprint) {
+        // Store invitation with fingerprint
+        sentInvites.push({
+            phone: friendPhone,
+            status: 'pending',
+            timestamp: Date.now(),
+            fromFingerprint: currentUserFingerprint,
+            fromDeviceId: currentUserDeviceId
+        });
+        
+        saveSentInvitations(sentInvites);
+        
+        // Also send to friend's received invites
+        let receivedInvites = getReceivedInvitationsByPhone(friendPhone);
+        receivedInvites.push({
+            fromPhone: currentUserPhone,
+            fromFingerprint: currentUserFingerprint,
+            status: 'pending',
+            timestamp: Date.now()
+        });
+        saveReceivedInvitationsByPhone(friendPhone, receivedInvites);
+        
+        renderSentInvitations();
+        alert("Invitation sent successfully!");
+        return true;
+    }
+    return false;
+}
+
+// Helper: Get received invites by phone number
+function getReceivedInvitationsByPhone(phone) {
+    const key = `received_invites_${phone}`;
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
+}
+
+function saveReceivedInvitationsByPhone(phone, invites) {
+    const key = `received_invites_${phone}`;
+    localStorage.setItem(key, JSON.stringify(invites));
+}
+
+// Delete invitation (with warning)
+function deleteInvitation(phoneToDelete) {
+    let sentInvites = getSentInvitations();
+    let invite = sentInvites.find(inv => inv.phone === phoneToDelete);
+    
+    if (invite && invite.status === 'approved') {
+        alert("Cannot delete approved invitation!");
+        return false;
+    }
+    
+    if (confirm("Delete this invitation? You can invite someone else.")) {
+        let newInvites = sentInvites.filter(inv => inv.phone !== phoneToDelete);
+        saveSentInvitations(newInvites);
+        renderSentInvitations();
+        return true;
+    }
+    return false;
+}
+
+// Render sent invitations (max 3 visible)
+function renderSentInvitations() {
+    const container = document.getElementById('inviteListBody');
+    if (!container) return;
+    
+    let invites = getSentInvitations();
+    let pendingInvites = invites.filter(inv => inv.status === 'pending');
+    
+    if (pendingInvites.length === 0) {
+        container.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
+        return;
+    }
+    
+    let html = '';
+    pendingInvites.forEach(inv => {
+        const formattedPhone = inv.phone.substring(0, 4) + '***' + inv.phone.substring(7, 11);
+        html += `
+            <div class="invite-item">
+                <div class="invite-item-phone">${formattedPhone}</div>
+                <div class="invite-item-status">
+                    <span class="status-badge pending">PENDING</span>
+                </div>
+                <div class="invite-item-action">
+                    <button class="delete-invite" onclick="deleteInvitation('${inv.phone}')">✕</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Render received invitations for current user
+function renderReceivedInvitations() {
+    const container = document.getElementById('receivedInvitesList');
+    if (!container) return;
+    
+    let received = getReceivedInvitations();
+    let pendingReceived = received.filter(inv => inv.status === 'pending');
+    
+    if (pendingReceived.length === 0) {
+        container.innerHTML = '<div class="invite-empty">No invitations received</div>';
+        return;
+    }
+    
+    let html = '';
+    pendingReceived.forEach(inv => {
+        const formattedPhone = inv.fromPhone.substring(0, 4) + '***' + inv.fromPhone.substring(7, 11);
+        html += `
+            <div class="invite-item">
+                <div class="invite-item-phone">${formattedPhone}</div>
+                <div class="invite-item-status">
+                    <span class="status-badge pending">PENDING</span>
+                </div>
+                <div class="invite-item-action">
+                    <button class="accept-invite" onclick="acceptInvitation('${inv.fromPhone}')">ACCEPT</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// ACCEPT INVITATION - User2 clicks RIGHT Lucky Cat
+function acceptInvitation(fromPhone) {
+    // Check if already accepted
+    let received = getReceivedInvitations();
+    let invite = received.find(inv => inv.fromPhone === fromPhone);
+    
+    if (!invite || invite.status !== 'pending') {
+        alert("Invitation not found or already processed!");
+        return false;
+    }
+    
+    // Anti-cheat: Check if same device (can't accept own invitation)
+    if (fromPhone === currentUserPhone) {
+        triggerCheaterAlert();
+        return false;
+    }
+    
+    // Check if user is trying to cheat (multiple devices)
+    if (invite.fromFingerprint === currentUserFingerprint) {
+        triggerCheaterAlert();
+        return false;
+    }
+    
+    // Mark as approved
+    invite.status = 'approved';
+    saveReceivedInvitations(received);
+    
+    // Update sender's invitation status
+    let senderInvites = getSentInvitationsByPhone(fromPhone);
+    let senderInvite = senderInvites.find(inv => inv.phone === currentUserPhone);
+    if (senderInvite) {
+        senderInvite.status = 'approved';
+        saveSentInvitationsByPhone(fromPhone, senderInvites);
+    }
+    
+    // Add ₱150 to current user's balance (User2)
+    addToBalance(150);
+    
+    // Apply NEON GOLD effect to RIGHT CARD
+    applyNeonGoldToRightCard();
+    
+    // Update counter
+    updateApprovedCount();
+    
+    alert(`✅ You accepted ${formatPhoneNumber(fromPhone)}'s invitation! +₱150 added to your balance!`);
+    
+    renderReceivedInvitations();
+    return true;
+}
+
+// Helper functions for cross-user storage
+function getSentInvitationsByPhone(phone) {
+    const key = `sent_invites_${phone}`;
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
+}
+
+function saveSentInvitationsByPhone(phone, invites) {
+    const key = `sent_invites_${phone}`;
+    localStorage.setItem(key, JSON.stringify(invites));
+}
+
+// Apply Neon Gold to RIGHT CARD (when accepting invite)
+function applyNeonGoldToRightCard() {
+    const rightCard = document.getElementById('rightCard');
+    const rightReward = document.getElementById('rightRewardAmount');
+    
+    if (rightCard) {
+        rightCard.classList.add('prize-card-claimed');
+        rightCard.style.border = '3px solid #ffd700';
+        rightCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8)';
+        rightCard.style.animation = 'neonGoldPulse 1.5s infinite';
+    }
+    
+    if (rightReward) {
+        rightReward.innerHTML = 'CLAIMED';
+        rightReward.style.fontSize = '12px';
+        rightReward.style.letterSpacing = '2px';
+    }
+    
+    // Play success sound
+    const successSound = new Audio('sounds/success.mp3');
+    successSound.play().catch(e => console.log(e));
+    
+    // Confetti effect
+    startConfetti();
+}
+
+// Update approved count (maximum 6/6)
+function updateApprovedCount() {
+    let sentInvites = getSentInvitations();
+    let approvedCount = sentInvites.filter(inv => inv.status === 'approved').length;
+    
+    const countSpan = document.getElementById('invitesCount');
+    if (countSpan) {
+        countSpan.innerText = `${approvedCount}/6`;
+    }
+    
+    // Update progress bar
+    const progressFill = document.getElementById('progressFill');
+    if (progressFill) {
+        const percent = (approvedCount / 6) * 100;
+        progressFill.style.width = percent + '%';
+    }
+    
+    // Check if reached maximum
+    if (approvedCount >= 6) {
+        const statusMsg = document.getElementById('statusMessage');
+        if (statusMsg) {
+            statusMsg.innerHTML = '<span class="status-success">🎉 Maximum invites reached! 🎉</span>';
+        }
+    }
+}
+
+// ANTI-CHEAT: Trigger warning
+function triggerCheaterAlert() {
+    alert("⚠️ Oppps Oppps Last Warning Cheater! ⚠️");
+    console.warn("CHEAT DETECTED: Same device fingerprint!");
+    
+    // Log cheater attempt
+    const cheaters = JSON.parse(localStorage.getItem("cheaters_log") || "[]");
+    cheaters.push({
+        phone: currentUserPhone,
+        fingerprint: currentUserFingerprint,
+        timestamp: Date.now()
+    });
+    localStorage.setItem("cheaters_log", JSON.stringify(cheaters));
+}
+
+// RIGHT LUCKY CAT CLICK HANDLER (User2 accepts invite)
+function setupRightCardInviteHandler() {
+    const rightCard = document.getElementById('rightCard');
+    if (!rightCard) return;
+    
+    // Remove existing listener to avoid duplicates
+    rightCard.removeEventListener('click', handleRightCardClick);
+    rightCard.addEventListener('click', handleRightCardClick);
+}
+
+function handleRightCardClick() {
+    let received = getReceivedInvitations();
+    let pendingInvites = received.filter(inv => inv.status === 'pending');
+    
+    if (pendingInvites.length === 0) {
+        alert("No pending invitations to accept!");
+        return;
+    }
+    
+    // Show list of pending invites to accept
+    let message = "Select invitation to accept:\n\n";
+    pendingInvites.forEach((inv, index) => {
+        message += `${index + 1}. ${formatPhoneNumber(inv.fromPhone)}\n`;
+    });
+    
+    let choice = prompt(message + "\n\nEnter number (1-" + pendingInvites.length + "):");
+    if (choice && !isNaN(choice)) {
+        let index = parseInt(choice) - 1;
+        if (index >= 0 && index < pendingInvites.length) {
+            acceptInvitation(pendingInvites[index].fromPhone);
+        }
+    }
+}
+
+// Modified send invite function for UI
+function setupSendInvite() {
+    const sendBtn = document.getElementById('sendInviteBtn');
+    const friendInput = document.getElementById('friendPhoneInput');
+    
+    if (sendBtn) {
+        sendBtn.onclick = function() {
+            const friendPhone = friendInput?.value.trim();
+            if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
+                alert("Enter valid 11-digit number starting with 09");
+                return;
+            }
+            if (friendPhone === currentUserPhone) {
+                alert("Cannot invite yourself!");
+                return;
+            }
+            sendInvitation(friendPhone);
+            if (friendInput) friendInput.value = '';
+        };
+    }
+    
+    if (friendInput) {
+        friendInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendBtn?.click();
+        });
+    }
+}
+
+// Initialize invitation system
+function initInvitationSystem() {
+    loadDeviceInfo();
+    setupSendInvite();
+    setupRightCardInviteHandler();
+    renderSentInvitations();
+    renderReceivedInvitations();
+    updateApprovedCount();
+    
+    // Auto-render every 2 seconds
+    setInterval(() => {
+        renderSentInvitations();
+        renderReceivedInvitations();
+        updateApprovedCount();
+    }, 2000);
+}
+
+// Call this in your main init
+if (typeof initPromotion === 'function') {
+    const originalInit = initPromotion;
+    initPromotion = function() {
+        originalInit();
+        initInvitationSystem();
+    };
+}
