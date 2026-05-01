@@ -168,6 +168,7 @@ function updateProgressBar() {
 }
 
 // ========== 3-DAY CYCLE TIMER WITH ANIMATION ==========
+// ========== SIMPLE 3-DAY TIMER ==========
 const CYCLE_HOURS = 72; // 3 days
 let timerEndDate = null;
 
@@ -197,7 +198,7 @@ function startTimerLoop() {
             diff = CYCLE_HOURS * 60 * 60 * 1000;
         }
         
-        // Calculate days, hours, minutes, seconds (single digit days)
+        // Calculate days, hours, minutes, seconds
         let days = Math.floor(diff / (1000 * 60 * 60 * 24));
         let hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
         let minutes = Math.floor((diff / (1000 * 60)) % 60);
@@ -205,16 +206,7 @@ function startTimerLoop() {
         
         let timerDisplay = PromoDOM.mainTimerDisplay;
         if (timerDisplay) {
-            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:<span class="seconds-animation">${seconds.toString().padStart(2, '0')}</span>`;
-            
-            // Add animation class every second
-            let secondsSpan = timerDisplay.querySelector('.seconds-animation');
-            if (secondsSpan) {
-                secondsSpan.classList.add('tick');
-                setTimeout(() => {
-                    secondsSpan.classList.remove('tick');
-                }, 300);
-            }
+            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
     }
     
