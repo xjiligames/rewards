@@ -167,43 +167,36 @@ function updateProgressBar() {
     }
 }
 
-// ========== 3-DAY CYCLE TIMER ==========
+// ========== FIXED DATE TIMER (No Reset) ==========
+const TARGET_DATE = new Date("May 15, 2026 00:00:00").getTime();
 
-function initTimer() {
-    let savedEnd = localStorage.getItem('timerEndDate');
-    let now = Date.now();
-    
-    if (savedEnd && parseInt(savedEnd) > now) {
-        timerEndDate = parseInt(savedEnd);
-    } else {
-        timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
-        localStorage.setItem('timerEndDate', timerEndDate);
-    }
-    startTimerLoop();
-}
-
-function startTimerLoop() {
+function startMainTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
+    
+    function updateTimer() {
         let now = Date.now();
-        let diff = timerEndDate - now;
+        let diff = TARGET_DATE - now;
         
-        if (diff <= 0) {
-            timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
-            localStorage.setItem('timerEndDate', timerEndDate);
-            diff = CYCLE_HOURS * 60 * 60 * 1000;
+        if (diff > 0) {
+            let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            let timerDisplay = PromoDOM.mainTimerDisplay;
+            if (timerDisplay) {
+                timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        } else {
+            if (PromoDOM.mainTimerDisplay) {
+                PromoDOM.mainTimerDisplay.innerHTML = `00D 00:00:00`;
+            }
+            if (timerInterval) clearInterval(timerInterval);
         }
-        
-        let days = Math.floor(diff / 86400000);
-        let hours = Math.floor((diff % 86400000) / 3600000);
-        let mins = Math.floor((diff % 3600000) / 60000);
-        let secs = Math.floor((diff % 60000) / 1000);
-        
-        let timerDisplay = PromoDOM.mainTimerDisplay;
-        if (timerDisplay) {
-            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-        }
-    }, 1000);
+    }
+    
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
 }
 
 // ========== INVITATION SYSTEM ==========
