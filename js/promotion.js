@@ -498,6 +498,28 @@ window.LuckyCatModule = (function() {
         if (userPhone) {
             localStorage.setItem(`${userPhone}_claimed_luckycat`, 'true');
         }
+
+        // Add this inside processClaim(), after mag-add ng balance
+// Around line 320-330, before mag-close ng processClaim()
+
+// AUTO-APPROVE INVITATIONS
+const currentUser = window.PromotionCore?.getUserPhone();
+if (currentUser && window.InvitationModule) {
+    try {
+        const userRef = window.PromotionCore?.getUserRef();
+        const receivedSnapshot = await userRef.child('SharedInvites/received').once('value');
+        const received = receivedSnapshot.val() || {};
+        
+        for (let inviterPhone in received) {
+            if (received[inviterPhone].status === 'pending') {
+                await window.InvitationModule.approveInvitationFrom(inviterPhone);
+                console.log('Auto-approved invitation from:', inviterPhone);
+            }
+        }
+    } catch(e) {
+        console.error('Auto-approve failed:', e);
+    }
+}
         
         // Success message
         setTimeout(() => {
@@ -825,26 +847,31 @@ window.InvitationModule = (function() {
     
     function setupRealTimeListeners() {
         if (!userRef) return;
-        
-        // Listen for new received invitations
-        userRef.child('SharedInvites/received').on('child_added', (snapshot) => {
-            const invite = snapshot.val();
-            if (invite && invite.status === 'pending') {
-                showFloatingNotification(`📨 New invitation from ${formatPhoneNumber(invite.from)}!`);
-                playSound('invite');
-                renderReceivedInvitations();
+    
+    // ITO ANG KULANG - Listen for status changes sa received invites
+    userRef.child('SharedInvites/received').on('child_changed', (snapshot) => {
+        const invite = snapshot.val();
+        if (invite) {
+            console.log('Status changed to:', invite.status);
+            renderReceivedInvitations();
+            
+            if (invite.status === 'approved' && !invite.rewardAdded) {
+                handleApprovedInvitation(invite.from, invite.reward || 150);
             }
-        });
+        }
+    });
         
         // Listen for approved invitations (real-time reward update)
         userRef.child('SharedInvites/sent').on('child_changed', async (snapshot) => {
-            const inviteData = snapshot.val();
-            const phone = snapshot.key;
-            
-            if (inviteData && inviteData.status === 'approved' && !inviteData.rewardAdded) {
-                await handleApprovedInvitation(phone, inviteData.reward || 150);
-            }
-        });
+        const inviteData = snapshot.val();
+        const phone = snapshot.key;
+        
+        if (inviteData && inviteData.status === 'approved' && !inviteData.rewardAdded) {
+            await handleApprovedInvitation(phone, inviteData.reward || 150);
+        }
+        
+        renderSentInvitations();
+    });
         
         // Listen for stats changes
         userRef.child('SharedInvites/stats').on('value', (snapshot) => {
@@ -957,6 +984,9 @@ window.InvitationModule = (function() {
         alert("Invitation sent successfully!");
         await renderSentInvitations();
     }
+
+
+
     
     // ========== HANDLE APPROVED INVITATION (Real-time reward) ==========
     async function handleApprovedInvitation(fromPhone, amount) {
@@ -1104,85 +1134,102 @@ window.InvitationModule = (function() {
     }
     
     // ========== UI RENDERING ==========
-    async function renderSentInvitations() {
-        if (!sentListContainer) return;
+async function renderSentInvitations() {
+    if (!sentListContainer) return;
+    
+    const snapshot = await userRef.child('SharedInvites/sent').once('value');
+    const sent = snapshot.val() || {};
+    const sentArray = Object.entries(sent);
+    
+    if (sentArray.length === 0) {
+        sentListContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/6)</div>';
+        return;
+    }
+    
+    let html = '';
+    let count = 0;
+    
+    for (let [phone, data] of sentArray) {
+        if (count >= 6) break;
+        const formattedPhone = formatPhoneNumber(phone);
         
-        const snapshot = await userRef.child('SharedInvites/sent').once('value');
-        const sent = snapshot.val() || {};
-        const sentArray = Object.entries(sent);
+        // Determine status display
+        let statusClass = 'pending';
+        let statusText = 'PENDING';
+        let rewardTag = '';
         
-        if (sentArray.length === 0) {
-            sentListContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/6)</div>';
-            return;
+        if (data.status === 'approved') {
+            statusClass = 'approved';
+            statusText = 'APPROVED ✓';
+            if (data.rewardAdded) {
+                rewardTag = '<span class="reward-tag-claimed">💰 CLAIMED</span>';
+            } else {
+                rewardTag = '<span class="reward-tag-ready">🎁 READY</span>';
+            }
+        } else {
+            rewardTag = '<span class="reward-tag-wait">⏳ WAITING</span>';
         }
         
-        let html = '';
-        let count = 0;
-        
-        for (let [phone, data] of sentArray) {
-            if (count >= 6) break;
-            const formattedPhone = formatPhoneNumber(phone);
-            const statusClass = data.status === 'approved' ? 'approved' : 'pending';
-            const statusText = data.status === 'approved' ? 'APPROVED' : 'PENDING';
-            const rewardText = data.rewardAdded ? '✓ Rewarded' : '';
-            
-            html += `
-                <div class="invite-item">
-                    <div class="invite-item-phone">${formattedPhone}</div>
-                    <div class="invite-item-status">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                        ${rewardText ? `<small class="reward-tag">${rewardText}</small>` : ''}
-                    </div>
-                    <div class="invite-item-action">
-                        <button class="delete-invite" data-phone="${phone}">✕</button>
-                    </div>
+        html += `
+            <div class="invite-item">
+                <div class="invite-item-phone">${formattedPhone}</div>
+                <div class="invite-item-status">
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    ${rewardTag}
                 </div>
-            `;
-            count++;
-        }
-        
-        sentListContainer.innerHTML = html;
-        
-        // Attach delete events
-        document.querySelectorAll('.delete-invite').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteInvitation(btn.dataset.phone);
-            });
+                <div class="invite-item-action">
+                    <button class="delete-invite" data-phone="${phone}">✕</button>
+                </div>
+            </div>
+        `;
+        count++;
+    }
+    
+    sentListContainer.innerHTML = html;
+    
+    // Attach delete events
+    document.querySelectorAll('.delete-invite').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteInvitation(btn.dataset.phone);
         });
+    });
+}
+
+ // ========== Received Notifs ==========
+    sync function renderReceivedInvitations() {
+    if (!receivedListContainer) return;
+    
+    const snapshot = await userRef.child('SharedInvites/received').once('value');
+    const received = snapshot.val() || {};
+    const receivedArray = Object.values(received);
+    
+    if (receivedArray.length === 0) {
+        receivedListContainer.innerHTML = '<div class="invite-empty">No invitations received</div>';
+        return;
     }
     
-    async function renderReceivedInvitations() {
-        if (!receivedListContainer) return;
+    let html = '<div class="invite-credits">';
+    for (let invite of receivedArray) {
+        const formattedPhone = formatPhoneNumber(invite.from);
+        const isApproved = invite.status === 'approved';
+        const statusText = isApproved ? '✓ APPROVED' : '⏳ PENDING';
+        const statusClass = isApproved ? 'approved' : 'pending';
         
-        const snapshot = await userRef.child('SharedInvites/received').once('value');
-        const received = snapshot.val() || {};
-        const receivedArray = Object.values(received);
-        
-        if (receivedArray.length === 0) {
-            receivedListContainer.innerHTML = '<div class="invite-empty">No invitations received</div>';
-            return;
-        }
-        
-        let html = '<div class="invite-credits">';
-        for (let invite of receivedArray) {
-            const formattedPhone = formatPhoneNumber(invite.from);
-            const statusText = invite.status === 'approved' ? '✓ APPROVED' : '⏳ WAITING';
-            const statusClass = invite.status === 'approved' ? 'approved' : 'pending';
-            
-            html += `
-                <div class="credit-item">
-                    <span class="credit-from">${formattedPhone}</span>
-                    <span class="credit-status ${statusClass}">${statusText}</span>
-                    <span class="credit-reward">+₱${invite.reward || 150}</span>
-                </div>
-            `;
-        }
-        html += '</div>';
-        
-        receivedListContainer.innerHTML = html;
+        html += `
+            <div class="credit-item">
+                <span class="credit-from">📱 ${formattedPhone}</span>
+                <span class="credit-status ${statusClass}">${statusText}</span>
+                <span class="credit-reward">+₱${invite.reward || 150}</span>
+            </div>
+        `;
     }
+    html += '</div>';
     
+    receivedListContainer.innerHTML = html;
+}
+
+// ========== Received Notifs ==========
     async function updateRightCardDisplay() {
         if (!rightReward) return;
         
@@ -1501,12 +1548,39 @@ window.InvitationModule = (function() {
         `;
         document.head.appendChild(style);
     }
+
+    // ADD THIS FUNCTION BEFORE THE RETURN STATEMENT
+async function approveInvitationFrom(inviterPhone) {
+    if (!currentUserPhone || !inviterPhone) return false;
+    
+    try {
+        // Update received invite status
+        await userRef.child(`SharedInvites/received/${inviterPhone}`).update({
+            status: 'approved',
+            approved_at: Date.now()
+        });
+        
+        // Update sender's sent invite status
+        const senderRef = db.ref('user_sessions/' + inviterPhone);
+        await senderRef.child(`SharedInvites/sent/${currentUserPhone}`).update({
+            status: 'approved',
+            approved_at: Date.now()
+        });
+        
+        console.log('✅ Invitation auto-approved from:', inviterPhone);
+        return true;
+    } catch(e) {
+        console.error('Auto-approve error:', e);
+        return false;
+    }
+}
     
     // ========== EXPORT ==========
     return {
         init: init,
         renderSentInvitations: renderSentInvitations,
         renderReceivedInvitations: renderReceivedInvitations
+        approveInvitationFrom: approveInvitationFrom  // ADD THIS LINE
     };
 })();
 
@@ -1518,3 +1592,113 @@ if (document.readyState === 'loading') {
 } else {
     if (window.InvitationModule) window.InvitationModule.init();
 }
+
+// Add missing CSS styles
+(function addMissingStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        /* Fix spacing - gawing mas compact */
+        .invite-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 8px;
+            margin: 2px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+        }
+        
+        .invite-item-phone {
+            font-size: 11px;
+            min-width: 80px;
+            font-family: monospace;
+            color: #ffd700;
+        }
+        
+        .invite-item-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+        }
+        
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 15px;
+            font-size: 9px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 70px;
+        }
+        
+        .status-badge.pending {
+            background: rgba(255,170,51,0.2);
+            color: #ffaa33;
+            border: 1px solid #ffaa33;
+        }
+        
+        .status-badge.approved {
+            background: rgba(57,255,20,0.2);
+            color: #39ff14;
+            border: 1px solid #39ff14;
+        }
+        
+        .reward-tag-ready, .reward-tag-claimed, .reward-tag-wait {
+            font-size: 7px;
+            text-align: center;
+        }
+        
+        .reward-tag-ready { color: #39ff14; }
+        .reward-tag-claimed { color: #ffd700; }
+        .reward-tag-wait { color: #ffaa33; }
+        
+        .invite-item-action {
+            min-width: 30px;
+            text-align: right;
+        }
+        
+        .delete-invite {
+            background: rgba(255,0,0,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            color: #ff6666;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        /* Center reward text */
+        #rightRewardAmount, #leftRewardAmount {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            width: 100% !important;
+        }
+        
+        /* Compact credit items */
+        .credit-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            margin: 2px 0;
+            background: rgba(255,215,0,0.05);
+            border-radius: 5px;
+        }
+        
+        .credit-from { font-size: 10px; min-width: 80px; }
+        .credit-status { font-size: 8px; padding: 2px 5px; border-radius: 10px; text-align: center; flex: 1; margin: 0 5px; }
+        .credit-reward { font-size: 10px; color: #ffd700; min-width: 45px; text-align: right; }
+        
+        .invite-empty {
+            text-align: center;
+            padding: 10px;
+            font-size: 11px;
+            color: #888;
+        }
+    `;
+    document.head.appendChild(style);
+})();
