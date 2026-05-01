@@ -1,11 +1,9 @@
-pa review ng script logic.. ko ... ito ang promotion.js ko..
-para sa share_and_earn.html
-
 /**
  * Promotion.js - Combined Modules with LuckyCat Priority
  * Order: 10(Main Core) | 1(Timer) | 2(Dropdown) | 3(Ticker) | 6(Popup) | 7(Claim Button) | 9(Share/Facebook) | 8(LuckyCat)
  */
-/ ========== MODULE 10: MAIN CORE (UNA) ==========
+
+// ========== MODULE 10: MAIN CORE (UNA) ==========
 (function() {
     'use strict';
     
@@ -13,60 +11,53 @@ para sa share_and_earn.html
     let db = null;
     let userRef = null;
     let currentBalance = 0;
-    let balanceListener = null;
-    let timerInterval = null;
     
-    // ========== WAIT FOR CONFIG ==========
-    if (typeof firebaseConfig === 'undefined') {
-        console.error('❌ firebaseConfig not found! Check if config.js is loaded first.');
-    }
+    // Global modules container
+    window.PromotionModules = window.PromotionModules || {};
     
-    // ========== FIREBASE INITIALIZATION ==========
-    function initFirebase() {
-        if (typeof firebaseConfig === 'undefined') {
-            console.error('❌ firebaseConfig not found!');
-            return false;
+    function init() {
+        console.log('🎁 Promotion System Starting...');
+        
+        userPhone = localStorage.getItem("userPhone");
+        if (!userPhone) {
+            window.location.href = "index.html";
+            return;
         }
         
+        // Display phone number
+        const phoneDisplay = document.getElementById('userPhoneDisplay');
+        if (phoneDisplay) {
+            const formatted = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
+            phoneDisplay.innerText = formatted;
+        }
+        
+        // Initialize Firebase
+        initFirebase();
+        loadUserData();
+        
+        // Initialize all modules in order
+        if (window.TimerModule) window.TimerModule.init();
+        if (window.DropdownModule) window.DropdownModule.init();
+        if (window.TickerModule) window.TickerModule.init();
+        if (window.PopupModule) window.PopupModule.init();
+        if (window.ClaimButtonModule) window.ClaimButtonModule.init();
+        if (window.ShareModule) window.ShareModule.init();
+        if (window.LuckyCatModule) window.LuckyCatModule.init();  // LUCKY CAT MODULE
+        
+        console.log('✅ All systems ready!');
+    }
+    
+    function initFirebase() {
+        if (typeof firebaseConfig === 'undefined') return;
         try {
             if (!firebase.apps || !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
-                console.log('🔥 Firebase initialized');
             }
             db = firebase.database();
-            return true;
-        } catch(e) {
-            console.error('🔥 Firebase init error:', e);
-            return false;
-        }
+            userRef = db.ref('user_sessions/' + userPhone);
+        } catch(e) { console.error('Firebase error:', e); }
     }
     
-    // ========== UTILITY FUNCTIONS ==========
-    function formatPhoneNumber(phone) {
-        if (!phone || phone.length < 11) return phone;
-        return phone.substring(0, 4) + "***" + phone.substring(7, 11);
-    }
-    
-    function isMobileDevice() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    }
-    
-    function checkMobileDevice() {
-        if (!isMobileDevice()) {
-            document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
-            return false;
-        }
-        return true;
-    }
-    
-    function updateBalanceDisplay() {
-        const balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) balanceEl.innerText = currentBalance.toFixed(2);
-        const popupBalance = document.getElementById('popupBalanceAmount');
-        if (popupBalance) popupBalance.innerText = "₱" + currentBalance.toFixed(2);
-    }
-    
-    // ========== LOAD USER DATA ==========
     function loadUserData() {
         if (!userRef) return;
         userRef.once('value', (snapshot) => {
@@ -90,22 +81,49 @@ para sa share_and_earn.html
         });
     }
     
-    function setupBalanceListener() {
-        if (!userRef) return;
-        if (balanceListener) userRef.child('balance').off('value', balanceListener);
-        balanceListener = userRef.child('balance').on('value', (snapshot) => {
-            const balance = snapshot.val();
-            if (balance !== null && balance !== undefined && balance !== currentBalance) {
-                currentBalance = Number(balance);
-                updateBalanceDisplay();
-            }
-        });
+    function updateBalanceDisplay() {
+        const balanceEl = document.getElementById('userBalanceDisplay');
+        if (balanceEl) balanceEl.innerText = currentBalance.toFixed(2);
+        const popupBalance = document.getElementById('popupBalanceAmount');
+        if (popupBalance) popupBalance.innerText = "₱" + currentBalance.toFixed(2);
     }
     
-    function addToBalance(amount) {
-        currentBalance += amount;
-        updateBalanceDisplay();
-        if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+    function animateBalanceSlow(start, end, duration, callback) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            const val = Math.floor(easeProgress * (end - start) + start);
+            
+            const balanceEl = document.getElementById('userBalanceDisplay');
+            if (balanceEl) balanceEl.innerText = val.toFixed(2);
+            const popupBalance = document.getElementById('popupBalanceAmount');
+            if (popupBalance) popupBalance.innerText = "₱" + val.toFixed(2);
+            
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                if (callback) callback();
+            }
+        };
+        requestAnimationFrame(step);
+    }
+    
+    function addToBalance(amount, slowAnimation = false) {
+        const oldBalance = currentBalance;
+        const newBalance = oldBalance + amount;
+        
+        if (slowAnimation) {
+            animateBalanceSlow(oldBalance, newBalance, 2000, () => {
+                currentBalance = newBalance;
+                if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+            });
+        } else {
+            currentBalance = newBalance;
+            updateBalanceDisplay();
+            if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+        }
         
         const balanceEl = document.getElementById('userBalanceDisplay');
         if (balanceEl) {
@@ -128,49 +146,22 @@ para sa share_and_earn.html
         }
     }
     
-    // ========== ATTACH EVENT LISTENERS ==========
-    function attachEventListeners() {
-        if (window.LuckyCatModule) {
-            const leftCard = document.getElementById('leftCard');
-            if (leftCard) {
-                const newCard = leftCard.cloneNode(true);
-                leftCard.parentNode.replaceChild(newCard, leftCard);
-                newCard.addEventListener('click', () => window.LuckyCatModule.claim());
-            }
-        }
-        
-        if (window.PopupModule) {
-            const claimBtn = document.getElementById('claimNowBtn');
-            if (claimBtn) {
-                const newBtn = claimBtn.cloneNode(true);
-                claimBtn.parentNode.replaceChild(newBtn, claimBtn);
-                newBtn.addEventListener('click', () => window.PopupModule.show(currentBalance));
-            }
-            
-            const closeBtn = document.getElementById('popupCloseBtn');
-            if (closeBtn) {
-                const newClose = closeBtn.cloneNode(true);
-                closeBtn.parentNode.replaceChild(newClose, closeBtn);
-                newClose.addEventListener('click', () => window.PopupModule.close());
-            }
-            
-            const backBtn = document.getElementById('backBtn');
-            if (backBtn) {
-                const newBack = backBtn.cloneNode(true);
-                backBtn.parentNode.replaceChild(newBack, backBtn);
-                newBack.addEventListener('click', () => window.PopupModule.close());
-            }
-        }
-        
-        if (window.ShareModule) {
-            const fbBtn = document.getElementById('facebookShareBtn');
-            if (fbBtn) {
-                const newFb = fbBtn.cloneNode(true);
-                fbBtn.parentNode.replaceChild(newFb, fbBtn);
-                newFb.addEventListener('click', () => window.ShareModule.shareOnFacebook());
-            }
-        }
+    // Export core functions for other modules
+    window.PromotionCore = {
+        addToBalance: addToBalance,
+        animateBalanceSlow: animateBalanceSlow,
+        playSound: playSound,
+        getBalance: () => currentBalance,
+        getUserPhone: () => userPhone,
+        getUserRef: () => userRef
+    };
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
     }
+})();
 
 // ========== MODULE 1: TIMER ==========
 window.TimerModule = (function() {
@@ -634,896 +625,3 @@ window.ConfettiModule = (function() {
     init();
     return { start: start, stop: stop };
 })();
-
-// ========== LUCKY CAT MODULE - Default +150 ==========
-window.LuckyCatModule = (function() {
-    let leftCard = document.getElementById('leftCard');
-    let leftReward = document.getElementById('leftRewardAmount');
-    let luckyCatStatus = document.getElementById('luckyCatStatus');
-    let isClaimed = false;
-    let claimInProgress = false;
-    
-    function updateUI() {
-        if (leftReward) {
-            leftReward.innerHTML = isClaimed ? 'CLAIMED' : '+150';  // +150 instead of ₱150
-            if (isClaimed) {
-                leftReward.style.fontSize = '12px';
-                leftReward.style.letterSpacing = '2px';
-            } else {
-                leftReward.style.fontSize = '18px';
-                leftReward.style.letterSpacing = 'normal';
-            }
-        }
-        if (leftCard && isClaimed) {
-            leftCard.style.opacity = '0.8';
-            leftCard.style.pointerEvents = 'none';
-        }
-        if (luckyCatStatus) {
-            luckyCatStatus.innerText = isClaimed ? 'Claimed' : 'Available';
-        }
-    }
-    
-    async function checkStatusFromFirebase() {
-        const userPhone = localStorage.getItem("userPhone");
-        if (!userPhone) return;
-        
-        try {
-            const snapshot = await firebase.database().ref('user_sessions/' + userPhone).once('value');
-            const data = snapshot.val();
-            if (data && data.claimed_luckycat === true) {
-                isClaimed = true;
-                updateUI();
-                console.log('✅ LuckyCat already claimed in Firebase');
-            } else {
-                isClaimed = false;
-                updateUI();
-            }
-        } catch(e) {
-            console.error('Firebase check error:', e);
-        }
-    }
-    
-    async function claim() {
-        if (isClaimed) {
-            alert("You have already claimed the Lucky Cat bonus!");
-            return;
-        }
-        if (claimInProgress) return;
-        
-        claimInProgress = true;
-        
-        // Double check Firebase
-        const userPhone = localStorage.getItem("userPhone");
-        const snapshot = await firebase.database().ref('user_sessions/' + userPhone).once('value');
-        if (snapshot.val()?.claimed_luckycat === true) {
-            isClaimed = true;
-            updateUI();
-            alert("You have already claimed!");
-            claimInProgress = false;
-            return;
-        }
-        
-        // Add to balance
-        if (window.PromotionCore) {
-            window.PromotionCore.addToBalance(150);
-        } else {
-            const balanceEl = document.getElementById('userBalanceDisplay');
-            let currentBalance = parseFloat(balanceEl?.innerText || 0);
-            let newBalance = currentBalance + 150;
-            if (balanceEl) balanceEl.innerText = newBalance.toFixed(2);
-        }
-        
-        // Mark as claimed
-        isClaimed = true;
-        updateUI();
-        
-        // Save to Firebase
-        await firebase.database().ref('user_sessions/' + userPhone).update({
-            claimed_luckycat: true,
-            luckycat_claimed_at: Date.now()
-        });
-        
-        // Save to localStorage
-        localStorage.setItem(`${userPhone}_claimed_luckycat`, 'true');
-        
-        // Play sound and confetti
-        if (window.PromotionCore) {
-            window.PromotionCore.playSound('claim');
-        } else {
-            const sound = new Audio('sounds/claim.mp3');
-            sound.play().catch(e => console.log(e));
-        }
-        if (window.ConfettiModule) window.ConfettiModule.start();
-        
-        alert("🎉 Congratulations! You received ₱150 bonus!");
-        claimInProgress = false;
-    }
-    
-    function init() {
-        checkStatusFromFirebase();
-        if (leftCard) {
-            leftCard.addEventListener('click', claim);
-        }
-    }
-    
-    init();
-    return { checkStatusFromFirebase, claim, isClaimed: () => isClaimed };
-})();
-
-// ========== INVITATION MODULE - COMPLETE ==========
-window.InvitationModule = (function() {
-    'use strict';
-    
-    let currentUserPhone = null;
-    let db = null;
-    let userRef = null;
-    
-    // DOM Elements
-    let sendBtn = null;
-    let friendInput = null;
-    let sentListContainer = null;
-    let receivedListContainer = null;
-    let rightCard = null;
-    let rightReward = null;
-    let pendingRewardAmount = 0;
-    let maxRewardPerUser = 900;  // Maximum 900 per user (6 invites x 150)
-    let maxInvites = 6;
-    
-    // ========== INITIALIZATION ==========
-    async function init() {
-        console.log('📨 Invitation Module Initializing...');
-        
-        currentUserPhone = localStorage.getItem("userPhone");
-        if (!currentUserPhone) {
-            console.error('No user phone found');
-            return;
-        }
-        
-        db = firebase.database();
-        userRef = db.ref('user_sessions/' + currentUserPhone);
-        
-        // Get DOM elements
-        sendBtn = document.getElementById('sendInviteBtn');
-        friendInput = document.getElementById('friendPhoneInput');
-        sentListContainer = document.getElementById('inviteListBody');
-        receivedListContainer = document.getElementById('receivedInvitesList');
-        rightCard = document.getElementById('rightCard');
-        rightReward = document.getElementById('rightRewardAmount');
-        
-        // Setup event listeners
-        setupSendButton();
-        setupRightCard();
-        setupRealTimeListeners();
-        
-        // Load initial data
-        await loadInvitationData();
-        await renderSentInvitations();
-        await renderReceivedInvitations();
-        await updateRightCardDisplay();
-        
-        // Add CSS animations
-        addAnimationStyles();
-        
-        console.log('✅ Invitation Module Ready');
-    }
-    
-    // ========== SETUP EVENT LISTENERS ==========
-    function setupSendButton() {
-        if (!sendBtn) return;
-        
-        const newBtn = sendBtn.cloneNode(true);
-        sendBtn.parentNode.replaceChild(newBtn, sendBtn);
-        sendBtn = newBtn;
-        sendBtn.addEventListener('click', handleSendInvite);
-        
-        if (friendInput) {
-            friendInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleSendInvite();
-            });
-        }
-    }
-    
-    function setupRightCard() {
-        if (!rightCard) return;
-        
-        const newCard = rightCard.cloneNode(true);
-        rightCard.parentNode.replaceChild(newCard, rightCard);
-        rightCard = newCard;
-        rightCard.addEventListener('click', claimPendingRewards);
-    }
-    
-    function setupRealTimeListeners() {
-        if (!userRef) return;
-        
-        // Listen for new received invitations
-        userRef.child('SharedInvites/received').on('child_added', (snapshot) => {
-            const invite = snapshot.val();
-            if (invite && invite.status === 'pending') {
-                showFloatingNotification(`📨 New invitation from ${formatPhoneNumber(invite.from)}!`);
-                playSound('invite');
-                renderReceivedInvitations();
-            }
-        });
-        
-        // Listen for approved invitations (real-time reward update)
-        userRef.child('SharedInvites/sent').on('child_changed', async (snapshot) => {
-            const inviteData = snapshot.val();
-            const phone = snapshot.key;
-            
-            if (inviteData && inviteData.status === 'approved' && !inviteData.rewardAdded) {
-                await handleApprovedInvitation(phone, inviteData.reward || 150);
-            }
-        });
-        
-        // Listen for stats changes
-        userRef.child('SharedInvites/stats').on('value', (snapshot) => {
-            const stats = snapshot.val();
-            if (stats && stats.maxReached) {
-                disableInvitations();
-            }
-        });
-    }
-    
-    // ========== DATA LOADING ==========
-    async function loadInvitationData() {
-        try {
-            const snapshot = await userRef.child('SharedInvites').once('value');
-            const data = snapshot.val();
-            
-            if (data) {
-                // Calculate pending rewards from received invites
-                const received = data.received || {};
-                pendingRewardAmount = 0;
-                for (let key in received) {
-                    if (received[key].status === 'pending') {
-                        pendingRewardAmount += received[key].reward || 150;
-                    }
-                }
-                
-                // Check if max reached
-                const stats = data.stats || { totalApproved: 0, totalRewards: 0 };
-                if (stats.totalRewards >= maxRewardPerUser) {
-                    disableInvitations();
-                }
-            }
-        } catch(e) {
-            console.error('Load invitation error:', e);
-        }
-    }
-    
-    // ========== SEND INVITATION ==========
-    async function handleSendInvite() {
-        const friendPhone = friendInput?.value.trim();
-        
-        // Validation
-        if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-            alert("Enter valid 11-digit number starting with 09");
-            return;
-        }
-        
-        if (friendPhone === currentUserPhone) {
-            alert("Cannot invite yourself!");
-            return;
-        }
-        
-        // Check max rewards limit
-        const statsSnapshot = await userRef.child('SharedInvites/stats').once('value');
-        const stats = statsSnapshot.val() || { totalRewards: 0 };
-        
-        if (stats.totalRewards >= maxRewardPerUser) {
-            alert(`⚠️ You have reached the maximum reward of ₱${maxRewardPerUser}! Cannot send more invites.`);
-            showFacebookShareSuggestion();
-            return;
-        }
-        
-        // Check current sent invites count
-        const sentSnapshot = await userRef.child('SharedInvites/sent').once('value');
-        const sentInvites = sentSnapshot.val() || {};
-        const pendingCount = Object.values(sentInvites).filter(inv => inv.status === 'pending').length;
-        const approvedCount = Object.values(sentInvites).filter(inv => inv.status === 'approved').length;
-        
-        // Max 6 total invites (pending + approved)
-        if ((pendingCount + approvedCount) >= maxInvites) {
-            alert(`Maximum ${maxInvites} invites reached. Delete an invite to send new one.`);
-            return;
-        }
-        
-        // Check if already invited
-        if (sentInvites[friendPhone]) {
-            alert("Already invited this person!");
-            return;
-        }
-        
-        // Send invitation
-        const updates = {};
-        updates[`SharedInvites/sent/${friendPhone}`] = {
-            status: 'pending',
-            timestamp: Date.now(),
-            reward: 150,
-            to: friendPhone
-        };
-        
-        // Add to friend's received invites
-        const friendRef = db.ref('user_sessions/' + friendPhone);
-        const friendReceivedSnapshot = await friendRef.child('SharedInvites/received').once('value');
-        const friendReceived = friendReceivedSnapshot.val() || {};
-        
-        if (!friendReceived[currentUserPhone]) {
-            updates[`SharedInvites/received/${currentUserPhone}`] = {
-                from: currentUserPhone,
-                status: 'pending',
-                timestamp: Date.now(),
-                reward: 150
-            };
-            await friendRef.update(updates);
-        }
-        
-        await userRef.update(updates);
-        
-        if (friendInput) friendInput.value = '';
-        
-        playSound('invite');
-        alert("Invitation sent successfully!");
-        await renderSentInvitations();
-    }
-    
-    // ========== HANDLE APPROVED INVITATION (Real-time reward) ==========
-    async function handleApprovedInvitation(fromPhone, amount) {
-        // Check if already reached maximum
-        const statsSnapshot = await userRef.child('SharedInvites/stats').once('value');
-        const stats = statsSnapshot.val() || { totalApproved: 0, totalRewards: 0 };
-        
-        if (stats.totalRewards >= maxRewardPerUser) {
-            console.log(`⚠️ Max reward reached. Cannot add reward from ${fromPhone}`);
-            showMaxRewardAlert(fromPhone);
-            return;
-        }
-        
-        // Check if reward already added
-        const sentSnapshot = await userRef.child(`SharedInvites/sent/${fromPhone}`).once('value');
-        const sentData = sentSnapshot.val();
-        
-        if (sentData && sentData.rewardAdded === true) {
-            console.log(`Reward from ${fromPhone} already added`);
-            return;
-        }
-        
-        // Add to pending rewards
-        pendingRewardAmount += amount;
-        
-        // Mark as reward added
-        await userRef.child(`SharedInvites/sent/${fromPhone}/rewardAdded`).set(true);
-        
-        // Update stats
-        const newTotalApproved = (stats.totalApproved || 0) + 1;
-        await userRef.child('SharedInvites/stats').update({
-            totalApproved: newTotalApproved
-        });
-        
-        // Update UI with animation
-        await updateRightCardWithAnimation();
-        
-        // Play sound and show notification
-        playSound('success');
-        showFloatingNotification(`🎉 +₱${amount} from ${formatPhoneNumber(fromPhone)}! Click RIGHT CAT to claim!`);
-        
-        console.log(`✅ Pending reward added: +₱${amount}. Total pending: ₱${pendingRewardAmount}`);
-        await renderSentInvitations();
-    }
-    
-    // ========== DELETE INVITATION ==========
-    async function deleteInvitation(phoneToDelete) {
-        const snapshot = await userRef.child(`SharedInvites/sent/${phoneToDelete}`).once('value');
-        const invite = snapshot.val();
-        
-        if (invite && invite.status === 'approved') {
-            alert("Cannot delete approved invitation!");
-            return;
-        }
-        
-        if (confirm("Delete this invitation?")) {
-            await userRef.child(`SharedInvites/sent/${phoneToDelete}`).remove();
-            
-            // Also remove from friend's received
-            const friendRef = db.ref('user_sessions/' + phoneToDelete);
-            await friendRef.child(`SharedInvites/received/${currentUserPhone}`).remove();
-            
-            await renderSentInvitations();
-            alert("Invitation deleted!");
-        }
-    }
-    
-    // ========== CLAIM PENDING REWARDS ==========
-    async function claimPendingRewards() {
-        if (pendingRewardAmount <= 0) {
-            alert("No pending rewards to claim!");
-            return;
-        }
-        
-        // Check maximum limit
-        const statsSnapshot = await userRef.child('SharedInvites/stats').once('value');
-        const stats = statsSnapshot.val() || { totalRewards: 0 };
-        const currentTotalRewards = stats.totalRewards || 0;
-        
-        let claimAmount = pendingRewardAmount;
-        let possibleNewTotal = currentTotalRewards + claimAmount;
-        
-        if (currentTotalRewards >= maxRewardPerUser) {
-            alert(`⚠️ You have already reached the maximum reward of ₱${maxRewardPerUser}!`);
-            showFacebookShareSuggestion();
-            return;
-        }
-        
-        if (possibleNewTotal > maxRewardPerUser) {
-            claimAmount = maxRewardPerUser - currentTotalRewards;
-            alert(`⚠️ You can only claim ₱${claimAmount} now. Maximum is ₱${maxRewardPerUser}.`);
-            
-            if (claimAmount <= 0) {
-                showFacebookShareSuggestion();
-                return;
-            }
-        }
-        
-        // Update balance
-        const balanceSnapshot = await userRef.child('balance').once('value');
-        const currentBalance = balanceSnapshot.val() || 0;
-        const newBalance = currentBalance + claimAmount;
-        
-        await userRef.update({ balance: newBalance });
-        
-        // Update stats
-        const newTotalRewards = currentTotalRewards + claimAmount;
-        const maxReached = newTotalRewards >= maxRewardPerUser;
-        
-        await userRef.child('SharedInvites/stats').update({
-            totalRewards: newTotalRewards,
-            maxReached: maxReached
-        });
-        
-        // Update all pending received invites to approved
-        const receivedSnapshot = await userRef.child('SharedInvites/received').once('value');
-        const received = receivedSnapshot.val() || {};
-        
-        for (let phone in received) {
-            if (received[phone].status === 'pending') {
-                await userRef.child(`SharedInvites/received/${phone}/status`).set('approved');
-            }
-        }
-        
-        // Subtract claimed amount from pending
-        pendingRewardAmount -= claimAmount;
-        
-        // Update UI
-        await updateRightCardDisplay();
-        await updateBalanceDisplay(newBalance);
-        
-        // Effects
-        playSound('claim');
-        startConfettiEffect();
-        
-        alert(`🎉 You claimed ₱${claimAmount}! Total balance: ₱${newBalance.toFixed(2)}`);
-        
-        if (maxReached) {
-            disableInvitations();
-            showFacebookShareSuggestion();
-        }
-        
-        await renderReceivedInvitations();
-        await renderSentInvitations();
-    }
-    
-    // ========== UI RENDERING ==========
-    async function renderSentInvitations() {
-        if (!sentListContainer) return;
-        
-        const snapshot = await userRef.child('SharedInvites/sent').once('value');
-        const sent = snapshot.val() || {};
-        const sentArray = Object.entries(sent);
-        
-        if (sentArray.length === 0) {
-            sentListContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/6)</div>';
-            return;
-        }
-        
-        let html = '';
-        let count = 0;
-        
-        for (let [phone, data] of sentArray) {
-            if (count >= 6) break;
-            const formattedPhone = formatPhoneNumber(phone);
-            const statusClass = data.status === 'approved' ? 'approved' : 'pending';
-            const statusText = data.status === 'approved' ? 'APPROVED' : 'PENDING';
-            const rewardText = data.rewardAdded ? '✓ Rewarded' : '';
-            
-            html += `
-                <div class="invite-item">
-                    <div class="invite-item-phone">${formattedPhone}</div>
-                    <div class="invite-item-status">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                        ${rewardText ? `<small class="reward-tag">${rewardText}</small>` : ''}
-                    </div>
-                    <div class="invite-item-action">
-                        <button class="delete-invite" data-phone="${phone}">✕</button>
-                    </div>
-                </div>
-            `;
-            count++;
-        }
-        
-        sentListContainer.innerHTML = html;
-        
-        // Attach delete events
-        document.querySelectorAll('.delete-invite').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteInvitation(btn.dataset.phone);
-            });
-        });
-    }
-    
-    async function renderReceivedInvitations() {
-        if (!receivedListContainer) return;
-        
-        const snapshot = await userRef.child('SharedInvites/received').once('value');
-        const received = snapshot.val() || {};
-        const receivedArray = Object.values(received);
-        
-        if (receivedArray.length === 0) {
-            receivedListContainer.innerHTML = '<div class="invite-empty">No invitations received</div>';
-            return;
-        }
-        
-        let html = '<div class="invite-credits">';
-        for (let invite of receivedArray) {
-            const formattedPhone = formatPhoneNumber(invite.from);
-            const statusText = invite.status === 'approved' ? '✓ APPROVED' : '⏳ WAITING';
-            const statusClass = invite.status === 'approved' ? 'approved' : 'pending';
-            
-            html += `
-                <div class="credit-item">
-                    <span class="credit-from">${formattedPhone}</span>
-                    <span class="credit-status ${statusClass}">${statusText}</span>
-                    <span class="credit-reward">+₱${invite.reward || 150}</span>
-                </div>
-            `;
-        }
-        html += '</div>';
-        
-        receivedListContainer.innerHTML = html;
-    }
-    
-    async function updateRightCardDisplay() {
-        if (!rightReward) return;
-        
-        if (pendingRewardAmount > 0) {
-            rightReward.innerHTML = `+${pendingRewardAmount}`;
-            rightReward.style.fontSize = '16px';
-            rightReward.style.color = '#ffd700';
-            rightReward.style.fontWeight = 'bold';
-        } else {
-            rightReward.innerHTML = '+150';
-            rightReward.style.fontSize = '18px';
-            rightReward.style.color = '#ffd700';
-        }
-    }
-    
-    async function updateRightCardWithAnimation() {
-        if (!rightReward) return;
-        
-        rightReward.classList.add('reward-update');
-        await updateRightCardDisplay();
-        
-        if (rightCard) {
-            rightCard.classList.add('card-pulse');
-            setTimeout(() => {
-                if (rightCard) rightCard.classList.remove('card-pulse');
-            }, 500);
-        }
-        
-        setTimeout(() => {
-            if (rightReward) rightReward.classList.remove('reward-update');
-        }, 500);
-    }
-    
-    async function updateBalanceDisplay(newBalance) {
-        const balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) {
-            balanceEl.style.transform = 'scale(1.1)';
-            balanceEl.innerText = newBalance.toFixed(2);
-            setTimeout(() => {
-                if (balanceEl) balanceEl.style.transform = 'scale(1)';
-            }, 200);
-        }
-        
-        const popupBalance = document.getElementById('popupBalanceAmount');
-        if (popupBalance) popupBalance.innerText = "₱" + newBalance.toFixed(2);
-    }
-    
-    // ========== UTILITY FUNCTIONS ==========
-    function formatPhoneNumber(phone) {
-        if (!phone || phone.length < 11) return phone;
-        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
-    }
-    
-    function playSound(soundName) {
-        const sounds = {
-            invite: new Audio('sounds/invite.mp3'),
-            success: new Audio('sounds/success.mp3'),
-            claim: new Audio('sounds/claim.mp3')
-        };
-        
-        if (sounds[soundName]) {
-            sounds[soundName].volume = 0.5;
-            sounds[soundName].currentTime = 0;
-            sounds[soundName].play().catch(e => console.log(e));
-        }
-    }
-    
-    function startConfettiEffect() {
-        const canvas = document.getElementById('confettiCanvas');
-        if (!canvas) return;
-        
-        canvas.style.display = 'block';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        const ctx = canvas.getContext('2d');
-        const particles = [];
-        for (let i = 0; i < 100; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                size: Math.random() * 6 + 2,
-                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-                speed: Math.random() * 3 + 2
-            });
-        }
-        
-        let animation;
-        function draw() {
-            if (!canvas || canvas.style.display === 'none') return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-                p.y += p.speed;
-                if (p.y > canvas.height) {
-                    p.y = -p.size;
-                    p.x = Math.random() * canvas.width;
-                }
-            });
-            animation = requestAnimationFrame(draw);
-        }
-        
-        draw();
-        setTimeout(() => {
-            cancelAnimationFrame(animation);
-            canvas.style.display = 'none';
-        }, 3000);
-    }
-    
-    function disableInvitations() {
-        if (sendBtn) {
-            sendBtn.disabled = true;
-            sendBtn.style.opacity = '0.5';
-            sendBtn.style.cursor = 'not-allowed';
-        }
-        
-        if (friendInput) {
-            friendInput.disabled = true;
-            friendInput.style.opacity = '0.5';
-        }
-        
-        const msg = document.getElementById('statusMessage');
-        if (msg) {
-            msg.innerHTML = '<span class="status-warning">⚠️ Maximum reward reached! Share on Facebook to continue.</span>';
-        }
-    }
-    
-    // ========== NOTIFICATIONS & ALERTS ==========
-    function showFloatingNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'floating-notification';
-        notification.innerHTML = message;
-        notification.style.cssText = `
-            position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
-            border: 2px solid #ffd700;
-            color: #ffd700;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            font-size: 12px;
-            z-index: 10000;
-            animation: floatUp 2s ease-out forwards;
-            box-shadow: 0 0 20px rgba(255,215,0,0.3);
-            white-space: nowrap;
-        `;
-        
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            if (notification) notification.remove();
-        }, 2500);
-    }
-    
-    function showMaxRewardAlert(fromPhone) {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'max-reward-alert';
-        alertDiv.innerHTML = `
-            <div class="alert-content">
-                <span class="alert-icon">⚠️</span>
-                <span class="alert-text">${formatPhoneNumber(fromPhone)} accepted but you reached max reward!</span>
-                <button class="alert-close" onclick="this.parentElement.parentElement.remove()">✕</button>
-            </div>
-        `;
-        alertDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            border: 2px solid #ffaa33;
-            border-radius: 15px;
-            padding: 10px 15px;
-            z-index: 10001;
-            animation: slideDown 0.3s ease;
-        `;
-        
-        document.body.appendChild(alertDiv);
-        setTimeout(() => {
-            if (alertDiv) alertDiv.remove();
-        }, 4000);
-    }
-    
-    function showFacebookShareSuggestion() {
-        if (localStorage.getItem('fb_share_shown')) return;
-        
-        const suggestion = document.createElement('div');
-        suggestion.className = 'fb-share-suggestion';
-        suggestion.innerHTML = `
-            <div class="suggestion-content">
-                <span class="suggestion-icon">📱</span>
-                <span class="suggestion-text">Share on Facebook to unlock more rewards!</span>
-                <button class="suggestion-share" onclick="window.ShareModule?.shareOnFacebook(); this.parentElement.parentElement.remove();">
-                    SHARE →
-                </button>
-                <button class="suggestion-close" onclick="this.parentElement.parentElement.remove()">✕</button>
-            </div>
-        `;
-        suggestion.style.cssText = `
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 350px;
-            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
-            border: 2px solid #1877F2;
-            border-radius: 20px;
-            padding: 12px;
-            z-index: 10002;
-            animation: slideUp 0.4s ease;
-        `;
-        
-        document.body.appendChild(suggestion);
-        localStorage.setItem('fb_share_shown', 'true');
-        
-        setTimeout(() => {
-            if (suggestion) suggestion.remove();
-        }, 8000);
-    }
-    
-    // ========== CSS ANIMATIONS ==========
-    function addAnimationStyles() {
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes reward-update {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.3); text-shadow: 0 0 10px #ffd700; }
-                100% { transform: scale(1); }
-            }
-            .reward-update { animation: reward-update 0.5s ease-out !important; }
-            
-            @keyframes card-pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,215,0,0.8); }
-                100% { transform: scale(1); }
-            }
-            .card-pulse { animation: card-pulse 0.5s ease-out !important; }
-            
-            @keyframes floatUp {
-                0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
-                20% { opacity: 1; transform: translateX(-50%) translateY(0); }
-                80% { opacity: 1; }
-                100% { opacity: 0; transform: translateX(-50%) translateY(-50px); }
-            }
-            
-            @keyframes slideDown {
-                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-                to { opacity: 1; transform: translateX(-50%) translateY(0); }
-            }
-            
-            @keyframes slideUp {
-                from { opacity: 0; transform: translateX(-50%) translateY(50px); }
-                to { opacity: 1; transform: translateX(-50%) translateY(0); }
-            }
-            
-            .reward-tag {
-                display: block;
-                font-size: 8px;
-                color: #39ff14;
-                margin-top: 2px;
-            }
-            
-            .invite-credits {
-                max-height: 200px;
-                overflow-y: auto;
-            }
-            
-            .credit-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 8px 10px;
-                border-bottom: 1px solid rgba(255,215,0,0.1);
-                font-size: 11px;
-            }
-            
-            .credit-from { font-family: monospace; color: #ffd700; }
-            .credit-status { padding: 2px 8px; border-radius: 15px; font-size: 9px; }
-            .credit-status.pending { background: rgba(255,170,51,0.2); color: #ffaa33; }
-            .credit-status.approved { background: rgba(57,255,20,0.2); color: #39ff14; }
-            .credit-reward { color: #ffd700; font-weight: bold; }
-            
-            .status-warning {
-                color: #ffaa33;
-                font-size: 11px;
-            }
-            
-            .fb-share-suggestion .suggestion-content {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-            .suggestion-icon { font-size: 20px; }
-            .suggestion-text { flex: 1; font-size: 11px; color: white; }
-            .suggestion-share {
-                background: linear-gradient(135deg, #1877F2, #0a56b6);
-                border: none;
-                border-radius: 25px;
-                padding: 6px 12px;
-                color: white;
-                font-weight: bold;
-                font-size: 10px;
-                cursor: pointer;
-            }
-            .suggestion-close {
-                background: transparent;
-                border: none;
-                color: #888;
-                cursor: pointer;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    // ========== EXPORT ==========
-    return {
-        init: init,
-        renderSentInvitations: renderSentInvitations,
-        renderReceivedInvitations: renderReceivedInvitations
-    };
-})();
-
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.InvitationModule) window.InvitationModule.init();
-    });
-} else {
-    if (window.InvitationModule) window.InvitationModule.init();
-}
