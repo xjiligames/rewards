@@ -1273,56 +1273,85 @@ body::before {
     pointer-events: none;
 }
 
-/* Gamitin ang class na idineklara mo sa PromoDOM */
-#mainTimerDisplay, .main-timer-display {
-    font-family: 'Orbitron', sans-serif;
+/* ========== CASINO THEME TIMER ========== */
+.time-left-section {
+    background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+    border: 2px solid #ffd700;
+    border-radius: 20px;
+    padding: 15px 20px;
+    margin: 15px 0 20px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255,215,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Casino pattern overlay */
+.time-left-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ffaa33, #ffd700);
+}
+
+.time-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 5px rgba(255,215,0,0.5);
+}
+
+#mainTimerDisplay {
+    font-family: 'Orbitron', monospace;
     font-size: 28px;
     font-weight: 900;
     color: #ffffff;
-    text-align: center;
-    letter-spacing: 3px;
-    display: inline-block;
-    
-    /* Casino Gold Neon Glow */
-    text-shadow: 
-        0 0 5px #fff,
-        0 0 10px #ffd700,
-        0 0 20px #ffaa33,
-        0 0 40px #ffaa33;
-        
-    transition: all 0.1s ease-in-out;
+    background: linear-gradient(135deg, #ffd700, #ffaa33);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    letter-spacing: 2px;
 }
 
-/* THRILL EFFECT: Ito ang tatalon bawat segundo */
-.timer-tick {
-    animation: casinoThrill 0.4s ease-out;
+/* Simple white version (kung ayaw mo ng gradient) */
+#mainTimerDisplay.white {
+    color: #ffffff;
+    text-shadow: 0 0 10px #ffd700, 0 0 20px rgba(255,215,0,0.5);
 }
 
-@keyframes casinoThrill {
-    0% {
-        transform: scale(1);
-        text-shadow: 0 0 10px #ffd700;
-    }
-    50% {
-        transform: scale(1.15); /* Shockwave/Heartbeat effect */
-        text-shadow: 0 0 30px #ffffff, 0 0 50px #ffd700;
-        color: #ffd700;
-    }
-    100% {
-        transform: scale(1);
-        text-shadow: 0 0 10px #ffd700, 0 0 20px #ffaa33;
-    }
+/* Timer with neon glow */
+#mainTimerDisplay.neon {
+    color: #ffd700;
+    text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 20px #ffaa33;
 }
 
-
-.timer-ending {
-    color: #ff0000 !important;
-    text-shadow: 0 0 10px #fff, 0 0 20px #ff0000, 0 0 40px #ff0000 !important;
-    animation: urgentPulse 0.5s infinite;
+/* Expiring soon animation (last 1 hour) */
+#mainTimerDisplay.warning {
+    color: #ff4444;
+    text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000;
+    animation: timerPulse 1s infinite;
 }
 
-@keyframes urgentPulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 1; }
-}..
+@keyframes timerPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.02); }
+}
+
+/* Dice decoration */
+.time-left-section::after {
+    content: '🎲 🎰 🃏';
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    font-size: 10px;
+    opacity: 0.3;
+    pointer-events: none;
+}
