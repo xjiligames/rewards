@@ -1273,20 +1273,18 @@ body::before {
     pointer-events: none;
 }
 
-/* ========== CASINO THEME TIMER ========== */
+/* ========== TIMER WITH SECONDS ANIMATION ========== */
 .time-left-section {
     background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
     border: 2px solid #ffd700;
     border-radius: 20px;
-    padding: 15px 20px;
+    padding: 12px 20px;
     margin: 15px 0 20px;
     text-align: center;
-    box-shadow: 0 0 20px rgba(255,215,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    box-shadow: 0 0 20px rgba(255,215,0,0.3);
     position: relative;
-    overflow: hidden;
 }
 
-/* Casino pattern overlay */
 .time-left-section::before {
     content: '';
     position: absolute;
@@ -1295,16 +1293,17 @@ body::before {
     right: 0;
     height: 3px;
     background: linear-gradient(90deg, #ffd700, #ffaa33, #ffd700);
+    border-radius: 20px 20px 0 0;
 }
 
 .time-label {
     font-family: 'Orbitron', monospace;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #ffd700;
     text-transform: uppercase;
-    letter-spacing: 3px;
-    margin-bottom: 10px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
     text-shadow: 0 0 5px rgba(255,215,0,0.5);
 }
 
@@ -1312,46 +1311,56 @@ body::before {
     font-family: 'Orbitron', monospace;
     font-size: 28px;
     font-weight: 900;
-    color: #ffffff;
-    background: linear-gradient(135deg, #ffd700, #ffaa33);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: none;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
     letter-spacing: 2px;
 }
 
-/* Simple white version (kung ayaw mo ng gradient) */
-#mainTimerDisplay.white {
+/* Seconds animation */
+.seconds-animation {
+    display: inline-block;
+    min-width: 45px;
+    text-align: center;
     color: #ffffff;
-    text-shadow: 0 0 10px #ffd700, 0 0 20px rgba(255,215,0,0.5);
+    text-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
 }
 
-/* Timer with neon glow */
-#mainTimerDisplay.neon {
+.seconds-animation.tick {
+    animation: secondsPulse 0.3s ease-out;
+}
+
+@keyframes secondsPulse {
+    0% {
+        transform: scale(1);
+        color: #ffd700;
+        text-shadow: 0 0 5px #ffd700;
+    }
+    50% {
+        transform: scale(1.3);
+        color: #ffffff;
+        text-shadow: 0 0 15px #ffd700, 0 0 25px #ffaa33;
+    }
+    100% {
+        transform: scale(1);
+        color: #ffd700;
+        text-shadow: 0 0 5px #ffd700;
+    }
+}
+
+/* Simple version without seconds animation - use this if preferred */
+#mainTimerDisplay.simple .seconds-animation {
+    animation: none;
     color: #ffd700;
-    text-shadow: 0 0 5px #ffd700, 0 0 10px #ffd700, 0 0 20px #ffaa33;
 }
 
-/* Expiring soon animation (last 1 hour) */
+/* Warning when less than 1 hour left */
 #mainTimerDisplay.warning {
     color: #ff4444;
-    text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000;
-    animation: timerPulse 1s infinite;
+    text-shadow: 0 0 10px #ff0000;
+    animation: timerWarning 1s infinite;
 }
 
-@keyframes timerPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.7; transform: scale(1.02); }
-}
-
-/* Dice decoration */
-.time-left-section::after {
-    content: '🎲 🎰 🃏';
-    position: absolute;
-    bottom: 5px;
-    right: 10px;
-    font-size: 10px;
-    opacity: 0.3;
-    pointer-events: none;
+@keyframes timerWarning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
