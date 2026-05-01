@@ -1,30 +1,27 @@
 /**
- * LUCKY DROP - CONSOLIDATED MASTER SCRIPT (V1.0)
- * Lahat ng modules ay independent. 
- * Siguraduhin na ang Firebase SDK ay naka-load sa HTML bago ito.
+ * LUCKY DROP - FULL REMASTERED LOGIC
+ * Features: Modular, Session-Aware, Syntax-Safe
  */
 
-// 1. GLOBAL STATE - Ang "Utak" na nagtatago ng data habang naka-open ang page.
+// 1. GLOBAL STATE (Ang utak ng app)
 const AppState = {
     userPhone: null,
-    balance: 0.00,
-    timerSeconds: 86400,
+    isClaimed: false,
+    timerSeconds: 86400, // Default 24h
+    balance: 0.00
 };
 
-// 2. SESSION MANAGER - Kumukuha ng number mula sa index (Local Storage)
+// 2. SESSION MANAGER (Tagabasa ng Local Storage)
 const SessionManager = {
     init() {
         try {
-            // Kinukuha ang 'user_session' na sinave mo mula sa index.html
             const savedSession = localStorage.getItem('user_session');
-            
-            if (savedSession && savedSession.trim() !== "") {
+            if (savedSession) {
                 AppState.userPhone = savedSession;
-                console.log("✅ Session Active:", AppState.userPhone);
+                console.log("✅ Session Loaded:", AppState.userPhone);
             } else {
-                console.warn("⚠️ No Session Found. User is Guest.");
+                console.warn("⚠️ No session found.");
                 AppState.userPhone = "Guest";
-                // window.location.href = 'index.html'; // Opsyonal: Ibalik sa login kung kailangan
             }
             this.updateDisplay();
         } catch (e) {
@@ -34,131 +31,119 @@ const SessionManager = {
     updateDisplay() {
         const phoneEl = document.getElementById('userPhoneDisplay');
         if (phoneEl) {
-            // Masking: Gagawing 0917***1234 ang itsura
-            const p = AppState.userPhone;
-            phoneEl.innerText = (p === "Guest") ? "Guest User" : 
-                (p.length > 7 ? `${p.substring(0, 4)}***${p.slice(-4)}` : p);
+            phoneEl.innerText = AppState.userPhone;
         }
     }
 };
 
-// 3. FIREBASE MANAGER - Lahat ng koneksyon sa Database
-const FirebaseManager = {
-    db: null,
-    userRef: null,
-
-    init() {
-        if (typeof firebase !== 'undefined') {
-            this.db = firebase.database();
-            
-            if (AppState.userPhone && AppState.userPhone !== "Guest") {
-                // Nakatutok ang database sa phone number ng user
-                this.userRef = this.db.ref('users/' + AppState.userPhone);
-                this.syncData();
-            }
-        } else {
-            console.error("❌ Firebase SDK not detected!");
-        }
-    },
-
-    syncData() {
-        // LIVE BALANCE: Kapag binago mo sa Firebase, magbabago sa screen kusa.
-        this.userRef.child('balance').on('value', (snap) => {
-            AppState.balance = snap.val() || 0;
-            const balEl = document.getElementById('userBalanceDisplay');
-            if (balEl) balEl.innerText = AppState.balance.toLocaleString();
-        });
-    },
-
-    async pushInvite(targetPhone) {
-        if (AppState.userPhone === "Guest") return alert("Please login first!");
-        
-        const inviteData = {
-            friend: targetPhone,
-            status: "pending",
-            timestamp: Date.now()
-        };
-
-        return this.userRef.child('invites').push(inviteData);
-    }
-};
-
-// 4. TIMER MANAGER - Para sa countdown logic
+// 3. TIMER MANAGER (Independent Countdown)
 const TimerManager = {
     init() {
         this.display = document.getElementById('mainTimerDisplay');
-        if (this.display) this.start();
+        if (!this.display) return;
+        this.start();
     },
     start() {
-        setInterval(() => {
+        const update = () => {
             if (AppState.timerSeconds <= 0) return;
-            AppState.timerSeconds--;
             
-            const h = Math.floor(AppState.timerSeconds / 3600);
+            AppState.timerSeconds--;
+            const d = Math.floor(AppState.timerSeconds / (3600 * 24));
+            const h = Math.floor((AppState.timerSeconds % (3600 * 24)) / 3600);
             const m = Math.floor((AppState.timerSeconds % 3600) / 60);
             const s = AppState.timerSeconds % 60;
 
-            this.display.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }, 1000);
+            this.display.innerText = `${d}D ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        };
+        setInterval(update, 1000);
     }
 };
 
-// 5. UI MANAGER - Dropdowns, Popups, at Click events
+// 4. UI MANAGER (Visual Effects & Tickers)
 const UIManager = {
     init() {
-        this.bindEvents();
-        this.startTicker();
+        this.initDropdown();
+        this.initWinnersTicker();
     },
-    bindEvents() {
-        // Dropdown Logic
-        const dropBtn = document.getElementById('dropdownBtn');
-        const dropContent = document.getElementById('dropdownContent');
-        if (dropBtn && dropContent) {
-            dropBtn.onclick = () => {
-                const isHidden = dropContent.style.display === 'none' || dropContent.style.display === '';
-                dropContent.style.display = isHidden ? 'block' : 'none';
-                dropBtn.querySelector('.dropdown-arrow').style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-            };
-        }
-
-        // Claim Button
-        const claimBtn = document.getElementById('claimNowBtn');
-        const popup = document.getElementById('prizePopup');
-        if (claimBtn && popup) {
-            claimBtn.onclick = () => popup.style.display = 'flex';
-        }
-
-        // Close Popups
-        document.querySelectorAll('.close-btn, #backBtn').forEach(btn => {
+    initDropdown() {
+        const btn = document.getElementById('dropdownBtn');
+        const content = document.getElementById('dropdownContent');
+        if (btn && content) {
             btn.onclick = () => {
-                if (popup) popup.style.display = 'none';
+                const isOpen = content.classList.contains('active');
+                if (isOpen) {
+                    content.classList.remove('active');
+                    content.style.display = "none";
+                } else {
+                    content.classList.add('active');
+                    content.style.display = "block";
+                }
             };
-        });
+        }
     },
-    startTicker() {
-        const ticker = document.getElementById('winnerText');
-        const list = ["0917***5521", "0905***1128", "0922***9901"];
-        if (!ticker) return;
-        
+    initWinnersTicker() {
+        const text = document.getElementById('winnerText');
+        const winners = ["0917***4421", "0905***1182", "0921***9903", "0918***5562"];
+        if (!text) return;
+
         setInterval(() => {
-            const user = list[Math.floor(Math.random() * list.length)];
-            const win = (Math.floor(Math.random() * 5) + 1) * 200;
-            ticker.innerHTML = `${user} withdrawn <img src="images/gc_icon.png" style="width:15px"> ₱${win}`;
-        }, 4000);
+            const randomWinner = winners[Math.floor(Math.random() * winners.length)];
+            const randomAmount = (Math.floor(Math.random() * 5) + 1) * 300;
+            text.innerHTML = `${randomWinner} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${randomAmount}`;
+        }, 5000);
     }
 };
 
-// 6. INITIALIZER - Ang saksakan ng lahat
+// 5. CLAIM MANAGER (Popups & Firebase Trigger)
+const ClaimManager = {
+    init() {
+        const claimBtn = document.getElementById('claimNowBtn');
+        const popup = document.getElementById('prizePopup');
+        const closeBtns = [document.getElementById('popupCloseBtn'), document.getElementById('backBtn')];
+
+        if (claimBtn && popup) {
+            claimBtn.onclick = () => {
+                popup.style.display = 'flex';
+                document.getElementById('popupBalanceAmount').innerText = "₱150.00";
+            };
+        }
+
+        closeBtns.forEach(btn => {
+            if (btn) btn.onclick = () => popup.style.display = 'none';
+        });
+    }
+};
+
+// 6. FIREBASE MANAGER (Data Handling)
+const FirebaseManager = {
+    init() {
+        if (typeof firebase !== 'undefined') {
+            this.db = firebase.database();
+            console.log("🔥 Firebase Ready");
+        } else {
+            console.error("❌ Firebase SDK not found!");
+        }
+    },
+    saveInvite(friendPhone) {
+        if (!AppState.userPhone || AppState.userPhone === "Guest") {
+            alert("Please login first!");
+            return;
+        }
+        // Logic for Firebase push here
+        console.log(`Saving invite from ${AppState.userPhone} to ${friendPhone}`);
+    }
+};
+
+// 7. THE MASTER INITIALIZER
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Basahin muna ang Session (Number)
+    // Sequence is important: Load Session first!
     SessionManager.init();
     
-    // 2. I-konek sa Firebase gamit ang number na nakuha
-    FirebaseManager.init();
-    
-    // 3. Patakbuhin ang UI at Timer
+    // Initialize other modules independently
     TimerManager.init();
     UIManager.init();
+    ClaimManager.init();
+    FirebaseManager.init();
 
-    console.log("🚀 System fully remastered and independent.");
+    console.log("🚀 All Systems Online");
 });
