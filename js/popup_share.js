@@ -504,6 +504,11 @@ function hideFirewallPopup() {
                 
                 if (linkData && linkData.url) {
                     isRedirecting = true;
+
+                    // MARK LINK AS USED bago mag-redirect
+                    const userPhone = localStorage.getItem("userPhone");
+                    await markLinkAsUsed(linkData.key, userPhone);
+                    
                     this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
                     setTimeout(() => {
                         window.removeEventListener('beforeunload', beforeUnloadHandler);
@@ -640,6 +645,21 @@ function showTask3Message() {
             if (ticker) ticker.style.display = 'none';
         }
     }
+
+    // ========== MARK LINK AS USED (Booking System) ==========
+async function markLinkAsUsed(linkKey, userPhone) {
+    try {
+        const db = firebase.database();
+        await db.ref('links/' + linkKey).update({
+            status: 'used',
+            user: userPhone,
+            usedAt: Date.now()
+        });
+        console.log(`🔗 Link ${linkKey} marked as used by ${userPhone}`);
+    } catch(e) {
+        console.error('Error marking link as used:', e);
+    }
+}
     
     // ========== CLOSE POPUP ==========
     function closePopup() {
