@@ -39,8 +39,6 @@
         if (window.TimerModule) window.TimerModule.init();
         if (window.DropdownModule) window.DropdownModule.init();
         if (window.TickerModule) window.TickerModule.init();
-        if (window.PopupModule) window.PopupModule.init();
-        if (window.ClaimButtonModule) window.ClaimButtonModule.init();
         if (window.ShareModule) window.ShareModule.init();
         if (window.LuckyCatModule) window.LuckyCatModule.init();  // LUCKY CAT MODULE
         
@@ -245,35 +243,7 @@ window.TickerModule = (function() {
     return { init: init };
 })();
 
-
-// ========== MODULE 3: CLAIM BUTTON ==========
-window.ClaimButtonModule = (function() {
-    'use strict';
-    let claimBtn = null;
-    
-    function init() {
-        claimBtn = document.getElementById('claimNowBtn');
-        if (claimBtn) {
-            const newBtn = claimBtn.cloneNode(true);
-            claimBtn.parentNode.replaceChild(newBtn, claimBtn);
-            claimBtn = newBtn;
-            claimBtn.addEventListener('click', handleClick);
-        }
-    }
-    
-    function handleClick(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (window.PopupModule) {
-            const balance = window.PromotionCore ? window.PromotionCore.getBalance() : 0;
-            window.PopupModule.show(balance);
-        }
-    }
-    
-    return { init: init };
-})();
-
-// ========== MODULE 4: SHARE (Facebook Only) ==========
+// ========== MODULE 3: SHARE (Facebook Only) ==========
 window.ShareModule = (function() {
     'use strict';
     
@@ -297,7 +267,7 @@ window.ShareModule = (function() {
 })();
 
 
-// ========== MODULE 4 CONFETTI MODULE (For Popup) ==========
+// ========== MODULE 5 CONFETTI MODULE (For Popup) ==========
 window.ConfettiModule = (function() {
     'use strict';
     let canvas = null;
@@ -355,7 +325,7 @@ window.ConfettiModule = (function() {
     return { start: start, stop: stop };
 })();
 
-// ========== MODULE 5: LUCKY CAT (FIXED - MAY LOAD CHECK) ==========
+// ========== MODULE 6: LUCKY CAT (FIXED - MAY LOAD CHECK) ==========
 window.LuckyCatModule = (function() {
     'use strict';
     
