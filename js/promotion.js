@@ -6,182 +6,198 @@ para sa share_and_earn.html
  * Order: 10(Main Core) | 1(Timer) | 2(Dropdown) | 3(Ticker) | 6(Popup) | 7(Claim Button) | 9(Share/Facebook) | 8(LuckyCat)
  */
 
-// ========== MODULE 10: MAIN CORE (UNA) ==========
+// ========== MODULE 10: MAIN CORE (SIMPLE FIREBASE) ==========
 (function() {
     'use strict';
     
-    let userPhone = null;
-    let db = null;
-    let userRef = null;
+    // Simple variables
     let currentBalance = 0;
+    let currentUserPhone = null;
+    let database = null;
+    let userSessionRef = null;
     
-    window.PromotionModules = window.PromotionModules || {};
-    
-    async function init() {
-        console.log('🎁 Promotion System Starting...');
+    // Initialize agad
+    function init() {
+        console.log('🎯 Starting Promotion System...');
         
-        // FIX 1: Check localStorage FIRST
-        userPhone = localStorage.getItem("userPhone");
+        // Kunin ang phone number mula sa localStorage
+        currentUserPhone = localStorage.getItem("userPhone");
         
-        // FIX 2: Kung wala sa localStorage, check URL parameter
-        if (!userPhone) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const phoneFromUrl = urlParams.get('phone');
-            if (phoneFromUrl && phoneFromUrl.length === 11) {
-                userPhone = phoneFromUrl;
-                localStorage.setItem("userPhone", userPhone);
-                console.log('✅ Phone restored from URL:', userPhone);
-            }
-        }
-        
-        // FIX 3: Kung wala pa rin, redirect to index
-        if (!userPhone) {
-            console.warn('No phone found, redirecting to index.html');
+        // Check kung may phone number
+        if (!currentUserPhone) {
+            console.log('No phone number found, redirecting to index...');
             window.location.href = "index.html";
             return;
         }
         
-        console.log('Current user phone:', userPhone);
-        
-        // Display phone number
+        // Display ang phone number (naka-mask)
         const phoneDisplay = document.getElementById('userPhoneDisplay');
         if (phoneDisplay) {
-            const formatted = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
-            phoneDisplay.innerText = formatted;
+            const maskedPhone = currentUserPhone.substring(0, 4) + '***' + currentUserPhone.substring(7, 11);
+            phoneDisplay.innerText = maskedPhone;
         }
         
-        // Initialize Firebase
-        initFirebase();
-        
-        // FIX 4: AWAIT ang loadUserData BEFORE initializing other modules
-        await loadUserData();
-        
-        // Initialize all modules in order
-        if (window.TimerModule) window.TimerModule.init();
-        if (window.DropdownModule) window.DropdownModule.init();
-        if (window.TickerModule) window.TickerModule.init();
-        if (window.PopupModule) window.PopupModule.init();
-        if (window.ClaimButtonModule) window.ClaimButtonModule.init();
-        if (window.ShareModule) window.ShareModule.init();
-        if (window.LuckyCatModule) window.LuckyCatModule.init();
-        
-        console.log('✅ All systems ready! Balance:', currentBalance);
+        // Connect sa Firebase
+        connectToFirebase();
     }
     
-    function initFirebase() {
+    // Simple Firebase connection
+    function connectToFirebase() {
+        // Check kung may firebaseConfig (galing sa config.js)
         if (typeof firebaseConfig === 'undefined') {
-            console.error('firebaseConfig not found');
+            console.error('❌ firebaseConfig not found! Make sure config.js is loaded.');
+            showBalanceOnly();
             return;
         }
+        
         try {
+            // Initialize Firebase kung hindi pa
             if (!firebase.apps || !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
+                console.log('✅ Firebase initialized');
             }
-            db = firebase.database();
-            userRef = db.ref('user_sessions/' + userPhone);
-            console.log('Firebase connected for:', userPhone);
-        } catch(e) { console.error('Firebase error:', e); }
+            
+            database = firebase.database();
+            userSessionRef = database.ref('user_sessions/' + currentUserPhone);
+            
+            // Load user data
+            loadUserData();
+            
+            // Setup realtime balance listener
+            setupBalanceListener();
+            
+        } catch(e) {
+            console.error('❌ Firebase error:', e);
+            showBalanceOnly();
+        }
     }
     
-    async function loadUserData(retryCount = 0) {
-        if (!userRef) {
-            if (retryCount < 3) {
-                console.log(`Waiting for Firebase... retry ${retryCount + 1}`);
-                await new Promise(resolve => setTimeout(resolve, 500));
-                return loadUserData(retryCount + 1);
-            }
-            return;
-        }
-        
-        try {
-            const snapshot = await userRef.once('value');
-            const data = snapshot.val();
+    // Load or create user data
+    function loadUserData() {
+        userSessionRef.once('value', (snapshot) => {
+            const userData = snapshot.val();
             
-            if (data) {
-                currentBalance = data.balance || 0;
-                if (window.LuckyCatModule) window.LuckyCatModule.setClaimed(data.claimed_luckycat || false);
-                console.log('User data loaded - Balance:', currentBalance);
-            } else {
-                console.log('No user data, creating new record...');
+            if (!userData) {
+                // CREATE NEW USER
+                const newUser = {
+                    phone: currentUserPhone,
+                    balance: 0,
+                    claimed_luckycat: false,
+                    status: "active",
+                    created_at: Date.now()
+                };
+                userSessionRef.set(newUser);
                 currentBalance = 0;
-                await userRef.set({ 
-                    phone: userPhone, 
-                    balance: 0, 
-                    claimed_luckycat: false, 
-                    status: "active", 
-                    created_at: Date.now() 
-                });
-            }
-            updateBalanceDisplay();
-        } catch(e) { 
-            console.error('Firebase load error:', e);
-            if (retryCount < 3) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                return loadUserData(retryCount + 1);
-            }
-        }
-        
-        // Real-time balance listener
-        userRef.child('balance').on('value', (snapshot) => {
-            const balance = snapshot.val();
-            if (balance !== null && balance !== undefined) {
-                currentBalance = Number(balance);
                 updateBalanceDisplay();
+                console.log('✅ New user created');
+            } else {
+                // EXISTING USER
+                currentBalance = userData.balance || 0;
+                updateBalanceDisplay();
+                console.log('✅ User data loaded, balance: ₱' + currentBalance);
+            }
+        }).catch(error => {
+            console.error('Error loading user:', error);
+        });
+    }
+    
+    // Real-time balance listener
+    function setupBalanceListener() {
+        userSessionRef.child('balance').on('value', (snapshot) => {
+            const newBalance = snapshot.val();
+            if (newBalance !== null && newBalance !== undefined) {
+                currentBalance = Number(newBalance);
+                updateBalanceDisplay();
+                console.log('💰 Balance updated: ₱' + currentBalance);
             }
         });
     }
     
+    // Update UI displays
     function updateBalanceDisplay() {
+        // Main balance display
         const balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) balanceEl.innerText = currentBalance.toFixed(2);
+        if (balanceEl) {
+            balanceEl.innerText = currentBalance.toFixed(2);
+        }
+        
+        // Popup balance display
         const popupBalance = document.getElementById('popupBalanceAmount');
-        if (popupBalance) popupBalance.innerText = "₱" + currentBalance.toFixed(2);
+        if (popupBalance) {
+            popupBalance.innerText = "₱" + currentBalance.toFixed(2);
+        }
     }
     
-    function animateBalanceSlow(start, end, duration, callback) {
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    // Fallback kung walang Firebase (display lang)
+    function showBalanceOnly() {
+        const balanceEl = document.getElementById('userBalanceDisplay');
+        if (balanceEl) {
+            balanceEl.innerText = "0.00";
+        }
+        console.warn('⚠️ Running without Firebase - balance not saved');
+    }
+    
+    // Add to balance function (para magamit ng ibang modules)
+    function addToBalance(amount, slowAnimation = false) {
+        const oldBalance = currentBalance;
+        const newBalance = oldBalance + amount;
+        
+        if (slowAnimation) {
+            animateBalance(oldBalance, newBalance, 2000, () => {
+                currentBalance = newBalance;
+                if (userSessionRef) {
+                    userSessionRef.update({ 
+                        balance: currentBalance,
+                        last_update: Date.now()
+                    });
+                }
+                updateBalanceDisplay();
+            });
+        } else {
+            currentBalance = newBalance;
+            updateBalanceDisplay();
+            if (userSessionRef) {
+                userSessionRef.update({ balance: currentBalance });
+            }
+        }
+        
+        // Balance animation effect
+        const balanceEl = document.getElementById('userBalanceDisplay');
+        if (balanceEl) {
+            balanceEl.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                if (balanceEl) balanceEl.style.transform = 'scale(1)';
+            }, 200);
+        }
+    }
+    
+    // Slow animation for balance
+    function animateBalance(start, end, duration, callback) {
+        let startTime = null;
+        
+        function step(currentTime) {
+            if (!startTime) startTime = currentTime;
+            const progress = Math.min((currentTime - startTime) / duration, 1);
             const easeProgress = 1 - Math.pow(1 - progress, 3);
-            const val = Math.floor(easeProgress * (end - start) + start);
+            const currentValue = Math.floor(easeProgress * (end - start) + start);
             
             const balanceEl = document.getElementById('userBalanceDisplay');
-            if (balanceEl) balanceEl.innerText = val.toFixed(2);
+            if (balanceEl) balanceEl.innerText = currentValue.toFixed(2);
+            
             const popupBalance = document.getElementById('popupBalanceAmount');
-            if (popupBalance) popupBalance.innerText = "₱" + val.toFixed(2);
+            if (popupBalance) popupBalance.innerText = "₱" + currentValue.toFixed(2);
             
             if (progress < 1) {
                 requestAnimationFrame(step);
             } else {
                 if (callback) callback();
             }
-        };
+        }
+        
         requestAnimationFrame(step);
     }
     
-    function addToBalance(amount, slowAnimation = false) {
-        const oldBalance = currentBalance;
-        const newBalance = oldBalance + amount;
-        
-        if (slowAnimation) {
-            animateBalanceSlow(oldBalance, newBalance, 2000, () => {
-                currentBalance = newBalance;
-                if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
-            });
-        } else {
-            currentBalance = newBalance;
-            updateBalanceDisplay();
-            if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
-        }
-        
-        const balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) {
-            balanceEl.style.transform = 'scale(1.1)';
-            setTimeout(() => { if (balanceEl) balanceEl.style.transform = 'scale(1)'; }, 200);
-        }
-    }
-    
+    // Play sound effect
     function playSound(soundName) {
         const sounds = {
             scatter: new Audio('sounds/super_ace_scatter_ring.mp3'),
@@ -189,40 +205,42 @@ para sa share_and_earn.html
             invite: new Audio('sounds/invite.mp3'),
             success: new Audio('sounds/success.mp3')
         };
+        
         if (sounds[soundName]) {
             sounds[soundName].volume = 0.5;
             sounds[soundName].currentTime = 0;
-            sounds[soundName].play().catch(e => console.log(e));
+            sounds[soundName].play().catch(e => console.log('Sound error:', e));
         }
     }
     
-    // Export core functions
+    // Export para sa ibang modules
     window.PromotionCore = {
         addToBalance: addToBalance,
-        animateBalanceSlow: animateBalanceSlow,
         playSound: playSound,
         getBalance: () => currentBalance,
-        getUserPhone: () => userPhone,
-        getUserRef: () => userRef
+        getUserPhone: () => currentUserPhone,
+        getUserRef: () => userSessionRef,
+        getDb: () => database
     };
     
-    window.addEventListener('load', function() {
-        console.log('Window fully loaded, re-checking display...');
-        updateBalanceDisplay();
-        
-        // Force display phone number ulit
-        const phoneDisplay = document.getElementById('userPhoneDisplay');
-        if (phoneDisplay && userPhone) {
-            const formatted = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
-            if (phoneDisplay.innerText !== formatted) {
-                phoneDisplay.innerText = formatted;
-                console.log('Phone display forced update');
-    
+    // Start everything
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => init());
+        document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
+    
+    // Initialize other modules after main core
+    setTimeout(() => {
+        if (window.TimerModule) window.TimerModule.init();
+        if (window.DropdownModule) window.DropdownModule.init();
+        if (window.TickerModule) window.TickerModule.init();
+        if (window.PopupModule) window.PopupModule.init();
+        if (window.ClaimButtonModule) window.ClaimButtonModule.init();
+        if (window.ShareModule) window.ShareModule.init();
+        if (window.LuckyCatModule) window.LuckyCatModule.init();
+    }, 500);
+    
 })();
 
 // ========== MODULE 1: TIMER ==========
