@@ -404,29 +404,45 @@ window.ConfettiModule = (function() {
     return { start: start, stop: stop };
 })();
 
-// ========== MODULE 7: LUCKY CAT (ADDED - PRIORITY) ==========
+// ========== MODULE 7: LUCKY CAT (FIXED - MAY LOAD CHECK) ==========
 window.LuckyCatModule = (function() {
     'use strict';
     
     let leftCard = null;
     let leftReward = null;
+    let leftLabel = null;  // <- BAGO: para sa "YOU GET" / "YOU ALREADY"
     let luckyCatStatus = null;
     let isClaimed = false;
-    let claimInProgress = false;  // Anti-refresh / Anti-multiple claim
+    let claimInProgress = false;
     
     function init() {
         leftCard = document.getElementById('leftCard');
         leftReward = document.getElementById('leftRewardAmount');
+        leftLabel = document.querySelector('#leftCard .prize-label');  // <- BAGO
         luckyCatStatus = document.getElementById('luckyCatStatus');
         
+        // AGAD I-DISPLAY ANG DEFAULT (para hindi blank)
+        if (leftReward) {
+            leftReward.innerHTML = '+₱150';
+            leftReward.style.fontSize = '18px';
+            leftReward.style.color = '#ffd700';
+            leftReward.style.fontWeight = 'bold';
+        }
+        
+        if (leftLabel && !isClaimed) {
+            leftLabel.innerHTML = 'YOU GET';
+        }
+        
         if (leftCard) {
-            // Clean and setup fresh listener
             const newCard = leftCard.cloneNode(true);
             leftCard.parentNode.replaceChild(newCard, leftCard);
             leftCard = newCard;
             leftCard.addEventListener('click', handleClaim);
             
-            // Video sound on first click only
+            // Re-get elements after clone
+            leftReward = document.getElementById('leftRewardAmount');
+            leftLabel = document.querySelector('#leftCard .prize-label');
+            
             const leftVideo = document.getElementById('leftCatVideo');
             if (leftVideo) {
                 leftCard.addEventListener('click', function() {
@@ -439,28 +455,64 @@ window.LuckyCatModule = (function() {
             }
         }
         
-        // Update UI based on saved state
-        updateUI();
-        console.log('✅ LuckyCat Module ready');
+        // ✅ Tumawag agad sa Firebase para malaman kung claimed na
+        checkClaimStatusFromFirebase();
+        
+        console.log('✅ LuckyCat Module ready - checking claim status...');
+    }
+    
+    // ✅ Nagche-check sa Firebase pag-load ng page
+    async function checkClaimStatusFromFirebase() {
+        console.log('🔍 Checking LuckyCat claim status from Firebase...');
+        
+        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
+        
+        if (!userRef) {
+            console.log('⏳ Waiting for Firebase reference...');
+            setTimeout(checkClaimStatusFromFirebase, 500);
+            return;
+        }
+        
+        try {
+            const snapshot = await userRef.once('value');
+            const data = snapshot.val();
+            
+            if (data) {
+                const claimed = data.claimed_luckycat === true;
+                console.log('📊 Firebase data:', { claimed: claimed, balance: data.balance });
+                
+                if (claimed) {
+                    isClaimed = true;
+                    console.log('✅ LuckyCat is already CLAIMED from Firebase');
+                } else {
+                    isClaimed = false;
+                    console.log('✅ LuckyCat is AVAILABLE');
+                }
+                updateUI();
+            } else {
+                console.log('New user - LuckyCat is AVAILABLE');
+                isClaimed = false;
+                updateUI();
+            }
+        } catch(error) {
+            console.error('Error checking claim status:', error);
+        }
     }
     
     function handleClaim(e) {
         e.preventDefault();
         e.stopPropagation();
         
-        // PRIORITY CHECK #1: Already claimed?
         if (isClaimed) {
             alert("You have already claimed the Lucky Cat bonus!");
             return;
         }
         
-        // PRIORITY CHECK #2: Claim in progress?
         if (claimInProgress) {
             alert("Please wait, processing your claim...");
             return;
         }
         
-        // PRIORITY CHECK #3: Double check Firebase
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
         if (userRef) {
             userRef.once('value', (snapshot) => {
@@ -481,32 +533,26 @@ window.LuckyCatModule = (function() {
     function processClaim() {
         claimInProgress = true;
         
-        // Disable card immediately
         if (leftCard) {
             leftCard.style.pointerEvents = 'none';
             leftCard.style.opacity = '0.8';
         }
         
-        // Play sound
         if (window.PromotionCore) {
             window.PromotionCore.playSound('claim');
         }
         
-        // Start confetti
         if (window.ConfettiModule) {
             window.ConfettiModule.start();
         }
         
-        // Add balance with SLOW animation (2 seconds)
         if (window.PromotionCore) {
-            window.PromotionCore.addToBalance(150, true);  // true = slow animation
+            window.PromotionCore.addToBalance(150, true);
         }
         
-        // Update state
         isClaimed = true;
         updateUI();
         
-        // Save to Firebase
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
         if (userRef) {
             userRef.update({ 
@@ -515,38 +561,54 @@ window.LuckyCatModule = (function() {
             }).catch(e => console.error('Firebase save error:', e));
         }
         
-        // Save to localStorage (backup)
         const userPhone = window.PromotionCore ? window.PromotionCore.getUserPhone() : null;
         if (userPhone) {
             localStorage.setItem(`${userPhone}_claimed_luckycat`, 'true');
         }
         
-        // Success message
         setTimeout(() => {
             alert("🎉 Congratulations! You received ₱150 bonus!");
         }, 500);
         
-        // Reset lock after everything
         setTimeout(() => {
             claimInProgress = false;
         }, 2500);
     }
     
     function updateUI() {
+        // ✅ UPDATE LABEL: "YOU GET" → "YOU ALREADY" kapag claimed
+        if (leftLabel) {
+            if (isClaimed) {
+                leftLabel.innerHTML = 'YOU ALREADY';
+                leftLabel.style.color = '#ffd700';
+                leftLabel.style.fontSize = '10px';
+            } else {
+                leftLabel.innerHTML = 'YOU GET';
+                leftLabel.style.color = '#ffd966';
+                leftLabel.style.fontSize = '11px';
+            }
+        }
+        
+        // ✅ UPDATE REWARD DISPLAY: "+₱150" → "CLAIMED" kapag claimed
         if (leftReward) {
             if (isClaimed) {
                 leftReward.innerHTML = 'CLAIMED';
                 leftReward.style.fontSize = '12px';
                 leftReward.style.letterSpacing = '2px';
                 leftReward.style.color = '#ffd700';
+                leftReward.style.fontWeight = 'bold';
+                leftReward.style.animation = 'none';
             } else {
-                leftReward.innerHTML = '₱150';
-                leftReward.style.fontSize = '';
-                leftReward.style.letterSpacing = '';
-                leftReward.style.color = '';
+                leftReward.innerHTML = '+₱150';
+                leftReward.style.fontSize = '18px';
+                leftReward.style.letterSpacing = 'normal';
+                leftReward.style.color = '#ffd700';
+                leftReward.style.fontWeight = 'bold';
+                leftReward.style.animation = 'pulse-attract 1.5s infinite';
             }
         }
         
+        // ✅ UPDATE CARD STYLE
         if (leftCard) {
             if (isClaimed) {
                 leftCard.classList.add('prize-card-claimed');
@@ -554,15 +616,18 @@ window.LuckyCatModule = (function() {
                 leftCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8), inset 0 0 10px rgba(255,215,0,0.3)';
                 leftCard.style.cursor = 'default';
                 leftCard.style.pointerEvents = 'none';
+                leftCard.style.animation = 'none';
             } else {
                 leftCard.classList.remove('prize-card-claimed');
                 leftCard.style.border = '';
                 leftCard.style.boxShadow = '';
                 leftCard.style.cursor = 'pointer';
                 leftCard.style.pointerEvents = 'auto';
+                leftCard.style.animation = 'card-attract 1.5s ease-in-out infinite';
             }
         }
         
+        // ✅ UPDATE STATUS TEXT
         if (luckyCatStatus) {
             if (isClaimed) {
                 luckyCatStatus.innerText = "Claimed";
@@ -586,7 +651,8 @@ window.LuckyCatModule = (function() {
     return { 
         init: init, 
         setClaimed: setClaimed, 
-        getClaimed: getClaimed 
+        getClaimed: getClaimed,
+        checkClaimStatusFromFirebase: checkClaimStatusFromFirebase
     };
 })();
 
