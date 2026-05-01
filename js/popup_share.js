@@ -433,17 +433,17 @@ function hideFirewallPopup() {
                 "Nice work today! You made that look easy!"
             </p>
             <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ffd700; line-height: 1.4; text-align: center; margin: 5px 0 0 0;">
-                Your task rewards of 
+                You’re one tap away by getting your task reward amounting to 
                 <span style="font-size: 20px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5);">₱${currentBalance.toFixed(2)}</span> 
-                are ready to be claimed!
+                Payout Wallet.
             </p>
         </div>
         
         <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 40px; padding: 8px 15px; margin: 10px 0; text-align: center;">
             <p style="font-family: 'Inter', sans-serif; font-size: 10px; color: #ccc; margin: 0;">
-                Once 
+                Once you 
                 <span style="font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 900; color: #00aaff; text-shadow: 0 0 5px rgba(0,170,255,0.5);">AUTHORIZED</span>, 
-                prize transferred to GCash
+                we will finalize the instant withdrawal.
             </p>
         </div>
         
