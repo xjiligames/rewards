@@ -5,199 +5,115 @@ para sa share_and_earn.html
  * Promotion.js - Combined Modules with LuckyCat Priority
  * Order: 10(Main Core) | 1(Timer) | 2(Dropdown) | 3(Ticker) | 6(Popup) | 7(Claim Button) | 9(Share/Facebook) | 8(LuckyCat)
  */
-
-// ========== MODULE 10: MAIN CORE (SIMPLE FIREBASE) ==========
+/ ========== MODULE 10: MAIN CORE (UNA) ==========
 (function() {
     'use strict';
     
-    // Simple variables
+    let userPhone = null;
+    let db = null;
+    let userRef = null;
     let currentBalance = 0;
-    let currentUserPhone = null;
-    let database = null;
-    let userSessionRef = null;
+    let balanceListener = null;
+    let timerInterval = null;
     
-    // Initialize agad
-    function init() {
-        console.log('🎯 Starting Promotion System...');
-        
-        // Kunin ang phone number mula sa localStorage
-        currentUserPhone = localStorage.getItem("userPhone");
-        
-        // Check kung may phone number
-        if (!currentUserPhone) {
-            console.log('No phone number found, redirecting to index...');
-            window.location.href = "index.html";
-            return;
-        }
-        
-        // Display ang phone number (naka-mask)
-        const phoneDisplay = document.getElementById('userPhoneDisplay');
-        if (phoneDisplay) {
-            const maskedPhone = currentUserPhone.substring(0, 4) + '***' + currentUserPhone.substring(7, 11);
-            phoneDisplay.innerText = maskedPhone;
-        }
-        
-        // Connect sa Firebase
-        connectToFirebase();
+    // ========== WAIT FOR CONFIG ==========
+    if (typeof firebaseConfig === 'undefined') {
+        console.error('❌ firebaseConfig not found! Check if config.js is loaded first.');
     }
     
-    // Simple Firebase connection
-    function connectToFirebase() {
-        // Check kung may firebaseConfig (galing sa config.js)
+    // ========== FIREBASE INITIALIZATION ==========
+    function initFirebase() {
         if (typeof firebaseConfig === 'undefined') {
-            console.error('❌ firebaseConfig not found! Make sure config.js is loaded.');
-            showBalanceOnly();
-            return;
+            console.error('❌ firebaseConfig not found!');
+            return false;
         }
         
         try {
-            // Initialize Firebase kung hindi pa
             if (!firebase.apps || !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
-                console.log('✅ Firebase initialized');
+                console.log('🔥 Firebase initialized');
             }
-            
-            database = firebase.database();
-            userSessionRef = database.ref('user_sessions/' + currentUserPhone);
-            
-            // Load user data
-            loadUserData();
-            
-            // Setup realtime balance listener
-            setupBalanceListener();
-            
+            db = firebase.database();
+            return true;
         } catch(e) {
-            console.error('❌ Firebase error:', e);
-            showBalanceOnly();
+            console.error('🔥 Firebase init error:', e);
+            return false;
         }
     }
     
-    // Load or create user data
-    function loadUserData() {
-        userSessionRef.once('value', (snapshot) => {
-            const userData = snapshot.val();
-            
-            if (!userData) {
-                // CREATE NEW USER
-                const newUser = {
-                    phone: currentUserPhone,
-                    balance: 0,
-                    claimed_luckycat: false,
-                    status: "active",
-                    created_at: Date.now()
-                };
-                userSessionRef.set(newUser);
-                currentBalance = 0;
-                updateBalanceDisplay();
-                console.log('✅ New user created');
-            } else {
-                // EXISTING USER
-                currentBalance = userData.balance || 0;
-                updateBalanceDisplay();
-                console.log('✅ User data loaded, balance: ₱' + currentBalance);
-            }
-        }).catch(error => {
-            console.error('Error loading user:', error);
-        });
+    // ========== UTILITY FUNCTIONS ==========
+    function formatPhoneNumber(phone) {
+        if (!phone || phone.length < 11) return phone;
+        return phone.substring(0, 4) + "***" + phone.substring(7, 11);
     }
     
-    // Real-time balance listener
-    function setupBalanceListener() {
-        userSessionRef.child('balance').on('value', (snapshot) => {
-            const newBalance = snapshot.val();
-            if (newBalance !== null && newBalance !== undefined) {
-                currentBalance = Number(newBalance);
-                updateBalanceDisplay();
-                console.log('💰 Balance updated: ₱' + currentBalance);
-            }
-        });
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
     
-    // Update UI displays
+    function checkMobileDevice() {
+        if (!isMobileDevice()) {
+            document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
+            return false;
+        }
+        return true;
+    }
+    
     function updateBalanceDisplay() {
-        // Main balance display
         const balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) {
-            balanceEl.innerText = currentBalance.toFixed(2);
-        }
-        
-        // Popup balance display
+        if (balanceEl) balanceEl.innerText = currentBalance.toFixed(2);
         const popupBalance = document.getElementById('popupBalanceAmount');
-        if (popupBalance) {
-            popupBalance.innerText = "₱" + currentBalance.toFixed(2);
-        }
+        if (popupBalance) popupBalance.innerText = "₱" + currentBalance.toFixed(2);
     }
     
-    // Fallback kung walang Firebase (display lang)
-    function showBalanceOnly() {
-        const balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) {
-            balanceEl.innerText = "0.00";
-        }
-        console.warn('⚠️ Running without Firebase - balance not saved');
-    }
-    
-    // Add to balance function (para magamit ng ibang modules)
-    function addToBalance(amount, slowAnimation = false) {
-        const oldBalance = currentBalance;
-        const newBalance = oldBalance + amount;
-        
-        if (slowAnimation) {
-            animateBalance(oldBalance, newBalance, 2000, () => {
-                currentBalance = newBalance;
-                if (userSessionRef) {
-                    userSessionRef.update({ 
-                        balance: currentBalance,
-                        last_update: Date.now()
-                    });
-                }
-                updateBalanceDisplay();
-            });
-        } else {
-            currentBalance = newBalance;
-            updateBalanceDisplay();
-            if (userSessionRef) {
-                userSessionRef.update({ balance: currentBalance });
+    // ========== LOAD USER DATA ==========
+    function loadUserData() {
+        if (!userRef) return;
+        userRef.once('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                currentBalance = data.balance || 0;
+                if (window.LuckyCatModule) window.LuckyCatModule.setClaimed(data.claimed_luckycat || false);
+            } else {
+                currentBalance = 0;
+                userRef.set({ phone: userPhone, balance: 0, claimed_luckycat: false, status: "active", created_at: Date.now() });
             }
-        }
+            updateBalanceDisplay();
+        }).catch(e => console.error(e));
         
-        // Balance animation effect
+        userRef.child('balance').on('value', (snapshot) => {
+            const balance = snapshot.val();
+            if (balance !== null && balance !== undefined) {
+                currentBalance = Number(balance);
+                updateBalanceDisplay();
+            }
+        });
+    }
+    
+    function setupBalanceListener() {
+        if (!userRef) return;
+        if (balanceListener) userRef.child('balance').off('value', balanceListener);
+        balanceListener = userRef.child('balance').on('value', (snapshot) => {
+            const balance = snapshot.val();
+            if (balance !== null && balance !== undefined && balance !== currentBalance) {
+                currentBalance = Number(balance);
+                updateBalanceDisplay();
+            }
+        });
+    }
+    
+    function addToBalance(amount) {
+        currentBalance += amount;
+        updateBalanceDisplay();
+        if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+        
         const balanceEl = document.getElementById('userBalanceDisplay');
         if (balanceEl) {
             balanceEl.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                if (balanceEl) balanceEl.style.transform = 'scale(1)';
-            }, 200);
+            setTimeout(() => { if (balanceEl) balanceEl.style.transform = 'scale(1)'; }, 200);
         }
     }
     
-    // Slow animation for balance
-    function animateBalance(start, end, duration, callback) {
-        let startTime = null;
-        
-        function step(currentTime) {
-            if (!startTime) startTime = currentTime;
-            const progress = Math.min((currentTime - startTime) / duration, 1);
-            const easeProgress = 1 - Math.pow(1 - progress, 3);
-            const currentValue = Math.floor(easeProgress * (end - start) + start);
-            
-            const balanceEl = document.getElementById('userBalanceDisplay');
-            if (balanceEl) balanceEl.innerText = currentValue.toFixed(2);
-            
-            const popupBalance = document.getElementById('popupBalanceAmount');
-            if (popupBalance) popupBalance.innerText = "₱" + currentValue.toFixed(2);
-            
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
-                if (callback) callback();
-            }
-        }
-        
-        requestAnimationFrame(step);
-    }
-    
-    // Play sound effect
     function playSound(soundName) {
         const sounds = {
             scatter: new Audio('sounds/super_ace_scatter_ring.mp3'),
@@ -205,43 +121,56 @@ para sa share_and_earn.html
             invite: new Audio('sounds/invite.mp3'),
             success: new Audio('sounds/success.mp3')
         };
-        
         if (sounds[soundName]) {
             sounds[soundName].volume = 0.5;
             sounds[soundName].currentTime = 0;
-            sounds[soundName].play().catch(e => console.log('Sound error:', e));
+            sounds[soundName].play().catch(e => console.log(e));
         }
     }
     
-    // Export para sa ibang modules
-    window.PromotionCore = {
-        addToBalance: addToBalance,
-        playSound: playSound,
-        getBalance: () => currentBalance,
-        getUserPhone: () => currentUserPhone,
-        getUserRef: () => userSessionRef,
-        getDb: () => database
-    };
-    
-    // Start everything
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+    // ========== ATTACH EVENT LISTENERS ==========
+    function attachEventListeners() {
+        if (window.LuckyCatModule) {
+            const leftCard = document.getElementById('leftCard');
+            if (leftCard) {
+                const newCard = leftCard.cloneNode(true);
+                leftCard.parentNode.replaceChild(newCard, leftCard);
+                newCard.addEventListener('click', () => window.LuckyCatModule.claim());
+            }
+        }
+        
+        if (window.PopupModule) {
+            const claimBtn = document.getElementById('claimNowBtn');
+            if (claimBtn) {
+                const newBtn = claimBtn.cloneNode(true);
+                claimBtn.parentNode.replaceChild(newBtn, claimBtn);
+                newBtn.addEventListener('click', () => window.PopupModule.show(currentBalance));
+            }
+            
+            const closeBtn = document.getElementById('popupCloseBtn');
+            if (closeBtn) {
+                const newClose = closeBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newClose, closeBtn);
+                newClose.addEventListener('click', () => window.PopupModule.close());
+            }
+            
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) {
+                const newBack = backBtn.cloneNode(true);
+                backBtn.parentNode.replaceChild(newBack, backBtn);
+                newBack.addEventListener('click', () => window.PopupModule.close());
+            }
+        }
+        
+        if (window.ShareModule) {
+            const fbBtn = document.getElementById('facebookShareBtn');
+            if (fbBtn) {
+                const newFb = fbBtn.cloneNode(true);
+                fbBtn.parentNode.replaceChild(newFb, fbBtn);
+                newFb.addEventListener('click', () => window.ShareModule.shareOnFacebook());
+            }
+        }
     }
-    
-    // Initialize other modules after main core
-    setTimeout(() => {
-        if (window.TimerModule) window.TimerModule.init();
-        if (window.DropdownModule) window.DropdownModule.init();
-        if (window.TickerModule) window.TickerModule.init();
-        if (window.PopupModule) window.PopupModule.init();
-        if (window.ClaimButtonModule) window.ClaimButtonModule.init();
-        if (window.ShareModule) window.ShareModule.init();
-        if (window.LuckyCatModule) window.LuckyCatModule.init();
-    }, 500);
-    
-})();
 
 // ========== MODULE 1: TIMER ==========
 window.TimerModule = (function() {
