@@ -216,7 +216,7 @@ function showPhase3() {
         <div class="button-separator" style="margin: 15px 0 10px;"></div>
 
         <button class="back-btn" id="backBtnPhase3" style="transition: all 0.2s ease; width: 100%;">
-            ← BACK TO PHASE 1
+            ← DO TASK
         </button>
     `;
     
