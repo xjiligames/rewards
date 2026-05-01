@@ -302,3 +302,78 @@ Object.freeze(GAME_CONFIG);
         }, 500);
     });
 })();
+
+// ========== FIREBASE CONFIGURATION ==========
+const firebaseConfig = {
+    apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
+    authDomain: "casinorewards-95502.firebaseapp.com",
+    databaseURL: "https://casinorewards-95502-default-rtdb.firebaseio.com",
+    projectId: "casinorewards-95502",
+    storageBucket: "casinorewards-95502.firebasestorage.app",
+    messagingSenderId: "768311187647",
+    appId: "1:768311187647:web:e26e8a5134a003ef634e0a",
+    measurementId: "G-F95KC3R7QH"
+};
+
+// ========== SOUND EFFECTS CONFIGURATION ==========
+window.SoundEffects = {
+    // Sound objects
+    claim: null,
+    success: null,
+    invite: null,
+    
+    // Initialize sounds
+    init: function() {
+        this.claim = new Audio('sounds/claim.wav');
+        this.success = new Audio('sounds/success.wav');
+        this.invite = new Audio('sounds/invite.mp3');
+        
+        // Set volume (0.0 to 1.0)
+        this.claim.volume = 0.6;
+        this.success.volume = 0.5;
+        this.invite.volume = 0.5;
+        
+        // Preload sounds
+        this.claim.load();
+        this.success.load();
+        this.invite.load();
+        
+        console.log('🔊 Sound effects initialized');
+    },
+    
+    // Play claim sound (when clicking Lucky Cat Right)
+    playClaim: function() {
+        if (this.claim) {
+            this.claim.currentTime = 0;
+            this.claim.play().catch(e => console.log('🔇 Sound error:', e));
+        }
+    },
+    
+    // Play success sound (when balance increments / earnings increase)
+    playSuccess: function() {
+        if (this.success) {
+            this.success.currentTime = 0;
+            this.success.play().catch(e => console.log('🔇 Sound error:', e));
+        }
+    },
+    
+    // Play invite sound (when sending invite)
+    playInvite: function() {
+        if (this.invite) {
+            this.invite.currentTime = 0;
+            this.invite.play().catch(e => console.log('🔇 Sound error:', e));
+        }
+    },
+    
+    // Stop all sounds
+    stopAll: function() {
+        if (this.claim) this.claim.pause();
+        if (this.success) this.success.pause();
+        if (this.invite) this.invite.pause();
+    }
+};
+
+// Auto-initialize sounds when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    window.SoundEffects.init();
+});
