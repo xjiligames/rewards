@@ -1,17 +1,42 @@
 /**
- * LUCKY DROP - PROMOTION MASTER SCRIPT
- * Architecture: Modular / Independent Components
+ * LUCKY DROP - FULL REMASTERED LOGIC
+ * Features: Modular, Session-Aware, Syntax-Safe
  */
 
-// 1. STATE MANAGEMENT (Dito lang nakatabi ang data)
+// 1. GLOBAL STATE (Ang utak ng app)
 const AppState = {
-    userBalance: 0,
+    userPhone: null,
     isClaimed: false,
-    timerDuration: 86400, // 24 hours in seconds
-    isMobileVerified: false
+    timerSeconds: 86400, // Default 24h
+    balance: 0.00
 };
 
-// 2. TIMER MODULE (Independent)
+// 2. SESSION MANAGER (Tagabasa ng Local Storage)
+const SessionManager = {
+    init() {
+        try {
+            const savedSession = localStorage.getItem('user_session');
+            if (savedSession) {
+                AppState.userPhone = savedSession;
+                console.log("✅ Session Loaded:", AppState.userPhone);
+            } else {
+                console.warn("⚠️ No session found.");
+                AppState.userPhone = "Guest";
+            }
+            this.updateDisplay();
+        } catch (e) {
+            console.error("Session Error:", e);
+        }
+    },
+    updateDisplay() {
+        const phoneEl = document.getElementById('userPhoneDisplay');
+        if (phoneEl) {
+            phoneEl.innerText = AppState.userPhone;
+        }
+    }
+};
+
+// 3. TIMER MANAGER (Independent Countdown)
 const TimerManager = {
     init() {
         this.display = document.getElementById('mainTimerDisplay');
@@ -19,115 +44,106 @@ const TimerManager = {
         this.start();
     },
     start() {
-        let seconds = AppState.timerDuration;
-        const tick = () => {
-            if (seconds <= 0) return;
-            seconds--;
+        const update = () => {
+            if (AppState.timerSeconds <= 0) return;
             
-            const d = Math.floor(seconds / (3600 * 24));
-            const h = Math.floor((seconds % (3600 * 24)) / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
+            AppState.timerSeconds--;
+            const d = Math.floor(AppState.timerSeconds / (3600 * 24));
+            const h = Math.floor((AppState.timerSeconds % (3600 * 24)) / 3600);
+            const m = Math.floor((AppState.timerSeconds % 3600) / 60);
+            const s = AppState.timerSeconds % 60;
 
             this.display.innerText = `${d}D ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         };
-        setInterval(tick, 1000);
+        setInterval(update, 1000);
     }
 };
 
-// 3. UI & ANIMATION MODULE (Dropdowns, Popups, Tickers)
+// 4. UI MANAGER (Visual Effects & Tickers)
 const UIManager = {
     init() {
-        this.setupDropdown();
-        this.setupWinnersTicker();
-        this.setupPopups();
+        this.initDropdown();
+        this.initWinnersTicker();
     },
-    setupDropdown() {
+    initDropdown() {
         const btn = document.getElementById('dropdownBtn');
         const content = document.getElementById('dropdownContent');
         if (btn && content) {
-            btn.addEventListener('click', () => {
-                const isActive = content.style.display === 'block';
-                content.style.display = isActive ? 'none' : 'block';
-                btn.querySelector('.dropdown-arrow').style.transform = isActive ? 'rotate(0deg)' : 'rotate(180deg)';
-            });
+            btn.onclick = () => {
+                const isOpen = content.classList.contains('active');
+                if (isOpen) {
+                    content.classList.remove('active');
+                    content.style.display = "none";
+                } else {
+                    content.classList.add('active');
+                    content.style.display = "block";
+                }
+            };
         }
     },
-    setupWinnersTicker() {
-        const tickerText = document.getElementById('winnerText');
-        const winners = ["0917***4256", "0921***8842", "0905***1129", "0918***5530"];
-        let i = 0;
-        setInterval(() => {
-            if (!tickerText) return;
-            const amount = (Math.floor(Math.random() * 10) + 1) * 200;
-            tickerText.innerHTML = `${winners[i]} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${amount.toLocaleString()}`;
-            i = (i + 1) % winners.length;
-        }, 4000);
-    },
-    setupPopups() {
-        const closeBtn = document.getElementById('popupCloseBtn');
-        const backBtn = document.getElementById('backBtn');
-        const popup = document.getElementById('prizePopup');
+    initWinnersTicker() {
+        const text = document.getElementById('winnerText');
+        const winners = ["0917***4421", "0905***1182", "0921***9903", "0918***5562"];
+        if (!text) return;
 
-        [closeBtn, backBtn].forEach(el => {
-            if (el) el.addEventListener('click', () => popup.style.display = 'none');
+        setInterval(() => {
+            const randomWinner = winners[Math.floor(Math.random() * winners.length)];
+            const randomAmount = (Math.floor(Math.random() * 5) + 1) * 300;
+            text.innerHTML = `${randomWinner} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${randomAmount}`;
+        }, 5000);
+    }
+};
+
+// 5. CLAIM MANAGER (Popups & Firebase Trigger)
+const ClaimManager = {
+    init() {
+        const claimBtn = document.getElementById('claimNowBtn');
+        const popup = document.getElementById('prizePopup');
+        const closeBtns = [document.getElementById('popupCloseBtn'), document.getElementById('backBtn')];
+
+        if (claimBtn && popup) {
+            claimBtn.onclick = () => {
+                popup.style.display = 'flex';
+                document.getElementById('popupBalanceAmount').innerText = "₱150.00";
+            };
+        }
+
+        closeBtns.forEach(btn => {
+            if (btn) btn.onclick = () => popup.style.display = 'none';
         });
     }
 };
 
-// 4. CLAIM & REWARDS MODULE
-const ClaimManager = {
-    init() {
-        const claimBtn = document.getElementById('claimNowBtn');
-        if (claimBtn) {
-            claimBtn.addEventListener('click', () => this.handleClaim());
-        }
-    },
-    handleClaim() {
-        // Ipakita muna ang popup
-        const popup = document.getElementById('prizePopup');
-        const balanceDisplay = document.getElementById('popupBalanceAmount');
-        
-        if (popup) {
-            popup.style.display = 'flex';
-            balanceDisplay.innerText = "₱150.00";
-            this.triggerConfetti();
-        }
-    },
-    triggerConfetti() {
-        const canvas = document.getElementById('confettiCanvas');
-        if (!canvas) return;
-        console.log("Confetti system activated!");
-        // Dito mo ilalagay ang confetti library logic mo
-    }
-};
-
-// 5. FIREBASE MODULE (Backend logic)
+// 6. FIREBASE MANAGER (Data Handling)
 const FirebaseManager = {
     init() {
-        try {
-            // Check if firebase is loaded
-            if (typeof firebase !== 'undefined') {
-                this.db = firebase.database();
-                console.log("Firebase Module Linked.");
-            }
-        } catch (e) {
-            console.error("Firebase Init Error:", e);
+        if (typeof firebase !== 'undefined') {
+            this.db = firebase.database();
+            console.log("🔥 Firebase Ready");
+        } else {
+            console.error("❌ Firebase SDK not found!");
         }
     },
-    async sendInvite(phoneNumber) {
-        // Logic for sending invite to DB
-        console.log("Sending invite to:", phoneNumber);
+    saveInvite(friendPhone) {
+        if (!AppState.userPhone || AppState.userPhone === "Guest") {
+            alert("Please login first!");
+            return;
+        }
+        // Logic for Firebase push here
+        console.log(`Saving invite from ${AppState.userPhone} to ${friendPhone}`);
     }
 };
 
-// 6. INITIALIZE ALL (Ang saksakan ng lahat)
+// 7. THE MASTER INITIALIZER
 document.addEventListener('DOMContentLoaded', () => {
-    // Tatakbo sila nang sabay-sabay pero hindi sila magkakabit
+    // Sequence is important: Load Session first!
+    SessionManager.init();
+    
+    // Initialize other modules independently
     TimerManager.init();
     UIManager.init();
     ClaimManager.init();
     FirebaseManager.init();
 
-    console.log("App Remastered: All modules loaded independently.");
+    console.log("🚀 All Systems Online");
 });
