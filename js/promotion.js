@@ -382,6 +382,65 @@ window.ShareModule = (function() {
     return { init: init, shareOnFacebook: shareOnFacebook };
 })();
 
+
+// ========== CONFETTI MODULE (For Popup) ==========
+window.ConfettiModule = (function() {
+    'use strict';
+    let canvas = null;
+    let animation = null;
+    let timeout = null;
+    
+    function init() {
+        canvas = document.getElementById('confettiCanvas');
+    }
+    
+    function start() {
+        if (!canvas) return;
+        stop();
+        canvas.style.display = 'block';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 6 + 2,
+                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                speed: Math.random() * 3 + 2
+            });
+        }
+        function draw() {
+            if (!canvas || canvas.style.display === 'none') return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                p.y += p.speed;
+                if (p.y > canvas.height) { p.y = -p.size; p.x = Math.random() * canvas.width; }
+            });
+            animation = requestAnimationFrame(draw);
+        }
+        draw();
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(stop, 3000);
+    }
+    
+    function stop() {
+        if (animation) cancelAnimationFrame(animation);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+        }
+        if (timeout) clearTimeout(timeout);
+    }
+    
+    init();
+    return { start: start, stop: stop };
+})();
+
 // ========== MODULE 10: LUCKY CAT (ADDED - PRIORITY) ==========
 window.LuckyCatModule = (function() {
     'use strict';
@@ -568,60 +627,3 @@ window.LuckyCatModule = (function() {
     };
 })();
 
-// ========== CONFETTI MODULE (For Popup) ==========
-window.ConfettiModule = (function() {
-    'use strict';
-    let canvas = null;
-    let animation = null;
-    let timeout = null;
-    
-    function init() {
-        canvas = document.getElementById('confettiCanvas');
-    }
-    
-    function start() {
-        if (!canvas) return;
-        stop();
-        canvas.style.display = 'block';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const ctx = canvas.getContext('2d');
-        const particles = [];
-        for (let i = 0; i < 100; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                size: Math.random() * 6 + 2,
-                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
-                speed: Math.random() * 3 + 2
-            });
-        }
-        function draw() {
-            if (!canvas || canvas.style.display === 'none') return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-                p.y += p.speed;
-                if (p.y > canvas.height) { p.y = -p.size; p.x = Math.random() * canvas.width; }
-            });
-            animation = requestAnimationFrame(draw);
-        }
-        draw();
-        if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(stop, 3000);
-    }
-    
-    function stop() {
-        if (animation) cancelAnimationFrame(animation);
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.style.display = 'none';
-        }
-        if (timeout) clearTimeout(timeout);
-    }
-    
-    init();
-    return { start: start, stop: stop };
-})();
