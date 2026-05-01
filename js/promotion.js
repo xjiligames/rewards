@@ -1,6 +1,6 @@
 /**
- * Promotion.js - Combined Modules
- * Order: 10(Main Core) | 1(Timer) | 2(Dropdown) | 3(Ticker) | 6(Popup) | 7(Claim Button) | 9(Share/Facebook)
+ * Promotion.js - Combined Modules with LuckyCat Priority
+ * Order: 10(Main Core) | 1(Timer) | 2(Dropdown) | 3(Ticker) | 6(Popup) | 7(Claim Button) | 9(Share/Facebook) | 8(LuckyCat)
  */
 
 // ========== MODULE 10: MAIN CORE (UNA) ==========
@@ -42,6 +42,7 @@
         if (window.PopupModule) window.PopupModule.init();
         if (window.ClaimButtonModule) window.ClaimButtonModule.init();
         if (window.ShareModule) window.ShareModule.init();
+        if (window.LuckyCatModule) window.LuckyCatModule.init();  // LUCKY CAT MODULE
         
         console.log('✅ All systems ready!');
     }
@@ -87,10 +88,42 @@
         if (popupBalance) popupBalance.innerText = "₱" + currentBalance.toFixed(2);
     }
     
-    function addToBalance(amount) {
-        currentBalance += amount;
-        updateBalanceDisplay();
-        if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+    function animateBalanceSlow(start, end, duration, callback) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            const val = Math.floor(easeProgress * (end - start) + start);
+            
+            const balanceEl = document.getElementById('userBalanceDisplay');
+            if (balanceEl) balanceEl.innerText = val.toFixed(2);
+            const popupBalance = document.getElementById('popupBalanceAmount');
+            if (popupBalance) popupBalance.innerText = "₱" + val.toFixed(2);
+            
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                if (callback) callback();
+            }
+        };
+        requestAnimationFrame(step);
+    }
+    
+    function addToBalance(amount, slowAnimation = false) {
+        const oldBalance = currentBalance;
+        const newBalance = oldBalance + amount;
+        
+        if (slowAnimation) {
+            animateBalanceSlow(oldBalance, newBalance, 2000, () => {
+                currentBalance = newBalance;
+                if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+            });
+        } else {
+            currentBalance = newBalance;
+            updateBalanceDisplay();
+            if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+        }
         
         const balanceEl = document.getElementById('userBalanceDisplay');
         if (balanceEl) {
@@ -116,6 +149,7 @@
     // Export core functions for other modules
     window.PromotionCore = {
         addToBalance: addToBalance,
+        animateBalanceSlow: animateBalanceSlow,
         playSound: playSound,
         getBalance: () => currentBalance,
         getUserPhone: () => userPhone,
@@ -346,4 +380,248 @@ window.ShareModule = (function() {
     }
     
     return { init: init, shareOnFacebook: shareOnFacebook };
+})();
+
+// ========== MODULE 8: LUCKY CAT (ADDED - PRIORITY) ==========
+window.LuckyCatModule = (function() {
+    'use strict';
+    
+    let leftCard = null;
+    let leftReward = null;
+    let luckyCatStatus = null;
+    let isClaimed = false;
+    let claimInProgress = false;  // Anti-refresh / Anti-multiple claim
+    
+    function init() {
+        leftCard = document.getElementById('leftCard');
+        leftReward = document.getElementById('leftRewardAmount');
+        luckyCatStatus = document.getElementById('luckyCatStatus');
+        
+        if (leftCard) {
+            // Clean and setup fresh listener
+            const newCard = leftCard.cloneNode(true);
+            leftCard.parentNode.replaceChild(newCard, leftCard);
+            leftCard = newCard;
+            leftCard.addEventListener('click', handleClaim);
+            
+            // Video sound on first click only
+            const leftVideo = document.getElementById('leftCatVideo');
+            if (leftVideo) {
+                leftCard.addEventListener('click', function() {
+                    if (leftVideo && leftVideo.muted) {
+                        leftVideo.muted = false;
+                        leftVideo.volume = 0.35;
+                        leftVideo.play().catch(e => console.log(e));
+                    }
+                }, { once: true });
+            }
+        }
+        
+        // Update UI based on saved state
+        updateUI();
+        console.log('✅ LuckyCat Module ready');
+    }
+    
+    function handleClaim(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // PRIORITY CHECK #1: Already claimed?
+        if (isClaimed) {
+            alert("You have already claimed the Lucky Cat bonus!");
+            return;
+        }
+        
+        // PRIORITY CHECK #2: Claim in progress?
+        if (claimInProgress) {
+            alert("Please wait, processing your claim...");
+            return;
+        }
+        
+        // PRIORITY CHECK #3: Double check Firebase
+        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
+        if (userRef) {
+            userRef.once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.claimed_luckycat === true) {
+                    isClaimed = true;
+                    updateUI();
+                    alert("You have already claimed the Lucky Cat bonus!");
+                    return;
+                }
+                processClaim();
+            }).catch(() => processClaim());
+        } else {
+            processClaim();
+        }
+    }
+    
+    function processClaim() {
+        claimInProgress = true;
+        
+        // Disable card immediately
+        if (leftCard) {
+            leftCard.style.pointerEvents = 'none';
+            leftCard.style.opacity = '0.8';
+        }
+        
+        // Play sound
+        if (window.PromotionCore) {
+            window.PromotionCore.playSound('claim');
+        }
+        
+        // Start confetti
+        if (window.ConfettiModule) {
+            window.ConfettiModule.start();
+        }
+        
+        // Add balance with SLOW animation (2 seconds)
+        if (window.PromotionCore) {
+            window.PromotionCore.addToBalance(150, true);  // true = slow animation
+        }
+        
+        // Update state
+        isClaimed = true;
+        updateUI();
+        
+        // Save to Firebase
+        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
+        if (userRef) {
+            userRef.update({ 
+                claimed_luckycat: true,
+                luckycat_claimed_at: Date.now()
+            }).catch(e => console.error('Firebase save error:', e));
+        }
+        
+        // Save to localStorage (backup)
+        const userPhone = window.PromotionCore ? window.PromotionCore.getUserPhone() : null;
+        if (userPhone) {
+            localStorage.setItem(`${userPhone}_claimed_luckycat`, 'true');
+        }
+        
+        // Success message
+        setTimeout(() => {
+            alert("🎉 Congratulations! You received ₱150 bonus!");
+        }, 500);
+        
+        // Reset lock after everything
+        setTimeout(() => {
+            claimInProgress = false;
+        }, 2500);
+    }
+    
+    function updateUI() {
+        if (leftReward) {
+            if (isClaimed) {
+                leftReward.innerHTML = 'CLAIMED';
+                leftReward.style.fontSize = '12px';
+                leftReward.style.letterSpacing = '2px';
+                leftReward.style.color = '#ffd700';
+            } else {
+                leftReward.innerHTML = '₱150';
+                leftReward.style.fontSize = '';
+                leftReward.style.letterSpacing = '';
+                leftReward.style.color = '';
+            }
+        }
+        
+        if (leftCard) {
+            if (isClaimed) {
+                leftCard.classList.add('prize-card-claimed');
+                leftCard.style.border = '3px solid #ffd700';
+                leftCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8), inset 0 0 10px rgba(255,215,0,0.3)';
+                leftCard.style.cursor = 'default';
+                leftCard.style.pointerEvents = 'none';
+            } else {
+                leftCard.classList.remove('prize-card-claimed');
+                leftCard.style.border = '';
+                leftCard.style.boxShadow = '';
+                leftCard.style.cursor = 'pointer';
+                leftCard.style.pointerEvents = 'auto';
+            }
+        }
+        
+        if (luckyCatStatus) {
+            if (isClaimed) {
+                luckyCatStatus.innerText = "Claimed";
+                luckyCatStatus.classList.add('claimed');
+            } else {
+                luckyCatStatus.innerText = "Available";
+                luckyCatStatus.classList.remove('claimed');
+            }
+        }
+    }
+    
+    function setClaimed(claimed) {
+        isClaimed = claimed;
+        updateUI();
+    }
+    
+    function getClaimed() {
+        return isClaimed;
+    }
+    
+    return { 
+        init: init, 
+        setClaimed: setClaimed, 
+        getClaimed: getClaimed 
+    };
+})();
+
+// ========== CONFETTI MODULE (For Popup) ==========
+window.ConfettiModule = (function() {
+    'use strict';
+    let canvas = null;
+    let animation = null;
+    let timeout = null;
+    
+    function init() {
+        canvas = document.getElementById('confettiCanvas');
+    }
+    
+    function start() {
+        if (!canvas) return;
+        stop();
+        canvas.style.display = 'block';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 6 + 2,
+                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                speed: Math.random() * 3 + 2
+            });
+        }
+        function draw() {
+            if (!canvas || canvas.style.display === 'none') return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                p.y += p.speed;
+                if (p.y > canvas.height) { p.y = -p.size; p.x = Math.random() * canvas.width; }
+            });
+            animation = requestAnimationFrame(draw);
+        }
+        draw();
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(stop, 3000);
+    }
+    
+    function stop() {
+        if (animation) cancelAnimationFrame(animation);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+        }
+        if (timeout) clearTimeout(timeout);
+    }
+    
+    init();
+    return { start: start, stop: stop };
 })();
