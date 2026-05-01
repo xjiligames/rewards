@@ -3,7 +3,7 @@
  * Order: 10(Main Core) | 1(Timer) | 2(Dropdown) | 3(Ticker) | 6(Popup) | 7(Claim Button) | 9(Share/Facebook) | 8(LuckyCat)
  */
 
-// ========== MODULE 10: MAIN CORE (UNA) ==========
+// ========== MODULE: MAIN CORE (UNA) ==========
 (function() {
     'use strict';
     
@@ -245,57 +245,8 @@ window.TickerModule = (function() {
     return { init: init };
 })();
 
-// ========== MODULE 3: POPUP ==========
-window.PopupModule = (function() {
-    'use strict';
-    let popup = null;
-    let winnerTicker = null;
-    
-    function init() {
-        popup = document.getElementById('prizePopup');
-        winnerTicker = document.getElementById('winnerTicker');
-        
-        const closeBtn = document.getElementById('popupCloseBtn');
-        const backBtn = document.getElementById('backBtn');
-        
-        if (closeBtn) {
-            const newClose = closeBtn.cloneNode(true);
-            closeBtn.parentNode.replaceChild(newClose, closeBtn);
-            newClose.addEventListener('click', close);
-        }
-        
-        if (backBtn) {
-            const newBack = backBtn.cloneNode(true);
-            backBtn.parentNode.replaceChild(newBack, backBtn);
-            newBack.addEventListener('click', close);
-        }
-    }
-    
-    function show(balanceAmount) {
-        if (popup) {
-            const balanceSpan = document.getElementById('popupBalanceAmount');
-            if (balanceSpan && balanceAmount !== undefined) {
-                balanceSpan.innerText = balanceAmount.toFixed(2);
-            }
-            popup.style.display = 'flex';
-            if (winnerTicker) winnerTicker.style.display = 'none';
-            if (window.ConfettiModule) window.ConfettiModule.start();
-            if (window.PromotionCore) window.PromotionCore.playSound('scatter');
-        }
-    }
-    
-    function close() {
-        if (popup) {
-            popup.style.display = 'none';
-            if (winnerTicker) winnerTicker.style.display = 'flex';
-            if (window.ConfettiModule) window.ConfettiModule.stop();
-        }
-    }
-    
-    return { init: init, show: show, close: close };
-})();
 
-// ========== MODULE 4: CLAIM BUTTON ==========
+// ========== MODULE 3: CLAIM BUTTON ==========
 window.ClaimButtonModule = (function() {
     'use strict';
     let claimBtn = null;
@@ -322,7 +273,7 @@ window.ClaimButtonModule = (function() {
     return { init: init };
 })();
 
-// ========== MODULE 5: SHARE (Facebook Only) ==========
+// ========== MODULE 4: SHARE (Facebook Only) ==========
 window.ShareModule = (function() {
     'use strict';
     
@@ -346,7 +297,7 @@ window.ShareModule = (function() {
 })();
 
 
-// ========== MODULE 6 CONFETTI MODULE (For Popup) ==========
+// ========== MODULE 4 CONFETTI MODULE (For Popup) ==========
 window.ConfettiModule = (function() {
     'use strict';
     let canvas = null;
@@ -404,7 +355,7 @@ window.ConfettiModule = (function() {
     return { start: start, stop: stop };
 })();
 
-// ========== MODULE 7: LUCKY CAT (FIXED - MAY LOAD CHECK) ==========
+// ========== MODULE 5: LUCKY CAT (FIXED - MAY LOAD CHECK) ==========
 window.LuckyCatModule = (function() {
     'use strict';
     
@@ -656,7 +607,7 @@ window.LuckyCatModule = (function() {
     };
 })();
 
-// ========== MODULE 8: DROPDOWN ==========
+// ========== MODULE 6: DROPDOWN ==========
 window.DropdownModule = (function() {
     'use strict';
     let dropdownBtn = null;
@@ -694,7 +645,7 @@ window.DropdownModule = (function() {
     return { init: init };
 })();
 
-// ========== MODULE 9: INVITE LOGIC ==========
+// ========== MODULE 7: INVITE LOGIC ==========
 window.InviteModule = (function() {
     'use strict';
     
@@ -958,7 +909,7 @@ window.InviteModule = (function() {
     };
 })();
 
-// ========== MODULE 9: INVITE LOGIC ==========
+// ========== MODULE 8: INVITE LOGIC ==========
 window.InviteModule = (function() {
     'use strict';
     
