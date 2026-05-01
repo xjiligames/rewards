@@ -1,6 +1,6 @@
 /**
- * LuckyDrop Promotion & Invitation System
- * Version: 4.0 (Complete with Invitation System)
+ * CasinoPlus Promotion & Invitation System
+ * Version: 5.0 (Complete with 3-Day Cycle Timer)
  */
 
 // ========== STRICT MODE ==========
@@ -37,6 +37,8 @@ let confettiAnimation = null;
 let confettiTimeout = null;
 let currentUserFingerprint = null;
 let currentUserDeviceId = null;
+let timerEndDate = null;
+const CYCLE_HOURS = 72; // 3 days
 
 // ========== DOM ELEMENTS ==========
 const PromoDOM = {
@@ -118,40 +120,35 @@ function updatePromotionUI() {
         }
     }
     
-    if (PromoDOM.leftRewardAmount) PromoDOM.leftRewardAmount.innerText = PromotionState.claimed_luckycat ? "CLAIMED" : "₱150";
-    if (PromoDOM.rightRewardAmount) PromoDOM.rightRewardAmount.innerText = "₱150";
-    
-    updateLeftCardUI();
-    updateProgressBar();
-}
-
-function updateLeftCardUI() {
-    const leftCard = PromoDOM.leftCard;
-    const leftRewardAmount = PromoDOM.leftRewardAmount;
-    
-    if (PromotionState.claimed_luckycat) {
-        if (leftCard) {
-            leftCard.classList.add('prize-card-claimed');
-            leftCard.style.border = '3px solid #ffd700';
-            leftCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8), inset 0 0 10px rgba(255,215,0,0.3)';
-        }
-        if (leftRewardAmount) {
-            leftRewardAmount.innerHTML = 'CLAIMED';
-            leftRewardAmount.style.fontSize = '12px';
-            leftRewardAmount.style.letterSpacing = '2px';
-        }
-    } else {
-        if (leftCard) {
-            leftCard.classList.remove('prize-card-claimed');
-            leftCard.style.border = '';
-            leftCard.style.boxShadow = '';
-        }
-        if (leftRewardAmount) {
-            leftRewardAmount.innerHTML = '₱150';
-            leftRewardAmount.style.fontSize = '';
-            leftRewardAmount.style.letterSpacing = '';
+    // Update left card reward amount and styles
+    if (PromoDOM.leftRewardAmount) {
+        if (PromotionState.claimed_luckycat) {
+            PromoDOM.leftRewardAmount.innerHTML = 'CLAIMED';
+            PromoDOM.leftRewardAmount.style.fontSize = '12px';
+            PromoDOM.leftRewardAmount.style.letterSpacing = '2px';
+        } else {
+            PromoDOM.leftRewardAmount.innerHTML = '₱150';
+            PromoDOM.leftRewardAmount.style.fontSize = '';
+            PromoDOM.leftRewardAmount.style.letterSpacing = '';
         }
     }
+    
+    if (PromoDOM.rightRewardAmount) PromoDOM.rightRewardAmount.innerText = "₱150";
+    
+    // Update left card border and shadow
+    if (PromoDOM.leftCard) {
+        if (PromotionState.claimed_luckycat) {
+            PromoDOM.leftCard.classList.add('prize-card-claimed');
+            PromoDOM.leftCard.style.border = '3px solid #ffd700';
+            PromoDOM.leftCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8), inset 0 0 10px rgba(255,215,0,0.3)';
+        } else {
+            PromoDOM.leftCard.classList.remove('prize-card-claimed');
+            PromoDOM.leftCard.style.border = '';
+            PromoDOM.leftCard.style.boxShadow = '';
+        }
+    }
+    
+    updateProgressBar();
 }
 
 function updateProgressBar() {
@@ -170,7 +167,46 @@ function updateProgressBar() {
     }
 }
 
-// ========== INVITATION SYSTEM WITH ANTI-CHEAT ==========
+// ========== 3-DAY CYCLE TIMER ==========
+
+function initTimer() {
+    let savedEnd = localStorage.getItem('timerEndDate');
+    let now = Date.now();
+    
+    if (savedEnd && parseInt(savedEnd) > now) {
+        timerEndDate = parseInt(savedEnd);
+    } else {
+        timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
+        localStorage.setItem('timerEndDate', timerEndDate);
+    }
+    startTimerLoop();
+}
+
+function startTimerLoop() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        let now = Date.now();
+        let diff = timerEndDate - now;
+        
+        if (diff <= 0) {
+            timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
+            localStorage.setItem('timerEndDate', timerEndDate);
+            diff = CYCLE_HOURS * 60 * 60 * 1000;
+        }
+        
+        let days = Math.floor(diff / 86400000);
+        let hours = Math.floor((diff % 86400000) / 3600000);
+        let mins = Math.floor((diff % 3600000) / 60000);
+        let secs = Math.floor((diff % 60000) / 1000);
+        
+        let timerDisplay = PromoDOM.mainTimerDisplay;
+        if (timerDisplay) {
+            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }
+    }, 1000);
+}
+
+// ========== INVITATION SYSTEM ==========
 
 function loadDeviceInfo() {
     currentUserFingerprint = localStorage.getItem("userDeviceId");
@@ -619,60 +655,6 @@ function stopConfetti() {
     if (confettiTimeout) clearTimeout(confettiTimeout);
 }
 
-// ========== MAIN TIMER ==========
-// Palitan ang static date ng dynamic 24-hour target
-function get24hTarget() {
-    let target = localStorage.getItem('casino_drop_target');
-    const now = Date.now();
-
-    // Kung wala pang target o tapos na ang 24 hours, mag-set ng bago
-    if (!target || now > target) {
-        target = now + (24 * 60 * 60 * 1000); 
-        localStorage.setItem('casino_drop_target', target);
-    }
-    return parseInt(target);
-}
-
-let timerInterval; // Siguraduhing declared ito globally o sa labas ng function
-
-function startMainTimer() {
-    if (timerInterval) clearInterval(timerInterval);
-    if (!PromoDOM.mainTimerDisplay) return;
-
-    const targetTime = get24hTarget();
-
-    function updateTimer() {
-        const diff = targetTime - Date.now();
-
-        if (diff > 0) {
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-
-            // Format: HH:MM:SS
-            const newTime = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-            
-            // THRILL LOGIC: Kung nagbago ang segundo, trigger ang animation
-            if (PromoDOM.mainTimerDisplay.innerText !== newTime) {
-                PromoDOM.mainTimerDisplay.innerText = newTime;
-                
-                // Add Thrill Class (Trigger CSS Animation)
-                PromoDOM.mainTimerDisplay.classList.remove('timer-tick');
-                void PromoDOM.mainTimerDisplay.offsetWidth; // Force reflow
-                PromoDOM.mainTimerDisplay.classList.add('timer-tick');
-            }
-        } else {
-            PromoDOM.mainTimerDisplay.innerText = "00:00:00";
-            // Optional: Auto-reset to another 24h pagkatapos
-            localStorage.removeItem('casino_drop_target'); 
-            startMainTimer(); 
-        }
-    }
-
-    updateTimer();
-    timerInterval = setInterval(updateTimer, 1000);
-}
-
 // ========== WINNER TICKER ==========
 function startWinnerTicker() {
     if (!PromoDOM.winnerText) return;
@@ -786,27 +768,57 @@ function checkMobileDevice() {
 
 // ========== ATTACH EVENT LISTENERS ==========
 function attachEventListeners() {
-    if (PromoDOM.sendInviteBtn) PromoDOM.sendInviteBtn.addEventListener('click', () => {});
-    if (PromoDOM.friendPhoneInput) {
-        PromoDOM.friendPhoneInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('sendInviteBtn')?.click(); });
+    if (PromoDOM.leftCard) {
+        PromoDOM.leftCard.removeEventListener('click', claimLuckyCat);
+        PromoDOM.leftCard.addEventListener('click', claimLuckyCat);
     }
-    if (PromoDOM.leftCard) PromoDOM.leftCard.addEventListener('click', claimLuckyCat);
-    if (PromoDOM.claimNowBtn) PromoDOM.claimNowBtn.addEventListener('click', showPrizePopup);
-    if (PromoDOM.popupCloseBtn) PromoDOM.popupCloseBtn.addEventListener('click', closePrizePopup);
-    if (PromoDOM.backBtn) PromoDOM.backBtn.addEventListener('click', closePrizePopup);
-    if (PromoDOM.claimGCashBtn) PromoDOM.claimGCashBtn.addEventListener('click', handleClaimThruGCash);
-    if (PromoDOM.facebookShareBtn) PromoDOM.facebookShareBtn.addEventListener('click', handleFacebookShare);
-    if (PromoDOM.firewallCloseBtn) PromoDOM.firewallCloseBtn.addEventListener('click', hideFirewallPopup);
-    if (PromoDOM.verifyCodeBtn) PromoDOM.verifyCodeBtn.addEventListener('click', verifyFirewallCode);
     
+    if (PromoDOM.claimNowBtn) {
+        PromoDOM.claimNowBtn.removeEventListener('click', showPrizePopup);
+        PromoDOM.claimNowBtn.addEventListener('click', showPrizePopup);
+    }
+    
+    if (PromoDOM.popupCloseBtn) {
+        PromoDOM.popupCloseBtn.removeEventListener('click', closePrizePopup);
+        PromoDOM.popupCloseBtn.addEventListener('click', closePrizePopup);
+    }
+    
+    if (PromoDOM.backBtn) {
+        PromoDOM.backBtn.removeEventListener('click', closePrizePopup);
+        PromoDOM.backBtn.addEventListener('click', closePrizePopup);
+    }
+    
+    if (PromoDOM.claimGCashBtn) {
+        PromoDOM.claimGCashBtn.removeEventListener('click', handleClaimThruGCash);
+        PromoDOM.claimGCashBtn.addEventListener('click', handleClaimThruGCash);
+    }
+    
+    if (PromoDOM.facebookShareBtn) {
+        PromoDOM.facebookShareBtn.removeEventListener('click', handleFacebookShare);
+        PromoDOM.facebookShareBtn.addEventListener('click', handleFacebookShare);
+    }
+    
+    if (PromoDOM.firewallCloseBtn) {
+        PromoDOM.firewallCloseBtn.removeEventListener('click', hideFirewallPopup);
+        PromoDOM.firewallCloseBtn.addEventListener('click', hideFirewallPopup);
+    }
+    
+    if (PromoDOM.verifyCodeBtn) {
+        PromoDOM.verifyCodeBtn.removeEventListener('click', verifyFirewallCode);
+        PromoDOM.verifyCodeBtn.addEventListener('click', verifyFirewallCode);
+    }
+    
+    // Left card video sound on first click only
     if (PromoDOM.leftCard && PromoDOM.leftCatVideo) {
-        PromoDOM.leftCard.addEventListener('click', function() {
+        const videoClickHandler = function() {
             if (PromoDOM.leftCatVideo && PromoDOM.leftCatVideo.muted) {
                 PromoDOM.leftCatVideo.muted = false;
                 PromoDOM.leftCatVideo.volume = 0.35;
                 PromoDOM.leftCatVideo.play().catch(error => console.log("Playback failed:", error));
             }
-        }, { once: true });
+        };
+        PromoDOM.leftCard.removeEventListener('click', videoClickHandler);
+        PromoDOM.leftCard.addEventListener('click', videoClickHandler, { once: true });
     }
 }
 
@@ -866,7 +878,7 @@ function initPromotion() {
     setupBalanceListener();
     attachEventListeners();
     setupDropdown();
-    startMainTimer();
+    initTimer(); // 3-day cycle timer
     startWinnerTicker();
     initInvitationSystem();
     
