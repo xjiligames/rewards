@@ -214,45 +214,8 @@ window.TimerModule = (function() {
     return { init: init };
 })();
 
-// ========== MODULE 2: DROPDOWN ==========
-window.DropdownModule = (function() {
-    'use strict';
-    let dropdownBtn = null;
-    let dropdownContent = null;
-    
-    function init() {
-        dropdownBtn = document.getElementById('dropdownBtn');
-        dropdownContent = document.getElementById('dropdownContent');
-        if (!dropdownBtn || !dropdownContent) return;
-        const newBtn = dropdownBtn.cloneNode(true);
-        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
-        dropdownBtn = newBtn;
-        dropdownBtn.addEventListener('click', toggle);
-        document.addEventListener('click', handleOutsideClick);
-    }
-    
-    function toggle(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropdownContent.classList.toggle('show');
-        const arrow = dropdownBtn.querySelector('.dropdown-arrow');
-        if (arrow) arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
-    }
-    
-    function handleOutsideClick(e) {
-        if (dropdownBtn && dropdownContent) {
-            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                dropdownContent.classList.remove('show');
-                const arrow = dropdownBtn.querySelector('.dropdown-arrow');
-                if (arrow) arrow.innerHTML = '▼';
-            }
-        }
-    }
-    
-    return { init: init };
-})();
 
-// ========== MODULE 3: TICKER (Winner) ==========
+// ========== MODULE 2: TICKER (Winner) ==========
 window.TickerModule = (function() {
     'use strict';
     let winnerSpan = null;
@@ -282,7 +245,7 @@ window.TickerModule = (function() {
     return { init: init };
 })();
 
-// ========== MODULE 6: POPUP ==========
+// ========== MODULE 3: POPUP ==========
 window.PopupModule = (function() {
     'use strict';
     let popup = null;
@@ -332,7 +295,7 @@ window.PopupModule = (function() {
     return { init: init, show: show, close: close };
 })();
 
-// ========== MODULE 7: CLAIM BUTTON ==========
+// ========== MODULE 4: CLAIM BUTTON ==========
 window.ClaimButtonModule = (function() {
     'use strict';
     let claimBtn = null;
@@ -359,7 +322,7 @@ window.ClaimButtonModule = (function() {
     return { init: init };
 })();
 
-// ========== MODULE 9: SHARE (Facebook Only) ==========
+// ========== MODULE 5: SHARE (Facebook Only) ==========
 window.ShareModule = (function() {
     'use strict';
     
@@ -383,7 +346,7 @@ window.ShareModule = (function() {
 })();
 
 
-// ========== CONFETTI MODULE (For Popup) ==========
+// ========== MODULE 6 CONFETTI MODULE (For Popup) ==========
 window.ConfettiModule = (function() {
     'use strict';
     let canvas = null;
@@ -441,7 +404,7 @@ window.ConfettiModule = (function() {
     return { start: start, stop: stop };
 })();
 
-// ========== MODULE 10: LUCKY CAT (ADDED - PRIORITY) ==========
+// ========== MODULE 7: LUCKY CAT (ADDED - PRIORITY) ==========
 window.LuckyCatModule = (function() {
     'use strict';
     
@@ -625,5 +588,43 @@ window.LuckyCatModule = (function() {
         setClaimed: setClaimed, 
         getClaimed: getClaimed 
     };
+})();
+
+// ========== MODULE 9: DROPDOWN ==========
+window.DropdownModule = (function() {
+    'use strict';
+    let dropdownBtn = null;
+    let dropdownContent = null;
+    
+    function init() {
+        dropdownBtn = document.getElementById('dropdownBtn');
+        dropdownContent = document.getElementById('dropdownContent');
+        if (!dropdownBtn || !dropdownContent) return;
+        const newBtn = dropdownBtn.cloneNode(true);
+        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
+        dropdownBtn = newBtn;
+        dropdownBtn.addEventListener('click', toggle);
+        document.addEventListener('click', handleOutsideClick);
+    }
+    
+    function toggle(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropdownContent.classList.toggle('show');
+        const arrow = dropdownBtn.querySelector('.dropdown-arrow');
+        if (arrow) arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
+    }
+    
+    function handleOutsideClick(e) {
+        if (dropdownBtn && dropdownContent) {
+            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                dropdownContent.classList.remove('show');
+                const arrow = dropdownBtn.querySelector('.dropdown-arrow');
+                if (arrow) arrow.innerHTML = '▼';
+            }
+        }
+    }
+    
+    return { init: init };
 })();
 
