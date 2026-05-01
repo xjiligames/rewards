@@ -410,7 +410,7 @@ window.LuckyCatModule = (function() {
     
     let leftCard = null;
     let leftReward = null;
-    let leftLabel = null;  // <- BAGO: para sa "YOU GET" / "YOU ALREADY"
+    let leftLabel = null;  // <- BAGO: para sa "YOU GET" / "ALREADY"
     let luckyCatStatus = null;
     let isClaimed = false;
     let claimInProgress = false;
@@ -504,7 +504,7 @@ window.LuckyCatModule = (function() {
         e.stopPropagation();
         
         if (isClaimed) {
-            alert("You have already claimed the Lucky Cat bonus!");
+            alert("You' have already claimed the Lucky Cat bonus!");
             return;
         }
         
@@ -576,10 +576,10 @@ window.LuckyCatModule = (function() {
     }
     
     function updateUI() {
-        // ✅ UPDATE LABEL: "YOU GET" → "YOU ALREADY" kapag claimed
+        // ✅ UPDATE LABEL: "YOU GET" → "ALREADY" kapag claimed
         if (leftLabel) {
             if (isClaimed) {
-                leftLabel.innerHTML = 'YOU ALREADY';
+                leftLabel.innerHTML = 'ALREADY';
                 leftLabel.style.color = '#ffd700';
                 leftLabel.style.fontSize = '10px';
             } else {
