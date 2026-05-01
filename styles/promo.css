@@ -227,17 +227,19 @@ body::before {
 
 .dropdown-btn {
     width: 100%;
-    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
     border: none;
-    border-radius: 60px;
-    padding: 14px 20px;
+    border-radius: 50px;
+    padding: 12px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
     font-weight: 800;
-    font-size: 14px;
-    color: #000;
+    font-size: 13px;
+    color: #1a1a2e;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .dropdown-btn:active {
@@ -247,10 +249,11 @@ body::before {
 .dropdown-text {
     flex: 1;
     text-align: center;
+    letter-spacing: 1px;
 }
 
 .dropdown-arrow {
-    font-size: 12px;
+    font-size: 11px;
     transition: transform 0.3s ease;
 }
 
@@ -260,16 +263,49 @@ body::before {
     top: 100%;
     left: 0;
     right: 0;
-    background: linear-gradient(145deg, #1a1525, #0f0a1a);
+    background: linear-gradient(145deg, #1f1a2e, #151020);
     border: 1px solid rgba(255,215,0,0.3);
     border-radius: 20px;
-    margin-top: 10px;
-    padding: 16px;
+    margin-top: 12px;
+    padding: 15px;
     z-index: 1000;
+    backdrop-filter: blur(10px);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Scrollbar for dropdown */
+.dropdown-content::-webkit-scrollbar,
+.invite-list-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dropdown-content::-webkit-scrollbar-track,
+.invite-list-body::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb,
+.invite-list-body::-webkit-scrollbar-thumb {
+    background: #ffd700;
+    border-radius: 10px;
 }
 
 .dropdown-content.show {
     display: block !important;
+    animation: dropdownFadeIn 0.3s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Invite Form */
@@ -341,15 +377,15 @@ body::before {
 .invite-list-header span:last-child { width: 32px; }
 
 .invite-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
     align-items: center;
-    padding: 10px 4px;
+    padding: 10px 8px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .invite-item-phone {
-    flex: 2;
-    font-size: 12px;
+    font-size: 11px;
     color: white;
     font-family: monospace;
 }
@@ -388,6 +424,7 @@ body::before {
     border-radius: 50%;
     cursor: pointer;
     font-size: 11px;
+    transition: all 0.2s;
 }
 
 .delete-invite:active { transform: scale(0.95); }
@@ -527,35 +564,57 @@ body::before {
 }
 
 /* ========== CLAIM NOW BUTTON ========== */
-.claim-now-btn {
-    background: linear-gradient(135deg, #ffd700, #ffaa33, #ff8c00);
-    border: none;
-    padding: 14px 20px;
+.time-left-section {
+    background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.3));
+    border: 1px solid rgba(255,215,0,0.25);
     border-radius: 60px;
+    padding: 12px 20px;
+    margin: 15px 0 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.time-label {
+    font-size: 9px;
+    color: #ffaa33;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+#mainTimerDisplay {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
     font-weight: 800;
-    color: #1a1a2e;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 15px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    box-shadow: 0 0 5px #ffd700, 0 0 10px #ffaa33;
-    transition: all 0.2s ease;
-}
-
-.claim-now-btn:active {
-    transform: scale(0.97);
-}
-
-.claim-icon {
-    width: 22px;
-    height: 22px;
+    color: #ffd700;
+    text-align: center;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(255,215,0,0.5);
+    background: linear-gradient(135deg, #ffd700, #ffaa33);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
     display: inline-block;
-    background: transparent;
+}
+
+/* Alternative simple timer style (kung ayaw mo ng gradient) */
+#mainTimerDisplay.simple {
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255,215,0,0.5);
+}
+
+/* Timer when ending soon */
+#mainTimerDisplay.ending {
+    color: #ff4444;
+    text-shadow: 0 0 10px rgba(255,68,68,0.5);
+    animation: timerPulse 0.8s infinite;
+}
+
+@keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
 /* ========== PROGRESS BAR ========== */
@@ -951,19 +1010,19 @@ body::before {
 // Remaster Invite Friends Section
 /* Container para sa Input at Button */
 .invite-form-container {
-    padding: 15px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 15px;
+    border-radius: 16px;
+    margin-bottom: 15px
 }
 
 .invite-input-wrapper {
     display: flex;
     align-items: center;
-    background: #1a1a2e; /* Dark background para sa input area */
+    background: #0f0c1a;
     border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 8px;
-    padding: 5px; /* Spacing sa loob */
+    border-radius: 50px;
+    padding: 4px;
     transition: all 0.3s ease;
 }
 
@@ -978,11 +1037,14 @@ body::before {
     background: transparent;
     border: none;
     color: white;
-    padding: 10px 12px;
+    padding: 10px 16px;
     font-family: 'Inter', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     outline: none;
-    width: 100%;
+}
+
+.modern-input::placeholder {
+    color: #888;
 }
 
 /* Ang Maliit at Proportional na Send Button */
@@ -1009,12 +1071,17 @@ body::before {
     background: rgba(255, 215, 0, 0.1);
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr;
-    padding: 8px;
-    font-size: 10px;
-    font-family: 'Orbitron';
-    color: #ffd700;
-    border-radius: 5px;
-    margin-top: 10px;
+    padding: 8px 10px;
+    font-size: 9px;
+    font-family: 'Orbitron', monospace;
+    color: #ffaa33;
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.invite-list-body {
+    max-height: 180px;
+    overflow-y: auto;
 }
 
 .invite-section-title {
@@ -1024,6 +1091,10 @@ body::before {
     margin-top: 20px;
     border-left: 3px solid #ffd700;
     padding-left: 8px;
+}
+
+.invite-list-section {
+    margin-top: 10px;
 }
 
 /* E-Wallet Style Dashboard */
@@ -1275,20 +1346,20 @@ body::before {
 
 /* Accept button style */
 .accept-invite {
-    background: linear-gradient(135deg, #ffd700, #ffed4a);
+    background: linear-gradient(135deg, #ffd700, #ffaa33);
     border: none;
     border-radius: 20px;
-    padding: 5px 15px;
-    font-size: 11px;
+    padding: 4px 12px;
+    font-size: 9px;
     font-weight: bold;
     color: #1a1a2e;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s;
 }
 
 .accept-invite:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transform: scale(1.02);
+    box-shadow: 0 0 8px rgba(255,215,0,0.5);
 }
 
 /* Right card claimed effect */
