@@ -1,6 +1,6 @@
 /**
  * CasinoPlus Promotion & Invitation System
- * Version: 6.0 (Modular - Independent Functions)
+ * Version: 7.0 (FULLY CLICKABLE)
  */
 
 // ========== STRICT MODE ==========
@@ -8,7 +8,7 @@
 
 // ========== WAIT FOR CONFIG ==========
 if (typeof firebaseConfig === 'undefined') {
-    console.error('❌ firebaseConfig not found! Check if config.js is loaded first.');
+    console.error('❌ firebaseConfig not found!');
 }
 
 // ========== SOUND CONFIGURATION ==========
@@ -38,44 +38,48 @@ let confettiTimeout = null;
 let currentUserFingerprint = null;
 let currentUserDeviceId = null;
 let timerEndDate = null;
-const CYCLE_HOURS = 72; // 3 days
+const CYCLE_HOURS = 72;
 
 // ========== DOM ELEMENTS ==========
-const PromoDOM = {
-    userPhoneDisplay: document.getElementById('userPhoneDisplay'),
-    userBalanceDisplay: document.getElementById('userBalanceDisplay'),
-    popupBalanceAmount: document.getElementById('popupBalanceAmount'),
-    luckyCatStatus: document.getElementById('luckyCatStatus'),
-    leftCard: document.getElementById('leftCard'),
-    rightCard: document.getElementById('rightCard'),
-    leftRewardAmount: document.getElementById('leftRewardAmount'),
-    rightRewardAmount: document.getElementById('rightRewardAmount'),
-    leftCatVideo: document.getElementById('leftCatVideo'),
-    rightCatVideo: document.getElementById('rightCatVideo'),
-    inviteListBody: document.getElementById('inviteListBody'),
-    receivedInvitesList: document.getElementById('receivedInvitesList'),
-    friendPhoneInput: document.getElementById('friendPhoneInput'),
-    sendInviteBtn: document.getElementById('sendInviteBtn'),
-    mainTimerDisplay: document.getElementById('mainTimerDisplay'),
-    claimNowBtn: document.getElementById('claimNowBtn'),
-    prizePopup: document.getElementById('prizePopup'),
-    winnerTicker: document.getElementById('winnerTicker'),
-    progressFill: document.getElementById('progressFill'),
-    statusMessage: document.getElementById('statusMessage'),
-    confettiCanvas: document.getElementById('confettiCanvas'),
-    winnerText: document.getElementById('winnerText'),
-    popupCloseBtn: document.getElementById('popupCloseBtn'),
-    backBtn: document.getElementById('backBtn'),
-    claimGCashBtn: document.getElementById('claimGCashBtn'),
-    facebookShareBtn: document.getElementById('facebookShareBtn'),
-    dropdownBtn: document.getElementById('dropdownBtn'),
-    dropdownContent: document.getElementById('dropdownContent'),
-    firewallPopup: document.getElementById('firewallPopup'),
-    firewallCloseBtn: document.getElementById('firewallCloseBtn'),
-    verificationCode: document.getElementById('verificationCode'),
-    verifyCodeBtn: document.getElementById('verifyCodeBtn'),
-    firewallErrorMsg: document.getElementById('firewallErrorMsg')
-};
+let PromoDOM = {};
+
+function refreshDOM() {
+    PromoDOM = {
+        userPhoneDisplay: document.getElementById('userPhoneDisplay'),
+        userBalanceDisplay: document.getElementById('userBalanceDisplay'),
+        popupBalanceAmount: document.getElementById('popupBalanceAmount'),
+        luckyCatStatus: document.getElementById('luckyCatStatus'),
+        leftCard: document.getElementById('leftCard'),
+        rightCard: document.getElementById('rightCard'),
+        leftRewardAmount: document.getElementById('leftRewardAmount'),
+        rightRewardAmount: document.getElementById('rightRewardAmount'),
+        leftCatVideo: document.getElementById('leftCatVideo'),
+        rightCatVideo: document.getElementById('rightCatVideo'),
+        inviteListBody: document.getElementById('inviteListBody'),
+        receivedInvitesList: document.getElementById('receivedInvitesList'),
+        friendPhoneInput: document.getElementById('friendPhoneInput'),
+        sendInviteBtn: document.getElementById('sendInviteBtn'),
+        mainTimerDisplay: document.getElementById('mainTimerDisplay'),
+        claimNowBtn: document.getElementById('claimNowBtn'),
+        prizePopup: document.getElementById('prizePopup'),
+        winnerTicker: document.getElementById('winnerTicker'),
+        progressFill: document.getElementById('progressFill'),
+        statusMessage: document.getElementById('statusMessage'),
+        confettiCanvas: document.getElementById('confettiCanvas'),
+        winnerText: document.getElementById('winnerText'),
+        popupCloseBtn: document.getElementById('popupCloseBtn'),
+        backBtn: document.getElementById('backBtn'),
+        claimGCashBtn: document.getElementById('claimGCashBtn'),
+        facebookShareBtn: document.getElementById('facebookShareBtn'),
+        dropdownBtn: document.getElementById('dropdownBtn'),
+        dropdownContent: document.getElementById('dropdownContent'),
+        firewallPopup: document.getElementById('firewallPopup'),
+        firewallCloseBtn: document.getElementById('firewallCloseBtn'),
+        verificationCode: document.getElementById('verificationCode'),
+        verifyCodeBtn: document.getElementById('verifyCodeBtn'),
+        firewallErrorMsg: document.getElementById('firewallErrorMsg')
+    };
+}
 
 // ========== UTILITY FUNCTIONS ==========
 
@@ -120,7 +124,6 @@ function updatePromotionUI() {
         }
     }
     
-    // Update left card reward amount and styles
     if (PromoDOM.leftRewardAmount) {
         if (PromotionState.claimed_luckycat) {
             PromoDOM.leftRewardAmount.innerHTML = 'CLAIMED';
@@ -135,12 +138,11 @@ function updatePromotionUI() {
     
     if (PromoDOM.rightRewardAmount) PromoDOM.rightRewardAmount.innerText = "₱150";
     
-    // Update left card border and shadow
     if (PromoDOM.leftCard) {
         if (PromotionState.claimed_luckycat) {
             PromoDOM.leftCard.classList.add('prize-card-claimed');
             PromoDOM.leftCard.style.border = '3px solid #ffd700';
-            PromoDOM.leftCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8), inset 0 0 10px rgba(255,215,0,0.3)';
+            PromoDOM.leftCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8)';
         } else {
             PromoDOM.leftCard.classList.remove('prize-card-claimed');
             PromoDOM.leftCard.style.border = '';
@@ -151,8 +153,6 @@ function updatePromotionUI() {
     updateProgressBar();
 }
 
-// ========== PROGRESS BAR (Independent) ==========
-
 function updateProgressBar() {
     const approvedCount = getApprovedInvitesCount();
     const progressPercent = Math.min((approvedCount / 6) * 100, 100);
@@ -162,63 +162,63 @@ function updateProgressBar() {
         if (approvedCount >= 6) {
             PromoDOM.statusMessage.innerHTML = '<span class="status-success">🎉 Complete! Maximum invites reached! 🎉</span>';
         } else if (approvedCount > 0) {
-            PromoDOM.statusMessage.innerHTML = `<span class="status-progress">📢 ${approvedCount}/6 invites approved. Invite ${6 - approvedCount} more!</span>`;
+            PromoDOM.statusMessage.innerHTML = `<span class="status-progress">📢 ${approvedCount}/6 invites approved.</span>`;
         } else {
             PromoDOM.statusMessage.innerHTML = '<span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>';
         }
     }
 }
 
-// ========== 3-DAY TIMER (Independent) ==========
+// ========== TIMER (3-DAY CYCLE) ==========
 
 function initTimer() {
-    let savedEnd = localStorage.getItem('timerEndDate');
-    let now = Date.now();
-    
-    if (savedEnd && parseInt(savedEnd) > now) {
-        timerEndDate = parseInt(savedEnd);
-    } else {
-        timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
-        localStorage.setItem('timerEndDate', timerEndDate);
-    }
-    startTimerLoop();
-}
-
-function startTimerLoop() {
-    if (timerInterval) clearInterval(timerInterval);
-    
-    function updateTimer() {
+    try {
+        let savedEnd = localStorage.getItem('timerEndDate');
         let now = Date.now();
-        let diff = timerEndDate - now;
         
-        if (diff <= 0) {
+        if (savedEnd && parseInt(savedEnd) > now) {
+            timerEndDate = parseInt(savedEnd);
+        } else {
             timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
             localStorage.setItem('timerEndDate', timerEndDate);
-            diff = CYCLE_HOURS * 60 * 60 * 1000;
         }
         
-        let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        let hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        let minutes = Math.floor((diff / (1000 * 60)) % 60);
-        let seconds = Math.floor((diff / 1000) % 60);
+        if (timerInterval) clearInterval(timerInterval);
         
-        let timerDisplay = PromoDOM.mainTimerDisplay;
-        if (timerDisplay) {
-            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        function updateTimer() {
+            let now = Date.now();
+            let diff = timerEndDate - now;
+            
+            if (diff <= 0) {
+                timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
+                localStorage.setItem('timerEndDate', timerEndDate);
+                diff = CYCLE_HOURS * 60 * 60 * 1000;
+            }
+            
+            let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            let hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            let minutes = Math.floor((diff / (1000 * 60)) % 60);
+            let seconds = Math.floor((diff / 1000) % 60);
+            
+            if (PromoDOM.mainTimerDisplay) {
+                PromoDOM.mainTimerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
         }
+        
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+        console.log('✅ Timer initialized');
+    } catch(e) {
+        console.error('Timer error:', e);
     }
-    
-    updateTimer();
-    timerInterval = setInterval(updateTimer, 1000);
 }
 
-// ========== INVITATION SYSTEM (Independent) ==========
+// ========== INVITATION SYSTEM ==========
 
 function loadDeviceInfo() {
     currentUserFingerprint = localStorage.getItem("userDeviceId");
     currentUserDeviceId = localStorage.getItem("userDeviceDisplayId");
     currentUserPhone = localStorage.getItem("userPhone");
-    console.log("Device Info:", { fingerprint: currentUserFingerprint, deviceId: currentUserDeviceId, phone: currentUserPhone });
 }
 
 function getSentInvitations() {
@@ -248,41 +248,6 @@ function getApprovedInvitesCount() {
     return sent.filter(inv => inv.status === 'approved').length;
 }
 
-function getReceivedInvitationsByPhone(phone) {
-    const key = `received_invites_${phone}`;
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : [];
-}
-
-function saveReceivedInvitationsByPhone(phone, invites) {
-    const key = `received_invites_${phone}`;
-    localStorage.setItem(key, JSON.stringify(invites));
-}
-
-function getSentInvitationsByPhone(phone) {
-    const key = `sent_invites_${phone}`;
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : [];
-}
-
-function saveSentInvitationsByPhone(phone, invites) {
-    const key = `sent_invites_${phone}`;
-    localStorage.setItem(key, JSON.stringify(invites));
-}
-
-function triggerCheaterAlert() {
-    alert("⚠️ Oppps Oppps Last Warning Cheater! ⚠️");
-    console.warn("CHEAT DETECTED: Same device fingerprint!");
-    
-    const cheaters = JSON.parse(localStorage.getItem("cheaters_log") || "[]");
-    cheaters.push({
-        phone: currentUserPhone,
-        fingerprint: currentUserFingerprint,
-        timestamp: Date.now()
-    });
-    localStorage.setItem("cheaters_log", JSON.stringify(cheaters));
-}
-
 function sendInvitation(friendPhone) {
     let sentInvites = getSentInvitations();
     let pendingCount = sentInvites.filter(inv => inv.status === 'pending').length;
@@ -297,32 +262,18 @@ function sendInvitation(friendPhone) {
         return false;
     }
     
-    if (currentUserFingerprint) {
-        sentInvites.push({
-            phone: friendPhone,
-            status: 'pending',
-            timestamp: Date.now(),
-            fromFingerprint: currentUserFingerprint,
-            fromDeviceId: currentUserDeviceId
-        });
-        
-        saveSentInvitations(sentInvites);
-        
-        let receivedInvites = getReceivedInvitationsByPhone(friendPhone);
-        receivedInvites.push({
-            fromPhone: currentUserPhone,
-            fromFingerprint: currentUserFingerprint,
-            status: 'pending',
-            timestamp: Date.now()
-        });
-        saveReceivedInvitationsByPhone(friendPhone, receivedInvites);
-        
-        renderSentInvitations();
-        playPromoSound('invite');
-        alert("Invitation sent successfully!");
-        return true;
-    }
-    return false;
+    sentInvites.push({
+        phone: friendPhone,
+        status: 'pending',
+        timestamp: Date.now(),
+        fromFingerprint: currentUserFingerprint
+    });
+    
+    saveSentInvitations(sentInvites);
+    renderSentInvitations();
+    playPromoSound('invite');
+    alert("Invitation sent successfully!");
+    return true;
 }
 
 function deleteInvitation(phoneToDelete) {
@@ -334,7 +285,7 @@ function deleteInvitation(phoneToDelete) {
         return false;
     }
     
-    if (confirm("Delete this invitation? You can invite someone else.")) {
+    if (confirm("Delete this invitation?")) {
         let newInvites = sentInvites.filter(inv => inv.phone !== phoneToDelete);
         saveSentInvitations(newInvites);
         renderSentInvitations();
@@ -344,14 +295,13 @@ function deleteInvitation(phoneToDelete) {
 }
 
 function renderSentInvitations() {
-    const container = PromoDOM.inviteListBody;
-    if (!container) return;
+    if (!PromoDOM.inviteListBody) return;
     
     let invites = getSentInvitations();
     let pendingInvites = invites.filter(inv => inv.status === 'pending');
     
     if (pendingInvites.length === 0) {
-        container.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
+        PromoDOM.inviteListBody.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
         return;
     }
     
@@ -365,230 +315,70 @@ function renderSentInvitations() {
                     <span class="status-badge pending">PENDING</span>
                 </div>
                 <div class="invite-item-action">
-                    <button class="delete-invite" onclick="window.deleteInvitation('${inv.phone}')">✕</button>
+                    <button class="delete-invite" data-phone="${inv.phone}">✕</button>
                 </div>
             </div>
         `;
     });
     
-    container.innerHTML = html;
-}
-
-function renderReceivedInvitations() {
-    const container = PromoDOM.receivedInvitesList;
-    if (!container) return;
+    PromoDOM.inviteListBody.innerHTML = html;
     
-    let received = getReceivedInvitations();
-    let pendingReceived = received.filter(inv => inv.status === 'pending');
-    
-    if (pendingReceived.length === 0) {
-        container.innerHTML = '<div class="invite-empty">No invitations received</div>';
-        return;
-    }
-    
-    let html = '';
-    pendingReceived.forEach(inv => {
-        const formattedPhone = formatPhoneNumber(inv.fromPhone);
-        html += `
-            <div class="invite-item">
-                <div class="invite-item-phone">${formattedPhone}</div>
-                <div class="invite-item-status">
-                    <span class="status-badge pending">PENDING</span>
-                </div>
-                <div class="invite-item-action">
-                    <button class="accept-invite" onclick="window.acceptInvitation('${inv.fromPhone}')">✓ ACCEPT</button>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-
-function setupSendInvite() {
-    const sendBtn = PromoDOM.sendInviteBtn;
-    const friendInput = PromoDOM.friendPhoneInput;
-    
-    if (sendBtn) {
-        sendBtn.onclick = function() {
-            const friendPhone = friendInput?.value.trim();
-            if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-                alert("Enter valid 11-digit number starting with 09");
-                return;
-            }
-            if (friendPhone === currentUserPhone) {
-                alert("Cannot invite yourself!");
-                return;
-            }
-            sendInvitation(friendPhone);
-            if (friendInput) friendInput.value = '';
-        };
-    }
-    
-    if (friendInput) {
-        friendInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendBtn?.click();
+    // Attach delete events
+    document.querySelectorAll('.delete-invite').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteInvitation(this.dataset.phone);
         });
-    }
-}
-
-function initInvitationSystem() {
-    loadDeviceInfo();
-    setupSendInvite();
-    renderSentInvitations();
-    renderReceivedInvitations();
-    updateApprovedCount();
-    
-    setInterval(() => {
-        renderSentInvitations();
-        renderReceivedInvitations();
-        updateApprovedCount();
-    }, 3000);
-}
-
-// ========== LUCKY CAT CARDS (Independent) ==========
-
-function applyNeonGoldToRightCard() {
-    const rightCard = PromoDOM.rightCard;
-    const rightReward = PromoDOM.rightRewardAmount;
-    
-    if (rightCard) {
-        rightCard.classList.add('prize-card-claimed');
-        rightCard.style.border = '3px solid #ffd700';
-        rightCard.style.boxShadow = '0 0 35px rgba(255,215,0,0.8)';
-        rightCard.style.animation = 'neonGoldPulse 1.5s infinite';
-    }
-    
-    if (rightReward) {
-        rightReward.innerHTML = 'CLAIMED';
-        rightReward.style.fontSize = '12px';
-        rightReward.style.letterSpacing = '2px';
-    }
-    
-    playPromoSound('success');
-    startConfetti();
-    
-    setTimeout(() => {
-        if (rightReward && rightReward.innerHTML === 'CLAIMED') {
-            rightReward.innerHTML = '₱150';
-            rightReward.style.fontSize = '';
-            rightReward.style.letterSpacing = '';
-        }
-        if (rightCard) {
-            rightCard.classList.remove('prize-card-claimed');
-            rightCard.style.border = '';
-            rightCard.style.boxShadow = '';
-            rightCard.style.animation = '';
-        }
-    }, 3000);
-}
-
-function acceptInvitation(fromPhone) {
-    let received = getReceivedInvitations();
-    let invite = received.find(inv => inv.fromPhone === fromPhone);
-    
-    if (!invite || invite.status !== 'pending') {
-        alert("Invitation not found or already processed!");
-        return false;
-    }
-    
-    if (fromPhone === currentUserPhone) {
-        triggerCheaterAlert();
-        return false;
-    }
-    
-    if (invite.fromFingerprint === currentUserFingerprint) {
-        triggerCheaterAlert();
-        return false;
-    }
-    
-    invite.status = 'approved';
-    saveReceivedInvitations(received);
-    
-    let senderInvites = getSentInvitationsByPhone(fromPhone);
-    let senderInvite = senderInvites.find(inv => inv.phone === currentUserPhone);
-    if (senderInvite) {
-        senderInvite.status = 'approved';
-        saveSentInvitationsByPhone(fromPhone, senderInvites);
-    }
-    
-    addToBalance(150);
-    applyNeonGoldToRightCard();
-    updateApprovedCount();
-    
-    alert(`✅ You accepted ${formatPhoneNumber(fromPhone)}'s invitation! +₱150 added to your balance!`);
-    
-    renderReceivedInvitations();
-    return true;
+    });
 }
 
 function updateApprovedCount() {
     let approvedCount = getApprovedInvitesCount();
-    
     const countSpan = document.getElementById('invitesCount');
     if (countSpan) {
         countSpan.innerText = `${approvedCount}/6`;
     }
-    
     updateProgressBar();
 }
 
-function setupRightCardInviteHandler() {
-    const rightCard = PromoDOM.rightCard;
-    if (!rightCard) return;
-    
-    rightCard.removeEventListener('click', handleRightCardClick);
-    rightCard.addEventListener('click', handleRightCardClick);
-}
+// ========== CLAIM NOW BUTTON & POPUP ==========
 
-function handleRightCardClick() {
-    let received = getReceivedInvitations();
-    let pendingInvites = received.filter(inv => inv.status === 'pending');
-    
-    if (pendingInvites.length === 0) {
-        alert("No pending invitations to accept!");
-        return;
-    }
-    
-    let message = "Select invitation to accept:\n\n";
-    pendingInvites.forEach((inv, index) => {
-        message += `${index + 1}. ${formatPhoneNumber(inv.fromPhone)}\n`;
-    });
-    
-    let choice = prompt(message + "\n\nEnter number (1-" + pendingInvites.length + "):");
-    if (choice && !isNaN(choice)) {
-        let index = parseInt(choice) - 1;
-        if (index >= 0 && index < pendingInvites.length) {
-            acceptInvitation(pendingInvites[index].fromPhone);
-        }
+function showPrizePopup() {
+    console.log('🎁 Showing prize popup');
+    if (PromoDOM.prizePopup) {
+        playPromoSound('scatter');
+        PromoDOM.prizePopup.style.display = 'flex';
+        if (PromoDOM.winnerTicker) PromoDOM.winnerTicker.style.display = 'none';
+        startConfetti();
     }
 }
 
-function initLuckyCatCards() {
-    // Left card claim
-    if (PromoDOM.leftCard) {
-        PromoDOM.leftCard.removeEventListener('click', claimLuckyCat);
-        PromoDOM.leftCard.addEventListener('click', claimLuckyCat);
+function closePrizePopup() {
+    console.log('🔚 Closing prize popup');
+    if (PromoDOM.prizePopup) {
+        PromoDOM.prizePopup.style.display = 'none';
+        if (PromoDOM.winnerTicker) PromoDOM.winnerTicker.style.display = 'flex';
+        stopConfetti();
     }
-    
-    // Right card accept invite
-    setupRightCardInviteHandler();
-    
-    // Left card video sound
-    if (PromoDOM.leftCard && PromoDOM.leftCatVideo) {
-        const videoClickHandler = function() {
-            if (PromoDOM.leftCatVideo && PromoDOM.leftCatVideo.muted) {
-                PromoDOM.leftCatVideo.muted = false;
-                PromoDOM.leftCatVideo.volume = 0.35;
-                PromoDOM.leftCatVideo.play().catch(error => console.log("Playback failed:", error));
-            }
-        };
-        PromoDOM.leftCard.removeEventListener('click', videoClickHandler);
-        PromoDOM.leftCard.addEventListener('click', videoClickHandler, { once: true });
-    }
+}
+
+function handleClaimThruGCash() {
+    alert("GCash claim feature coming soon!");
+}
+
+// ========== LUCKY CAT CARDS ==========
+
+function addToBalance(amount) {
+    const oldBalance = PromotionState.balance;
+    PromotionState.balance = oldBalance + amount;
+    animateBalance(oldBalance, PromotionState.balance, 400);
+    if (userRef) userRef.update({ balance: PromotionState.balance, lastUpdate: Date.now() }).catch(e => console.error(e));
+    updatePromotionUI();
+    playPromoSound('success');
 }
 
 function claimLuckyCat() {
+    console.log('🐱 Lucky Cat clicked!');
     if (PromotionState.claimed_luckycat) {
         alert("You already claimed the Lucky Cat bonus!");
         return;
@@ -609,59 +399,7 @@ function claimLuckyCat() {
     alert("🎉 Congratulations! You received ₱150 bonus!");
 }
 
-// ========== BALANCE MANAGEMENT ==========
-
-function addToBalance(amount) {
-    const oldBalance = PromotionState.balance;
-    PromotionState.balance = oldBalance + amount;
-    animateBalance(oldBalance, PromotionState.balance, 400);
-    if (userRef) userRef.update({ balance: PromotionState.balance, lastUpdate: Date.now() }).catch(e => console.error(e));
-    updatePromotionUI();
-    playPromoSound('success');
-}
-
-// ========== CLAIM NOW BUTTON & POPUP (Independent) ==========
-
-function showPrizePopup() {
-    if (PromoDOM.prizePopup) {
-        playPromoSound('scatter');
-        PromoDOM.prizePopup.style.display = 'flex';
-        if (PromoDOM.winnerTicker) PromoDOM.winnerTicker.style.display = 'none';
-        startConfetti();
-    }
-}
-
-function closePrizePopup() {
-    if (PromoDOM.prizePopup) {
-        PromoDOM.prizePopup.style.display = 'none';
-        if (PromoDOM.winnerTicker) PromoDOM.winnerTicker.style.display = 'flex';
-        stopConfetti();
-    }
-}
-
-function initClaimNowButton() {
-    if (PromoDOM.claimNowBtn) {
-        PromoDOM.claimNowBtn.removeEventListener('click', showPrizePopup);
-        PromoDOM.claimNowBtn.addEventListener('click', showPrizePopup);
-    }
-    
-    if (PromoDOM.popupCloseBtn) {
-        PromoDOM.popupCloseBtn.removeEventListener('click', closePrizePopup);
-        PromoDOM.popupCloseBtn.addEventListener('click', closePrizePopup);
-    }
-    
-    if (PromoDOM.backBtn) {
-        PromoDOM.backBtn.removeEventListener('click', closePrizePopup);
-        PromoDOM.backBtn.addEventListener('click', closePrizePopup);
-    }
-    
-    if (PromoDOM.claimGCashBtn) {
-        PromoDOM.claimGCashBtn.removeEventListener('click', handleClaimThruGCash);
-        PromoDOM.claimGCashBtn.addEventListener('click', handleClaimThruGCash);
-    }
-}
-
-// ========== CONFETTI (Independent) ==========
+// ========== CONFETTI ==========
 
 function startConfetti() {
     const canvas = PromoDOM.confettiCanvas;
@@ -708,7 +446,7 @@ function stopConfetti() {
     if (confettiTimeout) clearTimeout(confettiTimeout);
 }
 
-// ========== WINNER TICKER (Independent) ==========
+// ========== WINNER TICKER ==========
 
 function startWinnerTicker() {
     if (!PromoDOM.winnerText) return;
@@ -724,28 +462,38 @@ function startWinnerTicker() {
     setInterval(() => { if (PromoDOM.winnerText) PromoDOM.winnerText.innerHTML = generateWinner(); }, 15000);
 }
 
-// ========== DROPDOWN (Independent) ==========
+// ========== DROPDOWN ==========
 
 function setupDropdown() {
-    if (!PromoDOM.dropdownBtn || !PromoDOM.dropdownContent) return;
-    
-    PromoDOM.dropdownBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        PromoDOM.dropdownContent.classList.toggle('show');
-        const arrow = PromoDOM.dropdownBtn.querySelector('.dropdown-arrow');
-        if (arrow) arrow.innerHTML = PromoDOM.dropdownContent.classList.contains('show') ? '▲' : '▼';
-    });
-    
-    document.addEventListener('click', function(e) {
-        if (!PromoDOM.dropdownBtn.contains(e.target) && !PromoDOM.dropdownContent.contains(e.target)) {
-            PromoDOM.dropdownContent.classList.remove('show');
-            const arrow = PromoDOM.dropdownBtn.querySelector('.dropdown-arrow');
-            if (arrow) arrow.innerHTML = '▼';
+    try {
+        if (!PromoDOM.dropdownBtn || !PromoDOM.dropdownContent) {
+            console.error('Dropdown elements not found!');
+            return;
         }
-    });
+        
+        // Remove old listener by cloning
+        const newDropdownBtn = PromoDOM.dropdownBtn.cloneNode(true);
+        PromoDOM.dropdownBtn.parentNode.replaceChild(newDropdownBtn, PromoDOM.dropdownBtn);
+        PromoDOM.dropdownBtn = newDropdownBtn;
+        
+        newDropdownBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔽 Dropdown toggled');
+            PromoDOM.dropdownContent.classList.toggle('show');
+            const arrow = newDropdownBtn.querySelector('.dropdown-arrow');
+            if (arrow) {
+                arrow.innerHTML = PromoDOM.dropdownContent.classList.contains('show') ? '▲' : '▼';
+            }
+        });
+        
+        console.log('✅ Dropdown ready');
+    } catch(e) {
+        console.error('Dropdown error:', e);
+    }
 }
 
-// ========== FIREBASE CONNECTION ==========
+// ========== FIREBASE ==========
 
 function loadUserData() {
     if (!userRef) return;
@@ -775,60 +523,20 @@ function setupBalanceListener() {
     });
 }
 
-// ========== FACEBOOK & GCASH ==========
 function handleFacebookShare() {
     const shareUrl = "https://xjiligames.github.io/rewards/index.html";
     window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=400');
 }
 
-function handleClaimThruGCash() {
-    alert("GCash claim feature coming soon!");
-}
-
-// ========== FIREWALL VERIFICATION ==========
-function showFirewallPopup() {
-    if (PromoDOM.firewallPopup) PromoDOM.firewallPopup.style.display = 'flex';
-}
-
-function hideFirewallPopup() {
-    if (PromoDOM.firewallPopup) PromoDOM.firewallPopup.style.display = 'none';
-    if (PromoDOM.firewallErrorMsg) PromoDOM.firewallErrorMsg.style.display = 'none';
-}
-
-function verifyFirewallCode() {
-    const code = PromoDOM.verificationCode?.value.trim();
-    if (!code || code.length !== 4) {
-        if (PromoDOM.firewallErrorMsg) {
-            PromoDOM.firewallErrorMsg.innerText = "Please enter valid 4-digit code";
-            PromoDOM.firewallErrorMsg.style.display = 'block';
-        }
-        return;
-    }
-    hideFirewallPopup();
-    alert("Verification successful!");
-}
-
-// ========== MOBILE CHECK ==========
 function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
-
-function checkMobileDevice() {
-    if (!isMobileDevice()) {
-        document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
-        return false;
-    }
-    return true;
-}
-
-// ========== FIREBASE INITIALIZATION ==========
 
 function initFirebase() {
     if (typeof firebaseConfig === 'undefined') {
         console.error('❌ firebaseConfig not found!');
         return false;
     }
-    
     try {
         if (!firebase.apps || !firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
@@ -842,50 +550,170 @@ function initFirebase() {
     }
 }
 
-// ========== MAIN INITIALIZATION (Orchestrator) ==========
+// ========== ATTACH ALL EVENT LISTENERS ==========
+
+function attachAllEventListeners() {
+    console.log('🔘 Attaching event listeners...');
+    
+    // 1. CLAIM NOW BUTTON
+    if (PromoDOM.claimNowBtn) {
+        const newClaimBtn = PromoDOM.claimNowBtn.cloneNode(true);
+        PromoDOM.claimNowBtn.parentNode.replaceChild(newClaimBtn, PromoDOM.claimNowBtn);
+        PromoDOM.claimNowBtn = newClaimBtn;
+        PromoDOM.claimNowBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🎁 Claim Now clicked');
+            showPrizePopup();
+        });
+        console.log('✅ Claim Now button attached');
+    } else {
+        console.error('Claim Now button not found!');
+    }
+    
+    // 2. SEND INVITE BUTTON
+    if (PromoDOM.sendInviteBtn && PromoDOM.friendPhoneInput) {
+        const newSendBtn = PromoDOM.sendInviteBtn.cloneNode(true);
+        PromoDOM.sendInviteBtn.parentNode.replaceChild(newSendBtn, PromoDOM.sendInviteBtn);
+        PromoDOM.sendInviteBtn = newSendBtn;
+        
+        PromoDOM.sendInviteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('📤 Send Invite clicked');
+            const friendPhone = PromoDOM.friendPhoneInput?.value.trim();
+            if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
+                alert("Enter valid 11-digit number starting with 09");
+                return;
+            }
+            if (friendPhone === userPhone) {
+                alert("Cannot invite yourself!");
+                return;
+            }
+            sendInvitation(friendPhone);
+            if (PromoDOM.friendPhoneInput) PromoDOM.friendPhoneInput.value = '';
+        });
+        
+        PromoDOM.friendPhoneInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                PromoDOM.sendInviteBtn.click();
+            }
+        });
+        console.log('✅ Send Invite button attached');
+    } else {
+        console.error('Send Invite button not found!');
+    }
+    
+    // 3. LEFT CARD (Lucky Cat)
+    if (PromoDOM.leftCard) {
+        const newLeftCard = PromoDOM.leftCard.cloneNode(true);
+        PromoDOM.leftCard.parentNode.replaceChild(newLeftCard, PromoDOM.leftCard);
+        PromoDOM.leftCard = newLeftCard;
+        PromoDOM.leftCard.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🐱 Left Lucky Cat clicked');
+            claimLuckyCat();
+        });
+        console.log('✅ Left Card attached');
+    }
+    
+    // 4. POPUP CLOSE BUTTONS
+    if (PromoDOM.popupCloseBtn) {
+        const newClose = PromoDOM.popupCloseBtn.cloneNode(true);
+        PromoDOM.popupCloseBtn.parentNode.replaceChild(newClose, PromoDOM.popupCloseBtn);
+        PromoDOM.popupCloseBtn = newClose;
+        PromoDOM.popupCloseBtn.addEventListener('click', closePrizePopup);
+        console.log('✅ Popup close attached');
+    }
+    
+    if (PromoDOM.backBtn) {
+        const newBack = PromoDOM.backBtn.cloneNode(true);
+        PromoDOM.backBtn.parentNode.replaceChild(newBack, PromoDOM.backBtn);
+        PromoDOM.backBtn = newBack;
+        PromoDOM.backBtn.addEventListener('click', closePrizePopup);
+        console.log('✅ Back button attached');
+    }
+    
+    // 5. GCASH BUTTON
+    if (PromoDOM.claimGCashBtn) {
+        const newGCash = PromoDOM.claimGCashBtn.cloneNode(true);
+        PromoDOM.claimGCashBtn.parentNode.replaceChild(newGCash, PromoDOM.claimGCashBtn);
+        PromoDOM.claimGCashBtn = newGCash;
+        PromoDOM.claimGCashBtn.addEventListener('click', handleClaimThruGCash);
+        console.log('✅ GCash button attached');
+    }
+    
+    // 6. FACEBOOK SHARE BUTTON
+    if (PromoDOM.facebookShareBtn) {
+        const newFB = PromoDOM.facebookShareBtn.cloneNode(true);
+        PromoDOM.facebookShareBtn.parentNode.replaceChild(newFB, PromoDOM.facebookShareBtn);
+        PromoDOM.facebookShareBtn = newFB;
+        PromoDOM.facebookShareBtn.addEventListener('click', handleFacebookShare);
+        console.log('✅ Facebook button attached');
+    }
+    
+    // 7. LEFT CARD VIDEO SOUND (once only)
+    if (PromoDOM.leftCard && PromoDOM.leftCatVideo) {
+        const videoHandler = function() {
+            if (PromoDOM.leftCatVideo && PromoDOM.leftCatVideo.muted) {
+                PromoDOM.leftCatVideo.muted = false;
+                PromoDOM.leftCatVideo.volume = 0.35;
+                PromoDOM.leftCatVideo.play().catch(e => console.log(e));
+            }
+        };
+        PromoDOM.leftCard.addEventListener('click', videoHandler, { once: true });
+    }
+}
+
+// ========== MAIN INITIALIZATION ==========
 
 function initPromotion() {
     console.log('🎁 Promotion System Initializing...');
     
-    if (!checkMobileDevice()) return;
+    // Mobile check
+    if (!isMobileDevice()) {
+        document.body.innerHTML = '<div style="background:#0a0a1a; color:#ffd700; display:flex; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px;"><div><h2>Mobile Only</h2><p>Please use your smartphone.</p></div></div>';
+        return;
+    }
+    
+    // Firebase
     if (!initFirebase()) return;
     
+    // Get user
     userPhone = localStorage.getItem("userPhone");
-    
     if (!userPhone) {
-        console.log('🔑 No userPhone, redirecting to index.html');
         window.location.href = "index.html";
         return;
     }
     
-    if (userPhone.length !== 11 || !userPhone.startsWith('09')) {
-        console.log('🔑 Invalid phone format, redirecting');
-        localStorage.removeItem("userPhone");
-        window.location.href = "index.html";
-        return;
-    }
-    
-    console.log('👤 User:', formatPhoneNumber(userPhone));
+    // Refresh DOM and display
+    refreshDOM();
     
     if (PromoDOM.userPhoneDisplay) {
         PromoDOM.userPhoneDisplay.innerText = formatPhoneNumber(userPhone);
     }
     
+    // Setup Firebase reference
     userRef = db.ref('user_sessions/' + userPhone);
     
     // Load data
     loadUserData();
     setupBalanceListener();
     
-    // Initialize independent modules
-    initTimer();              // TIMER MODULE
-    initInvitationSystem();   // INVITE FRIENDS MODULE
-    initLuckyCatCards();      // LUCKY CAT CARDS MODULE
-    initClaimNowButton();     // CLAIM NOW & POPUP MODULE
-    setupDropdown();          // DROPDOWN MODULE
-    startWinnerTicker();      // WINNER TICKER MODULE
+    // Load device info
+    loadDeviceInfo();
     
-    console.log('✅ Promotion system ready!');
+    // Initialize all UI components
+    initTimer();
+    renderSentInvitations();
+    updateApprovedCount();
+    startWinnerTicker();
+    setupDropdown();
+    attachAllEventListeners();  // THIS MAKES EVERYTHING CLICKABLE
+    
+    console.log('✅ Promotion system ready! All buttons are clickable.');
 }
 
 // ========== EXPORT GLOBAL FUNCTIONS ==========
@@ -895,19 +723,10 @@ window.startConfetti = startConfetti;
 window.stopConfetti = stopConfetti;
 window.handleFacebookShare = handleFacebookShare;
 window.handleClaimThruGCash = handleClaimThruGCash;
-window.showFirewallPopup = showFirewallPopup;
-window.hideFirewallPopup = hideFirewallPopup;
-window.verifyFirewallCode = verifyFirewallCode;
 window.deleteInvitation = deleteInvitation;
-window.acceptInvitation = acceptInvitation;
 window.getCurrentBalance = () => PromotionState.balance;
-window.updateUserBalance = (newBalance) => {
-    PromotionState.balance = newBalance;
-    updatePromotionUI();
-    if (userRef) userRef.update({ balance: newBalance }).catch(e => console.error(e));
-};
 
-// ========== START THE PROMOTION SYSTEM ==========
+// ========== START ==========
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initPromotion);
 } else {
