@@ -37,22 +37,3 @@ const GAME_CONFIG = {
 Object.freeze(firebaseConfig);
 Object.freeze(TELEGRAM_CONFIG);
 Object.freeze(GAME_CONFIG);
-
-function startMainTimer() {
-    const targetDate = new Date("May 15, 2026 23:59:59").getTime();
-    const timerDisplay = document.getElementById("mainTimerDisplay");
-
-    if (!timerDisplay) return;
-
-    setInterval(function() {
-        const now = new Date().getTime();
-        const distance = targetDate - now;
-
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }, 1000);
-}
