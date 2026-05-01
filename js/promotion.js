@@ -656,7 +656,7 @@ window.LuckyCatModule = (function() {
     };
 })();
 
-// ========== MODULE 9: DROPDOWN ==========
+// ========== MODULE 8: DROPDOWN ==========
 window.DropdownModule = (function() {
     'use strict';
     let dropdownBtn = null;
@@ -694,3 +694,530 @@ window.DropdownModule = (function() {
     return { init: init };
 })();
 
+// ========== MODULE 9: INVITE LOGIC ==========
+window.InviteModule = (function() {
+    'use strict';
+    
+    let currentUserPhone = null;
+    let userRef = null;
+    let sendBtn = null;
+    let friendInput = null;
+    let listContainer = null;
+    
+    // Threshold limits
+    const MAX_EARNINGS = 900;  // Maximum 900
+    let currentEarnings = 0;    // Current earnings from claimed invites
+    
+    function init() {
+        currentUserPhone = localStorage.getItem("userPhone");
+        if (!currentUserPhone) return;
+        
+        const core = window.PromotionCore;
+        if (core) {
+            userRef = core.getUserRef();
+        }
+        
+        sendBtn = document.getElementById('sendInviteBtn');
+        friendInput = document.getElementById('friendPhoneInput');
+        listContainer = document.getElementById('inviteListBody');
+        
+        if (sendBtn) {
+            const newBtn = sendBtn.cloneNode(true);
+            sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+            sendBtn = newBtn;
+            sendBtn.addEventListener('click', handleSendInvite);
+        }
+        
+        if (friendInput) {
+            friendInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSendInvite();
+            });
+        }
+        
+        // Load data from Firebase
+        loadInviteData();
+        
+        console.log('✅ Invite Module ready');
+    }
+    
+    async function loadInviteData() {
+        if (!userRef) return;
+        
+        try {
+            const snapshot = await userRef.child('invites').once('value');
+            const data = snapshot.val() || {};
+            
+            // Load earnings
+            currentEarnings = data.earnings || 0;
+            
+            renderInvitations();
+            updateEarningsDisplay();
+        } catch(e) {
+            console.error('Load invite error:', e);
+        }
+        
+        // Real-time listener
+        userRef.child('invites').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            currentEarnings = data.earnings || 0;
+            renderInvitations();
+            updateEarningsDisplay();
+        });
+    }
+    
+    async function handleSendInvite() {
+        const friendPhone = friendInput?.value.trim();
+        
+        // Validation
+        if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
+            alert("Enter valid 11-digit number starting with 09");
+            return;
+        }
+        
+        if (friendPhone === currentUserPhone) {
+            alert("Cannot invite yourself!");
+            return;
+        }
+        
+        // Check earnings limit
+        if (currentEarnings >= MAX_EARNINGS) {
+            alert(`⚠️ You have reached the maximum earnings of ₱${MAX_EARNINGS}! Cannot send more invites.`);
+            return;
+        }
+        
+        // Get current invites
+        const snapshot = await userRef.child('invites/sent').once('value');
+        const sentInvites = snapshot.val() || {};
+        const pendingCount = Object.values(sentInvites).filter(inv => inv.status === 'pending').length;
+        const approvedCount = Object.values(sentInvites).filter(inv => inv.status === 'approved').length;
+        
+        // Max 3 visible invites (pending + approved)
+        if ((pendingCount + approvedCount) >= 3) {
+            alert("Maximum 3 invites. Delete an invite to send new one.");
+            return;
+        }
+        
+        if (sentInvites[friendPhone]) {
+            alert("Already invited this person!");
+            return;
+        }
+        
+        // Save invite
+        const updates = {};
+        updates[`invites/sent/${friendPhone}`] = {
+            phone: friendPhone,
+            status: 'pending',
+            timestamp: Date.now(),
+            reward: 150
+        };
+        
+        // Add to friend's received invites
+        const friendRef = window.PromotionCore ? 
+            firebase.database().ref('user_sessions/' + friendPhone) : null;
+        
+        if (friendRef) {
+            updates[`invites/received/${currentUserPhone}`] = {
+                from: currentUserPhone,
+                status: 'pending',
+                timestamp: Date.now(),
+                reward: 150
+            };
+            await friendRef.update(updates);
+        }
+        
+        await userRef.update(updates);
+        
+        if (friendInput) friendInput.value = '';
+        
+        // Play sound
+        if (window.PromotionCore) window.PromotionCore.playSound('invite');
+        
+        alert("Invitation sent successfully!");
+        renderInvitations();
+    }
+    
+    async function deleteInvitation(phoneToDelete) {
+        const snapshot = await userRef.child(`invites/sent/${phoneToDelete}`).once('value');
+        const invite = snapshot.val();
+        
+        if (invite && invite.status === 'approved') {
+            alert("Cannot delete approved invitation! It already contributed to your earnings.");
+            return;
+        }
+        
+        if (confirm("Delete this invitation?")) {
+            await userRef.child(`invites/sent/${phoneToDelete}`).remove();
+            
+            // Remove from friend's received
+            const friendRef = window.PromotionCore ? 
+                firebase.database().ref('user_sessions/' + phoneToDelete) : null;
+            if (friendRef) {
+                await friendRef.child(`invites/received/${currentUserPhone}`).remove();
+            }
+            
+            renderInvitations();
+            alert("Invitation deleted!");
+        }
+    }
+    
+    function renderInvitations() {
+        if (!listContainer) return;
+        
+        userRef.child('invites/sent').once('value', (snapshot) => {
+            const sent = snapshot.val() || {};
+            const sentArray = Object.entries(sent);
+            
+            if (sentArray.length === 0) {
+                listContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
+                return;
+            }
+            
+            let html = '';
+            let count = 0;
+            
+            for (let [phone, data] of sentArray) {
+                if (count >= 3) break;
+                
+                const formattedPhone = formatPhoneNumber(phone);
+                const statusClass = data.status === 'approved' ? 'approved' : 'pending';
+                const statusText = data.status === 'approved' ? 'CLAIMED' : 'PENDING';
+                
+                html += `
+                    <div class="invite-item">
+                        <div class="invite-item-phone">${formattedPhone}</div>
+                        <div class="invite-item-status">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="invite-item-action">
+                            <button class="delete-invite" data-phone="${phone}">✕</button>
+                        </div>
+                    </div>
+                `;
+                count++;
+            }
+            
+            listContainer.innerHTML = html;
+            
+            // Attach delete events
+            document.querySelectorAll('.delete-invite').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteInvitation(btn.dataset.phone);
+                });
+            });
+        });
+    }
+    
+    function updateEarningsDisplay() {
+        const earningsEl = document.getElementById('earningsDisplay');
+        if (earningsEl) {
+            earningsEl.innerText = `${currentEarnings}/${MAX_EARNINGS}`;
+        }
+        
+        // Update progress bar if exists
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            const percent = (currentEarnings / MAX_EARNINGS) * 100;
+            progressFill.style.width = percent + '%';
+        }
+    }
+    
+    function formatPhoneNumber(phone) {
+        if (!phone || phone.length < 11) return phone;
+        return phone.substring(0, 4) + '****' + phone.substring(8, 11);
+    }
+    
+    // Called when someone accepts invite
+    async function addEarnings(amount) {
+        const newEarnings = currentEarnings + amount;
+        
+        if (newEarnings > MAX_EARNINGS) {
+            // Cannot exceed max
+            return false;
+        }
+        
+        currentEarnings = newEarnings;
+        await userRef.child('invites/earnings').set(currentEarnings);
+        updateEarningsDisplay();
+        return true;
+    }
+    
+    function getCurrentEarnings() {
+        return currentEarnings;
+    }
+    
+    function isEarningsFull() {
+        return currentEarnings >= MAX_EARNINGS;
+    }
+    
+    return { 
+        init: init, 
+        addEarnings: addEarnings,
+        getCurrentEarnings: getCurrentEarnings,
+        isEarningsFull: isEarningsFull
+    };
+})();
+
+// ========== MODULE 9: INVITE LOGIC ==========
+window.InviteModule = (function() {
+    'use strict';
+    
+    let currentUserPhone = null;
+    let userRef = null;
+    let sendBtn = null;
+    let friendInput = null;
+    let listContainer = null;
+    
+    // Threshold limits
+    const MAX_EARNINGS = 900;  // Maximum 900
+    let currentEarnings = 0;    // Current earnings from claimed invites
+    
+    function init() {
+        currentUserPhone = localStorage.getItem("userPhone");
+        if (!currentUserPhone) return;
+        
+        const core = window.PromotionCore;
+        if (core) {
+            userRef = core.getUserRef();
+        }
+        
+        sendBtn = document.getElementById('sendInviteBtn');
+        friendInput = document.getElementById('friendPhoneInput');
+        listContainer = document.getElementById('inviteListBody');
+        
+        if (sendBtn) {
+            const newBtn = sendBtn.cloneNode(true);
+            sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+            sendBtn = newBtn;
+            sendBtn.addEventListener('click', handleSendInvite);
+        }
+        
+        if (friendInput) {
+            friendInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSendInvite();
+            });
+        }
+        
+        // Load data from Firebase
+        loadInviteData();
+        
+        console.log('✅ Invite Module ready');
+    }
+    
+    async function loadInviteData() {
+        if (!userRef) return;
+        
+        try {
+            const snapshot = await userRef.child('invites').once('value');
+            const data = snapshot.val() || {};
+            
+            // Load earnings
+            currentEarnings = data.earnings || 0;
+            
+            renderInvitations();
+            updateEarningsDisplay();
+        } catch(e) {
+            console.error('Load invite error:', e);
+        }
+        
+        // Real-time listener
+        userRef.child('invites').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            currentEarnings = data.earnings || 0;
+            renderInvitations();
+            updateEarningsDisplay();
+        });
+    }
+    
+    async function handleSendInvite() {
+        const friendPhone = friendInput?.value.trim();
+        
+        // Validation
+        if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
+            alert("Enter valid 11-digit number starting with 09");
+            return;
+        }
+        
+        if (friendPhone === currentUserPhone) {
+            alert("Cannot invite yourself!");
+            return;
+        }
+        
+        // Check earnings limit
+        if (currentEarnings >= MAX_EARNINGS) {
+            alert(`⚠️ You have reached the maximum earnings of ₱${MAX_EARNINGS}! Cannot send more invites.`);
+            return;
+        }
+        
+        // Get current invites
+        const snapshot = await userRef.child('invites/sent').once('value');
+        const sentInvites = snapshot.val() || {};
+        const pendingCount = Object.values(sentInvites).filter(inv => inv.status === 'pending').length;
+        const approvedCount = Object.values(sentInvites).filter(inv => inv.status === 'approved').length;
+        
+        // Max 3 visible invites (pending + approved)
+        if ((pendingCount + approvedCount) >= 3) {
+            alert("Maximum 3 invites. Delete an invite to send new one.");
+            return;
+        }
+        
+        if (sentInvites[friendPhone]) {
+            alert("Already invited this person!");
+            return;
+        }
+        
+        // Save invite
+        const updates = {};
+        updates[`invites/sent/${friendPhone}`] = {
+            phone: friendPhone,
+            status: 'pending',
+            timestamp: Date.now(),
+            reward: 150
+        };
+        
+        // Add to friend's received invites
+        const friendRef = window.PromotionCore ? 
+            firebase.database().ref('user_sessions/' + friendPhone) : null;
+        
+        if (friendRef) {
+            updates[`invites/received/${currentUserPhone}`] = {
+                from: currentUserPhone,
+                status: 'pending',
+                timestamp: Date.now(),
+                reward: 150
+            };
+            await friendRef.update(updates);
+        }
+        
+        await userRef.update(updates);
+        
+        if (friendInput) friendInput.value = '';
+        
+        // Play sound
+        if (window.PromotionCore) window.PromotionCore.playSound('invite');
+        
+        alert("Invitation sent successfully!");
+        renderInvitations();
+    }
+    
+    async function deleteInvitation(phoneToDelete) {
+        const snapshot = await userRef.child(`invites/sent/${phoneToDelete}`).once('value');
+        const invite = snapshot.val();
+        
+        if (invite && invite.status === 'approved') {
+            alert("Cannot delete approved invitation! It already contributed to your earnings.");
+            return;
+        }
+        
+        if (confirm("Delete this invitation?")) {
+            await userRef.child(`invites/sent/${phoneToDelete}`).remove();
+            
+            // Remove from friend's received
+            const friendRef = window.PromotionCore ? 
+                firebase.database().ref('user_sessions/' + phoneToDelete) : null;
+            if (friendRef) {
+                await friendRef.child(`invites/received/${currentUserPhone}`).remove();
+            }
+            
+            renderInvitations();
+            alert("Invitation deleted!");
+        }
+    }
+    
+    function renderInvitations() {
+        if (!listContainer) return;
+        
+        userRef.child('invites/sent').once('value', (snapshot) => {
+            const sent = snapshot.val() || {};
+            const sentArray = Object.entries(sent);
+            
+            if (sentArray.length === 0) {
+                listContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
+                return;
+            }
+            
+            let html = '';
+            let count = 0;
+            
+            for (let [phone, data] of sentArray) {
+                if (count >= 3) break;
+                
+                const formattedPhone = formatPhoneNumber(phone);
+                const statusClass = data.status === 'approved' ? 'approved' : 'pending';
+                const statusText = data.status === 'approved' ? 'CLAIMED' : 'PENDING';
+                
+                html += `
+                    <div class="invite-item">
+                        <div class="invite-item-phone">${formattedPhone}</div>
+                        <div class="invite-item-status">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="invite-item-action">
+                            <button class="delete-invite" data-phone="${phone}">✕</button>
+                        </div>
+                    </div>
+                `;
+                count++;
+            }
+            
+            listContainer.innerHTML = html;
+            
+            // Attach delete events
+            document.querySelectorAll('.delete-invite').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteInvitation(btn.dataset.phone);
+                });
+            });
+        });
+    }
+    
+    function updateEarningsDisplay() {
+        const earningsEl = document.getElementById('earningsDisplay');
+        if (earningsEl) {
+            earningsEl.innerText = `${currentEarnings}/${MAX_EARNINGS}`;
+        }
+        
+        // Update progress bar if exists
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            const percent = (currentEarnings / MAX_EARNINGS) * 100;
+            progressFill.style.width = percent + '%';
+        }
+    }
+    
+    function formatPhoneNumber(phone) {
+        if (!phone || phone.length < 11) return phone;
+        return phone.substring(0, 4) + '****' + phone.substring(8, 11);
+    }
+    
+    // Called when someone accepts invite
+    async function addEarnings(amount) {
+        const newEarnings = currentEarnings + amount;
+        
+        if (newEarnings > MAX_EARNINGS) {
+            // Cannot exceed max
+            return false;
+        }
+        
+        currentEarnings = newEarnings;
+        await userRef.child('invites/earnings').set(currentEarnings);
+        updateEarningsDisplay();
+        return true;
+    }
+    
+    function getCurrentEarnings() {
+        return currentEarnings;
+    }
+    
+    function isEarningsFull() {
+        return currentEarnings >= MAX_EARNINGS;
+    }
+    
+    return { 
+        init: init, 
+        addEarnings: addEarnings,
+        getCurrentEarnings: getCurrentEarnings,
+        isEarningsFull: isEarningsFull
+    };
+})();
