@@ -1273,5 +1273,56 @@ body::before {
     pointer-events: none;
 }
 
+/* Gamitin ang class na idineklara mo sa PromoDOM */
+#mainTimerDisplay, .main-timer-display {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffffff;
+    text-align: center;
+    letter-spacing: 3px;
+    display: inline-block;
+    
+    /* Casino Gold Neon Glow */
+    text-shadow: 
+        0 0 5px #fff,
+        0 0 10px #ffd700,
+        0 0 20px #ffaa33,
+        0 0 40px #ffaa33;
+        
+    transition: all 0.1s ease-in-out;
+}
 
-pa remaster ang aking Drop down timer......
+/* THRILL EFFECT: Ito ang tatalon bawat segundo */
+.timer-tick {
+    animation: casinoThrill 0.4s ease-out;
+}
+
+@keyframes casinoThrill {
+    0% {
+        transform: scale(1);
+        text-shadow: 0 0 10px #ffd700;
+    }
+    50% {
+        transform: scale(1.15); /* Shockwave/Heartbeat effect */
+        text-shadow: 0 0 30px #ffffff, 0 0 50px #ffd700;
+        color: #ffd700;
+    }
+    100% {
+        transform: scale(1);
+        text-shadow: 0 0 10px #ffd700, 0 0 20px #ffaa33;
+    }
+}
+
+
+.timer-ending {
+    color: #ff0000 !important;
+    text-shadow: 0 0 10px #fff, 0 0 20px #ff0000, 0 0 40px #ff0000 !important;
+    animation: urgentPulse 0.5s infinite;
+}
+
+@keyframes urgentPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}..
