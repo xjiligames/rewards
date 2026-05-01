@@ -167,31 +167,54 @@ function updateProgressBar() {
     }
 }
 
-// ========== FIXED DATE TIMER (No Reset) ==========
-const TARGET_DATE = new Date("May 15, 2026 00:00:00").getTime();
+// ========== 3-DAY CYCLE TIMER WITH ANIMATION ==========
+const CYCLE_HOURS = 72; // 3 days
+let timerEndDate = null;
 
-function startMainTimer() {
+function initTimer() {
+    let savedEnd = localStorage.getItem('timerEndDate');
+    let now = Date.now();
+    
+    if (savedEnd && parseInt(savedEnd) > now) {
+        timerEndDate = parseInt(savedEnd);
+    } else {
+        timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
+        localStorage.setItem('timerEndDate', timerEndDate);
+    }
+    startTimerLoop();
+}
+
+function startTimerLoop() {
     if (timerInterval) clearInterval(timerInterval);
     
     function updateTimer() {
         let now = Date.now();
-        let diff = TARGET_DATE - now;
+        let diff = timerEndDate - now;
         
-        if (diff > 0) {
-            let days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        if (diff <= 0) {
+            timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
+            localStorage.setItem('timerEndDate', timerEndDate);
+            diff = CYCLE_HOURS * 60 * 60 * 1000;
+        }
+        
+        // Calculate days, hours, minutes, seconds (single digit days)
+        let days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        let hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        let minutes = Math.floor((diff / (1000 * 60)) % 60);
+        let seconds = Math.floor((diff / 1000) % 60);
+        
+        let timerDisplay = PromoDOM.mainTimerDisplay;
+        if (timerDisplay) {
+            timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:<span class="seconds-animation">${seconds.toString().padStart(2, '0')}</span>`;
             
-            let timerDisplay = PromoDOM.mainTimerDisplay;
-            if (timerDisplay) {
-                timerDisplay.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            // Add animation class every second
+            let secondsSpan = timerDisplay.querySelector('.seconds-animation');
+            if (secondsSpan) {
+                secondsSpan.classList.add('tick');
+                setTimeout(() => {
+                    secondsSpan.classList.remove('tick');
+                }, 300);
             }
-        } else {
-            if (PromoDOM.mainTimerDisplay) {
-                PromoDOM.mainTimerDisplay.innerHTML = `00D 00:00:00`;
-            }
-            if (timerInterval) clearInterval(timerInterval);
         }
     }
     
