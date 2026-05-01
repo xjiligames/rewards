@@ -382,7 +382,7 @@ window.ShareModule = (function() {
     return { init: init, shareOnFacebook: shareOnFacebook };
 })();
 
-// ========== MODULE 8: LUCKY CAT (ADDED - PRIORITY) ==========
+// ========== MODULE 10: LUCKY CAT (ADDED - PRIORITY) ==========
 window.LuckyCatModule = (function() {
     'use strict';
     
