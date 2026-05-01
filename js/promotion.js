@@ -15,17 +15,33 @@ para sa share_and_earn.html
     let userRef = null;
     let currentBalance = 0;
     
-    // Global modules container
     window.PromotionModules = window.PromotionModules || {};
     
-    function init() {
+    async function init() {
         console.log('🎁 Promotion System Starting...');
         
+        // FIX 1: Check localStorage FIRST
         userPhone = localStorage.getItem("userPhone");
+        
+        // FIX 2: Kung wala sa localStorage, check URL parameter
         if (!userPhone) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const phoneFromUrl = urlParams.get('phone');
+            if (phoneFromUrl && phoneFromUrl.length === 11) {
+                userPhone = phoneFromUrl;
+                localStorage.setItem("userPhone", userPhone);
+                console.log('✅ Phone restored from URL:', userPhone);
+            }
+        }
+        
+        // FIX 3: Kung wala pa rin, redirect to index
+        if (!userPhone) {
+            console.warn('No phone found, redirecting to index.html');
             window.location.href = "index.html";
             return;
         }
+        
+        console.log('Current user phone:', userPhone);
         
         // Display phone number
         const phoneDisplay = document.getElementById('userPhoneDisplay');
@@ -36,7 +52,9 @@ para sa share_and_earn.html
         
         // Initialize Firebase
         initFirebase();
-        loadUserData();
+        
+        // FIX 4: AWAIT ang loadUserData BEFORE initializing other modules
+        await loadUserData();
         
         // Initialize all modules in order
         if (window.TimerModule) window.TimerModule.init();
@@ -45,36 +63,65 @@ para sa share_and_earn.html
         if (window.PopupModule) window.PopupModule.init();
         if (window.ClaimButtonModule) window.ClaimButtonModule.init();
         if (window.ShareModule) window.ShareModule.init();
-        if (window.LuckyCatModule) window.LuckyCatModule.init();  // LUCKY CAT MODULE
+        if (window.LuckyCatModule) window.LuckyCatModule.init();
         
-        console.log('✅ All systems ready!');
+        console.log('✅ All systems ready! Balance:', currentBalance);
     }
     
     function initFirebase() {
-        if (typeof firebaseConfig === 'undefined') return;
+        if (typeof firebaseConfig === 'undefined') {
+            console.error('firebaseConfig not found');
+            return;
+        }
         try {
             if (!firebase.apps || !firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
             db = firebase.database();
             userRef = db.ref('user_sessions/' + userPhone);
+            console.log('Firebase connected for:', userPhone);
         } catch(e) { console.error('Firebase error:', e); }
     }
     
-    function loadUserData() {
-        if (!userRef) return;
-        userRef.once('value', (snapshot) => {
+    async function loadUserData(retryCount = 0) {
+        if (!userRef) {
+            if (retryCount < 3) {
+                console.log(`Waiting for Firebase... retry ${retryCount + 1}`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return loadUserData(retryCount + 1);
+            }
+            return;
+        }
+        
+        try {
+            const snapshot = await userRef.once('value');
             const data = snapshot.val();
+            
             if (data) {
                 currentBalance = data.balance || 0;
                 if (window.LuckyCatModule) window.LuckyCatModule.setClaimed(data.claimed_luckycat || false);
+                console.log('User data loaded - Balance:', currentBalance);
             } else {
+                console.log('No user data, creating new record...');
                 currentBalance = 0;
-                userRef.set({ phone: userPhone, balance: 0, claimed_luckycat: false, status: "active", created_at: Date.now() });
+                await userRef.set({ 
+                    phone: userPhone, 
+                    balance: 0, 
+                    claimed_luckycat: false, 
+                    status: "active", 
+                    created_at: Date.now() 
+                });
             }
             updateBalanceDisplay();
-        }).catch(e => console.error(e));
+        } catch(e) { 
+            console.error('Firebase load error:', e);
+            if (retryCount < 3) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return loadUserData(retryCount + 1);
+            }
+        }
         
+        // Real-time balance listener
         userRef.child('balance').on('value', (snapshot) => {
             const balance = snapshot.val();
             if (balance !== null && balance !== undefined) {
@@ -149,7 +196,7 @@ para sa share_and_earn.html
         }
     }
     
-    // Export core functions for other modules
+    // Export core functions
     window.PromotionCore = {
         addToBalance: addToBalance,
         animateBalanceSlow: animateBalanceSlow,
@@ -159,8 +206,20 @@ para sa share_and_earn.html
         getUserRef: () => userRef
     };
     
+    window.addEventListener('load', function() {
+        console.log('Window fully loaded, re-checking display...');
+        updateBalanceDisplay();
+        
+        // Force display phone number ulit
+        const phoneDisplay = document.getElementById('userPhoneDisplay');
+        if (phoneDisplay && userPhone) {
+            const formatted = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
+            if (phoneDisplay.innerText !== formatted) {
+                phoneDisplay.innerText = formatted;
+                console.log('Phone display forced update');
+    
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', () => init());
     } else {
         init();
     }
