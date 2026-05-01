@@ -620,24 +620,55 @@ function stopConfetti() {
 }
 
 // ========== MAIN TIMER ==========
-const DROP_END_DATE = new Date("May 15, 2026 00:00:00").getTime();
+// Palitan ang static date ng dynamic 24-hour target
+function get24hTarget() {
+    let target = localStorage.getItem('casino_drop_target');
+    const now = Date.now();
+
+    // Kung wala pang target o tapos na ang 24 hours, mag-set ng bago
+    if (!target || now > target) {
+        target = now + (24 * 60 * 60 * 1000); 
+        localStorage.setItem('casino_drop_target', target);
+    }
+    return parseInt(target);
+}
+
+let timerInterval; // Siguraduhing declared ito globally o sa labas ng function
 
 function startMainTimer() {
     if (timerInterval) clearInterval(timerInterval);
     if (!PromoDOM.mainTimerDisplay) return;
+
+    const targetTime = get24hTarget();
+
     function updateTimer() {
-        const diff = DROP_END_DATE - Date.now();
+        const diff = targetTime - Date.now();
+
         if (diff > 0) {
-            const d = Math.floor(diff / 86400000);
             const h = Math.floor((diff % 86400000) / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
             const s = Math.floor((diff % 60000) / 1000);
-            PromoDOM.mainTimerDisplay.innerText = `${String(d).padStart(2, '0')}D ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+            // Format: HH:MM:SS
+            const newTime = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            
+            // THRILL LOGIC: Kung nagbago ang segundo, trigger ang animation
+            if (PromoDOM.mainTimerDisplay.innerText !== newTime) {
+                PromoDOM.mainTimerDisplay.innerText = newTime;
+                
+                // Add Thrill Class (Trigger CSS Animation)
+                PromoDOM.mainTimerDisplay.classList.remove('timer-tick');
+                void PromoDOM.mainTimerDisplay.offsetWidth; // Force reflow
+                PromoDOM.mainTimerDisplay.classList.add('timer-tick');
+            }
         } else {
-            PromoDOM.mainTimerDisplay.innerText = "00D 00:00:00";
-            if (timerInterval) clearInterval(timerInterval);
+            PromoDOM.mainTimerDisplay.innerText = "00:00:00";
+            // Optional: Auto-reset to another 24h pagkatapos
+            localStorage.removeItem('casino_drop_target'); 
+            startMainTimer(); 
         }
     }
+
     updateTimer();
     timerInterval = setInterval(updateTimer, 1000);
 }
