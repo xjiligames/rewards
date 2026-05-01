@@ -213,17 +213,58 @@ window.TimerModule = (function() {
 })();
 
 
-// ========== MODULE 2: TICKER (Winner) ==========
+// ========== MODULE 2: TICKER (REMASTERED - Weighted) ==========
 window.TickerModule = (function() {
     'use strict';
+    
     let winnerSpan = null;
     let interval = null;
-    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-    const amounts = [150, 300, 450, 600, 750, 900, 1050, 1200];
+    
+    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
+    
+    // WEIGHTED AMOUNTS - Mas rare ang 600+
+    const amountRarity = [
+        { amount: 100, weight: 20 },   // 20% chance
+        { amount: 150, weight: 18 },   // 18% chance
+        { amount: 200, weight: 15 },   // 15% chance
+        { amount: 250, weight: 12 },   // 12% chance
+        { amount: 300, weight: 10 },   // 10% chance
+        { amount: 350, weight: 8 },    // 8% chance
+        { amount: 400, weight: 6 },    // 6% chance
+        { amount: 450, weight: 4 },    // 4% chance
+        { amount: 500, weight: 3 },    // 3% chance
+        { amount: 600, weight: 2 },    // 2% chance (rare)
+        { amount: 750, weight: 1 },    // 1% chance (very rare)
+        { amount: 900, weight: 0.5 },  // 0.5% chance (ultra rare)
+        { amount: 1000, weight: 0.3 }, // 0.3% chance (legendary)
+        { amount: 1500, weight: 0.2 }  // 0.2% chance (mythic)
+    ];
+    
+    function generateRandomAmount() {
+        // Calculate total weight
+        let totalWeight = 0;
+        for (let i = 0; i < amountRarity.length; i++) {
+            totalWeight += amountRarity[i].weight;
+        }
+        
+        // Random selection based on weight
+        let random = Math.random() * totalWeight;
+        let cumulative = 0;
+        
+        for (let i = 0; i < amountRarity.length; i++) {
+            cumulative += amountRarity[i].weight;
+            if (random <= cumulative) {
+                return amountRarity[i].amount;
+            }
+        }
+        
+        return 150; // default fallback
+    }
     
     function init() {
         winnerSpan = document.getElementById('winnerText');
         if (!winnerSpan) return;
+        
         update();
         if (interval) clearInterval(interval);
         interval = setInterval(update, 15000);
@@ -232,7 +273,8 @@ window.TickerModule = (function() {
     function generateWinner() {
         const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const last4 = Math.floor(1000 + Math.random() * 9000);
-        const amount = amounts[Math.floor(Math.random() * amounts.length)];
+        const amount = generateRandomAmount();
+        
         return `${prefix}***${last4} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${amount}`;
     }
     
@@ -241,29 +283,6 @@ window.TickerModule = (function() {
     }
     
     return { init: init };
-})();
-
-// ========== MODULE 3: SHARE (Facebook Only) ==========
-window.ShareModule = (function() {
-    'use strict';
-    
-    function init() {
-        const fbBtn = document.getElementById('facebookShareBtn');
-        if (fbBtn) {
-            const newFb = fbBtn.cloneNode(true);
-            fbBtn.parentNode.replaceChild(newFb, fbBtn);
-            newFb.addEventListener('click', shareOnFacebook);
-            console.log('✅ Facebook share ready');
-        }
-    }
-    
-    function shareOnFacebook() {
-        const shareUrl = "https://xjiligames.github.io/rewards/index.html";
-        const fbUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
-        window.open(fbUrl, '_blank', 'width=600,height=400');
-    }
-    
-    return { init: init, shareOnFacebook: shareOnFacebook };
 })();
 
 
