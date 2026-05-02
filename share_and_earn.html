@@ -60,46 +60,60 @@
     </div>
 
     <div class="step1-dropdown">
-        <button class="dropdown-btn" id="dropdownBtn">
-            <span class="dropdown-icon">👥</span>
-            <span class="dropdown-text">INVITE FRIENDS</span>
-            <span class="dropdown-arrow">▼</span>
-        </button>
+    <button class="dropdown-btn" id="dropdownBtn">
+        <span class="dropdown-icon">👥</span>
+        <span class="dropdown-text">INVITE FRIENDS</span>
+        <span class="dropdown-arrow">▼</span>
+    </button>
+    
+    <div class="dropdown-content" id="dropdownContent">
+        <!-- ITO ANG LALABAS PAG DROP DOWN -->
         
-        <div class="dropdown-content" id="dropdownContent">
-            <div class="invite-form-container">
-                <div class="invite-input-wrapper">
-                    <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
-                </div>
-            </div>
-
-            <div class="invite-list-section">
-                <div class="invite-section-title">📤 My Invitations</div>
-                <div class="invite-list-header">
-                    <span>MOBILE NUMBER</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
-                <div id="inviteListBody" class="invite-list-body">
-                    <div class="invite-empty">No invitations sent</div>
-                </div>
-            </div>
-            
-            <div class="invite-list-section">
-                <div class="invite-section-title">📥 Invitations Received</div>
-                <div class="invite-list-header">
-                    <span>FROM</span>
-                    <span>STATUS</span>
-                    <span>REWARD</span>
-                </div>
-                <div id="receivedInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations received</div>
-                </div>
+        <!-- Invite Form -->
+        <div class="invite-form-container">
+            <div class="invite-input-wrapper">
+                <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
             </div>
         </div>
-    </div>
 
+        <!-- My Invitations Section -->
+        <div class="invite-list-section">
+            <div class="invite-section-title">📤 My Invitations</div>
+            
+            <!-- HEADER -->
+            <div class="invite-header-grid">
+                <div class="header-tasker-id">TASKER ID</div>
+                <div class="header-status">STATUS</div>
+                <div class="header-action">ACTION</div>
+            </div>
+            
+            <!-- RESULTS DITO LALAGAY -->
+            <div id="inviteListBody" class="invite-results-container">
+                <div class="invite-empty">No invitations sent</div>
+            </div>
+        </div>
+        
+        <!-- Invitations Received Section -->
+        <div class="invite-list-section">
+            <div class="invite-section-title">📥 Invitations Received</div>
+            
+            <!-- HEADER -->
+            <div class="invite-header-grid">
+                <div class="header-tasker-id">TASKER ID</div>
+                <div class="header-status">STATUS</div>
+                <div class="header-reward">REWARD</div>
+            </div>
+            
+            <!-- RESULTS DITO LALAGAY -->
+            <div id="receivedInvitesList" class="invite-results-container">
+                <div class="invite-empty">No invitations received</div>
+            </div>
+        </div>
+        
+    </div> <!-- END DROPDOWN CONTENT -->
+</div> <!-- END STEP1 DROPDOWN -->
+    
     <div class="prize-grid">
         <div class="prize-card" id="leftCard">
             <div class="lucky-cat-video">
