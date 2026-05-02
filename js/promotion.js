@@ -3,7 +3,7 @@
  * Modules: Main Core, Timer, Ticker, Confetti, LuckyCat (Left), Referral System (Right + Invites)
  */
 
-// ========== MAIN CORE MODULE ==========
+// ========== MAIN CORE MODULE (with Comma Formatting) ==========
 (function() {
     'use strict';
     
@@ -19,6 +19,23 @@
         invite: null,
         success: null
     };
+    
+    // ========== HELPER: FORMAT NUMBER WITH COMMA ==========
+    function formatNumberWithComma(number) {
+        // Convert to number with 2 decimal places
+        const num = Number(number).toFixed(2);
+        
+        // Split into whole and decimal parts
+        const parts = num.split('.');
+        const wholePart = parts[0];
+        const decimalPart = parts[1];
+        
+        // Add commas to whole part (thousands separator)
+        const wholeWithCommas = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        
+        // Return formatted number
+        return wholeWithCommas + '.' + decimalPart;
+    }
     
     function initSounds() {
         try {
@@ -122,14 +139,20 @@
         });
     }
     
+    // ========== UPDATED: BALANCE DISPLAY WITH COMMA ==========
     function updateBalanceDisplay() {
         const balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) balanceEl.innerText = currentBalance.toFixed(2);
+        if (balanceEl) {
+            balanceEl.innerText = formatNumberWithComma(currentBalance);
+        }
         
         const popupBalance = document.getElementById('popupBalanceAmount');
-        if (popupBalance) popupBalance.innerText = "₱" + currentBalance.toFixed(2);
+        if (popupBalance) {
+            popupBalance.innerText = "₱" + formatNumberWithComma(currentBalance);
+        }
     }
     
+    // ========== UPDATED: ANIMATION WITH COMMA ==========
     function animateBalanceSlow(start, end, duration, callback) {
         let startTimestamp = null;
         
@@ -140,10 +163,14 @@
             const val = Math.floor(easeProgress * (end - start) + start);
             
             const balanceEl = document.getElementById('userBalanceDisplay');
-            if (balanceEl) balanceEl.innerText = val.toFixed(2);
+            if (balanceEl) {
+                balanceEl.innerText = formatNumberWithComma(val);
+            }
             
             const popupBalance = document.getElementById('popupBalanceAmount');
-            if (popupBalance) popupBalance.innerText = "₱" + val.toFixed(2);
+            if (popupBalance) {
+                popupBalance.innerText = "₱" + formatNumberWithComma(val);
+            }
             
             if (progress < 1) {
                 requestAnimationFrame(step);
@@ -154,6 +181,7 @@
         requestAnimationFrame(step);
     }
     
+    // ========== UPDATED: ADD TO BALANCE ==========
     function addToBalance(amount, slowAnimation = false) {
         const oldBalance = currentBalance;
         const newBalance = oldBalance + amount;
@@ -162,6 +190,7 @@
             animateBalanceSlow(oldBalance, newBalance, 2000, () => {
                 currentBalance = newBalance;
                 if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
+                updateBalanceDisplay();
             });
         } else {
             currentBalance = newBalance;
@@ -185,7 +214,8 @@
         playSound: playSound,
         getBalance: () => currentBalance,
         getUserPhone: () => userPhone,
-        getUserRef: () => userRef
+        getUserRef: () => userRef,
+        formatNumberWithComma: formatNumberWithComma
     };
     
     // Start the system
@@ -195,6 +225,7 @@
         init();
     }
 })();
+
 
 // ========== MODULE 1: TIMER ==========
 window.TimerModule = (function() {
