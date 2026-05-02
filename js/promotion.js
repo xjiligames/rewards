@@ -754,54 +754,61 @@ window.InviteUI = (function() {
         }
     }
     
-    function renderInvitations() {
-        if (!listContainer) return;
+   function renderInvitations() {
+    if (!listContainer) return;
+    
+    userRef.child('referrals/sent').once('value', (snapshot) => {
+        const sent = snapshot.val() || {};
+        const sentArray = Object.entries(sent);
         
-        userRef.child('referrals/sent').once('value', (snapshot) => {
-            const sent = snapshot.val() || {};
-            const sentArray = Object.entries(sent);
+        if (sentArray.length === 0) {
+            listContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
+            return;
+        }
+        
+        let html = `
+            <div class="invite-list-header">
+                <span>TASKER ID</span>
+                <span>STATUS</span>
+                <span>ACTION</span>
+            </div>
+        `;
+        let count = 0;
+        
+        // Display max 3 invites (pending + approved)
+        for (let [phone, data] of sentArray) {
+            if (count >= 3) break;
             
-            if (sentArray.length === 0) {
-                listContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
-                return;
-            }
+            // Format: 0912***3456 (first 4 + *** + last 4)
+            const formattedPhone = formatPhoneNumber(phone);
+            const statusClass = data.status === 'approved' ? 'approved' : 'pending';
+            const statusText = data.status === 'approved' ? 'CLAIMED' : 'PENDING';
             
-            let html = '';
-            let count = 0;
-            
-            // Display max 3 invites (pending + approved)
-            for (let [phone, data] of sentArray) {
-                if (count >= 3) break;
-                
-                const formattedPhone = formatPhoneNumber(phone);
-                const statusClass = data.status === 'approved' ? 'approved' : 'pending';
-                const statusText = data.status === 'approved' ? 'CLAIMED' : 'PENDING';
-                
-                html += `
-                    <div class="invite-item">
-                        <div class="invite-item-phone">${formattedPhone}</div>
-                        <div class="invite-item-status">
-                            <span class="status-badge ${statusClass}">${statusText}</span>
-                        </div>
-                        <div class="invite-item-action">
-                            <button class="delete-invite" data-phone="${phone}">✕</button>
-                        </div>
+            html += `
+                <div class="invite-item">
+                    <div class="invite-item-phone">${formattedPhone}</div>
+                    <div class="invite-item-status">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
-                `;
-                count++;
-            }
-            
-            listContainer.innerHTML = html;
-            
-            // Attach delete events
-            document.querySelectorAll('.delete-invite').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteInvitation(btn.dataset.phone);
-                });
+                    <div class="invite-item-action">
+                        <button class="delete-invite" data-phone="${phone}">✕</button>
+                    </div>
+                </div>
+            `;
+            count++;
+        }
+        
+        listContainer.innerHTML = html;
+        
+        // Attach delete events
+        document.querySelectorAll('.delete-invite').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteInvitation(btn.dataset.phone);
             });
         });
-    }
+    });
+}
     
     function loadInvites() {
         if (!userRef) return;
