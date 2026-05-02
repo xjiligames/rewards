@@ -594,8 +594,8 @@ window.LuckyCatModule = (function() {
     };
 })();
 
-// ========== MODULE 5: REALTIME INVITE SYSTEM ==========
-window.InviteModule = (function() {
+// ========== MODULE 5: INVITE SYSTEM (SENDER) ==========
+window.InviteUI = (function() {
     'use strict';
     
     let currentUserPhone = null;
@@ -603,7 +603,6 @@ window.InviteModule = (function() {
     let db = null;
     let currentDeviceId = null;
     
-    // DOM Elements
     let dropdownBtn = null;
     let dropdownContent = null;
     let sendBtn = null;
@@ -613,10 +612,28 @@ window.InviteModule = (function() {
     
     const MAX_DISPLAY = 3;
     
-    // Store unsubscribe functions
-    let unsubscribeSent = null;
-    let unsubscribeReceived = null;
+    // ========== SOUND FUNCTIONS ==========
+    function playInviteSound() {
+        try {
+            const audio = new Audio('sounds/invite.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log('Sound error:', e));
+        } catch(e) {
+            console.log('Sound not available');
+        }
+    }
     
+    function playSuccessSound() {
+        try {
+            const audio = new Audio('sounds/success.wav');
+            audio.volume = 0.6;
+            audio.play().catch(e => console.log('Sound error:', e));
+        } catch(e) {
+            console.log('Sound not available');
+        }
+    }
+    
+    // ========== INITIALIZATION ==========
     function init() {
         currentUserPhone = localStorage.getItem("userPhone");
         currentDeviceId = localStorage.getItem("userDeviceId");
@@ -632,7 +649,6 @@ window.InviteModule = (function() {
             db = firebase.database();
         }
         
-        // Get DOM elements
         dropdownBtn = document.getElementById('dropdownBtn');
         dropdownContent = document.getElementById('dropdownContent');
         sendBtn = document.getElementById('sendInviteBtn');
@@ -640,13 +656,18 @@ window.InviteModule = (function() {
         sentListContainer = document.getElementById('inviteListBody');
         receivedListContainer = document.getElementById('receivedInvitesList');
         
-        // Attach events
         if (dropdownBtn && dropdownContent) {
+            const newBtn = dropdownBtn.cloneNode(true);
+            dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
+            dropdownBtn = newBtn;
             dropdownBtn.addEventListener('click', toggleDropdown);
             document.addEventListener('click', handleOutsideClick);
         }
         
         if (sendBtn) {
+            const newBtn = sendBtn.cloneNode(true);
+            sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+            sendBtn = newBtn;
             sendBtn.addEventListener('click', handleSendInvite);
         }
         
@@ -656,23 +677,20 @@ window.InviteModule = (function() {
             });
         }
         
-        // Setup realtime listeners
         setupRealtimeListeners();
         
-        console.log('✅ Module 5: Realtime Invite System ready');
+        console.log('✅ Module 5: Invite System ready');
     }
     
-    // ========== SETUP REALTIME FIREBASE LISTENERS ==========
+    // ========== REALTIME LISTENERS ==========
     function setupRealtimeListeners() {
         if (!userRef) return;
         
-        // REALTIME LISTENER FOR SENT INVITES
-        unsubscribeSent = userRef.child('invites/sent').on('value', (snapshot) => {
+        userRef.child('invites/sent').on('value', (snapshot) => {
             renderSentInvitations(snapshot);
         });
         
-        // REALTIME LISTENER FOR RECEIVED INVITES
-        unsubscribeReceived = userRef.child('invites/received').on('value', (snapshot) => {
+        userRef.child('invites/received').on('value', (snapshot) => {
             renderReceivedInvitations(snapshot);
         });
     }
@@ -712,7 +730,7 @@ window.InviteModule = (function() {
         return false;
     }
     
-    // ========== CHECK IF USER WAS PREVIOUSLY COMPLETED ==========
+    // ========== CHECK IF PREVIOUSLY COMPLETED ==========
     async function isUserPreviouslyCompleted(friendPhone) {
         const completedRef = await userRef.child(`invites/completed_referrals/${friendPhone}`).once('value');
         if (completedRef.exists()) {
@@ -729,7 +747,7 @@ window.InviteModule = (function() {
         return false;
     }
     
-    // ========== SHOW WARNING MESSAGES ==========
+    // ========== SHOW WARNINGS ==========
     function showCheatingWarning() {
         const warningDiv = document.createElement('div');
         warningDiv.innerHTML = `
@@ -878,7 +896,6 @@ window.InviteModule = (function() {
             return;
         }
         
-        // Check inviting self
         const isSelfInvite = await isInvitingSelf(friendPhone);
         if (isSelfInvite) {
             showCheatingWarning();
@@ -886,7 +903,6 @@ window.InviteModule = (function() {
             return;
         }
         
-        // Check if previously completed
         const isPreviouslyCompleted = await isUserPreviouslyCompleted(friendPhone);
         if (isPreviouslyCompleted) {
             showCannotReinviteWarning(friendPhone);
@@ -894,7 +910,6 @@ window.InviteModule = (function() {
             return;
         }
         
-        // Check current invites count
         const snapshot = await userRef.child('invites/sent').once('value');
         const sentInvites = snapshot.val() || {};
         const currentCount = Object.keys(sentInvites).length;
@@ -909,14 +924,12 @@ window.InviteModule = (function() {
             return;
         }
         
-        // Save to Firebase (this will trigger realtime update)
         await userRef.child(`invites/sent/${friendPhone}`).set({
             phone: friendPhone,
             status: 'pending',
             timestamp: Date.now()
         });
         
-        // Save to receiver
         const user2Ref = db.ref('user_sessions/' + friendPhone);
         await user2Ref.child(`invites/received/${currentUserPhone}`).set({
             from: currentUserPhone,
@@ -926,10 +939,10 @@ window.InviteModule = (function() {
         });
         
         if (friendInput) friendInput.value = '';
-        if (window.PromotionCore) window.PromotionCore.playSound('invite');
+        
+        playInviteSound();
         
         alert("🎉 Invitation sent successfully!");
-        // No need to call loadSentInvites() - realtime listener handles it
     }
     
     // ========== DELETE INVITE ==========
@@ -944,35 +957,27 @@ window.InviteModule = (function() {
             return;
         }
         
-        // If completed - remove from display only
         if (inviteData.status === 'completed') {
-            if (confirm(`⚠️ Remove ${formattedPhone} from your list?\n\nNote: This user has already claimed their reward.\n• You CANNOT invite them again\n• But you will FREE UP a slot for a NEW user`)) {
-                
+            if (confirm(`⚠️ Remove ${formattedPhone} from your list?\n\nThis user already claimed their reward.\nYou CANNOT invite them again.`)) {
                 await userRef.child(`invites/sent/${phoneToDelete}`).remove();
-                
                 await userRef.child(`invites/completed_referrals/${phoneToDelete}`).set({
                     phone: phoneToDelete,
-                    completedAt: inviteData.timestamp,
-                    reward: 150
+                    completedAt: inviteData.timestamp
                 });
-                
-                alert(`✅ ${formattedPhone} removed from your list.\n\n✨ SLOT FREED UP! You can now invite a NEW person.`);
+                alert(`✅ ${formattedPhone} removed. Slot freed up!`);
             }
             return;
         }
         
-        // If pending - normal delete
-        if (confirm(`⚠️ Delete pending invitation to ${formattedPhone}?\n\nThis will free up a slot for a new invite.`)) {
+        if (confirm(`⚠️ Delete invitation to ${formattedPhone}?`)) {
             await userRef.child(`invites/sent/${phoneToDelete}`).remove();
-            
             const user2Ref = db.ref('user_sessions/' + phoneToDelete);
             await user2Ref.child(`invites/received/${currentUserPhone}`).remove();
-            
-            alert(`🗑️ Invitation to ${formattedPhone} deleted.\n\n✨ You now have a FREE SLOT to invite someone new!`);
+            alert(`🗑️ Invitation deleted. You can now invite someone new!`);
         }
     }
     
-    // ========== REALTIME RENDER FUNCTIONS ==========
+    // ========== RENDER FUNCTIONS ==========
     function renderSentInvitations(snapshot) {
         if (!sentListContainer) return;
         
@@ -1014,7 +1019,6 @@ window.InviteModule = (function() {
         
         sentListContainer.innerHTML = html;
         
-        // Attach delete events
         document.querySelectorAll('.delete-invite:not([disabled])').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1034,7 +1038,6 @@ window.InviteModule = (function() {
             return;
         }
         
-        // Sort newest to oldest
         receivedArray.sort((a, b) => b[1].timestamp - a[1].timestamp);
         
         let html = `<div class="invite-list-header" style="display: grid; grid-template-columns: 1.5fr 0.8fr 0.8fr; padding: 8px; font-size: 10px; color: #ffd700;">
@@ -1050,7 +1053,7 @@ window.InviteModule = (function() {
             const rewardDisplay = invite.status === 'claimed' ? '₱150' : '⚡ PENDING';
             
             html += `
-                <div class="invite-item received-item" data-from="${fromPhone}" style="animation: fadeInUp 0.3s ease;">
+                <div class="invite-item received-item">
                     <div class="invite-item-phone">${formattedPhone}</div>
                     <div class="invite-item-status">
                         <span class="status-badge ${statusClass}">${statusText}</span>
@@ -1089,23 +1092,10 @@ window.InviteModule = (function() {
         }
     }
     
-    // Cleanup function if needed
-    function destroy() {
-        if (unsubscribeSent) {
-            userRef.child('invites/sent').off('value', unsubscribeSent);
-        }
-        if (unsubscribeReceived) {
-            userRef.child('invites/received').off('value', unsubscribeReceived);
-        }
-    }
-    
-    return {
-        init: init,
-        destroy: destroy
-    };
+    return { init: init };
 })();
 
-// ========== MODULE 6: RIGHT LUCKY CAT CARD (REALTIME REFERRAL) ==========
+// ========== MODULE 6: RIGHT LUCKY CAT CARD (RECEIVER) ==========
 window.RightLuckyCatModule = (function() {
     'use strict';
     
@@ -1113,23 +1103,41 @@ window.RightLuckyCatModule = (function() {
     let userRef = null;
     let db = null;
     
-    // DOM Elements
     let rightCard = null;
     let rightReward = null;
     
-    // State
     let pendingRewards = 0;
     let totalEarnings = 0;
     let isProcessing = false;
-    let currentThresholdAlert = false;
     
     const MAX_EARNINGS = 1500;
     const THRESHOLD_WARNING = 1000;
     
-    // Store unsubscribe functions
     let unsubscribeReceived = null;
     let unsubscribeEarnings = null;
     
+    // ========== SOUND FUNCTIONS ==========
+    function playClaimSound() {
+        try {
+            const audio = new Audio('sounds/claim.wav');
+            audio.volume = 0.7;
+            audio.play().catch(e => console.log('Sound error:', e));
+        } catch(e) {
+            console.log('Sound not available');
+        }
+    }
+    
+    function playSuccessSound() {
+        try {
+            const audio = new Audio('sounds/success.wav');
+            audio.volume = 0.6;
+            audio.play().catch(e => console.log('Sound error:', e));
+        } catch(e) {
+            console.log('Sound not available');
+        }
+    }
+    
+    // ========== INITIALIZATION ==========
     function init() {
         currentUserPhone = localStorage.getItem("userPhone");
         
@@ -1144,50 +1152,43 @@ window.RightLuckyCatModule = (function() {
             db = firebase.database();
         }
         
-        // Get DOM elements
         rightCard = document.getElementById('rightCard');
         rightReward = document.getElementById('rightRewardAmount');
         
         if (rightCard) {
-            // Clone to remove existing listeners
             const newCard = rightCard.cloneNode(true);
             rightCard.parentNode.replaceChild(newCard, rightCard);
             rightCard = newCard;
             rightCard.addEventListener('click', handleClaimReward);
         }
         
-        // Setup realtime listeners
         setupRealtimeListeners();
-        
-        // Load initial data
         loadUserEarnings();
+        
+        // Setup listener for User1 notifications
+        setupUserNotificationListener();
         
         console.log('✅ Module 6: Right LuckyCat Card ready');
     }
     
-    // ========== SETUP REALTIME LISTENERS ==========
+    // ========== REALTIME LISTENERS ==========
     function setupRealtimeListeners() {
         if (!userRef) return;
         
-        // Listen for new incoming referrals (User2 receives invite from someone)
         unsubscribeReceived = userRef.child('invites/received').on('child_added', (snapshot) => {
             const referral = snapshot.val();
             if (referral && referral.status === 'waiting') {
-                // Add to pending rewards
                 addPendingReward(150, referral.from);
             }
         });
         
-        // Listen for referral status changes (when claimed)
         userRef.child('invites/received').on('child_changed', (snapshot) => {
             const referral = snapshot.val();
             if (referral && referral.status === 'claimed') {
-                // Update display to show claimed
                 updateRewardDisplay();
             }
         });
         
-        // Listen for earnings updates (for User1 when their referral is claimed)
         unsubscribeEarnings = userRef.child('referral_earnings').on('value', (snapshot) => {
             const earnings = snapshot.val() || 0;
             totalEarnings = earnings;
@@ -1196,14 +1197,35 @@ window.RightLuckyCatModule = (function() {
         });
     }
     
-    // ========== LOAD USER EARNINGS ==========
+    function setupUserNotificationListener() {
+        if (!userRef) return;
+        
+        userRef.child('notifications').on('child_added', (snapshot) => {
+            const notification = snapshot.val();
+            if (notification && !notification.read) {
+                showNotificationFromUser(notification.message);
+                
+                userRef.child('pending_rewards').transaction(current => (current || 0) + 150);
+                animateCardHighlight();
+                
+                userRef.child('pending_rewards').once('value', (snap) => {
+                    const newPending = snap.val() || 0;
+                    animateAmountIncrement(0, 150);
+                    updateRewardDisplay();
+                });
+                
+                snapshot.ref.update({ read: true });
+            }
+        });
+    }
+    
+    // ========== LOAD USER DATA ==========
     async function loadUserEarnings() {
         if (!userRef) return;
         
         const snapshot = await userRef.child('referral_earnings').once('value');
         totalEarnings = snapshot.val() || 0;
         
-        // Load pending rewards from received invites that are waiting
         const receivedSnapshot = await userRef.child('invites/received').once('value');
         const received = receivedSnapshot.val() || {};
         
@@ -1214,29 +1236,27 @@ window.RightLuckyCatModule = (function() {
             }
         }
         
+        const pendingSnapshot = await userRef.child('pending_rewards').once('value');
+        const additionalPending = pendingSnapshot.val() || 0;
+        pendingRewards += additionalPending;
+        
         updateRewardDisplay();
         updateEarningsDisplay();
     }
     
-    // ========== ADD PENDING REWARD (User2 receives invite) ==========
+    // ========== ADD PENDING REWARD ==========
     async function addPendingReward(amount, fromPhone) {
         pendingRewards += amount;
         updateRewardDisplay();
         
-        // Show notification to User2
         showNotification(fromPhone);
-        
-        // Animate the card
         animateCardHighlight();
-        
-        // Animate the amount increment
         animateAmountIncrement(0, pendingRewards);
         
-        // Save to Firebase
         await userRef.child('pending_rewards').set(pendingRewards);
     }
     
-    // ========== CLAIM REWARD (User2 clicks Right Card) ==========
+    // ========== CLAIM REWARD ==========
     async function handleClaimReward(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1251,7 +1271,6 @@ window.RightLuckyCatModule = (function() {
             return;
         }
         
-        // Check threshold
         if (totalEarnings >= THRESHOLD_WARNING && totalEarnings < MAX_EARNINGS) {
             showThresholdWarning();
             return;
@@ -1264,7 +1283,6 @@ window.RightLuckyCatModule = (function() {
         
         isProcessing = true;
         
-        // Get the pending referral to claim
         const receivedSnapshot = await userRef.child('invites/received').once('value');
         const received = receivedSnapshot.val() || {};
         
@@ -1276,14 +1294,11 @@ window.RightLuckyCatModule = (function() {
                 claimedAmount = 150;
                 claimedFrom = fromPhone;
                 
-                // Mark as claimed
                 await userRef.child(`invites/received/${fromPhone}/status`).set('claimed');
                 
-                // Update sender's (User1) referral earnings
                 const senderRef = db.ref('user_sessions/' + fromPhone);
                 await senderRef.child('referral_earnings').transaction(current => (current || 0) + 150);
                 
-                // Add notification to sender
                 await senderRef.child('notifications').push({
                     message: `🎉 Your referral ${formatPhoneNumber(currentUserPhone)} claimed the reward! +₱150 added to your pending rewards.`,
                     timestamp: Date.now(),
@@ -1295,23 +1310,18 @@ window.RightLuckyCatModule = (function() {
         }
         
         if (claimedAmount > 0) {
-            // Update pending rewards
             pendingRewards -= claimedAmount;
             await userRef.child('pending_rewards').set(pendingRewards);
             
-            // Add to balance (call PromotionCore)
             if (window.PromotionCore) {
                 window.PromotionCore.addToBalance(claimedAmount, true);
             }
             
-            // Update total earnings
             totalEarnings += claimedAmount;
             await userRef.child('referral_earnings').set(totalEarnings);
             
-            // Show success animation
+            playClaimSound();
             animateClaimSuccess(claimedAmount);
-            
-            // Update displays
             updateRewardDisplay();
             updateEarningsDisplay();
             
@@ -1319,36 +1329,6 @@ window.RightLuckyCatModule = (function() {
         }
         
         isProcessing = false;
-    }
-    
-    // ========== RECEIVE NOTIFICATION FOR USER1 (when their referral is claimed) ==========
-    // This is triggered by Firebase listener on User1's side
-    function setupUser1NotificationListener() {
-        if (!userRef) return;
-        
-        userRef.child('notifications').on('child_added', (snapshot) => {
-            const notification = snapshot.val();
-            if (notification && !notification.read) {
-                // Show notification to User1
-                showNotificationFromUser(notification.message);
-                
-                // Add to pending rewards for User1
-                userRef.child('pending_rewards').transaction(current => (current || 0) + 150);
-                
-                // Animate Right Card for User1
-                animateCardHighlight();
-                
-                // Get current pending and animate increment
-                userRef.child('pending_rewards').once('value', (snap) => {
-                    const newPending = snap.val() || 0;
-                    animateAmountIncrement(0, 150);
-                    updateRewardDisplay();
-                });
-                
-                // Mark as read
-                snapshot.ref.update({ read: true });
-            }
-        });
     }
     
     // ========== UI UPDATE FUNCTIONS ==========
@@ -1361,7 +1341,6 @@ window.RightLuckyCatModule = (function() {
             rightReward.style.color = '#ffd700';
             rightReward.style.fontWeight = 'bold';
             
-            // Add glowing effect to card
             if (rightCard) {
                 rightCard.style.border = '2px solid #ffd700';
                 rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6), inset 0 0 10px rgba(255,215,0,0.3)';
@@ -1387,9 +1366,12 @@ window.RightLuckyCatModule = (function() {
             progressFill.style.width = percentage + '%';
         }
         
-        // Check if threshold reached for visual warning
-        if (totalEarnings >= THRESHOLD_WARNING && totalEarnings < MAX_EARNINGS && !currentThresholdAlert) {
-            // Just update visual but don't alert yet
+        const earningsDisplay = document.getElementById('earningsDisplay');
+        if (earningsDisplay) {
+            earningsDisplay.innerText = `${totalEarnings}/${MAX_EARNINGS}`;
+        }
+        
+        if (totalEarnings >= THRESHOLD_WARNING && totalEarnings < MAX_EARNINGS) {
             const statusMsg = document.getElementById('statusMessage');
             if (statusMsg) {
                 statusMsg.style.border = '1px solid #ffaa33';
@@ -1434,7 +1416,6 @@ window.RightLuckyCatModule = (function() {
             if (rightReward) rightReward.classList.remove('reward-pulse');
         }, 500);
         
-        // Create floating plus animation
         const floatDiv = document.createElement('div');
         floatDiv.innerHTML = `+₱${amount}`;
         floatDiv.style.cssText = `
@@ -1459,6 +1440,8 @@ window.RightLuckyCatModule = (function() {
     
     // ========== NOTIFICATIONS ==========
     function showNotification(fromPhone) {
+        playSuccessSound();
+        
         const formattedPhone = formatPhoneNumber(fromPhone);
         
         const notification = document.createElement('div');
@@ -1490,7 +1473,6 @@ window.RightLuckyCatModule = (function() {
         `;
         notification.onclick = () => notification.remove();
         
-        // Play sound
         if (window.PromotionCore) {
             window.PromotionCore.playSound('invite');
         }
@@ -1649,13 +1631,12 @@ window.RightLuckyCatModule = (function() {
         }, 5000);
     }
     
-    // ========== HELPER ==========
+    // ========== HELPER FUNCTIONS ==========
     function formatPhoneNumber(phone) {
         if (!phone || phone.length < 11) return phone;
         return phone.substring(0, 4) + '***' + phone.substring(7, 11);
     }
     
-    // ========== CLEANUP ==========
     function destroy() {
         if (unsubscribeReceived) {
             userRef.child('invites/received').off('child_added', unsubscribeReceived);
