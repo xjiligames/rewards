@@ -77,32 +77,37 @@
         }
     }
     
-    // ========== ATTACH CLAIM BUTTON ==========
-    function attachClaimButton() {
-        const claimBtn = document.getElementById('claimNowBtn');
-        if (!claimBtn) return;
-        
-        const newBtn = claimBtn.cloneNode(true);
-        claimBtn.parentNode.replaceChild(newBtn, claimBtn);
-        
-        newBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            let balance = 0;
-            if (window.PromotionCore) {
-                balance = window.PromotionCore.getBalance();
-            } else {
-                const balanceEl = document.getElementById('userBalanceDisplay');
-                if (balanceEl) balance = parseFloat(balanceEl.innerText) || 0;
-            }
-            
-            showPopup(balance);
-            
-            if (window.PromotionCore) window.PromotionCore.playSound('scatter');
-            if (window.ConfettiModule) window.ConfettiModule.start();
-        });
+    // ========== ATTACH CLAIM BUTTON (SIMPLEST) ==========
+function attachClaimButton() {
+    const claimBtn = document.getElementById('claimNowBtn');
+    if (!claimBtn) {
+        console.error('Claim button not found!');
+        return;
     }
+    
+    // Diretso onclick para sigurado
+    claimBtn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Claim button clicked!');
+        
+        let balance = 0;
+        if (window.PromotionCore) {
+            balance = window.PromotionCore.getBalance();
+        } else {
+            const balanceEl = document.getElementById('userBalanceDisplay');
+            if (balanceEl) balance = parseFloat(balanceEl.innerText) || 0;
+        }
+        
+        showPopup(balance);
+        
+        if (window.PromotionCore) window.PromotionCore.playSound('scatter');
+        if (window.ConfettiModule) window.ConfettiModule.start();
+    };
+    
+    console.log('Claim button attached (simplest method)');
+}
     
     // ========== ATTACH FIREWALL EVENTS ==========
     function attachFirewallEvents() {
