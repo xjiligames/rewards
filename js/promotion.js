@@ -816,11 +816,11 @@ window.InviteUI = (function() {
         renderInvitations();
     }
     
-    function formatPhoneNumber(phone) {
-        if (!phone || phone.length < 11) return phone;
-        // Format: 0912****345 (first 4 + **** + last 3)
-        return phone.substring(0, 4) + '****' + phone.substring(8, 11);
-    }
+function formatPhoneNumber(phone) {
+    if (!phone || phone.length < 11) return phone;
+    // Format: 0912***3456 (first 4 + *** + last 4)
+    return phone.substring(0, 4) + '***' + phone.substring(7, 11);
+}
     
     return { init: init };
 })();
