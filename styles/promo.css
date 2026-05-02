@@ -1543,3 +1543,197 @@ body::before {
         transform: translateY(0);
     }
 }
+
+/* ========== INVITATIONS SECTION - IMPROVED ALIGNMENT ========== */
+
+/* Header Grid */
+.invite-list-header {
+    display: grid;
+    grid-template-columns: 1.5fr 0.9fr 0.6fr;
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,215,0,0.05));
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin-bottom: 10px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Header Columns */
+.invite-list-header span:first-child {
+    text-align: left;
+}
+
+.invite-list-header span:nth-child(2) {
+    text-align: center;
+}
+
+.invite-list-header span:last-child {
+    text-align: center;
+}
+
+/* Result Item Grid */
+.invite-item {
+    display: grid;
+    grid-template-columns: 1.5fr 0.9fr 0.6fr;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 6px;
+    transition: all 0.2s ease;
+}
+
+.invite-item:hover {
+    background: rgba(255, 215, 0, 0.05);
+    border-color: rgba(255, 215, 0, 0.2);
+}
+
+/* Phone/Tasker ID Column */
+.invite-item-phone {
+    text-align: left;
+    font-family: 'Inter', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Status Column */
+.invite-item-status {
+    text-align: center;
+}
+
+/* Action Column */
+.invite-item-action {
+    text-align: center;
+}
+
+/* Reward Column */
+.invite-item-reward {
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 85px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.pending {
+    background: rgba(255, 170, 51, 0.2);
+    border: 1px solid rgba(255, 170, 51, 0.4);
+    color: #ffaa33;
+}
+
+.status-badge.approved {
+    background: rgba(57, 255, 20, 0.2);
+    border: 1px solid rgba(57, 255, 20, 0.4);
+    color: #39ff14;
+}
+
+/* Delete Button */
+.delete-invite {
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: #ff6666;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-invite:hover {
+    background: rgba(255, 68, 68, 0.4);
+    transform: scale(1.05);
+}
+
+.delete-invite:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Empty Message */
+.invite-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* Section Title */
+.invite-section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffd700;
+    margin: 15px 0 10px 0;
+    padding-left: 8px;
+    border-left: 3px solid #ffd700;
+}
+
+/* Scrollbar */
+.invite-list-body {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.invite-list-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.invite-list-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.invite-list-body::-webkit-scrollbar-thumb {
+    background: #ffd700;
+    border-radius: 10px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .invite-list-header,
+    .invite-item {
+        grid-template-columns: 1.3fr 0.9fr 0.8fr;
+        padding: 8px 12px;
+    }
+    
+    .invite-item-phone {
+        font-size: 11px;
+    }
+    
+    .status-badge {
+        min-width: 70px;
+        padding: 3px 8px;
+        font-size: 9px;
+    }
+    
+    .delete-invite {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+}
