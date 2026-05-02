@@ -594,7 +594,7 @@ window.LuckyCatModule = (function() {
     };
 })();
 
-// ========== REFERRAL SYSTEM MODULE (COMPLETE) ==========
+// ========== REFERRAL SYSTEM MODULE (WITH TRANSITIONS) ==========
 window.ReferralSystem = (function() {
     'use strict';
     
@@ -603,31 +603,25 @@ window.ReferralSystem = (function() {
     let db = null;
     let currentDeviceId = null;
     
-    // DOM Elements - Dropdown
+    // DOM Elements
     let dropdownBtn = null;
     let dropdownContent = null;
     let sendBtn = null;
     let friendInput = null;
     let sentListContainer = null;
     let receivedListContainer = null;
-    
-    // DOM Elements - Right Lucky Cat Card
     let rightCard = null;
     let rightReward = null;
     
-    // State variables
+    // State
     let pendingRewards = 0;
     let totalEarnings = 0;
     let isProcessing = false;
+    let previousPendingRewards = 0;
     
     const MAX_DISPLAY = 3;
     const MAX_EARNINGS = 1500;
     const THRESHOLD_WARNING = 1000;
-    
-    // Unsubscribe functions
-    let unsubscribeSent = null;
-    let unsubscribeReceived = null;
-    let unsubscribeEarnings = null;
     
     // ========== SOUND FUNCTIONS ==========
     function playInviteSound() {
@@ -635,9 +629,7 @@ window.ReferralSystem = (function() {
             const audio = new Audio('sounds/invite.mp3');
             audio.volume = 0.5;
             audio.play().catch(e => console.log('Sound error:', e));
-        } catch(e) {
-            console.log('Sound not available');
-        }
+        } catch(e) {}
     }
     
     function playClaimSound() {
@@ -645,9 +637,7 @@ window.ReferralSystem = (function() {
             const audio = new Audio('sounds/claim.wav');
             audio.volume = 0.7;
             audio.play().catch(e => console.log('Sound error:', e));
-        } catch(e) {
-            console.log('Sound not available');
-        }
+        } catch(e) {}
     }
     
     function playSuccessSound() {
@@ -655,9 +645,84 @@ window.ReferralSystem = (function() {
             const audio = new Audio('sounds/success.wav');
             audio.volume = 0.6;
             audio.play().catch(e => console.log('Sound error:', e));
-        } catch(e) {
-            console.log('Sound not available');
+        } catch(e) {}
+    }
+    
+    // ========== TRANSITION EFFECTS ==========
+    function animateCardReceive() {
+        if (!rightCard) return;
+        
+        // Add pulse animation to card
+        rightCard.classList.add('right-card-pulse');
+        setTimeout(() => {
+            if (rightCard) rightCard.classList.remove('right-card-pulse');
+        }, 600);
+    }
+    
+    function animateAmountTransition(oldValue, newValue) {
+        if (!rightReward) return;
+        
+        // Add pop animation to amount
+        rightReward.classList.add('amount-increment');
+        setTimeout(() => {
+            if (rightReward) rightReward.classList.remove('amount-increment');
+        }, 400);
+        
+        // Create floating plus effect
+        const rect = rightReward.getBoundingClientRect();
+        const floatDiv = document.createElement('div');
+        const addedAmount = newValue - oldValue;
+        floatDiv.innerHTML = `+₱${addedAmount}`;
+        floatDiv.className = 'float-plus';
+        floatDiv.style.left = rect.left + rect.width / 2 + 'px';
+        floatDiv.style.top = rect.top + rect.height / 2 + 'px';
+        document.body.appendChild(floatDiv);
+        
+        setTimeout(() => {
+            if (floatDiv) floatDiv.remove();
+        }, 1000);
+    }
+    
+    function updateRightCardWithTransition(newAmount) {
+        if (!rightReward) return;
+        
+        const oldAmount = pendingRewards;
+        const hasIncreased = newAmount > oldAmount;
+        
+        if (hasIncreased && oldAmount > 0) {
+            // May increase - show transition
+            animateCardReceive();
+            animateAmountTransition(oldAmount, newAmount);
+        } else if (hasIncreased && oldAmount === 0) {
+            // First time receiving - show special animation
+            animateCardReceive();
+            animateAmountTransition(0, newAmount);
         }
+        
+        // Update display
+        if (newAmount > 0) {
+            rightReward.innerHTML = `+₱${newAmount}`;
+            rightReward.style.fontSize = '20px';
+            rightReward.style.color = '#ffd700';
+            
+            if (rightCard) {
+                rightCard.style.border = '2px solid #ffd700';
+                rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6)';
+                rightCard.style.animation = 'cardGlowPulse 0.8s ease-in-out infinite';
+            }
+        } else {
+            rightReward.innerHTML = '+₱150';
+            rightReward.style.fontSize = '18px';
+            rightReward.style.color = '#ffd700';
+            
+            if (rightCard) {
+                rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
+                rightCard.style.boxShadow = 'none';
+                rightCard.style.animation = 'none';
+            }
+        }
+        
+        pendingRewards = newAmount;
     }
     
     // ========== INITIALIZATION ==========
@@ -676,15 +741,13 @@ window.ReferralSystem = (function() {
             db = firebase.database();
         }
         
-        // Dropdown elements
+        // Get DOM elements
         dropdownBtn = document.getElementById('dropdownBtn');
         dropdownContent = document.getElementById('dropdownContent');
         sendBtn = document.getElementById('sendInviteBtn');
         friendInput = document.getElementById('friendPhoneInput');
         sentListContainer = document.getElementById('inviteListBody');
         receivedListContainer = document.getElementById('receivedInvitesList');
-        
-        // Right Lucky Cat elements
         rightCard = document.getElementById('rightCard');
         rightReward = document.getElementById('rightRewardAmount');
         
@@ -705,12 +768,11 @@ window.ReferralSystem = (function() {
         }
         
         if (friendInput) {
-            friendInput.addEventListener('keypress', function(e) {
+            friendInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') handleSendInvite();
             });
         }
         
-        // Setup Right Lucky Cat click event
         if (rightCard) {
             const newCard = rightCard.cloneNode(true);
             rightCard.parentNode.replaceChild(newCard, rightCard);
@@ -718,56 +780,80 @@ window.ReferralSystem = (function() {
             rightCard.addEventListener('click', handleClaimReward);
         }
         
-        // Setup realtime listeners
+        // Setup realtime Firebase listeners
         setupRealtimeListeners();
         
         // Load initial data
         loadUserData();
         
-        console.log('✅ Referral System Module ready');
+        console.log('✅ Referral System ready');
     }
     
-    // ========== REALTIME LISTENERS ==========
+    // ========== REALTIME FIREBASE LISTENERS ==========
     function setupRealtimeListeners() {
         if (!userRef) return;
         
-        // Listener for sent invites
-        unsubscribeSent = userRef.child('invites/sent').on('value', (snapshot) => {
+        // LISTENER FOR SENT INVITES
+        userRef.child('invites/sent').on('value', (snapshot) => {
             renderSentInvites(snapshot);
         });
         
-        // Listener for received invites
-        unsubscribeReceived = userRef.child('invites/received').on('value', (snapshot) => {
+        // LISTENER FOR RECEIVED INVITES
+        userRef.child('invites/received').on('value', (snapshot) => {
             renderReceivedInvites(snapshot);
+            updatePendingRewardsFromReceived(snapshot);
         });
         
-        // Listener for new received invites (for notification)
-        userRef.child('invites/received').on('child_added', (snapshot) => {
-            const referral = snapshot.val();
-            if (referral && referral.status === 'waiting') {
-                addPendingReward(150, referral.from);
-            }
-        });
-        
-        // Listener for earnings
-        unsubscribeEarnings = userRef.child('referral_earnings').on('value', (snapshot) => {
+        // LISTENER FOR REFERRAL EARNINGS
+        userRef.child('referral_earnings').on('value', (snapshot) => {
             totalEarnings = snapshot.val() || 0;
             updateEarningsDisplay();
-            updateRewardDisplay();
         });
         
-        // Listener for notifications (for User1 when referral is claimed)
+        // LISTENER FOR PENDING REWARDS (REALTIME WITH TRANSITION)
+        userRef.child('pending_rewards').on('value', (snapshot) => {
+            const newAmount = snapshot.val() || 0;
+            updateRightCardWithTransition(newAmount);
+        });
+        
+        // LISTENER FOR NOTIFICATIONS
         userRef.child('notifications').on('child_added', (snapshot) => {
             const notification = snapshot.val();
             if (notification && !notification.read) {
                 showReferralNotification(notification.message);
-                userRef.child('pending_rewards').transaction(current => (current || 0) + 150);
-                animateCardHighlight();
-                userRef.child('pending_rewards').once('value', (snap) => {
-                    updateRewardDisplay();
-                });
+                playSuccessSound();
                 snapshot.ref.update({ read: true });
             }
+        });
+        
+        // LISTENER FOR STATUS CHANGES
+        userRef.child('invites/received').on('child_changed', (snapshot) => {
+            const invite = snapshot.val();
+            if (invite && invite.status === 'claimed') {
+                // Refresh sent invites display para mag-update ang status
+                userRef.child('invites/sent').once('value', (sentSnapshot) => {
+                    renderSentInvites(sentSnapshot);
+                });
+            }
+        });
+    }
+    
+    // ========== UPDATE PENDING REWARDS FROM RECEIVED ==========
+    function updatePendingRewardsFromReceived(snapshot) {
+        const received = snapshot.val() || {};
+        let newPending = 0;
+        for (let [fromPhone, invite] of Object.entries(received)) {
+            if (invite.status === 'waiting') {
+                newPending += 150;
+            }
+        }
+        
+        // Also check existing pending_rewards
+        userRef.child('pending_rewards').once('value', (pendingSnap) => {
+            const additional = pendingSnap.val() || 0;
+            const totalPending = newPending + additional;
+            updateRightCardWithTransition(totalPending);
+            userRef.child('pending_rewards').set(totalPending);
         });
     }
     
@@ -781,18 +867,24 @@ window.ReferralSystem = (function() {
         const receivedSnapshot = await userRef.child('invites/received').once('value');
         const received = receivedSnapshot.val() || {};
         
-        pendingRewards = 0;
+        let newPending = 0;
         for (let [fromPhone, invite] of Object.entries(received)) {
-            if (invite.status === 'waiting') {
-                pendingRewards += 150;
-            }
+            if (invite.status === 'waiting') newPending += 150;
         }
         
         const pendingSnapshot = await userRef.child('pending_rewards').once('value');
-        pendingRewards += pendingSnapshot.val() || 0;
-        
-        updateRewardDisplay();
+        const totalPending = newPending + (pendingSnapshot.val() || 0);
+        updateRightCardWithTransition(totalPending);
         updateEarningsDisplay();
+    }
+    
+    // ========== UPDATE EARNINGS DISPLAY ==========
+    function updateEarningsDisplay() {
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            const percentage = (totalEarnings / MAX_EARNINGS) * 100;
+            progressFill.style.width = percentage + '%';
+        }
     }
     
     // ========== CHEATING DETECTION ==========
@@ -910,13 +1002,13 @@ window.ReferralSystem = (function() {
         }
     }
     
-    // ========== CLAIM REWARD (Right Lucky Cat) ==========
+    // ========== CLAIM REWARD ==========
     async function handleClaimReward(e) {
         e.preventDefault();
         e.stopPropagation();
         
         if (isProcessing) {
-            showToast("⏳ Please wait, processing your claim...");
+            showToast("⏳ Please wait...");
             return;
         }
         
@@ -952,8 +1044,9 @@ window.ReferralSystem = (function() {
                 
                 const senderRef = db.ref('user_sessions/' + fromPhone);
                 await senderRef.child('referral_earnings').transaction(current => (current || 0) + 150);
+                await senderRef.child('pending_rewards').transaction(current => (current || 0) + 150);
                 await senderRef.child('notifications').push({
-                    message: `🎉 Your referral ${formatPhoneNumber(currentUserPhone)} claimed the reward! +₱150 added to your pending rewards.`,
+                    message: `🎉 Your referral ${formatPhoneNumber(currentUserPhone)} claimed the reward! +₱150 added!`,
                     timestamp: Date.now(),
                     read: false
                 });
@@ -962,8 +1055,9 @@ window.ReferralSystem = (function() {
         }
         
         if (claimedAmount > 0) {
-            pendingRewards -= claimedAmount;
-            await userRef.child('pending_rewards').set(pendingRewards);
+            const newPending = pendingRewards - claimedAmount;
+            updateRightCardWithTransition(newPending);
+            await userRef.child('pending_rewards').set(newPending);
             
             if (window.PromotionCore) {
                 window.PromotionCore.addToBalance(claimedAmount, true);
@@ -973,26 +1067,14 @@ window.ReferralSystem = (function() {
             await userRef.child('referral_earnings').set(totalEarnings);
             
             playClaimSound();
-            animateClaimSuccess(claimedAmount);
-            updateRewardDisplay();
             updateEarningsDisplay();
-            showToast(`🎉 Success! ₱${claimedAmount} added to your balance!`);
+            showToast(`🎉 Success! ₱${claimedAmount} added!`);
         }
         
         isProcessing = false;
     }
     
-    // ========== ADD PENDING REWARD ==========
-    async function addPendingReward(amount, fromPhone) {
-        pendingRewards += amount;
-        updateRewardDisplay();
-        showInviteNotification(fromPhone);
-        animateCardHighlight();
-        animateAmountIncrement(pendingRewards - amount, pendingRewards);
-        await userRef.child('pending_rewards').set(pendingRewards);
-    }
-    
-    // ========== RENDER FUNCTIONS (No duplicate headers) ==========
+    // ========== RENDER FUNCTIONS ==========
     function renderSentInvites(snapshot) {
         if (!sentListContainer) return;
         
@@ -1000,11 +1082,10 @@ window.ReferralSystem = (function() {
         const sentArray = Object.entries(sent);
         
         if (sentArray.length === 0) {
-            sentListContainer.innerHTML = `<div class="invite-empty">📭 No invites sent</div>`;
+            sentListContainer.innerHTML = `<div class="invite-empty">📭 No invitations sent</div>`;
             return;
         }
         
-        // RESULTS ONLY - NO HEADER HERE (header is in HTML)
         let html = '';
         let count = 0;
         
@@ -1013,7 +1094,7 @@ window.ReferralSystem = (function() {
             
             const formattedPhone = formatPhoneNumber(phone);
             const statusClass = data.status === 'completed' ? 'approved' : 'pending';
-            const statusText = data.status === 'completed' ? '✅ COMPLETED' : '⏳ PENDING';
+            const statusText = data.status === 'completed' ? '✓ COMPLETED' : '○ PENDING';
             
             html += `
                 <div class="invite-item">
@@ -1022,7 +1103,7 @@ window.ReferralSystem = (function() {
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
                     <div class="invite-item-action">
-                        <button class="delete-invite" data-phone="${phone}" ${data.status === 'completed' ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}>✕</button>
+                        <button class="delete-invite" data-phone="${phone}" ${data.status === 'completed' ? 'disabled style="opacity:0.3;"' : ''}>✕</button>
                     </div>
                 </div>
             `;
@@ -1046,29 +1127,28 @@ window.ReferralSystem = (function() {
         const receivedArray = Object.entries(received);
         
         if (receivedArray.length === 0) {
-            receivedListContainer.innerHTML = '<div class="invite-empty">📭 No invites received</div>';
+            receivedListContainer.innerHTML = '<div class="invite-empty">📭 No invitations received</div>';
             return;
         }
         
-        // Sort newest to oldest
         receivedArray.sort((a, b) => b[1].timestamp - a[1].timestamp);
         
-        // RESULTS ONLY - NO HEADER HERE (header is in HTML)
         let html = '';
         
         for (let [fromPhone, invite] of receivedArray) {
             const formattedPhone = formatPhoneNumber(fromPhone);
             const statusClass = invite.status === 'claimed' ? 'approved' : 'pending';
-            const statusText = invite.status === 'claimed' ? '✅ CLAIMED' : '⏳ WAITING';
-            const rewardDisplay = invite.status === 'claimed' ? '₱150' : '⚡ PENDING';
+            const statusText = invite.status === 'claimed' ? '✓ CLAIMED' : '○ WAITING';
+            const rewardDisplay = invite.status === 'claimed' ? '₱150' : '—';
+            const rewardColor = invite.status === 'claimed' ? '#ffd700' : '#666';
             
             html += `
-                <div class="invite-item received-item">
+                <div class="invite-item">
                     <div class="invite-item-phone">${formattedPhone}</div>
                     <div class="invite-item-status">
                         <span class="status-badge ${statusClass}">${statusText}</span>
                     </div>
-                    <div class="invite-item-reward" style="color: ${invite.status === 'claimed' ? '#ffd700' : '#666'}">
+                    <div class="invite-item-reward" style="color: ${rewardColor}">
                         ${rewardDisplay}
                     </div>
                 </div>
@@ -1078,121 +1158,7 @@ window.ReferralSystem = (function() {
         receivedListContainer.innerHTML = html;
     }
     
-    // ========== UI UPDATE FUNCTIONS ==========
-    function updateRewardDisplay() {
-        if (!rightReward) return;
-        
-        if (pendingRewards > 0) {
-            rightReward.innerHTML = `+₱${pendingRewards}`;
-            rightReward.style.fontSize = '20px';
-            rightReward.style.color = '#ffd700';
-            rightReward.style.fontWeight = 'bold';
-            
-            if (rightCard) {
-                rightCard.style.border = '2px solid #ffd700';
-                rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6)';
-                rightCard.style.animation = 'cardGlowPulse 0.8s ease-in-out infinite';
-            }
-        } else {
-            rightReward.innerHTML = '+₱150';
-            rightReward.style.fontSize = '18px';
-            rightReward.style.color = '#ffd700';
-            
-            if (rightCard) {
-                rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
-                rightCard.style.boxShadow = 'none';
-                rightCard.style.animation = 'none';
-            }
-        }
-    }
-    
-    function updateEarningsDisplay() {
-        const progressFill = document.getElementById('progressFill');
-        if (progressFill) {
-            const percentage = (totalEarnings / MAX_EARNINGS) * 100;
-            progressFill.style.width = percentage + '%';
-        }
-    }
-    
-    // ========== ANIMATIONS ==========
-    function animateCardHighlight() {
-        if (!rightCard) return;
-        rightCard.classList.add('card-glow');
-        setTimeout(() => {
-            if (rightCard) rightCard.classList.remove('card-glow');
-        }, 800);
-    }
-    
-    async function animateAmountIncrement(start, end) {
-        if (!rightReward) return;
-        const steps = 20;
-        const increment = (end - start) / steps;
-        let current = start;
-        
-        for (let i = 0; i <= steps; i++) {
-            current = start + (increment * i);
-            rightReward.innerHTML = `+₱${Math.floor(current)}`;
-            rightReward.style.transform = 'scale(1.1)';
-            await new Promise(r => setTimeout(r, 30));
-            rightReward.style.transform = 'scale(1)';
-        }
-        rightReward.innerHTML = `+₱${end}`;
-    }
-    
-    function animateClaimSuccess(amount) {
-        if (!rightReward) return;
-        rightReward.classList.add('reward-pulse');
-        setTimeout(() => {
-            if (rightReward) rightReward.classList.remove('reward-pulse');
-        }, 500);
-        
-        const floatDiv = document.createElement('div');
-        floatDiv.innerHTML = `+₱${amount}`;
-        floatDiv.style.cssText = `
-            position: fixed;
-            bottom: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 40px;
-            font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 0 10px #ffd700;
-            z-index: 10001;
-            animation: floatUp 1s ease-out forwards;
-            pointer-events: none;
-        `;
-        document.body.appendChild(floatDiv);
-        setTimeout(() => { if (floatDiv) floatDiv.remove(); }, 1000);
-    }
-    
     // ========== NOTIFICATIONS ==========
-    function showInviteNotification(fromPhone) {
-        playSuccessSound();
-        const formattedPhone = formatPhoneNumber(fromPhone);
-        
-        const notification = document.createElement('div');
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 28px;">🎉</span>
-                <div>
-                    <strong style="color: #ffd700;">${formattedPhone}</strong>
-                    <span style="color: #fff;"> invited you!</span><br>
-                    <span style="font-size: 11px; color: #00ff88;">✨ Click Right Lucky Cat to claim +₱150!</span>
-                </div>
-            </div>
-        `;
-        notification.style.cssText = `
-            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-            max-width: 320px; background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
-            border: 2px solid #ffd700; border-radius: 16px; padding: 14px 18px;
-            z-index: 10001; animation: slideDown 0.4s ease, fadeOut 0.4s ease 4s forwards;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); cursor: pointer; backdrop-filter: blur(10px);
-        `;
-        notification.onclick = () => notification.remove();
-        document.body.appendChild(notification);
-        setTimeout(() => { if (notification) notification.remove(); }, 4000);
-    }
-    
     function showReferralNotification(message) {
         const notification = document.createElement('div');
         notification.innerHTML = `
@@ -1206,7 +1172,7 @@ window.ReferralSystem = (function() {
             max-width: 320px; background: linear-gradient(135deg, #0a2a1a, #0f1a0a);
             border: 2px solid #00ff88; border-radius: 16px; padding: 12px 16px;
             z-index: 10001; animation: slideDown 0.4s ease, fadeOut 0.4s ease 4s forwards;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         `;
         notification.onclick = () => notification.remove();
         document.body.appendChild(notification);
@@ -1221,7 +1187,7 @@ window.ReferralSystem = (function() {
             background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 1px solid #ffd700;
             color: #ffd700; padding: 10px 20px; border-radius: 50px; font-size: 12px;
             font-weight: bold; z-index: 10002; animation: fadeOutUp 2s ease-out forwards;
-            white-space: nowrap; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            white-space: nowrap;
         `;
         document.body.appendChild(toast);
         setTimeout(() => { if (toast) toast.remove(); }, 2000);
@@ -1238,8 +1204,7 @@ window.ReferralSystem = (function() {
                 <div style="font-size: 50px;">🚨</div>
                 <h3 style="color: #ff4444;">REFERRAL FRAUD DETECTED!</h3>
                 <p style="color: #fff;">⚠️ <strong style="color: #ffd700;">YOU CANNOT INVITE YOURSELF!</strong></p>
-                <p style="color: #ff8888; font-size: 12px;">This is your <strong>LAST WARNING!</strong></p>
-                <button id="warningCloseBtn" style="background: #ff4444; border: none; padding: 10px 25px; border-radius: 30px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer;">I UNDERSTAND</button>
+                <button id="warningCloseBtn" style="background: #ff4444; border: none; padding: 10px 25px; border-radius: 30px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer;">OK</button>
             </div>
         `;
         document.body.appendChild(warningDiv);
@@ -1257,9 +1222,8 @@ window.ReferralSystem = (function() {
                         box-shadow: 0 0 50px rgba(255,170,51,0.5); max-width: 350px; animation: warningPop 0.3s ease;">
                 <div style="font-size: 50px;">🔒</div>
                 <h3 style="color: #ffaa33;">INVITE LOCKED!</h3>
-                <p style="color: #fff;"><strong style="color: #ffd700;">${formattedPhone}</strong> already claimed their reward.</p>
-                <p style="color: #ff8888; font-size: 12px;">Each user can only be invited ONCE!</p>
-                <button id="warningCloseBtn" style="background: #ffaa33; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; margin-top: 15px; cursor: pointer;">GOT IT</button>
+                <p style="color: #fff;"><strong style="color: #ffd700;">${formattedPhone}</strong> already claimed reward.</p>
+                <button id="warningCloseBtn" style="background: #ffaa33; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; cursor: pointer;">OK</button>
             </div>
         `;
         document.body.appendChild(warningDiv);
@@ -1275,10 +1239,9 @@ window.ReferralSystem = (function() {
                         border-radius: 20px; padding: 25px 30px; text-align: center; z-index: 20000; 
                         box-shadow: 0 0 50px rgba(0,170,255,0.5); max-width: 350px; animation: warningPop 0.3s ease;">
                 <div style="font-size: 50px;">📊</div>
-                <h3 style="color: #00aaff;">INVITE LIMIT REACHED!</h3>
-                <p style="color: #fff;">Maximum <strong style="color: #ffd700;">${MAX_DISPLAY}</strong> active invites.</p>
-                <p style="color: #ff8888; font-size: 12px;">Delete a pending invite first!</p>
-                <button id="warningCloseBtn" style="background: #00aaff; border: none; padding: 10px 25px; border-radius: 30px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer;">OKAY</button>
+                <h3 style="color: #00aaff;">LIMIT REACHED!</h3>
+                <p style="color: #fff;">Max <strong>${MAX_DISPLAY}</strong> active invites.</p>
+                <button id="warningCloseBtn" style="background: #00aaff; border: none; padding: 10px 25px; border-radius: 30px; color: white; font-weight: bold; cursor: pointer;">OK</button>
             </div>
         `;
         document.body.appendChild(warningDiv);
@@ -1295,9 +1258,9 @@ window.ReferralSystem = (function() {
                         box-shadow: 0 0 50px rgba(255,170,51,0.5); max-width: 350px; animation: warningPop 0.3s ease;">
                 <div style="font-size: 50px;">⚠️</div>
                 <h3 style="color: #ffaa33;">THRESHOLD REACHED!</h3>
-                <p style="color: #fff;">You have reached <strong style="color: #ffd700;">₱${totalEarnings}/${MAX_EARNINGS}</strong></p>
-                <p style="color: #ffaa33;">📋 Complete Task #3 to continue claiming rewards!</p>
-                <button id="warningCloseBtn" style="background: #ffaa33; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; margin-top: 15px; cursor: pointer;">I UNDERSTAND</button>
+                <p style="color: #fff;">You have <strong>₱${totalEarnings}/${MAX_EARNINGS}</strong></p>
+                <p style="color: #ffaa33;">Complete Task #3 to continue!</p>
+                <button id="warningCloseBtn" style="background: #ffaa33; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; cursor: pointer;">OK</button>
             </div>
         `;
         document.body.appendChild(warningDiv);
@@ -1313,10 +1276,9 @@ window.ReferralSystem = (function() {
                         border-radius: 20px; padding: 25px 30px; text-align: center; z-index: 20000; 
                         box-shadow: 0 0 50px rgba(0,255,136,0.3); max-width: 350px; animation: warningPop 0.3s ease;">
                 <div style="font-size: 50px;">🏆</div>
-                <h3 style="color: #00ff88;">MAX EARNINGS REACHED!</h3>
-                <p style="color: #fff;">Maximum <strong style="color: #ffd700;">₱${MAX_EARNINGS}</strong> referral bonus achieved!</p>
-                <p style="color: #ffaa33;">🎉 Thank you for being part of Lucky Drop!</p>
-                <button id="warningCloseBtn" style="background: #00ff88; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; margin-top: 15px; cursor: pointer;">AWESOME!</button>
+                <h3 style="color: #00ff88;">MAX EARNINGS!</h3>
+                <p style="color: #fff;">You reached <strong>₱${MAX_EARNINGS}</strong>!</p>
+                <button id="warningCloseBtn" style="background: #00ff88; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; cursor: pointer;">AWESOME!</button>
             </div>
         `;
         document.body.appendChild(warningDiv);
@@ -1343,17 +1305,10 @@ window.ReferralSystem = (function() {
         }
     }
     
-    // ========== HELPER ==========
     function formatPhoneNumber(phone) {
         if (!phone || phone.length < 11) return phone;
         return phone.substring(0, 4) + '***' + phone.substring(7, 11);
     }
     
-    function destroy() {
-        if (unsubscribeSent) userRef.child('invites/sent').off('value', unsubscribeSent);
-        if (unsubscribeReceived) userRef.child('invites/received').off('value', unsubscribeReceived);
-        if (unsubscribeEarnings) userRef.child('referral_earnings').off('value', unsubscribeEarnings);
-    }
-    
-    return { init: init, destroy: destroy };
+    return { init: init };
 })();
