@@ -440,7 +440,7 @@ function hideFirewallPopup() {
             <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ffd700; line-height: 1.4; text-align: center; margin: 5px 0 0 0;">
                 You’re one tap away by getting your task reward amounting to 
                 <span style="font-size: 20px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5);">₱${currentBalance.toFixed(2)}</span> 
-                <br>Payout Wallet.
+                <br>to your Payout Wallet.
             </p>
         </div>
         
