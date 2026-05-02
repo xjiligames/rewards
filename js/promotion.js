@@ -282,7 +282,7 @@ window.TickerModule = (function() {
 })();
 
 
-// ========== MODULE 5 CONFETTI MODULE (For Popup) ==========
+// ========== MODULE 3 CONFETTI MODULE (For Popup) ==========
 window.ConfettiModule = (function() {
     'use strict';
     let canvas = null;
@@ -340,7 +340,7 @@ window.ConfettiModule = (function() {
     return { start: start, stop: stop };
 })();
 
-// ========== MODULE 6: LUCKY CAT (FIXED - MAY LOAD CHECK) ==========
+// ========== MODULE 4: LUCKY CAT (FIXED - MAY LOAD CHECK) ==========
 window.LuckyCatModule = (function() {
     'use strict';
     
@@ -592,7 +592,7 @@ window.LuckyCatModule = (function() {
     };
 })();
 
-// ========== MODULE 6: DROPDOWN & INVITE UI ==========
+// ========== MODULE 5: DROPDOWN & MINI DASHBOARD ==========
 window.InviteUI = (function() {
     'use strict';
     
@@ -650,7 +650,7 @@ window.InviteUI = (function() {
         // Load invites
         loadInvites();
         
-        console.log('✅ Module 6: Dropdown & Invite UI ready');
+        console.log('✅ Module 6: Dropdown & Mini Dashboard ready');
     }
     
     function toggleDropdown(e) {
@@ -674,6 +674,7 @@ window.InviteUI = (function() {
     async function handleSendInvite() {
         const friendPhone = friendInput?.value.trim();
         
+        // Validation
         if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
             alert("Enter valid 11-digit number starting with 09");
             return;
@@ -686,17 +687,19 @@ window.InviteUI = (function() {
         
         // Check earnings limit via Module 7
         if (window.ReferralLogic && window.ReferralLogic.isEarningsFull()) {
-            alert(`⚠️ You have reached the maximum earnings!`);
+            alert(`⚠️ You have reached the maximum earnings of ₱1500! Cannot send more invites.`);
             return;
         }
         
+        // Get current invites
         const snapshot = await userRef.child('referrals/sent').once('value');
         const sentInvites = snapshot.val() || {};
-        const pendingCount = Object.values(sentInvites).filter(inv => inv.status === 'pending').length;
-        const approvedCount = Object.values(sentInvites).filter(inv => inv.status === 'approved').length;
         
-        if ((pendingCount + approvedCount) >= 3) {
-            alert("Maximum 3 invites. Delete an invite to send new one.");
+        // Count total invites (pending + approved) = max 3 display
+        const totalInvites = Object.values(sentInvites).length;
+        
+        if (totalInvites >= 3) {
+            alert("Maximum 3 invites displayed. Delete an invite to send new one.");
             return;
         }
         
@@ -705,6 +708,7 @@ window.InviteUI = (function() {
             return;
         }
         
+        // Save invite
         const updates = {};
         updates[`referrals/sent/${friendPhone}`] = {
             phone: friendPhone,
@@ -713,6 +717,7 @@ window.InviteUI = (function() {
             reward: 150
         };
         
+        // Add to friend's received referrals
         const friendRef = db.ref('user_sessions/' + friendPhone);
         updates[`referrals/received/${currentUserPhone}`] = {
             from: currentUserPhone,
@@ -735,14 +740,10 @@ window.InviteUI = (function() {
         const snapshot = await userRef.child(`referrals/sent/${phoneToDelete}`).once('value');
         const invite = snapshot.val();
         
-        if (invite && invite.status === 'approved') {
-            alert("Cannot delete approved invitation!");
-            return;
-        }
-        
-        if (confirm("Delete this invitation?")) {
+        if (confirm(`Delete invitation to ${formatPhoneNumber(phoneToDelete)}?`)) {
             await userRef.child(`referrals/sent/${phoneToDelete}`).remove();
             
+            // Remove from friend's received
             const friendRef = db.ref('user_sessions/' + phoneToDelete);
             await friendRef.child(`referrals/received/${currentUserPhone}`).remove();
             
@@ -766,12 +767,13 @@ window.InviteUI = (function() {
             let html = '';
             let count = 0;
             
+            // Display max 3 invites (pending + approved)
             for (let [phone, data] of sentArray) {
                 if (count >= 3) break;
                 
                 const formattedPhone = formatPhoneNumber(phone);
                 const statusClass = data.status === 'approved' ? 'approved' : 'pending';
-                const statusText = data.status === 'approved' ? 'APPROVED' : 'PENDING';
+                const statusText = data.status === 'approved' ? 'CLAIMED' : 'PENDING';
                 
                 html += `
                     <div class="invite-item">
@@ -789,6 +791,7 @@ window.InviteUI = (function() {
             
             listContainer.innerHTML = html;
             
+            // Attach delete events
             document.querySelectorAll('.delete-invite').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -806,6 +809,7 @@ window.InviteUI = (function() {
     
     function formatPhoneNumber(phone) {
         if (!phone || phone.length < 11) return phone;
+        // Format: 0912****345 (first 4 + **** + last 3)
         return phone.substring(0, 4) + '****' + phone.substring(8, 11);
     }
     
@@ -864,6 +868,7 @@ window.ReferralLogic = (function() {
     function setupListeners() {
         if (!userRef) return;
         
+        // Listen for new received referrals (may nag-invite sayo)
         userRef.child('referrals/received').on('child_added', (snapshot) => {
             const referral = snapshot.val();
             if (referral && referral.status === 'pending') {
@@ -922,7 +927,7 @@ window.ReferralLogic = (function() {
     async function claimRewards() {
         if (pendingRewards <= 0) return false;
         if (currentEarnings >= MAX_EARNINGS) {
-            alert(`⚠️ Maximum earnings of ₱${MAX_EARNINGS} reached!`);
+            alert(`⚠️ You have reached the maximum earnings of ₱${MAX_EARNINGS}!`);
             return false;
         }
         
@@ -931,10 +936,11 @@ window.ReferralLogic = (function() {
         
         if (newTotal > MAX_EARNINGS) {
             amount = MAX_EARNINGS - currentEarnings;
-            alert(`⚠️ You can only claim ₱${amount} now. Max is ₱${MAX_EARNINGS}.`);
+            alert(`⚠️ You can only claim ₱${amount} now. Maximum is ₱${MAX_EARNINGS}.`);
             if (amount <= 0) return false;
         }
         
+        // Add to balance
         if (window.PromotionCore) {
             window.PromotionCore.addToBalance(amount, true);
         }
@@ -953,7 +959,7 @@ window.ReferralLogic = (function() {
         showFloatingMessage(`🎉 You claimed ₱${amount}!`);
         
         if (currentEarnings >= MAX_EARNINGS) {
-            alert(`🎉 Congratulations! You reached ₱${MAX_EARNINGS}!`);
+            alert(`🎉 Congratulations! You reached the maximum earnings of ₱${MAX_EARNINGS}!`);
         }
         
         return true;
@@ -965,25 +971,31 @@ window.ReferralLogic = (function() {
         
         if (!referral || referral.status !== 'pending') return false;
         if (currentEarnings >= MAX_EARNINGS) {
-            alert(`⚠️ Maximum earnings reached!`);
+            alert(`⚠️ You have reached the maximum earnings of ₱${MAX_EARNINGS}!`);
             return false;
         }
         
+        // Mark as approved
         await userRef.child(`referrals/received/${fromPhone}/status`).set('approved');
         
+        // Update sender's sent invite
         const senderRef = db.ref('user_sessions/' + fromPhone);
         await senderRef.child(`referrals/sent/${currentUserPhone}/status`).set('approved');
+        
+        // Add pending reward to sender
         await senderRef.child('referrals/pendingRewards').transaction(current => (current || 0) + 150);
         
+        // Add reward to current user (user2) instantly
         if (window.PromotionCore) {
             window.PromotionCore.addToBalance(150, true);
         }
         
+        // Update earnings
         currentEarnings += 150;
         await userRef.child('referrals/earnings').set(currentEarnings);
         
         updateEarningsDisplay();
-        showFloatingMessage(`🎉 You accepted a referral! +₱150 added!`);
+        showFloatingMessage(`🎉 You accepted a referral! +₱150 added to your balance!`);
         
         return true;
     }
@@ -993,11 +1005,16 @@ window.ReferralLogic = (function() {
     }
     
     function updateEarningsDisplay() {
+        // Update UI elements (Module 6 will read this)
         const earningsEl = document.getElementById('earningsDisplay');
         if (earningsEl) earningsEl.innerText = `${currentEarnings}/${MAX_EARNINGS}`;
         
         const progressFill = document.getElementById('progressFill');
         if (progressFill) progressFill.style.width = (currentEarnings / MAX_EARNINGS) * 100 + '%';
+        
+        // Dispatch event para ma-notify si Module 6
+        const event = new CustomEvent('earningsUpdated', { detail: { earnings: currentEarnings, max: MAX_EARNINGS } });
+        window.dispatchEvent(event);
     }
     
     function showFloatingMessage(message) {
@@ -1061,11 +1078,10 @@ window.RightLuckyCat = (function() {
             console.log('✅ Module 8: Right Lucky Cat ready');
         }
         
-        // Real-time update ng pending rewards display
-        if (window.ReferralLogic) {
-            updateDisplay();
-            setInterval(updateDisplay, 1000);
-        }
+        // Listen for earnings updates para mag-update ng display
+        window.addEventListener('earningsUpdated', () => updateDisplay());
+        updateDisplay();
+        setInterval(updateDisplay, 1000);
     }
     
     function updateDisplay() {
@@ -1095,7 +1111,6 @@ window.RightLuckyCat = (function() {
             setTimeout(() => { if (rightCard) rightCard.style.transform = 'scale(1)'; }, 150);
         }
         
-        // Check for pending received referrals
         let hasAction = false;
         
         if (window.ReferralLogic) {
@@ -1103,10 +1118,11 @@ window.RightLuckyCat = (function() {
             const db = firebase.database();
             const receivedRef = db.ref('user_sessions/' + userPhone + '/referrals/received');
             const snapshot = await receivedRef.once('value');
-            const pending = snapshot.val();
+            const pendingReferrals = snapshot.val();
             
-            if (pending) {
-                for (let [fromPhone, data] of Object.entries(pending)) {
+            // Check for pending received referrals to accept
+            if (pendingReferrals) {
+                for (let [fromPhone, data] of Object.entries(pendingReferrals)) {
                     if (data.status === 'pending') {
                         await window.ReferralLogic.acceptReferral(fromPhone);
                         hasAction = true;
@@ -1115,6 +1131,7 @@ window.RightLuckyCat = (function() {
                 }
             }
             
+            // If no pending referrals, try to claim pending rewards
             if (!hasAction) {
                 const pendingRewards = window.ReferralLogic.getPendingRewards();
                 if (pendingRewards > 0) {
