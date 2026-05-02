@@ -472,7 +472,7 @@ function hideFirewallPopup() {
         <div class="button-separator" style="margin: 10px 0 8px;"></div>
 
         <button class="back-btn" id="backBtnPhase2" style="transition: all 0.2s ease; width: 100%; padding: 8px; font-size: 12px;">
-            ← BACK TO PHASE 1
+            ← COMPLETE TASK# 2
         </button>
     `;
     
