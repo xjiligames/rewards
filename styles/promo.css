@@ -1364,3 +1364,100 @@ body::before {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
 }
+
+/* Invite List Header - Fixed Alignment */
+.invite-list-header {
+    display: grid;
+    grid-template-columns: 1.5fr 0.8fr 0.8fr;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 8px 10px;
+    font-size: 11px;
+    font-family: 'Orbitron', monospace;
+    color: #ffd700;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.invite-list-header span:first-child {
+    text-align: left;
+}
+
+.invite-list-header span:last-child {
+    text-align: right;
+    padding-right: 10px;
+}
+
+/* Invite Item - Fixed Alignment */
+.invite-item {
+    display: grid;
+    grid-template-columns: 1.5fr 0.8fr 0.8fr;
+    align-items: center;
+    padding: 10px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.invite-item-phone {
+    font-size: 12px;
+    color: white;
+    font-family: monospace;
+    text-align: left;
+}
+
+.invite-item-status {
+    text-align: center;
+}
+
+.invite-item-action {
+    text-align: right;
+    padding-right: 10px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 70px;
+    text-align: center;
+}
+
+.status-badge.pending {
+    background: rgba(255, 170, 51, 0.2);
+    color: #ffaa33;
+}
+
+.status-badge.approved {
+    background: rgba(57, 255, 20, 0.2);
+    color: #39ff14;
+}
+
+.delete-invite {
+    background: rgba(255, 68, 68, 0.2);
+    border: none;
+    color: #ff6666;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.delete-invite:hover {
+    background: rgba(255, 68, 68, 0.4);
+    transform: scale(1.05);
+}
+
+.delete-invite:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.invite-empty {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+}
