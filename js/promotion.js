@@ -592,6 +592,226 @@ window.LuckyCatModule = (function() {
     };
 })();
 
+// ========== MODULE 6: DROPDOWN & INVITE UI ==========
+window.InviteUI = (function() {
+    'use strict';
+    
+    let dropdownBtn = null;
+    let dropdownContent = null;
+    let sendBtn = null;
+    let friendInput = null;
+    let listContainer = null;
+    let currentUserPhone = null;
+    let userRef = null;
+    let db = null;
+    
+    function init() {
+        currentUserPhone = localStorage.getItem("userPhone");
+        if (!currentUserPhone) return;
+        
+        const core = window.PromotionCore;
+        if (core) {
+            userRef = core.getUserRef();
+            db = firebase.database();
+        }
+        
+        // Dropdown elements
+        dropdownBtn = document.getElementById('dropdownBtn');
+        dropdownContent = document.getElementById('dropdownContent');
+        
+        // Invite form elements
+        sendBtn = document.getElementById('sendInviteBtn');
+        friendInput = document.getElementById('friendPhoneInput');
+        listContainer = document.getElementById('inviteListBody');
+        
+        // Setup Dropdown
+        if (dropdownBtn && dropdownContent) {
+            const newBtn = dropdownBtn.cloneNode(true);
+            dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
+            dropdownBtn = newBtn;
+            dropdownBtn.addEventListener('click', toggleDropdown);
+            document.addEventListener('click', handleOutsideClick);
+        }
+        
+        // Setup Send Invite Button
+        if (sendBtn) {
+            const newBtn = sendBtn.cloneNode(true);
+            sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+            sendBtn = newBtn;
+            sendBtn.addEventListener('click', handleSendInvite);
+        }
+        
+        if (friendInput) {
+            friendInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSendInvite();
+            });
+        }
+        
+        // Load invites
+        loadInvites();
+        
+        console.log('✅ Module 6: Dropdown & Invite UI ready');
+    }
+    
+    function toggleDropdown(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropdownContent.classList.toggle('show');
+        const arrow = dropdownBtn.querySelector('.dropdown-arrow');
+        if (arrow) arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
+    }
+    
+    function handleOutsideClick(e) {
+        if (dropdownBtn && dropdownContent) {
+            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                dropdownContent.classList.remove('show');
+                const arrow = dropdownBtn.querySelector('.dropdown-arrow');
+                if (arrow) arrow.innerHTML = '▼';
+            }
+        }
+    }
+    
+    async function handleSendInvite() {
+        const friendPhone = friendInput?.value.trim();
+        
+        if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
+            alert("Enter valid 11-digit number starting with 09");
+            return;
+        }
+        
+        if (friendPhone === currentUserPhone) {
+            alert("Cannot invite yourself!");
+            return;
+        }
+        
+        // Check earnings limit via Module 7
+        if (window.ReferralLogic && window.ReferralLogic.isEarningsFull()) {
+            alert(`⚠️ You have reached the maximum earnings!`);
+            return;
+        }
+        
+        const snapshot = await userRef.child('referrals/sent').once('value');
+        const sentInvites = snapshot.val() || {};
+        const pendingCount = Object.values(sentInvites).filter(inv => inv.status === 'pending').length;
+        const approvedCount = Object.values(sentInvites).filter(inv => inv.status === 'approved').length;
+        
+        if ((pendingCount + approvedCount) >= 3) {
+            alert("Maximum 3 invites. Delete an invite to send new one.");
+            return;
+        }
+        
+        if (sentInvites[friendPhone]) {
+            alert("Already invited this person!");
+            return;
+        }
+        
+        const updates = {};
+        updates[`referrals/sent/${friendPhone}`] = {
+            phone: friendPhone,
+            status: 'pending',
+            timestamp: Date.now(),
+            reward: 150
+        };
+        
+        const friendRef = db.ref('user_sessions/' + friendPhone);
+        updates[`referrals/received/${currentUserPhone}`] = {
+            from: currentUserPhone,
+            status: 'pending',
+            timestamp: Date.now(),
+            reward: 150
+        };
+        
+        await friendRef.update(updates);
+        await userRef.update(updates);
+        
+        if (friendInput) friendInput.value = '';
+        if (window.PromotionCore) window.PromotionCore.playSound('invite');
+        
+        alert("Invitation sent successfully!");
+        renderInvitations();
+    }
+    
+    async function deleteInvitation(phoneToDelete) {
+        const snapshot = await userRef.child(`referrals/sent/${phoneToDelete}`).once('value');
+        const invite = snapshot.val();
+        
+        if (invite && invite.status === 'approved') {
+            alert("Cannot delete approved invitation!");
+            return;
+        }
+        
+        if (confirm("Delete this invitation?")) {
+            await userRef.child(`referrals/sent/${phoneToDelete}`).remove();
+            
+            const friendRef = db.ref('user_sessions/' + phoneToDelete);
+            await friendRef.child(`referrals/received/${currentUserPhone}`).remove();
+            
+            renderInvitations();
+            alert("Invitation deleted!");
+        }
+    }
+    
+    function renderInvitations() {
+        if (!listContainer) return;
+        
+        userRef.child('referrals/sent').once('value', (snapshot) => {
+            const sent = snapshot.val() || {};
+            const sentArray = Object.entries(sent);
+            
+            if (sentArray.length === 0) {
+                listContainer.innerHTML = '<div class="invite-empty">No invitations sent (0/3)</div>';
+                return;
+            }
+            
+            let html = '';
+            let count = 0;
+            
+            for (let [phone, data] of sentArray) {
+                if (count >= 3) break;
+                
+                const formattedPhone = formatPhoneNumber(phone);
+                const statusClass = data.status === 'approved' ? 'approved' : 'pending';
+                const statusText = data.status === 'approved' ? 'APPROVED' : 'PENDING';
+                
+                html += `
+                    <div class="invite-item">
+                        <div class="invite-item-phone">${formattedPhone}</div>
+                        <div class="invite-item-status">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="invite-item-action">
+                            <button class="delete-invite" data-phone="${phone}">✕</button>
+                        </div>
+                    </div>
+                `;
+                count++;
+            }
+            
+            listContainer.innerHTML = html;
+            
+            document.querySelectorAll('.delete-invite').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteInvitation(btn.dataset.phone);
+                });
+            });
+        });
+    }
+    
+    function loadInvites() {
+        if (!userRef) return;
+        userRef.child('referrals/sent').on('value', () => renderInvitations());
+        renderInvitations();
+    }
+    
+    function formatPhoneNumber(phone) {
+        if (!phone || phone.length < 11) return phone;
+        return phone.substring(0, 4) + '****' + phone.substring(8, 11);
+    }
+    
+    return { init: init };
+})();
+
 // ========== MODULE 7: PURE REFERRAL LOGIC ==========
 window.ReferralLogic = (function() {
     'use strict';
