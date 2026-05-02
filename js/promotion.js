@@ -39,8 +39,10 @@
         if (window.TimerModule) window.TimerModule.init();
         if (window.DropdownModule) window.DropdownModule.init();
         if (window.TickerModule) window.TickerModule.init();
-        if (window.ShareModule) window.ShareModule.init();
-        if (window.LuckyCatModule) window.LuckyCatModule.init();  // LUCKY CAT MODULE
+        if (window.LuckyCatModule) window.LuckyCatModule.init();
+        if (window.InviteUI) window.InviteUI.init();       
+        if (window.ReferralLogic) window.ReferralLogic.init();
+        if (window.RightLuckyCat) window.RightLuckyCat.init(); 
         
         console.log('✅ All systems ready!');
     }
@@ -650,7 +652,7 @@ window.InviteUI = (function() {
         // Load invites
         loadInvites();
         
-        console.log('✅ Module 6: Dropdown & Mini Dashboard ready');
+        console.log('✅ Module 5: Dropdown & Mini Dashboard ready');
     }
     
     function toggleDropdown(e) {
