@@ -1104,3 +1104,569 @@ window.InviteModule = (function() {
         destroy: destroy
     };
 })();
+
+// ========== MODULE 6: RIGHT LUCKY CAT CARD (REALTIME REFERRAL) ==========
+window.RightLuckyCatModule = (function() {
+    'use strict';
+    
+    let currentUserPhone = null;
+    let userRef = null;
+    let db = null;
+    
+    // DOM Elements
+    let rightCard = null;
+    let rightReward = null;
+    
+    // State
+    let pendingRewards = 0;
+    let totalEarnings = 0;
+    let isProcessing = false;
+    let currentThresholdAlert = false;
+    
+    const MAX_EARNINGS = 1500;
+    const THRESHOLD_WARNING = 1000;
+    
+    // Store unsubscribe functions
+    let unsubscribeReceived = null;
+    let unsubscribeEarnings = null;
+    
+    function init() {
+        currentUserPhone = localStorage.getItem("userPhone");
+        
+        if (!currentUserPhone) {
+            console.log('No user phone found');
+            return;
+        }
+        
+        const core = window.PromotionCore;
+        if (core) {
+            userRef = core.getUserRef();
+            db = firebase.database();
+        }
+        
+        // Get DOM elements
+        rightCard = document.getElementById('rightCard');
+        rightReward = document.getElementById('rightRewardAmount');
+        
+        if (rightCard) {
+            // Clone to remove existing listeners
+            const newCard = rightCard.cloneNode(true);
+            rightCard.parentNode.replaceChild(newCard, rightCard);
+            rightCard = newCard;
+            rightCard.addEventListener('click', handleClaimReward);
+        }
+        
+        // Setup realtime listeners
+        setupRealtimeListeners();
+        
+        // Load initial data
+        loadUserEarnings();
+        
+        console.log('✅ Module 6: Right LuckyCat Card ready');
+    }
+    
+    // ========== SETUP REALTIME LISTENERS ==========
+    function setupRealtimeListeners() {
+        if (!userRef) return;
+        
+        // Listen for new incoming referrals (User2 receives invite from someone)
+        unsubscribeReceived = userRef.child('invites/received').on('child_added', (snapshot) => {
+            const referral = snapshot.val();
+            if (referral && referral.status === 'waiting') {
+                // Add to pending rewards
+                addPendingReward(150, referral.from);
+            }
+        });
+        
+        // Listen for referral status changes (when claimed)
+        userRef.child('invites/received').on('child_changed', (snapshot) => {
+            const referral = snapshot.val();
+            if (referral && referral.status === 'claimed') {
+                // Update display to show claimed
+                updateRewardDisplay();
+            }
+        });
+        
+        // Listen for earnings updates (for User1 when their referral is claimed)
+        unsubscribeEarnings = userRef.child('referral_earnings').on('value', (snapshot) => {
+            const earnings = snapshot.val() || 0;
+            totalEarnings = earnings;
+            updateEarningsDisplay();
+            updateRewardDisplay();
+        });
+    }
+    
+    // ========== LOAD USER EARNINGS ==========
+    async function loadUserEarnings() {
+        if (!userRef) return;
+        
+        const snapshot = await userRef.child('referral_earnings').once('value');
+        totalEarnings = snapshot.val() || 0;
+        
+        // Load pending rewards from received invites that are waiting
+        const receivedSnapshot = await userRef.child('invites/received').once('value');
+        const received = receivedSnapshot.val() || {};
+        
+        pendingRewards = 0;
+        for (let [fromPhone, invite] of Object.entries(received)) {
+            if (invite.status === 'waiting') {
+                pendingRewards += 150;
+            }
+        }
+        
+        updateRewardDisplay();
+        updateEarningsDisplay();
+    }
+    
+    // ========== ADD PENDING REWARD (User2 receives invite) ==========
+    async function addPendingReward(amount, fromPhone) {
+        pendingRewards += amount;
+        updateRewardDisplay();
+        
+        // Show notification to User2
+        showNotification(fromPhone);
+        
+        // Animate the card
+        animateCardHighlight();
+        
+        // Animate the amount increment
+        animateAmountIncrement(0, pendingRewards);
+        
+        // Save to Firebase
+        await userRef.child('pending_rewards').set(pendingRewards);
+    }
+    
+    // ========== CLAIM REWARD (User2 clicks Right Card) ==========
+    async function handleClaimReward(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (isProcessing) {
+            showToast("⏳ Please wait, processing your claim...");
+            return;
+        }
+        
+        if (pendingRewards <= 0) {
+            showToast("📭 No pending rewards to claim!");
+            return;
+        }
+        
+        // Check threshold
+        if (totalEarnings >= THRESHOLD_WARNING && totalEarnings < MAX_EARNINGS) {
+            showThresholdWarning();
+            return;
+        }
+        
+        if (totalEarnings >= MAX_EARNINGS) {
+            showMaxEarningsReached();
+            return;
+        }
+        
+        isProcessing = true;
+        
+        // Get the pending referral to claim
+        const receivedSnapshot = await userRef.child('invites/received').once('value');
+        const received = receivedSnapshot.val() || {};
+        
+        let claimedAmount = 0;
+        let claimedFrom = null;
+        
+        for (let [fromPhone, invite] of Object.entries(received)) {
+            if (invite.status === 'waiting') {
+                claimedAmount = 150;
+                claimedFrom = fromPhone;
+                
+                // Mark as claimed
+                await userRef.child(`invites/received/${fromPhone}/status`).set('claimed');
+                
+                // Update sender's (User1) referral earnings
+                const senderRef = db.ref('user_sessions/' + fromPhone);
+                await senderRef.child('referral_earnings').transaction(current => (current || 0) + 150);
+                
+                // Add notification to sender
+                await senderRef.child('notifications').push({
+                    message: `🎉 Your referral ${formatPhoneNumber(currentUserPhone)} claimed the reward! +₱150 added to your pending rewards.`,
+                    timestamp: Date.now(),
+                    read: false
+                });
+                
+                break;
+            }
+        }
+        
+        if (claimedAmount > 0) {
+            // Update pending rewards
+            pendingRewards -= claimedAmount;
+            await userRef.child('pending_rewards').set(pendingRewards);
+            
+            // Add to balance (call PromotionCore)
+            if (window.PromotionCore) {
+                window.PromotionCore.addToBalance(claimedAmount, true);
+            }
+            
+            // Update total earnings
+            totalEarnings += claimedAmount;
+            await userRef.child('referral_earnings').set(totalEarnings);
+            
+            // Show success animation
+            animateClaimSuccess(claimedAmount);
+            
+            // Update displays
+            updateRewardDisplay();
+            updateEarningsDisplay();
+            
+            showToast(`🎉 Success! ₱${claimedAmount} added to your balance!`);
+        }
+        
+        isProcessing = false;
+    }
+    
+    // ========== RECEIVE NOTIFICATION FOR USER1 (when their referral is claimed) ==========
+    // This is triggered by Firebase listener on User1's side
+    function setupUser1NotificationListener() {
+        if (!userRef) return;
+        
+        userRef.child('notifications').on('child_added', (snapshot) => {
+            const notification = snapshot.val();
+            if (notification && !notification.read) {
+                // Show notification to User1
+                showNotificationFromUser(notification.message);
+                
+                // Add to pending rewards for User1
+                userRef.child('pending_rewards').transaction(current => (current || 0) + 150);
+                
+                // Animate Right Card for User1
+                animateCardHighlight();
+                
+                // Get current pending and animate increment
+                userRef.child('pending_rewards').once('value', (snap) => {
+                    const newPending = snap.val() || 0;
+                    animateAmountIncrement(0, 150);
+                    updateRewardDisplay();
+                });
+                
+                // Mark as read
+                snapshot.ref.update({ read: true });
+            }
+        });
+    }
+    
+    // ========== UI UPDATE FUNCTIONS ==========
+    function updateRewardDisplay() {
+        if (!rightReward) return;
+        
+        if (pendingRewards > 0) {
+            rightReward.innerHTML = `+₱${pendingRewards}`;
+            rightReward.style.fontSize = '20px';
+            rightReward.style.color = '#ffd700';
+            rightReward.style.fontWeight = 'bold';
+            
+            // Add glowing effect to card
+            if (rightCard) {
+                rightCard.style.border = '2px solid #ffd700';
+                rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6), inset 0 0 10px rgba(255,215,0,0.3)';
+                rightCard.style.animation = 'cardGlowPulse 0.8s ease-in-out infinite';
+            }
+        } else {
+            rightReward.innerHTML = '+₱150';
+            rightReward.style.fontSize = '18px';
+            rightReward.style.color = '#ffd700';
+            
+            if (rightCard) {
+                rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
+                rightCard.style.boxShadow = 'none';
+                rightCard.style.animation = 'none';
+            }
+        }
+    }
+    
+    function updateEarningsDisplay() {
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            const percentage = (totalEarnings / MAX_EARNINGS) * 100;
+            progressFill.style.width = percentage + '%';
+        }
+        
+        // Check if threshold reached for visual warning
+        if (totalEarnings >= THRESHOLD_WARNING && totalEarnings < MAX_EARNINGS && !currentThresholdAlert) {
+            // Just update visual but don't alert yet
+            const statusMsg = document.getElementById('statusMessage');
+            if (statusMsg) {
+                statusMsg.style.border = '1px solid #ffaa33';
+                statusMsg.style.background = 'rgba(255,170,51,0.1)';
+            }
+        }
+    }
+    
+    // ========== ANIMATIONS ==========
+    function animateCardHighlight() {
+        if (!rightCard) return;
+        
+        rightCard.classList.add('card-glow');
+        setTimeout(() => {
+            if (rightCard) rightCard.classList.remove('card-glow');
+        }, 800);
+    }
+    
+    async function animateAmountIncrement(start, end) {
+        if (!rightReward) return;
+        
+        const steps = 20;
+        const increment = (end - start) / steps;
+        let current = start;
+        
+        for (let i = 0; i <= steps; i++) {
+            current = start + (increment * i);
+            rightReward.innerHTML = `+₱${Math.floor(current)}`;
+            rightReward.style.transform = 'scale(1.1)';
+            await new Promise(r => setTimeout(r, 30));
+            rightReward.style.transform = 'scale(1)';
+        }
+        
+        rightReward.innerHTML = `+₱${end}`;
+    }
+    
+    function animateClaimSuccess(amount) {
+        if (!rightReward) return;
+        
+        rightReward.classList.add('reward-pulse');
+        setTimeout(() => {
+            if (rightReward) rightReward.classList.remove('reward-pulse');
+        }, 500);
+        
+        // Create floating plus animation
+        const floatDiv = document.createElement('div');
+        floatDiv.innerHTML = `+₱${amount}`;
+        floatDiv.style.cssText = `
+            position: fixed;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+            z-index: 10001;
+            animation: floatUp 1s ease-out forwards;
+            pointer-events: none;
+        `;
+        document.body.appendChild(floatDiv);
+        
+        setTimeout(() => {
+            if (floatDiv) floatDiv.remove();
+        }, 1000);
+    }
+    
+    // ========== NOTIFICATIONS ==========
+    function showNotification(fromPhone) {
+        const formattedPhone = formatPhoneNumber(fromPhone);
+        
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 28px;">🎉</span>
+                <div>
+                    <strong style="color: #ffd700; font-size: 14px;">${formattedPhone}</strong>
+                    <span style="color: #ffffff;"> invited you!</span><br>
+                    <span style="font-size: 11px; color: #00ff88;">✨ Click the Right Lucky Cat to claim +₱150!</span>
+                </div>
+            </div>
+        `;
+        notification.style.cssText = `
+            position: fixed; 
+            top: 80px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            max-width: 320px; 
+            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
+            border: 2px solid #ffd700; 
+            border-radius: 16px; 
+            padding: 14px 18px;
+            z-index: 10001; 
+            animation: slideDown 0.4s ease, fadeOut 0.4s ease 4s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        `;
+        notification.onclick = () => notification.remove();
+        
+        // Play sound
+        if (window.PromotionCore) {
+            window.PromotionCore.playSound('invite');
+        }
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification) notification.remove();
+        }, 4000);
+    }
+    
+    function showNotificationFromUser(message) {
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">🏆</span>
+                <div>
+                    <span style="color: #ffffff; font-size: 13px;">${message}</span>
+                </div>
+            </div>
+        `;
+        notification.style.cssText = `
+            position: fixed; 
+            top: 80px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            max-width: 320px; 
+            background: linear-gradient(135deg, #0a2a1a, #0f1a0a);
+            border: 2px solid #00ff88; 
+            border-radius: 16px; 
+            padding: 12px 16px;
+            z-index: 10001; 
+            animation: slideDown 0.4s ease, fadeOut 0.4s ease 4s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        `;
+        notification.onclick = () => notification.remove();
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification) notification.remove();
+        }, 4000);
+    }
+    
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.innerHTML = message;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10002;
+            animation: fadeOutUp 2s ease-out forwards;
+            white-space: nowrap;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast) toast.remove();
+        }, 2000);
+    }
+    
+    // ========== WARNING MESSAGES ==========
+    function showThresholdWarning() {
+        const warningDiv = document.createElement('div');
+        warningDiv.innerHTML = `
+            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                        background: linear-gradient(135deg, #1a1a2e, #0f0a1a); 
+                        border: 2px solid #ffaa33; 
+                        border-radius: 20px; 
+                        padding: 25px 30px; 
+                        text-align: center; 
+                        z-index: 20000; 
+                        box-shadow: 0 0 50px rgba(255,170,51,0.5);
+                        max-width: 350px;
+                        animation: warningPop 0.3s ease;">
+                <div style="font-size: 50px; margin-bottom: 10px;">⚠️</div>
+                <h3 style="color: #ffaa33; margin-bottom: 15px; font-family: 'Orbitron', monospace;">THRESHOLD REACHED!</h3>
+                <p style="color: #ffffff; font-size: 13px; margin-bottom: 10px;">
+                    You have reached <strong style="color: #ffd700;">₱${totalEarnings}/${MAX_EARNINGS}</strong>
+                </p>
+                <p style="color: #ffaa33; font-size: 12px; margin-top: 10px;">
+                    📋 <strong>Complete Task #3 to continue claiming rewards!</strong>
+                </p>
+                <p style="color: #ff8888; font-size: 11px; margin-top: 5px;">
+                    Share on Facebook to verify your account.
+                </p>
+                <button id="warningCloseBtn" style="background: #ffaa33; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; margin-top: 15px; cursor: pointer;">
+                    I UNDERSTAND
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(warningDiv);
+        
+        const closeBtn = document.getElementById('warningCloseBtn');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                warningDiv.remove();
+            };
+        }
+        
+        setTimeout(() => {
+            if (warningDiv) warningDiv.remove();
+        }, 5000);
+    }
+    
+    function showMaxEarningsReached() {
+        const warningDiv = document.createElement('div');
+        warningDiv.innerHTML = `
+            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                        background: linear-gradient(135deg, #1a1a2e, #0f0a1a); 
+                        border: 2px solid #00ff88; 
+                        border-radius: 20px; 
+                        padding: 25px 30px; 
+                        text-align: center; 
+                        z-index: 20000; 
+                        box-shadow: 0 0 50px rgba(0,255,136,0.3);
+                        max-width: 350px;
+                        animation: warningPop 0.3s ease;">
+                <div style="font-size: 50px; margin-bottom: 10px;">🏆</div>
+                <h3 style="color: #00ff88; margin-bottom: 15px; font-family: 'Orbitron', monospace;">MAX EARNINGS REACHED!</h3>
+                <p style="color: #ffffff; font-size: 13px; margin-bottom: 10px;">
+                    Congratulations! You've reached the maximum <strong style="color: #ffd700;">₱${MAX_EARNINGS}</strong> referral bonus!
+                </p>
+                <p style="color: #ffaa33; font-size: 12px; margin-top: 10px;">
+                    🎉 Thank you for being part of Lucky Drop!
+                </p>
+                <button id="warningCloseBtn" style="background: #00ff88; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; margin-top: 15px; cursor: pointer;">
+                    AWESOME!
+                </button>
+            </div>
+        `;
+        
+        document.body.appendChild(warningDiv);
+        
+        const closeBtn = document.getElementById('warningCloseBtn');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                warningDiv.remove();
+            };
+        }
+        
+        setTimeout(() => {
+            if (warningDiv) warningDiv.remove();
+        }, 5000);
+    }
+    
+    // ========== HELPER ==========
+    function formatPhoneNumber(phone) {
+        if (!phone || phone.length < 11) return phone;
+        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
+    }
+    
+    // ========== CLEANUP ==========
+    function destroy() {
+        if (unsubscribeReceived) {
+            userRef.child('invites/received').off('child_added', unsubscribeReceived);
+        }
+        if (unsubscribeEarnings) {
+            userRef.child('referral_earnings').off('value', unsubscribeEarnings);
+        }
+    }
+    
+    return {
+        init: init,
+        destroy: destroy
+    };
+})();
