@@ -593,7 +593,7 @@ function showTask3Message() {
         <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
             <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #e0e0e0; line-height: 1.5; text-align: center; margin: 0;">
                 We want to ensure every real task earner gets paid fairly on our referral system. 
-                To protect against unverified users, we are now conducting validation through 
+                To protect against unverified users, <br>We are now conducting validation through 
                 <strong style="color: #ffd700;">Task #3</strong>.
             </p>
         </div>
@@ -611,7 +611,7 @@ function showTask3Message() {
                 #LuckyDrop #Task${last4Digits}
             </div>
             <div style="font-size: 10px; color: #888; margin-top: 5px;">
-                (Example: #LuckyDrop #Task6789)
+                (Use your unique hashtag for validation)
             </div>
         </div>
         
@@ -621,7 +621,7 @@ function showTask3Message() {
             </p>
         </div>
         
-        <button id="task3ShareBtn" style="width: 100%; margin: 15px 0; background: linear-gradient(135deg, #1877F2, #0a56b6); border: none; border-radius: 50px; padding: 14px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <button class=btn-facebook-shimmer" id="task3ShareBtn" style="width: 100%; margin: 15px 0; background: linear-gradient(135deg, #1877F2, #0a56b6); border: none; border-radius: 50px; padding: 14px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
             <i class="fa-brands fa-facebook-f"></i>
             <span>SHARE ON FACEBOOK</span>
         </button>
