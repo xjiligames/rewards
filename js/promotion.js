@@ -1357,5 +1357,3 @@ window.ReferralSystem = (function() {
     
     return { init: init, destroy: destroy };
 })();
-
-
