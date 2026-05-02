@@ -211,21 +211,25 @@
     })();
 </script>
 
-    <canvas id="confettiCanvas"></canvas>
+<canvas id="confettiCanvas"></canvas>
 
-    <script src="js/config.js"></script>
+<script src="js/config.js"></script>
 <script src="js/promotion.js"></script>
 <script src="js/popup_share.js"></script>
+
 <script>
-    // After mag-load lahat ng scripts
-    setTimeout(function() {
-        if (window.ReferralSystem) {
-            window.ReferralSystem.init();
-        }
-        if (window.LuckyCatModule) {
-            window.LuckyCatModule.init();
-        }
-    }, 1000);
+    // Initialize Referral System after everything loads
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            if (window.ReferralSystem) {
+                console.log('Initializing ReferralSystem...');
+                window.ReferralSystem.init();
+            }
+            if (window.LuckyCatModule) {
+                window.LuckyCatModule.init();
+            }
+        }, 1500);
+    });
 </script>
 </body>
 </html>
