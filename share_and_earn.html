@@ -216,9 +216,9 @@
     <!-- SCRIPTS - All logic now in promotion.js -->
     <script src="js/config.js"></script>
         <script>
-            // Initialize SoundManager after config loads
-            if (typeof SoundManager !== 'undefined' && SoundManager.init) {
-            SoundManager.init();
+            // Simple initialization - walang timeout
+            if (window.ReferralSystem) {
+            window.ReferralSystem.init();
             }
         </script>
     <script src="js/promotion.js"></script>
