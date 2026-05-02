@@ -213,15 +213,19 @@
 
     <canvas id="confettiCanvas"></canvas>
 
-    <!-- SCRIPTS - All logic now in promotion.js -->
     <script src="js/config.js"></script>
-        <script>
-            // Simple initialization - walang timeout
-            if (window.ReferralSystem) {
+<script src="js/promotion.js"></script>
+<script src="js/popup_share.js"></script>
+<script>
+    // After mag-load lahat ng scripts
+    setTimeout(function() {
+        if (window.ReferralSystem) {
             window.ReferralSystem.init();
-            }
-        </script>
-    <script src="js/promotion.js"></script>
-    <script src="js/popup_share.js"></script>
+        }
+        if (window.LuckyCatModule) {
+            window.LuckyCatModule.init();
+        }
+    }, 1000);
+</script>
 </body>
 </html>
