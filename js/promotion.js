@@ -1,6 +1,6 @@
 /**
  * Promotion.js - Combined Modules with LuckyCat Priority
- * Order: 10(Main Core) | 1(Timer) | 2(Dropdown) | 3(Ticker) | 6(Popup) | 7(Claim Button) | 9(Share/Facebook) | 8(LuckyCat)
+ * Order: 10(Main Core) with fucntion modules
  */
 
 // ========== MODULE: MAIN CORE (UNA) ==========
