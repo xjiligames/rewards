@@ -787,7 +787,6 @@ window.InviteUI = (function() {
                 return;
             }
             
-            let html = `<div class="invite-list-header"><span>FROM (TASKER ID)</span><span>STATUS</span><span>REWARD</span></div>`;
             
             for (let invite of receivedArray) {
                 const formattedPhone = formatPhoneNumber(invite.from);
