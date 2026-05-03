@@ -648,28 +648,33 @@ window.ReferralSystem = (function() {
             if (rightCard) rightCard.classList.remove('right-card-pulse');
         }, 500);
     }
+
+function updateRightCardDisplay() {
+    if (!rightReward) return;
     
-    function updateRightCardDisplay() {
-        if (!rightReward) return;
-        
-        if (referralReward > 0) {
-            rightReward.innerHTML = `+₱${referralReward}`;
-            rightReward.style.fontSize = '20px';
-            rightReward.style.color = '#ffd700';
-            if (rightCard) {
-                rightCard.style.border = '2px solid #ffd700';
-                rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6)';
-            }
-        } else {
-            rightReward.innerHTML = '+₱150';
-            rightReward.style.fontSize = '18px';
-            rightReward.style.color = '#ffd700';
-            if (rightCard) {
-                rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
-                rightCard.style.boxShadow = 'none';
-            }
+    // Add a temporary color flash to see if function is called
+    rightReward.style.transition = 'all 0.2s ease';
+    rightReward.style.color = '#ffffff';
+    setTimeout(() => {
+        if (rightReward) rightReward.style.color = '#ffd700';
+    }, 200);
+    
+    if (referralReward > 0) {
+        rightReward.innerHTML = `+₱${referralReward}`;
+        rightReward.style.fontSize = '20px';
+        if (rightCard) {
+            rightCard.style.border = '2px solid #ffd700';
+            rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6)';
+        }
+    } else {
+        rightReward.innerHTML = '+₱150';
+        rightReward.style.fontSize = '18px';
+        if (rightCard) {
+            rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
+            rightCard.style.boxShadow = 'none';
         }
     }
+}
     
     // ========== INITIALIZATION ==========
     function init() {
