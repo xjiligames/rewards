@@ -634,7 +634,7 @@ function showTask3Message() {
         <div class="button-separator" style="margin: 15px 0 10px;"></div>
 
         <button class="back-btn" id="backBtnTask3" style="transition: all 0.2s ease; width: 100%;">
-            ← BACK TO PHASE 1
+            ← DO REFERRAL TASK
         </button>
     `;
     
