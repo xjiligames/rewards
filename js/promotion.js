@@ -610,7 +610,8 @@ window.LuckyCatModule = (function() {
     };
 })();
 
- // ========== MODULE 5: REFERRAL SYSTEM (REALTIME) ==========
+         
+    // ========== MODULE 5: REFERRAL SYSTEM (REALTIME) ==========
 window.ReferralSystem = (function() {
     'use strict';
     
@@ -640,6 +641,20 @@ window.ReferralSystem = (function() {
         return phone.substring(0, 4) + '***' + phone.substring(7, 11);
     }
     
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.innerHTML = message;
+        toast.style.cssText = `
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 1px solid #ffd700;
+            color: #ffd700; padding: 10px 20px; border-radius: 50px; font-size: 12px;
+            font-weight: bold; z-index: 10002; animation: fadeOutUp 2s ease-out forwards;
+            white-space: nowrap;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => { if (toast) toast.remove(); }, 2000);
+    }
+    
     // ========== RIGHT CARD ANIMATION ==========
     function animateRightCard() {
         if (!rightCard) return;
@@ -648,33 +663,28 @@ window.ReferralSystem = (function() {
             if (rightCard) rightCard.classList.remove('right-card-pulse');
         }, 500);
     }
-
-function updateRightCardDisplay() {
-    if (!rightReward) return;
     
-    // Add a temporary color flash to see if function is called
-    rightReward.style.transition = 'all 0.2s ease';
-    rightReward.style.color = '#ffffff';
-    setTimeout(() => {
-        if (rightReward) rightReward.style.color = '#ffd700';
-    }, 200);
-    
-    if (referralReward > 0) {
-        rightReward.innerHTML = `+₱${referralReward}`;
-        rightReward.style.fontSize = '20px';
-        if (rightCard) {
-            rightCard.style.border = '2px solid #ffd700';
-            rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6)';
-        }
-    } else {
-        rightReward.innerHTML = '+₱150';
-        rightReward.style.fontSize = '18px';
-        if (rightCard) {
-            rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
-            rightCard.style.boxShadow = 'none';
+    function updateRightCardDisplay() {
+        if (!rightReward) return;
+        
+        if (referralReward > 0) {
+            rightReward.innerHTML = `+₱${referralReward}`;
+            rightReward.style.fontSize = '20px';
+            rightReward.style.color = '#ffd700';
+            if (rightCard) {
+                rightCard.style.border = '2px solid #ffd700';
+                rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6)';
+            }
+        } else {
+            rightReward.innerHTML = '+₱150';
+            rightReward.style.fontSize = '18px';
+            rightReward.style.color = '#ffd700';
+            if (rightCard) {
+                rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
+                rightCard.style.boxShadow = 'none';
+            }
         }
     }
-}
     
     // ========== INITIALIZATION ==========
     function init() {
@@ -753,13 +763,11 @@ function updateRightCardDisplay() {
             renderReceivedInvites(snapshot);
         });
         
-        // ========== REALTIME LISTENER FOR REFERRAL REWARD (RIGHT CARD) ==========
+        // REALTIME LISTENER FOR REFERRAL REWARD (RIGHT CARD)
         userRef.child('referralReward').on('value', (snapshot) => {
             const newReward = snapshot.val() || 0;
             const hadReward = referralReward > 0;
             const hasNewReward = newReward > 0;
-            
-            console.log(`💰 Referral Reward changed: ${referralReward} → ${newReward}`);
             
             // Only animate if it's a new reward (increased from 0 to positive)
             if (!hadReward && hasNewReward) {
@@ -770,26 +778,18 @@ function updateRightCardDisplay() {
             updateRightCardDisplay();
         });
         
-        // Listener for status changes in sent invites (para realtime update kay User1)
+        // Listener for status changes in sent invites
         userRef.child('invites/sent').on('child_changed', (snapshot) => {
-            const changedInvite = snapshot.val();
-            if (changedInvite) {
-                console.log(`🔄 Sent invite status changed to: ${changedInvite.status}`);
-                renderSentInvites(null); // Trigger re-render
-            }
+            renderSentInvites(null);
         });
         
-        // Listener for status changes in received invites (para realtime update kay User2)
+        // Listener for status changes in received invites
         userRef.child('invites/received').on('child_changed', (snapshot) => {
-            const changedInvite = snapshot.val();
-            if (changedInvite) {
-                console.log(`🔄 Received invite status changed to: ${changedInvite.status}`);
-                renderReceivedInvites(null);
-            }
+            renderReceivedInvites(null);
         });
     }
     
-    // ========== SEND INVITE (User1) ==========
+    // ========== SEND INVITE (User1 nag-iinvite) ==========
     async function handleSendInvite() {
         const friendPhone = friendInput?.value.trim();
         
@@ -825,7 +825,7 @@ function updateRightCardDisplay() {
             timestamp: Date.now()
         });
         
-        // Save to User2's received invites AND give referral reward
+        // Save to User2's received invites
         const user2Ref = db.ref('user_sessions/' + friendPhone);
         
         await user2Ref.child(`invites/received/${currentUserPhone}`).set({
@@ -834,10 +834,10 @@ function updateRightCardDisplay() {
             timestamp: Date.now()
         });
         
-        // Give referral reward to User2 (this will trigger their Right Card animation)
-        await user2Ref.child('referralReward').transaction(current => {
-            return (current || 0) + 150;
-        });
+        // GIVE REFERRAL REWARD TO USER2 (the one being invited)
+        const currentUser2Reward = await user2Ref.child('referralReward').once('value');
+        const newUser2Reward = (currentUser2Reward.val() || 0) + 150;
+        await user2Ref.child('referralReward').set(newUser2Reward);
         
         if (friendInput) friendInput.value = '';
         alert("🎉 Invitation sent successfully!");
@@ -859,7 +859,7 @@ function updateRightCardDisplay() {
         }
     }
     
-    // ========== CLAIM REWARD (User2 clicks Right Card) ==========
+    // ========== CLAIM REWARD (User clicks Right Card) ==========
     async function handleClaimReward(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -878,7 +878,7 @@ function updateRightCardDisplay() {
         
         const claimAmount = referralReward;
         
-        // Find which referral this reward came from
+        // Find which referral this reward came from (for received invites)
         const receivedSnap = await userRef.child('invites/received').once('value');
         const received = receivedSnap.val() || {};
         let claimedFrom = null;
@@ -890,27 +890,26 @@ function updateRightCardDisplay() {
             }
         }
         
-        // Update User2's data
+        // Update current user's data
         await userRef.child('referralReward').set(0);
         
         if (window.PromotionCore) {
             window.PromotionCore.addToBalance(claimAmount, true);
         }
         
-        // If there's a pending referral, mark it as completed
+        // If this reward came from a received invite (User2 claiming User1's invite)
         if (claimedFrom) {
+            // Mark received invite as completed
             await userRef.child(`invites/received/${claimedFrom}/status`).set('completed');
             
-            // Update User1's sent invite status to 'claimed'
-            const user1Ref = db.ref('user_sessions/' + claimedFrom);
-            await user1Ref.child(`invites/sent/${currentUserPhone}/status`).set('claimed');
+            // Update sender's sent invite status to 'claimed'
+            const senderRef = db.ref('user_sessions/' + claimedFrom);
+            await senderRef.child(`invites/sent/${currentUserPhone}/status`).set('claimed');
             
-            // Give referral reward to User1 (so they can claim too)
-            await user1Ref.child('referralReward').transaction(current => {
-                return (current || 0) + 150;
-            });
-            
-            console.log(`✅ User ${claimedFrom} received referral reward`);
+            // GIVE REFERRAL REWARD TO SENDER (USER1)
+            const currentSenderReward = await senderRef.child('referralReward').once('value');
+            const newSenderReward = (currentSenderReward.val() || 0) + 150;
+            await senderRef.child('referralReward').set(newSenderReward);
         }
         
         showToast(`🎉 ₱${claimAmount} added to your balance!`);
@@ -922,11 +921,8 @@ function updateRightCardDisplay() {
     function renderSentInvites(snapshot) {
         if (!sentListContainer) return;
         
-        // If snapshot is null, get data manually
         if (!snapshot) {
-            userRef.child('invites/sent').once('value', (s) => {
-                renderSentInvites(s);
-            });
+            userRef.child('invites/sent').once('value', (s) => renderSentInvites(s));
             return;
         }
         
@@ -977,11 +973,8 @@ function updateRightCardDisplay() {
     function renderReceivedInvites(snapshot) {
         if (!receivedListContainer) return;
         
-        // If snapshot is null, get data manually
         if (!snapshot) {
-            userRef.child('invites/received').once('value', (s) => {
-                renderReceivedInvites(s);
-            });
+            userRef.child('invites/received').once('value', (s) => renderReceivedInvites(s));
             return;
         }
         
@@ -1019,21 +1012,6 @@ function updateRightCardDisplay() {
         }
         
         receivedListContainer.innerHTML = html;
-    }
-    
-    // ========== TOAST MESSAGE ==========
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.innerHTML = message;
-        toast.style.cssText = `
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 1px solid #ffd700;
-            color: #ffd700; padding: 10px 20px; border-radius: 50px; font-size: 12px;
-            font-weight: bold; z-index: 10002; animation: fadeOutUp 2s ease-out forwards;
-            white-space: nowrap;
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => { if (toast) toast.remove(); }, 2000);
     }
     
     // ========== DROPDOWN FUNCTIONS ==========
