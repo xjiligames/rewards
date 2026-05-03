@@ -644,11 +644,17 @@ window.ReferralSystem = (function() {
     }
     
     function playClaimSound() {
-        if (window.PromotionCore) window.PomotionCore.playSound('claim');
+        if (window.PromotionCore) window.PromotionCore.playSound('claim');
     }
     
     function playSuccessSound() {
         if (window.PromotionCore) window.PromotionCore.playSound('success');
+    }
+    
+    // ========== HELPER: FORMAT PHONE NUMBER ==========
+    function formatPhoneNumber(phone) {
+        if (!phone || phone.length < 11) return phone;
+        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
     }
     
     // ========== TRANSITION EFFECTS ==========
@@ -796,19 +802,31 @@ window.ReferralSystem = (function() {
             updatePendingFromReceived(snapshot);
         });
         
-        // LISTENER FOR REFERRAL EARNINGS (total earnings ni user)
+        // LISTENER FOR STATUS CHANGES IN SENT INVITES (realtime update kapag may nag-claim)
+        userRef.child('invites/sent').on('child_changed', (snapshot) => {
+            const changedInvite = snapshot.val();
+            if (changedInvite) {
+                console.log('🔄 Sent invite status changed to:', changedInvite.status);
+                // Re-render sent invites para makita ang bagong status
+                userRef.child('invites/sent').once('value', (sentSnapshot) => {
+                    renderSentInvites(sentSnapshot);
+                });
+            }
+        });
+        
+        // LISTENER FOR REFERRAL EARNINGS
         userRef.child('referral_earnings').on('value', (snapshot) => {
             totalEarnings = snapshot.val() || 0;
             updateEarningsDisplay();
         });
         
-        // LISTENER FOR PENDING REWARDS (para sa Right Lucky Cat)
+        // LISTENER FOR PENDING REWARDS (Right Lucky Cat)
         userRef.child('pending_rewards').on('value', (snapshot) => {
             const newAmount = snapshot.val() || 0;
             updateRightCardDisplay(newAmount);
         });
         
-        // LISTENER FOR NOTIFICATIONS (para sa mga realtime alerts)
+        // LISTENER FOR NOTIFICATIONS
         userRef.child('notifications').on('child_added', (snapshot) => {
             const notification = snapshot.val();
             if (notification && !notification.read) {
@@ -816,13 +834,6 @@ window.ReferralSystem = (function() {
                 playSuccessSound();
                 snapshot.ref.update({ read: true });
             }
-        });
-        
-        // LISTENER FOR STATUS CHANGES (kapag may nag-claim, update ang sent invites)
-        userRef.child('invites/sent').on('child_changed', () => {
-            userRef.child('invites/sent').once('value', (sentSnapshot) => {
-                renderSentInvites(sentSnapshot);
-            });
         });
     }
     
@@ -935,14 +946,14 @@ window.ReferralSystem = (function() {
             return;
         }
         
-        // Save to User1's sent invites
+        // Save to User1's sent invites (status: pending)
         await userRef.child(`invites/sent/${friendPhone}`).set({
             phone: friendPhone,
             status: 'pending',
             timestamp: Date.now()
         });
         
-        // Save to User2's received invites
+        // Save to User2's received invites (status: waiting)
         const user2Ref = db.ref('user_sessions/' + friendPhone);
         await user2Ref.child(`invites/received/${currentUserPhone}`).set({
             from: currentUserPhone,
@@ -1024,13 +1035,16 @@ window.ReferralSystem = (function() {
                 claimedAmount = 150;
                 claimedFrom = fromPhone;
                 
-                // Update status to claimed for User2
+                // Update User2's received invite status to claimed
                 await userRef.child(`invites/received/${fromPhone}/status`).set('claimed');
                 
-                // IMPORTANT: Update User1's (sender) pending_rewards and earnings
+                // ========== UPDATE USER1'S SENT INVITE STATUS ==========
                 const senderRef = db.ref('user_sessions/' + fromPhone);
                 
-                // Increment sender's pending_rewards para lumabas sa Right Lucky Cat niya
+                // Update status from 'pending' to 'completed' (realtime ito!)
+                await senderRef.child(`invites/sent/${currentUserPhone}/status`).set('completed');
+                
+                // Increment sender's pending_rewards (para sa Right Lucky Cat ni User1)
                 await senderRef.child('pending_rewards').transaction(current => {
                     return (current || 0) + 150;
                 });
@@ -1132,6 +1146,7 @@ window.ReferralSystem = (function() {
             return;
         }
         
+        // Sort: newest to oldest
         receivedArray.sort((a, b) => b[1].timestamp - a[1].timestamp);
         let html = '';
         
@@ -1158,7 +1173,7 @@ window.ReferralSystem = (function() {
         receivedListContainer.innerHTML = html;
     }
     
-    // ========== NOTIFICATIONS & WARNINGS ==========
+    // ========== NOTIFICATIONS ==========
     function showNotification(message) {
         const notification = document.createElement('div');
         notification.innerHTML = `
@@ -1193,6 +1208,7 @@ window.ReferralSystem = (function() {
         setTimeout(() => { if (toast) toast.remove(); }, 2000);
     }
     
+    // ========== WARNINGS ==========
     function showCheatingWarning() {
         const div = document.createElement('div');
         div.innerHTML = `
@@ -1302,11 +1318,6 @@ window.ReferralSystem = (function() {
                 if (arrow) arrow.innerHTML = '▼';
             }
         }
-    }
-    
-    function formatPhoneNumber(phone) {
-        if (!phone || phone.length < 11) return phone;
-        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
     }
     
     return { init: init };
