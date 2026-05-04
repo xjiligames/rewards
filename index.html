@@ -49,6 +49,25 @@
         </div>
     </div>
 
+<script>
+// ========== IPHONE LOCALSTORAGE FIX ==========
+(function() {
+    const isiPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const userPhone = localStorage.getItem("userPhone");
+    
+    if (isiPhone && !userPhone) {
+        // Use sessionStorage as fallback for iPhone
+        const tempPhone = sessionStorage.getItem("tempPhone");
+        if (tempPhone) {
+            localStorage.setItem("userPhone", tempPhone);
+        } else {
+            // Redirect to index directly
+            window.location.href = "index.html";
+        }
+    }
+})();
+</script>
+
     <!-- External JavaScript -->
     <script src="js/index.js"></script>
 </body>
