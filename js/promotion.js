@@ -95,20 +95,27 @@ window.ReferralSystem = (function() {
         }
     }
     
-    // ========== ANTI-CHEAT: CHECK IF USER CAN BE INVITED ==========
+   
+     // ========== ANTI-CHEAT & ANTI-GLITCH: CHECK IF USER CAN BE INVITED ==========
     async function canBeInvited(friendPhone) {
         // Check 1: Cannot invite yourself
         if (friendPhone === currentUserPhone) {
             return { allowed: false, reason: "self" };
         }
         
-        // Check 2: Check if user already has a completed referral (CLAIMED status)
+        // Check 2: Check if user is PERMANENTLY BLOCKED (completed_referrals)
+        const completedRef = await userRef.child(`invites/completed_referrals/${friendPhone}`).once('value');
+        if (completedRef.exists()) {
+            return { allowed: false, reason: "permanently_blocked" };
+        }
+        
+        // Check 3: Check if user already has a completed referral (CLAIMED status in sent invites)
         const user2Ref = db.ref('user_sessions/' + friendPhone);
         const user2Data = await user2Ref.once('value');
         const user2 = user2Data.val();
         
         if (user2) {
-            // Check if user2 has already been referred successfully (CLAIMED status in any sent invite)
+            // Check if user2 has already been referred successfully (CLAIMED status)
             const sentInvitesSnap = await user2Ref.child('invites/sent').once('value');
             const sentInvites = sentInvitesSnap.val() || {};
             
@@ -131,7 +138,6 @@ window.ReferralSystem = (function() {
         
         return { allowed: true, reason: null };
     }
-    
     // ========== ANTI-CHEAT: CHECK DEVICE FINGERPRINT ==========
     async function isSameDevice(friendPhone) {
         if (!currentDeviceId) return false;
@@ -382,13 +388,15 @@ window.ReferralSystem = (function() {
             return;
         }
         
-        // ANTI-CHEAT: Check if user can be invited
+                // ANTI-CHEAT: Check if user can be invited
         const canInvite = await canBeInvited(friendPhone);
         if (!canInvite.allowed) {
             if (canInvite.reason === 'self') {
                 showCheatingWarning("YOU CANNOT INVITE YOURSELF!");
+            } else if (canInvite.reason === 'permanently_blocked') {
+                showCannotReinviteWarning(friendPhone, true); // true = permanently blocked
             } else {
-                showCannotReinviteWarning(friendPhone);
+                showCannotReinviteWarning(friendPhone, false);
             }
             if (friendInput) friendInput.value = '';
             return;
