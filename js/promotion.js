@@ -60,7 +60,7 @@
         }
     }
     
-    function init() {
+        function init() {
         console.log('🎁 Promotion System Starting...');
         
         userPhone = localStorage.getItem("userPhone");
@@ -85,25 +85,10 @@
         if (window.TickerModule) window.TickerModule.init();
         if (window.LuckyCatModule) window.LuckyCatModule.init();
         if (window.ReferralSystem) window.ReferralSystem.init();
+        if (window.SimpleRightCard) window.SimpleRightCard.init();  // ← BAGO
         if (window.ConfettiModule) window.ConfettiModule.init();
         
         console.log('✅ All systems ready!');
-    }
-    
-    function initFirebase() {
-        if (typeof firebaseConfig === 'undefined') {
-            console.error('Firebase config not found!');
-            return;
-        }
-        try {
-            if (!firebase.apps || !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.database();
-            userRef = db.ref('user_sessions/' + userPhone);
-        } catch(e) { 
-            console.error('Firebase error:', e); 
-        }
     }
     
     function loadUserData() {
@@ -1312,6 +1297,205 @@ window.ReferralSystem = (function() {
         }
     }
     
+// ========== SIMPLE RIGHT LUCKY CARD MODULE ==========
+window.SimpleRightCard = (function() {
+    'use strict';
+    
+    let currentUserPhone = null;
+    let userRef = null;
+    let rewardAmountElement = null;
+    let rightCardElement = null;
+    let currentReward = 0;
+    let isChecking = false;
+    
+    // Initialize
+    function init() {
+        currentUserPhone = localStorage.getItem("userPhone");
+        if (!currentUserPhone) {
+            console.log('No user phone found for Right Card');
+            return;
+        }
+        
+        const core = window.PromotionCore;
+        if (core) {
+            userRef = core.getUserRef();
+        }
+        
+        rewardAmountElement = document.getElementById('rightRewardAmountDisplay');
+        rightCardElement = document.getElementById('rightCard');
+        
+        if (!rewardAmountElement) {
+            console.log('Right reward element not found - using fallback ID');
+            // Fallback to old ID
+            rewardAmountElement = document.getElementById('rightRewardAmount');
+        }
+        
+        if (!rewardAmountElement) {
+            console.error('Cannot find right reward element!');
+            return;
+        }
+        
+        // Set default display
+        rewardAmountElement.innerHTML = '+₱150';
+        
+        // Attach click event
+        if (rightCardElement) {
+            const newCard = rightCardElement.cloneNode(true);
+            rightCardElement.parentNode.replaceChild(newCard, rightCardElement);
+            rightCardElement = newCard;
+            rightCardElement.addEventListener('click', handleClaim);
+        }
+        
+        // Start listening to Firebase
+        startListening();
+        
+        console.log('✅ Simple Right Card Module ready');
+    }
+    
+    // Listen to Firebase for referralReward changes
+    function startListening() {
+        if (!userRef) {
+            setTimeout(startListening, 1000);
+            return;
+        }
+        
+        // Listen to referralReward field
+        userRef.child('referralReward').on('value', (snapshot) => {
+            const newValue = snapshot.val() || 0;
+            console.log('🔥 Right Card reward changed:', currentReward, '→', newValue);
+            
+            if (newValue > currentReward) {
+                // Reward increased - show animation
+                animateRewardIncrease();
+            }
+            
+            currentReward = newValue;
+            updateDisplay();
+            
+            // Highlight card if has reward
+            if (currentReward > 0 && rightCardElement) {
+                rightCardElement.classList.add('card-highlight');
+            } else if (rightCardElement) {
+                rightCardElement.classList.remove('card-highlight');
+            }
+        });
+    }
+    
+    // Update the display
+        function updateDisplay() {
+        if (!rewardAmountElement) return;
+        
+        if (currentReward > 0) {
+            rewardAmountElement.innerHTML = `+₱${currentReward}`;
+            rewardAmountElement.style.fontSize = '22px';
+            rewardAmountElement.style.color = '#ffd700';
+        } else {
+            rewardAmountElement.innerHTML = `₱0`;
+            rewardAmountElement.style.fontSize = '18px';
+            rewardAmountElement.style.color = '#ffd700';
+        }
+    }
+    
+    // Animation when reward increases
+    function animateRewardIncrease() {
+        if (!rewardAmountElement) return;
+        
+        rewardAmountElement.classList.add('reward-increase');
+        setTimeout(() => {
+            if (rewardAmountElement) {
+                rewardAmountElement.classList.remove('reward-increase');
+            }
+        }, 500);
+        
+        // Also pulse the card
+        if (rightCardElement) {
+            rightCardElement.classList.add('card-highlight');
+        }
+        
+        // Play success sound if available
+        if (window.PromotionCore) {
+            window.PromotionCore.playSound('success');
+        }
+    }
+    
+    // Handle claim click
+    async function handleClaim(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (isChecking) {
+            showMessage("⏳ Please wait...");
+            return;
+        }
+        
+        if (currentReward <= 0) {
+            showMessage("📭 No reward to claim!");
+            return;
+        }
+        
+        isChecking = true;
+        
+        const claimAmount = currentReward;
+        
+        try {
+            // Reset reward to 0
+            await userRef.child('referralReward').set(0);
+            
+            // Add to balance
+            if (window.PromotionCore) {
+                window.PromotionCore.addToBalance(claimAmount, true);
+            }
+            
+            // Update earnings
+            const earningsSnap = await userRef.child('referral_earnings').once('value');
+            const newEarnings = (earningsSnap.val() || 0) + claimAmount;
+            await userRef.child('referral_earnings').set(newEarnings);
+            
+            // Find and update the referral that gave this reward
+            const receivedSnap = await userRef.child('invites/received').once('value');
+            const received = receivedSnap.val() || {};
+            
+            for (let [fromPhone, invite] of Object.entries(received)) {
+                if (invite.status === 'waiting') {
+                    await userRef.child(`invites/received/${fromPhone}/status`).set('completed');
+                    
+                    // Give reward to sender
+                    const senderRef = db.ref('user_sessions/' + fromPhone);
+                    const senderReward = await senderRef.child('referralReward').once('value');
+                    await senderRef.child('referralReward').set((senderReward.val() || 0) + 150);
+                    await senderRef.child(`invites/sent/${currentUserPhone}/status`).set('claimed');
+                    break;
+                }
+            }
+            
+            // Play claim sound
+            if (window.PromotionCore) {
+                window.PromotionCore.playSound('claim');
+            }
+            
+            showMessage(`🎉 ₱${claimAmount} added to your balance!`);
+            
+        } catch (error) {
+            console.error('Claim error:', error);
+            showMessage("❌ Error claiming reward. Please try again.");
+        }
+        
+        isChecking = false;
+    }
+    
+    function showMessage(msg) {
+        const toast = document.createElement('div');
+        toast.innerHTML = msg;
+        toast.style.cssText = `
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: #1a1a2e; border: 1px solid #ffd700; color: #ffd700;
+            padding: 10px 20px; border-radius: 50px; font-size: 12px;
+            font-weight: bold; z-index: 10002; animation: fadeOutUp 2s ease-out forwards;
+            white-space: nowrap;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => { if (toast) toast.remove(); }, 2000);
+    }
+    
     return { init: init };
 })();
- 
