@@ -1352,25 +1352,32 @@ window.SimpleRightCard = (function() {
         console.log('✅ Simple Right Card Module ready');
     }
     
-    // Listen to Firebase for referralReward changes
+       // Listen to Firebase for referralReward changes
     function startListening() {
         if (!userRef) {
             setTimeout(startListening, 1000);
             return;
         }
         
-        // Listen to referralReward field
         userRef.child('referralReward').on('value', (snapshot) => {
             const newValue = snapshot.val() || 0;
-            console.log('🔥 Right Card reward changed:', currentReward, '→', newValue);
+            const oldValue = currentReward;
             
-            if (newValue > currentReward) {
-                // Reward increased - show animation
-                animateRewardIncrease();
+            console.log('🔥 Right Card reward changed:', oldValue, '→', newValue);
+            
+            if (newValue > oldValue) {
+                // May nadagdag - mag-animate from old to new
+                animateRewardIncrease(oldValue, newValue);
+            } else if (newValue < oldValue) {
+                // May nag-claim - mag-reset display
+                currentReward = newValue;
+                updateDisplay();
+            } else {
+                currentReward = newValue;
+                updateDisplay();
             }
             
             currentReward = newValue;
-            updateDisplay();
             
             // Highlight card if has reward
             if (currentReward > 0 && rightCardElement) {
@@ -1379,6 +1386,45 @@ window.SimpleRightCard = (function() {
                 rightCardElement.classList.remove('card-highlight');
             }
         });
+    }
+    
+    // Animation with increment effect
+    function animateRewardIncrease(oldValue, newValue) {
+        if (!rewardAmountElement) return;
+        
+        const steps = 20;
+        const increment = (newValue - oldValue) / steps;
+        let currentStep = 0;
+        
+        function step() {
+            currentStep++;
+            const currentVal = Math.floor(oldValue + (increment * currentStep));
+            rewardAmountElement.innerHTML = `+₱${currentVal}`;
+            
+            if (currentStep < steps) {
+                setTimeout(step, 25);
+            } else {
+                rewardAmountElement.innerHTML = `+₱${newValue}`;
+                rewardAmountElement.classList.add('reward-increase');
+                setTimeout(() => {
+                    if (rewardAmountElement) {
+                        rewardAmountElement.classList.remove('reward-increase');
+                    }
+                }, 500);
+            }
+        }
+        
+        step();
+        
+        // Pulse the card
+        if (rightCardElement) {
+            rightCardElement.classList.add('card-highlight');
+        }
+        
+        // Play success sound
+        if (window.PromotionCore) {
+            window.PromotionCore.playSound('success');
+        }
     }
     
     // Update the display
