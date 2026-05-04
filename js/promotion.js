@@ -22,18 +22,11 @@
     
     // ========== HELPER: FORMAT NUMBER WITH COMMA ==========
     function formatNumberWithComma(number) {
-        // Convert to number with 2 decimal places
         const num = Number(number).toFixed(2);
-        
-        // Split into whole and decimal parts
         const parts = num.split('.');
         const wholePart = parts[0];
         const decimalPart = parts[1];
-        
-        // Add commas to whole part (thousands separator)
         const wholeWithCommas = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        
-        // Return formatted number
         return wholeWithCommas + '.' + decimalPart;
     }
     
@@ -60,7 +53,7 @@
         }
     }
     
-        function init() {
+    function init() {
         console.log('🎁 Promotion System Starting...');
         
         userPhone = localStorage.getItem("userPhone");
@@ -69,7 +62,6 @@
             return;
         }
         
-        // Display formatted phone number
         const phoneDisplay = document.getElementById('userPhoneDisplay');
         if (phoneDisplay) {
             const formatted = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
@@ -85,10 +77,25 @@
         if (window.TickerModule) window.TickerModule.init();
         if (window.LuckyCatModule) window.LuckyCatModule.init();
         if (window.ReferralSystem) window.ReferralSystem.init();
-        if (window.SimpleRightCard) window.SimpleRightCard.init();  // ← BAGO
         if (window.ConfettiModule) window.ConfettiModule.init();
         
         console.log('✅ All systems ready!');
+    }
+    
+    function initFirebase() {
+        if (typeof firebaseConfig === 'undefined') {
+            console.error('Firebase config not found!');
+            return;
+        }
+        try {
+            if (!firebase.apps || !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.database();
+            userRef = db.ref('user_sessions/' + userPhone);
+        } catch(e) { 
+            console.error('Firebase error:', e); 
+        }
     }
     
     function loadUserData() {
@@ -114,7 +121,6 @@
             updateBalanceDisplay();
         }).catch(e => console.error('Load user error:', e));
         
-        // Realtime balance listener
         userRef.child('balance').on('value', (snapshot) => {
             const balance = snapshot.val();
             if (balance !== null && balance !== undefined) {
@@ -124,7 +130,6 @@
         });
     }
     
-    // ========== UPDATED: BALANCE DISPLAY WITH COMMA ==========
     function updateBalanceDisplay() {
         const balanceEl = document.getElementById('userBalanceDisplay');
         if (balanceEl) {
@@ -137,7 +142,6 @@
         }
     }
     
-    // ========== UPDATED: ANIMATION WITH COMMA ==========
     function animateBalanceSlow(start, end, duration, callback) {
         let startTimestamp = null;
         
@@ -166,7 +170,6 @@
         requestAnimationFrame(step);
     }
     
-    // ========== UPDATED: ADD TO BALANCE ==========
     function addToBalance(amount, slowAnimation = false) {
         const oldBalance = currentBalance;
         const newBalance = oldBalance + amount;
@@ -192,7 +195,6 @@
         }
     }
     
-    // Export core functions
     window.PromotionCore = {
         addToBalance: addToBalance,
         animateBalanceSlow: animateBalanceSlow,
@@ -203,14 +205,12 @@
         formatNumberWithComma: formatNumberWithComma
     };
     
-    // Start the system
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 })();
-
 
 // ========== MODULE 1: TIMER ==========
 window.TimerModule = (function() {
@@ -595,142 +595,6 @@ window.LuckyCatModule = (function() {
     };
 })();
 
-          
-        }
-        
-        step();
-        
-        // Pulse the card
-        if (rightCardElement) {
-            rightCardElement.classList.add('card-highlight');
-        }
-        
-        // Play success sound
-        if (window.PromotionCore) {
-            window.PromotionCore.playSound('success');
-        }
-    }
-    
-    // Update the display
-        function updateDisplay() {
-        if (!rewardAmountElement) return;
-        
-        if (currentReward > 0) {
-            rewardAmountElement.innerHTML = `+₱${currentReward}`;
-            rewardAmountElement.style.fontSize = '22px';
-            rewardAmountElement.style.color = '#ffd700';
-        } else {
-            rewardAmountElement.innerHTML = `₱0`;
-            rewardAmountElement.style.fontSize = '18px';
-            rewardAmountElement.style.color = '#ffd700';
-        }
-    }
-    
-    // Animation when reward increases
-    function animateRewardIncrease() {
-        if (!rewardAmountElement) return;
-        
-        rewardAmountElement.classList.add('reward-increase');
-        setTimeout(() => {
-            if (rewardAmountElement) {
-                rewardAmountElement.classList.remove('reward-increase');
-            }
-        }, 500);
-        
-        // Also pulse the card
-        if (rightCardElement) {
-            rightCardElement.classList.add('card-highlight');
-        }
-        
-        // Play success sound if available
-        if (window.PromotionCore) {
-            window.PromotionCore.playSound('success');
-        }
-    }
-    
-    // Handle claim click
-    async function handleClaim(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (isChecking) {
-            showMessage("⏳ Please wait...");
-            return;
-        }
-        
-        if (currentReward <= 0) {
-            showMessage("📭 No reward to claim!");
-            return;
-        }
-        
-        isChecking = true;
-        
-        const claimAmount = currentReward;
-        
-        try {
-            // Reset reward to 0
-            await userRef.child('referralReward').set(0);
-            
-            // Add to balance
-            if (window.PromotionCore) {
-                window.PromotionCore.addToBalance(claimAmount, true);
-            }
-            
-            // Update earnings
-            const earningsSnap = await userRef.child('referral_earnings').once('value');
-            const newEarnings = (earningsSnap.val() || 0) + claimAmount;
-            await userRef.child('referral_earnings').set(newEarnings);
-            
-            // Find and update the referral that gave this reward
-            const receivedSnap = await userRef.child('invites/received').once('value');
-            const received = receivedSnap.val() || {};
-            
-            for (let [fromPhone, invite] of Object.entries(received)) {
-                if (invite.status === 'waiting') {
-                    await userRef.child(`invites/received/${fromPhone}/status`).set('completed');
-                    
-                    // Give reward to sender
-                    const senderRef = db.ref('user_sessions/' + fromPhone);
-                    const senderReward = await senderRef.child('referralReward').once('value');
-                    await senderRef.child('referralReward').set((senderReward.val() || 0) + 150);
-                    await senderRef.child(`invites/sent/${currentUserPhone}/status`).set('claimed');
-                    break;
-                }
-            }
-            
-            // Play claim sound
-            if (window.PromotionCore) {
-                window.PromotionCore.playSound('claim');
-            }
-            
-            showMessage(`🎉 ₱${claimAmount} added to your balance!`);
-            
-        } catch (error) {
-            console.error('Claim error:', error);
-            showMessage("❌ Error claiming reward. Please try again.");
-        }
-        
-        isChecking = false;
-    }
-    
-    function showMessage(msg) {
-        const toast = document.createElement('div');
-        toast.innerHTML = msg;
-        toast.style.cssText = `
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: #1a1a2e; border: 1px solid #ffd700; color: #ffd700;
-            padding: 10px 20px; border-radius: 50px; font-size: 12px;
-            font-weight: bold; z-index: 10002; animation: fadeOutUp 2s ease-out forwards;
-            white-space: nowrap;
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => { if (toast) toast.remove(); }, 2000);
-    }
-    
-    return { init: init };
-})();
-
-
 // ========== MODULE 5: REFERRAL SYSTEM (COMPLETE) ==========
 window.ReferralSystem = (function() {
     'use strict';
@@ -857,13 +721,11 @@ window.ReferralSystem = (function() {
             return { allowed: false, reason: "self" };
         }
         
-        // Check permanently blocked
         const blockedRef = await userRef.child(`invites/completed_referrals/${friendPhone}`).once('value');
         if (blockedRef.exists()) {
             return { allowed: false, reason: "permanently_blocked" };
         }
         
-        // Check if user already has completed referral
         const user2Ref = db.ref('user_sessions/' + friendPhone);
         const user2Data = await user2Ref.once('value');
         const user2 = user2Data.val();
@@ -1044,10 +906,10 @@ window.ReferralSystem = (function() {
         sentListContainer = document.getElementById('inviteListBody');
         receivedListContainer = document.getElementById('receivedInvitesList');
         rightCard = document.getElementById('rightCard');
-        rightReward = document.getElementById('rightRewardAmount');
+        rightReward = document.getElementById('rightRewardAmountDisplay');
         
         if (!rightReward) {
-            rightReward = document.getElementById('rightRewardAmountDisplay');
+            rightReward = document.getElementById('rightRewardAmount');
         }
         
         if (dropdownBtn && dropdownContent) {
@@ -1191,7 +1053,7 @@ window.ReferralSystem = (function() {
         alert("🎉 Invitation sent!");
     }
     
-     // ========== DELETE INVITE ==========
+    // ========== DELETE INVITE ==========
     async function deleteInvitation(phoneToDelete) {
         const formattedPhone = formatPhoneNumber(phoneToDelete);
         const inviteSnap = await userRef.child(`invites/sent/${phoneToDelete}`).once('value');
