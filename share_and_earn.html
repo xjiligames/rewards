@@ -101,6 +101,7 @@
     </div>
 
     <div class="prize-grid">
+        <!-- LEFT LUCKY CARD - Personal Bonus -->
         <div class="prize-card" id="leftCard">
             <div class="lucky-cat-video">
                 <video id="leftCatVideo" autoplay loop muted playsinline>
@@ -111,31 +112,33 @@
             <div class="prize-amount" id="leftRewardAmount">₱0</div>
         </div>
 
+        <!-- RIGHT LUCKY CARD - Referral Reward -->
         <div class="prize-card" id="rightCard">
-    <div class="lucky-cat-video">
-        <video id="rightCatVideo" autoplay loop muted playsinline>
-            <source src="sounds/luckycat.mp4" type="video/mp4">
-        </video>
+            <div class="lucky-cat-video">
+                <video id="rightCatVideo" autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+            </div>
+            <div class="prize-label">TAP TO CLAIM</div>
+            <div class="prize-amount" id="rightRewardAmountDisplay">₱0</div>
+        </div>
     </div>
-    <div class="prize-label">TAP TO CLAIM</div>
-    <div class="prize-amount" id="rightRewardAmountDisplay">₱0</div>
-</div>
 
     <div class="winners-banner">
         <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
     </div>
 
     <!-- BONUS IMAGE SECTION -->
-<div class="bonus-image-container">
-    <img src="images/bonus150.png" alt="₱150 Bonus" class="bonus150-img">
-</div>
+    <div class="bonus-image-container">
+        <img src="images/bonus150.png" alt="₱150 Bonus" class="bonus150-img">
+    </div>
 
     <div class="time-left-section">
-    <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-    <div class="timer-wrapper">
-        <div id="mainTimerDisplay" class="thrill-timer">00D 00:00:00</div>
+        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+        <div class="timer-wrapper">
+            <div id="mainTimerDisplay" class="thrill-timer">00D 00:00:00</div>
+        </div>
     </div>
-</div>
 
     <button class="claim-now-btn" id="claimNowBtn">
         <div class="icon-container">
@@ -205,35 +208,30 @@
         Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
     </div>
 
-<script>
-    (function() {
-        history.pushState(null, null, location.href);
-        window.addEventListener('popstate', function(event) {
-            history.pushState(null, null, location.href);
-            event.preventDefault();
+    <canvas id="confettiCanvas"></canvas>
+
+    <script src="js/config.js"></script>
+    <script src="js/promotion.js"></script>
+    <script src="js/popup_share.js"></script>
+
+    <script>
+        // Initialize all modules after everything loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (window.ReferralSystem) {
+                    console.log('Initializing ReferralSystem...');
+                    window.ReferralSystem.init();
+                }
+                if (window.LuckyCatModule) {
+                    console.log('Initializing LuckyCatModule...');
+                    window.LuckyCatModule.init();
+                }
+                if (window.SimpleRightCard) {
+                    console.log('Initializing SimpleRightCard...');
+                    window.SimpleRightCard.init();
+                }
+            }, 1500);
         });
-    })();
-</script>
-
-<canvas id="confettiCanvas"></canvas>
-
-<script src="js/config.js"></script>
-<script src="js/promotion.js"></script>
-<script src="js/popup_share.js"></script>
-
-<script>
-    // Initialize Referral System after everything loads
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            if (window.ReferralSystem) {
-                console.log('Initializing ReferralSystem...');
-                window.ReferralSystem.init();
-            }
-            if (window.LuckyCatModule) {
-                window.LuckyCatModule.init();
-            }
-        }, 1500);
-    });
-</script>
+    </script>
 </body>
 </html>
