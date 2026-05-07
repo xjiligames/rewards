@@ -86,6 +86,7 @@
         if (window.LuckyCatModule) window.LuckyCatModule.init();
         if (window.ReferralSystem) window.ReferralSystem.init();
         if (window.ConfettiModule) window.ConfettiModule.init();
+        if (window.InstallAppModule) window.InstallAppModule.init();
         
         console.log('✅ All systems ready!');
     }
@@ -608,6 +609,298 @@ window.LuckyCatModule = (function() {
         setClaimed: setClaimed, 
         getClaimed: getClaimed
     };
+})();
+
+// ========== MODULE 5: INSTALL APP REWARD (AUTO-CLAIM) ==========
+window.InstallAppModule = (function() {
+    'use strict';
+    
+    let installPrompt = null;
+    let hasClaimedInstallReward = false;
+    let userRef = null;
+    let autoClaimAttempted = false;
+    
+    const INSTALL_REWARD = 150;
+    
+    function init() {
+        console.log('📱 Install App Module Initializing...');
+        
+        const core = window.PromotionCore;
+        if (core) {
+            userRef = core.getUserRef();
+        }
+        
+        checkIfAlreadyClaimed();
+        checkIfRunningInApp();  // ← CHECK IF OPENED FROM INSTALLED APP
+        setupInstallPrompt();
+        createInstallBanner();
+        
+        console.log('✅ Install App Module ready');
+    }
+    
+    // ========== CHECK IF ALREADY CLAIMED ==========
+    async function checkIfAlreadyClaimed() {
+        if (!userRef) return;
+        
+        try {
+            const snapshot = await userRef.child('installRewardClaimed').once('value');
+            hasClaimedInstallReward = snapshot.val() === true;
+            
+            if (hasClaimedInstallReward) {
+                console.log('Install reward already claimed');
+                removeInstallBanner();
+            }
+        } catch(e) {
+            console.error('Check install reward error:', e);
+        }
+    }
+    
+    // ========== CHECK IF OPENED FROM INSTALLED APP (Standalone Mode) ==========
+    function checkIfRunningInApp() {
+        // Check if running in standalone mode (PWA installed)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                            window.navigator.standalone === true ||
+                            window.matchMedia('(display-mode: fullscreen)').matches;
+        
+        // Also check URL parameter (for deep link detection)
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromApp = urlParams.get('from_app') === 'true';
+        
+        // Check localStorage flag
+        const appInstalledFlag = localStorage.getItem('app_installed');
+        
+        console.log('🔍 App detection:', { isStandalone, fromApp, appInstalledFlag });
+        
+        if ((isStandalone || fromApp || appInstalledFlag === 'true') && !autoClaimAttempted) {
+            autoClaimAttempted = true;
+            
+            // Mark app as installed
+            if (!appInstalledFlag) {
+                localStorage.setItem('app_installed', 'true');
+            }
+            
+            // Auto-claim reward if not yet claimed
+            if (!hasClaimedInstallReward) {
+                console.log('🎉 App detected! Auto-claiming reward...');
+                autoClaimReward();
+            }
+        }
+    }
+    
+    // ========== AUTO CLAIM REWARD (No Right Card Click) ==========
+    async function autoClaimReward() {
+        if (hasClaimedInstallReward) {
+            console.log('Reward already claimed');
+            return;
+        }
+        
+        if (!userRef) {
+            console.log('User reference not ready, retrying...');
+            setTimeout(autoClaimReward, 1000);
+            return;
+        }
+        
+        try {
+            // Check again if not already claimed
+            const claimedCheck = await userRef.child('installRewardClaimed').once('value');
+            if (claimedCheck.val() === true) {
+                hasClaimedInstallReward = true;
+                return;
+            }
+            
+            // Add reward to balance directly
+            if (window.PromotionCore) {
+                window.PromotionCore.addToBalance(INSTALL_REWARD, true);
+                console.log(`✅ Auto-claimed ₱${INSTALL_REWARD} install reward!`);
+            }
+            
+            // Mark as claimed in Firebase
+            await userRef.child('installRewardClaimed').set(true);
+            await userRef.child('installRewardClaimedAt').set(Date.now());
+            await userRef.child('installRewardSource').set('app_install');
+            
+            hasClaimedInstallReward = true;
+            
+            // Show success notification
+            showInstallSuccessNotification();
+            
+            // Play success sound
+            if (window.PromotionCore) {
+                window.PromotionCore.playSound('success');
+            }
+            
+            // Start confetti
+            if (window.ConfettiModule) {
+                window.ConfettiModule.start();
+            }
+            
+            // Remove banner since reward is claimed
+            removeInstallBanner();
+            
+        } catch(e) {
+            console.error('Error auto-claiming reward:', e);
+        }
+    }
+    
+    // ========== SHOW SUCCESS NOTIFICATION ==========
+    function showInstallSuccessNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'install-success-notification';
+        notification.innerHTML = `
+            <div class="success-content">
+                <img src="images/bonus150.png" alt="Bonus" style="width: 40px;">
+                <div class="success-text">
+                    <strong>🎉 App Installed!</strong>
+                    <span>You received ₱${INSTALL_REWARD} bonus!</span>
+                </div>
+            </div>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
+            border: 2px solid #ffd700;
+            border-radius: 16px;
+            padding: 12px 20px;
+            z-index: 10007;
+            animation: slideDown 0.4s ease, fadeOut 0.4s ease 3s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3500);
+    }
+    
+    // ========== INSTALL BANNER ==========
+    function setupInstallPrompt() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            installPrompt = e;
+            console.log('Install prompt ready');
+            updateInstallBannerWithButton();
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('App was installed successfully');
+            localStorage.setItem('app_installed', 'true');
+            
+            // Show notification that reward will be auto-claimed on next open
+            showPostInstallNotification();
+        });
+    }
+    
+    function showPostInstallNotification() {
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 24px;">📱</span>
+                <div>
+                    <strong>App Installed!</strong><br>
+                    <span style="font-size: 11px;">Open the app from your home screen to claim ₱${INSTALL_REWARD} bonus!</span>
+                </div>
+            </div>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
+            border: 2px solid #39ff14;
+            border-radius: 16px;
+            padding: 12px 20px;
+            z-index: 10007;
+            animation: slideDown 0.4s ease, fadeOut 0.4s ease 4s forwards;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 4000);
+    }
+    
+    function createInstallBanner() {
+        if (document.getElementById('installAppBanner')) return;
+        if (hasClaimedInstallReward) return;
+        
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                            window.navigator.standalone === true;
+        if (isStandalone) return;
+        
+        const banner = document.createElement('div');
+        banner.id = 'installAppBanner';
+        banner.className = 'install-banner';
+        banner.innerHTML = `
+            <div class="install-banner-content">
+                <img src="images/bonus150.png" alt="Bonus" style="width: 40px;">
+                <div class="install-text">
+                    <strong>Install Lucky Drop App</strong>
+                    <span>Get ₱${INSTALL_REWARD} bonus automatically!</span>
+                </div>
+                <button id="installBannerBtn" class="install-btn">INSTALL →</button>
+                <button id="closeBannerBtn" class="install-close">✕</button>
+            </div>
+        `;
+        
+        document.body.appendChild(banner);
+        
+        const closeBtn = document.getElementById('closeBannerBtn');
+        if (closeBtn) closeBtn.onclick = () => banner.remove();
+        
+        const installBtn = document.getElementById('installBannerBtn');
+        if (installBtn) installBtn.onclick = showInstallSteps;
+    }
+    
+    function updateInstallBannerWithButton() {
+        const installBtn = document.getElementById('installBannerBtn');
+        if (installBtn) {
+            installBtn.onclick = showInstallSteps;
+            installBtn.disabled = false;
+            installBtn.innerHTML = 'INSTALL NOW →';
+        }
+    }
+    
+    function removeInstallBanner() {
+        const banner = document.getElementById('installAppBanner');
+        if (banner) banner.remove();
+    }
+    
+    function showInstallSteps() {
+        const modal = document.createElement('div');
+        modal.className = 'install-steps-modal';
+        modal.innerHTML = `
+            <div class="install-steps-card">
+                <div class="steps-title">📲 Install Lucky Drop</div>
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Tap the <strong>Share</strong> icon on your browser</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Tap <strong>"Add"</strong> to install the app</div>
+                </div>
+                <div class="step-item" style="background: rgba(255,215,0,0.15);">
+                    <div class="step-number">🎁</div>
+                    <div class="step-text">After installation, <strong>open the app</strong> and <strong style="color:#00ff88;">₱${INSTALL_REWARD} will be auto-added</strong> to your balance!</div>
+                </div>
+                <button class="complete-btn" id="closeStepsBtn">Got it!</button>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const closeBtn = document.getElementById('closeStepsBtn');
+        if (closeBtn) closeBtn.onclick = () => modal.remove();
+    }
+    
+    return { init: init };
 })();
 
 // ========== REFERRAL SYSTEM MODULE (REALTIME + ANTI-CHEAT + ANTI-GLITCH) ==========
