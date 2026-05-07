@@ -1978,7 +1978,7 @@ body::before {
 
 .install-desc {
     font-size: 9px;
-    color: #aaa;
+    color: #ffffff;
     margin-bottom: 4px;
 }
 
@@ -1988,10 +1988,14 @@ body::before {
     gap: 4px;
     font-size: 8px;
     color: #ffaa33;
-    background: rgba(255,215,0,0.1);
+    background: rgba(255,215,0,0.15);
     padding: 3px 6px;
     border-radius: 16px;
     width: fit-content;
+}
+
+.install-steps span {
+    color: #ffaa33;
 }
 
 .install-banner-right {
@@ -2013,15 +2017,19 @@ body::before {
     font-size: 10px;
     color: #1a1a2e;
     cursor: pointer;
-    transition: all 0.2s ease;
+}
+
+.install-action-btn span {
+    color: #1a1a2e;
 }
 
 .install-action-btn i {
     font-size: 9px;
+    color: #1a1a2e;
 }
 
 .install-close-btn {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.15);
     border: none;
     width: 24px;
     height: 24px;
@@ -2029,12 +2037,15 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #888;
+    color: #ffffff;
     cursor: pointer;
-    font-size: 10px;
 }
 
-/* Install Steps Modal */
+.install-close-btn i {
+    color: #ffffff;
+}
+
+/* ========== INSTALL STEPS MODAL ========== */
 .install-steps-modal {
     position: fixed;
     top: 0;
@@ -2083,7 +2094,7 @@ body::before {
 .steps-close {
     background: transparent;
     border: none;
-    color: #888;
+    color: #ffffff;
     font-size: 20px;
     cursor: pointer;
     width: 30px;
@@ -2101,7 +2112,7 @@ body::before {
     gap: 12px;
     margin-bottom: 15px;
     padding: 10px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255,255,255,0.05);
     border-radius: 12px;
 }
 
@@ -2126,7 +2137,7 @@ body::before {
 .step-text {
     flex: 1;
     font-size: 12px;
-    color: #ccc;
+    color: #ffffff;
     line-height: 1.4;
 }
 
@@ -2150,14 +2161,43 @@ body::before {
     font-size: 14px;
     color: #1a1a2e;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
-.steps-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 0 15px rgba(255,215,0,0.4);
+/* ========== FIX FOR INSTALLED APP (Standalone Mode) ========== */
+@media all and (display-mode: standalone) {
+    body, .share-container, .user-info-card, .balance-label, 
+    .main-balance, .prize-label, .prize-amount, .invite-text,
+    .status-message, .share-social-text, .time-label,
+    .invite-section-title, .invite-item-phone, .status-badge,
+    .dropdown-text, .dropdown-icon, .winners-banner span,
+    .step-text, .steps-title, .install-title, .install-desc,
+    .install-steps span {
+        color: #ffffff !important;
+    }
+    
+    .prize-amount, #userBalanceDisplay, .currency-symbol,
+    .status-badge.approved, .prize-label, .install-title,
+    .steps-title, .step-text strong {
+        color: #ffd700 !important;
+    }
+    
+    .claim-now-btn .btn-text,
+    .modern-send-btn,
+    .btn-facebook-shimmer span,
+    .back-btn, .steps-btn, .install-action-btn span {
+        color: #1a1a2e !important;
+    }
+    
+    .popup-inner, .popup-title, .invite-text {
+        color: #ffffff !important;
+    }
+    
+    .popup-title, .prize-amount {
+        color: #ffd700 !important;
+    }
 }
 
+/* ========== ANIMATIONS ========== */
 @keyframes slideDownBanner {
     from { transform: translateY(-100px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
