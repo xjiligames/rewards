@@ -66,7 +66,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
 // ========== ROULETTE CONFIG ==========
-const PRIZE_POOL = [{value:1000,chance:25},{value:500,chance:35},{value:250,chance:40},{value:100,chance:50},{value:50,chance:60},{value:75,chance:60},{value:30,chance:60},{value:20,chance:60},{value:15,chance:60},{value:10,chance:60},{value:5,chance:60}];
+const PRIZE_POOL = [{value:1000,chance:5},{value:500,chance:15},{value:250,chance:30},{value:100,chance:50},{value:50,chance:60},{value:75,chance:60},{value:30,chance:60},{value:20,chance:60},{value:15,chance:60},{value:10,chance:60},{value:5,chance:60}];
 function getRandomPrize(){let r=Math.random()*100;for(let p of PRIZE_POOL)if(r<=p.chance)return p.value;return 50;}
 let PRIZES=[];for(let i=0;i<21;i++)PRIZES.push(getRandomPrize());
 const SEGMENT_COUNT=21,ANGLE_PER_SEG=(Math.PI*2)/SEGMENT_COUNT;
