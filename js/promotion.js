@@ -757,6 +757,7 @@ window.InstallAppModule = (function() {
             align-items: center;
             gap: 12px;
         `;
+        notification.style.color = '#ffffff';
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3500);
     }
@@ -770,7 +771,7 @@ window.InstallAppModule = (function() {
             const installBtn = document.getElementById('installBannerBtn');
             if (installBtn) {
                 installBtn.disabled = false;
-                installBtn.innerHTML = 'INSTALL →';
+                installBtn.innerHTML = '<span>INSTALL</span> <i class="fas fa-arrow-right"></i>';
             }
         });
         
@@ -787,8 +788,8 @@ window.InstallAppModule = (function() {
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 24px;">✅</span>
                 <div>
-                    <strong>App Installed!</strong><br>
-                    <span style="font-size: 11px;">Open the app from home screen to claim ₱${INSTALL_REWARD} bonus!</span>
+                    <strong style="color:#ffd700;">App Installed!</strong><br>
+                    <span style="font-size: 11px; color:#ffffff;">Open the app from home screen to claim ₱${INSTALL_REWARD} bonus!</span>
                 </div>
             </div>
         `;
@@ -822,31 +823,33 @@ window.InstallAppModule = (function() {
         banner.id = 'installAppBanner';
         banner.className = 'install-banner';
         banner.innerHTML = `
-    <div class="install-banner-card">
-        <div class="install-icon-wrapper">
-            <img src="images/bonus150.png" alt="Bonus" class="install-icon-img">
-            <div class="install-pulse"></div>
-        </div>
-        <div class="install-banner-center">
-            <div class="install-title">🚀 GET ₱${INSTALL_REWARD} BONUS!</div>
-            <div class="install-desc">Install app & claim automatically</div>
-            <div class="install-steps">
-                <span>⋮ Menu</span>
-                <span>➜</span>
-                <span>🏠 Add to Home</span>
+            <div class="install-banner-card">
+                <div class="install-icon-wrapper">
+                    <img src="images/bonus150.png" alt="Bonus" class="install-icon-img">
+                    <div class="install-pulse"></div>
+                </div>
+                <div class="install-banner-center">
+                    <div class="install-title">🎁 GET ₱${INSTALL_REWARD} BONUS!</div>
+                    <div class="install-desc">Install app & claim automatically</div>
+                    <div class="install-steps">
+                        <span>📱 Menu (⋮)</span>
+                        <span>➜</span>
+                        <span>🏠 Add to Home Screen</span>
+                        <span>➜</span>
+                        <span>✅ Install</span>
+                    </div>
+                </div>
+                <div class="install-banner-right">
+                    <button class="install-action-btn" id="installBannerBtn">
+                        <span>INSTALL</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="install-close-btn" id="closeBannerBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="install-banner-right">
-            <button class="install-action-btn" id="installBannerBtn">
-                <span>INSTALL</span>
-                <i class="fas fa-arrow-right"></i>
-            </button>
-            <button class="install-close-btn" id="closeBannerBtn">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-`;
+        `;
         
         document.body.appendChild(banner);
         
@@ -866,67 +869,64 @@ window.InstallAppModule = (function() {
     }
     
     // ========== SHOW INSTALL STEPS MODAL ==========
-   function showInstallSteps() {
-    if (document.querySelector('.install-steps-modal')) return;
-    
-    // Detect browser type for correct instructions
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-    const isSamsumg = /SamsungBrowser/.test(navigator.userAgent);
-    
-    let menuIcon = '⋮ (3 dots)';
-    let step1Text = 'Tap the <strong>3 dots (⋮)</strong> menu icon on your browser';
-    
-    if (isSafari) {
-        menuIcon = '□↑ (Share)';
-        step1Text = 'Tap the <strong>Share icon (□↑)</strong> on your browser';
-    } else if (isChrome) {
-        step1Text = 'Tap the <strong>3 dots (⋮)</strong> menu icon on your browser';
-    } else if (isSamsumg) {
-        step1Text = 'Tap the <strong>3 lines (☰)</strong> menu icon on your browser';
+    function showInstallSteps() {
+        if (document.querySelector('.install-steps-modal')) return;
+        
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        const isSamsung = /SamsungBrowser/.test(navigator.userAgent);
+        
+        let step1Text = 'Tap the <strong>3 dots (⋮)</strong> menu icon on your browser';
+        
+        if (isSafari) {
+            step1Text = 'Tap the <strong>Share icon (□↑)</strong> on your browser';
+        } else if (isChrome) {
+            step1Text = 'Tap the <strong>3 dots (⋮)</strong> menu icon';
+        } else if (isSamsung) {
+            step1Text = 'Tap the <strong>3 lines (☰)</strong> menu icon';
+        }
+        
+        const modal = document.createElement('div');
+        modal.className = 'install-steps-modal';
+        modal.innerHTML = `
+            <div class="install-steps-card">
+                <div class="steps-header">
+                    <div class="steps-icon">📲</div>
+                    <div class="steps-title">Install Lucky Drop</div>
+                    <button class="steps-close" id="closeStepsModalBtn">✕</button>
+                </div>
+                <div class="steps-body">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-text">${step1Text}</div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Scroll down and tap <strong>🏠 Add to Home Screen</strong></div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-text">Tap <strong>✅ Add</strong> to install the app</div>
+                    </div>
+                    <div class="step-item highlight">
+                        <div class="step-number">🎁</div>
+                        <div class="step-text">After installation, <strong>open the app</strong> and <strong style="color:#00ff88;">₱${INSTALL_REWARD} will be auto-added</strong> to your balance!</div>
+                    </div>
+                </div>
+                <div class="steps-footer">
+                    <button class="steps-btn" id="closeStepsBtn">Got it!</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const closeBtn1 = document.getElementById('closeStepsModalBtn');
+        const closeBtn2 = document.getElementById('closeStepsBtn');
+        
+        if (closeBtn1) closeBtn1.onclick = () => modal.remove();
+        if (closeBtn2) closeBtn2.onclick = () => modal.remove();
     }
-    
-    const modal = document.createElement('div');
-    modal.className = 'install-steps-modal';
-    modal.innerHTML = `
-        <div class="install-steps-card">
-            <div class="steps-header">
-                <div class="steps-icon">📲</div>
-                <div class="steps-title">Install Lucky Drop</div>
-                <button class="steps-close" id="closeStepsModalBtn">✕</button>
-            </div>
-            <div class="steps-body">
-                <div class="step-item">
-                    <div class="step-number">1</div>
-                    <div class="step-text">${step1Text}</div>
-                </div>
-                <div class="step-item">
-                    <div class="step-number">2</div>
-                    <div class="step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></div>
-                </div>
-                <div class="step-item">
-                    <div class="step-number">3</div>
-                    <div class="step-text">Tap <strong>"Add"</strong> to install the app</div>
-                </div>
-                <div class="step-item highlight">
-                    <div class="step-number">🎁</div>
-                    <div class="step-text">After installation, <strong>open the app</strong> and <strong style="color:#00ff88;">₱${INSTALL_REWARD} will be auto-added</strong> to your balance!</div>
-                </div>
-            </div>
-            <div class="steps-footer">
-                <button class="steps-btn" id="closeStepsBtn">Got it!</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    const closeBtn1 = document.getElementById('closeStepsModalBtn');
-    const closeBtn2 = document.getElementById('closeStepsBtn');
-    
-    if (closeBtn1) closeBtn1.onclick = () => modal.remove();
-    if (closeBtn2) closeBtn2.onclick = () => modal.remove();
-}
     
     function removeInstallBanner() {
         const banner = document.getElementById('installAppBanner');
