@@ -120,7 +120,7 @@
                 </video>
             </div>
             <div class="prize-label">TAP TO CLAIM</div>
-            <div class="prize-amount" id="rightRewardAmountDisplay">+₱150</div>
+            <div class="prize-amount" id="rightRewardAmount">+₱150</div>
         </div>
     </div>
 
@@ -215,23 +215,32 @@
     <script src="js/popup_share.js"></script>
 
     <script>
-        // Initialize all modules after everything loads
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                if (window.ReferralSystem) {
-                    console.log('Initializing ReferralSystem...');
-                    window.ReferralSystem.init();
-                }
-                if (window.LuckyCatModule) {
-                    console.log('Initializing LuckyCatModule...');
-                    window.LuckyCatModule.init();
-                }
-                if (window.SimpleRightCard) {
-                    console.log('Initializing SimpleRightCard...');
-                    window.SimpleRightCard.init();
-                }
-            }, 1500);
-        });
-    </script>
+    // Initialize all modules after everything loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📱 Share & Earn page loaded');
+        
+        setTimeout(function() {
+            // Initialize Left Lucky Cat
+            if (window.LuckyCatModule) {
+                console.log('Initializing LuckyCatModule...');
+                window.LuckyCatModule.init();
+            }
+            
+            // Initialize Referral System (includes Right Card logic)
+            if (window.ReferralSystem) {
+                console.log('Initializing ReferralSystem...');
+                window.ReferralSystem.init();
+            }
+            
+            // Initialize Install App Module
+            if (window.InstallAppModule) {
+                console.log('Initializing InstallAppModule...');
+                window.InstallAppModule.init();
+            }
+            
+            console.log('✅ All modules initialized');
+        }, 1000);
+    });
+</script>
 </body>
 </html>
