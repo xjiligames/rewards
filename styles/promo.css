@@ -1908,31 +1908,7 @@ body::before {
     50% { border-color: #ffaa33; box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
 }
 
-/* Install Banner - Dapat nasa TAAS */
-.install-banner {
-    position: fixed;
-    top: 10px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    bottom: auto !important;
-    right: auto !important;
-    width: 90%;
-    max-width: 400px;
-    background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
-    border: 2px solid #ffd700;
-    border-radius: 16px;
-    padding: 12px 16px;
-    z-index: 10005;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    animation: slideDownBanner 0.4s ease;
-}
-
-@keyframes slideDownBanner {
-    from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
-    to { transform: translateX(-50%) translateY(0); opacity: 1; }
-}
-
-/* ========== REMASTERED INSTALL BANNER ========== */
+/* ========== REMASTERED INSTALL BANNER (SMALLER ICON) ========== */
 .install-banner {
     position: fixed;
     top: 10px;
@@ -1944,54 +1920,42 @@ body::before {
 
 .install-banner-card {
     background: linear-gradient(135deg, #0f0c29, #1a1a3e, #24243e);
-    border-radius: 20px;
-    padding: 12px 16px;
+    border-radius: 16px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,215,0,0.3);
-    backdrop-filter: blur(10px);
+    gap: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,215,0,0.3);
 }
 
-/* LEFT - ICON SECTION */
-.install-banner-left {
-    position: relative;
-}
-
+/* LEFT - ICON SECTION (PINALIIT) */
 .install-icon-wrapper {
-    position: relative;
-    width: 55px;
-    height: 55px;
+    width: 40px;
+    height: 40px;
     background: linear-gradient(135deg, #ffd700, #ffaa33);
-    border-radius: 16px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+    position: relative;
 }
 
 .install-icon-img {
-    width: 35px;
-    height: 35px;
+    width: 24px;
+    height: 24px;
     object-fit: contain;
 }
 
 .install-pulse {
     position: absolute;
-    top: -5px;
-    right: -5px;
-    width: 18px;
-    height: 18px;
+    top: -3px;
+    right: -3px;
+    width: 12px;
+    height: 12px;
     background: #39ff14;
     border-radius: 50%;
     animation: pulseGreen 1.5s infinite;
-    border: 2px solid #fff;
-}
-
-@keyframes pulseGreen {
-    0% { transform: scale(0.8); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
-    100% { transform: scale(0.8); opacity: 1; }
+    border: 1px solid #fff;
 }
 
 /* CENTER - TEXT SECTION */
@@ -2001,118 +1965,68 @@ body::before {
 
 .install-title {
     font-family: 'Orbitron', monospace;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 900;
     color: #ffd700;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
 }
 
 .install-desc {
-    font-size: 10px;
+    font-size: 9px;
     color: #aaa;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .install-steps {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 9px;
+    gap: 4px;
+    font-size: 8px;
     color: #ffaa33;
     background: rgba(255,215,0,0.1);
-    padding: 4px 8px;
-    border-radius: 20px;
+    padding: 3px 6px;
+    border-radius: 16px;
     width: fit-content;
-}
-
-.install-steps span:first-child,
-.install-steps span:last-child {
-    background: rgba(255,255,255,0.1);
-    padding: 2px 6px;
-    border-radius: 15px;
 }
 
 /* RIGHT - BUTTON SECTION */
 .install-banner-right {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .install-action-btn {
     background: linear-gradient(135deg, #ffd700, #ffaa33);
     border: none;
-    border-radius: 40px;
-    padding: 10px 16px;
+    border-radius: 30px;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-family: 'Orbitron', monospace;
     font-weight: bold;
-    font-size: 11px;
+    font-size: 10px;
     color: #1a1a2e;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 3px 10px rgba(255,215,0,0.3);
-}
-
-.install-action-btn:hover {
-    transform: scale(1.03);
-    box-shadow: 0 5px 15px rgba(255,215,0,0.5);
 }
 
 .install-action-btn i {
-    font-size: 10px;
+    font-size: 9px;
 }
 
 .install-close-btn {
     background: rgba(255,255,255,0.1);
     border: none;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #888;
     cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.install-close-btn:hover {
-    background: rgba(255,68,68,0.3);
-    color: #ff6666;
-}
-
-/* ANIMATION */
-@keyframes slideDownBanner {
-    from { transform: translateY(-100px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* RESPONSIVE */
-@media (max-width: 480px) {
-    .install-steps span:first-child,
-    .install-steps span:last-child {
-        display: none;
-    }
-    
-    .install-steps span:nth-child(2) {
-        display: none;
-    }
-    
-    .install-steps {
-        font-size: 8px;
-        padding: 3px 6px;
-    }
-    
-    .install-title {
-        font-size: 12px;
-    }
-    
-    .install-action-btn {
-        padding: 8px 12px;
-        font-size: 10px;
-    }
+    font-size: 10px;
 }
