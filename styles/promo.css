@@ -1907,3 +1907,27 @@ body::before {
     0%, 100% { border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
     50% { border-color: #ffaa33; box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
 }
+
+/* Install Banner - Dapat nasa TAAS */
+.install-banner {
+    position: fixed;
+    top: 10px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: auto !important;
+    right: auto !important;
+    width: 90%;
+    max-width: 400px;
+    background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
+    border: 2px solid #ffd700;
+    border-radius: 16px;
+    padding: 12px 16px;
+    z-index: 10005;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    animation: slideDownBanner 0.4s ease;
+}
+
+@keyframes slideDownBanner {
+    from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
