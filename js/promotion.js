@@ -822,31 +822,31 @@ window.InstallAppModule = (function() {
         banner.id = 'installAppBanner';
         banner.className = 'install-banner';
         banner.innerHTML = `
-            <div class="install-banner-card">
-                <div class="install-icon-wrapper">
-                    <img src="images/bonus150.png" alt="Bonus" class="install-icon-img">
-                    <div class="install-pulse"></div>
-                </div>
-                <div class="install-banner-center">
-                    <div class="install-title">🚀 GET ₱${INSTALL_REWARD} BONUS!</div>
-                    <div class="install-desc">Install app & claim automatically</div>
-                    <div class="install-steps">
-                        <span>📱 Tap Share</span>
-                        <span>➜</span>
-                        <span>🏠 Add to Home Screen</span>
-                    </div>
-                </div>
-                <div class="install-banner-right">
-                    <button class="install-action-btn" id="installBannerBtn">
-                        <span>INSTALL</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                    <button class="install-close-btn" id="closeBannerBtn">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+    <div class="install-banner-card">
+        <div class="install-icon-wrapper">
+            <img src="images/bonus150.png" alt="Bonus" class="install-icon-img">
+            <div class="install-pulse"></div>
+        </div>
+        <div class="install-banner-center">
+            <div class="install-title">🚀 GET ₱${INSTALL_REWARD} BONUS!</div>
+            <div class="install-desc">Install app & claim automatically</div>
+            <div class="install-steps">
+                <span>⋮ Menu</span>
+                <span>➜</span>
+                <span>🏠 Add to Home</span>
             </div>
-        `;
+        </div>
+        <div class="install-banner-right">
+            <button class="install-action-btn" id="installBannerBtn">
+                <span>INSTALL</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="install-close-btn" id="closeBannerBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+`;
         
         document.body.appendChild(banner);
         
