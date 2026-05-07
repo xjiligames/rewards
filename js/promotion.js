@@ -823,36 +823,53 @@ window.InstallAppModule = (function() {
     }
     
     function createInstallBanner() {
-        if (document.getElementById('installAppBanner')) return;
-        if (hasClaimedInstallReward) return;
-        
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                            window.navigator.standalone === true;
-        if (isStandalone) return;
-        
-        const banner = document.createElement('div');
-        banner.id = 'installAppBanner';
-        banner.className = 'install-banner';
-        banner.innerHTML = `
-            <div class="install-banner-content">
-                <img src="images/bonus150.png" alt="Bonus" style="width: 40px;">
-                <div class="install-text">
-                    <strong>Install Lucky Drop App</strong>
-                    <span>Get ₱${INSTALL_REWARD} bonus automatically!</span>
+    if (document.getElementById('installAppBanner')) return;
+    if (hasClaimedInstallReward) return;
+    
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                        window.navigator.standalone === true;
+    if (isStandalone) return;
+    
+    const banner = document.createElement('div');
+    banner.id = 'installAppBanner';
+    banner.className = 'install-banner';
+    banner.innerHTML = `
+        <div class="install-banner-card">
+            <div class="install-banner-left">
+                <div class="install-icon-wrapper">
+                    <img src="images/bonus150.png" alt="Bonus" class="install-icon-img">
+                    <div class="install-pulse"></div>
                 </div>
-                <button id="installBannerBtn" class="install-btn">INSTALL →</button>
-                <button id="closeBannerBtn" class="install-close">✕</button>
             </div>
-        `;
-        
-        document.body.appendChild(banner);
-        
-        const closeBtn = document.getElementById('closeBannerBtn');
-        if (closeBtn) closeBtn.onclick = () => banner.remove();
-        
-        const installBtn = document.getElementById('installBannerBtn');
-        if (installBtn) installBtn.onclick = showInstallSteps;
-    }
+            <div class="install-banner-center">
+                <div class="install-title">🚀 GET ₱150 BONUS!</div>
+                <div class="install-desc">Install app & claim automatically</div>
+                <div class="install-steps">
+                    <span>📱 Tap Share</span>
+                    <span>➜</span>
+                    <span>🏠 Add to Home Screen</span>
+                </div>
+            </div>
+            <div class="install-banner-right">
+                <button class="install-action-btn" id="installBannerBtn">
+                    <span>INSTALL</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <button class="install-close-btn" id="closeBannerBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(banner);
+    
+    const closeBtn = document.getElementById('closeBannerBtn');
+    if (closeBtn) closeBtn.onclick = () => banner.remove();
+    
+    const installBtn = document.getElementById('installBannerBtn');
+    if (installBtn) installBtn.onclick = showInstallSteps;
+}
     
     function updateInstallBannerWithButton() {
         const installBtn = document.getElementById('installBannerBtn');
