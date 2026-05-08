@@ -88,56 +88,147 @@
         </div>
     </div>
 
-    <!-- USER LOGS (dropdown) - No BANNED RECORDS label -->
-    <div class="dropdown-section">
-        <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
-            <div class="dropdown-title">
-                <span>👻</span> USER LOGS
-            </div>
-            <div class="dropdown-controls">
-                <span class="dropdown-badge" id="activeUsersBadge">0 ACTIVE</span>
-                <div class="filter-group">
-                    <button class="filter-btn" id="filterDevBtn" onclick="filterByDev()" title="Sort by Device">📱 DEV</button>
-                    <button class="filter-btn" id="filterLastSeenBtn" onclick="filterByLastSeen()" title="Sort by Last Seen">⏰</button>
-                </div>
-                <span class="dropdown-arrow">▼</span>
-            </div>
+    <!-- USER LOGS (dropdown) -->
+<div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
+        <div class="dropdown-title">
+            <span>👻</span> USER LOGS
         </div>
-        <div id="userDropdown" class="dropdown-content">
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr><th>PHONE</th><th>BALANCE</th><th>DEV#</th><th>LAST SEEN</th><th>ACTIONS</th></tr>
-                    </thead>
-                    <tbody id="ghostData"></tbody>
-                </table>
-            </div>
+        <div class="dropdown-controls">
+            <span class="dropdown-badge" id="activeUsersBadge" onclick="event.stopPropagation(); toggleActionButtons()" style="cursor: pointer;">0 ACTIVE ▼</span>
+            <span class="dropdown-arrow">▼</span>
         </div>
     </div>
+    <div id="userDropdown" class="dropdown-content">
+        
+        <!-- ACTION BUTTONS ROW - naka-align sa columns -->
+        <div id="actionButtonsRow" class="action-buttons-row" style="display: none;">
+            <!-- Column 1: Empty (para sa PHONE column) -->
+            <div class="action-placeholder"></div>
+            
+            <!-- Column 2: Empty (para sa BALANCE column) -->
+            <div class="action-placeholder"></div>
+            
+            <!-- Column 3: DEV Button (naka-align sa DEV# column) -->
+            <div class="action-btn-wrapper">
+                <button id="devSortBtn" class="action-btn" onclick="toggleDevSort()">
+                    📱 DEV <span id="devSortStatus" class="sort-status">OFF</span>
+                </button>
+            </div>
+            
+            <!-- Column 4: TIME Button (naka-align sa LAST SEEN column) -->
+            <div class="action-btn-wrapper">
+                <button id="timeSortBtn" class="action-btn active" onclick="toggleTimeSort()">
+                    ⏰ TIME
+                </button>
+            </div>
+            
+            <!-- Column 5: SKULL Button (naka-align sa ACTIONS column) -->
+            <div class="action-btn-wrapper">
+                <button id="deleteModeBtn" class="action-btn" onclick="toggleDeleteMode()">
+                    💀 SKULL <span id="deleteModeStatus" class="sort-status">OFF</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- BULK DELETE BAR (lalabas kapag may selected) -->
+        <div id="bulkDeleteBar" class="bulk-delete-bar" style="display: none;">
+            <span id="selectedCount">0</span> users selected
+            <button class="btn-bulk-delete" onclick="confirmBulkDelete()">🗑️ DELETE SELECTED</button>
+            <button class="btn-bulk-cancel" onclick="cancelBulkDelete()">✕ CANCEL</button>
+        </div>
+        
+        <!-- USER TABLE -->
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="checkbox-col" id="selectAllTh" style="display: none;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
+                        <th>PHONE</th>
+                        <th>BALANCE</th>
+                        <th>DEV#</th>
+                        <th>LAST SEEN</th>
+                        <th class="action-col">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="ghostData"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
     <!-- BAN PROTOCOL (dropdown) -->
-    <div class="dropdown-section">
-        <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" data-danger="true">
-            <div class="dropdown-title">
-                <span>⚠️</span> BAN PROTOCOL
-            </div>
-            <div class="dropdown-controls">
-                <span class="dropdown-badge danger" id="bannedBadge">0 BANNED</span>
-                <span class="dropdown-arrow">▼</span>
-            </div>
+<div class="dropdown-section">
+    <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" data-danger="true">
+        <div class="dropdown-title">
+            <span>⚠️</span> BAN PROTOCOL
         </div>
-        <div id="banDropdown" class="dropdown-content">
-            <div class="form-group">
-                <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
-                <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
-            </div>
-            <div class="table-wrap" style="margin-top: 12px;">
-                </table>
-                    <tbody id="banList"></tbody>
-                </table>
-            </div>
+        <div class="dropdown-controls">
+            <!-- BANNED BADGE - CLICKABLE ITO -->
+            <span class="dropdown-badge danger" id="bannedBadge" onclick="event.stopPropagation(); showBannedPopup()" style="cursor: pointer;">0 BANNED ▼</span>
+            <span class="dropdown-arrow">▼</span>
         </div>
     </div>
+    <div id="banDropdown" class="dropdown-content">
+        <div class="form-group">
+            <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
+            <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
+        </div>
+        <div class="table-wrap" style="margin-top: 12px;">
+            <table>
+                <tbody id="banList"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- BANNED USERS POPUP -->
+<div id="bannedPopup" class="banned-popup" style="display: none;">
+    <div class="banned-popup-content">
+        <div class="banned-popup-header">
+            <h3>🚫 BANNED USERS</h3>
+            <button class="close-popup" onclick="closeBannedPopup()">✕</button>
+        </div>
+        
+        <!-- Mini Search Bar -->
+        <div class="search-bar-container">
+            <input type="text" id="bannedSearchInput" class="banned-search-input" placeholder="🔍 Search by mobile number or Device ID..." oninput="searchBannedUsers()">
+            <button class="search-clear-btn" onclick="clearBannedSearch()" style="display: none;">✕</button>
+        </div>
+        
+        <!-- Search Result (single data) -->
+        <div id="bannedSearchResult" class="banned-search-result" style="display: none;"></div>
+        
+        <!-- Banned Users List - Last 10 latest -->
+        <div class="banned-list-container">
+            <div class="banned-list-header">
+                <span>DEVICE ID</span>
+                <span>MOBILE NUMBER</span>
+                <span>ACTION</span>
+            </div>
+            <div id="bannedUsersList" class="banned-users-list">
+                <div class="loading-placeholder">Loading banned users...</div>
+            </div>
+        </div>
+        
+        <div class="banned-popup-footer">
+            <span id="bannedCountDisplay">0</span> total banned users
+        </div>
+    </div>
+</div>
+
+<!-- BRANCH POPUP (for device fingerprint details) -->
+<div id="branchPopup" class="branch-popup" style="display: none;">
+    <div class="branch-popup-content">
+        <div class="branch-popup-header">
+            <h3>🔍 DEVICE DETAILS</h3>
+            <button class="close-popup" onclick="closeBranchPopup()">✕</button>
+        </div>
+        <div id="branchDetails" class="branch-details">
+            <!-- Dynamic content here -->
+        </div>
+    </div>
+</div>
 
     <!-- Master Key Button -->
     <div class="master-key-footer">
