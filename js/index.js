@@ -578,9 +578,9 @@ function updateTickerWithTransition(phoneNumber, amount, type) {
         let displayText = '';
         
         if (type === 'task') {
-            displayText = `${phoneNumber} completed task <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
+            displayText = `${phoneNumber} completed task <span class="ticker-amount">${gcIcon}₱${amount}</span>';
         } else {
-            displayText = `${phoneNumber} successful referral <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
+            displayText = `${phoneNumber} successful referral <span class="ticker-amount">${gcIcon}₱${amount}</span>`;
         }
         
         winnerEntry.innerHTML = displayText;
@@ -642,9 +642,9 @@ function startTicker() {
     const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
     let initialText = '';
     if (initial.type === 'task') {
-        initialText = `${initial.phoneNumber} completed task <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
+        initialText = `${initial.phoneNumber}<span class="ticker-amount">${gcIcon}₱${initial.amount}</span>';
     } else {
-        initialText = `${initial.phoneNumber} successful referral <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
+        initialText = `${initial.phoneNumber} <span class="ticker-amount">${gcIcon}₱${initial.amount}</span>';
     }
     winnerEntry.innerHTML = initialText;
     winnerEntry.classList.add('fade-in');
