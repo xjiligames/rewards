@@ -227,77 +227,50 @@ function toggleActionButtons() {
     }
 }
 
-// ========== DEV BUTTON SORT (OFF / Ascending / Descending) ==========
+// ========== DEV BUTTON SORT (Icon only - no text) ==========
 let devSortState = 0; // 0 = OFF, 1 = Ascending, 2 = Descending
 
 function toggleDevSort() {
     const btn = document.getElementById('devSortBtn');
-    const statusSpan = document.getElementById('devSortStatus');
     
     devSortState = (devSortState + 1) % 3;
     
+    // Update tooltip
     if (devSortState === 0) {
-        // OFF
+        btn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
         btn.classList.remove('active', 'faded');
-        statusSpan.innerHTML = 'OFF';
-        applyFilter(); // reset to default (time sort)
     } else if (devSortState === 1) {
-        // Ascending (Dev1 → Dev9)
+        btn.setAttribute('data-tooltip', 'Sort by Device (ASC)');
         btn.classList.add('faded');
         btn.classList.remove('active');
-        statusSpan.innerHTML = 'ASC';
         sortByDeviceAscending();
     } else if (devSortState === 2) {
-        // Descending (Dev9 → Dev1)
+        btn.setAttribute('data-tooltip', 'Sort by Device (DESC)');
         btn.classList.add('active');
         btn.classList.remove('faded');
-        statusSpan.innerHTML = 'DESC';
         sortByDeviceDescending();
     }
 }
 
-function sortByDeviceAscending() {
-    currentUserData.sort((a, b) => {
-        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
-        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
-        return numA - numB;
-    });
-    renderUserTable();
-}
-
-function sortByDeviceDescending() {
-    currentUserData.sort((a, b) => {
-        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
-        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
-        return numB - numA;
-    });
-    renderUserTable();
-}
-
-// ========== TIME BUTTON (default active) ==========
+// ========== TIME BUTTON ==========
 let timeSortActive = true;
 
 function toggleTimeSort() {
     const btn = document.getElementById('timeSortBtn');
+    const devBtn = document.getElementById('devSortBtn');
     
     timeSortActive = true;
-    devSortState = 0; // reset DEV state
+    devSortState = 0;
     
     // Reset DEV button
-    const devBtn = document.getElementById('devSortBtn');
-    const devStatus = document.getElementById('devSortStatus');
+    devBtn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
     devBtn.classList.remove('active', 'faded');
-    devStatus.innerHTML = 'OFF';
     
     // Activate TIME button
+    btn.setAttribute('data-tooltip', 'Sort by Time (Active)');
     btn.classList.add('active');
     
     sortByLastSeen();
-}
-
-function sortByLastSeen() {
-    currentUserData.sort((a, b) => b.lastSeenRaw - a.lastSeenRaw);
-    renderUserTable();
 }
 
 // ========== DELETE MODE (SKULL BUTTON) ==========
@@ -306,7 +279,6 @@ let selectedUsers = [];
 
 function toggleDeleteMode() {
     const btn = document.getElementById('deleteModeBtn');
-    const statusSpan = document.getElementById('deleteModeStatus');
     const selectAllTh = document.getElementById('selectAllTh');
     const bulkBar = document.getElementById('bulkDeleteBar');
     
@@ -314,33 +286,33 @@ function toggleDeleteMode() {
     
     if (deleteModeState === 0) {
         // OFF
+        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
         btn.classList.remove('active', 'faded');
-        statusSpan.innerHTML = 'OFF';
         selectAllTh.style.display = 'none';
         bulkBar.style.display = 'none';
         selectedUsers = [];
-        renderUserTable(); // re-render without checkboxes
+        renderUserTable();
     } else if (deleteModeState === 1) {
         // SELECT ALL mode (faded)
+        btn.setAttribute('data-tooltip', 'Delete Mode (SELECT)');
         btn.classList.add('faded');
         btn.classList.remove('active');
-        statusSpan.innerHTML = 'SELECT';
         selectAllTh.style.display = 'table-cell';
         bulkBar.style.display = 'none';
         renderUserTableWithCheckboxes();
     } else if (deleteModeState === 2) {
         // DELETE ALL mode (highlighted)
+        btn.setAttribute('data-tooltip', 'Delete Mode (DELETE ALL)');
         btn.classList.add('active');
         btn.classList.remove('faded');
-        statusSpan.innerHTML = 'DELETE ALL';
         
         if (confirm("⚠️ DESTRUCTIVE ACTION ⚠️\n\nAre you sure you want to DELETE ALL user data?\n\nThis action CANNOT be undone!")) {
             deleteAllUsers();
         } else {
             // Cancel - revert to OFF
             deleteModeState = 0;
+            btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
             btn.classList.remove('active', 'faded');
-            statusSpan.innerHTML = 'OFF';
             selectAllTh.style.display = 'none';
             renderUserTable();
         }
