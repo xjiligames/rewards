@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Lucky Drop | Exclusive Rewards</title>
+    <title>Lucky Drop | Complete Tasks - Get Rewards</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -21,148 +21,159 @@
 </head>
 <body>
 
-    <!-- Animated Background Elements -->
-    <div class="bg-animation">
-        <div class="bg-glow glow-1"></div>
-        <div class="bg-glow glow-2"></div>
-        <div class="bg-glow glow-3"></div>
-        <div class="bg-particles"></div>
+    <!-- Premium Background -->
+    <div class="premium-bg">
+        <div class="bg-layer layer-1"></div>
+        <div class="bg-layer layer-2"></div>
+        <div class="bg-layer layer-3"></div>
     </div>
 
-    <!-- Live Winner Ticker -->
-    <div class="winner-ticker" id="winnerBox">
-        <span class="ticker-dot"></span>
-        <div class="ticker-text">
-            <span id="winnerEntry">🎲 LUCKY DROP IS LIVE! 🎲</span>
+    <!-- Live Activity Feed -->
+    <div class="activity-feed" id="winnerBox">
+        <div class="feed-indicator"></div>
+        <div class="feed-content">
+            <span id="winnerEntry">Complete tasks to unlock rewards</span>
         </div>
-        <span class="ticker-badge">HOT</span>
+        <div class="feed-badge">LIVE</div>
     </div>
 
     <!-- Main Card -->
-    <div class="card" id="mainCard">
-        <!-- Card Border Glow -->
-        <div class="card-border"></div>
+    <div class="premium-card" id="mainCard">
+        <!-- Card Accent -->
+        <div class="card-accent"></div>
         
-        <!-- Chip Decoration -->
-        <div class="chip-decoration">
-            <div class="chip-icon">🎰</div>
+        <!-- Brand Section -->
+        <div class="brand-section">
+            <div class="brand-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2Z" fill="url(#goldGrad)" stroke="none"/>
+                    <defs>
+                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffd700"/>
+                            <stop offset="100%" style="stop-color:#ff8c00"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <h1 class="brand-name">LUCKY DROP</h1>
         </div>
         
-        <!-- Logo -->
-        <div class="logo-wrapper">
-            <div class="logo-icon">🍀</div>
-            <h1 class="logo-text">LUCKY <span>DROP</span></h1>
+        <!-- Mission Badge -->
+        <div class="mission-badge">
+            <span>COMPLETE TASKS</span>
+            <i class="fas fa-arrow-right"></i>
+            <span>GET REWARDS</span>
         </div>
         
-        <!-- Title Badge -->
-        <div class="title-badge">
-            <i class="fas fa-crown"></i>
-            <span>EXCLUSIVE REWARD</span>
-            <i class="fas fa-crown"></i>
-        </div>
-        
-        <!-- Promo Text -->
-        <p class="promo-text">
-            🎁 <strong>You've been selected!</strong> 🎁<br>
-            Claim your exclusive bonus before it expires.
-        </p>
-        
-        <!-- Scarcity Counter -->
-        <div class="scarcity-card">
-            <div class="scarcity-header">
-                <i class="fas fa-gift"></i>
-                <span>Bonuses Remaining</span>
-                <div class="scarcity-value">
-                    <span id="remNum">88</span>
-                    <span class="scarcity-total">/100</span>
+        <!-- Value Proposition -->
+        <div class="value-prop">
+            <div class="prop-item">
+                <div class="prop-icon outline-gold">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="prop-text">
+                    <strong>Simple Tasks</strong>
+                    <span>Invite friends & share</span>
                 </div>
             </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="pBar" style="width: 88%">
-                    <div class="progress-shine"></div>
+            <div class="prop-item">
+                <div class="prop-icon outline-gold">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="prop-text">
+                    <strong>Instant Rewards</strong>
+                    <span>₱150 per successful referral</span>
                 </div>
             </div>
-            <div class="scarcity-footer">
-                <i class="fas fa-hourglass-half"></i>
-                <span>Limited slots - First come, first served!</span>
+            <div class="prop-item">
+                <div class="prop-icon outline-gold">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="prop-text">
+                    <strong>GCash Payout</strong>
+                    <span>Withdraw anytime</span>
+                </div>
             </div>
         </div>
         
-        <!-- CTA Button -->
-        <button class="cta-button" onclick="handleVerify()">
-            <span class="button-text">CHECK MY REWARD</span>
-            <span class="button-icon"><i class="fas fa-chevron-right"></i></span>
-            <span class="button-glow"></span>
+        <!-- Scarcity Tracker -->
+        <div class="scarcity-tracker">
+            <div class="tracker-header">
+                <span class="tracker-label">Limited Slots Available</span>
+                <span class="tracker-value" id="remNum">88</span>
+                <span class="tracker-max">/ 100</span>
+            </div>
+            <div class="tracker-bar">
+                <div class="tracker-fill" id="pBar" style="width: 88%"></div>
+            </div>
+        </div>
+        
+        <!-- Primary CTA -->
+        <button class="btn-primary" onclick="handleVerify()">
+            <span>Verify & Claim Reward</span>
+            <i class="fas fa-arrow-right"></i>
         </button>
         
-        <!-- Trust Indicators -->
-        <div class="trust-row">
-            <div class="trust-item">
-                <i class="fas fa-shield-alt"></i>
-                <span>SECURE</span>
+        <!-- Footer Note -->
+        <div class="card-footer">
+            <div class="footer-icon">
+                <i class="fas fa-lock"></i>
             </div>
-            <div class="trust-item">
-                <i class="fas fa-bolt"></i>
-                <span>INSTANT</span>
-            </div>
-            <div class="trust-item">
-                <i class="fas fa-gem"></i>
-                <span>LEGIT</span>
-            </div>
+            <span>Secure & Encrypted Transaction</span>
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal" id="modalOverlay">
+    <!-- Verification Modal -->
+    <div class="modal-verify" id="modalOverlay">
         <div class="modal-container">
             <div class="modal-card">
                 <button class="modal-close" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
                 
-                <div class="modal-icon">
-                    <i class="fas fa-gift"></i>
-                </div>
-                
-                <h2 class="modal-title">CLAIM YOUR BONUS</h2>
-                
-                <div class="modal-banner">
-                    <img src="images/free_depo.png" alt="Bonus" class="bonus-img">
-                    <div class="bonus-ribbon">FREE ₱150</div>
+                <div class="modal-header">
+                    <div class="modal-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Verify Your Account</h3>
+                    <p>Enter your mobile number to continue</p>
                 </div>
                 
                 <div class="modal-body" id="modalBodyContent">
-                    <p class="modal-text">
-                        <i class="fas fa-mobile-alt"></i>
-                        Enter your mobile number to claim
-                    </p>
-                    
-                    <div class="phone-input-wrapper">
-                        <span class="phone-prefix">+63</span>
-                        <input type="tel" id="userPhone" placeholder="912 345 6789" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                    <div class="bonus-preview">
+                        <div class="preview-amount">₱150</div>
+                        <div class="preview-label">Welcome Bonus</div>
                     </div>
                     
-                    <button class="claim-button" id="claimBtn" onclick="processStep1()">
-                        <span>CLAIM NOW</span>
-                        <i class="fas fa-arrow-right"></i>
+                    <div class="input-field">
+                        <label>Mobile Number</label>
+                        <div class="input-with-prefix">
+                            <span class="prefix">+63</span>
+                            <input type="tel" id="userPhone" placeholder="912 345 6789" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                    </div>
+                    
+                    <button class="btn-claim" id="claimBtn" onclick="processStep1()">
+                        <span>Claim Reward</span>
+                        <i class="fas fa-chevron-right"></i>
                     </button>
                     
-                    <p class="terms-note">
-                        By proceeding, you agree to our <a href="#">Terms</a>
-                    </p>
+                    <div class="modal-terms">
+                        By proceeding, you agree to our <a href="#">Terms of Service</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Floating Particles Canvas -->
-    <canvas id="floatingCanvas"></canvas>
+    <!-- Floating Particles -->
+    <canvas id="particleCanvas"></canvas>
 
     <script src="js/index.js"></script>
     <script>
-        // Floating particles effect
+        // Particle Effect
         (function() {
-            const canvas = document.getElementById('floatingCanvas');
+            const canvas = document.getElementById('particleCanvas');
             if (!canvas) return;
             
             canvas.style.position = 'fixed';
@@ -185,15 +196,15 @@
             }
             
             function createParticles() {
-                const count = Math.min(40, Math.floor(width * height / 20000));
+                const count = Math.min(30, Math.floor(width * height / 25000));
                 for (let i = 0; i < count; i++) {
                     particles.push({
                         x: Math.random() * width,
                         y: Math.random() * height,
-                        size: Math.random() * 2 + 1,
-                        alpha: Math.random() * 0.3 + 0.1,
-                        vx: (Math.random() - 0.5) * 0.3,
-                        vy: (Math.random() - 0.5) * 0.2
+                        size: Math.random() * 1.5 + 0.5,
+                        alpha: Math.random() * 0.2 + 0.05,
+                        vx: (Math.random() - 0.5) * 0.2,
+                        vy: (Math.random() - 0.5) * 0.1
                     });
                 }
             }
@@ -212,7 +223,7 @@
                     
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(255, 215, 0, ${p.alpha})`;
+                    ctx.fillStyle = `rgba(212, 175, 55, ${p.alpha})`;
                     ctx.fill();
                 }
                 
@@ -234,7 +245,7 @@
             document.getElementById('modalOverlay').style.display = 'none';
         }
         
-        // Close modal on outside click
+        // Close on outside click
         document.getElementById('modalOverlay')?.addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
