@@ -566,6 +566,91 @@ function initParticles() {
     animateParticles();
 }
 
+// ========== LIVE WINNERS TICKER - PREMIUM VERSION ==========
+function updateTickerWithTransition(newText, amount, type, actionText) {
+    if (!winnerEntry) return;
+    
+    // 1. Fade out muna ang current text
+    winnerEntry.classList.remove('fade-in');
+    winnerEntry.classList.add('fade-out');
+    
+    // 2. Hintayin matapos ang fade out (300ms) bago palitan ang content
+    setTimeout(() => {
+        const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
+        
+        let displayText = '';
+        if (type === 'withdrawal') {
+            // Withdrawal format with GCash Icon (Amounts > 300)
+            displayText = `successful withdrawal <span class="ticker-amount">₱${amount}</span> ${gcIcon}`;
+        } else {
+            // Task format (+150 or +300 only)
+            displayText = `${actionText} <span class="ticker-amount">+₱${amount}</span>`;
+        }
+        
+        winnerEntry.innerHTML = `${newText} ${displayText}`;
+        
+        // 3. Fade in ang bagong text
+        winnerEntry.classList.remove('fade-out');
+        winnerEntry.classList.add('fade-in');
+    }, 300);
+}
+
+function startTicker() {
+    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
+    
+    // Task amounts strictly 150 and 300 only
+    const taskAmounts = [150, 300]; 
+    const taskTexts = ["task reward", "completed the task"];
+    
+    // Withdrawal amounts (Lalampas ng 300)
+    const withdrawalAmounts = [500, 800, 1200, 1500, 2000, 2500, 5000];
+    
+    function generateWinner() {
+        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const phoneNumber = `${randomPrefix}***${randomSuffix}`;
+        
+        // 60% chance for task completion, 40% chance for GCash withdrawal
+        const isTask = Math.random() < 0.6;
+        
+        let amount;
+        let type;
+        let actionText = '';
+        
+        if (isTask) {
+            amount = taskAmounts[Math.floor(Math.random() * taskAmounts.length)];
+            type = 'task';
+            actionText = taskTexts[Math.floor(Math.random() * taskTexts.length)];
+        } else {
+            amount = withdrawalAmounts[Math.floor(Math.random() * withdrawalAmounts.length)];
+            type = 'withdrawal';
+        }
+        
+        return { phoneNumber, amount, type, actionText };
+    }
+    
+    // Initial display pagka-load ng page
+    const initial = generateWinner();
+    const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
+    let initialText = '';
+    
+    if (initial.type === 'withdrawal') {
+        initialText = `${initial.phoneNumber} successful withdrawal <span class="ticker-amount">₱${initial.amount}</span> ${gcIcon}`;
+    } else {
+        initialText = `${initial.phoneNumber} ${initial.actionText} <span class="ticker-amount">+₱${initial.amount}</span>`;
+    }
+    
+    winnerEntry.innerHTML = initialText;
+    winnerEntry.classList.add('fade-in');
+    
+    // Trigger pagpalit ng winner every 4.5 seconds
+    setInterval(() => {
+        const { phoneNumber, amount, type, actionText } = generateWinner();
+        updateTickerWithTransition(phoneNumber, amount, type, actionText);
+    }, 4500);
+}
+
+
 // ========== MODAL FUNCTIONS ==========
 function closeModal() {
     if (modalOverlay) modalOverlay.style.display = 'none';
