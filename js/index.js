@@ -566,90 +566,94 @@ function initParticles() {
     animateParticles();
 }
 
-// ========== LIVE WINNERS TICKER - PREMIUM VERSION ==========
-function updateTickerWithTransition(newText, amount, type, actionText) {
+// ========== LIVE WINNERS TICKER - CORRECT AMOUNTS ==========
+function updateTickerWithTransition(phoneNumber, amount, type) {
     if (!winnerEntry) return;
     
-    // 1. Fade out muna ang current text
     winnerEntry.classList.remove('fade-in');
     winnerEntry.classList.add('fade-out');
     
-    // 2. Hintayin matapos ang fade out (300ms) bago palitan ang content
     setTimeout(() => {
         const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
-        
         let displayText = '';
-        if (type === 'withdrawal') {
-            // Withdrawal format with GCash Icon (Amounts > 300)
-            displayText = `successful withdrawal <span class="ticker-amount">₱${amount}</span> ${gcIcon}`;
+        
+        if (type === 'task') {
+            displayText = `${phoneNumber} completed task <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
         } else {
-            // Task format (+150 or +300 only)
-            displayText = `${actionText} <span class="ticker-amount">+₱${amount}</span>`;
+            displayText = `${phoneNumber} successful referral <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
         }
         
-        winnerEntry.innerHTML = `${newText} ${displayText}`;
-        
-        // 3. Fade in ang bagong text
+        winnerEntry.innerHTML = displayText;
         winnerEntry.classList.remove('fade-out');
         winnerEntry.classList.add('fade-in');
-    }, 300);
+    }, 200);
 }
 
 function startTicker() {
-    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
+    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
     
-    // Task amounts strictly 150 and 300 only
-    const taskAmounts = [150, 300]; 
-    const taskTexts = ["task reward", "completed the task"];
+    // Task rewards (common)
+    const taskRewards = [150, 150, 150, 150, 150, 150, 300, 300, 300, 450, 450, 600];
     
-    // Withdrawal amounts (Lalampas ng 300)
-    const withdrawalAmounts = [500, 800, 1200, 1500, 2000, 2500, 5000];
+    // Referral reward (fixed)
+    const referralReward = 300;
+    
+    // Rare rewards
+    const rareRewards = [750, 900, 1200];
+    
+    function getRandomAmount() {
+        const rand = Math.random();
+        
+        // 70% task reward, 30% referral reward
+        if (rand < 0.7) {
+            // Task reward - weighted
+            const taskRand = Math.random();
+            if (taskRand < 0.6) {
+                return { amount: 150, type: 'task' };      // 60% chance
+            } else if (taskRand < 0.85) {
+                return { amount: 300, type: 'task' };      // 25% chance
+            } else if (taskRand < 0.95) {
+                return { amount: 450, type: 'task' };      // 10% chance
+            } else {
+                return { amount: 600, type: 'task' };      // 5% chance
+            }
+        } else {
+            // Referral reward
+            const rareRand = Math.random();
+            if (rareRand < 0.95) {
+                return { amount: 300, type: 'referral' };   // 95% chance for 300
+            } else {
+                const rareAmount = rareRewards[Math.floor(Math.random() * rareRewards.length)];
+                return { amount: rareAmount, type: 'referral' }; // 5% chance for rare
+            }
+        }
+    }
     
     function generateWinner() {
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const randomSuffix = Math.floor(1000 + Math.random() * 9000);
         const phoneNumber = `${randomPrefix}***${randomSuffix}`;
-        
-        // 60% chance for task completion, 40% chance for GCash withdrawal
-        const isTask = Math.random() < 0.6;
-        
-        let amount;
-        let type;
-        let actionText = '';
-        
-        if (isTask) {
-            amount = taskAmounts[Math.floor(Math.random() * taskAmounts.length)];
-            type = 'task';
-            actionText = taskTexts[Math.floor(Math.random() * taskTexts.length)];
-        } else {
-            amount = withdrawalAmounts[Math.floor(Math.random() * withdrawalAmounts.length)];
-            type = 'withdrawal';
-        }
-        
-        return { phoneNumber, amount, type, actionText };
+        const { amount, type } = getRandomAmount();
+        return { phoneNumber, amount, type };
     }
     
-    // Initial display pagka-load ng page
+    // Initial display
     const initial = generateWinner();
     const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
     let initialText = '';
-    
-    if (initial.type === 'withdrawal') {
-        initialText = `${initial.phoneNumber} successful withdrawal <span class="ticker-amount">₱${initial.amount}</span> ${gcIcon}`;
+    if (initial.type === 'task') {
+        initialText = `${initial.phoneNumber} completed task <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
     } else {
-        initialText = `${initial.phoneNumber} ${initial.actionText} <span class="ticker-amount">+₱${initial.amount}</span>`;
+        initialText = `${initial.phoneNumber} successful referral <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
     }
-    
     winnerEntry.innerHTML = initialText;
     winnerEntry.classList.add('fade-in');
     
-    // Trigger pagpalit ng winner every 4.5 seconds
     setInterval(() => {
-        const { phoneNumber, amount, type, actionText } = generateWinner();
-        updateTickerWithTransition(phoneNumber, amount, type, actionText);
-    }, 4500);
+        const { phoneNumber, amount, type } = generateWinner();
+        updateTickerWithTransition(phoneNumber, amount, type);
+    }, 4800);
 }
-
 
 // ========== MODAL FUNCTIONS ==========
 function closeModal() {
