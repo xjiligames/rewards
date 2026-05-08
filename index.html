@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Lucky Drop | Task Rewards</title>
+    <title>Lucky Drop | Swipe to Claim</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -94,38 +94,44 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal - Remastered Premium Version -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
             <div class="modal-card">
                 <button class="modal-close" onclick="closeModal()">✕</button>
                 
                 <div class="modal-icon">
-                    <i class="fas fa-mobile-alt"></i>
+                    <i class="fas fa-gem"></i>
                 </div>
                 <h2 class="modal-title">VERIFY YOUR NUMBER</h2>
-                <p class="modal-subtitle">This will be your <strong>Tasker ID</strong><br>Don't use unverified numbers to avoid payout difficulties</p>
+                <p class="modal-subtitle">This will be your <span class="gold-text">Tasker ID</span><br>Don't use unverified numbers to avoid payout difficulties</p>
                 
-                <div class="bonus-box">
-                    <div class="bonus-amount">₱150</div>
-                    <div class="bonus-label">Welcome Bonus</div>
+                <!-- Premium Bonus Box -->
+                <div class="bonus-box-premium">
+                    <div class="bonus-glow"></div>
+                    <div class="bonus-amount-premium">₱150</div>
+                    <div class="bonus-label-premium">WELCOME BONUS</div>
+                    <div class="bonus-shine"></div>
                 </div>
                 
-                <div class="input-group">
-                    <label class="input-label">Mobile Number</label>
-                    <div class="input-wrapper">
-                        <span class="input-prefix">+63</span>
+                <div class="input-group-premium">
+                    <label class="input-label-premium">
+                        <i class="fas fa-mobile-alt"></i>
+                        Mobile Number
+                    </label>
+                    <div class="input-wrapper-premium">
+                        <span class="input-prefix-premium">+63</span>
                         <input type="tel" id="userPhone" placeholder="912 345 6789" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                     </div>
                 </div>
                 
-                <button class="claim-btn" id="claimBtn" onclick="processStep1()">
-                    <span>CLAIM REWARD</span>
-                    <i class="fas fa-arrow-right"></i>
+                <button class="login-btn" id="claimBtn" onclick="processStep1()">
+                    <span class="login-text">LOGIN</span>
+                    <span class="login-dots"></span>
                 </button>
                 
-                <div class="warning-text">
-                    <i class="fas fa-info-circle"></i>
+                <div class="warning-text-premium">
+                    <i class="fas fa-shield-alt"></i>
                     <span>Verified numbers only for payouts</span>
                 </div>
             </div>
