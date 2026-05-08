@@ -18,6 +18,7 @@ body {
     overflow-x: hidden;
 }
 
+/* ========== BACKGROUND ========== */
 .bg-gradient {
     position: fixed;
     top: 0;
@@ -95,21 +96,6 @@ body {
     transform: translateY(0);
 }
 
-.ticker-gcash-icon {
-    width: 14px;
-    height: 14px;
-    object-fit: contain;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-.ticker-amount {
-    font-family: 'Orbitron', monospace;
-    font-size: 11px;
-    font-weight: 800;
-    color: #ffd700;
-}
-
 .ticker-dot {
     width: 8px;
     height: 8px;
@@ -133,11 +119,10 @@ body {
     font-family: 'Orbitron', monospace;
     font-weight: 800;
     color: #000;
-    text-shadow: none;
     flex-shrink: 0;
 }
 
-/* ========== MAIN VIP CARD ========== */
+/* ========== MAIN CARD ========== */
 .main-card {
     position: relative;
     width: 100%;
@@ -185,7 +170,6 @@ body {
     background-clip: text;
     color: transparent;
     text-transform: uppercase;
-    filter: drop-shadow(0 4px 2px rgba(0,0,0,0.5));
 }
 
 /* Value Props */
@@ -465,6 +449,12 @@ body {
     color: #d4af37;
     cursor: pointer;
     font-size: 14px;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: rgba(255, 68, 68, 0.3);
+    color: #ff6666;
 }
 
 .modal-icon {
@@ -747,15 +737,6 @@ body {
     .ticker-text {
         font-size: 9px;
         gap: 4px;
-    }
-    
-    .ticker-amount {
-        font-size: 9px;
-    }
-    
-    .ticker-gcash-icon {
-        width: 12px;
-        height: 12px;
     }
     
     .ticker-badge {
