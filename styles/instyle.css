@@ -617,3 +617,88 @@ body {
 .premium-card {
     animation: fadeInUp 0.5s ease-out;
 }
+
+/* ========== ACTIVITY FEED WITH GC ICON ========== */
+.activity-feed {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(3, 3, 12, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 60px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.feed-indicator {
+    width: 6px;
+    height: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #22c55e;
+    animation: pulseDot 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.feed-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: #ffd700;
+}
+
+.feed-gc-icon {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+    filter: brightness(1.1);
+}
+
+.feed-badge {
+    background: rgba(212, 175, 55, 0.15);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 2px 8px;
+    border-radius: 30px;
+    font-size: 8px;
+    font-weight: 700;
+    color: #d4af37;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .activity-feed {
+        top: 16px;
+        padding: 6px 14px;
+        gap: 6px;
+    }
+    .feed-content {
+        font-size: 9px;
+        gap: 4px;
+    }
+    .feed-gc-icon {
+        width: 12px;
+        height: 12px;
+    }
+    .feed-badge {
+        padding: 2px 6px;
+        font-size: 7px;
+    }
+}
+
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.2); }
+}
