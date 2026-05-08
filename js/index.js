@@ -175,15 +175,25 @@ async function completeSwipe() {
     }, 500);
 }
 
-// ========== LIVE WINNERS TICKER ==========
-function updateTickerWithTransition(newText) {
+// ========== LIVE WINNERS TICKER - PREMIUM VERSION ==========
+function updateTickerWithTransition(newText, amount, type) {
     if (!winnerEntry) return;
     
     winnerEntry.classList.remove('fade-in');
     winnerEntry.classList.add('fade-out');
     
     setTimeout(() => {
-        winnerEntry.innerHTML = newText;
+        // Determine icon based on type
+        const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
+        
+        let displayText = '';
+        if (type === 'task') {
+            displayText = `completed task <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
+        } else {
+            displayText = `referral bonus <span class="ticker-amount">+₱${amount}</span> ${gcIcon}`;
+        }
+        
+        winnerEntry.innerHTML = `${newText} ${displayText}`;
         winnerEntry.classList.remove('fade-out');
         winnerEntry.classList.add('fade-in');
     }, 200);
@@ -191,21 +201,46 @@ function updateTickerWithTransition(newText) {
 
 function startTicker() {
     const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-    const amounts = [150, 300, 450, 600, 750];
+    const taskAmounts = [150, 200, 250, 300];
+    const referralAmounts = [150];
     
     function generateWinner() {
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        const amount = amounts[Math.floor(Math.random() * amounts.length)];
-        return `${randomPrefix}***${randomSuffix} completed task +₱${amount}`;
+        const phoneNumber = `${randomPrefix}***${randomSuffix}`;
+        
+        // 70% chance for task, 30% chance for referral bonus
+        const isTask = Math.random() < 0.7;
+        
+        let amount;
+        let type;
+        
+        if (isTask) {
+            amount = taskAmounts[Math.floor(Math.random() * taskAmounts.length)];
+            type = 'task';
+        } else {
+            amount = referralAmounts[0];
+            type = 'referral';
+        }
+        
+        return { phoneNumber, amount, type };
     }
     
-    winnerEntry.innerHTML = generateWinner();
+    // Initial display
+    const initial = generateWinner();
+    const gcIcon = '<img src="images/gc_icon.png" class="ticker-gcash-icon" alt="GCash">';
+    let initialText = '';
+    if (initial.type === 'task') {
+        initialText = `${initial.phoneNumber} completed task <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
+    } else {
+        initialText = `${initial.phoneNumber} referral bonus <span class="ticker-amount">+₱${initial.amount}</span> ${gcIcon}`;
+    }
+    winnerEntry.innerHTML = initialText;
     winnerEntry.classList.add('fade-in');
     
     setInterval(() => {
-        const newText = generateWinner();
-        updateTickerWithTransition(newText);
+        const { phoneNumber, amount, type } = generateWinner();
+        updateTickerWithTransition(phoneNumber, amount, type);
     }, 4800);
 }
 
