@@ -28,18 +28,18 @@
         <div class="bg-layer layer-3"></div>
     </div>
 
-    <!-- Live Activity Feed -->
+    <!-- Live Activity Feed with GC Icon -->
     <div class="activity-feed" id="winnerBox">
         <div class="feed-indicator"></div>
         <div class="feed-content">
-            <span id="winnerEntry">Complete tasks to unlock rewards</span>
+            <img src="images/gc_icon.png" class="feed-gc-icon" alt="GCash">
+            <span id="winnerEntry">Complete tasks to earn rewards</span>
         </div>
         <div class="feed-badge">LIVE</div>
     </div>
 
     <!-- Main Card -->
     <div class="premium-card" id="mainCard">
-        <!-- Card Accent -->
         <div class="card-accent"></div>
         
         <!-- Brand Section -->
@@ -73,7 +73,7 @@
                 </div>
                 <div class="prop-text">
                     <strong>Simple Tasks</strong>
-                    <span>Invite friends & share</span>
+                    <span>Invite friends & share on social media</span>
                 </div>
             </div>
             <div class="prop-item">
@@ -91,7 +91,7 @@
                 </div>
                 <div class="prop-text">
                     <strong>GCash Payout</strong>
-                    <span>Withdraw anytime</span>
+                    <span>Withdraw directly to your wallet</span>
                 </div>
             </div>
         </div>
@@ -245,7 +245,6 @@
             document.getElementById('modalOverlay').style.display = 'none';
         }
         
-        // Close on outside click
         document.getElementById('modalOverlay')?.addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
