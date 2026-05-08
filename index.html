@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Lucky Drop | Task & Earn</title>
+    <title>Lucky Drop | Task Rewards</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -27,7 +27,7 @@
     <div class="live-ticker">
         <div class="ticker-dot"></div>
         <div class="ticker-content">
-            <span class="ticker-text" id="winnerEntry">🎲 0917***4256 completed task +₱150 🎲</span>
+            <span class="ticker-text" id="winnerEntry">0917***4256 completed task +₱150</span>
         </div>
         <div class="ticker-badge">LIVE</div>
     </div>
@@ -80,10 +80,10 @@
         <!-- Swipe to Verify Section -->
         <div class="swipe-container">
             <div class="swipe-track" id="swipeTrack">
+                <div class="swipe-fire-trail" id="swipeFireTrail"></div>
                 <div class="swipe-icon" id="swipeIcon">
                     <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
                 </div>
-                <div class="swipe-fire" id="swipeFire"></div>
                 <div class="swipe-text">SWIPE TO VERIFY</div>
             </div>
         </div>
