@@ -738,3 +738,99 @@ body {
         padding: 24px 20px;
     }
 }
+
+/* ========== LIVE TICKER - PREMIUM VERSION ========== */
+.live-ticker {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10, 10, 20, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 100px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100;
+    animation: slideDown 0.5s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateX(-50%) translateY(-100%); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.ticker-dot {
+    width: 8px;
+    height: 8px;
+    background: #22C55E;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #22C55E;
+    animation: pulseDot 1.5s infinite;
+    flex-shrink: 0;
+}
+
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.2); }
+}
+
+.ticker-content {
+    overflow: hidden;
+    min-width: 220px;
+}
+
+.ticker-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #E0E0E0;
+    white-space: nowrap;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+}
+
+.ticker-text.fade-out {
+    opacity: 0;
+    transform: translateY(5px);
+}
+
+.ticker-text.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.ticker-gcash-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.ticker-amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.ticker-badge {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 255, 136, 0.05));
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 8px;
+    font-weight: 700;
+    color: #22C55E;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
