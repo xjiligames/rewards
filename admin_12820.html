@@ -101,35 +101,35 @@
     </div>
     <div id="userDropdown" class="dropdown-content">
         
-        <!-- ACTION BUTTONS ROW - naka-align sa columns -->
-        <div id="actionButtonsRow" class="action-buttons-row" style="display: none;">
-            <!-- Column 1: Empty (para sa PHONE column) -->
-            <div class="action-placeholder"></div>
-            
-            <!-- Column 2: Empty (para sa BALANCE column) -->
-            <div class="action-placeholder"></div>
-            
-            <!-- Column 3: DEV Button (naka-align sa DEV# column) -->
-            <div class="action-btn-wrapper">
-                <button id="devSortBtn" class="action-btn" onclick="toggleDevSort()">
-                    📱 DEV <span id="devSortStatus" class="sort-status">OFF</span>
-                </button>
-            </div>
-            
-            <!-- Column 4: TIME Button (naka-align sa LAST SEEN column) -->
-            <div class="action-btn-wrapper">
-                <button id="timeSortBtn" class="action-btn active" onclick="toggleTimeSort()">
-                    ⏰ TIME
-                </button>
-            </div>
-            
-            <!-- Column 5: SKULL Button (naka-align sa ACTIONS column) -->
-            <div class="action-btn-wrapper">
-                <button id="deleteModeBtn" class="action-btn" onclick="toggleDeleteMode()">
-                    💀 SKULL <span id="deleteModeStatus" class="sort-status">OFF</span>
-                </button>
-            </div>
-        </div>
+        <!-- ACTION BUTTONS ROW (nakatago sa simula) -->
+<div id="actionButtonsRow" class="action-buttons-row" style="display: none;">
+    <!-- Column 1: Empty -->
+    <div class="action-placeholder"></div>
+    
+    <!-- Column 2: Empty -->
+    <div class="action-placeholder"></div>
+    
+    <!-- Column 3: DEV Button (Icon only) -->
+    <div class="action-btn-wrapper">
+        <button id="devSortBtn" class="action-btn" data-tooltip="Sort by Device" onclick="toggleDevSort()">
+            📱
+        </button>
+    </div>
+    
+    <!-- Column 4: TIME Button (Icon only) -->
+    <div class="action-btn-wrapper">
+        <button id="timeSortBtn" class="action-btn active" data-tooltip="Sort by Time" onclick="toggleTimeSort()">
+            ⏰
+        </button>
+    </div>
+    
+    <!-- Column 5: SKULL Button (Icon only) -->
+    <div class="action-btn-wrapper">
+        <button id="deleteModeBtn" class="action-btn" data-tooltip="Delete Mode" onclick="toggleDeleteMode()">
+            💀
+        </button>
+    </div>
+</div>
         
         <!-- BULK DELETE BAR (lalabas kapag may selected) -->
         <div id="bulkDeleteBar" class="bulk-delete-bar" style="display: none;">
