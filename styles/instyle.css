@@ -399,3 +399,14 @@ body {
     color: #1a1100;
     text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
 }
+
+/* ========== GCASH ICON FIX ========== */
+.ticker-gcash-icon {
+    width: 18px;       /* Tamang-tamang laki para pumantay sa text */
+    height: 18px;      /* Pantay na aspect ratio */
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle; /* Pantay sa gitna ng katabing text */
+    margin-left: 5px;  /* Konting awang sa text */
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.2)); /* Konting glow para lumitaw */
+}
