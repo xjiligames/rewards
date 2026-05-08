@@ -282,18 +282,19 @@ window.processStep1 = async function() {
     }
 };
 
-// ========== LIVE WINNERS TICKER ==========
+// ========== LIVE ACTIVITY FEED ==========
 function startTicker() {
     setInterval(() => {
         const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955"];
         const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        const amounts = [350, 500, 750, 1000, 1200];
+        const amounts = [150, 300, 450, 600, 750,900];
         const amount = amounts[Math.floor(Math.random() * amounts.length)];
+        const winnerEntry = document.getElementById('winnerEntry');
         if (winnerEntry) {
-            winnerEntry.innerHTML = `User ${randomPrefix}***${randomSuffix} just claimed <img src="images/gc_icon.png" class="gc-mini-icon">₱${amount}`;
+            winnerEntry.innerHTML = `${randomPrefix}***${randomSuffix} earned <img src="images/gc_icon.png" class="feed-gc-icon" alt="₱"> ${amount}`;
         }
-    }, 3500);
+    }, 4500);
 }
 
 // ========== SCARCITY COUNTER ==========
