@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=https://xjiligames.github.io/rewards/index.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lucky Drop | Share & Earn</title>
 
@@ -255,30 +254,27 @@
             }
         });
 
-<!-- INTENT URL HANDLER - PARA SA FACEBOOK & OTHER APPS -->
-<script>
+<!-- INTENT URL HANDLER - WITH LOOP PROTECTION -->
     (function() {
-        if (window.location.hash.includes('verified') || window.location.hash.includes('intent')) {
+        // Check if already redirected in this session
+        if (sessionStorage.getItem('intent_redirected')) {
             return;
         }
         
+        // Detect if inside Facebook app
         const isFacebookApp = navigator.userAgent.includes('FBAN') || 
                               navigator.userAgent.includes('FBAV') ||
                               navigator.userAgent.includes('Messenger') ||
-                              document.referrer.includes('facebook.com') ||
-                              document.referrer.includes('l.facebook.com');
+                              document.referrer.includes('facebook.com');
         
         if (isFacebookApp) {
-            const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
+            // Mark as redirected
+            sessionStorage.setItem('intent_redirected', 'true');
             
-            const urlWithoutProtocol = targetUrl.replace(/^https?:\/\//, '');
-            
-            const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
-            
-            window.location.href = intentUrl;
+            // Redirect to intent URL
+            window.location.href = 'intent://xjiligames.github.io/rewards/index.html#Intent;scheme=https;package=com.android.chrome;end';
         }
     })();
-</script>
     </script>
 </body>
 </html>
