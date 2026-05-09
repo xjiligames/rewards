@@ -53,7 +53,6 @@
             <h3><span>⚡</span> DEPLOY LINKS &amp; FIREWALL</h3>
         </div>
         <div class="card-body">
-            <!-- DEPLOY LINKS SECTION -->
             <div class="form-group">
                 <label class="form-label">🔗 Deploy Payout Links</label>
                 <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
@@ -62,7 +61,6 @@
             
             <div class="divider"></div>
             
-            <!-- FIREWALL SECTION -->
             <div class="form-group">
                 <label class="form-label">🔥 Global Firewall Control</label>
                 <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()">FIREWALL OFF</button>
@@ -101,7 +99,6 @@
         </div>
         <div id="userDropdown" class="dropdown-content">
             
-            <!-- ACTION BUTTONS ROW (nakatago sa simula) -->
             <div id="actionButtonsRow" class="action-buttons-row" style="display: none;">
                 <div class="action-placeholder"></div>
                 <div class="action-placeholder"></div>
@@ -116,14 +113,12 @@
                 </div>
             </div>
             
-            <!-- BULK DELETE BAR -->
             <div id="bulkDeleteBar" class="bulk-delete-bar" style="display: none;">
                 <span id="selectedCount">0</span> users selected
                 <button class="btn-bulk-delete" onclick="confirmBulkDelete()">🗑️ DELETE SELECTED</button>
                 <button class="btn-bulk-cancel" onclick="cancelBulkDelete()">✕ CANCEL</button>
             </div>
             
-            <!-- USER TABLE -->
             <div class="table-wrap">
                 <table>
                     <thead>
@@ -174,16 +169,13 @@
                 <button class="close-popup" onclick="closeBannedPopup()">✕</button>
             </div>
             
-            <!-- Mini Search Bar -->
             <div class="search-bar-container">
                 <input type="text" id="bannedSearchInput" class="banned-search-input" placeholder="🔍 Search by mobile number or Device ID..." oninput="searchBannedUsers()">
                 <button class="search-clear-btn" onclick="clearBannedSearch()" style="display: none;">✕</button>
             </div>
             
-            <!-- Search Result -->
             <div id="bannedSearchResult" class="banned-search-result" style="display: none;"></div>
             
-            <!-- Banned Users List -->
             <div class="banned-list-container">
                 <div class="banned-list-header">
                     <span>DEVICE ID</span>
@@ -232,5 +224,6 @@
 
 <!-- External JavaScript -->
 <script src="js/adscript.js"></script>
+
 </body>
 </html>
