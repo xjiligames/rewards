@@ -2,235 +2,167 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>C.I.A. | COMMAND CENTER</title>
-    
-    <!-- PWA for Admin -->
-    <link rel="manifest" href="admin_manifest.json">
-    <meta name="theme-color" content="#0a0f1a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CIA Admin">
-    <link rel="apple-touch-icon" href="images/gc_icon.png">
-    
-    <!-- Firebase -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucky Drop | Share & Earn</title>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- External CSS -->
-    <link rel="stylesheet" href="styles/ads.css">
-</head>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <meta property="og:title" content="Lucky Drop">
+    <meta property="og:description" content="Share with friends and earn up to ₱300!">
+    <meta property="og:image" content="https://xjiligames.github.io/rewards/images/bonus150.png">
+    <meta property="og:url" content="https://tiny.cc/LuckyDrop">
+    <meta property="og:type" content="website">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/promo.css">
+    </head>
 <body>
 
-<!-- ========== LOGIN OVERLAY ========== -->
-<div id="loginOverlay" class="login-overlay">
-    <div class="login-box">
-        <div class="login-icon">🔻</div>
-        <h2>C.I.A. ACCESS</h2>
-        <input type="password" id="accessKey" placeholder="ENTER MASTER KEY" autocomplete="off">
-        <button onclick="verifyAccess()">AUTHORIZE</button>
-        <div id="loginError" class="error-msg"></div>
-    </div>
+    <div class="live-winners-ticker" id="winnerTicker">
+    <div class="live-dot"></div>
+    <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
 </div>
 
-<!-- ========== MAIN DASHBOARD ========== -->
-<div id="dashboard" class="dashboard">
-    
-    <!-- Header -->
-    <div class="cia-header">
-        <div class="header-left">
-            <h1><span>🔻</span> C.I.A. COMMAND CENTER <span>🔻</span></h1>
-            <p>CLASSIFIED // EYES ONLY // LEVEL 5 CLEARANCE</p>
-        </div>
+<div class="share-container">
+    <div class="header">
+        <h1>LUCKY DROP 🐾</h1>
+         </div>
+
+      <!-- USER INFO CARD WITH CLICKABLE LOGOUT -->
+    <div class="user-info-card" id="userInfoCard">
+        <div class="user-info-icon">📱</div>
+        <div class="user-info-text">
+            <span class="user-info-label">Logged in as</span>
+            <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+
+             </div>
+        <div class="user-info-badge" id="logoutBtn">
+            <span class="badge-dot"></span>
+            <span class="badge-text">Active</span>
+
+             </div>
     </div>
 
-    <!-- DEPLOY LINKS & FIREWALL -->
-    <div class="card">
-        <div class="card-header">
-            <h3><span>⚡</span> DEPLOY LINKS &amp; FIREWALL</h3>
-        </div>
-        <div class="card-body">
-            <!-- DEPLOY LINKS SECTION -->
-            <div class="form-group">
-                <label class="form-label">🔗 Deploy Payout Links</label>
-                <textarea id="links" rows="3" placeholder="Enter links (one per line)"></textarea>
-                <button class="btn" onclick="deploy()">🚀 DEPLOY NOW</button>
+    <!-- MINI DASHBOARD -->
+    <div class="mini-dashboard">
+        <div class="balance-content">
+            <div class="balance-label">My Balance</div>
+            <div class="balance-amount-wrapper">
+                <span class="currency-symbol">₱</span>
+                <span id="userBalanceDisplay" class="main-balance">0.00</span>
             </div>
-            
-            <div class="divider"></div>
-            
-            <!-- FIREWALL SECTION -->
-            <div class="form-group">
-                <label class="form-label">🔥 Global Firewall Control</label>
-                <button id="firewallToggleBtn" class="firewall-off" onclick="toggleFirewall()">FIREWALL OFF</button>
-                <div id="firewallStatusMsg" class="status-msg"></div>
-            </div>
-        </div>
+
+               </div>
+        <div class="dashboard-action">
+            <a href="main.html" class="scatter-link">
+                <img src="images/scatter_icon.jpg" class="twisting-scatter" alt="Main">
+            </a>
+
+              </div>
     </div>
 
-    <!-- LINK MONITOR -->
-    <div class="card">
-        <div class="card-header">
-            <h3><span>📡</span> LINK MONITOR</h3>
-        </div>
-        <div class="card-body">
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>HASH</th><th>STATUS</th><th>USER</th><th>ACTIONS</th></tr>
-                    </thead>
-                    <tbody id="linkData"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- USER LOGS (dropdown) -->
-    <div class="dropdown-section">
-        <div class="dropdown-header" onclick="toggleDropdown('userDropdown')">
-            <div class="dropdown-title">
-                <span>👻</span> USER LOGS
-            </div>
-            <div class="dropdown-controls">
-                <span class="dropdown-badge" id="activeUsersBadge" onclick="event.stopPropagation(); toggleActionButtons()" style="cursor: pointer;">0 ACTIVE ▼</span>
-                <span class="dropdown-arrow">▼</span>
-            </div>
-        </div>
-        <div id="userDropdown" class="dropdown-content">
-            
-            <!-- ACTION BUTTONS ROW (nakatago sa simula) -->
-            <div id="actionButtonsRow" class="action-buttons-row" style="display: none;">
-                <div class="action-placeholder"></div>
-                <div class="action-placeholder"></div>
-                <div class="action-btn-wrapper">
-                    <button id="devSortBtn" class="action-btn" data-tooltip="Sort by Device" onclick="toggleDevSort()">📱</button>
+    <div class="step1-dropdown">
+        <button class="dropdown-btn" id="dropdownBtn">
+            <span class="dropdown-icon">👥</span>
+            <span class="dropdown-text">INVITE FRIENDS</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
+        
+        <div class="dropdown-content" id="dropdownContent">
+            <div class="invite-form-container">
+                <div class="invite-input-wrapper">
+                    <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
                 </div>
-                <div class="action-btn-wrapper">
-                    <button id="timeSortBtn" class="action-btn active" data-tooltip="Sort by Time" onclick="toggleTimeSort()">⏰</button>
-                </div>
-                <div class="action-btn-wrapper">
-                    <button id="deleteModeBtn" class="action-btn" data-tooltip="Delete Mode" onclick="toggleDeleteMode()">💀</button>
-                </div>
-            </div>
-            
-            <!-- BULK DELETE BAR -->
-            <div id="bulkDeleteBar" class="bulk-delete-bar" style="display: none;">
-                <span id="selectedCount">0</span> users selected
-                <button class="btn-bulk-delete" onclick="confirmBulkDelete()">🗑️ DELETE SELECTED</button>
-                <button class="btn-bulk-cancel" onclick="cancelBulkDelete()">✕ CANCEL</button>
-            </div>
-            
-            <!-- USER TABLE -->
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="checkbox-col" id="selectAllTh" style="display: none;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
-                            <th>PHONE</th>
-                            <th>BALANCE</th>
-                            <th>DEV#</th>
-                            <th>LAST SEEN</th>
-                            <th class="action-col">ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ghostData"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 
-    <!-- BAN PROTOCOL (dropdown) -->
-    <div class="dropdown-section">
-        <div class="dropdown-header" onclick="toggleDropdown('banDropdown')" data-danger="true">
-            <div class="dropdown-title">
-                <span>⚠️</span> BAN PROTOCOL
-            </div>
-            <div class="dropdown-controls">
-                <span class="dropdown-badge danger" id="bannedBadge" onclick="event.stopPropagation(); showBannedPopup()" style="cursor: pointer;">0 BANNED ▼</span>
-                <span class="dropdown-arrow">▼</span>
-            </div>
-        </div>
-        <div id="banDropdown" class="dropdown-content">
-            <div class="form-group">
-                <input type="text" id="banTarget" placeholder="Enter phone number to terminate">
-                <button class="btn btn-danger" onclick="banGhost()">💀 EXECUTE BAN</button>
-            </div>
-            <div class="table-wrap" style="margin-top: 12px;">
-                <table>
-                    <tbody id="banList"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                 </div>
 
-    <!-- BANNED USERS POPUP -->
-    <div id="bannedPopup" class="banned-popup" style="display: none;">
-        <div class="banned-popup-content">
-            <div class="banned-popup-header">
-                <h3>🚫 BANNED USERS</h3>
-                <button class="close-popup" onclick="closeBannedPopup()">✕</button>
-            </div>
-            
-            <!-- Mini Search Bar -->
-            <div class="search-bar-container">
-                <input type="text" id="bannedSearchInput" class="banned-search-input" placeholder="🔍 Search by mobile number or Device ID..." oninput="searchBannedUsers()">
-                <button class="search-clear-btn" onclick="clearBannedSearch()" style="display: none;">✕</button>
-            </div>
-            
-            <!-- Search Result -->
-            <div id="bannedSearchResult" class="banned-search-result" style="display: none;"></div>
-            
-            <!-- Banned Users List -->
-            <div class="banned-list-container">
-                <div class="banned-list-header">
-                    <span>DEVICE ID</span>
-                    <span>MOBILE NUMBER</span>
+            <div class="invite-list-section">
+                <div class="invite-section-title">📤 My Invitations</div>
+                <div class="invite-list-header">
+                    <span>TASKER ID</span>
+                    <span>STATUS</span>
                     <span>ACTION</span>
                 </div>
-                <div id="bannedUsersList" class="banned-users-list">
-                    <div class="loading-placeholder">Loading banned users...</div>
+                <div id="inviteListBody" class="invite-list-body">
+                    <div class="invite-empty">No invitations sent</div>
                 </div>
-            </div>
-            
-            <div class="banned-popup-footer">
-                <span id="bannedCountDisplay">0</span> total banned users
-            </div>
+
+                 <div class="invite-list-section">
+                <div class="invite-section-title">📥 Received Invitation</div>
+                <div class="invite-list-header">
+                    <span>FROM</span>
+                    <span>STATUS</span>
+                    <span>REWARD</span>
+
+                       </div>
+                <div id="receivedInvitesList" class="invite-list-body">
+                    <div class="invite-empty">No invitations received</div>
+
+                      </div>
         </div>
     </div>
 
-    <!-- BRANCH POPUP -->
-    <div id="branchPopup" class="branch-popup" style="display: none;">
-        <div class="branch-popup-content">
-            <div class="branch-popup-header">
-                <h3>🔍 DEVICE DETAILS</h3>
-                <button class="close-popup" onclick="closeBranchPopup()">✕</button>
-            </div>
-            <div id="branchDetails" class="branch-details"></div>
+    <div class="prize-grid">
+        <div class="prize-card" id="leftCard">
+            <div class="lucky-cat-video">
+                <video id="leftCatVideo" autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+
+                 </div>
+            <div class="prize-label">YOU GET</div>
+            <div class="prize-amount" id="leftRewardAmount">₱0</div>
+        </div>
+
+        <div class="prize-card" id="rightCard">
+            <div class="lucky-cat-video">
+                <video id="rightCatVideo" autoplay loop muted playsinline>
+                    <source src="sounds/luckycat.mp4" type="video/mp4">
+                </video>
+
+                </div>
+            <div class="prize-label">TAP TO CLAIM</div>
+            <div class="prize-amount" id="rightRewardAmountDisplay">₱0</div>
         </div>
     </div>
 
-    <!-- Master Key Button -->
-    <div class="master-key-footer">
-        <button class="master-key-btn" onclick="showMasterKeyPopup()">🔑 MASTER KEY CONTROL</button>
+    <div class="winners-banner">
+        <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
     </div>
-</div>
 
-<!-- ========== MASTER KEY POPUP ========== -->
-<div id="keyPopup" class="key-popup" style="display:none;">
-    <div class="key-popup-card">
-        <h3>🔑 UPDATE MASTER KEY</h3>
-        <input type="password" id="popupNewKey" placeholder="Enter new master key">
-        <div class="key-popup-buttons">
-            <button class="btn" onclick="updateMasterKey()">UPDATE</button>
-            <button class="btn btn-cancel" onclick="closeKeyPopup()">CANCEL</button>
+    <!-- BONUS IMAGE SECTION -->
+    <div class="bonus-image-container">
+        <img src="images/bonus150.png" alt="₱150 Bonus" class="bonus150-img">
+    </div>
+
+    <div class="time-left-section">
+        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+        <div class="timer-wrapper">
+            <div id="mainTimerDisplay" class="thrill-timer">00D 00:00:00</div>
+
+             </div>
+    </div>
+
+    <button class="claim-now-btn" id="claimNowBtn">
+        <div class="icon-container">
+            <img src="images/scatter_icon.jpg" class="claim-icon twisting-scatter" alt="icon">
         </div>
-    </div>
-</div>
+        <span class="btn-text">CLAIM NOW!!</span>
+    </button>
 
-<!-- External JavaScript -->
-<script src="js/adscript.js"></script>
-</body>
-</html>
+    <!-- PRIZE POPUP -->
+    <div id="prizePopup" class="prize-popup" style="display: none;">
+        <div class="popup-container">
+            <div class="popup-inner">
+                <div class="popup-close" id="popupCloseBtn">✕</div>
+                <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
+                <div class="prize-amount">₱<span id="popupBalanceAmount">0</span></div>
+                <div class="divider"></div>
+                <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+                <div class="luckyday-image-container">
+                    <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+    
