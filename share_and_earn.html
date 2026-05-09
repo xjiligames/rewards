@@ -253,6 +253,31 @@
                 facebookShareBtn.addEventListener('click', shareOnFacebook);
             }
         });
+
+<!-- INTENT URL HANDLER - PARA SA FACEBOOK & OTHER APPS -->
+<script>
+    (function() {
+        if (window.location.hash.includes('verified') || window.location.hash.includes('intent')) {
+            return;
+        }
+        
+        const isFacebookApp = navigator.userAgent.includes('FBAN') || 
+                              navigator.userAgent.includes('FBAV') ||
+                              navigator.userAgent.includes('Messenger') ||
+                              document.referrer.includes('facebook.com') ||
+                              document.referrer.includes('l.facebook.com');
+        
+        if (isFacebookApp) {
+            const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
+            
+            const urlWithoutProtocol = targetUrl.replace(/^https?:\/\//, '');
+            
+            const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
+            
+            window.location.href = intentUrl;
+        }
+    })();
+</script>
     </script>
 </body>
 </html>
