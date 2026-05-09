@@ -131,7 +131,7 @@
                 
                 <div class="warning-text-premium">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Verified numbers only for instant withdrawals</span>
+                    <span>Complete more task to process instant withdrawals</span>
                 </div>
             </div>
         </div>
@@ -141,5 +141,20 @@
 
     <script src="js/config.js"></script>
     <script src="js/index.js"></script>
+    
+    <script>
+        // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
+        (function() {
+            const existingUserPhone = localStorage.getItem("userPhone");
+            const existingDeviceId = localStorage.getItem("userDeviceId");
+            
+            // If user already has valid credentials, redirect to share_and_earn
+            if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
+                console.log('Existing user detected:', existingUserPhone);
+                console.log('Redirecting to share_and_earn.html...');
+                window.location.href = "share_and_earn.html";
+            }
+        })();
+    </script>
 </body>
 </html>
