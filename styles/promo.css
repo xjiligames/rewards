@@ -2221,3 +2221,64 @@ body::before {
 @keyframes fadeOut {
     to { opacity: 0; visibility: hidden; }
 }
+
+/* ========== LOGOUT BUTTON STYLES ========== */
+.user-info-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(57, 255, 20, 0.15);
+    padding: 5px 12px;
+    border-radius: 30px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.user-info-badge:hover {
+    background: rgba(255, 68, 68, 0.2);
+    transform: scale(1.02);
+}
+
+.user-info-badge:active {
+    transform: scale(0.98);
+}
+
+.user-info-badge:hover .badge-text {
+    color: #ff6666;
+}
+
+.user-info-badge:hover .badge-dot {
+    background: #ff4444;
+    box-shadow: 0 0 8px #ff4444;
+}
+
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    background: #39ff14;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+    transition: all 0.2s ease;
+}
+
+.badge-text {
+    font-size: 10px;
+    color: #39ff14;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+/* Logout confirmation dialog style override */
+.confirm-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(145deg, #1a1525, #0f0a1a);
+    border: 2px solid #ffd700;
+    border-radius: 20px;
+    padding: 20px;
+    z-index: 20000;
+    text-align: center;
+    max-width: 300px;
+}
