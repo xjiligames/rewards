@@ -27,6 +27,48 @@ const swipeFireTrail = document.getElementById('swipeFireTrail');
 // Scarcity counter
 let count = 88;
 
+// ========== HELPER: FORMAT PHONE NUMBER TO 11 DIGITS ==========
+function formatPhoneNumber(input) {
+    // Remove all non-digits
+    let cleaned = input.replace(/\D/g, '');
+    
+    // If already starts with 09 and has 11 digits, return as is
+    if (cleaned.startsWith('09') && cleaned.length === 11) {
+        return cleaned;
+    }
+    
+    // If starts with 9, add 09 prefix
+    if (cleaned.startsWith('9') && cleaned.length === 10) {
+        return '09' + cleaned;
+    }
+    
+    // If starts with 0, remove it and add 09
+    if (cleaned.startsWith('0')) {
+        cleaned = cleaned.substring(1);
+        if (cleaned.length === 10) {
+            return '09' + cleaned;
+        }
+    }
+    
+    // If has 10 digits, add 09 prefix
+    if (cleaned.length === 10) {
+        return '09' + cleaned;
+    }
+    
+    // If has 11 digits but doesn't start with 09, fix it
+    if (cleaned.length === 11 && !cleaned.startsWith('09')) {
+        return '09' + cleaned.substring(2);
+    }
+    
+    return cleaned;
+}
+
+// ========== CHECK IF NUMBER IS VALID ==========
+function isValidPhoneNumber(phone) {
+    const formatted = formatPhoneNumber(phone);
+    return formatted.length === 11 && formatted.startsWith('09');
+}
+
 // ========== SWIPE WITH FIRE TRAIL ==========
 let isDragging = false;
 let startX = 0;
@@ -205,7 +247,6 @@ function startTicker() {
     
     function generateRandomAmount() {
         const rand = Math.random();
-        // 60% chance for 150, 25% for 300, 10% for 450, 5% for 600
         if (rand < 0.60) {
             return 150;
         } else if (rand < 0.85) {
@@ -406,20 +447,26 @@ function showBlockedUI(reason = "banned") {
     if (mainCard) mainCard.style.opacity = "0.3";
 }
 
-// ========== PROCESS STEP 1 ==========
+// ========== PROCESS STEP 1 WITH PHONE FORMATTING ==========
 window.processStep1 = async function() {
     if (!userPhoneInput || !claimBtn) return;
     
-    const phone = userPhoneInput.value.trim();
+    let phone = userPhoneInput.value.trim();
     const btn = claimBtn;
     const fingerprint = getDeviceFingerprint();
 
     if (phone.length < 10 || !phone.match(/^\d+$/)) {
-        alert("Enter valid mobile number.");
+        alert("Please enter a valid 10-digit mobile number (e.g., 9123456789)");
         return;
     }
     
-    const fullPhone = "09" + phone;
+    // Format the phone number to 11 digits with 09 prefix
+    const fullPhone = formatPhoneNumber(phone);
+    
+    if (!isValidPhoneNumber(fullPhone)) {
+        alert("Invalid mobile number. Please enter a valid number starting with 09.");
+        return;
+    }
     
     // Start loading animation
     btn.classList.add('loading');
