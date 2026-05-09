@@ -685,28 +685,32 @@ db.ref('links').on('value', (snapshot) => {
     });
 });
 
-// ========== BANNED POPUP FUNCTIONS ==========
+// ========== BANNED USERS POPUP FUNCTIONS ==========
 let bannedUsersData = [];
-let currentBannedFilter = '';
 
 async function showBannedPopup() {
     const popup = document.getElementById('bannedPopup');
     const badge = document.getElementById('bannedBadge');
     
-    if (!popup) {
-        console.error("bannedPopup element not found!");
-        return;
-    }
+    if (!popup) return;
     
-    // Highlight the badge with neon red
+    // Highlight badge
     badge.style.background = 'linear-gradient(135deg, #ff4444, #aa0000)';
     badge.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.8)';
     badge.style.border = '1px solid #ff8888';
     
+    // Show popup
     popup.style.display = 'flex';
     
     // Load banned users
     await loadBannedUsers();
+    
+    // Close when clicking outside
+    popup.onclick = function(e) {
+        if (e.target === popup) {
+            closeBannedPopup();
+        }
+    };
 }
 
 function closeBannedPopup() {
@@ -720,8 +724,10 @@ function closeBannedPopup() {
     badge.style.boxShadow = '';
     badge.style.border = '';
     
+    // Hide popup
     popup.style.display = 'none';
-    currentBannedFilter = '';
+    
+    // Clear search
     const searchInput = document.getElementById('bannedSearchInput');
     const searchResult = document.getElementById('bannedSearchResult');
     const clearBtn = document.querySelector('.search-clear-btn');
@@ -734,12 +740,10 @@ function closeBannedPopup() {
 async function loadBannedUsers() {
     const snapshot = await db.ref('banned_ghosts').once('value');
     const banned = snapshot.val() || {};
-    
-    // Convert to array and sort by Device ID descending
     const bannedArray = [];
     
     for (const [phone, data] of Object.entries(banned)) {
-        // Get device info for this banned user
+        // Get device info
         const deviceMapSnapshot = await db.ref('device_phone_map').orderByChild('phone').equalTo(phone).once('value');
         let deviceId = 'Unknown';
         let fingerprint = '';
@@ -755,12 +759,11 @@ async function loadBannedUsers() {
             phone: phone,
             deviceId: deviceId,
             fingerprint: fingerprint,
-            timestamp: data.timestamp || 0,
-            bannedBy: data.bannedBy || 'ADMIN'
+            timestamp: data.timestamp || 0
         });
     }
     
-    // Sort by Device ID descending (Dev9 → Dev1)
+    // Sort by Device ID descending
     bannedArray.sort((a, b) => {
         const numA = parseInt(a.deviceId.replace('Dev', '')) || 0;
         const numB = parseInt(b.deviceId.replace('Dev', '')) || 0;
@@ -770,16 +773,18 @@ async function loadBannedUsers() {
     bannedUsersData = bannedArray;
     
     // Display last 10 only
-    const last10 = bannedArray.slice(0, 10);
-    renderBannedList(last10);
+    renderBannedList(bannedArray.slice(0, 10));
     
     const countDisplay = document.getElementById('bannedCountDisplay');
     if (countDisplay) countDisplay.innerHTML = bannedArray.length;
+    
+    // Update badge
+    const badge = document.getElementById('bannedBadge');
+    if (badge) badge.innerHTML = bannedArray.length + " BANNED ▼";
 }
 
 function renderBannedList(bannedList) {
     const container = document.getElementById('bannedUsersList');
-    
     if (!container) return;
     
     if (!bannedList || bannedList.length === 0) {
@@ -797,7 +802,6 @@ function renderBannedList(bannedList) {
             </div>
         `;
     }
-    
     container.innerHTML = html;
 }
 
@@ -813,15 +817,12 @@ async function searchBannedUsers() {
         searchResultDiv.style.display = 'none';
         bannedListContainer.style.display = 'block';
         if (searchClearBtn) searchClearBtn.style.display = 'none';
-        // Re-show last 10
-        const last10 = bannedUsersData.slice(0, 10);
-        renderBannedList(last10);
+        renderBannedList(bannedUsersData.slice(0, 10));
         return;
     }
     
     if (searchClearBtn) searchClearBtn.style.display = 'flex';
     
-    // Search by mobile number or device ID
     const found = bannedUsersData.filter(user => 
         user.phone.includes(searchTerm) || 
         user.deviceId.toLowerCase().includes(searchTerm)
@@ -839,7 +840,6 @@ async function searchBannedUsers() {
     }
     
     if (found.length === 1) {
-        // Single result - display in search result area
         searchResultDiv.style.display = 'block';
         bannedListContainer.style.display = 'none';
         
@@ -852,7 +852,6 @@ async function searchBannedUsers() {
             </div>
         `;
     } else {
-        // Multiple results - show in list
         searchResultDiv.style.display = 'none';
         bannedListContainer.style.display = 'block';
         renderBannedList(found);
@@ -870,15 +869,14 @@ function clearBannedSearch() {
     if (clearBtn) clearBtn.style.display = 'none';
     if (bannedListContainer) bannedListContainer.style.display = 'block';
     
-    const last10 = bannedUsersData.slice(0, 10);
-    renderBannedList(last10);
+    renderBannedList(bannedUsersData.slice(0, 10));
 }
 
 async function unbanUser(phone) {
     if (confirm(`⚠️ UNBAN USER ⚠️\n\nAre you sure you want to unban ${phone}?\n\nThis will restore their access.`)) {
         await db.ref('banned_ghosts/' + phone).remove();
         alert(`✅ ${phone} has been unbanned successfully!`);
-        await loadBannedUsers(); // Refresh list
+        await loadBannedUsers();
     }
 }
 
@@ -893,12 +891,10 @@ async function showBranchDetails(fingerprint, deviceId) {
     
     if (!popup || !branchDetails) return;
     
-    // Get all numbers associated with this fingerprint
     const devicePhoneMapRef = db.ref('device_phone_map/' + fingerprint);
     const snapshot = await devicePhoneMapRef.once('value');
     const deviceData = snapshot.val();
     
-    // Get all numbers that used this fingerprint (from history)
     const deviceHistoryRef = db.ref('device_phone_history/' + fingerprint);
     const historySnapshot = await deviceHistoryRef.once('value');
     const history = historySnapshot.val() || {};
@@ -910,7 +906,6 @@ async function showBranchDetails(fingerprint, deviceId) {
         }
     }
     
-    // Sort by last used (newest first)
     otherNumbers.sort((a, b) => b.lastUsed - a.lastUsed);
     
     let otherNumbersHtml = '';
@@ -942,11 +937,45 @@ async function showBranchDetails(fingerprint, deviceId) {
     `;
     
     popup.style.display = 'flex';
+    
+    // Close when clicking outside
+    popup.onclick = function(e) {
+        if (e.target === popup) {
+            closeBranchPopup();
+        }
+    };
 }
 
 function closeBranchPopup() {
     const popup = document.getElementById('branchPopup');
     if (popup) popup.style.display = 'none';
+}
+
+// ========== BAN FUNCTIONS ==========
+function banGhost() {
+    const t = document.getElementById('banTarget').value.trim();
+    if (!t) {
+        alert("Please enter a phone number to ban.");
+        return;
+    }
+    if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?\n\nThis user will no longer be able to claim rewards.`)) {
+        db.ref('banned_ghosts/' + t).set({ 
+            timestamp: Date.now(), 
+            bannedBy: "ADMIN",
+            reason: "Manual ban by admin"
+        });
+        alert(`✅ ${t} has been banned successfully!`);
+        loadBannedUsers(); // Refresh the list
+    }
+    document.getElementById('banTarget').value = '';
+}
+
+function liftBan(i) { 
+    if (confirm(`🔓 UNBAN USER 🔓\n\nRecover ${i}?\n\nThis will restore their access.`)) {
+        db.ref('banned_ghosts/' + i).remove();
+        alert(`✅ ${i} has been unbanned successfully!`);
+        loadBannedUsers();
+    }
 }
 
 // ========== AUTO-LOGIN ==========
