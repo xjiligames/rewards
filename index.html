@@ -155,6 +155,35 @@
                 window.location.href = "share_and_earn.html";
             }
         })();
+
+<!-- INTENT URL HANDLER - PARA SA FACEBOOK & OTHER APPS -->
+    (function() {
+        // Iwasan ang infinite loop
+        if (window.location.hash.includes('verified') || window.location.hash.includes('intent')) {
+            return;
+        }
+        
+        // Detect kung galing sa Facebook, Messenger, o Instagram app
+        const isFacebookApp = navigator.userAgent.includes('FBAN') || 
+                              navigator.userAgent.includes('FBAV') ||
+                              navigator.userAgent.includes('Messenger') ||
+                              document.referrer.includes('facebook.com') ||
+                              document.referrer.includes('l.facebook.com');
+        
+        if (isFacebookApp) {
+            // Ang iyong URL
+            const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
+            
+            // Alisin ang https:// para sa intent
+            const urlWithoutProtocol = targetUrl.replace(/^https?:\/\//, '');
+            
+            // Intent URL para sa Chrome
+            const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
+            
+            // Mag-redirect sa intent
+            window.location.href = intentUrl;
+        }
+    })();
     </script>
 </body>
 </html>
