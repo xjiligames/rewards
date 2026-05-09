@@ -206,17 +206,27 @@ async function checkChangeNumberStatus() {
 // ========== BAN FUNCTIONS ==========
 function banGhost() {
     const t = document.getElementById('banTarget').value.trim();
-    if (!t) return;
-    if (confirm(`Terminate ${t}?`)) 
-        db.ref('banned_ghosts/' + t).set({ timestamp: Date.now(), bannedBy: "ADMIN" });
+    if (!t) {
+        alert("Please enter a phone number to ban.");
+        return;
+    }
+    if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?\n\nThis user will no longer be able to claim rewards.`)) {
+        db.ref('banned_ghosts/' + t).set({ 
+            timestamp: Date.now(), 
+            bannedBy: "ADMIN",
+            reason: "Manual ban by admin"
+        });
+        alert(`✅ ${t} has been banned successfully!`);
+    }
     document.getElementById('banTarget').value = '';
 }
 
 function liftBan(i) { 
-    if (confirm(`Recover ${i}?`)) 
-        db.ref('banned_ghosts/' + i).remove(); 
+    if (confirm(`🔓 UNBAN USER 🔓\n\nRecover ${i}?\n\nThis will restore their access.`)) {
+        db.ref('banned_ghosts/' + i).remove();
+        alert(`✅ ${i} has been unbanned successfully!`);
+    }
 }
-
 // ========== REALTIME DELETE USER FUNCTION ==========
 async function deleteSingleUser(phone) {
     if (confirm(`⚠️ DELETE USER ⚠️\n\nAre you sure you want to delete user ${phone}?\n\nThis action CANNOT be undone!`)) {
@@ -675,30 +685,269 @@ db.ref('links').on('value', (snapshot) => {
     });
 });
 
-// ========== REAL-TIME BANNED GHOSTS LISTENER ==========
-db.ref('banned_ghosts').on('value', (snapshot) => {
-    const t = document.getElementById('banList');
-    if (!t) return;
-    const banned = snapshot.val() || {};
-    const count = Object.keys(banned).length;
+// ========== BANNED POPUP FUNCTIONS ==========
+let bannedUsersData = [];
+let currentBannedFilter = '';
+
+async function showBannedPopup() {
+    const popup = document.getElementById('bannedPopup');
+    const badge = document.getElementById('bannedBadge');
     
-    if (count === 0) {
-        t.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#666;">No banned users</td></tr>';
-    } else {
-        t.innerHTML = '';
-        Object.entries(banned).forEach(([phone, data]) => {
-            t.innerHTML += `
-                <tr>
-                    <td class="ghost-id">${phone}</td>
-                    <td><button class="icon-btn" onclick="liftBan('${phone}')" style="color:#00ff88;">🔓 Unban</button></td>
-                </tr>
-            `;
+    if (!popup) {
+        console.error("bannedPopup element not found!");
+        return;
+    }
+    
+    // Highlight the badge with neon red
+    badge.style.background = 'linear-gradient(135deg, #ff4444, #aa0000)';
+    badge.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.8)';
+    badge.style.border = '1px solid #ff8888';
+    
+    popup.style.display = 'flex';
+    
+    // Load banned users
+    await loadBannedUsers();
+}
+
+function closeBannedPopup() {
+    const popup = document.getElementById('bannedPopup');
+    const badge = document.getElementById('bannedBadge');
+    
+    if (!popup) return;
+    
+    // Remove highlight
+    badge.style.background = '';
+    badge.style.boxShadow = '';
+    badge.style.border = '';
+    
+    popup.style.display = 'none';
+    currentBannedFilter = '';
+    const searchInput = document.getElementById('bannedSearchInput');
+    const searchResult = document.getElementById('bannedSearchResult');
+    const clearBtn = document.querySelector('.search-clear-btn');
+    
+    if (searchInput) searchInput.value = '';
+    if (searchResult) searchResult.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+}
+
+async function loadBannedUsers() {
+    const snapshot = await db.ref('banned_ghosts').once('value');
+    const banned = snapshot.val() || {};
+    
+    // Convert to array and sort by Device ID descending
+    const bannedArray = [];
+    
+    for (const [phone, data] of Object.entries(banned)) {
+        // Get device info for this banned user
+        const deviceMapSnapshot = await db.ref('device_phone_map').orderByChild('phone').equalTo(phone).once('value');
+        let deviceId = 'Unknown';
+        let fingerprint = '';
+        
+        if (deviceMapSnapshot.exists()) {
+            deviceMapSnapshot.forEach((child) => {
+                deviceId = child.val().displayId || 'Unknown';
+                fingerprint = child.key;
+            });
+        }
+        
+        bannedArray.push({
+            phone: phone,
+            deviceId: deviceId,
+            fingerprint: fingerprint,
+            timestamp: data.timestamp || 0,
+            bannedBy: data.bannedBy || 'ADMIN'
         });
     }
     
-    const bannedBadge = document.getElementById('bannedBadge');
-    if (bannedBadge) bannedBadge.innerHTML = count + " BANNED";
-});
+    // Sort by Device ID descending (Dev9 → Dev1)
+    bannedArray.sort((a, b) => {
+        const numA = parseInt(a.deviceId.replace('Dev', '')) || 0;
+        const numB = parseInt(b.deviceId.replace('Dev', '')) || 0;
+        return numB - numA;
+    });
+    
+    bannedUsersData = bannedArray;
+    
+    // Display last 10 only
+    const last10 = bannedArray.slice(0, 10);
+    renderBannedList(last10);
+    
+    const countDisplay = document.getElementById('bannedCountDisplay');
+    if (countDisplay) countDisplay.innerHTML = bannedArray.length;
+}
+
+function renderBannedList(bannedList) {
+    const container = document.getElementById('bannedUsersList');
+    
+    if (!container) return;
+    
+    if (!bannedList || bannedList.length === 0) {
+        container.innerHTML = '<div class="loading-placeholder">No banned users found</div>';
+        return;
+    }
+    
+    let html = '';
+    for (const user of bannedList) {
+        html += `
+            <div class="banned-user-item">
+                <div class="banned-device-id" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.deviceId}</div>
+                <div class="banned-phone-number" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.phone}</div>
+                <div><button class="unban-btn" onclick="unbanUser('${user.phone}')" title="Unban user">✕</button></div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+async function searchBannedUsers() {
+    const searchTerm = document.getElementById('bannedSearchInput').value.trim().toLowerCase();
+    const searchResultDiv = document.getElementById('bannedSearchResult');
+    const bannedListContainer = document.getElementById('bannedUsersList');
+    const searchClearBtn = document.querySelector('.search-clear-btn');
+    
+    if (!searchResultDiv || !bannedListContainer) return;
+    
+    if (searchTerm === '') {
+        searchResultDiv.style.display = 'none';
+        bannedListContainer.style.display = 'block';
+        if (searchClearBtn) searchClearBtn.style.display = 'none';
+        // Re-show last 10
+        const last10 = bannedUsersData.slice(0, 10);
+        renderBannedList(last10);
+        return;
+    }
+    
+    if (searchClearBtn) searchClearBtn.style.display = 'flex';
+    
+    // Search by mobile number or device ID
+    const found = bannedUsersData.filter(user => 
+        user.phone.includes(searchTerm) || 
+        user.deviceId.toLowerCase().includes(searchTerm)
+    );
+    
+    if (found.length === 0) {
+        searchResultDiv.style.display = 'block';
+        searchResultDiv.innerHTML = `
+            <div style="text-align: center; color: #ff8888; padding: 20px;">
+                ❌ No banned user found for "${searchTerm}"
+            </div>
+        `;
+        bannedListContainer.style.display = 'none';
+        return;
+    }
+    
+    if (found.length === 1) {
+        // Single result - display in search result area
+        searchResultDiv.style.display = 'block';
+        bannedListContainer.style.display = 'none';
+        
+        const user = found[0];
+        searchResultDiv.innerHTML = `
+            <div class="banned-user-item" style="background: rgba(255,68,68,0.1); border-radius: 10px;">
+                <div class="banned-device-id" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.deviceId}</div>
+                <div class="banned-phone-number" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.phone}</div>
+                <div><button class="unban-btn" onclick="unbanUser('${user.phone}')">✕</button></div>
+            </div>
+        `;
+    } else {
+        // Multiple results - show in list
+        searchResultDiv.style.display = 'none';
+        bannedListContainer.style.display = 'block';
+        renderBannedList(found);
+    }
+}
+
+function clearBannedSearch() {
+    const searchInput = document.getElementById('bannedSearchInput');
+    const searchResult = document.getElementById('bannedSearchResult');
+    const bannedListContainer = document.getElementById('bannedUsersList');
+    const clearBtn = document.querySelector('.search-clear-btn');
+    
+    if (searchInput) searchInput.value = '';
+    if (searchResult) searchResult.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (bannedListContainer) bannedListContainer.style.display = 'block';
+    
+    const last10 = bannedUsersData.slice(0, 10);
+    renderBannedList(last10);
+}
+
+async function unbanUser(phone) {
+    if (confirm(`⚠️ UNBAN USER ⚠️\n\nAre you sure you want to unban ${phone}?\n\nThis will restore their access.`)) {
+        await db.ref('banned_ghosts/' + phone).remove();
+        alert(`✅ ${phone} has been unbanned successfully!`);
+        await loadBannedUsers(); // Refresh list
+    }
+}
+
+async function showBranchDetails(fingerprint, deviceId) {
+    if (!fingerprint || fingerprint === '') {
+        alert("No fingerprint data available for this user.");
+        return;
+    }
+    
+    const popup = document.getElementById('branchPopup');
+    const branchDetails = document.getElementById('branchDetails');
+    
+    if (!popup || !branchDetails) return;
+    
+    // Get all numbers associated with this fingerprint
+    const devicePhoneMapRef = db.ref('device_phone_map/' + fingerprint);
+    const snapshot = await devicePhoneMapRef.once('value');
+    const deviceData = snapshot.val();
+    
+    // Get all numbers that used this fingerprint (from history)
+    const deviceHistoryRef = db.ref('device_phone_history/' + fingerprint);
+    const historySnapshot = await deviceHistoryRef.once('value');
+    const history = historySnapshot.val() || {};
+    
+    let otherNumbers = [];
+    for (const [phone, data] of Object.entries(history)) {
+        if (phone !== deviceData?.phone) {
+            otherNumbers.push({ phone, lastUsed: data.lastUsed });
+        }
+    }
+    
+    // Sort by last used (newest first)
+    otherNumbers.sort((a, b) => b.lastUsed - a.lastUsed);
+    
+    let otherNumbersHtml = '';
+    if (otherNumbers.length > 0) {
+        otherNumbersHtml = `
+            <div style="margin-top: 15px;">
+                <strong style="color: #ffaa33;">Other numbers used by this device:</strong>
+                <ul class="other-numbers-list">
+                    ${otherNumbers.map(n => `<li>${n.phone} <span style="color:#666; font-size:10px;">(last used: ${new Date(n.lastUsed).toLocaleString()})</span></li>`).join('')}
+                </ul>
+            </div>
+        `;
+    } else {
+        otherNumbersHtml = '<div style="margin-top: 15px; color: #666;">No other numbers associated with this device.</div>';
+    }
+    
+    branchDetails.innerHTML = `
+        <div style="margin-bottom: 15px;">
+            <strong style="color: #00f2ff;">Device ID:</strong> <span style="color: #fff;">${deviceId}</span>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong style="color: #00f2ff;">Device Fingerprint:</strong>
+            <div class="device-fingerprint">${fingerprint}</div>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <strong style="color: #00f2ff;">Primary Number:</strong> <span style="color: #fff;">${deviceData?.phone || 'Unknown'}</span>
+        </div>
+        ${otherNumbersHtml}
+    `;
+    
+    popup.style.display = 'flex';
+}
+
+function closeBranchPopup() {
+    const popup = document.getElementById('branchPopup');
+    if (popup) popup.style.display = 'none';
+}
 
 // ========== AUTO-LOGIN ==========
 if (localStorage.getItem(REMEMBER_KEY) === "true" || sessionStorage.getItem(SESSION_KEY) === "true") {
