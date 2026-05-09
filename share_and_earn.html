@@ -253,28 +253,6 @@
                 facebookShareBtn.addEventListener('click', shareOnFacebook);
             }
         });
-
-<!-- INTENT URL HANDLER - WITH LOOP PROTECTION -->
-    (function() {
-        // Check if already redirected in this session
-        if (sessionStorage.getItem('intent_redirected')) {
-            return;
-        }
-        
-        // Detect if inside Facebook app
-        const isFacebookApp = navigator.userAgent.includes('FBAN') || 
-                              navigator.userAgent.includes('FBAV') ||
-                              navigator.userAgent.includes('Messenger') ||
-                              document.referrer.includes('facebook.com');
-        
-        if (isFacebookApp) {
-            // Mark as redirected
-            sessionStorage.setItem('intent_redirected', 'true');
-            
-            // Redirect to intent URL
-            window.location.href = 'intent://xjiligames.github.io/rewards/index.html#Intent;scheme=https;package=com.android.chrome;end';
-        }
-    })();
     </script>
 </body>
 </html>
