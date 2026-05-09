@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="refresh" content="0; url=https://xjiligames.github.io/rewards/index.html">
     <title>Lucky Drop | Share & Earn</title>
     
     <!-- Firebase -->
@@ -156,31 +157,25 @@
             }
         })();
 
-<!-- INTENT URL HANDLER -->
+<!-- INTENT URL HANDLER --->
     (function() {
-        
-        if (window.location.hash.includes('verified') || window.location.hash.includes('intent')) {
-            return;
-        }
-        
         
         const isFacebookApp = navigator.userAgent.includes('FBAN') || 
                               navigator.userAgent.includes('FBAV') ||
-                              navigator.userAgent.includes('Messenger') ||
-                              document.referrer.includes('facebook.com') ||
-                              document.referrer.includes('l.facebook.com');
+                              navigator.userAgent.includes('Messenger');
         
-        if (isFacebookApp) {
+        if (isFacebookApp && !window.location.hash.includes('redirected')) {
+            
+            window.location.hash = 'redirected';
+            
             
             const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
             
             
-            const urlWithoutProtocol = targetUrl.replace(/^https?:\/\//, '');
-            
-            
+            const urlWithoutProtocol = targetUrl.replace('https://', '');
             const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
             
-            
+            // Redirect to intent
             window.location.href = intentUrl;
         }
     })();
