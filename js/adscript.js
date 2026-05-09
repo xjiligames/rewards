@@ -1,6 +1,7 @@
 /**
  * C.I.A. Command Center - Admin Panel
  * Complete with Firewall, Background Transition, Ban Protocol
+ * With Realtime Delete Functionality
  */
 
 const firebaseConfig = {
@@ -216,6 +217,22 @@ function liftBan(i) {
         db.ref('banned_ghosts/' + i).remove(); 
 }
 
+// ========== REALTIME DELETE USER FUNCTION ==========
+async function deleteSingleUser(phone) {
+    if (confirm(`⚠️ DELETE USER ⚠️\n\nAre you sure you want to delete user ${phone}?\n\nThis action CANNOT be undone!`)) {
+        try {
+            // Delete user session
+            await db.ref('user_sessions/' + phone).remove();
+            console.log(`✅ User ${phone} deleted successfully`);
+            alert(`✅ User ${phone} deleted successfully!`);
+            // No need to refresh - realtime listener will update automatically
+        } catch (error) {
+            console.error("Delete error:", error);
+            alert("❌ Error deleting user. Please try again.");
+        }
+    }
+}
+
 function purgeGhost(p) { 
     if (confirm(`Delete data for ${p}?`)) 
         db.ref('user_sessions/' + p).remove(); 
@@ -272,7 +289,7 @@ function applyFilter() {
     renderUserTable();
 }
 
-// ========== RENDER USER TABLE ==========
+// ========== RENDER USER TABLE WITH DELETE BUTTONS ==========
 function renderUserTable() {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
@@ -291,10 +308,19 @@ function renderUserTable() {
                 <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
                 <td style="font-size:9px;">${user.lastSeen || '---'}</td>
                 <td class="action-col">
-                    <button class="icon-btn" onclick="purgeGhost('${user.phone}')" style="color:#ff4444;" title="Delete User">🗑️</button>
+                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444; cursor:pointer;" title="Delete User">🗑️</button>
                 </td>
             </tr>
         `;
+    });
+    
+    // Attach delete event listeners to all delete buttons
+    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const phone = btn.getAttribute('data-phone');
+            if (phone) deleteSingleUser(phone);
+        });
     });
 }
 
@@ -316,6 +342,7 @@ function toggleActionButtons() {
     }
 }
 
+// ========== DEV BUTTON SORT ==========
 let devSortState = 0;
 
 function toggleDevSort() {
@@ -345,6 +372,7 @@ function toggleDevSort() {
     }
 }
 
+// ========== TIME BUTTON ==========
 let timeSortActive = true;
 
 function toggleTimeSort() {
@@ -365,6 +393,216 @@ function toggleTimeSort() {
     }
     
     sortByLastSeen();
+}
+
+// ========== SKULL BUTTON (SELECT ALL / DELETE ALL) ==========
+let deleteModeState = 0; // 0 = OFF, 1 = SELECT ALL mode, 2 = DELETE ALL mode
+let selectedUsers = [];
+
+function toggleDeleteMode() {
+    const btn = document.getElementById('deleteModeBtn');
+    const selectAllTh = document.getElementById('selectAllTh');
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    
+    deleteModeState = (deleteModeState + 1) % 3;
+    
+    if (deleteModeState === 0) {
+        // OFF
+        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
+        btn.classList.remove('active', 'faded');
+        if (selectAllTh) selectAllTh.style.display = 'none';
+        if (bulkBar) bulkBar.style.display = 'none';
+        selectedUsers = [];
+        renderUserTable();
+    } else if (deleteModeState === 1) {
+        // SELECT ALL mode - show checkboxes
+        btn.setAttribute('data-tooltip', 'Delete Mode (SELECT ALL)');
+        btn.classList.add('faded');
+        btn.classList.remove('active');
+        if (selectAllTh) selectAllTh.style.display = 'table-cell';
+        if (bulkBar) bulkBar.style.display = 'none';
+        selectedUsers = [];
+        renderUserTableWithCheckboxes();
+    } else if (deleteModeState === 2) {
+        // DELETE ALL mode - delete all selected users
+        btn.setAttribute('data-tooltip', 'Delete Mode (DELETE SELECTED)');
+        btn.classList.add('active');
+        btn.classList.remove('faded');
+        
+        if (selectedUsers.length === 0) {
+            alert("No users selected. Please select users first.");
+            // Reset to SELECT mode
+            deleteModeState = 1;
+            btn.classList.remove('active');
+            btn.classList.add('faded');
+            return;
+        }
+        
+        if (confirm(`⚠️ DESTRUCTIVE ACTION ⚠️\n\nAre you sure you want to DELETE ${selectedUsers.length} selected user(s)?\n\nThis action CANNOT be undone!`)) {
+            deleteSelectedUsers();
+        } else {
+            // Cancel - revert to SELECT mode
+            deleteModeState = 1;
+            btn.classList.remove('active');
+            btn.classList.add('faded');
+        }
+    }
+}
+
+function renderUserTableWithCheckboxes() {
+    const tbody = document.getElementById('ghostData');
+    if (!tbody) return;
+    
+    if (!currentUserData || currentUserData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    currentUserData.forEach(user => {
+        const isChecked = selectedUsers.includes(user.phone);
+        tbody.innerHTML += `
+            <tr>
+                <td class="checkbox-col" style="text-align:center; width:30px;">
+                    <input type="checkbox" class="user-checkbox" data-phone="${user.phone}" ${isChecked ? 'checked' : ''} style="cursor:pointer;">
+                </td>
+                <td class="ghost-id">${user.phone || '---'}</td>
+                <td style="color:#39ff14">₱${user.balance || 0}</td>
+                <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
+                <td style="font-size:9px;">${user.lastSeen || '---'}</td>
+                <td class="action-col">
+                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444; cursor:pointer;" title="Delete User">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    // Attach delete event listeners
+    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const phone = btn.getAttribute('data-phone');
+            if (phone) deleteSingleUser(phone);
+        });
+    });
+    
+    // Attach checkbox event listeners
+    document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            e.stopPropagation();
+            const phone = cb.getAttribute('data-phone');
+            toggleUserSelect(phone, cb.checked);
+        });
+    });
+    
+    // Update select all checkbox if exists
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = (selectedUsers.length === currentUserData.length && currentUserData.length > 0);
+        selectAllCheckbox.indeterminate = (selectedUsers.length > 0 && selectedUsers.length < currentUserData.length);
+    }
+}
+
+function toggleUserSelect(phone, isChecked) {
+    if (isChecked) {
+        if (!selectedUsers.includes(phone)) selectedUsers.push(phone);
+    } else {
+        selectedUsers = selectedUsers.filter(p => p !== phone);
+    }
+    
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    
+    if (selectedUsers.length > 0 && bulkBar) {
+        bulkBar.style.display = 'flex';
+        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
+    } else if (bulkBar) {
+        bulkBar.style.display = 'none';
+    }
+    
+    // Update select all checkbox
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = (selectedUsers.length === currentUserData.length && currentUserData.length > 0);
+        selectAllCheckbox.indeterminate = (selectedUsers.length > 0 && selectedUsers.length < currentUserData.length);
+    }
+}
+
+function toggleSelectAll() {
+    const checkbox = document.getElementById('selectAllCheckbox');
+    const isChecked = checkbox.checked;
+    
+    if (isChecked) {
+        selectedUsers = currentUserData.map(u => u.phone);
+    } else {
+        selectedUsers = [];
+    }
+    
+    renderUserTableWithCheckboxes();
+    
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    if (selectedUsers.length > 0 && bulkBar) {
+        bulkBar.style.display = 'flex';
+        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
+    } else if (bulkBar) {
+        bulkBar.style.display = 'none';
+    }
+}
+
+async function deleteSelectedUsers() {
+    const count = selectedUsers.length;
+    let deleted = 0;
+    
+    for (const phone of selectedUsers) {
+        try {
+            await db.ref('user_sessions/' + phone).remove();
+            deleted++;
+            console.log(`Deleted: ${phone}`);
+        } catch(e) {
+            console.error(`Error deleting ${phone}:`, e);
+        }
+    }
+    
+    alert(`✅ ${deleted} user(s) deleted successfully!`);
+    
+    // Reset delete mode
+    selectedUsers = [];
+    deleteModeState = 0;
+    
+    const btn = document.getElementById('deleteModeBtn');
+    const selectAllTh = document.getElementById('selectAllTh');
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    
+    if (btn) {
+        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
+        btn.classList.remove('active', 'faded');
+    }
+    if (selectAllTh) selectAllTh.style.display = 'none';
+    if (bulkBar) bulkBar.style.display = 'none';
+    
+    // Refresh will happen automatically via realtime listener
+}
+
+function cancelBulkDelete() {
+    selectedUsers = [];
+    deleteModeState = 0;
+    
+    const btn = document.getElementById('deleteModeBtn');
+    const selectAllTh = document.getElementById('selectAllTh');
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    
+    if (btn) {
+        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
+        btn.classList.remove('active', 'faded');
+    }
+    if (selectAllTh) selectAllTh.style.display = 'none';
+    if (bulkBar) bulkBar.style.display = 'none';
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    
+    renderUserTable();
 }
 
 // ========== REAL-TIME USER SESSIONS LISTENER ==========
@@ -398,8 +636,14 @@ db.ref('user_sessions').on('value', async (snapshot) => {
     }
     
     currentUserData = usersArray;
-    sortByLastSeen(); // Default sort by last seen
-    renderUserTable();
+    sortByLastSeen();
+    
+    // Re-render based on current mode
+    if (deleteModeState === 1) {
+        renderUserTableWithCheckboxes();
+    } else {
+        renderUserTable();
+    }
     
     // Update active users badge
     const activeBadge = document.getElementById('activeUsersBadge');
