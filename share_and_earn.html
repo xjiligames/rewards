@@ -18,10 +18,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles/promo.css">
-    </head>
+</head>
 <body>
 
-    <div class="live-winners-ticker" id="winnerTicker">
+<div class="live-winners-ticker" id="winnerTicker">
     <div class="live-dot"></div>
     <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
 </div>
@@ -29,21 +29,19 @@
 <div class="share-container">
     <div class="header">
         <h1>LUCKY DROP 🐾</h1>
-         </div>
+    </div>
 
-      <!-- USER INFO CARD WITH CLICKABLE LOGOUT -->
+    <!-- USER INFO CARD WITH CLICKABLE LOGOUT -->
     <div class="user-info-card" id="userInfoCard">
         <div class="user-info-icon">📱</div>
         <div class="user-info-text">
             <span class="user-info-label">Logged in as</span>
             <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
-
-             </div>
-        <div class="user-info-badge" id="logoutBtn">
+        </div>
+        <div class="user-info-badge" id="logoutBtn" style="cursor: pointer;">
             <span class="badge-dot"></span>
             <span class="badge-text">Active</span>
-
-             </div>
+        </div>
     </div>
 
     <!-- MINI DASHBOARD -->
@@ -54,14 +52,12 @@
                 <span class="currency-symbol">₱</span>
                 <span id="userBalanceDisplay" class="main-balance">0.00</span>
             </div>
-
-               </div>
+        </div>
         <div class="dashboard-action">
             <a href="main.html" class="scatter-link">
                 <img src="images/scatter_icon.jpg" class="twisting-scatter" alt="Main">
             </a>
-
-              </div>
+        </div>
     </div>
 
     <div class="step1-dropdown">
@@ -77,8 +73,7 @@
                     <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
                 </div>
-
-                 </div>
+            </div>
 
             <div class="invite-list-section">
                 <div class="invite-section-title">📤 My Invitations</div>
@@ -90,19 +85,19 @@
                 <div id="inviteListBody" class="invite-list-body">
                     <div class="invite-empty">No invitations sent</div>
                 </div>
-
-                 <div class="invite-list-section">
+            </div>
+            
+            <div class="invite-list-section">
                 <div class="invite-section-title">📥 Received Invitation</div>
                 <div class="invite-list-header">
                     <span>FROM</span>
                     <span>STATUS</span>
                     <span>REWARD</span>
-
-                       </div>
+                </div>
                 <div id="receivedInvitesList" class="invite-list-body">
                     <div class="invite-empty">No invitations received</div>
-
-                      </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -112,8 +107,7 @@
                 <video id="leftCatVideo" autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
-
-                 </div>
+            </div>
             <div class="prize-label">YOU GET</div>
             <div class="prize-amount" id="leftRewardAmount">₱0</div>
         </div>
@@ -123,8 +117,7 @@
                 <video id="rightCatVideo" autoplay loop muted playsinline>
                     <source src="sounds/luckycat.mp4" type="video/mp4">
                 </video>
-
-                </div>
+            </div>
             <div class="prize-label">TAP TO CLAIM</div>
             <div class="prize-amount" id="rightRewardAmountDisplay">₱0</div>
         </div>
@@ -143,8 +136,7 @@
         <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
         <div class="timer-wrapper">
             <div id="mainTimerDisplay" class="thrill-timer">00D 00:00:00</div>
-
-             </div>
+        </div>
     </div>
 
     <button class="claim-now-btn" id="claimNowBtn">
@@ -165,4 +157,102 @@
                 <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
                 <div class="luckyday-image-container">
                     <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
-    
+                </div>
+                <div class="divider"></div>
+                <div class="indicator-group">
+                    <div class="indicator" id="indicator1"></div>
+                    <div class="indicator" id="indicator2"></div>
+                    <div class="indicator" id="indicator3"></div>
+                </div>
+                
+                <button class="claim-gcash-button" id="claimGCashBtn">
+                    <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
+                </button>
+
+                <div class="button-separator"></div>
+
+                <button class="back-btn" id="backBtn">
+                    ← BACK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="status-message" id="statusMessage">
+        <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
+    </div>
+
+    <div class="button-divider">
+        <span></span>
+        <span>or share with friends</span>
+        <span></span>
+    </div>
+
+    <div class="button-divider">
+        <span></span>
+        <span style="font-family: 'Orbitron'; font-size: 10px; color: #666;">MISSION</span>
+        <span></span>
+    </div>
+
+    <!-- FACEBOOK SHARE BUTTON -->
+    <button class="btn-facebook-shimmer" id="facebookShareBtn">
+        <i class="fa-brands fa-facebook-f"></i>
+        <span>SHARE ON FACEBOOK</span>
+    </button>
+
+    <div class="share-social-text">
+        Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
+    </div>
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <script src="js/config.js"></script>
+    <script src="js/promotion.js"></script>
+    <script src="js/popup_share.js"></script>
+
+    <script>
+        // ========== LOGOUT FUNCTION ==========
+        function logoutUser() {
+            if (confirm('Are you sure you want to logout?\n\nYour session will be cleared and you will be redirected to the login page.')) {
+                // Clear localStorage
+                localStorage.removeItem('userPhone');
+                localStorage.removeItem('userDeviceId');
+                localStorage.removeItem('userDeviceDisplayId');
+                
+                // Clear sessionStorage if any
+                sessionStorage.clear();
+                
+                // Redirect to index.html
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // ========== FACEBOOK SHARE FUNCTION ==========
+        function shareOnFacebook() {
+            const shareUrl = 'https://tiny.cc/LuckyDrop';
+            const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+            window.open(facebookShareUrl, '_blank', 'width=600,height=400');
+        }
+        
+        // ========== ATTACH LOGOUT TO ACTIVE BADGE ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            // Logout button functionality
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.style.cursor = 'pointer';
+                logoutBtn.addEventListener('click', logoutUser);
+            }
+            
+            // Facebook share button functionality
+            const facebookShareBtn = document.getElementById('facebookShareBtn');
+            if (facebookShareBtn) {
+                facebookShareBtn.addEventListener('click', shareOnFacebook);
+            }
+        });
+    </script>
+</body>
+</html>
