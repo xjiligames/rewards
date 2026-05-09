@@ -27,11 +27,12 @@ const swipeFireTrail = document.getElementById('swipeFireTrail');
 // Scarcity counter
 let count = 88;
 
-// ========== UNIVERSAL PHONE FORMATTER ==========
+// ========== FIXED PHONE FORMATTER ==========
 function formatPhoneNumber(input) {
     // Remove all non-digits
     let cleaned = input.replace(/\D/g, '');
     
+    console.log("========== PHONE FORMATTING ==========");
     console.log("Raw input:", input);
     console.log("Cleaned digits:", cleaned);
     
@@ -40,75 +41,112 @@ function formatPhoneNumber(input) {
         return '';
     }
     
-    // Case 1: Already has 11 digits and starts with 09 - valid
+    // ===== CASE 1: Already valid 11 digits starting with 09 =====
     if (cleaned.length === 11 && cleaned.startsWith('09')) {
+        console.log("✓ Valid: Already 11 digits with 09");
         return cleaned;
     }
     
-    // Case 2: Starts with 63 (international format, 12 digits: 63 + 10 digits)
-    // Example: 639193188409 -> remove 63, add 0 -> 09193188409
-    if (cleaned.startsWith('63') && cleaned.length === 12) {
-        return '0' + cleaned.substring(2);
+    // ===== CASE 2: 12 digits starting with 099 (extra 9 at start) =====
+    // Example: 09950913419 -> user types 09950913419, becomes 09950913419? Actually 11 digits
+    // If becomes 12 digits like 099950913419, remove first 9
+    if (cleaned.length === 12 && cleaned.startsWith('099')) {
+        const result = cleaned.substring(1);
+        console.log("✓ Fixed: Removed extra 9 from start:", result);
+        return result;
     }
     
-    // Case 3: Starts with 63 and has more than 12 digits
-    // Example: 639193188409123 -> take appropriate digits
-    if (cleaned.startsWith('63') && cleaned.length > 12) {
-        // Remove 63 prefix, take first 10 digits after 63
-        let without63 = cleaned.substring(2);
-        if (without63.length > 10) {
-            without63 = without63.substring(0, 10);
-        }
-        return '0' + without63;
+    // ===== CASE 3: 12 digits starting with 09 (extra digit at end) =====
+    if (cleaned.length === 12 && cleaned.startsWith('09')) {
+        const result = cleaned.substring(0, 11);
+        console.log("✓ Fixed: Removed extra digit at end:", result);
+        return result;
     }
     
-    // Case 4: Starts with 0 and has 11 digits
-    if (cleaned.startsWith('0') && cleaned.length === 11) {
-        return cleaned;
-    }
-    
-    // Case 5: Starts with 0 and has more than 11 digits
-    if (cleaned.startsWith('0') && cleaned.length > 11) {
-        // Take first 11 digits
-        return cleaned.substring(0, 11);
-    }
-    
-    // Case 6: Starts with 9 and has 10 digits (e.g., 9193188409)
-    if (cleaned.startsWith('9') && cleaned.length === 10) {
-        return '09' + cleaned;
-    }
-    
-    // Case 7: Starts with 9 and has more than 10 digits
-    if (cleaned.startsWith('9') && cleaned.length > 10) {
-        // Take first 10 digits and add 09
-        let first10 = cleaned.substring(0, 10);
-        return '09' + first10;
-    }
-    
-    // Case 8: Has exactly 10 digits (e.g., 9123456789)
-    if (cleaned.length === 10) {
-        return '09' + cleaned;
-    }
-    
-    // Case 9: Has more than 11 digits but doesn't match above patterns
-    if (cleaned.length > 11) {
-        // Try to extract valid number
-        // If contains 09 somewhere, use from there
+    // ===== CASE 4: 13+ digits, extract valid 09 number =====
+    if (cleaned.length >= 13) {
+        // Find 09 pattern
         const index09 = cleaned.indexOf('09');
         if (index09 !== -1 && cleaned.length >= index09 + 11) {
-            return cleaned.substring(index09, index09 + 11);
+            const result = cleaned.substring(index09, index09 + 11);
+            console.log("✓ Fixed: Extracted 09 from within:", result);
+            return result;
         }
-        // Otherwise take last 10 digits and add 09
-        const last10 = cleaned.slice(-10);
-        return '09' + last10;
+        // Take last 11 digits
+        const result = cleaned.slice(-11);
+        console.log("✓ Fixed: Took last 11 digits:", result);
+        return result;
     }
     
-    // Case 10: Has 11 digits but doesn't start with 09
+    // ===== CASE 5: 11 digits but doesn't start with 09 =====
     if (cleaned.length === 11 && !cleaned.startsWith('09')) {
-        return '09' + cleaned.substring(2);
+        // If starts with 99, replace first two digits with 09
+        if (cleaned.startsWith('99')) {
+            const result = '09' + cleaned.substring(2);
+            console.log("✓ Fixed: Replaced 99 with 09:", result);
+            return result;
+        }
+        // If starts with 09 after first digit
+        if (cleaned.substring(1, 3) === '09') {
+            const result = cleaned.substring(1);
+            console.log("✓ Fixed: Shifted to get 09:", result);
+            return result;
+        }
+        // Default: replace first two digits with 09
+        const result = '09' + cleaned.substring(2);
+        console.log("✓ Fixed: Replaced prefix with 09:", result);
+        return result;
     }
     
-    // Case 11: Less than 10 digits - invalid, but return as is
+    // ===== CASE 6: Starts with 63 (international format) =====
+    if (cleaned.startsWith('63') && cleaned.length >= 12) {
+        let without63 = cleaned.substring(2);
+        // If starts with 9, add 0
+        if (without63.startsWith('9')) {
+            without63 = '0' + without63;
+        }
+        // Take first 11 digits
+        const result = without63.substring(0, 11);
+        console.log("✓ Fixed: International 63 format:", result);
+        return result;
+    }
+    
+    // ===== CASE 7: 10 digits - add 0 prefix =====
+    if (cleaned.length === 10) {
+        const result = '0' + cleaned;
+        console.log("✓ Fixed: 10 digits, added 0:", result);
+        return result;
+    }
+    
+    // ===== CASE 8: 9 digits - add 09 prefix =====
+    if (cleaned.length === 9) {
+        const result = '09' + cleaned;
+        console.log("✓ Fixed: 9 digits, added 09:", result);
+        return result;
+    }
+    
+    // ===== CASE 9: Starts with 0 and has 11 digits =====
+    if (cleaned.startsWith('0') && cleaned.length === 11) {
+        console.log("✓ Valid: Starts with 0, 11 digits:", cleaned);
+        return cleaned;
+    }
+    
+    // ===== CASE 10: Starts with 0 and has more than 11 digits =====
+    if (cleaned.startsWith('0') && cleaned.length > 11) {
+        const result = cleaned.substring(0, 11);
+        console.log("✓ Fixed: Trimmed to 11 digits:", result);
+        return result;
+    }
+    
+    // ===== CASE 11: Starts with 9 and has 10 digits =====
+    if (cleaned.startsWith('9') && cleaned.length === 10) {
+        const result = '0' + cleaned;
+        console.log("✓ Fixed: Added 0 prefix:", result);
+        return result;
+    }
+    
+    // ===== DEFAULT: Return cleaned =====
+    console.log("⚠ Default: Returning cleaned:", cleaned);
     return cleaned;
 }
 
@@ -116,17 +154,8 @@ function formatPhoneNumber(input) {
 function isValidPhoneNumber(phone) {
     const formatted = formatPhoneNumber(phone);
     const isValid = formatted.length === 11 && formatted.startsWith('09');
-    console.log("Validation - Input:", phone, "Formatted:", formatted, "Valid:", isValid);
+    console.log("Validation - Formatted:", formatted, "Valid:", isValid);
     return isValid;
-}
-
-// ========== GET DISPLAY FORMAT (for UI) ==========
-function getDisplayPhoneNumber(phone) {
-    const formatted = formatPhoneNumber(phone);
-    if (formatted.length === 11) {
-        return formatted.substring(0, 4) + '***' + formatted.substring(7, 11);
-    }
-    return phone;
 }
 
 // ========== SWIPE WITH FIRE TRAIL ==========
@@ -522,14 +551,14 @@ window.processStep1 = async function() {
     // Format the phone number
     const fullPhone = formatPhoneNumber(phone);
     
-    console.log("========== PHONE FORMATTING ==========");
+    console.log("======================================");
     console.log("Original input:", phone);
     console.log("Formatted phone:", fullPhone);
     console.log("======================================");
     
     // Validate the formatted number
     if (!isValidPhoneNumber(fullPhone)) {
-        alert("Invalid mobile number.\n\nPlease enter a valid number like:\n• 09123456789\n• 9123456789\n• 639123456789\n• +639123456789");
+        alert("Invalid mobile number.\n\nPlease enter a valid number like:\n• 09123456789\n• 9123456789\n• 639123456789");
         return;
     }
     
