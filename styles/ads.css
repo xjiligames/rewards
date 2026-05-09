@@ -903,3 +903,236 @@ td {
     font-size: 11px;
     color: #888;
 }
+
+
+/* ========== BULK DELETE BAR ========== */
+.bulk-delete-bar {
+    background: rgba(255, 68, 68, 0.15);
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #ff4444;
+    font-size: 13px;
+}
+
+.btn-bulk-delete {
+    background: #ff4444;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-bulk-delete:hover {
+    background: #ff6666;
+    transform: scale(1.02);
+}
+
+.btn-bulk-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #666;
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-bulk-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ========== CHECKBOX COLUMN ========== */
+.checkbox-col {
+    width: 30px;
+    text-align: center;
+}
+
+.action-col {
+    width: 80px;
+    text-align: center;
+}
+
+.user-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #ff4444;
+}
+
+/* ========== DELETE USER BUTTON ========== */
+.delete-user-btn {
+    background: rgba(255, 68, 68, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #ff4444;
+    font-size: 14px;
+}
+
+.delete-user-btn:hover {
+    background: rgba(255, 68, 68, 0.4);
+    transform: scale(1.05);
+}
+
+/* ========== STATUS MESSAGE ========== */
+.status-msg {
+    font-size: 10px;
+    margin-top: 8px;
+    text-align: center;
+    padding: 6px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* ========== LOADING PLACEHOLDER ========== */
+.loading-placeholder {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 12px;
+}
+
+/* ========== BRANCH POPUP - ADDITIONAL ========== */
+.other-numbers-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 8px;
+}
+
+.other-numbers-list li {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-family: monospace;
+    font-size: 11px;
+    color: #ccc;
+}
+
+/* ========== RESPONSIVE ADDITIONS ========== */
+@media (max-width: 768px) {
+    .bulk-delete-bar {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .checkbox-col {
+        width: 25px;
+    }
+    
+    .action-col {
+        width: 60px;
+    }
+    
+    .user-checkbox {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .delete-user-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+    }
+    
+    .banned-list-header,
+    .banned-user-item {
+        grid-template-columns: 1fr 1.5fr 0.8fr;
+        font-size: 10px;
+        gap: 5px;
+    }
+    
+    .banned-device-id,
+    .banned-phone-number {
+        font-size: 10px;
+    }
+    
+    .unban-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+    }
+}
+
+/* ========== FIREWALL ACTIVE OVERRIDES ========== */
+body.firewall-active .bulk-delete-bar {
+    background: rgba(255, 68, 68, 0.25);
+    border-color: #ff6666;
+    color: #ff6666;
+}
+
+body.firewall-active .btn-bulk-delete {
+    background: #ff6666;
+}
+
+body.firewall-active .banned-popup-content {
+    border-color: #ff6666;
+}
+
+body.firewall-active .banned-popup-header {
+    background: rgba(255, 68, 68, 0.15);
+}
+
+/* ========== SMOOTH TRANSITIONS ========== */
+.bulk-delete-bar,
+.btn-bulk-delete,
+.btn-bulk-cancel,
+.delete-user-btn,
+.user-checkbox {
+    transition: all 0.2s ease;
+}
+
+/* ========== TABLE ROW HOVER ========== */
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+body.firewall-active tbody tr:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* ========== ACTION BUTTONS ROW - ENSURE VISIBILITY ========== */
+.action-buttons-row {
+    background: rgba(0, 242, 255, 0.08);
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+/* ========== DROPDOWN CONTENT SCROLL ========== */
+.dropdown-content {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* ========== TABLE WRAP SCROLL ========== */
+.table-wrap {
+    max-height: 400px;
+    overflow: auto;
+}
+
+/* ========== BANNED LIST CONTAINER SCROLL ========== */
+.banned-list-container {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* ========== KEY POPUP CENTERING ========== */
+.key-popup {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.key-popup[style*="display: flex"] {
+    display: flex !important;
+}
