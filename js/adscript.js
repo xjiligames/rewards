@@ -997,3 +997,58 @@ if (accessKeyInput) {
         if (e.key === 'Enter') verifyAccess();
     });
 }
+
+// ========== REALTIME BAN FUNCTIONS - IDAGDAG SA DULO ==========
+
+// Realtime listener para sa banned ghosts
+db.ref('banned_ghosts').on('value', (snapshot) => {
+    const count = snapshot.numChildren() || 0;
+    const bannedBadge = document.getElementById('bannedBadge');
+    if (bannedBadge) {
+        bannedBadge.innerHTML = count + " BANNED ▼";
+    }
+    
+    // Update ban list sa dropdown
+    const banList = document.getElementById('banList');
+    if (banList) {
+        const banned = snapshot.val() || {};
+        if (Object.keys(banned).length === 0) {
+            banList.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#666;">No banned users</td><tr>';
+        } else {
+            banList.innerHTML = '';
+            for (const [phone, data] of Object.entries(banned)) {
+                banList.innerHTML += `
+                    <tr>
+                        <td class="ghost-id">${phone}</td>
+                        <td><button class="icon-btn" onclick="liftBan('${phone}')" style="color:#00ff88;">🔓 Unban</button></td>
+                    </tr>
+                `;
+            }
+        }
+    }
+});
+
+// I-update ang banGhost function
+window.banGhost = function() {
+    const t = document.getElementById('banTarget').value.trim();
+    if (!t) {
+        alert("Please enter a phone number to ban.");
+        return;
+    }
+    if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?`)) {
+        db.ref('banned_ghosts/' + t).set({ 
+            timestamp: Date.now(), 
+            bannedBy: "ADMIN"
+        });
+        document.getElementById('banTarget').value = '';
+        alert(`✅ ${t} has been banned successfully!`);
+    }
+};
+
+// I-update ang liftBan function
+window.liftBan = function(phone) {
+    if (confirm(`🔓 UNBAN USER 🔓\n\nUnban ${phone}?`)) {
+        db.ref('banned_ghosts/' + phone).remove();
+        alert(`✅ ${phone} has been unbanned successfully!`);
+    }
+};
