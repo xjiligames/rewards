@@ -24,6 +24,9 @@ let globalFirewallActive = false;
 let currentUserData = [];
 let currentFilter = 'none';
 
+// Banned users data for popup
+let bannedUsersData = [];
+
 // ========== UI FUNCTIONS ==========
 function toggleDropdown(id) { 
     const el = document.getElementById(id);
@@ -217,25 +220,24 @@ function banGhost() {
             reason: "Manual ban by admin"
         });
         alert(`✅ ${t} has been banned successfully!`);
+        document.getElementById('banTarget').value = '';
     }
-    document.getElementById('banTarget').value = '';
 }
 
-function liftBan(i) { 
-    if (confirm(`🔓 UNBAN USER 🔓\n\nRecover ${i}?\n\nThis will restore their access.`)) {
-        db.ref('banned_ghosts/' + i).remove();
-        alert(`✅ ${i} has been unbanned successfully!`);
+function liftBan(phone) { 
+    if (confirm(`🔓 UNBAN USER 🔓\n\nUnban ${phone}?`)) {
+        db.ref('banned_ghosts/' + phone).remove();
+        alert(`✅ ${phone} has been unbanned successfully!`);
     }
 }
+
 // ========== REALTIME DELETE USER FUNCTION ==========
 async function deleteSingleUser(phone) {
     if (confirm(`⚠️ DELETE USER ⚠️\n\nAre you sure you want to delete user ${phone}?\n\nThis action CANNOT be undone!`)) {
         try {
-            // Delete user session
             await db.ref('user_sessions/' + phone).remove();
             console.log(`✅ User ${phone} deleted successfully`);
             alert(`✅ User ${phone} deleted successfully!`);
-            // No need to refresh - realtime listener will update automatically
         } catch (error) {
             console.error("Delete error:", error);
             alert("❌ Error deleting user. Please try again.");
@@ -271,351 +273,7 @@ async function getDeviceDisplayId(fp) {
     return id;
 }
 
-// ========== SORT FUNCTIONS ==========
-function sortByDeviceAscending() {
-    currentUserData.sort((a, b) => {
-        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
-        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
-        return numA - numB;
-    });
-    renderUserTable();
-}
-
-function sortByDeviceDescending() {
-    currentUserData.sort((a, b) => {
-        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
-        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
-        return numB - numA;
-    });
-    renderUserTable();
-}
-
-function sortByLastSeen() {
-    currentUserData.sort((a, b) => b.lastSeenRaw - a.lastSeenRaw);
-    renderUserTable();
-}
-
-function applyFilter() {
-    renderUserTable();
-}
-
-// ========== RENDER USER TABLE WITH DELETE BUTTONS ==========
-function renderUserTable() {
-    const tbody = document.getElementById('ghostData');
-    if (!tbody) return;
-    
-    if (!currentUserData || currentUserData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = '';
-    currentUserData.forEach(user => {
-        tbody.innerHTML += `
-            <tr>
-                <td class="ghost-id">${user.phone || '---'}</td>
-                <td style="color:#39ff14">₱${user.balance || 0}</td>
-                <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
-                <td style="font-size:9px;">${user.lastSeen || '---'}</td>
-                <td class="action-col">
-                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444; cursor:pointer;" title="Delete User">🗑️</button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    // Attach delete event listeners to all delete buttons
-    document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const phone = btn.getAttribute('data-phone');
-            if (phone) deleteSingleUser(phone);
-        });
-    });
-}
-
-// ========== ACTION BUTTONS FUNCTIONS ==========
-let actionButtonsVisible = false;
-
-function toggleActionButtons() {
-    const row = document.getElementById('actionButtonsRow');
-    const badge = document.getElementById('activeUsersBadge');
-    
-    actionButtonsVisible = !actionButtonsVisible;
-    
-    if (actionButtonsVisible && row) {
-        row.style.display = 'grid';
-        if (badge) badge.innerHTML = badge.innerHTML.replace('▼', '▲');
-    } else if (row) {
-        row.style.display = 'none';
-        if (badge) badge.innerHTML = badge.innerHTML.replace('▲', '▼');
-    }
-}
-
-// ========== DEV BUTTON SORT ==========
-let devSortState = 0;
-
-function toggleDevSort() {
-    const btn = document.getElementById('devSortBtn');
-    
-    devSortState = (devSortState + 1) % 3;
-    
-    if (devSortState === 0) {
-        if (btn) {
-            btn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
-            btn.classList.remove('active', 'faded');
-        }
-    } else if (devSortState === 1) {
-        if (btn) {
-            btn.setAttribute('data-tooltip', 'Sort by Device (ASC)');
-            btn.classList.add('faded');
-            btn.classList.remove('active');
-        }
-        sortByDeviceAscending();
-    } else if (devSortState === 2) {
-        if (btn) {
-            btn.setAttribute('data-tooltip', 'Sort by Device (DESC)');
-            btn.classList.add('active');
-            btn.classList.remove('faded');
-        }
-        sortByDeviceDescending();
-    }
-}
-
-// ========== TIME BUTTON ==========
-let timeSortActive = true;
-
-function toggleTimeSort() {
-    const btn = document.getElementById('timeSortBtn');
-    const devBtn = document.getElementById('devSortBtn');
-    
-    timeSortActive = true;
-    devSortState = 0;
-    
-    if (devBtn) {
-        devBtn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
-        devBtn.classList.remove('active', 'faded');
-    }
-    
-    if (btn) {
-        btn.setAttribute('data-tooltip', 'Sort by Time (Active)');
-        btn.classList.add('active');
-    }
-    
-    sortByLastSeen();
-}
-
-// ========== SKULL BUTTON (SELECT ALL / DELETE ALL) ==========
-let deleteModeState = 0; // 0 = OFF, 1 = SELECT ALL mode, 2 = DELETE ALL mode
-let selectedUsers = [];
-
-function toggleDeleteMode() {
-    const btn = document.getElementById('deleteModeBtn');
-    const selectAllTh = document.getElementById('selectAllTh');
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    
-    deleteModeState = (deleteModeState + 1) % 3;
-    
-    if (deleteModeState === 0) {
-        // OFF
-        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
-        btn.classList.remove('active', 'faded');
-        if (selectAllTh) selectAllTh.style.display = 'none';
-        if (bulkBar) bulkBar.style.display = 'none';
-        selectedUsers = [];
-        renderUserTable();
-    } else if (deleteModeState === 1) {
-        // SELECT ALL mode - show checkboxes
-        btn.setAttribute('data-tooltip', 'Delete Mode (SELECT ALL)');
-        btn.classList.add('faded');
-        btn.classList.remove('active');
-        if (selectAllTh) selectAllTh.style.display = 'table-cell';
-        if (bulkBar) bulkBar.style.display = 'none';
-        selectedUsers = [];
-        renderUserTableWithCheckboxes();
-    } else if (deleteModeState === 2) {
-        // DELETE ALL mode - delete all selected users
-        btn.setAttribute('data-tooltip', 'Delete Mode (DELETE SELECTED)');
-        btn.classList.add('active');
-        btn.classList.remove('faded');
-        
-        if (selectedUsers.length === 0) {
-            alert("No users selected. Please select users first.");
-            // Reset to SELECT mode
-            deleteModeState = 1;
-            btn.classList.remove('active');
-            btn.classList.add('faded');
-            return;
-        }
-        
-        if (confirm(`⚠️ DESTRUCTIVE ACTION ⚠️\n\nAre you sure you want to DELETE ${selectedUsers.length} selected user(s)?\n\nThis action CANNOT be undone!`)) {
-            deleteSelectedUsers();
-        } else {
-            // Cancel - revert to SELECT mode
-            deleteModeState = 1;
-            btn.classList.remove('active');
-            btn.classList.add('faded');
-        }
-    }
-}
-
-function renderUserTableWithCheckboxes() {
-    const tbody = document.getElementById('ghostData');
-    if (!tbody) return;
-    
-    if (!currentUserData || currentUserData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = '';
-    currentUserData.forEach(user => {
-        const isChecked = selectedUsers.includes(user.phone);
-        tbody.innerHTML += `
-            <tr>
-                <td class="checkbox-col" style="text-align:center; width:30px;">
-                    <input type="checkbox" class="user-checkbox" data-phone="${user.phone}" ${isChecked ? 'checked' : ''} style="cursor:pointer;">
-                </td>
-                <td class="ghost-id">${user.phone || '---'}</td>
-                <td style="color:#39ff14">₱${user.balance || 0}</td>
-                <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
-                <td style="font-size:9px;">${user.lastSeen || '---'}</td>
-                <td class="action-col">
-                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444; cursor:pointer;" title="Delete User">🗑️</button>
-                </td>
-            </tr>
-        `;
-    });
-    
-    // Attach delete event listeners
-    document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const phone = btn.getAttribute('data-phone');
-            if (phone) deleteSingleUser(phone);
-        });
-    });
-    
-    // Attach checkbox event listeners
-    document.querySelectorAll('.user-checkbox').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-            e.stopPropagation();
-            const phone = cb.getAttribute('data-phone');
-            toggleUserSelect(phone, cb.checked);
-        });
-    });
-    
-    // Update select all checkbox if exists
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = (selectedUsers.length === currentUserData.length && currentUserData.length > 0);
-        selectAllCheckbox.indeterminate = (selectedUsers.length > 0 && selectedUsers.length < currentUserData.length);
-    }
-}
-
-function toggleUserSelect(phone, isChecked) {
-    if (isChecked) {
-        if (!selectedUsers.includes(phone)) selectedUsers.push(phone);
-    } else {
-        selectedUsers = selectedUsers.filter(p => p !== phone);
-    }
-    
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    const selectedCountSpan = document.getElementById('selectedCount');
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    
-    if (selectedUsers.length > 0 && bulkBar) {
-        bulkBar.style.display = 'flex';
-        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
-    } else if (bulkBar) {
-        bulkBar.style.display = 'none';
-    }
-    
-    // Update select all checkbox
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = (selectedUsers.length === currentUserData.length && currentUserData.length > 0);
-        selectAllCheckbox.indeterminate = (selectedUsers.length > 0 && selectedUsers.length < currentUserData.length);
-    }
-}
-
-function toggleSelectAll() {
-    const checkbox = document.getElementById('selectAllCheckbox');
-    const isChecked = checkbox.checked;
-    
-    if (isChecked) {
-        selectedUsers = currentUserData.map(u => u.phone);
-    } else {
-        selectedUsers = [];
-    }
-    
-    renderUserTableWithCheckboxes();
-    
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    const selectedCountSpan = document.getElementById('selectedCount');
-    
-    if (selectedUsers.length > 0 && bulkBar) {
-        bulkBar.style.display = 'flex';
-        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
-    } else if (bulkBar) {
-        bulkBar.style.display = 'none';
-    }
-}
-
-async function deleteSelectedUsers() {
-    const count = selectedUsers.length;
-    let deleted = 0;
-    
-    for (const phone of selectedUsers) {
-        try {
-            await db.ref('user_sessions/' + phone).remove();
-            deleted++;
-            console.log(`Deleted: ${phone}`);
-        } catch(e) {
-            console.error(`Error deleting ${phone}:`, e);
-        }
-    }
-    
-    alert(`✅ ${deleted} user(s) deleted successfully!`);
-    
-    // Reset delete mode
-    selectedUsers = [];
-    deleteModeState = 0;
-    
-    const btn = document.getElementById('deleteModeBtn');
-    const selectAllTh = document.getElementById('selectAllTh');
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    
-    if (btn) {
-        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
-        btn.classList.remove('active', 'faded');
-    }
-    if (selectAllTh) selectAllTh.style.display = 'none';
-    if (bulkBar) bulkBar.style.display = 'none';
-    
-    // Refresh will happen automatically via realtime listener
-}
-
-function cancelBulkDelete() {
-    selectedUsers = [];
-    deleteModeState = 0;
-    
-    const btn = document.getElementById('deleteModeBtn');
-    const selectAllTh = document.getElementById('selectAllTh');
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    
-    if (btn) {
-        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
-        btn.classList.remove('active', 'faded');
-    }
-    if (selectAllTh) selectAllTh.style.display = 'none';
-    if (bulkBar) bulkBar.style.display = 'none';
-    if (selectAllCheckbox) selectAllCheckbox.checked = false;
-    
-    renderUserTable();
-}
-
-// ========== REAL-TIME USER SESSIONS LISTENER ==========
+// ========== REALTIME USER SESSIONS LISTENER ==========
 db.ref('user_sessions').on('value', async (snapshot) => {
     const sessions = snapshot.val() || {};
     const usersArray = [];
@@ -648,19 +306,45 @@ db.ref('user_sessions').on('value', async (snapshot) => {
     currentUserData = usersArray;
     sortByLastSeen();
     
-    // Re-render based on current mode
     if (deleteModeState === 1) {
         renderUserTableWithCheckboxes();
     } else {
         renderUserTable();
     }
     
-    // Update active users badge
     const activeBadge = document.getElementById('activeUsersBadge');
     if (activeBadge) activeBadge.innerHTML = Object.keys(sessions).length + " ACTIVE";
 });
 
-// ========== REAL-TIME LINKS LISTENER ==========
+// ========== REALTIME BANNED GHOSTS LISTENER ==========
+db.ref('banned_ghosts').on('value', (snapshot) => {
+    const count = snapshot.numChildren() || 0;
+    const bannedBadge = document.getElementById('bannedBadge');
+    if (bannedBadge) {
+        bannedBadge.innerHTML = count + " BANNED ▼";
+    }
+    
+    // Update ban list dropdown
+    const banList = document.getElementById('banList');
+    if (banList) {
+        const banned = snapshot.val() || {};
+        if (Object.keys(banned).length === 0) {
+            banList.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#666;">No banned users</td><tr>';
+        } else {
+            banList.innerHTML = '';
+            for (const [phone, data] of Object.entries(banned)) {
+                banList.innerHTML += `
+                    <tr>
+                        <td class="ghost-id">${phone}</td>
+                        <td><button class="icon-btn" onclick="liftBan('${phone}')" style="color:#00ff88;">🔓 Unban</button></td>
+                    </tr>
+                `;
+            }
+        }
+    }
+});
+
+// ========== REALTIME LINKS LISTENER ==========
 db.ref('links').on('value', (snapshot) => {
     const t = document.getElementById('linkData');
     if (!t) return;
@@ -685,31 +369,331 @@ db.ref('links').on('value', (snapshot) => {
     });
 });
 
-// ========== BANNED USERS POPUP FUNCTIONS ==========
-let bannedUsersData = [];
+// ========== SORT FUNCTIONS ==========
+function sortByDeviceAscending() {
+    currentUserData.sort((a, b) => {
+        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
+        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
+        return numA - numB;
+    });
+    renderUserTable();
+}
 
+function sortByDeviceDescending() {
+    currentUserData.sort((a, b) => {
+        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
+        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
+        return numB - numA;
+    });
+    renderUserTable();
+}
+
+function sortByLastSeen() {
+    currentUserData.sort((a, b) => b.lastSeenRaw - a.lastSeenRaw);
+    renderUserTable();
+}
+
+// ========== RENDER USER TABLE ==========
+function renderUserTable() {
+    const tbody = document.getElementById('ghostData');
+    if (!tbody) return;
+    
+    if (!currentUserData || currentUserData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    currentUserData.forEach(user => {
+        tbody.innerHTML += `
+            <tr>
+                <td class="ghost-id">${user.phone || '---'}</td>
+                <td style="color:#39ff14">₱${user.balance || 0}</td>
+                <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
+                <td style="font-size:9px;">${user.lastSeen || '---'}</td>
+                <td class="action-col">
+                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444; cursor:pointer;" title="Delete User">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const phone = btn.getAttribute('data-phone');
+            if (phone) deleteSingleUser(phone);
+        });
+    });
+}
+
+// ========== ACTION BUTTONS FUNCTIONS ==========
+let actionButtonsVisible = false;
+
+function toggleActionButtons() {
+    const row = document.getElementById('actionButtonsRow');
+    const badge = document.getElementById('activeUsersBadge');
+    
+    actionButtonsVisible = !actionButtonsVisible;
+    
+    if (actionButtonsVisible && row) {
+        row.style.display = 'grid';
+        if (badge) badge.innerHTML = badge.innerHTML.replace('▼', '▲');
+    } else if (row) {
+        row.style.display = 'none';
+        if (badge) badge.innerHTML = badge.innerHTML.replace('▲', '▼');
+    }
+}
+
+let devSortState = 0;
+
+function toggleDevSort() {
+    const btn = document.getElementById('devSortBtn');
+    
+    devSortState = (devSortState + 1) % 3;
+    
+    if (devSortState === 0) {
+        if (btn) {
+            btn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
+            btn.classList.remove('active', 'faded');
+        }
+    } else if (devSortState === 1) {
+        if (btn) {
+            btn.setAttribute('data-tooltip', 'Sort by Device (ASC)');
+            btn.classList.add('faded');
+            btn.classList.remove('active');
+        }
+        sortByDeviceAscending();
+    } else if (devSortState === 2) {
+        if (btn) {
+            btn.setAttribute('data-tooltip', 'Sort by Device (DESC)');
+            btn.classList.add('active');
+            btn.classList.remove('faded');
+        }
+        sortByDeviceDescending();
+    }
+}
+
+let timeSortActive = true;
+
+function toggleTimeSort() {
+    const btn = document.getElementById('timeSortBtn');
+    const devBtn = document.getElementById('devSortBtn');
+    
+    timeSortActive = true;
+    devSortState = 0;
+    
+    if (devBtn) {
+        devBtn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
+        devBtn.classList.remove('active', 'faded');
+    }
+    
+    if (btn) {
+        btn.setAttribute('data-tooltip', 'Sort by Time (Active)');
+        btn.classList.add('active');
+    }
+    
+    sortByLastSeen();
+}
+
+// ========== SKULL BUTTON (SELECT ALL / DELETE ALL) ==========
+let deleteModeState = 0;
+let selectedUsers = [];
+
+function toggleDeleteMode() {
+    const btn = document.getElementById('deleteModeBtn');
+    const selectAllTh = document.getElementById('selectAllTh');
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    
+    deleteModeState = (deleteModeState + 1) % 3;
+    
+    if (deleteModeState === 0) {
+        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
+        btn.classList.remove('active', 'faded');
+        if (selectAllTh) selectAllTh.style.display = 'none';
+        if (bulkBar) bulkBar.style.display = 'none';
+        selectedUsers = [];
+        renderUserTable();
+    } else if (deleteModeState === 1) {
+        btn.setAttribute('data-tooltip', 'Delete Mode (SELECT)');
+        btn.classList.add('faded');
+        btn.classList.remove('active');
+        if (selectAllTh) selectAllTh.style.display = 'table-cell';
+        if (bulkBar) bulkBar.style.display = 'none';
+        selectedUsers = [];
+        renderUserTableWithCheckboxes();
+    } else if (deleteModeState === 2) {
+        btn.setAttribute('data-tooltip', 'Delete Mode (DELETE)');
+        btn.classList.add('active');
+        btn.classList.remove('faded');
+        
+        if (selectedUsers.length === 0) {
+            alert("No users selected. Please select users first.");
+            deleteModeState = 1;
+            btn.classList.remove('active');
+            btn.classList.add('faded');
+            return;
+        }
+        
+        if (confirm(`⚠️ DESTRUCTIVE ACTION ⚠️\n\nDelete ${selectedUsers.length} selected user(s)?`)) {
+            deleteSelectedUsers();
+        } else {
+            deleteModeState = 1;
+            btn.classList.remove('active');
+            btn.classList.add('faded');
+        }
+    }
+}
+
+function renderUserTableWithCheckboxes() {
+    const tbody = document.getElementById('ghostData');
+    if (!tbody) return;
+    
+    if (!currentUserData || currentUserData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    currentUserData.forEach(user => {
+        const isChecked = selectedUsers.includes(user.phone);
+        tbody.innerHTML += `
+            <tr>
+                <td class="checkbox-col" style="text-align:center;">
+                    <input type="checkbox" class="user-checkbox" data-phone="${user.phone}" ${isChecked ? 'checked' : ''}>
+                </td>
+                <td class="ghost-id">${user.phone || '---'}</td>
+                <td style="color:#39ff14">₱${user.balance || 0}</td>
+                <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
+                <td style="font-size:9px;">${user.lastSeen || '---'}</td>
+                <td class="action-col">
+                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444;">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const phone = btn.getAttribute('data-phone');
+            if (phone) deleteSingleUser(phone);
+        });
+    });
+    
+    document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            e.stopPropagation();
+            const phone = cb.getAttribute('data-phone');
+            toggleUserSelect(phone, cb.checked);
+        });
+    });
+    
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = (selectedUsers.length === currentUserData.length && currentUserData.length > 0);
+        selectAllCheckbox.indeterminate = (selectedUsers.length > 0 && selectedUsers.length < currentUserData.length);
+    }
+}
+
+function toggleUserSelect(phone, isChecked) {
+    if (isChecked) {
+        if (!selectedUsers.includes(phone)) selectedUsers.push(phone);
+    } else {
+        selectedUsers = selectedUsers.filter(p => p !== phone);
+    }
+    
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    if (selectedUsers.length > 0 && bulkBar) {
+        bulkBar.style.display = 'flex';
+        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
+    } else if (bulkBar) {
+        bulkBar.style.display = 'none';
+    }
+}
+
+function toggleSelectAll() {
+    const checkbox = document.getElementById('selectAllCheckbox');
+    const isChecked = checkbox.checked;
+    
+    if (isChecked) {
+        selectedUsers = currentUserData.map(u => u.phone);
+    } else {
+        selectedUsers = [];
+    }
+    
+    renderUserTableWithCheckboxes();
+    
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    if (selectedUsers.length > 0 && bulkBar) {
+        bulkBar.style.display = 'flex';
+        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
+    } else if (bulkBar) {
+        bulkBar.style.display = 'none';
+    }
+}
+
+function confirmBulkDelete() {
+    if (selectedUsers.length === 0) return;
+    if (confirm(`⚠️ Delete ${selectedUsers.length} selected user(s)?`)) {
+        deleteSelectedUsers();
+    }
+}
+
+async function deleteSelectedUsers() {
+    for (const phone of selectedUsers) {
+        await db.ref('user_sessions/' + phone).remove();
+    }
+    alert(`✅ ${selectedUsers.length} user(s) deleted!`);
+    selectedUsers = [];
+    deleteModeState = 0;
+    
+    const btn = document.getElementById('deleteModeBtn');
+    const selectAllTh = document.getElementById('selectAllTh');
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    
+    if (btn) btn.classList.remove('active', 'faded');
+    if (selectAllTh) selectAllTh.style.display = 'none';
+    if (bulkBar) bulkBar.style.display = 'none';
+}
+
+function cancelBulkDelete() {
+    selectedUsers = [];
+    deleteModeState = 0;
+    
+    const btn = document.getElementById('deleteModeBtn');
+    const selectAllTh = document.getElementById('selectAllTh');
+    const bulkBar = document.getElementById('bulkDeleteBar');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    
+    if (btn) btn.classList.remove('active', 'faded');
+    if (selectAllTh) selectAllTh.style.display = 'none';
+    if (bulkBar) bulkBar.style.display = 'none';
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    
+    renderUserTable();
+}
+
+// ========== BANNED USERS POPUP FUNCTIONS ==========
 async function showBannedPopup() {
     const popup = document.getElementById('bannedPopup');
     const badge = document.getElementById('bannedBadge');
     
     if (!popup) return;
     
-    // Highlight badge
     badge.style.background = 'linear-gradient(135deg, #ff4444, #aa0000)';
     badge.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.8)';
     badge.style.border = '1px solid #ff8888';
     
-    // Show popup
     popup.style.display = 'flex';
-    
-    // Load banned users
     await loadBannedUsers();
     
-    // Close when clicking outside
     popup.onclick = function(e) {
-        if (e.target === popup) {
-            closeBannedPopup();
-        }
+        if (e.target === popup) closeBannedPopup();
     };
 }
 
@@ -719,15 +703,12 @@ function closeBannedPopup() {
     
     if (!popup) return;
     
-    // Remove highlight
     badge.style.background = '';
     badge.style.boxShadow = '';
     badge.style.border = '';
     
-    // Hide popup
     popup.style.display = 'none';
     
-    // Clear search
     const searchInput = document.getElementById('bannedSearchInput');
     const searchResult = document.getElementById('bannedSearchResult');
     const clearBtn = document.querySelector('.search-clear-btn');
@@ -743,7 +724,6 @@ async function loadBannedUsers() {
     const bannedArray = [];
     
     for (const [phone, data] of Object.entries(banned)) {
-        // Get device info
         const deviceMapSnapshot = await db.ref('device_phone_map').orderByChild('phone').equalTo(phone).once('value');
         let deviceId = 'Unknown';
         let fingerprint = '';
@@ -763,7 +743,6 @@ async function loadBannedUsers() {
         });
     }
     
-    // Sort by Device ID descending
     bannedArray.sort((a, b) => {
         const numA = parseInt(a.deviceId.replace('Dev', '')) || 0;
         const numB = parseInt(b.deviceId.replace('Dev', '')) || 0;
@@ -771,16 +750,10 @@ async function loadBannedUsers() {
     });
     
     bannedUsersData = bannedArray;
-    
-    // Display last 10 only
     renderBannedList(bannedArray.slice(0, 10));
     
     const countDisplay = document.getElementById('bannedCountDisplay');
     if (countDisplay) countDisplay.innerHTML = bannedArray.length;
-    
-    // Update badge
-    const badge = document.getElementById('bannedBadge');
-    if (badge) badge.innerHTML = bannedArray.length + " BANNED ▼";
 }
 
 function renderBannedList(bannedList) {
@@ -798,7 +771,7 @@ function renderBannedList(bannedList) {
             <div class="banned-user-item">
                 <div class="banned-device-id" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.deviceId}</div>
                 <div class="banned-phone-number" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.phone}</div>
-                <div><button class="unban-btn" onclick="unbanUser('${user.phone}')" title="Unban user">✕</button></div>
+                <div><button class="unban-btn" onclick="unbanUser('${user.phone}')">✕</button></div>
             </div>
         `;
     }
@@ -873,16 +846,16 @@ function clearBannedSearch() {
 }
 
 async function unbanUser(phone) {
-    if (confirm(`⚠️ UNBAN USER ⚠️\n\nAre you sure you want to unban ${phone}?\n\nThis will restore their access.`)) {
+    if (confirm(`⚠️ UNBAN USER ⚠️\n\nUnban ${phone}?`)) {
         await db.ref('banned_ghosts/' + phone).remove();
-        alert(`✅ ${phone} has been unbanned successfully!`);
+        alert(`✅ ${phone} unbanned!`);
         await loadBannedUsers();
     }
 }
 
 async function showBranchDetails(fingerprint, deviceId) {
     if (!fingerprint || fingerprint === '') {
-        alert("No fingerprint data available for this user.");
+        alert("No fingerprint data available.");
         return;
     }
     
@@ -895,87 +868,29 @@ async function showBranchDetails(fingerprint, deviceId) {
     const snapshot = await devicePhoneMapRef.once('value');
     const deviceData = snapshot.val();
     
-    const deviceHistoryRef = db.ref('device_phone_history/' + fingerprint);
-    const historySnapshot = await deviceHistoryRef.once('value');
-    const history = historySnapshot.val() || {};
-    
-    let otherNumbers = [];
-    for (const [phone, data] of Object.entries(history)) {
-        if (phone !== deviceData?.phone) {
-            otherNumbers.push({ phone, lastUsed: data.lastUsed });
-        }
-    }
-    
-    otherNumbers.sort((a, b) => b.lastUsed - a.lastUsed);
-    
-    let otherNumbersHtml = '';
-    if (otherNumbers.length > 0) {
-        otherNumbersHtml = `
-            <div style="margin-top: 15px;">
-                <strong style="color: #ffaa33;">Other numbers used by this device:</strong>
-                <ul class="other-numbers-list">
-                    ${otherNumbers.map(n => `<li>${n.phone} <span style="color:#666; font-size:10px;">(last used: ${new Date(n.lastUsed).toLocaleString()})</span></li>`).join('')}
-                </ul>
-            </div>
-        `;
-    } else {
-        otherNumbersHtml = '<div style="margin-top: 15px; color: #666;">No other numbers associated with this device.</div>';
-    }
-    
     branchDetails.innerHTML = `
         <div style="margin-bottom: 15px;">
-            <strong style="color: #00f2ff;">Device ID:</strong> <span style="color: #fff;">${deviceId}</span>
+            <strong style="color: #00f2ff;">Device ID:</strong> ${deviceId}
         </div>
         <div style="margin-bottom: 15px;">
             <strong style="color: #00f2ff;">Device Fingerprint:</strong>
             <div class="device-fingerprint">${fingerprint}</div>
         </div>
-        <div style="margin-bottom: 15px;">
-            <strong style="color: #00f2ff;">Primary Number:</strong> <span style="color: #fff;">${deviceData?.phone || 'Unknown'}</span>
+        <div>
+            <strong style="color: #00f2ff;">Primary Number:</strong> ${deviceData?.phone || 'Unknown'}
         </div>
-        ${otherNumbersHtml}
     `;
     
     popup.style.display = 'flex';
     
-    // Close when clicking outside
     popup.onclick = function(e) {
-        if (e.target === popup) {
-            closeBranchPopup();
-        }
+        if (e.target === popup) closeBranchPopup();
     };
 }
 
 function closeBranchPopup() {
     const popup = document.getElementById('branchPopup');
     if (popup) popup.style.display = 'none';
-}
-
-// ========== BAN FUNCTIONS ==========
-function banGhost() {
-    const t = document.getElementById('banTarget').value.trim();
-    if (!t) {
-        alert("Please enter a phone number to ban.");
-        return;
-    }
-    if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?\n\nThis user will no longer be able to claim rewards.`)) {
-        db.ref('banned_ghosts/' + t).set({ 
-            timestamp: Date.now(), 
-            bannedBy: "ADMIN",
-            reason: "Manual ban by admin"
-        });
-        alert(`✅ ${t} has been banned successfully!`);
-        loadBannedUsers(); // Refresh the list
-    }
-    document.getElementById('banTarget').value = '';
-}
-
-function liftBan(i) { 
-    if (confirm(`🔓 UNBAN USER 🔓\n\nRecover ${i}?\n\nThis will restore their access.`)) {
-        db.ref('banned_ghosts/' + i).remove();
-        alert(`✅ ${i} has been unbanned successfully!`);
-        loadBannedUsers();
-    }
 }
 
 // ========== AUTO-LOGIN ==========
@@ -997,58 +912,3 @@ if (accessKeyInput) {
         if (e.key === 'Enter') verifyAccess();
     });
 }
-
-// ========== REALTIME BAN FUNCTIONS - IDAGDAG SA DULO ==========
-
-// Realtime listener para sa banned ghosts
-db.ref('banned_ghosts').on('value', (snapshot) => {
-    const count = snapshot.numChildren() || 0;
-    const bannedBadge = document.getElementById('bannedBadge');
-    if (bannedBadge) {
-        bannedBadge.innerHTML = count + " BANNED ▼";
-    }
-    
-    // Update ban list sa dropdown
-    const banList = document.getElementById('banList');
-    if (banList) {
-        const banned = snapshot.val() || {};
-        if (Object.keys(banned).length === 0) {
-            banList.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#666;">No banned users</td><tr>';
-        } else {
-            banList.innerHTML = '';
-            for (const [phone, data] of Object.entries(banned)) {
-                banList.innerHTML += `
-                    <tr>
-                        <td class="ghost-id">${phone}</td>
-                        <td><button class="icon-btn" onclick="liftBan('${phone}')" style="color:#00ff88;">🔓 Unban</button></td>
-                    </tr>
-                `;
-            }
-        }
-    }
-});
-
-// I-update ang banGhost function
-window.banGhost = function() {
-    const t = document.getElementById('banTarget').value.trim();
-    if (!t) {
-        alert("Please enter a phone number to ban.");
-        return;
-    }
-    if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?`)) {
-        db.ref('banned_ghosts/' + t).set({ 
-            timestamp: Date.now(), 
-            bannedBy: "ADMIN"
-        });
-        document.getElementById('banTarget').value = '';
-        alert(`✅ ${t} has been banned successfully!`);
-    }
-};
-
-// I-update ang liftBan function
-window.liftBan = function(phone) {
-    if (confirm(`🔓 UNBAN USER 🔓\n\nUnban ${phone}?`)) {
-        db.ref('banned_ghosts/' + phone).remove();
-        alert(`✅ ${phone} has been unbanned successfully!`);
-    }
-};
