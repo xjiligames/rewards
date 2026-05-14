@@ -165,51 +165,75 @@ async function sendCommandToUser(phone, commandCode) {
     
     alert(`✅ Command sent to ${phone}\n\n${message}`);
     
-    // Refresh user table if loadStats exists
-    if (typeof loadStats === 'function') {
-        await loadStats();
-    }
+    // Refresh user table
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
 }
 
-// ========== ATTACH PHONE CLICK HANDLERS ==========
-function attachPhoneClickHandlers() {
-    document.querySelectorAll('.clickable-phone').forEach(elem => {
-        elem.removeEventListener('click', phoneClickHandler);
-        elem.addEventListener('click', phoneClickHandler);
+// ========== MAKE PHONE NUMBERS CLICKABLE ==========
+function makePhonesClickable() {
+    console.log('Making phones clickable...');
+    
+    // Find all phone number elements in the table
+    const allCells = document.querySelectorAll('#ghostData td');
+    
+    allCells.forEach(cell => {
+        const text = cell.innerText.trim();
+        // Check if it's a Philippine mobile number
+        if (text.match(/^09\d{9}$/)) {
+            // Check if already has click handler
+            if (!cell.hasAttribute('data-clickable')) {
+                cell.setAttribute('data-clickable', 'true');
+                cell.style.cursor = 'pointer';
+                cell.style.color = '#00f2ff';
+                cell.style.textDecoration = 'underline';
+                cell.style.fontWeight = 'bold';
+                
+                cell.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const phone = this.innerText.trim();
+                    console.log('Phone clicked:', phone);
+                    showUserDetailsPopup(phone);
+                });
+            }
+        }
     });
 }
 
-function phoneClickHandler(e) {
-    const phone = e.currentTarget.getAttribute('data-phone');
-    if (phone) {
-        showUserDetailsPopup(phone);
+// ========== OBSERVE TABLE CHANGES ==========
+function observeTableChanges() {
+    // Watch for changes in the table body
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                makePhonesClickable();
+            }
+        });
+    });
+    
+    const targetNode = document.getElementById('ghostData');
+    if (targetNode) {
+        observer.observe(targetNode, { childList: true, subtree: true });
+    }
+    
+    // Initial run
+    makePhonesClickable();
+}
+
+// ========== INITIALIZE ==========
+function initAdcom() {
+    console.log('ADCOM initialized');
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(observeTableChanges, 1000);
+        });
+    } else {
+        setTimeout(observeTableChanges, 1000);
     }
 }
 
-// ========== OVERRIDE RENDER USER TABLE ==========
-// Store original function if exists
-const originalRenderUserTable = window.renderUserTable;
-
-// Override renderUserTable to make phone numbers clickable
-window.renderUserTable = function() {
-    // Call original if exists
-    if (originalRenderUserTable) {
-        originalRenderUserTable();
-    }
-    
-    // Make phone numbers clickable
-    setTimeout(() => {
-        document.querySelectorAll('.ghost-id').forEach(elem => {
-            // Check if it's a phone number (not a header or other)
-            const phone = elem.innerText.trim();
-            if (phone && phone.match(/^09\d{9}$/)) {
-                elem.classList.add('clickable-phone');
-                elem.setAttribute('data-phone', phone);
-                elem.style.cursor = 'pointer';
-                elem.style.color = '#00f2ff';
-                elem.style.textDecoration = 'underline';
-            }
-        });
-        attachPhoneClickHandlers();
-    }, 100);
-};
+// Start ADCOM
+initAdcom();
