@@ -1,12 +1,16 @@
 /**
- * ADCOM.JS v2.2 - Fixed for Dropdown + Dynamic Tables
+ * ADCOM.JS v2.3 - Standardized Phone Format (09XXXXXXXXX)
  * 
- * FIXES:
- * - Handles dropdown-collapsed tables
- * - Re-applies click handlers after any table update
- * - Watches parent container, not just tbody
- * - Multiple retry attempts
- * - Works with dynamically rendered content (adscript.js)
+ * PHONE FORMAT STANDARD:
+ * - Input: +639171234567, 639171234567, 09171234567, 9171234567
+ * - Output: 09171234567 (always 09 + 9 digits)
+ * 
+ * FEATURES:
+ * - Real-time user notifications via Firebase onValue listener
+ * - Admin popup with user info and command buttons
+ * - Clickable phone numbers in admin tables
+ * - Standardized phone format for consistent Firebase paths
+ * - Clears userPhone from localStorage after alert
  */
 
 // ========== DETECT CURRENT PAGE ==========
@@ -150,18 +154,57 @@ if (isAdminPage) {
         }
         .badge-success { background: #4caf50; color: #fff; }
         .badge-pending { background: #ff9800; color: #fff; }
-
-        /* Pulse animation for new clickable elements */
-        @keyframes phonePulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(0, 242, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
-        }
-        .phone-pulse {
-            animation: phonePulse 1s ease;
-        }
     `;
     document.head.appendChild(style);
+}
+
+// ========== STANDARDIZED PHONE FORMAT ==========
+/**
+ * STANDARDIZE PHONE NUMBER TO 09XXXXXXXXX FORMAT
+ * 
+ * Input variations:
+ *   +639171234567 → 09171234567
+ *   639171234567  → 09171234567
+ *   09171234567   → 09171234567 (already standard)
+ *   9171234567    → 09171234567
+ *   +63 917 123 4567 → 09171234567
+ *   09 171 234 567   → 09171234567
+ * 
+ * Output: Always 09123456789 format (11 digits, starts with 09)
+ */
+function standardizePhone(phone) {
+    if (!phone || typeof phone !== 'string') return '';
+
+    // Step 1: Remove all non-digit characters
+    let digits = phone.replace(/\D/g, '');
+
+    // Step 2: Handle different formats
+    if (digits.startsWith('63') && digits.length >= 12) {
+        // Format: 639171234567 (with country code, no +)
+        // Remove '63' and add '0'
+        digits = '0' + digits.substring(2);
+    } else if (digits.startsWith('63') && digits.length === 12) {
+        // Format: 639171234567 (12 digits)
+        digits = '0' + digits.substring(2);
+    } else if (digits.startsWith('9') && !digits.startsWith('09') && digits.length === 10) {
+        // Format: 9171234567 (10 digits, starts with 9)
+        digits = '0' + digits;
+    } else if (digits.startsWith('09') && digits.length === 11) {
+        // Format: 09171234567 (already standard)
+        // Keep as is
+    } else if (digits.length === 11 && digits.startsWith('0')) {
+        // Format: 0917... (already standard)
+        // Keep as is
+    }
+
+    // Step 3: Validate - should be 11 digits starting with 09
+    if (digits.length !== 11 || !digits.startsWith('09')) {
+        console.warn('⚠️ Invalid phone format after standardization:', phone, '→', digits);
+        // Return original digits if we can't standardize
+        return digits;
+    }
+
+    return digits;
 }
 
 // ========== UTILITY FUNCTIONS ==========
@@ -169,10 +212,6 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-}
-
-function formatPhone(phone) {
-    return phone.replace(/[^0-9]/g, '');
 }
 
 function showToast(message, type = 'success') {
@@ -205,10 +244,10 @@ function showToast(message, type = 'success') {
 async function showUserDetailsPopup(phone) {
     if (!isAdminPage) return;
 
-    const sanitizedPhone = formatPhone(phone);
+    const standardizedPhone = standardizePhone(phone);
 
     try {
-        const userSnap = await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + sanitizedPhone).once('value');
+        const userSnap = await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).once('value');
         const userData = userSnap.val();
 
         if (!userData) {
@@ -282,11 +321,13 @@ async function sendCommand(phone, type) {
 
     closeUserCommandPopup();
 
-    const sanitizedPhone = formatPhone(phone);
+    const standardizedPhone = standardizePhone(phone);
     const message = type === '1' ? CONFIG.MSG_WRONG_NUMBER : CONFIG.MSG_RESTRICTED;
 
+    console.log('📤 Sending command to:', standardizedPhone);
+
     try {
-        await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + sanitizedPhone).update({
+        await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).update({
             adminCommand: message,
             commandTimestamp: Date.now(),
             commandType: type,
@@ -294,40 +335,37 @@ async function sendCommand(phone, type) {
         });
 
         showToast('✅ Message sent to user!');
+        console.log('✅ Command saved to Firebase');
     } catch (error) {
-        console.error('Send command error:', error);
+        console.error('❌ Send command error:', error);
         showToast('❌ Failed to send message', 'error');
     }
 }
 
-// ========== ADMIN: MAKE PHONES CLICKABLE (FIXED) ==========
+// ========== ADMIN: MAKE PHONES CLICKABLE ==========
 let phoneClickAttempts = 0;
 
 function makePhonesClickable() {
     if (!isAdminPage) return;
 
-    const phoneRegex = /^(\+63\d{10}|09\d{9})$/;
+    const phoneRegex = /^(\+63\d{10}|09\d{9}|63\d{10}|9\d{9})$/;
     let foundPhones = 0;
 
-    // Search in ghostData tbody and all its descendants
     const ghostData = document.getElementById('ghostData');
     if (!ghostData) {
         console.log('ghostData not found yet, retrying...');
-        return;
+        return 0;
     }
 
     // Get all elements that might contain phone numbers
     const allElements = ghostData.querySelectorAll('*');
 
     allElements.forEach(element => {
-        // Skip already processed elements
         if (element.hasAttribute('data-clickable')) return;
 
-        // Get text content
         const text = element.textContent || element.innerText || '';
         const trimmedText = text.trim();
 
-        // Check if this element directly contains a phone number (not in children)
         if (phoneRegex.test(trimmedText) && element.children.length === 0) {
             element.setAttribute('data-clickable', 'true');
             element.classList.add('clickable-phone');
@@ -344,7 +382,7 @@ function makePhonesClickable() {
         }
     });
 
-    // Also check td elements directly (in case phone is in td but has no child elements)
+    // Also check td elements directly
     const tds = ghostData.querySelectorAll('td');
     tds.forEach(td => {
         if (td.hasAttribute('data-clickable')) return;
@@ -375,7 +413,7 @@ function makePhonesClickable() {
     return foundPhones;
 }
 
-// ========== OBSERVE TABLE CHANGES (FIXED FOR DROPDOWN) ==========
+// ========== OBSERVE TABLE CHANGES ==========
 let tableObserver = null;
 let dropdownObserver = null;
 
@@ -385,7 +423,7 @@ function observeTableChanges() {
     const ghostData = document.getElementById('ghostData');
     const userDropdown = document.getElementById('userDropdown');
 
-    // Strategy 1: Observe ghostData directly if available
+    // Strategy 1: Observe ghostData directly
     if (ghostData) {
         if (tableObserver) tableObserver.disconnect();
 
@@ -410,13 +448,12 @@ function observeTableChanges() {
         console.log('✅ Table observer attached to ghostData');
     }
 
-    // Strategy 2: Observe dropdown container (catches show/hide + content changes)
+    // Strategy 2: Observe dropdown container
     if (userDropdown) {
         if (dropdownObserver) dropdownObserver.disconnect();
 
         dropdownObserver = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                // Detect when dropdown becomes visible
                 if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
                     const isVisible = userDropdown.style.display !== 'none' && 
                                      !userDropdown.classList.contains('hidden');
@@ -425,7 +462,6 @@ function observeTableChanges() {
                         setTimeout(makePhonesClickable, 300);
                     }
                 }
-                // Detect content changes
                 if (mutation.type === 'childList') {
                     setTimeout(makePhonesClickable, 100);
                 }
@@ -458,7 +494,7 @@ function observeTableChanges() {
         }
     }, CONFIG.RETRY_INTERVAL);
 
-    // Strategy 4: Hook into dropdown toggle function if available
+    // Strategy 4: Hook into dropdown toggle
     if (typeof toggleDropdown === 'function') {
         const originalToggle = toggleDropdown;
         window.toggleDropdown = function(id) {
@@ -484,37 +520,49 @@ function startRealTimeCommandListener() {
     const userPhone = localStorage.getItem('userPhone');
     if (!userPhone || commandListenerActive) return;
 
-    const sanitizedPhone = formatPhone(userPhone);
+    const standardizedPhone = standardizePhone(userPhone);
 
-    console.log('🔔 Starting real-time command listener for:', sanitizedPhone);
+    console.log('🔔 Starting real-time command listener');
+    console.log('   Original phone:', userPhone);
+    console.log('   Standardized:', standardizedPhone);
+    console.log('   Firebase path:', CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand');
+
     commandListenerActive = true;
 
-    commandUnsubscribe = db.ref(CONFIG.USER_SESSIONS_PATH + '/' + sanitizedPhone + '/adminCommand')
+    commandUnsubscribe = db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand')
         .on('value', async (snapshot) => {
             const message = snapshot.val();
 
+            console.log('📨 Listener triggered!');
+            console.log('   Message:', message);
+            console.log('   Snapshot exists:', snapshot.exists());
+
             if (message) {
-                console.log('📨 Admin command received:', message);
+                console.log('✅ Valid message received, showing alert...');
                 alert(message);
 
-                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + sanitizedPhone).update({
+                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).update({
                     commandStatus: 'received',
                     commandReceivedAt: Date.now()
                 });
 
-                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + sanitizedPhone + '/adminCommand').remove();
+                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand').remove();
 
                 // CLEAR userPhone from localStorage
                 localStorage.removeItem('userPhone');
                 console.log('🗑️ userPhone cleared from localStorage');
 
                 stopRealTimeCommandListener();
+            } else {
+                console.log('ℹ️ No message (null or removed)');
             }
         }, (error) => {
-            console.error('Listener error:', error);
+            console.error('❌ Listener error:', error);
             commandListenerActive = false;
             setTimeout(startRealTimeCommandListener, 5000);
         });
+
+    console.log('✅ Listener attached successfully');
 }
 
 function stopRealTimeCommandListener() {
@@ -523,6 +571,7 @@ function stopRealTimeCommandListener() {
         commandUnsubscribe = null;
     }
     commandListenerActive = false;
+    console.log('🛑 Command listener stopped');
 }
 
 // ========== USER: FALLBACK CHECK ==========
@@ -531,13 +580,13 @@ async function checkForAdminCommand() {
     if (!userPhone) return false;
 
     try {
-        const sanitizedPhone = formatPhone(userPhone);
-        const snapshot = await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + sanitizedPhone).once('value');
+        const standardizedPhone = standardizePhone(userPhone);
+        const snapshot = await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).once('value');
         const userData = snapshot.val();
 
         if (userData && userData.adminCommand) {
             alert(userData.adminCommand);
-            await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + sanitizedPhone + '/adminCommand').remove();
+            await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand').remove();
             localStorage.removeItem('userPhone');
             return true;
         }
@@ -561,6 +610,7 @@ document.addEventListener('visibilitychange', () => {
     if (!document.hidden && !isAdminPage) {
         const userPhone = localStorage.getItem('userPhone');
         if (userPhone && !commandListenerActive) {
+            console.log('Tab visible, restarting command listener...');
             startRealTimeCommandListener();
         }
     }
@@ -568,10 +618,12 @@ document.addEventListener('visibilitychange', () => {
 
 // ========== START ==========
 function init() {
-    console.log('🚀 ADCOM.JS v2.2 initializing...');
-    console.log('Admin page:', isAdminPage);
+    console.log('🚀 ADCOM.JS v2.3 initializing...');
+    console.log('   isAdminPage:', isAdminPage);
+    console.log('   Current path:', window.location.pathname);
 
     if (isAdminPage) {
+        console.log('👤 ADMIN MODE');
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(observeTableChanges, CONFIG.POPUP_DELAY);
@@ -580,6 +632,7 @@ function init() {
             setTimeout(observeTableChanges, CONFIG.POPUP_DELAY);
         }
     } else {
+        console.log('👤 USER MODE');
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
