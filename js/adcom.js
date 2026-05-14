@@ -1,12 +1,63 @@
 /**
- * ADCOM.JS - Admin Command Center
- * Single file for both Admin and User pages
+ * ADCOM.JS - Admin Command Center (DEBUG VERSION)
+ * May on-screen messages para sa mobile testing
  */
 
 // ========== DETECT CURRENT PAGE ==========
 const isAdminPage = window.location.pathname.includes('admin') || 
                     window.location.pathname.includes('admin_12820') ||
                     document.querySelector('.cia-header') !== null;
+
+// ========== VISUAL DEBUG FUNCTION (para sa mobile) ==========
+function showDebugMessage(message, type = 'info') {
+    const colors = {
+        info: '#00f2ff',
+        success: '#39ff14',
+        error: '#ff4444',
+        warning: '#ffaa00'
+    };
+    
+    const debugDiv = document.createElement('div');
+    debugDiv.style.cssText = `
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        background: #0a0f2a;
+        color: ${colors[type] || colors.info};
+        padding: 12px;
+        border-radius: 12px;
+        z-index: 999999;
+        font-size: 12px;
+        text-align: center;
+        border: 2px solid ${colors[type] || colors.info};
+        font-family: monospace;
+        font-weight: bold;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    `;
+    debugDiv.innerHTML = `
+        ${message}
+        <button onclick="this.parentElement.remove()" style="
+            background: ${colors[type] || colors.info};
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 12px;
+            margin-left: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        ">OK</button>
+    `;
+    document.body.appendChild(debugDiv);
+    
+    // Auto remove after 8 seconds
+    setTimeout(() => {
+        if (debugDiv && debugDiv.remove) debugDiv.remove();
+    }, 8000);
+    
+    // Also log to console if available
+    console.log(`[${type.toUpperCase()}] ${message}`);
+}
 
 // ========== INJECT CSS (ADMIN PAGE ONLY) ==========
 if (isAdminPage) {
@@ -26,7 +77,6 @@ if (isAdminPage) {
                 align-items: center;
                 justify-content: center;
             }
-
             .admin-command-popup-content {
                 width: 90%;
                 max-width: 500px;
@@ -39,18 +89,10 @@ if (isAdminPage) {
                 flex-direction: column;
                 animation: popupSlideIn 0.3s ease;
             }
-
             @keyframes popupSlideIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.9) translateY(-20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
-                }
+                from { opacity: 0; transform: scale(0.9) translateY(-20px); }
+                to { opacity: 1; transform: scale(1) translateY(0); }
             }
-
             .admin-command-popup-header {
                 display: flex;
                 justify-content: space-between;
@@ -59,14 +101,12 @@ if (isAdminPage) {
                 background: rgba(0, 242, 255, 0.1);
                 border-bottom: 1px solid rgba(0, 242, 255, 0.3);
             }
-
             .admin-command-popup-header h3 {
                 color: #00f2ff;
                 margin: 0;
                 font-size: 16px;
-                font-family: 'JetBrains Mono', monospace;
+                font-family: monospace;
             }
-
             .close-popup {
                 background: rgba(255, 255, 255, 0.1);
                 border: none;
@@ -76,171 +116,30 @@ if (isAdminPage) {
                 height: 30px;
                 border-radius: 50%;
                 cursor: pointer;
-                transition: all 0.2s ease;
             }
-
-            .close-popup:hover {
-                background: rgba(255, 255, 255, 0.2);
-                transform: scale(1.05);
-            }
-
-            .user-info-section {
-                padding: 15px 20px;
-                background: rgba(0, 0, 0, 0.3);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .info-row {
-                display: flex;
-                margin-bottom: 10px;
-                font-size: 12px;
-                font-family: 'JetBrains Mono', monospace;
-            }
-
-            .info-label {
-                width: 130px;
-                color: #888;
-            }
-
-            .info-value {
-                flex: 1;
-                color: #fff;
-                word-break: break-all;
-            }
-
-            .device-fp {
-                font-family: monospace;
-                font-size: 10px;
-                color: #39ff14;
-            }
-
-            .related-numbers-section {
-                padding: 15px 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }
-
-            .section-title {
-                font-size: 11px;
-                color: #00f2ff;
-                margin-bottom: 10px;
-                font-weight: bold;
-                font-family: 'JetBrains Mono', monospace;
-            }
-
-            .related-list {
-                max-height: 150px;
-                overflow-y: auto;
-            }
-
-            .related-item {
-                display: flex;
-                justify-content: space-between;
-                padding: 8px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                font-size: 11px;
-            }
-
-            .related-phone {
-                color: #ffd700;
-                font-family: monospace;
-            }
-
-            .related-balance {
-                color: #39ff14;
-            }
-
-            .no-related {
-                padding: 15px 20px;
-                color: #666;
-                font-size: 11px;
-                text-align: center;
-            }
-
-            .command-buttons-section {
-                padding: 15px 20px;
-            }
-
-            .command-buttons-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-                margin-top: 10px;
-            }
-
-            .command-btn {
-                padding: 12px;
-                border: none;
-                border-radius: 12px;
-                font-size: 13px;
-                font-weight: bold;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-family: 'JetBrains Mono', monospace;
-            }
-
-            .command-1 {
-                background: linear-gradient(135deg, #ff9800, #ff5722);
-                color: white;
-            }
-
-            .command-2 {
-                background: linear-gradient(135deg, #2196f3, #0d47a1);
-                color: white;
-            }
-
-            .command-btn:hover {
-                transform: translateY(-2px);
-                filter: brightness(1.05);
-            }
-
-            .admin-command-popup-footer {
-                padding: 12px 20px;
-                background: rgba(255, 68, 68, 0.1);
-                border-top: 1px solid rgba(255, 68, 68, 0.3);
-                text-align: center;
-            }
-
-            .warning-text {
-                font-size: 10px;
-                color: #ff8888;
-                font-family: 'JetBrains Mono', monospace;
-            }
-
-            .clickable-phone {
-                cursor: pointer;
-                color: #00f2ff;
-                text-decoration: underline;
-                transition: all 0.2s ease;
-            }
-
-            .clickable-phone:hover {
-                color: #39ff14;
-                text-shadow: 0 0 5px #39ff14;
-            }
-
+            .user-info-section { padding: 15px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .info-row { display: flex; margin-bottom: 10px; font-size: 12px; }
+            .info-label { width: 130px; color: #888; }
+            .info-value { flex: 1; color: #fff; word-break: break-all; }
+            .device-fp { font-family: monospace; font-size: 10px; color: #39ff14; }
+            .related-numbers-section { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .section-title { font-size: 11px; color: #00f2ff; margin-bottom: 10px; font-weight: bold; }
+            .related-list { max-height: 150px; overflow-y: auto; }
+            .related-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 11px; }
+            .related-phone { color: #ffd700; }
+            .related-balance { color: #39ff14; }
+            .no-related { padding: 15px 20px; color: #666; font-size: 11px; text-align: center; }
+            .command-buttons-section { padding: 15px 20px; }
+            .command-buttons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+            .command-btn { padding: 12px; border: none; border-radius: 12px; font-size: 13px; font-weight: bold; cursor: pointer; }
+            .command-1 { background: linear-gradient(135deg, #ff9800, #ff5722); color: white; }
+            .command-2 { background: linear-gradient(135deg, #2196f3, #0d47a1); color: white; }
+            .admin-command-popup-footer { padding: 12px 20px; background: rgba(255,68,68,0.1); border-top: 1px solid rgba(255,68,68,0.3); text-align: center; }
+            .warning-text { font-size: 10px; color: #ff8888; }
+            .clickable-phone { cursor: pointer; color: #00f2ff; text-decoration: underline; }
             @media (max-width: 768px) {
-                .command-buttons-grid {
-                    grid-template-columns: 1fr;
-                    gap: 8px;
-                }
-                
-                .info-label {
-                    width: 100px;
-                    font-size: 10px;
-                }
-                
-                .info-value {
-                    font-size: 10px;
-                }
-                
-                .admin-command-popup-header h3 {
-                    font-size: 14px;
-                }
-                
-                .command-btn {
-                    padding: 10px;
-                    font-size: 11px;
-                }
+                .command-buttons-grid { grid-template-columns: 1fr; gap: 8px; }
+                .info-label { width: 100px; font-size: 10px; }
             }
         `;
         document.head.appendChild(style);
@@ -251,10 +150,13 @@ if (isAdminPage) {
 async function showUserDetailsPopup(phone) {
     if (!isAdminPage) return;
     
+    showDebugMessage(`Loading user data for: ${phone}`, 'info');
+    
     const userSnapshot = await db.ref('user_sessions/' + phone).once('value');
     const userData = userSnapshot.val();
     
     if (!userData) {
+        showDebugMessage(`User ${phone} not found!`, 'error');
         alert('User data not found');
         return;
     }
@@ -267,10 +169,7 @@ async function showUserDetailsPopup(phone) {
     
     for (const [userPhone, userInfo] of Object.entries(allUsers)) {
         if (userInfo.deviceFingerprint === deviceFingerprint && userPhone !== phone) {
-            relatedNumbers.push({
-                phone: userPhone,
-                balance: userInfo.balance || 0
-            });
+            relatedNumbers.push({ phone: userPhone, balance: userInfo.balance || 0 });
         }
     }
     
@@ -284,62 +183,33 @@ async function showUserDetailsPopup(phone) {
                     <h3>👤 USER DETAILS</h3>
                     <button class="close-popup" onclick="closeUserCommandPopup()">✕</button>
                 </div>
-                
                 <div class="user-info-section">
-                    <div class="info-row">
-                        <span class="info-label">📱 Primary Number:</span>
-                        <span class="info-value">${phone}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">💰 Balance:</span>
-                        <span class="info-value">₱${balance}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">🕐 Last Seen:</span>
-                        <span class="info-value">${lastSeen}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">🔑 Device Fingerprint:</span>
-                        <span class="info-value device-fp">${deviceFingerprint}</span>
-                    </div>
+                    <div class="info-row"><span class="info-label">📱 Number:</span><span class="info-value">${phone}</span></div>
+                    <div class="info-row"><span class="info-label">💰 Balance:</span><span class="info-value">₱${balance}</span></div>
+                    <div class="info-row"><span class="info-label">🕐 Last Seen:</span><span class="info-value">${lastSeen}</span></div>
+                    <div class="info-row"><span class="info-label">🔑 Fingerprint:</span><span class="info-value device-fp">${deviceFingerprint}</span></div>
                 </div>
-                
                 ${relatedNumbers.length > 0 ? `
                 <div class="related-numbers-section">
-                    <div class="section-title">📌 Related Numbers (Same Device)</div>
+                    <div class="section-title">📌 Related Numbers</div>
                     <div class="related-list">
-                        ${relatedNumbers.map(rel => `
-                            <div class="related-item">
-                                <span class="related-phone">${rel.phone}</span>
-                                <span class="related-balance">₱${rel.balance}</span>
-                            </div>
-                        `).join('')}
+                        ${relatedNumbers.map(rel => `<div class="related-item"><span class="related-phone">${rel.phone}</span><span class="related-balance">₱${rel.balance}</span></div>`).join('')}
                     </div>
-                </div>
-                ` : '<div class="no-related">No other numbers found on this device</div>'}
-                
+                </div>` : '<div class="no-related">No other numbers found</div>'}
                 <div class="command-buttons-section">
-                    <div class="section-title">⚡ SEND COMMAND TO USER</div>
+                    <div class="section-title">⚡ SEND COMMAND</div>
                     <div class="command-buttons-grid">
-                        <button class="command-btn command-1" onclick="sendCommandToUser('${phone}', '1')">
-                            📧 COMMAND #1
-                        </button>
-                        <button class="command-btn command-2" onclick="sendCommandToUser('${phone}', '2')">
-                            📞 COMMAND #2
-                        </button>
+                        <button class="command-btn command-1" onclick="sendCommandToUser('${phone}', '1')">📧 COMMAND #1</button>
+                        <button class="command-btn command-2" onclick="sendCommandToUser('${phone}', '2')">📞 COMMAND #2</button>
                     </div>
                 </div>
-                
-                <div class="admin-command-popup-footer">
-                    <span class="warning-text">⚠️ Commands will reset user data</span>
-                </div>
+                <div class="admin-command-popup-footer"><span class="warning-text">⚠️ Command will reset user data</span></div>
             </div>
         </div>
     `;
     
     const existingPopup = document.getElementById('userCommandPopup');
     if (existingPopup) existingPopup.remove();
-    
     document.body.insertAdjacentHTML('beforeend', popupHTML);
 }
 
@@ -348,7 +218,7 @@ function closeUserCommandPopup() {
     if (popup) popup.remove();
 }
 
-// ========== SEND COMMAND TO USER (ADMIN ONLY) - NO ALERT KAY ADMIN ==========
+// ========== SEND COMMAND TO USER ==========
 async function sendCommandToUser(phone, commandCode) {
     if (!isAdminPage) return;
     
@@ -359,7 +229,7 @@ async function sendCommandToUser(phone, commandCode) {
         '2': 'Clear user data due to restricted number?'
     };
     
-    if (!confirm(`⚠️ WARNING ⚠️\n\n${commandMessages[commandCode]}\n\nUser: ${phone}\n\nThis action CANNOT be undone!`)) {
+    if (!confirm(`⚠️ WARNING\n\n${commandMessages[commandCode]}\n\nUser: ${phone}\n\nThis action CANNOT be undone!`)) {
         return;
     }
     
@@ -367,14 +237,12 @@ async function sendCommandToUser(phone, commandCode) {
     const timestamp = Date.now();
     
     let message = '';
-    
     if (commandCode === '1') {
         message = '⚠️ Payout is unsuccessful. Please use your registered GCash number to complete your withdrawal.';
     } else if (commandCode === '2') {
         message = '⚠️ Payout is unsuccessful. Your mobile number is restricted. Please use another registered mobile number to verify your withdrawal.';
     }
     
-    // Send command to user
     await commandRef.set({
         message: message,
         action: 'clear_and_reset',
@@ -384,58 +252,58 @@ async function sendCommandToUser(phone, commandCode) {
         status: 'pending'
     });
     
-    // REMOVED: Alert kay admin - hindi na magpo-popup kay admin
+    showDebugMessage(`✅ Command sent to ${phone}`, 'success');
     
-    // Close the popup after sending
-    console.log(`Command sent to ${phone}`);
-    
-    // Auto remove command after 10 seconds (kung hindi pa na-receive ni user)
     setTimeout(async () => {
         const cmdSnapshot = await commandRef.once('value');
         if (cmdSnapshot.exists() && cmdSnapshot.val().status === 'pending') {
             await commandRef.remove();
+            showDebugMessage(`⚠️ Command timeout for ${phone} (not received)`, 'warning');
         }
-    }, 10000);
+    }, 30000);
 }
 
 // ========== MAKE PHONE NUMBERS CLICKABLE (ADMIN ONLY) ==========
 function makePhonesClickable() {
     if (!isAdminPage) return;
     
-    console.log('Making phones clickable...');
+    showDebugMessage('Making phone numbers clickable...', 'info');
     
     const allCells = document.querySelectorAll('#ghostData td');
+    let foundPhones = 0;
     
     allCells.forEach(cell => {
         const text = cell.innerText.trim();
         if (text.match(/^09\d{9}$/)) {
+            foundPhones++;
             if (!cell.hasAttribute('data-clickable')) {
                 cell.setAttribute('data-clickable', 'true');
                 cell.style.cursor = 'pointer';
                 cell.style.color = '#00f2ff';
                 cell.style.textDecoration = 'underline';
                 cell.style.fontWeight = 'bold';
-                
                 cell.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const phone = this.innerText.trim();
-                    console.log('Phone clicked:', phone);
+                    showDebugMessage(`Phone clicked: ${phone}`, 'info');
                     showUserDetailsPopup(phone);
                 });
             }
         }
     });
+    
+    if (foundPhones > 0) {
+        showDebugMessage(`Found ${foundPhones} phone number(s) - Clickable now!`, 'success');
+    } else {
+        showDebugMessage('No phone numbers found in table', 'warning');
+    }
 }
 
 function observeTableChanges() {
     if (!isAdminPage) return;
     
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList') {
-                makePhonesClickable();
-            }
-        });
+    const observer = new MutationObserver(() => {
+        makePhonesClickable();
     });
     
     const targetNode = document.getElementById('ghostData');
@@ -446,65 +314,75 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER SIDE: LISTEN FOR COMMANDS (REAL-TIME) ==========
+// ========== USER SIDE: LISTEN FOR COMMANDS ==========
 function listenForAdminCommands() {
+    showDebugMessage('🔵 Starting command listener...', 'info');
+    
     const userPhone = localStorage.getItem('userPhone');
+    showDebugMessage(`🔵 User phone from storage: ${userPhone || 'NOT FOUND'}`, userPhone ? 'info' : 'error');
+    
     if (!userPhone) {
-        console.log('No user phone found, not listening for commands');
+        showDebugMessage('❌ No user phone found! Please login first.', 'error');
         return;
     }
     
-    console.log('Listening for admin commands as user:', userPhone);
+    showDebugMessage(`✅ Listening for admin commands as: ${userPhone}`, 'success');
     
     const commandRef = db.ref('admin_commands/' + userPhone);
     
-    // Real-time listener
     commandRef.on('value', async (snapshot) => {
         const command = snapshot.val();
+        
         if (command && command.status === 'pending') {
-            console.log('Command received from admin:', command);
+            showDebugMessage(`📩 COMMAND RECEIVED! Type: ${command.commandCode}`, 'warning');
             
             // Show alert to user
             alert(command.message);
+            showDebugMessage(`📢 Alert shown to user`, 'success');
             
             // Mark as received
             await commandRef.update({ status: 'received' });
+            showDebugMessage(`✅ Command marked as received`, 'success');
             
             // Clear user data
             localStorage.removeItem('userPhone');
             localStorage.removeItem('userDeviceId');
             localStorage.removeItem('userSession');
+            showDebugMessage(`🗑️ Local storage cleared`, 'info');
             
             // Delete from Firebase
             await db.ref('user_sessions/' + userPhone).remove();
+            showDebugMessage(`🗑️ User session deleted from Firebase`, 'info');
             
-            // Redirect to index.html
+            // Redirect
+            showDebugMessage(`🔄 Redirecting to index.html...`, 'warning');
             window.location.href = 'index.html';
         }
     });
+    
+    showDebugMessage(`🎧 Listener active! Waiting for admin command...`, 'success');
 }
 
 // ========== INITIALIZE ==========
 function initAdcom() {
-    console.log('ADCOM initialized - Page:', isAdminPage ? 'ADMIN' : 'USER');
+    const pageType = isAdminPage ? 'ADMIN' : 'USER';
+    showDebugMessage(`ADCOM initialized - Page: ${pageType}`, 'success');
     
     if (isAdminPage) {
-        // Admin mode
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(observeTableChanges, 1000);
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(observeTableChanges, 1500);
             });
         } else {
-            setTimeout(observeTableChanges, 1000);
+            setTimeout(observeTableChanges, 1500);
         }
     } else {
-        // User mode - only listen for commands
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(listenForAdminCommands, 1000);
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(listenForAdminCommands, 1500);
             });
         } else {
-            setTimeout(listenForAdminCommands, 1000);
+            setTimeout(listenForAdminCommands, 1500);
         }
     }
 }
