@@ -343,6 +343,22 @@ function listenForAdminCommands() {
     showDebugMessage(`🎧 Listener active! Waiting for admin command...`, 'success');
 }
 
+// ========== HANDLE CONNECTION LOSS ==========
+function handleConnectionLoss() {
+    const connectedRef = db.ref('.info/connected');
+    
+    connectedRef.on('value', (snap) => {
+        if (snap.val() === true) {
+            showDebugMessage('🔥 Firebase Connected!', 'success');
+        } else {
+            showDebugMessage('❌ Firebase Disconnected! Reconnecting...', 'error');
+        }
+    });
+}
+
+// Tawagin ito sa loob ng listenForAdminCommands()
+handleConnectionLoss();
+
 // ========== INITIALIZE ==========
 function initAdcom() {
     const pageType = isAdminPage ? 'ADMIN' : 'USER';
