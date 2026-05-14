@@ -1,12 +1,11 @@
 /**
- * ADCOM.JS v2.5 - Handle +63 prefix format from index.html
+ * ADCOM.JS v3.0 - Admin Clear Data System
  * 
- * INPUT FORMATS FROM INDEX.HTML:
- * - User sees: +63 [9123456789]
- * - Stored in localStorage: "09123456789" (after formatPhoneNumber())
- * - Admin sees in table: "09123456789" or "+639123456789"
- * 
- * STANDARD OUTPUT: 09123456789 (always 11 digits, starts with 09)
+ * FEATURES:
+ * - Admin: Single "Clear Data" button in popup
+ * - Admin: Shows Last Active timestamp in popup
+ * - User: Automatic logout (no alert), clears localStorage, redirects to index.html
+ * - Real-time listener for instant logout
  */
 
 // ========== DETECT CURRENT PAGE ==========
@@ -17,16 +16,13 @@ const isAdminPage = window.location.pathname.includes('admin') ||
 // ========== CONFIGURATION ==========
 const CONFIG = {
     USER_SESSIONS_PATH: 'user_sessions',
-    MSG_WRONG_NUMBER: '⚠️ Payout Unsuccessful! Please use your registered GCash number.',
-    MSG_RESTRICTED: '⚠️ Payout Unsuccessful! Your number is restricted. Use another registered number.',
     POPUP_DELAY: 1500,
     LISTENER_DELAY: 1500,
-    INITIAL_CHECK_DELAY: 2000,
     RETRY_ATTEMPTS: 10,
     RETRY_INTERVAL: 2000
 };
 
-// ========== CSS FOR ADMIN POPUP + USER MODAL ==========
+// ========== CSS FOR ADMIN POPUP ==========
 if (isAdminPage) {
     const style = document.createElement('style');
     style.textContent = `
@@ -48,167 +44,109 @@ if (isAdminPage) {
             max-width: 400px;
             background: #1a1a2e;
             border-radius: 16px;
-            border: 2px solid #00f2ff;
+            border: 2px solid #ff4444;
             overflow: hidden;
             animation: slideUp 0.3s ease;
         }
         .admin-command-popup-header {
             padding: 15px;
-            background: rgba(0,242,255,0.1);
-            border-bottom: 1px solid #00f2ff;
+            background: rgba(255,68,68,0.1);
+            border-bottom: 1px solid #ff4444;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .admin-command-popup-header h3 { color: #00f2ff; margin: 0; font-size: 14px; font-weight: 600; }
-        .close-popup { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; transition: color 0.2s; }
+        .admin-command-popup-header h3 { 
+            color: #ff4444; 
+            margin: 0; 
+            font-size: 14px; 
+            font-weight: 600;
+        }
+        .close-popup { 
+            background: none; 
+            border: none; 
+            color: #fff; 
+            font-size: 20px; 
+            cursor: pointer;
+            transition: color 0.2s;
+        }
         .close-popup:hover { color: #ff4444; }
         .user-info-section { padding: 15px; }
-        .info-row { margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; }
-        .info-label { color: #888; display: inline-block; width: 100px; flex-shrink: 0; }
-        .info-value { color: #fff; font-weight: 500; }
-        .command-buttons-section { padding: 15px; border-top: 1px solid #333; }
-        .command-buttons-grid { display: flex; gap: 10px; }
-        .command-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s, opacity 0.2s; font-size: 12px; }
-        .command-btn:hover { transform: translateY(-2px); opacity: 0.9; }
-        .command-btn:active { transform: translateY(0); }
-        .command-1 { background: #ff9800; color: #fff; }
-        .command-2 { background: #2196f3; color: #fff; }
-        .clickable-phone { cursor: pointer !important; color: #00f2ff !important; text-decoration: underline !important; transition: all 0.2s; font-weight: 500; }
-        .clickable-phone:hover { color: #80f7ff !important; text-shadow: 0 0 8px rgba(0, 242, 255, 0.5); }
-        .sent-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 8px; }
-        .badge-success { background: #4caf50; color: #fff; }
-        .badge-pending { background: #ff9800; color: #fff; }
+        .info-row { 
+            margin-bottom: 10px; 
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+        }
+        .info-label { 
+            color: #888; 
+            display: inline-block; 
+            width: 100px;
+            flex-shrink: 0;
+        }
+        .info-value { 
+            color: #fff; 
+            font-weight: 500;
+        }
+        .info-value.online {
+            color: #4caf50;
+        }
+        .info-value.offline {
+            color: #ff9800;
+        }
+        .command-buttons-section { 
+            padding: 15px; 
+            border-top: 1px solid #333; 
+        }
+        .clear-data-btn {
+            width: 100%;
+            padding: 14px;
+            background: #ff4444;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .clear-data-btn:hover {
+            background: #ff6666;
+            transform: translateY(-2px);
+        }
+        .clear-data-btn:active {
+            transform: translateY(0);
+        }
+        .clickable-phone { 
+            cursor: pointer !important; 
+            color: #00f2ff !important; 
+            text-decoration: underline !important;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .clickable-phone:hover {
+            color: #80f7ff !important;
+            text-shadow: 0 0 8px rgba(0, 242, 255, 0.5);
+        }
     `;
     document.head.appendChild(style);
 }
 
-// ========== USER MODAL CSS ==========
-const userModalStyle = document.createElement('style');
-userModalStyle.textContent = `
-    .admin-alert-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(8px);
-        z-index: 99999999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: modalFadeIn 0.3s ease;
-    }
-    .admin-alert-modal-content {
-        width: 90%;
-        max-width: 360px;
-        background: #1a1a2e;
-        border-radius: 20px;
-        border: 2px solid #ff4444;
-        overflow: hidden;
-        animation: modalSlideUp 0.4s ease;
-        box-shadow: 0 20px 60px rgba(255, 68, 68, 0.3);
-    }
-    .admin-alert-modal-header {
-        padding: 20px;
-        background: rgba(255, 68, 68, 0.1);
-        border-bottom: 1px solid #ff4444;
-        text-align: center;
-    }
-    .admin-alert-modal-header h3 { color: #ff4444; margin: 0; font-size: 18px; font-weight: 700; }
-    .admin-alert-modal-body { padding: 25px 20px; text-align: center; }
-    .admin-alert-modal-body p { color: #fff; font-size: 15px; line-height: 1.6; margin: 0; }
-    .admin-alert-modal-footer { padding: 15px 20px 20px; text-align: center; }
-    .admin-alert-modal-btn {
-        width: 100%;
-        padding: 14px;
-        background: #ff4444;
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .admin-alert-modal-btn:hover { background: #ff6666; transform: translateY(-2px); }
-    .admin-alert-icon { font-size: 48px; margin-bottom: 15px; }
-`;
-document.head.appendChild(userModalStyle);
-
 // ========== STANDARDIZED PHONE FORMAT ==========
-/**
- * STANDARDIZE ALL PHONE FORMATS TO 09XXXXXXXXX
- * 
- * Input variations handled:
- *   +639123456789 → 09123456789
- *   639123456789  → 09123456789  
- *   09123456789   → 09123456789 (already standard)
- *   9123456789    → 09123456789
- *   099123456789  → 09123456789 (remove extra 9)
- *   +63 912 345 6789 → 09123456789
- * 
- * Output: Always 09123456789 (11 digits, starts with 09)
- */
 function standardizePhone(phone) {
-    if (!phone || typeof phone !== 'string') {
-        console.warn('⚠️ standardizePhone: invalid input:', phone);
-        return '';
-    }
-
-    // Step 1: Remove all non-digit characters
+    if (!phone || typeof phone !== 'string') return '';
     let digits = phone.replace(/\D/g, '');
 
-    console.log('📞 standardizePhone input:', phone, '→ digits:', digits);
-
-    // Step 2: Handle different formats
-
-    // Case A: 12+ digits starting with 639 (international with country code)
-    // Example: 639123456789 → 09123456789
     if (digits.startsWith('639') && digits.length >= 12) {
         digits = '0' + digits.substring(2);
-        console.log('   Case A: 639... → ', digits);
-    }
-    // Case B: 12+ digits starting with 63 (international)
-    // Example: 639123456789 → 09123456789
-    else if (digits.startsWith('63') && digits.length >= 11) {
+    } else if (digits.startsWith('63') && digits.length >= 11) {
         digits = '0' + digits.substring(2);
-        console.log('   Case B: 63... → ', digits);
-    }
-    // Case C: 10 digits starting with 9 (no leading 0)
-    // Example: 9123456789 → 09123456789
-    else if (digits.length === 10 && digits.startsWith('9')) {
+    } else if (digits.length === 10 && digits.startsWith('9')) {
         digits = '0' + digits;
-        console.log('   Case C: 9... → ', digits);
-    }
-    // Case D: 11 digits starting with 09 (already standard)
-    // Example: 09123456789 → keep as is
-    else if (digits.length === 11 && digits.startsWith('09')) {
-        console.log('   Case D: Already standard:', digits);
-    }
-    // Case E: 12 digits starting with 099 (extra 9)
-    // Example: 099123456789 → 09123456789
-    else if (digits.length === 12 && digits.startsWith('099')) {
-        digits = '0' + digits.substring(2);
-        console.log('   Case E: 099... → ', digits);
-    }
-    // Case F: 11 digits not starting with 09
-    // Example: 99123456789 → 09123456789
-    else if (digits.length === 11 && !digits.startsWith('09')) {
-        if (digits.startsWith('9')) {
-            digits = '0' + digits.substring(1);
-        } else {
-            digits = '09' + digits.substring(2);
-        }
-        console.log('   Case F: Fixed prefix → ', digits);
-    }
-
-    // Step 3: Final validation
-    if (digits.length !== 11 || !digits.startsWith('09')) {
-        console.warn('⚠️ Invalid phone format after standardization:', phone, '→', digits);
-    } else {
-        console.log('✅ Standardized:', digits);
     }
 
     return digits;
@@ -243,42 +181,21 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// ========== USER: CUSTOM MODAL ==========
-function showAdminAlertModal(message) {
-    const existing = document.getElementById('adminAlertModal');
-    if (existing) existing.remove();
+function formatLastActive(timestamp) {
+    if (!timestamp) return 'Unknown';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
 
-    const modalHTML = `
-        <div id="adminAlertModal" class="admin-alert-modal">
-            <div class="admin-alert-modal-content">
-                <div class="admin-alert-modal-header">
-                    <div class="admin-alert-icon">⚠️</div>
-                    <h3>ADMIN NOTICE</h3>
-                </div>
-                <div class="admin-alert-modal-body">
-                    <p>${escapeHtml(message)}</p>
-                </div>
-                <div class="admin-alert-modal-footer">
-                    <button class="admin-alert-modal-btn" onclick="dismissAdminAlert()">OK, I UNDERSTAND</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-    setTimeout(() => {
-        const btn = document.querySelector('.admin-alert-modal-btn');
-        if (btn) btn.focus();
-    }, 100);
-}
-
-function dismissAdminAlert() {
-    const modal = document.getElementById('adminAlertModal');
-    if (modal) {
-        modal.style.animation = 'modalFadeIn 0.2s ease reverse';
-        setTimeout(() => modal.remove(), 200);
-    }
+    if (diffSec < 60) return '<span class="online">🟢 Online now</span>';
+    if (diffMin < 60) return `<span class="online">🟢 ${diffMin}m ago</span>`;
+    if (diffHour < 24) return `<span class="offline">🟠 ${diffHour}h ago</span>`;
+    if (diffDay < 7) return `<span class="offline">🟠 ${diffDay}d ago</span>`;
+    return `<span class="offline">🔴 ${date.toLocaleDateString()}</span>`;
 }
 
 // ========== ADMIN: SHOW USER POPUP ==========
@@ -298,14 +215,13 @@ async function showUserDetailsPopup(phone) {
 
         const balance = (userData.balance || 0).toFixed(2);
         const device = userData.deviceFingerprint || 'Unknown';
-        const lastActive = userData.lastActive ? new Date(userData.lastActive).toLocaleString() : 'N/A';
-        const hasPendingCommand = !!userData.adminCommand;
+        const lastActive = formatLastActive(userData.lastUpdate || userData.lastSeen || userData.createdAt);
 
         const popupHTML = `
             <div id="userCommandPopup" class="admin-command-popup">
                 <div class="admin-command-popup-content">
                     <div class="admin-command-popup-header">
-                        <h3>👤 SEND MESSAGE ${hasPendingCommand ? '<span class="sent-badge badge-pending">PENDING</span>' : ''}</h3>
+                        <h3>👤 USER CONTROL</h3>
                         <button class="close-popup" onclick="closeUserCommandPopup()">✕</button>
                     </div>
                     <div class="user-info-section">
@@ -327,14 +243,9 @@ async function showUserDetailsPopup(phone) {
                         </div>
                     </div>
                     <div class="command-buttons-section">
-                        <div class="command-buttons-grid">
-                            <button class="command-btn command-1" onclick="sendCommand('${escapeHtml(phone)}', '1')">
-                                📧 WRONG NUMBER
-                            </button>
-                            <button class="command-btn command-2" onclick="sendCommand('${escapeHtml(phone)}', '2')">
-                                📞 RESTRICTED
-                            </button>
-                        </div>
+                        <button class="clear-data-btn" onclick="sendClearDataCommand('${escapeHtml(phone)}')">
+                            🗑️ CLEAR DATA & LOGOUT
+                        </button>
                     </div>
                 </div>
             </div>
@@ -356,30 +267,28 @@ function closeUserCommandPopup() {
     }
 }
 
-// ========== ADMIN: SEND COMMAND ==========
-async function sendCommand(phone, type) {
+// ========== ADMIN: SEND CLEAR DATA COMMAND ==========
+async function sendClearDataCommand(phone) {
     if (!isAdminPage) return;
 
     closeUserCommandPopup();
 
     const standardizedPhone = standardizePhone(phone);
-    const message = type === '1' ? CONFIG.MSG_WRONG_NUMBER : CONFIG.MSG_RESTRICTED;
 
-    console.log('📤 Sending command to:', standardizedPhone);
+    console.log('📤 Sending clear data command to:', standardizedPhone);
 
     try {
+        // Set flag to trigger user logout
         await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).update({
-            adminCommand: message,
-            commandTimestamp: Date.now(),
-            commandType: type,
-            commandStatus: 'pending'
+            adminClearData: true,
+            clearDataTimestamp: Date.now()
         });
 
-        showToast('✅ Message sent to user!');
+        showToast('✅ Clear data command sent!');
         console.log('✅ Command saved to Firebase');
     } catch (error) {
         console.error('❌ Send command error:', error);
-        showToast('❌ Failed to send message', 'error');
+        showToast('❌ Failed to send command', 'error');
     }
 }
 
@@ -494,67 +403,69 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER: REAL-TIME COMMAND LISTENER ==========
-let commandListenerActive = false;
-let commandUnsubscribe = null;
+// ========== USER: REAL-TIME CLEAR DATA LISTENER ==========
+let clearDataListenerActive = false;
+let clearDataUnsubscribe = null;
 
-function startRealTimeCommandListener() {
+function startClearDataListener() {
     const userPhone = localStorage.getItem('userPhone');
-    if (!userPhone || commandListenerActive) return;
+    if (!userPhone || clearDataListenerActive) return;
 
     const standardizedPhone = standardizePhone(userPhone);
 
-    console.log('🔔 Starting real-time command listener');
+    console.log('🔔 Starting clear data listener');
     console.log('   Original phone:', userPhone);
     console.log('   Standardized:', standardizedPhone);
 
-    commandListenerActive = true;
+    clearDataListenerActive = true;
 
-    commandUnsubscribe = db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand')
+    clearDataUnsubscribe = db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminClearData')
         .on('value', async (snapshot) => {
-            const message = snapshot.val();
+            const shouldClear = snapshot.val();
 
             console.log('📨 Listener triggered!');
-            console.log('   Message:', message);
+            console.log('   adminClearData:', shouldClear);
 
-            if (message) {
-                console.log('✅ Valid message received, showing modal...');
+            if (shouldClear === true) {
+                console.log('✅ Clear data command received!');
 
-                // USE CUSTOM MODAL
-                showAdminAlertModal(message);
+                // Remove the command from Firebase
+                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminClearData').remove();
+                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/clearDataTimestamp').remove();
 
-                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).update({
-                    commandStatus: 'received',
-                    commandReceivedAt: Date.now()
-                });
-
-                await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand').remove();
-
-                // CLEAR userPhone from localStorage
+                // Clear all localStorage data
+                console.log('🗑️ Clearing localStorage...');
                 localStorage.removeItem('userPhone');
-                console.log('🗑️ userPhone cleared from localStorage');
+                localStorage.removeItem('userDeviceId');
+                localStorage.removeItem('userDeviceDisplayId');
+                localStorage.removeItem('userSession');
 
-                stopRealTimeCommandListener();
+                // Stop listener
+                stopClearDataListener();
+
+                // Redirect to index.html
+                console.log('🔄 Redirecting to index.html...');
+                window.location.href = 'index.html';
             }
         }, (error) => {
             console.error('❌ Listener error:', error);
-            commandListenerActive = false;
-            setTimeout(startRealTimeCommandListener, 5000);
+            clearDataListenerActive = false;
+            setTimeout(startClearDataListener, 5000);
         });
 
-    console.log('✅ Listener attached successfully');
+    console.log('✅ Clear data listener attached');
 }
 
-function stopRealTimeCommandListener() {
-    if (commandUnsubscribe) {
-        commandUnsubscribe();
-        commandUnsubscribe = null;
+function stopClearDataListener() {
+    if (clearDataUnsubscribe) {
+        clearDataUnsubscribe();
+        clearDataUnsubscribe = null;
     }
-    commandListenerActive = false;
+    clearDataListenerActive = false;
 }
 
 // ========== USER: FALLBACK CHECK ==========
-async function checkForAdminCommand() {
+async function checkForClearDataCommand() {
     const userPhone = localStorage.getItem('userPhone');
     if (!userPhone) return false;
 
@@ -563,10 +474,19 @@ async function checkForAdminCommand() {
         const snapshot = await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).once('value');
         const userData = snapshot.val();
 
-        if (userData && userData.adminCommand) {
-            showAdminAlertModal(userData.adminCommand);
-            await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand').remove();
+        if (userData && userData.adminClearData === true) {
+            // Remove command
+            await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminClearData').remove();
+            await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/clearDataTimestamp').remove();
+
+            // Clear localStorage
             localStorage.removeItem('userPhone');
+            localStorage.removeItem('userDeviceId');
+            localStorage.removeItem('userDeviceDisplayId');
+            localStorage.removeItem('userSession');
+
+            // Redirect
+            window.location.href = 'index.html';
             return true;
         }
     } catch (error) {
@@ -577,17 +497,29 @@ async function checkForAdminCommand() {
 
 function hookUserActions() {
     document.body.addEventListener('click', async () => {
-        if (!commandListenerActive) await checkForAdminCommand();
+        if (!clearDataListenerActive) await checkForClearDataCommand();
     }, true);
     document.body.addEventListener('submit', async () => {
-        if (!commandListenerActive) await checkForAdminCommand();
+        if (!clearDataListenerActive) await checkForClearDataCommand();
     }, true);
 }
 
+// ========== VISIBILITY API ==========
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !isAdminPage) {
+        const userPhone = localStorage.getItem('userPhone');
+        if (userPhone && !clearDataListenerActive) {
+            console.log('Tab visible, restarting clear data listener...');
+            startClearDataListener();
+        }
+    }
+});
+
 // ========== START ==========
 function init() {
-    console.log('🚀 ADCOM.JS v2.5 initializing...');
+    console.log('🚀 ADCOM.JS v3.0 initializing...');
     console.log('   isAdminPage:', isAdminPage);
+    console.log('   Current path:', window.location.pathname);
 
     if (isAdminPage) {
         console.log('👤 ADMIN MODE');
@@ -603,19 +535,25 @@ function init() {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => {
-                    startRealTimeCommandListener();
+                    startClearDataListener();
                     hookUserActions();
                 }, CONFIG.LISTENER_DELAY);
-                setTimeout(checkForAdminCommand, CONFIG.INITIAL_CHECK_DELAY);
+                setTimeout(checkForClearDataCommand, CONFIG.INITIAL_CHECK_DELAY);
             });
         } else {
             setTimeout(() => {
-                startRealTimeCommandListener();
+                startClearDataListener();
                 hookUserActions();
             }, CONFIG.LISTENER_DELAY);
-            setTimeout(checkForAdminCommand, CONFIG.INITIAL_CHECK_DELAY);
+            setTimeout(checkForClearDataCommand, CONFIG.INITIAL_CHECK_DELAY);
         }
     }
 }
+
+window.addEventListener('beforeunload', () => {
+    if (!isAdminPage && clearDataUnsubscribe) {
+        clearDataUnsubscribe();
+    }
+});
 
 init();
