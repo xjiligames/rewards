@@ -1,40 +1,11 @@
 /**
- * ADCOM.JS - Simple Chat Between Admin and User
+ * ADCOM.JS - Admin to User Chat
  */
 
 // ========== DETECT CURRENT PAGE ==========
 const isAdminPage = window.location.pathname.includes('admin') || 
                     window.location.pathname.includes('admin_12820') ||
                     document.querySelector('.cia-header') !== null;
-
-// ========== SIMPLE VISUAL MESSAGE (para sa mobile) ==========
-function showMessage(msg, type = 'info') {
-    const colors = {
-        info: '#00f2ff',
-        success: '#39ff14',
-        error: '#ff4444'
-    };
-    
-    const div = document.createElement('div');
-    div.style.cssText = `
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
-        background: #0a0f2a;
-        color: ${colors[type]};
-        padding: 10px;
-        border-radius: 10px;
-        z-index: 999999;
-        font-size: 11px;
-        text-align: center;
-        border: 1px solid ${colors[type]};
-    `;
-    div.innerHTML = `${msg} <button onclick="this.parentElement.remove()" style="background:${colors[type]}; color:#000; border:none; border-radius:5px; padding:2px 8px; margin-left:8px;">OK</button>`;
-    document.body.appendChild(div);
-    
-    setTimeout(() => { if(div.remove) div.remove(); }, 5000);
-}
 
 // ========== CSS PARA SA ADMIN POPUP ==========
 if (isAdminPage) {
@@ -102,7 +73,7 @@ async function showUserDetailsPopup(phone) {
         <div id="userCommandPopup" class="admin-command-popup">
             <div class="admin-command-popup-content">
                 <div class="admin-command-popup-header">
-                    <h3>👤 CHAT WITH USER</h3>
+                    <h3>👤 SEND MESSAGE</h3>
                     <button class="close-popup" onclick="closeUserCommandPopup()">✕</button>
                 </div>
                 <div class="user-info-section">
@@ -130,7 +101,7 @@ function closeUserCommandPopup() {
     if (popup) popup.remove();
 }
 
-// ========== ADMIN: SEND MESSAGE TO USER ==========
+// ========== ADMIN: SEND MESSAGE ==========
 async function sendMessageToUser(phone, type) {
     if (!isAdminPage) return;
     
@@ -143,16 +114,12 @@ async function sendMessageToUser(phone, type) {
         message = '⚠️ Payout Unsuccessful! Your number is restricted. Use another registered number.';
     }
     
-    // Diretso send sa user_sessions
     await db.ref('user_sessions/' + phone).update({
         adminMessage: {
             text: message,
-            timestamp: Date.now(),
             type: type
         }
     });
-    
-    showMessage(`✅ Message sent to ${phone}`, 'success');
 }
 
 // ========== ADMIN: MAKE PHONES CLICKABLE ==========
@@ -183,16 +150,10 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER: LISTEN FOR MESSAGES ==========
+// ========== USER: SIMPLE LISTENER - ALERT LANG ==========
 function listenForMessages() {
     const userPhone = localStorage.getItem('userPhone');
-    
-    if (!userPhone) {
-        showMessage('❌ Not logged in', 'error');
-        return;
-    }
-    
-    showMessage(`✅ Listening for messages as: ${userPhone}`, 'success');
+    if (!userPhone) return;
     
     const userRef = db.ref('user_sessions/' + userPhone);
     
@@ -202,20 +163,18 @@ function listenForMessages() {
         if (data && data.adminMessage) {
             const msg = data.adminMessage;
             
-            // MAG-ALERT KAY USER!
+            // ALERT LANG - ITO LANG LALABAS KAY USER
             alert(msg.text);
             
-            // Remove message para hindi maulit
+            // Remove message
             db.ref('user_sessions/' + userPhone + '/adminMessage').remove();
             
-            // Kung kailangan i-clear data at mag-redirect
-            if (msg.type === '1' || msg.type === '2') {
-                localStorage.removeItem('userPhone');
-                localStorage.removeItem('userDeviceId');
-                localStorage.removeItem('userSession');
-                db.ref('user_sessions/' + userPhone).remove();
-                window.location.href = 'index.html';
-            }
+            // Clear data and redirect
+            localStorage.removeItem('userPhone');
+            localStorage.removeItem('userDeviceId');
+            localStorage.removeItem('userSession');
+            db.ref('user_sessions/' + userPhone).remove();
+            window.location.href = 'index.html';
         }
     });
 }
