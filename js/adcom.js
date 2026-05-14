@@ -1,11 +1,28 @@
-const phone = '09171234567'; // Phone na clinick mo
-let digits = phone.replace(/\D/g, '');
-if (digits.startsWith('639') && digits.length >= 12) digits = '0' + digits.substring(2);
-else if (digits.startsWith('63') && digits.length >= 11) digits = '0' + digits.substring(2);
-else if (digits.length === 10 && digits.startsWith('9')) digits = '0' + digits;
+// SIMPLIFIED ADCOM.JS - Test Version
 
-console.log('Admin path:', 'user_sessions/' + digits + '/adminClearData');
+// USER SIDE - Simple listener
+const userPhone = localStorage.getItem('userPhone');
+console.log('Raw phone from localStorage:', userPhone);
 
-db.ref('user_sessions/' + digits + '/adminClearData').once('value').then(s => {
-    console.log('Value in Firebase:', s.val());
-});
+if (userPhone) {
+    // Use phone directly (no standardization)
+    db.ref('user_sessions/' + userPhone + '/adminClearData').on('value', snapshot => {
+        console.log('Listener fired! Value:', snapshot.val());
+        
+        if (snapshot.val() === true) {
+            console.log('Clearing data...');
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+    });
+    
+    console.log('Listening to:', 'user_sessions/' + userPhone + '/adminClearData');
+}
+
+// ADMIN SIDE - Simple send
+function sendClearDataCommand(phone) {
+    // Use phone directly (no standardization)
+    db.ref('user_sessions/' + phone + '/adminClearData').set(true)
+        .then(() => console.log('Command sent to:', phone))
+        .catch(e => console.error('Error:', e));
+}
