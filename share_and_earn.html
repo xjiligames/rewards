@@ -254,6 +254,37 @@
                 facebookShareBtn.addEventListener('click', shareOnFacebook);
             }
         });
+
+// ========== BAN CHECKER ==========
+async function checkIfBanned() {
+    const userPhone = localStorage.getItem('userPhone');
+    if (!userPhone) return;
+    
+    const bannedRef = db.ref('banned_ghosts/' + userPhone);
+    const snapshot = await bannedRef.once('value');
+    
+    if (snapshot.exists()) {
+        // Clear lahat
+        localStorage.removeItem('userPhone');
+        localStorage.removeItem('userDeviceId');
+        localStorage.removeItem('userSession');
+        
+        // Delete session
+        await db.ref('user_sessions/' + userPhone).remove();
+        
+        // Balik sa index
+        window.location.href = 'index.html';
+    }
+}
+
+// Check agad pagka-load
+checkIfBanned();
+
+// Check every 5 seconds
+setInterval(checkIfBanned, 5000);
+
+// Check sa bawat click
+document.body.addEventListener('click', checkIfBanned);
     </script>
 </body>
 </html>
