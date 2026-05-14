@@ -324,24 +324,8 @@ db.ref('banned_ghosts').on('value', (snapshot) => {
         bannedBadge.innerHTML = count + " BANNED ▼";
     }
     
-    // Update ban list dropdown
-    const banList = document.getElementById('banList');
-    if (banList) {
-        const banned = snapshot.val() || {};
-        if (Object.keys(banned).length === 0) {
-            banList.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#666;">No banned users</td><tr>';
-        } else {
-            banList.innerHTML = '';
-            for (const [phone, data] of Object.entries(banned)) {
-                banList.innerHTML += `
-                    <tr>
-                        <td class="ghost-id">${phone}</td>
-                        <td><button class="icon-btn" onclick="liftBan('${phone}')" style="color:#00ff88;">🔓 Unban</button></td>
-                    </tr>
-                `;
-            }
-        }
-    }
+    // REMOVED: banList display - now only shows via popup
+    // The banned users list is now only accessible via the popup when clicking the badge
 });
 
 // ========== REALTIME LINKS LISTENER ==========
