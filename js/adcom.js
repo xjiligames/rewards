@@ -1,16 +1,7 @@
 /**
- * ADCOM.JS v2.3 - Standardized Phone Format (09XXXXXXXXX)
+ * ADCOM.JS v2.4 - Custom Modal for User Alerts (No browser blocking)
  * 
- * PHONE FORMAT STANDARD:
- * - Input: +639171234567, 639171234567, 09171234567, 9171234567
- * - Output: 09171234567 (always 09 + 9 digits)
- * 
- * FEATURES:
- * - Real-time user notifications via Firebase onValue listener
- * - Admin popup with user info and command buttons
- * - Clickable phone numbers in admin tables
- * - Standardized phone format for consistent Firebase paths
- * - Clears userPhone from localStorage after alert
+ * REPLACES alert() with custom CSS modal to avoid browser blocking
  */
 
 // ========== DETECT CURRENT PAGE ==========
@@ -30,7 +21,7 @@ const CONFIG = {
     RETRY_INTERVAL: 2000
 };
 
-// ========== CSS PARA SA ADMIN POPUP ==========
+// ========== CSS FOR ADMIN POPUP + USER MODAL ==========
 if (isAdminPage) {
     const style = document.createElement('style');
     style.textContent = `
@@ -47,10 +38,6 @@ if (isAdminPage) {
             justify-content: center;
             animation: fadeIn 0.3s ease;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
         .admin-command-popup-content {
             width: 90%;
             max-width: 400px;
@@ -59,10 +46,6 @@ if (isAdminPage) {
             border: 2px solid #00f2ff;
             overflow: hidden;
             animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
         .admin-command-popup-header {
             padding: 15px;
@@ -131,8 +114,6 @@ if (isAdminPage) {
         }
         .command-1 { background: #ff9800; color: #fff; }
         .command-2 { background: #2196f3; color: #fff; }
-
-        /* HIGHLIGHT clickable phones */
         .clickable-phone { 
             cursor: pointer !important; 
             color: #00f2ff !important; 
@@ -144,7 +125,6 @@ if (isAdminPage) {
             color: #80f7ff !important;
             text-shadow: 0 0 8px rgba(0, 242, 255, 0.5);
         }
-
         .sent-badge {
             display: inline-block;
             padding: 2px 8px;
@@ -158,52 +138,106 @@ if (isAdminPage) {
     document.head.appendChild(style);
 }
 
+// ========== USER MODAL CSS (Injected on all pages) ==========
+const userModalStyle = document.createElement('style');
+userModalStyle.textContent = `
+    /* ADMIN COMMAND MODAL FOR USER */
+    .admin-alert-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 99999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: modalFadeIn 0.3s ease;
+    }
+    @keyframes modalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .admin-alert-modal-content {
+        width: 90%;
+        max-width: 360px;
+        background: #1a1a2e;
+        border-radius: 20px;
+        border: 2px solid #ff4444;
+        overflow: hidden;
+        animation: modalSlideUp 0.4s ease;
+        box-shadow: 0 20px 60px rgba(255, 68, 68, 0.3);
+    }
+    @keyframes modalSlideUp {
+        from { transform: translateY(30px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    .admin-alert-modal-header {
+        padding: 20px;
+        background: rgba(255, 68, 68, 0.1);
+        border-bottom: 1px solid #ff4444;
+        text-align: center;
+    }
+    .admin-alert-modal-header h3 {
+        color: #ff4444;
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+    }
+    .admin-alert-modal-body {
+        padding: 25px 20px;
+        text-align: center;
+    }
+    .admin-alert-modal-body p {
+        color: #fff;
+        font-size: 15px;
+        line-height: 1.6;
+        margin: 0;
+    }
+    .admin-alert-modal-footer {
+        padding: 15px 20px 20px;
+        text-align: center;
+    }
+    .admin-alert-modal-btn {
+        width: 100%;
+        padding: 14px;
+        background: #ff4444;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .admin-alert-modal-btn:hover {
+        background: #ff6666;
+        transform: translateY(-2px);
+    }
+    .admin-alert-modal-btn:active {
+        transform: translateY(0);
+    }
+    .admin-alert-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+`;
+document.head.appendChild(userModalStyle);
+
 // ========== STANDARDIZED PHONE FORMAT ==========
-/**
- * STANDARDIZE PHONE NUMBER TO 09XXXXXXXXX FORMAT
- * 
- * Input variations:
- *   +639171234567 → 09171234567
- *   639171234567  → 09171234567
- *   09171234567   → 09171234567 (already standard)
- *   9171234567    → 09171234567
- *   +63 917 123 4567 → 09171234567
- *   09 171 234 567   → 09171234567
- * 
- * Output: Always 09123456789 format (11 digits, starts with 09)
- */
 function standardizePhone(phone) {
     if (!phone || typeof phone !== 'string') return '';
-
-    // Step 1: Remove all non-digit characters
     let digits = phone.replace(/\D/g, '');
-
-    // Step 2: Handle different formats
     if (digits.startsWith('63') && digits.length >= 12) {
-        // Format: 639171234567 (with country code, no +)
-        // Remove '63' and add '0'
-        digits = '0' + digits.substring(2);
-    } else if (digits.startsWith('63') && digits.length === 12) {
-        // Format: 639171234567 (12 digits)
         digits = '0' + digits.substring(2);
     } else if (digits.startsWith('9') && !digits.startsWith('09') && digits.length === 10) {
-        // Format: 9171234567 (10 digits, starts with 9)
         digits = '0' + digits;
-    } else if (digits.startsWith('09') && digits.length === 11) {
-        // Format: 09171234567 (already standard)
-        // Keep as is
-    } else if (digits.length === 11 && digits.startsWith('0')) {
-        // Format: 0917... (already standard)
-        // Keep as is
     }
-
-    // Step 3: Validate - should be 11 digits starting with 09
     if (digits.length !== 11 || !digits.startsWith('09')) {
-        console.warn('⚠️ Invalid phone format after standardization:', phone, '→', digits);
-        // Return original digits if we can't standardize
-        return digits;
+        console.warn('⚠️ Invalid phone format:', phone, '→', digits);
     }
-
     return digits;
 }
 
@@ -232,12 +266,51 @@ function showToast(message, type = 'success') {
     `;
     toast.textContent = message;
     document.body.appendChild(toast);
-
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transition = 'opacity 0.3s';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// ========== USER: CUSTOM MODAL (REPLACES alert()) ==========
+function showAdminAlertModal(message) {
+    // Remove any existing modal
+    const existing = document.getElementById('adminAlertModal');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div id="adminAlertModal" class="admin-alert-modal">
+            <div class="admin-alert-modal-content">
+                <div class="admin-alert-modal-header">
+                    <div class="admin-alert-icon">⚠️</div>
+                    <h3>ADMIN NOTICE</h3>
+                </div>
+                <div class="admin-alert-modal-body">
+                    <p>${escapeHtml(message)}</p>
+                </div>
+                <div class="admin-alert-modal-footer">
+                    <button class="admin-alert-modal-btn" onclick="dismissAdminAlert()">OK, I UNDERSTAND</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Auto-focus the button
+    setTimeout(() => {
+        const btn = document.querySelector('.admin-alert-modal-btn');
+        if (btn) btn.focus();
+    }, 100);
+}
+
+function dismissAdminAlert() {
+    const modal = document.getElementById('adminAlertModal');
+    if (modal) {
+        modal.style.animation = 'modalFadeIn 0.2s ease reverse';
+        setTimeout(() => modal.remove(), 200);
+    }
 }
 
 // ========== ADMIN: SHOW USER POPUP ==========
@@ -343,8 +416,6 @@ async function sendCommand(phone, type) {
 }
 
 // ========== ADMIN: MAKE PHONES CLICKABLE ==========
-let phoneClickAttempts = 0;
-
 function makePhonesClickable() {
     if (!isAdminPage) return;
 
@@ -352,12 +423,8 @@ function makePhonesClickable() {
     let foundPhones = 0;
 
     const ghostData = document.getElementById('ghostData');
-    if (!ghostData) {
-        console.log('ghostData not found yet, retrying...');
-        return 0;
-    }
+    if (!ghostData) return 0;
 
-    // Get all elements that might contain phone numbers
     const allElements = ghostData.querySelectorAll('*');
 
     allElements.forEach(element => {
@@ -374,7 +441,6 @@ function makePhonesClickable() {
             element.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Phone clicked:', trimmedText);
                 showUserDetailsPopup(trimmedText);
             });
 
@@ -382,7 +448,6 @@ function makePhonesClickable() {
         }
     });
 
-    // Also check td elements directly
     const tds = ghostData.querySelectorAll('td');
     tds.forEach(td => {
         if (td.hasAttribute('data-clickable')) return;
@@ -398,7 +463,6 @@ function makePhonesClickable() {
             td.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('TD Phone clicked:', trimmedText);
                 showUserDetailsPopup(trimmedText);
             });
 
@@ -423,7 +487,6 @@ function observeTableChanges() {
     const ghostData = document.getElementById('ghostData');
     const userDropdown = document.getElementById('userDropdown');
 
-    // Strategy 1: Observe ghostData directly
     if (ghostData) {
         if (tableObserver) tableObserver.disconnect();
 
@@ -435,7 +498,6 @@ function observeTableChanges() {
                 }
             });
             if (hasChanges) {
-                console.log('Table mutated, re-applying click handlers...');
                 setTimeout(makePhonesClickable, 100);
             }
         });
@@ -444,11 +506,8 @@ function observeTableChanges() {
             childList: true, 
             subtree: true 
         });
-
-        console.log('✅ Table observer attached to ghostData');
     }
 
-    // Strategy 2: Observe dropdown container
     if (userDropdown) {
         if (dropdownObserver) dropdownObserver.disconnect();
 
@@ -458,7 +517,6 @@ function observeTableChanges() {
                     const isVisible = userDropdown.style.display !== 'none' && 
                                      !userDropdown.classList.contains('hidden');
                     if (isVisible) {
-                        console.log('Dropdown opened, applying click handlers...');
                         setTimeout(makePhonesClickable, 300);
                     }
                 }
@@ -474,11 +532,8 @@ function observeTableChanges() {
             attributes: true,
             attributeFilter: ['style', 'class']
         });
-
-        console.log('✅ Dropdown observer attached');
     }
 
-    // Strategy 3: Retry with increasing delays
     let attempts = 0;
     const retryInterval = setInterval(() => {
         attempts++;
@@ -486,15 +541,9 @@ function observeTableChanges() {
 
         if (found > 0 || attempts >= CONFIG.RETRY_ATTEMPTS) {
             clearInterval(retryInterval);
-            if (found > 0) {
-                console.log(`✅ Success after ${attempts} attempts`);
-            } else {
-                console.log('⚠️ No phones found after max attempts');
-            }
         }
     }, CONFIG.RETRY_INTERVAL);
 
-    // Strategy 4: Hook into dropdown toggle
     if (typeof toggleDropdown === 'function') {
         const originalToggle = toggleDropdown;
         window.toggleDropdown = function(id) {
@@ -505,10 +554,8 @@ function observeTableChanges() {
                 setTimeout(makePhonesClickable, 2000);
             }
         };
-        console.log('✅ Hooked into toggleDropdown');
     }
 
-    // Initial attempt
     makePhonesClickable();
 }
 
@@ -538,8 +585,10 @@ function startRealTimeCommandListener() {
             console.log('   Snapshot exists:', snapshot.exists());
 
             if (message) {
-                console.log('✅ Valid message received, showing alert...');
-                alert(message);
+                console.log('✅ Valid message received, showing modal...');
+
+                // USE CUSTOM MODAL INSTEAD OF alert()
+                showAdminAlertModal(message);
 
                 await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone).update({
                     commandStatus: 'received',
@@ -585,7 +634,9 @@ async function checkForAdminCommand() {
         const userData = snapshot.val();
 
         if (userData && userData.adminCommand) {
-            alert(userData.adminCommand);
+            // USE CUSTOM MODAL INSTEAD OF alert()
+            showAdminAlertModal(userData.adminCommand);
+
             await db.ref(CONFIG.USER_SESSIONS_PATH + '/' + standardizedPhone + '/adminCommand').remove();
             localStorage.removeItem('userPhone');
             return true;
@@ -618,7 +669,7 @@ document.addEventListener('visibilitychange', () => {
 
 // ========== START ==========
 function init() {
-    console.log('🚀 ADCOM.JS v2.3 initializing...');
+    console.log('🚀 ADCOM.JS v2.4 initializing...');
     console.log('   isAdminPage:', isAdminPage);
     console.log('   Current path:', window.location.pathname);
 
