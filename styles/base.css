@@ -1,0 +1,84 @@
+/* ========== BASE & CSS VARIABLES ========== */
+
+:root {
+  /* Colors */
+  --gold-primary: #ffd700;
+  --gold-secondary: #ffaa33;
+  --gold-dark: #ff8c00;
+  --green-active: #39ff14;
+  --green-dark: #008f11;
+  --blue-primary: #0066ff;
+  --blue-dark: #0044cc;
+  --red-primary: #ff4444;
+  --red-soft: #ff6666;
+  
+  /* Backgrounds */
+  --bg-dark: #1a1a2e;
+  --bg-darker: #0f0a1a;
+  --bg-card: #1a1525;
+  --bg-overlay: rgba(0,0,0,0.85);
+  
+  /* Text */
+  --text-white: #ffffff;
+  --text-muted: #a0a0c0;
+  --text-gold: #ffd700;
+  
+  /* Spacing */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 32px;
+  --radius-xl: 48px;
+  --radius-full: 50px;
+  
+  /* Shadows */
+  --shadow-gold: 0 0 10px rgba(255,215,0,0.3);
+  --shadow-gold-lg: 0 0 30px rgba(255,215,0,0.6);
+  
+  /* Z-index scale */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-fixed: 1000;
+  --z-modal: 10000;
+  --z-toast: 10001;
+  --z-overlay: 99999;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: linear-gradient(135deg, #0a0f1a 0%, #1a0f2a 30%, #0a0a1a 100%);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(255,215,0,0.08), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Font families */
+.font-orbitron {
+  font-family: 'Orbitron', monospace;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
