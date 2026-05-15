@@ -1,0 +1,179 @@
+/* ========== ANIMATIONS - CONSOLIDATED ========== */
+
+/* Pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+/* Gold Pulse */
+@keyframes pulseGold {
+  0%, 100% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+  50% { box-shadow: 0 0 35px rgba(255,215,0,0.8), 0 0 15px rgba(255,215,0,0.5); }
+}
+
+/* Card Glow */
+@keyframes cardGlowPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+  50% { box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 15px rgba(255,215,0,0.5); }
+}
+
+/* Neon Green */
+@keyframes neonGreenPulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px var(--green-active), 0 0 10px var(--green-active); 
+    background: linear-gradient(135deg, var(--green-active), var(--green-dark)); 
+  }
+  50% { 
+    box-shadow: 0 0 15px var(--green-active), 0 0 25px var(--green-active), 0 0 35px var(--green-active); 
+    background: linear-gradient(135deg, #33ff66, #00cc33); 
+  }
+}
+
+/* Neon Blue */
+@keyframes neonBluePulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px var(--blue-primary), 0 0 10px var(--blue-primary); 
+    background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark)); 
+  }
+  50% { 
+    box-shadow: 0 0 15px var(--blue-primary), 0 0 25px var(--blue-primary), 0 0 35px var(--blue-primary); 
+    background: linear-gradient(135deg, #3399ff, var(--blue-primary)); 
+  }
+}
+
+/* Float Up (Single Definition) */
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  50% { opacity: 1; transform: translateY(-50px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+}
+
+/* Float Up Centered (for popups) */
+@keyframes floatUpCenter {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
+}
+
+/* Pop In */
+@keyframes popIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Fade In */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Fade In Up */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade Out */
+@keyframes fadeOut {
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* Fade Out Up */
+@keyframes fadeOutUp {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(-50px); }
+}
+
+/* Slide Down */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-100%); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Slide Down Banner */
+@keyframes slideDownBanner {
+  from { transform: translateY(-100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Sweep (Shimmer) */
+@keyframes sweep {
+  0% { left: -60%; }
+  20% { left: 120%; }
+  100% { left: 120%; }
+}
+
+/* Permanent Twist */
+@keyframes permanentTwist {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Medium Spin */
+@keyframes mediumSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Seconds Pulse */
+@keyframes secondsPulse {
+  0% { transform: scale(1); color: var(--gold-primary); text-shadow: 0 0 5px var(--gold-primary); }
+  50% { transform: scale(1.3); color: var(--text-white); text-shadow: 0 0 15px var(--gold-primary), 0 0 25px var(--gold-secondary); }
+  100% { transform: scale(1); color: var(--gold-primary); text-shadow: 0 0 5px var(--gold-primary); }
+}
+
+/* Timer Warning */
+@keyframes timerWarning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Reward Pulse */
+@keyframes rewardPulse {
+  0% { transform: scale(1); text-shadow: none; }
+  50% { transform: scale(1.3); text-shadow: 0 0 15px var(--gold-primary); }
+  100% { transform: scale(1); text-shadow: none; }
+}
+
+/* Amount Pop */
+@keyframes amountPop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); color: var(--text-white); text-shadow: 0 0 15px var(--gold-primary); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Right Card Receive */
+@keyframes rightCardReceive {
+  0% { transform: scale(1); box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+  30% { transform: scale(1.08); box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 15px rgba(255,215,0,0.5); }
+  60% { transform: scale(0.98); }
+  100% { transform: scale(1); box-shadow: 0 0 5px rgba(255,215,0,0.3); }
+}
+
+/* Reward Blink */
+@keyframes rewardBlink {
+  0% { transform: scale(1); color: var(--gold-primary); }
+  30% { transform: scale(1.3); color: var(--text-white); text-shadow: 0 0 15px var(--gold-primary); }
+  70% { transform: scale(1.1); color: var(--gold-primary); }
+  100% { transform: scale(1); color: var(--gold-primary); }
+}
+
+/* Card Border Pulse */
+@keyframes cardBorderPulse {
+  0%, 100% { border-color: var(--gold-primary); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+  50% { border-color: var(--gold-secondary); box-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
+}
+
+/* Green Pulse */
+@keyframes pulseGreen {
+  0% { transform: scale(0.8); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(0.8); opacity: 1; }
+}
+
+/* Warning Pop */
+@keyframes warningPop {
+  from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
