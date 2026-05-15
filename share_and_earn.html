@@ -213,78 +213,161 @@
     <script src="js/config.js"></script>
     <script src="js/promotion.js"></script>
     <script src="js/popup_share.js"></script>
-    
+    <script src="js/chat_widget.js"></script>
+
 
     <script>
-        // ========== LOGOUT FUNCTION ==========
-        function logoutUser() {
-            if (confirm('Are you sure you want to logout?\n\nYour session will be cleared and you will be redirected to the login page.')) {
-                // Clear localStorage
-                localStorage.removeItem('userPhone');
-                localStorage.removeItem('userDeviceId');
-                localStorage.removeItem('userDeviceDisplayId');
+    // ========== LOGOUT FUNCTION WITH BAN CHECK ==========
+    async function logoutUser() {
+        const userPhone = localStorage.getItem('userPhone');
+        
+        // Check muna kung banned bago mag logout
+        if (userPhone) {
+            try {
+                const bannedRef = db.ref('banned_ghosts/' + userPhone);
+                const snapshot = await bannedRef.once('value');
                 
-                // Clear sessionStorage if any
+                if (snapshot.exists()) {
+                    // User is banned - force clear at redirect sa index
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                    return;
+                }
+            } catch(e) {
+                console.error('Ban check error:', e);
+            }
+        }
+        
+        // Normal logout flow
+        if (confirm('Are you sure you want to logout?\n\nYour session will be cleared and you will be redirected to the login page.')) {
+            // Clear specific items
+            localStorage.removeItem('userPhone');
+            localStorage.removeItem('userDeviceId');
+            localStorage.removeItem('userDeviceDisplayId');
+            
+            // Clear sessionStorage if any
+            sessionStorage.clear();
+            
+            // Redirect to index.html
+            window.location.href = 'index.html';
+        }
+    }
+    
+    // ========== FACEBOOK SHARE FUNCTION ==========
+    function shareOnFacebook() {
+        const shareUrl = 'https://tiny.cc/LuckyDrop';
+        const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        window.open(facebookShareUrl, '_blank', 'width=600,height=400');
+    }
+    
+    // ========== INITIALIZE ALL EVENT LISTENERS ==========
+    function initializeEventListeners() {
+        // Logout button - Active badge
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.style.cursor = 'pointer';
+            logoutBtn.replaceWith(logoutBtn.cloneNode(true));
+            const freshLogoutBtn = document.getElementById('logoutBtn');
+            freshLogoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                logoutUser();
+            });
+        }
+        
+        // Facebook share button
+        const facebookShareBtn = document.getElementById('facebookShareBtn');
+        if (facebookShareBtn) {
+            facebookShareBtn.replaceWith(facebookShareBtn.cloneNode(true));
+            const freshFbBtn = document.getElementById('facebookShareBtn');
+            freshFbBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                shareOnFacebook();
+            });
+        }
+        
+        // CLAIM NOW button - Double tap to force logout
+        const claimNowBtn = document.getElementById('claimNowBtn');
+        if (claimNowBtn) {
+            let clickTimer = null;
+            
+            claimNowBtn.addEventListener('click', function(e) {
+                if (clickTimer === null) {
+                    clickTimer = setTimeout(function() {
+                        clickTimer = null;
+                        // Single click - normal claim behavior
+                    }, 300);
+                } else {
+                    // Double click - force logout with ban check
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    logoutUser();
+                }
+            });
+        }
+        
+        console.log('Event listeners initialized');
+    }
+    
+    // Run immediately if DOM is already loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeEventListeners);
+    } else {
+        initializeEventListeners();
+    }
+
+    // ========== BAN CHECKER - RUNS EVERYWHERE ==========
+    async function checkIfBanned() {
+        const userPhone = localStorage.getItem('userPhone');
+        if (!userPhone) return;
+        
+        try {
+            const bannedRef = db.ref('banned_ghosts/' + userPhone);
+            const snapshot = await bannedRef.once('value');
+            
+            if (snapshot.exists()) {
+                console.log('⚠️ User is BANNED:', userPhone);
+                
+                // Clear everything
+                localStorage.clear();
                 sessionStorage.clear();
                 
-                // Redirect to index.html
+                // Delete session from Firebase
+                await db.ref('user_sessions/' + userPhone).remove();
+                
+                // Force redirect to index
                 window.location.href = 'index.html';
             }
+        } catch(e) {
+            console.error('Ban check error:', e);
         }
-        
-        // ========== FACEBOOK SHARE FUNCTION ==========
-        function shareOnFacebook() {
-            const shareUrl = 'https://tiny.cc/LuckyDrop';
-            const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-            window.open(facebookShareUrl, '_blank', 'width=600,height=400');
-        }
-        
-        // ========== ATTACH LOGOUT TO ACTIVE BADGE ==========
-        document.addEventListener('DOMContentLoaded', function() {
-            // Logout button functionality
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.style.cursor = 'pointer';
-                logoutBtn.addEventListener('click', logoutUser);
-            }
-            
-            // Facebook share button functionality
-            const facebookShareBtn = document.getElementById('facebookShareBtn');
-            if (facebookShareBtn) {
-                facebookShareBtn.addEventListener('click', shareOnFacebook);
-            }
-        });
-
-// ========== BAN CHECKER ==========
-async function checkIfBanned() {
-    const userPhone = localStorage.getItem('userPhone');
-    if (!userPhone) return;
-    
-    const bannedRef = db.ref('banned_ghosts/' + userPhone);
-    const snapshot = await bannedRef.once('value');
-    
-    if (snapshot.exists()) {
-        // Clear lahat
-        localStorage.removeItem('userPhone');
-        localStorage.removeItem('userDeviceId');
-        localStorage.removeItem('userSession');
-        
-        // Delete session
-        await db.ref('user_sessions/' + userPhone).remove();
-        
-        // Balik sa index
-        window.location.href = 'index.html';
     }
-}
 
-// Check agad pagka-load
-checkIfBanned();
+    // Check immediately on load
+    checkIfBanned();
 
-// Check every 5 seconds
-setInterval(checkIfBanned, 5000);
+    // Check every 3 seconds (mas mabilis para mabilis ma-detect)
+    setInterval(checkIfBanned, 3000);
 
-// Check sa bawat click
-document.body.addEventListener('click', checkIfBanned);
-    </script>
+    // Check on every user interaction
+    document.body.addEventListener('click', function() {
+        checkIfBanned();
+    });
+    
+    document.body.addEventListener('touchstart', function() {
+        checkIfBanned();
+    });
+    
+    // Check when page becomes visible again (user switches tabs)
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            checkIfBanned();
+        }
+    });
+</script>
 </body>
 </html>
