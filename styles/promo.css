@@ -39,6 +39,7 @@ body::before {
     transform: translateX(-50%);
     background: rgba(0,0,0,0.85);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255,215,0,0.3);
     border-radius: 50px;
     padding: 8px 20px;
@@ -135,6 +136,7 @@ body::before {
     align-items: center;
     justify-content: space-between;
     backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .user-info-icon {
@@ -327,74 +329,6 @@ body::before {
     overflow-y: auto;
 }
 
-.invite-list-header {
-    display: flex;
-    padding: 8px 4px;
-    font-size: 10px;
-    color: #ffaa33;
-    border-bottom: 1px solid rgba(255,215,0,0.2);
-    margin-bottom: 6px;
-}
-
-.invite-list-header span:first-child { flex: 2; }
-.invite-list-header span:nth-child(2) { flex: 1; }
-.invite-list-header span:last-child { width: 32px; }
-
-.invite-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 4px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.invite-item-phone {
-    flex: 2;
-    font-size: 12px;
-    color: white;
-    font-family: monospace;
-}
-
-.invite-item-status { flex: 1; }
-
-.status-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 20px;
-    font-size: 9px;
-    font-weight: 600;
-}
-
-.status-badge.pending {
-    background: rgba(255,170,51,0.2);
-    color: #ffaa33;
-}
-
-.status-badge.approved {
-    background: rgba(57,255,20,0.2);
-    color: #39ff14;
-}
-
-.invite-item-action {
-    width: 32px;
-    text-align: center;
-}
-
-.delete-invite {
-    background: rgba(255,68,68,0.2);
-    border: none;
-    color: #ff6666;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 11px;
-}
-
-.delete-invite:active { transform: scale(0.95); }
-.delete-invite:disabled { opacity: 0.3; cursor: not-allowed; }
-.invite-empty { text-align: center; padding: 24px; font-size: 11px; color: rgba(255,255,255,0.3); }
-
-/* Scrollbar */
 .invite-list::-webkit-scrollbar { width: 4px; }
 .invite-list::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
 .invite-list::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 10px; }
@@ -619,17 +553,14 @@ body::before {
     padding: 0 10px;
 }
 
-//SHARE ON FB CSS
-
-
+/* SHARE ON FB CSS */
 
 /* Font Glow */
 .btn-facebook-shimmer span {
     text-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
 
-//Share guide **
-
+/* Share guide styles */
 .share-guide-text {
     color: #ffffff;
     font-size: 14px;
@@ -642,7 +573,6 @@ body::before {
     border: 1px dashed rgba(0, 212, 255, 0.3);
     line-height: 1.6;
 }
-
 
 .share-guide-text strong {
     color: #ffd700; 
@@ -666,6 +596,7 @@ body::before {
     height: 100%;
     background: rgba(0,0,0,0.95);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: 10000;
     display: none;
     align-items: center;
@@ -959,7 +890,6 @@ body::before {
     }
 }
 
-
 /* --- FOOTER FONTS REMASTERED --- */
 .share-social-text {
     font-family: 'Inter', sans-serif;
@@ -972,15 +902,13 @@ body::before {
     text-transform: none;
 }
 
-
 .share-social-text b, 
 .share-social-text strong {
-    color: #ffd700; /* Gold for emphasis */
+    color: #ffd700;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
 }
 
-// Remaster Invite Friends Section
-/* Container para sa Input at Button */
+/* Remaster Invite Friends Section */
 .invite-form-container {
     padding: 15px;
     background: rgba(255, 255, 255, 0.05);
@@ -991,10 +919,10 @@ body::before {
 .invite-input-wrapper {
     display: flex;
     align-items: center;
-    background: #1a1a2e; /* Dark background para sa input area */
+    background: #1a1a2e;
     border: 1px solid rgba(255, 215, 0, 0.3);
     border-radius: 8px;
-    padding: 5px; /* Spacing sa loob */
+    padding: 5px;
     transition: all 0.3s ease;
 }
 
@@ -1003,7 +931,7 @@ body::before {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
 }
 
-/* Ang Modernong Input */
+/* Modern Input */
 .modern-input {
     flex: 1;
     background: transparent;
@@ -1016,18 +944,18 @@ body::before {
     width: 100%;
 }
 
-/* Ang Maliit at Proportional na Send Button */
+/* Send Button */
 .modern-send-btn {
     background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
     color: #000 !important;
     border: none;
     border-radius: 6px;
-    padding: 8px 20px; /* Mas maliit na padding */
+    padding: 8px 20px;
     font-family: 'Orbitron', sans-serif;
     font-size: 11px;
     font-weight: 900;
     cursor: pointer;
-    transition: transform 0.2s active;
+    transition: transform 0.2s ease;
     box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
 }
 
@@ -1035,21 +963,9 @@ body::before {
     transform: scale(0.95);
 }
 
-/* List Headers Remaster */
-.invite-list-header {
-    background: rgba(255, 215, 0, 0.1);
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
-    padding: 8px;
-    font-size: 10px;
-    font-family: 'Orbitron';
-    color: #ffd700;
-    border-radius: 5px;
-    margin-top: 10px;
-}
-
+/* Invite Section Title */
 .invite-section-title {
-    font-family: 'Orbitron';
+    font-family: 'Orbitron', sans-serif;
     font-size: 12px;
     color: #ffffff;
     margin-top: 20px;
@@ -1112,8 +1028,12 @@ body::before {
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 
-/* TWISTING SCATTER ICON LOGIC */
+/* Twisting Scatter Icon */
 .dashboard-action {
+    perspective: 1000px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
     z-index: 2;
 }
@@ -1129,7 +1049,7 @@ body::before {
     border-radius: 50%;
     border: 2px solid #ffd700;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    animation: permanentTwist 3s linear infinite; /* Non-stop twist */
+    animation: permanentTwist 3s linear infinite;
     transition: transform 0.3s ease;
 }
 
@@ -1137,41 +1057,23 @@ body::before {
     filter: brightness(1.2);
 }
 
-/* Permanent Twist Animation */
 @keyframes permanentTwist {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Para sa Mobile responsiveness */
+/* Mobile responsiveness for dashboard */
 @media (max-width: 360px) {
     .main-balance { font-size: 24px; }
     .twisting-scatter { width: 45px; height: 45px; }
 }
 
-/* Container Perspective */
-.dashboard-action {
-    perspective: 1000px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
+/* Prize Grid (3D effect) */
 .prize-grid {
     display: flex;
     gap: 15px;
     justify-content: center;
-    perspective: 1000px; /* Para sa 3D depth */
-}
-
-.prize-card {
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    border-radius: 16px;
-    padding: 15px;
-    text-align: center;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
+    perspective: 1000px;
 }
 
 /* Hover & Active States */
@@ -1190,23 +1092,7 @@ body::before {
 .lucky-cat-video video {
     width: 100%;
     border-radius: 12px;
-    /* Pagtatago ng video controls para malinis */
     pointer-events: none;
-}
-
-.prize-label {
-    font-family: 'Inter', sans-serif;
-    font-size: 10px;
-    color: #a0a0c0;
-    margin-top: 10px;
-    letter-spacing: 1px;
-}
-
-.prize-amount {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    color: #ffd700;
-    font-weight: 900;
 }
 
 /* ========== RESPONSIVE ========== */
@@ -1225,7 +1111,7 @@ body::before {
     .indicator { width: 35px; }
 }
 
-/* Container para sa icon para ma-handle ang transparency */
+/* Icon Container */
 .icon-container {
     display: flex;
     align-items: center;
@@ -1237,42 +1123,24 @@ body::before {
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    opacity: 0.6; /* Gawing transparent ang icon */
+    opacity: 0.6;
     transition: transform 0.3s ease, opacity 0.3s ease;
-    /* Permanent slow twist (Parang Earth) */
     animation: permanentTwist 8s linear infinite; 
 }
 
-/* Pag tinapat ang cursor o finger (Hover/Active) */
+/* Hover/Active state for claim icon */
 .claim-now-btn:hover .claim-icon,
 .claim-now-btn:active .claim-icon {
-    opacity: 1; /* Mawawala ang transparency */
-    animation: mediumSpin 1.5s linear infinite; /* Mag-i-spin ng medium speed */
+    opacity: 1;
+    animation: mediumSpin 1.5s linear infinite;
 }
 
-/* Keyframes para sa mabagal na rotation (Earth style) */
-@keyframes permanentTwist {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* Keyframes para sa medium spin kapag naka-hover */
 @keyframes mediumSpin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-/* Optional: Idagdag ang shimmer sa button para mas maganda */
-.claim-now-btn {
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* ... existing styles mo ... */
-}
-
-/* Phase 2 at Animation Styles */
+/* Phase 2 and Animation Styles */
 #popupDynamicContent {
     transition: opacity 0.3s ease-in-out;
 }
@@ -1286,18 +1154,18 @@ body::before {
     font-size: 40px;
     font-weight: bold;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-    animation: floatUp 2s ease-out forwards;
+    animation: rewardFloatUp 2s ease-out forwards;
     z-index: 9999;
     pointer-events: none;
 }
 
-@keyframes floatUp {
+@keyframes rewardFloatUp {
     0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
     20% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
     100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
 }
 
-/* Para sa Click Locking */
+/* Click Locking */
 .left-card.claimed {
     filter: grayscale(0.8);
     cursor: default;
@@ -1378,7 +1246,7 @@ body::before {
     }
 }
 
-/* Simple version without seconds animation - use this if preferred */
+/* Simple version without seconds animation */
 #mainTimerDisplay.simple .seconds-animation {
     animation: none;
     color: #ffd700;
@@ -1394,185 +1262,6 @@ body::before {
 @keyframes timerWarning {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
-}
-
-/* Invite List Header - Fixed Alignment */
-.invite-list-header {
-    display: grid;
-    grid-template-columns: 1.5fr 0.8fr 0.8fr;
-    background: rgba(255, 215, 0, 0.1);
-    padding: 8px 10px;
-    font-size: 11px;
-    font-family: 'Orbitron', monospace;
-    color: #ffd700;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    text-align: center;
-}
-
-.invite-list-header span:first-child {
-    text-align: left;
-}
-
-.invite-list-header span:last-child {
-    text-align: right;
-    padding-right: 10px;
-}
-
-/* Invite Item - Fixed Alignment */
-.invite-item {
-    display: grid;
-    grid-template-columns: 1.5fr 0.8fr 0.8fr;
-    align-items: center;
-    padding: 10px 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.invite-item-phone {
-    font-size: 12px;
-    color: white;
-    font-family: monospace;
-    text-align: left;
-}
-
-.invite-item-status {
-    text-align: center;
-}
-
-.invite-item-action {
-    text-align: right;
-    padding-right: 10px;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 600;
-    min-width: 70px;
-    text-align: center;
-}
-
-.status-badge.pending {
-    background: rgba(255, 170, 51, 0.2);
-    color: #ffaa33;
-}
-
-.status-badge.approved {
-    background: rgba(57, 255, 20, 0.2);
-    color: #39ff14;
-}
-
-.delete-invite {
-    background: rgba(255, 68, 68, 0.2);
-    border: none;
-    color: #ff6666;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s ease;
-}
-
-.delete-invite:hover {
-    background: rgba(255, 68, 68, 0.4);
-    transform: scale(1.05);
-}
-
-.delete-invite:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.invite-empty {
-    text-align: center;
-    padding: 20px;
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 12px;
-}
-
-/* Card Glow Animation */
-@keyframes cardGlowPulse {
-    0% { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
-    50% { box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 15px rgba(255,215,0,0.5); }
-    100% { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
-}
-
-.card-glow {
-    animation: cardGlowPulse 0.5s ease-out !important;
-}
-
-.reward-pulse {
-    animation: rewardPulse 0.5s ease-out !important;
-}
-
-@keyframes rewardPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); color: #ffffff; text-shadow: 0 0 10px #ffd700; }
-    100% { transform: scale(1); }
-}
-
-/* ========== ANIMATIONS FOR MODULE 5 & 6 ========== */
-
-@keyframes warningPop {
-    from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
-
-@keyframes slideDown {
-    from { opacity: 0; transform: translateX(-50%) translateY(-100%); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes fadeOut {
-    to { opacity: 0; visibility: hidden; }
-}
-
-@keyframes fadeOutUp {
-    from { opacity: 1; transform: translateX(-50%) translateY(0); }
-    to { opacity: 0; transform: translateX(-50%) translateY(-50px); }
-}
-
-@keyframes floatUp {
-    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
-    50% { opacity: 1; transform: translate(-50%, -80%) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -150%) scale(1); }
-}
-
-@keyframes cardGlowPulse {
-    0%, 100% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
-    50% { box-shadow: 0 0 25px rgba(255,215,0,0.8); }
-}
-
-@keyframes rewardPulse {
-    0% { transform: scale(1); text-shadow: none; }
-    50% { transform: scale(1.3); text-shadow: 0 0 15px #ffd700; }
-    100% { transform: scale(1); text-shadow: none; }
-}
-
-.reward-pulse {
-    animation: rewardPulse 0.5s ease-out;
-}
-
-.card-glow {
-    animation: cardGlowPulse 0.8s ease-in-out;
-}
-
-.received-item {
-    animation: fadeInUp 0.3s ease forwards;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* ========== INVITATIONS SECTION - IMPROVED ALIGNMENT ========== */
@@ -1594,7 +1283,6 @@ body::before {
     letter-spacing: 0.5px;
 }
 
-/* Header Columns */
 .invite-list-header span:first-child {
     text-align: left;
 }
@@ -1625,27 +1313,23 @@ body::before {
     border-color: rgba(255, 215, 0, 0.2);
 }
 
-/* Phone/Tasker ID Column */
 .invite-item-phone {
     text-align: left;
-    font-family: 'Inter', monospace;
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 500;
     color: #ffffff;
     letter-spacing: 0.5px;
 }
 
-/* Status Column */
 .invite-item-status {
     text-align: center;
 }
 
-/* Action Column */
 .invite-item-action {
     text-align: center;
 }
 
-/* Reward Column */
 .invite-item-reward {
     text-align: center;
     font-family: 'Orbitron', monospace;
@@ -1713,18 +1397,7 @@ body::before {
     font-style: italic;
 }
 
-/* Section Title */
-.invite-section-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    color: #ffd700;
-    margin: 15px 0 10px 0;
-    padding-left: 8px;
-    border-left: 3px solid #ffd700;
-}
-
-/* Scrollbar */
+/* Scrollbar for invite list */
 .invite-list-body {
     max-height: 250px;
     overflow-y: auto;
@@ -1744,7 +1417,7 @@ body::before {
     border-radius: 10px;
 }
 
-/* Responsive */
+/* Responsive for invite section */
 @media (max-width: 480px) {
     .invite-list-header,
     .invite-item {
@@ -1771,12 +1444,10 @@ body::before {
 
 /* ========== RIGHT LUCKY CARD TRANSITION EFFECTS ========== */
 
-/* Amount transition */
 #rightRewardAmount {
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* Card pulse animation when receiving new reward */
 .right-card-pulse {
     animation: rightCardReceive 0.6s ease-out !important;
 }
@@ -1799,7 +1470,6 @@ body::before {
     }
 }
 
-/* Number increment animation */
 .amount-increment {
     animation: amountPop 0.4s ease-out;
 }
@@ -1820,7 +1490,6 @@ body::before {
     }
 }
 
-/* Floating plus animation for new reward */
 .float-plus {
     position: fixed;
     pointer-events: none;
@@ -1865,7 +1534,6 @@ body::before {
     border-radius: 16px;
 }
 
-/* Para sa mobile */
 @media (max-width: 480px) {
     .bonus150-img {
         width: 90%;
@@ -1884,7 +1552,6 @@ body::before {
     display: block;
 }
 
-/* Animation kapag nag-increase */
 .reward-increase {
     animation: rewardBlink 0.5s ease-out !important;
 }
@@ -1896,7 +1563,6 @@ body::before {
     100% { transform: scale(1); color: #ffd700; }
 }
 
-/* Gold border animation kapag may pending reward */
 .card-highlight {
     border: 2px solid #ffd700 !important;
     box-shadow: 0 0 25px rgba(255, 215, 0, 0.7) !important;
@@ -2208,11 +1874,6 @@ body::before {
     to { opacity: 1; }
 }
 
-@keyframes popIn {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
 @keyframes slideDown {
     from { transform: translateX(-50%) translateY(-20px); opacity: 0; }
     to { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -2220,6 +1881,26 @@ body::before {
 
 @keyframes fadeOut {
     to { opacity: 0; visibility: hidden; }
+}
+
+@keyframes cardGlowPulse {
+    0% { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+    50% { box-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 15px rgba(255,215,0,0.5); }
+    100% { box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+}
+
+@keyframes rewardPulse {
+    0% { transform: scale(1); text-shadow: none; }
+    50% { transform: scale(1.3); text-shadow: 0 0 15px #ffd700; }
+    100% { transform: scale(1); text-shadow: none; }
+}
+
+.card-glow {
+    animation: cardGlowPulse 0.5s ease-out !important;
+}
+
+.reward-pulse {
+    animation: rewardPulse 0.5s ease-out !important;
 }
 
 /* ========== LOGOUT BUTTON STYLES ========== */
@@ -2268,7 +1949,7 @@ body::before {
     transition: all 0.2s ease;
 }
 
-/* Logout confirmation dialog style override */
+/* Logout confirmation dialog */
 .confirm-dialog {
     position: fixed;
     top: 50%;
