@@ -896,3 +896,179 @@ if (accessKeyInput) {
         if (e.key === 'Enter') verifyAccess();
     });
 }
+
+// admin_chat.js
+(function() {
+    'use strict';
+    
+    let activeChatId = null;
+    let userListeners = {};
+    
+    function init() {
+        createAdminPanel();
+        loadUserList();
+        listenForNewChats();
+    }
+    
+    function createAdminPanel() {
+        const panel = document.createElement('div');
+        panel.className = 'admin-chat-widget';
+        panel.innerHTML = `
+            <button class="admin-chat-toggle" id="adminChatToggle">
+                <i class="fa-solid fa-headset"></i>
+                <span class="chat-badge" id="adminBadge" style="display:none">0</span>
+            </button>
+            
+            <div class="admin-chat-panel" id="adminChatPanel">
+                <div class="admin-chat-header">
+                    <span style="color:#fce883; font-family:'Orbitron'; font-size:12px;">💬 CHAT SUPPORT</span>
+                    <button id="adminChatClose" style="background:none; border:none; color:#d4af37; cursor:pointer;">✕</button>
+                </div>
+                
+                <div class="admin-user-list" id="adminUserList">
+                    <div style="text-align:center; color:#666; padding:20px;">No conversations yet</div>
+                </div>
+                
+                <div class="admin-chat-conversation" id="adminConversation">
+                    <div class="admin-chat-header">
+                        <button id="adminBackBtn" style="background:none; border:none; color:#d4af37; cursor:pointer;">← Back</button>
+                        <span id="adminChatTitle" style="color:#fce883; font-size:11px;"></span>
+                    </div>
+                    <div class="admin-chat-messages" id="adminMessages"></div>
+                    <div class="admin-chat-input-area">
+                        <input type="text" class="admin-chat-input" id="adminChatInput" placeholder="Reply...">
+                        <button class="admin-send-btn" id="adminSendBtn">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(panel);
+        attachAdminEvents();
+    }
+    
+    function attachAdminEvents() {
+        document.getElementById('adminChatToggle').addEventListener('click', function() {
+            document.getElementById('adminChatPanel').classList.toggle('show');
+        });
+        
+        document.getElementById('adminChatClose').addEventListener('click', function() {
+            document.getElementById('adminChatPanel').classList.remove('show');
+        });
+        
+        document.getElementById('adminBackBtn').addEventListener('click', function() {
+            document.getElementById('adminConversation').classList.remove('show');
+            document.getElementById('adminUserList').style.display = 'block';
+            activeChatId = null;
+        });
+        
+        document.getElementById('adminSendBtn').addEventListener('click', sendAdminMessage);
+        
+        document.getElementById('adminChatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendAdminMessage();
+        });
+    }
+    
+    function loadUserList() {
+        const db = firebase.database();
+        db.ref('chats').on('value', function(snapshot) {
+            const userList = document.getElementById('adminUserList');
+            userList.innerHTML = '';
+            
+            if (!snapshot.exists()) {
+                userList.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">No conversations</div>';
+                return;
+            }
+            
+            const chats = snapshot.val();
+            Object.keys(chats).forEach(chatId => {
+                const chat = chats[chatId];
+                const userItem = document.createElement('div');
+                userItem.className = 'admin-user-item';
+                userItem.innerHTML = `
+                    <div>📱</div>
+                    <div style="flex:1;">
+                        <div style="color:#fce883; font-size:11px;">${chatId}</div>
+                        <div style="color:#666; font-size:9px;">${chat.lastMessage || 'No messages'}</div>
+                    </div>
+                    ${chat.unreadAdmin > 0 ? '<div class="unread-dot"></div>' : ''}
+                `;
+                
+                userItem.addEventListener('click', function() {
+                    openConversation(chatId);
+                });
+                
+                userList.appendChild(userItem);
+            });
+        });
+    }
+    
+    function openConversation(chatId) {
+        activeChatId = chatId;
+        document.getElementById('adminUserList').style.display = 'none';
+        document.getElementById('adminConversation').classList.add('show');
+        document.getElementById('adminChatTitle').textContent = `Chat with ${chatId}`;
+        
+        loadMessages(chatId);
+        markAdminMessagesRead(chatId);
+    }
+    
+    function loadMessages(chatId) {
+        const db = firebase.database();
+        const messagesContainer = document.getElementById('adminMessages');
+        messagesContainer.innerHTML = '';
+        
+        db.ref(`chats/${chatId}/messages`).orderByChild('timestamp').on('child_added', function(snapshot) {
+            const msg = snapshot.val();
+            const msgEl = document.createElement('div');
+            msgEl.className = `chat-bubble ${msg.sender === 'admin' ? 'user' : 'admin'}`;
+            msgEl.innerHTML = `
+                ${msg.text}
+                <div class="chat-time">${new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+            `;
+            messagesContainer.appendChild(msgEl);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+    }
+    
+    function sendAdminMessage() {
+        if (!activeChatId) return;
+        
+        const input = document.getElementById('adminChatInput');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        const db = firebase.database();
+        db.ref(`chats/${activeChatId}/messages`).push({
+            text: message,
+            sender: 'admin',
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        
+        db.ref(`chats/${activeChatId}`).update({
+            lastMessage: message,
+            lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+            lastSender: 'admin'
+        });
+        
+        input.value = '';
+    }
+    
+    function markAdminMessagesRead(chatId) {
+        const db = firebase.database();
+        db.ref(`chats/${chatId}`).update({ unreadAdmin: 0 });
+    }
+    
+    function listenForNewChats() {
+        // Auto-refresh user list when new chats come in
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
+})();
