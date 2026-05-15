@@ -897,17 +897,20 @@ if (accessKeyInput) {
     });
 }
 
-// admin_chat.js (adscript.js) - Compact Version
+// adscript.js - Admin Chat Panel (Fixed)
 (function() {
     'use strict';
     
     let activeChatId = null;
     let messagesListener = null;
+    let usersListener = null;
+    let currentMessages = {};
     
     function init() {
         createAdminPanel();
         loadUserList();
-        console.log('Admin chat initialized');
+        listenForNewUsers();
+        console.log('✅ Admin chat initialized');
     }
     
     function createAdminPanel() {
@@ -941,12 +944,14 @@ if (accessKeyInput) {
                 </div>
                 
                 <!-- Conversation View -->
-                <div class="admin-chat-conversation" id="adminConversation">
+                <div class="admin-chat-conversation" id="adminConversation" style="display:none;">
                     <div class="admin-convo-header">
                         <button class="admin-back-btn" id="adminBackBtn">←</button>
                         <span class="admin-convo-title" id="adminChatTitle">Chat</span>
                     </div>
-                    <div class="admin-chat-messages" id="adminMessages"></div>
+                    <div class="admin-chat-messages" id="adminMessages">
+                        <!-- Messages will be loaded here -->
+                    </div>
                     <div class="typing-indicator" id="adminTypingIndicator">
                         <div class="typing-dots">
                             <span></span><span></span><span></span>
@@ -967,6 +972,7 @@ if (accessKeyInput) {
     }
     
     function attachAdminEvents() {
+        // Toggle chat panel
         document.getElementById('adminChatToggle').addEventListener('click', function() {
             const panel = document.getElementById('adminChatPanel');
             panel.classList.toggle('show');
@@ -975,33 +981,44 @@ if (accessKeyInput) {
             }
         });
         
+        // Close chat panel
         document.getElementById('adminChatClose').addEventListener('click', function() {
             document.getElementById('adminChatPanel').classList.remove('show');
         });
         
+        // Back to user list
         document.getElementById('adminBackBtn').addEventListener('click', function() {
-            document.getElementById('adminConversation').classList.remove('show');
-            document.getElementById('adminUserList').style.display = 'block';
-            // Remove message listener
-            if (messagesListener && activeChatId) {
-                firebase.database().ref(`chats/${activeChatId}/messages`).off('child_added', messagesListener);
-                messagesListener = null;
-            }
-            activeChatId = null;
+            closeConversation();
         });
         
+        // Send message
         document.getElementById('adminSendBtn').addEventListener('click', sendAdminMessage);
         
+        // Send on Enter
         document.getElementById('adminChatInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendAdminMessage();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendAdminMessage();
+            }
         });
     }
     
+    // ========== LOAD USER LIST ==========
     function loadUserList() {
         const db = firebase.database();
-        db.ref('chats').on('value', function(snapshot) {
+        
+        // Remove old listener
+        if (usersListener) {
+            db.ref('chats').off('value', usersListener);
+        }
+        
+        usersListener = db.ref('chats').on('value', function(snapshot) {
             const userList = document.getElementById('adminUserList');
-            if (!userList || document.getElementById('adminConversation').classList.contains('show')) return;
+            const conversationView = document.getElementById('adminConversation');
+            
+            // Don't update user list if viewing conversation
+            if (conversationView && conversationView.style.display !== 'none') return;
+            if (!userList) return;
             
             userList.style.display = 'block';
             userList.innerHTML = '';
@@ -1010,7 +1027,7 @@ if (accessKeyInput) {
                 userList.innerHTML = `
                     <div class="admin-empty-state">
                         <div class="empty-icon">📭</div>
-                        <div class="empty-text">No conversations</div>
+                        <div class="empty-text">No conversations yet</div>
                     </div>`;
                 return;
             }
@@ -1018,29 +1035,38 @@ if (accessKeyInput) {
             const chats = snapshot.val();
             const chatIds = Object.keys(chats);
             
-            // Sort by last message time
+            // Sort by last message time (newest first)
             chatIds.sort((a, b) => {
                 const timeA = chats[a].lastMessageTime || 0;
                 const timeB = chats[b].lastMessageTime || 0;
                 return timeB - timeA;
             });
             
+            let totalUnread = 0;
+            
             chatIds.forEach(chatId => {
                 const chat = chats[chatId];
+                const unreadCount = chat.unreadAdmin || 0;
+                totalUnread += unreadCount;
+                
                 const lastTime = chat.lastMessageTime 
                     ? formatTime(chat.lastMessageTime) 
                     : '';
                 
                 const userItem = document.createElement('div');
                 userItem.className = 'admin-user-item';
+                if (activeChatId === chatId) {
+                    userItem.classList.add('active');
+                }
+                
                 userItem.innerHTML = `
                     <div class="admin-user-avatar">📱</div>
                     <div class="admin-user-info">
                         <div class="admin-user-name">${chatId}</div>
-                        <div class="admin-user-last-msg">${chat.lastMessage || 'No messages'}</div>
+                        <div class="admin-user-last-msg">${chat.lastMessage ? truncateText(chat.lastMessage, 25) : 'No messages'}</div>
                     </div>
                     <div class="admin-user-time">${lastTime}</div>
-                    ${(chat.unreadAdmin > 0) ? '<div class="unread-dot"></div>' : ''}
+                    ${unreadCount > 0 ? `<div class="unread-dot" style="margin-left:4px;">${unreadCount}</div>` : ''}
                 `;
                 
                 userItem.addEventListener('click', function() {
@@ -1049,113 +1075,273 @@ if (accessKeyInput) {
                 
                 userList.appendChild(userItem);
             });
+            
+            // Update badge
+            updateBadge(totalUnread);
         });
     }
     
+    // ========== LISTEN FOR NEW USERS ==========
+    function listenForNewUsers() {
+        const db = firebase.database();
+        db.ref('chats').on('child_added', function(snapshot) {
+            console.log('🆕 New chat from:', snapshot.key);
+            // Refresh user list if panel is open
+            const panel = document.getElementById('adminChatPanel');
+            if (panel && panel.classList.contains('show')) {
+                loadUserList();
+            }
+        });
+    }
+    
+    // ========== OPEN CONVERSATION ==========
     function openConversation(chatId) {
-        activeChatId = chatId;
-        document.getElementById('adminUserList').style.display = 'none';
-        document.getElementById('adminConversation').classList.add('show');
-        document.getElementById('adminChatTitle').textContent = `📱 ${chatId}`;
+        console.log('📂 Opening conversation with:', chatId);
         
+        activeChatId = chatId;
+        
+        // Switch views
+        document.getElementById('adminUserList').style.display = 'none';
+        document.getElementById('adminConversation').style.display = 'flex';
+        document.getElementById('adminChatTitle').textContent = '📱 ' + chatId;
+        
+        // Clear previous messages
+        document.getElementById('adminMessages').innerHTML = '';
+        currentMessages = {};
+        
+        // Load messages
         loadMessages(chatId);
+        
+        // Mark as read
         markAsRead(chatId);
     }
     
+    // ========== CLOSE CONVERSATION ==========
+    function closeConversation() {
+        console.log('📁 Closing conversation');
+        
+        // Remove message listener
+        if (messagesListener && activeChatId) {
+            const db = firebase.database();
+            db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener);
+            messagesListener = null;
+        }
+        
+        activeChatId = null;
+        currentMessages = {};
+        
+        document.getElementById('adminConversation').style.display = 'none';
+        document.getElementById('adminUserList').style.display = 'block';
+        document.getElementById('adminMessages').innerHTML = '';
+        
+        // Refresh user list
+        loadUserList();
+    }
+    
+    // ========== LOAD MESSAGES ==========
     function loadMessages(chatId) {
         const db = firebase.database();
         const messagesContainer = document.getElementById('adminMessages');
+        
+        // Clear container
         messagesContainer.innerHTML = '';
         
-        // Remove previous listener
+        // Remove old listener if exists
         if (messagesListener) {
-            db.ref(`chats/${activeChatId}/messages`).off('child_added', messagesListener);
+            db.ref('chats/' + chatId + '/messages').off('child_added', messagesListener);
         }
         
-        messagesListener = db.ref(`chats/${chatId}/messages`)
+        // Create new listener
+        messagesListener = db.ref('chats/' + chatId + '/messages')
             .orderByChild('timestamp')
-            .limitToLast(100);
+            .on('child_added', function(snapshot) {
+                const msg = snapshot.val();
+                const msgId = snapshot.key;
+                
+                // Avoid duplicate messages
+                if (currentMessages[msgId]) return;
+                currentMessages[msgId] = true;
+                
+                console.log('📩 Message loaded:', msg.sender, '-', truncateText(msg.text, 30));
+                
+                displayMessage(msg, msgId);
+            });
         
-        messagesListener.on('child_added', function(snapshot) {
+        // Also listen for changes (read status, etc.)
+        db.ref('chats/' + chatId + '/messages').on('child_changed', function(snapshot) {
             const msg = snapshot.val();
-            displayMessage(msg);
+            const msgId = snapshot.key;
+            // Update message if needed
+            updateMessageDisplay(msgId, msg);
         });
     }
     
-    function displayMessage(msg) {
+    // ========== DISPLAY MESSAGE ==========
+    function displayMessage(msg, msgId) {
         const messagesContainer = document.getElementById('adminMessages');
         const typingIndicator = document.getElementById('adminTypingIndicator');
         
+        if (!messagesContainer) return;
+        
         const msgEl = document.createElement('div');
-        msgEl.className = `msg-bubble ${msg.sender === 'admin' ? 'user-msg' : 'admin-msg'}`;
+        msgEl.className = 'msg-bubble ' + (msg.sender === 'admin' ? 'user-msg' : 'admin-msg');
+        msgEl.id = 'msg-' + msgId;
         
         const time = msg.timestamp 
             ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-            : '';
+            : 'Just now';
+        
+        const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
         
         msgEl.innerHTML = `
             ${escapeHtml(msg.text)}
-            <div class="msg-time">${time}</div>
+            <div class="msg-time">${senderLabel} • ${time}</div>
         `;
         
-        if (typingIndicator) {
+        // Insert before typing indicator
+        if (typingIndicator && typingIndicator.parentNode === messagesContainer) {
             messagesContainer.insertBefore(msgEl, typingIndicator);
         } else {
             messagesContainer.appendChild(msgEl);
         }
         
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        // Scroll to bottom
+        scrollToBottom();
     }
     
+    // ========== UPDATE MESSAGE DISPLAY ==========
+    function updateMessageDisplay(msgId, msg) {
+        const msgEl = document.getElementById('msg-' + msgId);
+        if (!msgEl) return;
+        
+        const time = msg.timestamp 
+            ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+            : '';
+        
+        const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
+        
+        if (msg.read) {
+            msgEl.querySelector('.msg-time').textContent = `${senderLabel} • ${time} ✓✓`;
+        }
+    }
+    
+    // ========== SEND ADMIN MESSAGE ==========
     function sendAdminMessage() {
-        if (!activeChatId) return;
+        if (!activeChatId) {
+            console.log('❌ No active chat');
+            return;
+        }
         
         const input = document.getElementById('adminChatInput');
+        const sendBtn = document.getElementById('adminSendBtn');
         const message = input.value.trim();
+        
         if (!message) return;
         
-        const db = firebase.database();
-        db.ref(`chats/${activeChatId}/messages`).push({
-            text: message,
-            sender: 'admin',
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
+        console.log('📤 Sending message to:', activeChatId, '-', truncateText(message, 30));
         
-        db.ref(`chats/${activeChatId}`).update({
-            lastMessage: message,
-            lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
-            lastSender: 'admin',
-            unreadUser: (firebase.database.ServerValue.increment(1) || 1)
-        });
+        // Disable button while sending
+        sendBtn.disabled = true;
         
-        input.value = '';
+        try {
+            const db = firebase.database();
+            
+            // Add message
+            db.ref('chats/' + activeChatId + '/messages').push({
+                text: message,
+                sender: 'admin',
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                read: false
+            });
+            
+            // Update chat metadata
+            db.ref('chats/' + activeChatId).update({
+                lastMessage: message,
+                lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                lastSender: 'admin',
+                unreadUser: firebase.database.ServerValue.increment(1)
+            });
+            
+            // Clear input
+            input.value = '';
+            
+        } catch(e) {
+            console.error('❌ Error sending message:', e);
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
     }
     
+    // ========== MARK AS READ ==========
     function markAsRead(chatId) {
         const db = firebase.database();
-        db.ref(`chats/${chatId}`).update({ unreadAdmin: 0 });
+        db.ref('chats/' + chatId).update({ 
+            unreadAdmin: 0 
+        }).then(function() {
+            console.log('✅ Marked as read:', chatId);
+        }).catch(function(e) {
+            console.error('❌ Error marking as read:', e);
+        });
     }
     
+    // ========== SCROLL TO BOTTOM ==========
+    function scrollToBottom() {
+        const messagesContainer = document.getElementById('adminMessages');
+        if (messagesContainer) {
+            setTimeout(function() {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+    }
+    
+    // ========== UPDATE BADGE ==========
+    function updateBadge(count) {
+        const badge = document.getElementById('adminBadge');
+        if (!badge) return;
+        
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    // ========== HELPER FUNCTIONS ==========
     function formatTime(timestamp) {
+        if (!timestamp) return '';
+        
         const now = Date.now();
         const diff = now - timestamp;
         const minutes = Math.floor(diff / 60000);
         
         if (minutes < 1) return 'now';
-        if (minutes < 60) return `${minutes}m`;
+        if (minutes < 60) return minutes + 'm';
         
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}h`;
+        if (hours < 24) return hours + 'h';
+        
+        const days = Math.floor(hours / 24);
+        if (days < 7) return days + 'd';
         
         return new Date(timestamp).toLocaleDateString([], {month:'short', day:'numeric'});
     }
     
+    function truncateText(text, maxLength) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
+    
     function escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
     
+    // ========== START ==========
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
