@@ -1670,13 +1670,460 @@ window.ReferralSystem = (function() {
     return { init: init };
 })();
 
-// ========== MODULE: ADMIN FORCE LOGOUT LISTENER ==========
+// ========== MODULE: ADMIN FORCE LOGOUT LISTENER (V2 PREMIUM) ==========
 (function() {
     'use strict';
     
     let logoutListenerRef = null;
     
+    // ========== V2 STYLISH POPUP ==========
+    function showStylishPopupV2(title, message, icon, callback) {
+        // Remove existing popup
+        const existing = document.querySelector('.stylish-logout-popup-v2');
+        if (existing) existing.remove();
+        
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'stylish-logout-popup-v2';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(20, 0, 0, 0.95), rgba(0, 0, 0, 0.98));
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInV2 0.4s ease;
+        `;
+        
+        // Particle container
+        const particles = document.createElement('div');
+        particles.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        `;
+        
+        // Create gold particles
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            const size = Math.random() * 4 + 2;
+            const startX = Math.random() * 100;
+            const delay = Math.random() * 3;
+            const duration = Math.random() * 3 + 2;
+            
+            particle.style.cssText = `
+                position: absolute;
+                top: -10px;
+                left: ${startX}%;
+                width: ${size}px;
+                height: ${size}px;
+                background: rgba(212, 175, 55, ${Math.random() * 0.5 + 0.3});
+                border-radius: 50%;
+                animation: floatDownV2 ${duration}s ${delay}s linear infinite;
+                box-shadow: 0 0 ${size * 2}px rgba(212, 175, 55, 0.5);
+            `;
+            particles.appendChild(particle);
+        }
+        overlay.appendChild(particles);
+        
+        // Card container
+        const cardWrapper = document.createElement('div');
+        cardWrapper.style.cssText = `
+            position: relative;
+            z-index: 1;
+            animation: cardEnterV2 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        `;
+        
+        // Outer glow ring
+        const glowRing = document.createElement('div');
+        glowRing.style.cssText = `
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border-radius: 28px;
+            background: conic-gradient(
+                from 0deg,
+                transparent,
+                rgba(212, 175, 55, 0.6),
+                transparent,
+                rgba(212, 175, 55, 0.3),
+                transparent
+            );
+            animation: rotateGlowV2 4s linear infinite;
+            filter: blur(2px);
+        `;
+        cardWrapper.appendChild(glowRing);
+        
+        // Main card
+        const card = document.createElement('div');
+        card.style.cssText = `
+            position: relative;
+            background: linear-gradient(160deg, #0a0a0a 0%, #161616 40%, #0d0d0d 100%);
+            border: 2px solid rgba(212, 175, 55, 0.5);
+            border-radius: 24px;
+            padding: 35px 28px 28px;
+            text-align: center;
+            max-width: 360px;
+            width: 85%;
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.9),
+                0 0 50px rgba(212, 175, 55, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        `;
+        
+        // Top accent line
+        const accentLine = document.createElement('div');
+        accentLine.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, #fcf6ba, #d4af37, transparent);
+            border-radius: 0 0 3px 3px;
+        `;
+        card.appendChild(accentLine);
+        
+        // Diamond pattern background
+        const pattern = document.createElement('div');
+        pattern.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 80% 70%, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        `;
+        card.appendChild(pattern);
+        
+        // Icon container with ring
+        const iconContainer = document.createElement('div');
+        iconContainer.style.cssText = `
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            z-index: 1;
+        `;
+        
+        const iconRing = document.createElement('div');
+        iconRing.style.cssText = `
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            border: 2px dashed rgba(212, 175, 55, 0.4);
+            animation: spinSlowV2 10s linear infinite;
+        `;
+        iconContainer.appendChild(iconRing);
+        
+        const iconBg = document.createElement('div');
+        iconBg.style.cssText = `
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(40, 10, 10, 0.9), rgba(5, 5, 5, 0.95));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #d4af37;
+            box-shadow: 
+                0 0 25px rgba(212, 175, 55, 0.4),
+                inset 0 0 20px rgba(212, 175, 55, 0.1);
+            position: relative;
+        `;
+        
+        const iconEl = document.createElement('span');
+        iconEl.style.cssText = `
+            font-size: 40px;
+            animation: bounceIconV2 0.8s ease;
+            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+        `;
+        iconEl.textContent = icon || '⚠️';
+        iconBg.appendChild(iconEl);
+        iconContainer.appendChild(iconBg);
+        card.appendChild(iconContainer);
+        
+        // Status badge
+        const badge = document.createElement('div');
+        badge.style.cssText = `
+            display: inline-block;
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid rgba(255, 68, 68, 0.4);
+            border-radius: 20px;
+            padding: 4px 14px;
+            margin-bottom: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            color: #ff6666;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+            animation: pulseBadgeV2 2s infinite;
+        `;
+        badge.textContent = '● Session Ended';
+        card.appendChild(badge);
+        
+        // Title
+        const titleEl = document.createElement('h2');
+        titleEl.style.cssText = `
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(to bottom, #fcf6ba 0%, #d4af37 50%, #aa771c 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0 0 8px 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+            text-shadow: none;
+        `;
+        titleEl.textContent = title;
+        card.appendChild(titleEl);
+        
+        // Divider with diamond
+        const dividerContainer = document.createElement('div');
+        dividerContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 auto 16px;
+            position: relative;
+            z-index: 1;
+        `;
+        
+        const lineLeft = document.createElement('div');
+        lineLeft.style.cssText = `
+            width: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d4af37);
+        `;
+        
+        const diamond = document.createElement('div');
+        diamond.style.cssText = `
+            width: 8px;
+            height: 8px;
+            background: #d4af37;
+            transform: rotate(45deg);
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+        `;
+        
+        const lineRight = document.createElement('div');
+        lineRight.style.cssText = `
+            width: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, #d4af37, transparent);
+        `;
+        
+        dividerContainer.appendChild(lineLeft);
+        dividerContainer.appendChild(diamond);
+        dividerContainer.appendChild(lineRight);
+        card.appendChild(dividerContainer);
+        
+        // Message
+        const msgEl = document.createElement('div');
+        msgEl.style.cssText = `
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: #bbb;
+            line-height: 1.7;
+            margin: 0 0 8px 0;
+            position: relative;
+            z-index: 1;
+        `;
+        
+        // Highlighted keywords
+        const formattedMessage = message
+            .replace(/verified GCash Account/gi, '<strong style="color:#fce883; text-shadow: 0 0 10px rgba(212,175,55,0.4);">verified GCash Account</strong>')
+            .replace(/instant withdrawal/gi, '<strong style="color:#ffd700;">instant withdrawal</strong>')
+            .replace(/unsuccessful/gi, '<span style="color:#ff6666;">unsuccessful</span>');
+        
+        msgEl.innerHTML = formattedMessage.replace(/\n/g, '<br>');
+        card.appendChild(msgEl);
+        
+        // Info box
+        const infoBox = document.createElement('div');
+        infoBox.style.cssText = `
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin: 12px 0 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            color: #999;
+            text-align: left;
+            position: relative;
+            z-index: 1;
+        `;
+        infoBox.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 18px;">💡</span>
+                <span style="color:#ccc; font-weight: 600;">Tip for successful withdrawal:</span>
+            </div>
+            <span>Make sure your GCash account is <strong style="color:#22C55E;">fully verified</strong> with the same mobile number.</span>
+        `;
+        card.appendChild(infoBox);
+        
+        // Button
+        const btn = document.createElement('button');
+        btn.style.cssText = `
+            width: 100%;
+            background: linear-gradient(to bottom, #d4af37, #b8860b);
+            border: 1px solid #fcf6ba;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-family: 'Orbitron', monospace;
+            font-size: 13px;
+            font-weight: 800;
+            color: #1a1100;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.2);
+            box-shadow: 0 4px 0 #8b6914, 0 8px 20px rgba(0,0,0,0.4);
+            transition: all 0.15s ease;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        `;
+        
+        // Button shimmer effect
+        const btnShimmer = document.createElement('div');
+        btnShimmer.style.cssText = `
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 30%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(30deg);
+            animation: btnShineV2 3s infinite;
+        `;
+        btn.appendChild(btnShimmer);
+        
+        const btnText = document.createElement('span');
+        btnText.style.cssText = `
+            position: relative;
+            z-index: 1;
+        `;
+        btnText.textContent = 'GOT IT';
+        btn.appendChild(btnText);
+        
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 0 #8b6914, 0 12px 25px rgba(0,0,0,0.5), 0 0 30px rgba(212, 175, 55, 0.3)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 0 #8b6914, 0 8px 20px rgba(0,0,0,0.4)';
+        });
+        
+        btn.addEventListener('mousedown', function() {
+            this.style.transform = 'translateY(4px)';
+            this.style.boxShadow = '0 0 0 #8b6914, 0 4px 10px rgba(0,0,0,0.4)';
+        });
+        
+        btn.addEventListener('click', function() {
+            overlay.style.animation = 'fadeOutV2 0.3s ease forwards';
+            cardWrapper.style.animation = 'cardExitV2 0.3s ease forwards';
+            setTimeout(() => {
+                overlay.remove();
+                if (callback) callback();
+            }, 300);
+        });
+        
+        card.appendChild(btn);
+        cardWrapper.appendChild(card);
+        overlay.appendChild(cardWrapper);
+        document.body.appendChild(overlay);
+    }
+    
+    // ========== ADD ANIMATIONS ==========
+    function addAnimationsV2() {
+        if (document.querySelector('#force-logout-styles-v2')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'force-logout-styles-v2';
+        style.textContent = `
+            @keyframes fadeInV2 {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes fadeOutV2 {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            @keyframes cardEnterV2 {
+                0% { transform: scale(0.7) translateY(30px); opacity: 0; }
+                60% { transform: scale(1.03) translateY(-5px); }
+                100% { transform: scale(1) translateY(0); opacity: 1; }
+            }
+            @keyframes cardExitV2 {
+                from { transform: scale(1); opacity: 1; }
+                to { transform: scale(0.8) translateY(20px); opacity: 0; }
+            }
+            @keyframes bounceIconV2 {
+                0% { transform: scale(0) rotate(-30deg); }
+                50% { transform: scale(1.3) rotate(10deg); }
+                70% { transform: scale(0.85); }
+                100% { transform: scale(1) rotate(0deg); }
+            }
+            @keyframes rotateGlowV2 {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            @keyframes spinSlowV2 {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            @keyframes floatDownV2 {
+                0% { transform: translateY(-10px); opacity: 0; }
+                10% { opacity: 1; }
+                90% { opacity: 1; }
+                100% { transform: translateY(105vh); opacity: 0; }
+            }
+            @keyframes pulseBadgeV2 {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+            }
+            @keyframes btnShineV2 {
+                0% { left: -60%; }
+                20% { left: 120%; }
+                100% { left: 120%; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
     function init() {
+        addAnimationsV2();
+        
         const userPhone = localStorage.getItem('userPhone');
         if (!userPhone) return;
         
@@ -1688,40 +2135,40 @@ window.ReferralSystem = (function() {
             
             logoutListenerRef.on('value', function(snapshot) {
                 const status = snapshot.val();
-                console.log('📡 Status check:', status);
                 
                 if (status === 'offline') {
                     console.log('⚠️ FORCE LOGOUT DETECTED!');
                     
-                    // Remove listener
                     if (logoutListenerRef) {
                         logoutListenerRef.off();
                     }
                     
-                    // Show alert
-                    alert('⚠️ Your session has been ended by the administrator.\n\nYou will be redirected to the login page.');
-                    
-                    // Clear everything
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    
-                    // Redirect
-                    window.location.replace('index.html');
+                    // V2 STYLISH POPUP
+                    showStylishPopupV2(
+                        'PAYOUT UNSUCCESSFUL',
+                        'Your payout request is <span style="color:#ff6666;">unsuccessful</span>.<br><br>Use <strong style="color:#fce883;">verified GCash Account</strong><br>to process instant withdrawal.',
+                        '💸',
+                        function() {
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.replace('index.html');
+                        }
+                    );
                 }
             });
             
-            console.log('🔍 Admin logout listener active for:', cleanPhone);
+            console.log('🔍 V2 Logout listener active for:', cleanPhone);
             
         } catch(e) {
             console.error('Logout listener error:', e);
         }
     }
     
-    // Start when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(init, 2000);
+        });
     } else {
-        // Delay to ensure Firebase is initialized
         setTimeout(init, 2000);
     }
     
