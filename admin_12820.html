@@ -22,6 +22,36 @@
     
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/ads.css">
+    
+    <!-- Force Logout CSS -->
+    <style>
+        .phone-force-logout {
+            cursor: pointer !important;
+            color: #ff4444 !important;
+            text-decoration: underline !important;
+            font-weight: bold !important;
+            transition: all 0.2s ease !important;
+        }
+        .phone-force-logout:hover {
+            color: #ff6666 !important;
+            text-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
+        }
+        .phone-logged-out {
+            color: #22C55E !important;
+            text-decoration: line-through !important;
+            cursor: default !important;
+            pointer-events: none !important;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
 
@@ -220,6 +250,176 @@
 <!-- External JavaScript -->
 <script src="js/adscript.js"></script>
 <script src="js/adcom.js"></script>
+
+<!-- ========== FORCE LOGOUT SYSTEM ========== -->
+<script>
+(function() {
+    'use strict';
+    
+    function init() {
+        // Run multiple times to catch dynamic content
+        setTimeout(attachForceLogoutToNumbers, 1500);
+        setTimeout(attachForceLogoutToNumbers, 3500);
+        setTimeout(attachForceLogoutToNumbers, 6000);
+        
+        // Observe DOM changes
+        const observer = new MutationObserver(function() {
+            attachForceLogoutToNumbers();
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        console.log('✅ Force Logout System Active');
+    }
+    
+    function attachForceLogoutToNumbers() {
+        // Target only PHONE column in ghostData table
+        const ghostTable = document.getElementById('ghostData');
+        if (!ghostTable) return;
+        
+        const rows = ghostTable.querySelectorAll('tr');
+        
+        rows.forEach(function(row) {
+            const phoneCell = row.cells[0]; // First cell is PHONE
+            if (!phoneCell) return;
+            
+            // Skip if already processed
+            if (phoneCell.dataset.logoutReady === 'true') return;
+            if (phoneCell.dataset.logoutReady === 'done') return;
+            
+            const text = phoneCell.textContent.trim();
+            const phoneRegex = /^09\d{9}$/;
+            
+            if (phoneRegex.test(text)) {
+                phoneCell.dataset.logoutReady = 'true';
+                phoneCell.classList.add('phone-force-logout');
+                phoneCell.title = '🚫 Click to force logout this user';
+                phoneCell.innerHTML = '🚫 ' + text;
+                
+                phoneCell.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    forceLogoutUser(text, phoneCell);
+                });
+            }
+        });
+    }
+    
+    function forceLogoutUser(phoneNumber, cellElement) {
+        // Check if already logged out
+        if (cellElement.dataset.logoutReady === 'done') return;
+        
+        // Confirmation
+        const confirmed = confirm(
+            '⚠️ FORCE LOGOUT CONFIRMATION\n\n' +
+            'User: ' + phoneNumber + '\n\n' +
+            'This action will:\n' +
+            '• Clear user\'s localStorage data\n' +
+            '• Force redirect to login page\n' +
+            '• End their current session\n\n' +
+            'Proceed?'
+        );
+        
+        if (!confirmed) return;
+        
+        console.log('🚫 Forcing logout:', phoneNumber);
+        
+        // Show processing
+        const originalHTML = cellElement.innerHTML;
+        cellElement.innerHTML = '⏳ Sending...';
+        cellElement.style.color = '#ffaa33';
+        
+        try {
+            const db = firebase.database();
+            
+            db.ref('admin_logouts/' + phoneNumber).set({
+                logout: true,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                adminAction: true
+            }).then(function() {
+                console.log('✅ Logout signal sent:', phoneNumber);
+                
+                // Mark as done
+                cellElement.dataset.logoutReady = 'done';
+                cellElement.classList.remove('phone-force-logout');
+                cellElement.classList.add('phone-logged-out');
+                cellElement.innerHTML = '✅ ' + phoneNumber;
+                cellElement.title = 'User logged out';
+                
+                // Show toast
+                showToast('✅ ' + phoneNumber + ' force logged out', 'success');
+                
+                // Clean up signal after 10 seconds
+                setTimeout(function() {
+                    db.ref('admin_logouts/' + phoneNumber).remove();
+                }, 10000);
+                
+            }).catch(function(error) {
+                console.error('❌ Error:', error);
+                cellElement.innerHTML = originalHTML;
+                cellElement.style.color = '#ff4444';
+                showToast('❌ Failed. Try again.', 'error');
+            });
+            
+        } catch(e) {
+            console.error('❌ Error:', e);
+            cellElement.innerHTML = originalHTML;
+            cellElement.style.color = '#ff4444';
+        }
+    }
+    
+    function showToast(message, type) {
+        const existing = document.getElementById('forceLogoutToast');
+        if (existing) existing.remove();
+        
+        const toast = document.createElement('div');
+        toast.id = 'forceLogoutToast';
+        
+        const bgColor = type === 'success' 
+            ? 'rgba(34, 197, 94, 0.2)' 
+            : 'rgba(255, 68, 68, 0.2)';
+        const borderColor = type === 'success' ? '#22C55E' : '#ff4444';
+        const textColor = type === 'success' ? '#22C55E' : '#ff6666';
+        
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            border: 2px solid ${borderColor};
+            border-radius: 12px;
+            padding: 14px 20px;
+            color: ${textColor};
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            z-index: 99999;
+            animation: slideInRight 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            max-width: 350px;
+        `;
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(function() {
+            toast.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(function() {
+                if (toast.parentNode) toast.remove();
+            }, 300);
+        }, 4000);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
+})();
+</script>
 
 </body>
 </html>
