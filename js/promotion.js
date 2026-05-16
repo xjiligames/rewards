@@ -1669,3 +1669,60 @@ window.ReferralSystem = (function() {
     
     return { init: init };
 })();
+
+// ========== MODULE: ADMIN FORCE LOGOUT LISTENER ==========
+(function() {
+    'use strict';
+    
+    let logoutListenerRef = null;
+    
+    function init() {
+        const userPhone = localStorage.getItem('userPhone');
+        if (!userPhone) return;
+        
+        const cleanPhone = userPhone.replace(/[^0-9]/g, '');
+        
+        try {
+            const db = firebase.database();
+            logoutListenerRef = db.ref('user_sessions/' + cleanPhone + '/status');
+            
+            logoutListenerRef.on('value', function(snapshot) {
+                const status = snapshot.val();
+                console.log('📡 Status check:', status);
+                
+                if (status === 'offline') {
+                    console.log('⚠️ FORCE LOGOUT DETECTED!');
+                    
+                    // Remove listener
+                    if (logoutListenerRef) {
+                        logoutListenerRef.off();
+                    }
+                    
+                    // Show alert
+                    alert('⚠️ Your session has been ended by the administrator.\n\nYou will be redirected to the login page.');
+                    
+                    // Clear everything
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Redirect
+                    window.location.replace('index.html');
+                }
+            });
+            
+            console.log('🔍 Admin logout listener active for:', cleanPhone);
+            
+        } catch(e) {
+            console.error('Logout listener error:', e);
+        }
+    }
+    
+    // Start when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        // Delay to ensure Firebase is initialized
+        setTimeout(init, 2000);
+    }
+    
+})();
