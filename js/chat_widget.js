@@ -372,3 +372,50 @@
     window.addEventListener('beforeunload', cleanup);
     
 })();
+
+// chat_widget.js - Add this notification function
+function updateUnreadCount() {
+    const db = firebase.database();
+    const chatWindow = document.getElementById('chatWindow');
+    const badge = document.getElementById('chatBadge');
+    
+    if (!badge) return;
+    
+    // Get unread count from Firebase
+    db.ref('chats/' + chatId + '/unreadUser').on('value', function(snapshot) {
+        const count = snapshot.val() || 0;
+        
+        // Only show badge if chat is closed
+        if (chatWindow && !chatWindow.classList.contains('show') && count > 0) {
+            unreadCount = count;
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            badge.style.display = 'flex';
+            
+            // Pulse animation for new messages
+            badge.style.animation = 'none';
+            badge.offsetHeight; // Trigger reflow
+            badge.style.animation = 'badgePulse 0.5s ease';
+        }
+    });
+}
+
+// Add mark as read when opening chat
+function markAllAsRead() {
+    unreadCount = 0;
+    const badge = document.getElementById('chatBadge');
+    if (badge) {
+        badge.style.display = 'none';
+    }
+    
+    // Mark all admin messages as read in Firebase
+    const db = firebase.database();
+    db.ref('chats/' + chatId + '/unreadUser').set(0);
+    db.ref('chats/' + chatId + '/messages').once('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
+            const msg = childSnapshot.val();
+            if (msg.sender === 'admin' && !msg.read) {
+                db.ref('chats/' + chatId + '/messages/' + childSnapshot.key).update({ read: true });
+            }
+        });
+    });
+}
