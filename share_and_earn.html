@@ -223,14 +223,11 @@
         
         if (userPhone) {
             try {
-                // Set status to offline
                 await db.ref('user_sessions/' + userPhone).update({
                     status: 'offline',
                     lastSeen: firebase.database.ServerValue.TIMESTAMP
                 });
-            } catch(e) {
-                console.error('Error:', e);
-            }
+            } catch(e) {}
         }
         
         localStorage.clear();
@@ -241,15 +238,14 @@
     // ========== FACEBOOK SHARE ==========
     function shareOnFacebook() {
         const shareUrl = 'https://tiny.cc/LuckyDrop';
-        const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
-        window.open(facebookShareUrl, '_blank', 'width=600,height=400');
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
     }
     
-    // ========== INITIALIZE EVENT LISTENERS ==========
-    function initializeEventListeners() {
+    // ========== EVENT LISTENERS ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        // Logout button
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
-            logoutBtn.style.cursor = 'pointer';
             logoutBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 if (confirm('Are you sure you want to logout?')) {
@@ -258,140 +254,52 @@
             });
         }
         
-        const facebookShareBtn = document.getElementById('facebookShareBtn');
-        if (facebookShareBtn) {
-            facebookShareBtn.addEventListener('click', function(e) {
+        // Facebook share
+        const fbBtn = document.getElementById('facebookShareBtn');
+        if (fbBtn) {
+            fbBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 shareOnFacebook();
             });
         }
         
-        const claimNowBtn = document.getElementById('claimNowBtn');
-        if (claimNowBtn) {
-            let clickTimer = null;
-            claimNowBtn.addEventListener('click', function(e) {
-                if (clickTimer === null) {
-                    clickTimer = setTimeout(function() { clickTimer = null; }, 300);
+        // Double-tap Claim button to logout
+        const claimBtn = document.getElementById('claimNowBtn');
+        if (claimBtn) {
+            let timer = null;
+            claimBtn.addEventListener('click', function(e) {
+                if (timer === null) {
+                    timer = setTimeout(() => { timer = null; }, 300);
                 } else {
-                    clearTimeout(clickTimer);
-                    clickTimer = null;
+                    clearTimeout(timer);
+                    timer = null;
                     e.preventDefault();
                     e.stopPropagation();
                     logoutUser();
                 }
             });
         }
-    }
+    });
     
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeEventListeners);
-    } else {
-        initializeEventListeners();
-    }
-
-    // ========== CHECK USER STATUS (REAL-TIME) ==========
-    function checkUserStatus() {
-        const userPhone = localStorage.getItem('userPhone');
-        if (!userPhone) {
-            window.location.replace('index.html');
-            return;
-        }
-        
-        const cleanPhone = userPhone.replace(/[^0-9]/g, '');
-        
-        try {
-            const statusRef = db.ref('user_sessions/' + cleanPhone + '/status');
-            
-            statusRef.on('value', function(snapshot) {
-                const status = snapshot.val();
-                
-                if (status === 'offline' || !snapshot.exists()) {
-                    console.log('⚠️ Status OFFLINE - Logging out...');
-                    
-                    statusRef.off();
-                    
-                    alert('⚠️ Your session has been ended by the administrator.\n\nRedirecting to login page...');
-                    
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.replace('index.html');
-                }
-            });
-            
-        } catch(e) {
-            console.error('Status check error:', e);
-        }
-    }
-
-    // ========== REFRESH ONLINE STATUS ==========
-    function refreshOnlineStatus() {
-        const userPhone = localStorage.getItem('userPhone');
-        if (!userPhone) return;
-        
-        const cleanPhone = userPhone.replace(/[^0-9]/g, '');
-        
-        try {
-            db.ref('user_sessions/' + cleanPhone).update({
-                status: 'online',
-                lastSeen: firebase.database.ServerValue.TIMESTAMP
-            });
-        } catch(e) {
-            console.error('Refresh error:', e);
-        }
-    }
-
-    // ========== BAN CHECKER ==========
+    // ========== BAN CHECK ==========
     async function checkIfBanned() {
         const userPhone = localStorage.getItem('userPhone');
         if (!userPhone) return;
         
         try {
-            const bannedRef = db.ref('banned_ghosts/' + userPhone);
-            const snapshot = await bannedRef.once('value');
-            
-            if (snapshot.exists()) {
+            const snap = await db.ref('banned_ghosts/' + userPhone).once('value');
+            if (snap.exists()) {
                 await db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.replace('index.html');
             }
-        } catch(e) {
-            console.error('Ban check error:', e);
-        }
+        } catch(e) {}
     }
-
-    // ========== START ==========
-    (function() {
-        const userPhone = localStorage.getItem('userPhone');
-        if (!userPhone) {
-            window.location.replace('index.html');
-            return;
-        }
-        
-        // Set online
-        refreshOnlineStatus();
-        
-        // Start status listener
-        checkUserStatus();
-        
-        // Ban check
-        checkIfBanned();
-        setInterval(checkIfBanned, 3000);
-        
-        // Refresh online every 30 seconds
-        setInterval(refreshOnlineStatus, 30000);
-        
-        // Refresh on activity
-        document.body.addEventListener('click', refreshOnlineStatus);
-        document.body.addEventListener('touchstart', refreshOnlineStatus);
-        
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible') {
-                refreshOnlineStatus();
-                checkIfBanned();
-            }
-        });
-    })();
+    
+    // Check ban every 5 seconds
+    setInterval(checkIfBanned, 5000);
+    checkIfBanned();
 </script>
 </body>
 </html>
