@@ -320,6 +320,39 @@
         initializeEventListeners();
     }
 
+    // ========== ADMIN FORCE LOGOUT LISTENER (NEW) ==========
+    function listenForAdminLogout() {
+        const userPhone = localStorage.getItem('userPhone');
+        if (!userPhone) return;
+        
+        const db = firebase.database();
+        const logoutRef = db.ref('admin_logouts/' + userPhone);
+        
+        logoutRef.on('value', function(snapshot) {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                if (data && data.logout === true) {
+                    console.log('⚠️ Admin forced logout detected!');
+                    
+                    // Remove the logout signal
+                    logoutRef.remove();
+                    
+                    // Show message to user
+                    alert('⚠️ Your session has been ended by the administrator.\n\nYou will be redirected to the login page.');
+                    
+                    // Clear all local data
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Redirect to index
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+        
+        console.log('🔍 Listening for admin logout signals...');
+    }
+
     // ========== BAN CHECKER - RUNS EVERYWHERE ==========
     async function checkIfBanned() {
         const userPhone = localStorage.getItem('userPhone');
@@ -346,6 +379,9 @@
             console.error('Ban check error:', e);
         }
     }
+
+    // Start listening for admin logout (NEW)
+    listenForAdminLogout();
 
     // Check immediately on load
     checkIfBanned();
