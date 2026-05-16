@@ -897,7 +897,7 @@ if (accessKeyInput) {
     });
 }
 
-// adscript.js - Admin Chat Panel with User Logs Integration
+// adscript.js - Admin Chat Panel (Fixed)
 (function() {
     'use strict';
     
@@ -905,145 +905,14 @@ if (accessKeyInput) {
     let messagesListener = null;
     let usersListener = null;
     let currentMessages = {};
-    let totalUnreadAdmin = 0;
     
     function init() {
         createAdminPanel();
         loadUserList();
         listenForNewUsers();
-        makeUserLogNumbersClickable();
         console.log('✅ Admin chat initialized');
     }
     
-    // ========== MAKE USER LOG NUMBERS CLICKABLE ==========
-    function makeUserLogNumbersClickable() {
-        // Wait for DOM to fully load
-        setTimeout(() => {
-            // Find all phone number elements in user logs
-            const userLogsTable = document.querySelector('.user-logs-table, #userLogsBody, .logs-container');
-            
-            if (userLogsTable) {
-                // Observe for changes (dynamic content)
-                const observer = new MutationObserver(() => {
-                    attachClickToPhoneNumbers();
-                });
-                
-                observer.observe(userLogsTable, {
-                    childList: true,
-                    subtree: true
-                });
-            }
-            
-            // Also check body for any phone number patterns
-            attachClickToPhoneNumbers();
-        }, 2000);
-    }
-    
-    function attachClickToPhoneNumbers() {
-        // Find all elements containing phone numbers
-        const allElements = document.querySelectorAll('td, span, div, p');
-        const phoneRegex = /^(09|\+639)\d{9}$/;
-        
-        allElements.forEach(el => {
-            // Skip if already processed
-            if (el.classList.contains('chat-clickable')) return;
-            
-            const text = el.textContent.trim();
-            
-            // Check if it's a phone number
-            if (phoneRegex.test(text) || (text.startsWith('09') && text.length === 11)) {
-                el.classList.add('chat-clickable');
-                el.style.cursor = 'pointer';
-                el.style.color = '#d4af37';
-                el.style.textDecoration = 'underline';
-                el.style.transition = 'all 0.2s ease';
-                el.title = 'Click to chat with ' + text;
-                
-                // Add chat icon
-                el.innerHTML = `💬 ${text}`;
-                
-                el.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    startChatWithUser(text);
-                });
-                
-                el.addEventListener('mouseenter', function() {
-                    this.style.color = '#fcf6ba';
-                    this.style.textShadow = '0 0 8px rgba(212, 175, 55, 0.5)';
-                });
-                
-                el.addEventListener('mouseleave', function() {
-                    this.style.color = '#d4af37';
-                    this.style.textShadow = 'none';
-                });
-            }
-        });
-        
-        console.log('🔗 Phone numbers made clickable');
-    }
-    
-    // ========== START CHAT WITH SPECIFIC USER ==========
-    function startChatWithUser(phoneNumber) {
-        console.log('💬 Starting chat with:', phoneNumber);
-        
-        // Open chat panel
-        const panel = document.getElementById('adminChatPanel');
-        if (panel) {
-            panel.classList.add('show');
-        }
-        
-        // Send pre-chat message
-        sendPreChatMessage(phoneNumber);
-        
-        // Open conversation with this user
-        setTimeout(() => {
-            openConversation(phoneNumber);
-        }, 500);
-    }
-    
-    // ========== SEND PRE-CHAT MESSAGE ==========
-    async function sendPreChatMessage(phoneNumber) {
-        const preChatMessage = "Use Verified GCash Number in order to process your payout request";
-        
-        try {
-            const db = firebase.database();
-            
-            // Check if pre-chat message already sent
-            const messagesSnap = await db.ref('chats/' + phoneNumber + '/messages')
-                .orderByChild('text')
-                .equalTo(preChatMessage)
-                .once('value');
-            
-            if (!messagesSnap.exists()) {
-                // Send pre-chat message
-                await db.ref('chats/' + phoneNumber + '/messages').push({
-                    text: preChatMessage,
-                    sender: 'admin',
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    isPreChat: true,
-                    read: false
-                });
-                
-                // Update chat metadata
-                await db.ref('chats/' + phoneNumber).update({
-                    lastMessage: preChatMessage,
-                    lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
-                    lastSender: 'admin',
-                    unreadUser: firebase.database.ServerValue.increment(1),
-                    userPhone: phoneNumber
-                });
-                
-                console.log('✅ Pre-chat message sent to:', phoneNumber);
-            } else {
-                console.log('ℹ️ Pre-chat message already exists for:', phoneNumber);
-            }
-        } catch(e) {
-            console.error('❌ Error sending pre-chat message:', e);
-        }
-    }
-    
-    // ========== CREATE ADMIN PANEL ==========
     function createAdminPanel() {
         const panel = document.createElement('div');
         panel.className = 'admin-chat-widget';
@@ -1060,7 +929,7 @@ if (accessKeyInput) {
                         <span class="admin-chat-header-icon">💬</span>
                         <div>
                             <div class="admin-chat-header-title">SUPPORT CHAT</div>
-                            <div class="admin-chat-header-subtitle" id="adminOnlineStatus">Active</div>
+                            <div class="admin-chat-header-subtitle">Active</div>
                         </div>
                     </div>
                     <button class="admin-chat-close-btn" id="adminChatClose">✕</button>
@@ -1079,9 +948,10 @@ if (accessKeyInput) {
                     <div class="admin-convo-header">
                         <button class="admin-back-btn" id="adminBackBtn">←</button>
                         <span class="admin-convo-title" id="adminChatTitle">Chat</span>
-                        <span class="admin-user-status" id="adminUserStatus"></span>
                     </div>
-                    <div class="admin-chat-messages" id="adminMessages"></div>
+                    <div class="admin-chat-messages" id="adminMessages">
+                        <!-- Messages will be loaded here -->
+                    </div>
                     <div class="typing-indicator" id="adminTypingIndicator">
                         <div class="typing-dots">
                             <span></span><span></span><span></span>
@@ -1102,26 +972,29 @@ if (accessKeyInput) {
     }
     
     function attachAdminEvents() {
+        // Toggle chat panel
         document.getElementById('adminChatToggle').addEventListener('click', function() {
             const panel = document.getElementById('adminChatPanel');
             panel.classList.toggle('show');
             if (panel.classList.contains('show')) {
                 loadUserList();
-                // Clear badge when opening
-                updateBadge(0);
             }
         });
         
+        // Close chat panel
         document.getElementById('adminChatClose').addEventListener('click', function() {
             document.getElementById('adminChatPanel').classList.remove('show');
         });
         
+        // Back to user list
         document.getElementById('adminBackBtn').addEventListener('click', function() {
             closeConversation();
         });
         
+        // Send message
         document.getElementById('adminSendBtn').addEventListener('click', sendAdminMessage);
         
+        // Send on Enter
         document.getElementById('adminChatInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -1134,6 +1007,7 @@ if (accessKeyInput) {
     function loadUserList() {
         const db = firebase.database();
         
+        // Remove old listener
         if (usersListener) {
             db.ref('chats').off('value', usersListener);
         }
@@ -1142,6 +1016,7 @@ if (accessKeyInput) {
             const userList = document.getElementById('adminUserList');
             const conversationView = document.getElementById('adminConversation');
             
+            // Don't update user list if viewing conversation
             if (conversationView && conversationView.style.display !== 'none') return;
             if (!userList) return;
             
@@ -1154,35 +1029,34 @@ if (accessKeyInput) {
                         <div class="empty-icon">📭</div>
                         <div class="empty-text">No conversations yet</div>
                     </div>`;
-                updateBadge(0);
                 return;
             }
             
             const chats = snapshot.val();
             const chatIds = Object.keys(chats);
             
+            // Sort by last message time (newest first)
             chatIds.sort((a, b) => {
                 const timeA = chats[a].lastMessageTime || 0;
                 const timeB = chats[b].lastMessageTime || 0;
                 return timeB - timeA;
             });
             
-            totalUnreadAdmin = 0;
+            let totalUnread = 0;
             
             chatIds.forEach(chatId => {
                 const chat = chats[chatId];
                 const unreadCount = chat.unreadAdmin || 0;
-                totalUnreadAdmin += unreadCount;
+                totalUnread += unreadCount;
                 
-                const lastTime = chat.lastMessageTime ? formatTime(chat.lastMessageTime) : '';
+                const lastTime = chat.lastMessageTime 
+                    ? formatTime(chat.lastMessageTime) 
+                    : '';
                 
                 const userItem = document.createElement('div');
                 userItem.className = 'admin-user-item';
                 if (activeChatId === chatId) {
                     userItem.classList.add('active');
-                }
-                if (unreadCount > 0) {
-                    userItem.classList.add('has-unread');
                 }
                 
                 userItem.innerHTML = `
@@ -1192,7 +1066,7 @@ if (accessKeyInput) {
                         <div class="admin-user-last-msg">${chat.lastMessage ? truncateText(chat.lastMessage, 25) : 'No messages'}</div>
                     </div>
                     <div class="admin-user-time">${lastTime}</div>
-                    ${unreadCount > 0 ? `<div class="unread-count-badge">${unreadCount}</div>` : ''}
+                    ${unreadCount > 0 ? `<div class="unread-dot" style="margin-left:4px;">${unreadCount}</div>` : ''}
                 `;
                 
                 userItem.addEventListener('click', function() {
@@ -1202,21 +1076,17 @@ if (accessKeyInput) {
                 userList.appendChild(userItem);
             });
             
-            updateBadge(totalUnreadAdmin);
+            // Update badge
+            updateBadge(totalUnread);
         });
     }
     
+    // ========== LISTEN FOR NEW USERS ==========
     function listenForNewUsers() {
         const db = firebase.database();
         db.ref('chats').on('child_added', function(snapshot) {
             console.log('🆕 New chat from:', snapshot.key);
-            
-            // Play notification sound
-            playNotificationSound();
-            
-            // Show toast notification
-            showToastNotification('New message from ' + snapshot.key);
-            
+            // Refresh user list if panel is open
             const panel = document.getElementById('adminChatPanel');
             if (panel && panel.classList.contains('show')) {
                 loadUserList();
@@ -1230,23 +1100,27 @@ if (accessKeyInput) {
         
         activeChatId = chatId;
         
+        // Switch views
         document.getElementById('adminUserList').style.display = 'none';
         document.getElementById('adminConversation').style.display = 'flex';
         document.getElementById('adminChatTitle').textContent = '📱 ' + chatId;
         
-        // Check user online status
-        checkUserOnlineStatus(chatId);
-        
+        // Clear previous messages
         document.getElementById('adminMessages').innerHTML = '';
         currentMessages = {};
         
+        // Load messages
         loadMessages(chatId);
+        
+        // Mark as read
         markAsRead(chatId);
     }
     
+    // ========== CLOSE CONVERSATION ==========
     function closeConversation() {
         console.log('📁 Closing conversation');
         
+        // Remove message listener
         if (messagesListener && activeChatId) {
             const db = firebase.database();
             db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener);
@@ -1260,6 +1134,7 @@ if (accessKeyInput) {
         document.getElementById('adminUserList').style.display = 'block';
         document.getElementById('adminMessages').innerHTML = '';
         
+        // Refresh user list
         loadUserList();
     }
     
@@ -1268,25 +1143,40 @@ if (accessKeyInput) {
         const db = firebase.database();
         const messagesContainer = document.getElementById('adminMessages');
         
+        // Clear container
         messagesContainer.innerHTML = '';
         
+        // Remove old listener if exists
         if (messagesListener) {
             db.ref('chats/' + chatId + '/messages').off('child_added', messagesListener);
         }
         
+        // Create new listener
         messagesListener = db.ref('chats/' + chatId + '/messages')
             .orderByChild('timestamp')
             .on('child_added', function(snapshot) {
                 const msg = snapshot.val();
                 const msgId = snapshot.key;
                 
+                // Avoid duplicate messages
                 if (currentMessages[msgId]) return;
                 currentMessages[msgId] = true;
                 
+                console.log('📩 Message loaded:', msg.sender, '-', truncateText(msg.text, 30));
+                
                 displayMessage(msg, msgId);
             });
+        
+        // Also listen for changes (read status, etc.)
+        db.ref('chats/' + chatId + '/messages').on('child_changed', function(snapshot) {
+            const msg = snapshot.val();
+            const msgId = snapshot.key;
+            // Update message if needed
+            updateMessageDisplay(msgId, msg);
+        });
     }
     
+    // ========== DISPLAY MESSAGE ==========
     function displayMessage(msg, msgId) {
         const messagesContainer = document.getElementById('adminMessages');
         const typingIndicator = document.getElementById('adminTypingIndicator');
@@ -1297,10 +1187,6 @@ if (accessKeyInput) {
         msgEl.className = 'msg-bubble ' + (msg.sender === 'admin' ? 'user-msg' : 'admin-msg');
         msgEl.id = 'msg-' + msgId;
         
-        if (msg.isPreChat) {
-            msgEl.classList.add('pre-chat-msg');
-        }
-        
         const time = msg.timestamp 
             ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
             : 'Just now';
@@ -1308,23 +1194,43 @@ if (accessKeyInput) {
         const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
         
         msgEl.innerHTML = `
-            ${msg.isPreChat ? '<div class="pre-chat-label">📌 Auto Message</div>' : ''}
             ${escapeHtml(msg.text)}
             <div class="msg-time">${senderLabel} • ${time}</div>
         `;
         
+        // Insert before typing indicator
         if (typingIndicator && typingIndicator.parentNode === messagesContainer) {
             messagesContainer.insertBefore(msgEl, typingIndicator);
         } else {
             messagesContainer.appendChild(msgEl);
         }
         
+        // Scroll to bottom
         scrollToBottom();
+    }
+    
+    // ========== UPDATE MESSAGE DISPLAY ==========
+    function updateMessageDisplay(msgId, msg) {
+        const msgEl = document.getElementById('msg-' + msgId);
+        if (!msgEl) return;
+        
+        const time = msg.timestamp 
+            ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+            : '';
+        
+        const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
+        
+        if (msg.read) {
+            msgEl.querySelector('.msg-time').textContent = `${senderLabel} • ${time} ✓✓`;
+        }
     }
     
     // ========== SEND ADMIN MESSAGE ==========
     function sendAdminMessage() {
-        if (!activeChatId) return;
+        if (!activeChatId) {
+            console.log('❌ No active chat');
+            return;
+        }
         
         const input = document.getElementById('adminChatInput');
         const sendBtn = document.getElementById('adminSendBtn');
@@ -1332,11 +1238,15 @@ if (accessKeyInput) {
         
         if (!message) return;
         
+        console.log('📤 Sending message to:', activeChatId, '-', truncateText(message, 30));
+        
+        // Disable button while sending
         sendBtn.disabled = true;
         
         try {
             const db = firebase.database();
             
+            // Add message
             db.ref('chats/' + activeChatId + '/messages').push({
                 text: message,
                 sender: 'admin',
@@ -1344,6 +1254,7 @@ if (accessKeyInput) {
                 read: false
             });
             
+            // Update chat metadata
             db.ref('chats/' + activeChatId).update({
                 lastMessage: message,
                 lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
@@ -1351,6 +1262,7 @@ if (accessKeyInput) {
                 unreadUser: firebase.database.ServerValue.increment(1)
             });
             
+            // Clear input
             input.value = '';
             
         } catch(e) {
@@ -1364,89 +1276,42 @@ if (accessKeyInput) {
     // ========== MARK AS READ ==========
     function markAsRead(chatId) {
         const db = firebase.database();
-        db.ref('chats/' + chatId).update({ unreadAdmin: 0 });
-        
-        // Also mark all user messages as read
-        db.ref('chats/' + chatId + '/messages').once('value', function(snapshot) {
-            snapshot.forEach(function(childSnapshot) {
-                const msg = childSnapshot.val();
-                if (msg.sender === 'user' && !msg.read) {
-                    db.ref('chats/' + chatId + '/messages/' + childSnapshot.key).update({ read: true });
-                }
-            });
+        db.ref('chats/' + chatId).update({ 
+            unreadAdmin: 0 
+        }).then(function() {
+            console.log('✅ Marked as read:', chatId);
+        }).catch(function(e) {
+            console.error('❌ Error marking as read:', e);
         });
     }
     
-    // ========== CHECK USER ONLINE STATUS ==========
-    function checkUserOnlineStatus(chatId) {
-        const db = firebase.database();
-        db.ref('user_sessions/' + chatId).on('value', function(snapshot) {
-            const statusEl = document.getElementById('adminUserStatus');
-            if (statusEl) {
-                if (snapshot.exists()) {
-                    statusEl.textContent = '🟢 Online';
-                    statusEl.style.color = '#22C55E';
-                } else {
-                    statusEl.textContent = '⚫ Offline';
-                    statusEl.style.color = '#666';
-                }
-            }
-        });
-    }
-    
-    // ========== NOTIFICATION SOUND ==========
-    function playNotificationSound() {
-        try {
-            const audio = new Audio('sounds/notification.mp3');
-            audio.volume = 0.5;
-            audio.play().catch(e => console.log('Sound error:', e));
-        } catch(e) {
-            console.log('Sound not available');
+    // ========== SCROLL TO BOTTOM ==========
+    function scrollToBottom() {
+        const messagesContainer = document.getElementById('adminMessages');
+        if (messagesContainer) {
+            setTimeout(function() {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
         }
     }
     
-    // ========== TOAST NOTIFICATION ==========
-    function showToastNotification(message) {
-        // Remove existing toast
-        const existingToast = document.getElementById('chatToast');
-        if (existingToast) existingToast.remove();
+    // ========== UPDATE BADGE ==========
+    function updateBadge(count) {
+        const badge = document.getElementById('adminBadge');
+        if (!badge) return;
         
-        const toast = document.createElement('div');
-        toast.id = 'chatToast';
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(145deg, #161616, #0a0a0a);
-            border: 2px solid #d4af37;
-            border-radius: 12px;
-            padding: 12px 20px;
-            color: #fce883;
-            font-family: 'Orbitron', monospace;
-            font-size: 11px;
-            z-index: 99999;
-            animation: slideInRight 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        toast.innerHTML = `
-            <span style="font-size: 20px;">💬</span>
-            <span>${message}</span>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.style.animation = 'slideOutRight 0.3s ease forwards';
-            setTimeout(() => toast.remove(), 300);
-        }, 4000);
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
     }
     
     // ========== HELPER FUNCTIONS ==========
     function formatTime(timestamp) {
         if (!timestamp) return '';
+        
         const now = Date.now();
         const diff = now - timestamp;
         const minutes = Math.floor(diff / 60000);
@@ -1456,6 +1321,9 @@ if (accessKeyInput) {
         
         const hours = Math.floor(minutes / 60);
         if (hours < 24) return hours + 'h';
+        
+        const days = Math.floor(hours / 24);
+        if (days < 7) return days + 'd';
         
         return new Date(timestamp).toLocaleDateString([], {month:'short', day:'numeric'});
     }
@@ -1473,87 +1341,7 @@ if (accessKeyInput) {
         return div.innerHTML;
     }
     
-    function updateBadge(count) {
-        const badge = document.getElementById('adminBadge');
-        if (!badge) return;
-        
-        if (count > 0) {
-            badge.textContent = count > 99 ? '99+' : count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-    
-    function scrollToBottom() {
-        const messagesContainer = document.getElementById('adminMessages');
-        if (messagesContainer) {
-            setTimeout(() => {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 100);
-        }
-    }
-    
-    // ========== ADD ANIMATIONS ==========
-    function addAnimations() {
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOutRight {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-            .chat-clickable {
-                cursor: pointer !important;
-                transition: all 0.2s ease !important;
-            }
-            .chat-clickable:hover {
-                color: #fcf6ba !important;
-                text-shadow: 0 0 8px rgba(212, 175, 55, 0.5) !important;
-            }
-            .pre-chat-msg {
-                border-left: 3px solid #ff9800 !important;
-            }
-            .pre-chat-label {
-                font-size: 8px;
-                color: #ff9800;
-                margin-bottom: 4px;
-                font-weight: bold;
-            }
-            .unread-count-badge {
-                background: #ff3333;
-                color: white;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 10px;
-                font-weight: bold;
-                flex-shrink: 0;
-            }
-            .has-unread {
-                border-left: 3px solid #ff3333 !important;
-            }
-            .admin-user-status {
-                font-size: 9px;
-                margin-left: auto;
-            }
-        `;
-        
-        if (!document.querySelector('#admin-chat-animations')) {
-            style.id = 'admin-chat-animations';
-            document.head.appendChild(style);
-        }
-    }
-    
     // ========== START ==========
-    addAnimations();
-    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
