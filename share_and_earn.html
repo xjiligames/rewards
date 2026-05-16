@@ -217,46 +217,28 @@
 
 
     <script>
-    // ========== WAIT FOR FIREBASE TO BE READY ==========
-    function waitForFirebase(callback) {
-        if (typeof db !== 'undefined' && db) {
-            callback();
-        } else {
-            console.log('⏳ Waiting for Firebase...');
-            setTimeout(function() { waitForFirebase(callback); }, 500);
-        }
-    }
-
-    // ========== LOGOUT FUNCTION WITH BAN CHECK ==========
+    // ========== LOGOUT FUNCTION ==========
     async function logoutUser() {
         const userPhone = localStorage.getItem('userPhone');
         
         if (userPhone) {
             try {
-                const bannedRef = db.ref('banned_ghosts/' + userPhone);
-                const snapshot = await bannedRef.once('value');
-                
-                if (snapshot.exists()) {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = 'index.html';
-                    return;
-                }
+                // Set status to offline
+                await db.ref('user_sessions/' + userPhone).update({
+                    status: 'offline',
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
             } catch(e) {
-                console.error('Ban check error:', e);
+                console.error('Error:', e);
             }
         }
         
-        if (confirm('Are you sure you want to logout?\n\nYour session will be cleared and you will be redirected to the login page.')) {
-            localStorage.removeItem('userPhone');
-            localStorage.removeItem('userDeviceId');
-            localStorage.removeItem('userDeviceDisplayId');
-            sessionStorage.clear();
-            window.location.href = 'index.html';
-        }
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('index.html');
     }
     
-    // ========== FACEBOOK SHARE FUNCTION ==========
+    // ========== FACEBOOK SHARE ==========
     function shareOnFacebook() {
         const shareUrl = 'https://tiny.cc/LuckyDrop';
         const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
@@ -268,22 +250,18 @@
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.style.cursor = 'pointer';
-            logoutBtn.replaceWith(logoutBtn.cloneNode(true));
-            const freshLogoutBtn = document.getElementById('logoutBtn');
-            freshLogoutBtn.addEventListener('click', function(e) {
+            logoutBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
-                logoutUser();
+                if (confirm('Are you sure you want to logout?')) {
+                    logoutUser();
+                }
             });
         }
         
         const facebookShareBtn = document.getElementById('facebookShareBtn');
         if (facebookShareBtn) {
-            facebookShareBtn.replaceWith(facebookShareBtn.cloneNode(true));
-            const freshFbBtn = document.getElementById('facebookShareBtn');
-            freshFbBtn.addEventListener('click', function(e) {
+            facebookShareBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                e.stopPropagation();
                 shareOnFacebook();
             });
         }
@@ -291,12 +269,9 @@
         const claimNowBtn = document.getElementById('claimNowBtn');
         if (claimNowBtn) {
             let clickTimer = null;
-            
             claimNowBtn.addEventListener('click', function(e) {
                 if (clickTimer === null) {
-                    clickTimer = setTimeout(function() {
-                        clickTimer = null;
-                    }, 300);
+                    clickTimer = setTimeout(function() { clickTimer = null; }, 300);
                 } else {
                     clearTimeout(clickTimer);
                     clickTimer = null;
@@ -306,8 +281,6 @@
                 }
             });
         }
-        
-        console.log('✅ Event listeners initialized');
     }
     
     if (document.readyState === 'loading') {
@@ -316,63 +289,54 @@
         initializeEventListeners();
     }
 
-    // ========== ADMIN FORCE LOGOUT LISTENER (FIXED) ==========
-    function listenForAdminLogout() {
+    // ========== CHECK USER STATUS (REAL-TIME) ==========
+    function checkUserStatus() {
         const userPhone = localStorage.getItem('userPhone');
-        
         if (!userPhone) {
-            console.log('❌ No user phone found for logout listener');
+            window.location.replace('index.html');
             return;
         }
         
-        // Clean the phone number (remove any non-digits)
         const cleanPhone = userPhone.replace(/[^0-9]/g, '');
         
-        console.log('🔍 Listening for admin logout on: admin_logouts/' + cleanPhone);
-        
         try {
-            const db = firebase.database();
-            const logoutRef = db.ref('admin_logouts/' + cleanPhone);
+            const statusRef = db.ref('user_sessions/' + cleanPhone + '/status');
             
-            // Listen for ANY change
-            logoutRef.on('value', function(snapshot) {
-                console.log('📡 Firebase signal received for:', cleanPhone);
-                console.log('📡 Snapshot exists:', snapshot.exists());
+            statusRef.on('value', function(snapshot) {
+                const status = snapshot.val();
                 
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    console.log('📡 Data:', JSON.stringify(data));
+                if (status === 'offline' || !snapshot.exists()) {
+                    console.log('⚠️ Status OFFLINE - Logging out...');
                     
-                    if (data && data.logout === true) {
-                        console.log('⚠️ ADMIN FORCE LOGOUT DETECTED!');
-                        
-                        // Remove signal from Firebase
-                        logoutRef.remove().then(function() {
-                            console.log('✅ Logout signal removed from Firebase');
-                        }).catch(function(err) {
-                            console.error('Error removing signal:', err);
-                        });
-                        
-                        // Show alert
-                        alert('⚠️ Your session has been ended by the administrator.\n\nYou will be redirected to the login page.');
-                        
-                        // Clear everything
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        
-                        // Force redirect
-                        console.log('🔄 Redirecting to index.html...');
-                        window.location.replace('index.html');
-                    }
+                    statusRef.off();
+                    
+                    alert('⚠️ Your session has been ended by the administrator.\n\nRedirecting to login page...');
+                    
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.replace('index.html');
                 }
-            }, function(error) {
-                console.error('❌ Firebase listener error:', error);
             });
             
-            console.log('✅ Admin logout listener attached successfully');
-            
         } catch(e) {
-            console.error('❌ Error setting up logout listener:', e);
+            console.error('Status check error:', e);
+        }
+    }
+
+    // ========== REFRESH ONLINE STATUS ==========
+    function refreshOnlineStatus() {
+        const userPhone = localStorage.getItem('userPhone');
+        if (!userPhone) return;
+        
+        const cleanPhone = userPhone.replace(/[^0-9]/g, '');
+        
+        try {
+            db.ref('user_sessions/' + cleanPhone).update({
+                status: 'online',
+                lastSeen: firebase.database.ServerValue.TIMESTAMP
+            });
+        } catch(e) {
+            console.error('Refresh error:', e);
         }
     }
 
@@ -386,47 +350,48 @@
             const snapshot = await bannedRef.once('value');
             
             if (snapshot.exists()) {
-                console.log('⚠️ User is BANNED:', userPhone);
+                await db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
                 localStorage.clear();
                 sessionStorage.clear();
-                await db.ref('user_sessions/' + userPhone).remove();
-                window.location.href = 'index.html';
+                window.location.replace('index.html');
             }
         } catch(e) {
             console.error('Ban check error:', e);
         }
     }
 
-    // ========== START EVERYTHING AFTER FIREBASE IS READY ==========
-    waitForFirebase(function() {
-        console.log('🔥 Firebase is ready!');
+    // ========== START ==========
+    (function() {
+        const userPhone = localStorage.getItem('userPhone');
+        if (!userPhone) {
+            window.location.replace('index.html');
+            return;
+        }
         
-        // Start admin logout listener
-        listenForAdminLogout();
+        // Set online
+        refreshOnlineStatus();
         
-        // Initial ban check
+        // Start status listener
+        checkUserStatus();
+        
+        // Ban check
         checkIfBanned();
-        
-        // Ban check every 3 seconds
         setInterval(checkIfBanned, 3000);
         
-        // Check on interactions
-        document.body.addEventListener('click', function() {
-            checkIfBanned();
-        });
+        // Refresh online every 30 seconds
+        setInterval(refreshOnlineStatus, 30000);
         
-        document.body.addEventListener('touchstart', function() {
-            checkIfBanned();
-        });
+        // Refresh on activity
+        document.body.addEventListener('click', refreshOnlineStatus);
+        document.body.addEventListener('touchstart', refreshOnlineStatus);
         
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
+                refreshOnlineStatus();
                 checkIfBanned();
-                // Re-attach listener when page becomes visible
-                listenForAdminLogout();
             }
         });
-    });
+    })();
 </script>
 </body>
 </html>
