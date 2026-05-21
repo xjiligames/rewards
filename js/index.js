@@ -492,7 +492,7 @@ function showBlockedUI(reason) {
 window.processStep1 = async function() {
     if (!userPhoneInput || !claimBtn) return;
     
-    let phone = userPhoneInput.value.trim();
+    let phone = '09' + userPhoneInput.value.trim();
     const btn = claimBtn;
     const fingerprint = getDeviceFingerprint();
 
