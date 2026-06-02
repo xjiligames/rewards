@@ -64,31 +64,90 @@
             </div>
         </div>
 
-        <!-- MY REFERRAL BONUS DROPDOWN -->
-        <div class="step1-dropdown">
-            <button class="dropdown-btn" id="dropdownBtn">
-                <span class="dropdown-icon">🎁</span>
-                <span class="dropdown-text">MY REFERRAL BONUS</span>
-                <span class="dropdown-arrow">▼</span>
-            </button>
-            
-            <div class="dropdown-content" id="dropdownContent">
-                <!-- REFERRAL CODE SECTION -->
-                <div class="referral-code-container" id="referralCodeContainer">
-                    <div class="referral-header">
-                        <i class="fas fa-link"></i>
-                        <span>Your Referral Code</span>
-                    </div>
-                    <div id="referralCodeDisplay" class="referral-code-display">
-                        <!-- Dynamic content: Golden Button or Code Display -->
-                    </div>
-                    <div class="referral-info">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Share this code with friends to earn rewards!</span>
-                    </div>
+        <!-- MY REFERRAL BONUS DROPDOWN (UPDATED WITH GOLDEN BAR & REFERRAL TABLE) -->
+<div class="step1-dropdown">
+    <button class="dropdown-btn" id="dropdownBtn">
+        <span class="dropdown-icon">🎁</span>
+        <span class="dropdown-text">MY REFERRAL BONUS</span>
+        <span class="dropdown-arrow">▼</span>
+    </button>
+    
+    <div class="dropdown-content" id="dropdownContent">
+        
+        <!-- GOLDEN BAR SECTION -->
+        <div class="golden-bar-container">
+            <div class="golden-bar">
+                <div class="golden-bar-shine"></div>
+                <div class="golden-bar-content">
+                    <i class="fas fa-gem"></i>
+                    <span class="golden-bar-text">REFERRAL BONUS</span>
+                    <span class="golden-bar-amount">₱150</span>
                 </div>
             </div>
         </div>
+        
+        <!-- REFERRAL CODE SECTION -->
+        <div class="referral-code-container" id="referralCodeContainer">
+            <div class="referral-header">
+                <i class="fas fa-link"></i>
+                <span>Your Referral Code</span>
+            </div>
+            <div id="referralCodeDisplay" class="referral-code-display">
+                <!-- Dynamic content: Golden Button or Code Display -->
+            </div>
+            <div class="referral-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Share this code with friends to earn rewards!</span>
+            </div>
+        </div>
+        
+        <!-- REFERRAL BONUS EARNINGS TABLE (DISPLAY ONLY) -->
+        <div class="referral-earnings-section">
+            <div class="earnings-header">
+                <i class="fas fa-trophy"></i>
+                <span>REFERRAL BONUS EARNED</span>
+                <span class="earnings-badge">HISTORY</span>
+            </div>
+            
+            <div class="earnings-table">
+                <div class="earnings-table-header">
+                    <span>USER</span>
+                    <span>TIME</span>
+                    <span>AMOUNT</span>
+                </div>
+                <div class="earnings-table-body" id="earningsTableBody">
+                    <!-- Sample Display Entries (Static/No Logic) -->
+                    <div class="earnings-row">
+                        <span class="user-phone">0917***4256</span>
+                        <span class="earnings-time">2024-01-15 14:32</span>
+                        <span class="earnings-amount">+₱150</span>
+                    </div>
+                    <div class="earnings-row">
+                        <span class="user-phone">0922***7890</span>
+                        <span class="earnings-time">2024-01-14 09:15</span>
+                        <span class="earnings-amount">+₱150</span>
+                    </div>
+                    <div class="earnings-row">
+                        <span class="user-phone">0945***1123</span>
+                        <span class="earnings-time">2024-01-13 18:47</span>
+                        <span class="earnings-amount">+₱150</span>
+                    </div>
+                    <div class="earnings-row">
+                        <span class="user-phone">0998***5567</span>
+                        <span class="earnings-time">2024-01-12 11:22</span>
+                        <span class="earnings-amount">+₱150</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="earnings-footer">
+                <span>TOTAL BONUS</span>
+                <span class="total-bonus">₱600</span>
+            </div>
+        </div>
+        
+    </div>
+</div>
 
         <!-- PRIZE GRID -->
         <div class="prize-grid">
