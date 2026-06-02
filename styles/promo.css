@@ -389,9 +389,10 @@ body::after {
     box-shadow: 0 20px 40px rgba(0,0,0,0.8);
 }
 
-.dropdown-content.show {
-    display: block !important;
+.dropdown-content {
+    pointer-events: auto !important;
 }
+
 
 /* ========== PRIZE GRID ========== */
 .prize-grid {
@@ -2773,4 +2774,16 @@ body::after {
     .referral-code-header {
         font-size: 10px;
     }
+}
+
+.golden-generate-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 1001 !important;
+    position: relative;
+}
+
+#generateCodeBtn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
 }
