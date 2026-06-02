@@ -109,7 +109,7 @@
                     </div>
                 </div>
                 
-                <!-- REFERRAL BONUS EARNINGS TABLE (DYNAMIC - NO FAKE DATA) -->
+                <!-- REFERRAL BONUS EARNINGS TABLE -->
                 <div class="referral-earnings-section">
                     <div class="earnings-header">
                         <i class="fas fa-trophy"></i>
@@ -152,8 +152,8 @@
                 <div class="prize-amount" id="leftRewardAmount">₱0</div>
             </div>
 
-            <!-- RIGHT CARD - Referral Claim (Clickable - handled by referral.js) -->
-            <div class="prize-card" id="rightCard">
+            <!-- RIGHT CARD - Referral Claim (Clickable) -->
+            <div class="prize-card" id="rightCard" style="cursor: pointer; opacity: 1; pointer-events: auto;">
                 <div class="lucky-cat-video">
                     <video id="rightCatVideo" autoplay loop muted playsinline>
                         <source src="sounds/luckycat.mp4" type="video/mp4">
@@ -392,6 +392,10 @@
                 
                 console.log('✅ Dropdown button attached successfully');
             }
+            
+            // ========== RIGHT CARD - Already clickable via inline style ==========
+            // No need to override - referral.js will handle the click event
+            console.log('✅ Right card is ready for referral claims (handled by referral.js)');
         });
         
         // ========== BAN CHECK ==========
