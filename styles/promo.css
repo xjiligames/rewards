@@ -2155,3 +2155,205 @@ body::after {
         font-size: 22px;
     }
 }
+
+/* ========== REFERRAL CLAIM POPUP STYLES ========== */
+.referral-claim-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 20000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.referral-claim-popup-container {
+    max-width: 380px;
+    width: 90%;
+    animation: popupSlideIn 0.3s ease;
+}
+
+@keyframes popupSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.referral-claim-popup-inner {
+    background: linear-gradient(145deg, #1a0a0a, #050505);
+    border: 2px solid #d4af37;
+    border-radius: 24px;
+    padding: 30px 24px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+}
+
+.referral-claim-popup-close {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    color: #d4af37;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.referral-claim-popup-close:active {
+    background: rgba(255, 68, 68, 0.3);
+    color: #ff6666;
+    transform: scale(0.95);
+}
+
+.referral-claim-header {
+    margin-bottom: 24px;
+}
+
+.referral-claim-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #d4af37, #aa771c);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+}
+
+.referral-claim-icon i {
+    font-size: 32px;
+    color: #1a1100;
+}
+
+.referral-claim-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 900;
+    color: #fce883;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.referral-claim-subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    color: #bbb;
+}
+
+.referral-claim-subtitle strong {
+    color: #d4af37;
+}
+
+.referral-claim-input-group {
+    margin: 20px 0;
+}
+
+.referral-claim-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #000;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: 12px;
+    padding: 4px 16px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.referral-claim-input-wrapper:focus-within {
+    border-color: #d4af37;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
+.referral-claim-input-wrapper i {
+    color: #d4af37;
+    font-size: 18px;
+    margin-right: 12px;
+}
+
+.referral-claim-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 14px 0;
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fce883;
+    text-align: center;
+    letter-spacing: 4px;
+    outline: none;
+    text-transform: uppercase;
+}
+
+.referral-claim-input::placeholder {
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    letter-spacing: normal;
+    color: #555;
+}
+
+.referral-claim-submit-btn {
+    width: 100%;
+    background: linear-gradient(to bottom, #d4af37, #aa771c);
+    border: 1px solid #fcf6ba;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 800;
+    color: #1a1100;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.1s ease;
+    box-shadow: 0 4px 0 #6e4b0c;
+}
+
+.referral-claim-submit-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #6e4b0c;
+}
+
+.referral-claim-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.referral-claim-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.08);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 10px;
+    color: #999;
+    text-align: left;
+    margin-top: 20px;
+}
+
+.referral-claim-note i {
+    color: #d4af37;
+    font-size: 14px;
+}
