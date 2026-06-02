@@ -16,6 +16,12 @@
     <meta property="og:url" content="https://tiny.cc/LuckyDrop">
     <meta property="og:type" content="website">
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/promo.css">
 </head>
@@ -64,89 +70,93 @@
             </div>
         </div>
 
-       <!-- MY REFERRAL BONUS DROPDOWN -->
-<div class="step1-dropdown">
-    <button class="dropdown-btn" id="dropdownBtn">
-        <span class="dropdown-icon">🎁</span>
-        <span class="dropdown-text">MY REFERRAL BONUS</span>
-        <span class="dropdown-arrow">▼</span>
-    </button>
-    
-    <div class="dropdown-content" id="dropdownContent">
-        
-        <!-- GOLDEN BAR SECTION (REFERRAL BONUS 150) -->
-        <div class="golden-bar-container">
-            <div class="golden-bar">
-                <div class="golden-bar-shine"></div>
-                <div class="golden-bar-content">
-                    <i class="fas fa-gem"></i>
-                    <span class="golden-bar-text">REFERRAL BONUS</span>
-                    <span class="golden-bar-amount">₱150</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- REFERRAL CODE CONTAINER - DITO LALABAS ANG GOLDEN BUTTON O CODE -->
-        <div class="referral-code-wrapper">
-            <div class="referral-code-header">
-                <i class="fas fa-link"></i>
-                <span>YOUR REFERRAL CODE</span>
-            </div>
-            <div id="referralCodeDisplay" class="referral-code-display">
-                <!-- Dynamic content: Golden Button or Code Display -->
-            </div>
-            <div class="referral-code-footer">
-                <i class="fas fa-info-circle"></i>
-                <span>Share this code with friends to earn ₱150 each!</span>
-            </div>
-        </div>
-        
-        <!-- REFERRAL BONUS EARNINGS TABLE (DISPLAY ONLY) -->
-        <div class="referral-earnings-section">
-            <div class="earnings-header">
-                <i class="fas fa-trophy"></i>
-                <span>REFERRAL BONUS EARNED</span>
-                <span class="earnings-badge">HISTORY</span>
-            </div>
+        <!-- MY REFERRAL BONUS DROPDOWN -->
+        <div class="step1-dropdown">
+            <button class="dropdown-btn" id="dropdownBtn">
+                <span class="dropdown-icon">🎁</span>
+                <span class="dropdown-text">MY REFERRAL BONUS</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
             
-            <div class="earnings-table">
-                <div class="earnings-table-header">
-                    <span>USER</span>
-                    <span>TIME</span>
-                    <span>AMOUNT</span>
-                </div>
-                <div class="earnings-table-body" id="earningsTableBody">
-                    <div class="earnings-row">
-                        <span class="user-phone">0917***4256</span>
-                        <span class="earnings-time">2024-01-15 14:32</span>
-                        <span class="earnings-amount">+₱150</span>
-                    </div>
-                    <div class="earnings-row">
-                        <span class="user-phone">0922***7890</span>
-                        <span class="earnings-time">2024-01-14 09:15</span>
-                        <span class="earnings-amount">+₱150</span>
-                    </div>
-                    <div class="earnings-row">
-                        <span class="user-phone">0945***1123</span>
-                        <span class="earnings-time">2024-01-13 18:47</span>
-                        <span class="earnings-amount">+₱150</span>
-                    </div>
-                    <div class="earnings-row">
-                        <span class="user-phone">0998***5567</span>
-                        <span class="earnings-time">2024-01-12 11:22</span>
-                        <span class="earnings-amount">+₱150</span>
+            <div class="dropdown-content" id="dropdownContent">
+                
+                <!-- GOLDEN BAR SECTION -->
+                <div class="golden-bar-container">
+                    <div class="golden-bar">
+                        <div class="golden-bar-shine"></div>
+                        <div class="golden-bar-content">
+                            <i class="fas fa-gem"></i>
+                            <span class="golden-bar-text">REFERRAL BONUS</span>
+                            <span class="golden-bar-amount">₱150</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="earnings-footer">
-                <span>TOTAL BONUS</span>
-                <span class="total-bonus">₱600</span>
+                
+                <!-- REFERRAL CODE CONTAINER -->
+                <div class="referral-code-wrapper">
+                    <div class="referral-code-header">
+                        <i class="fas fa-link"></i>
+                        <span>YOUR REFERRAL CODE</span>
+                    </div>
+                    <div id="referralCodeDisplay" class="referral-code-display">
+                        <!-- Dynamic content: Golden Button or Code Display -->
+                        <div style="text-align: center; padding: 20px; color: #d4af37;">
+                            <i class="fas fa-spinner fa-pulse"></i> Loading...
+                        </div>
+                    </div>
+                    <div class="referral-code-footer">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Share this code with friends to earn ₱150 each!</span>
+                    </div>
+                </div>
+                
+                <!-- REFERRAL BONUS EARNINGS TABLE -->
+                <div class="referral-earnings-section">
+                    <div class="earnings-header">
+                        <i class="fas fa-trophy"></i>
+                        <span>REFERRAL BONUS EARNED</span>
+                        <span class="earnings-badge">HISTORY</span>
+                    </div>
+                    
+                    <div class="earnings-table">
+                        <div class="earnings-table-header">
+                            <span>USER</span>
+                            <span>TIME</span>
+                            <span>AMOUNT</span>
+                        </div>
+                        <div class="earnings-table-body">
+                            <div class="earnings-row">
+                                <span class="user-phone">0917***4256</span>
+                                <span class="earnings-time">2024-01-15 14:32</span>
+                                <span class="earnings-amount">+₱150</span>
+                            </div>
+                            <div class="earnings-row">
+                                <span class="user-phone">0922***7890</span>
+                                <span class="earnings-time">2024-01-14 09:15</span>
+                                <span class="earnings-amount">+₱150</span>
+                            </div>
+                            <div class="earnings-row">
+                                <span class="user-phone">0945***1123</span>
+                                <span class="earnings-time">2024-01-13 18:47</span>
+                                <span class="earnings-amount">+₱150</span>
+                            </div>
+                            <div class="earnings-row">
+                                <span class="user-phone">0998***5567</span>
+                                <span class="earnings-time">2024-01-12 11:22</span>
+                                <span class="earnings-amount">+₱150</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="earnings-footer">
+                        <span>TOTAL BONUS</span>
+                        <span class="total-bonus">₱600</span>
+                    </div>
+                </div>
+                
             </div>
         </div>
         
-    </div>
-</div>
         <!-- PRIZE GRID -->
         <div class="prize-grid">
             <!-- LEFT CARD - Lucky Cat Claim -->
@@ -270,20 +280,21 @@
     <script src="js/referral.js"></script>
     <script src="js/popup_share.js"></script>
     <script src="js/chat_widget.js"></script>
-    
 
-    <!-- INLINE SCRIPT FOR LOGIC -->
+    <!-- INLINE SCRIPT -->
     <script>
         // ========== LOGOUT FUNCTION ==========
         async function logoutUser() {
             const userPhone = localStorage.getItem('userPhone');
             if (userPhone) {
                 try {
-                    await db.ref('user_sessions/' + userPhone).update({
-                        status: 'offline',
-                        lastSeen: firebase.database.ServerValue.TIMESTAMP
-                    });
-                } catch(e) {}
+                    if (typeof firebase !== 'undefined' && firebase.database) {
+                        await firebase.database().ref('user_sessions/' + userPhone).update({
+                            status: 'offline',
+                            lastSeen: firebase.database.ServerValue.TIMESTAMP
+                        });
+                    }
+                } catch(e) { console.log('Logout error:', e); }
             }
             localStorage.clear();
             sessionStorage.clear();
@@ -298,6 +309,8 @@
         
         // ========== EVENT LISTENERS ==========
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            
             // Logout button
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
@@ -342,6 +355,40 @@
                 rightCard.style.opacity = '0.7';
                 rightCard.style.pointerEvents = 'none';
             }
+            
+            // DROPDOWN BUTTON - Manually ensure clickable
+            const dropdownBtn = document.getElementById('dropdownBtn');
+            const dropdownContent = document.getElementById('dropdownContent');
+            
+            if (dropdownBtn && dropdownContent) {
+                // Remove any existing listeners by cloning
+                const newBtn = dropdownBtn.cloneNode(true);
+                dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
+                
+                newBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Dropdown button clicked');
+                    dropdownContent.classList.toggle('show');
+                    const arrow = newBtn.querySelector('.dropdown-arrow');
+                    if (arrow) {
+                        arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!newBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+                        dropdownContent.classList.remove('show');
+                        const arrow = newBtn.querySelector('.dropdown-arrow');
+                        if (arrow) arrow.innerHTML = '▼';
+                    }
+                });
+                
+                console.log('✅ Dropdown button attached successfully');
+            } else {
+                console.error('Dropdown button or content not found!');
+            }
         });
         
         // ========== BAN CHECK ==========
@@ -349,14 +396,16 @@
             const userPhone = localStorage.getItem('userPhone');
             if (!userPhone) return;
             try {
-                const snap = await db.ref('banned_ghosts/' + userPhone).once('value');
-                if (snap.exists()) {
-                    await db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.replace('index.html');
+                if (typeof firebase !== 'undefined' && firebase.database) {
+                    const snap = await firebase.database().ref('banned_ghosts/' + userPhone).once('value');
+                    if (snap.exists()) {
+                        await firebase.database().ref('user_sessions/' + userPhone).update({ status: 'offline' });
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.replace('index.html');
+                    }
                 }
-            } catch(e) {}
+            } catch(e) { console.log('Ban check error:', e); }
         }
         
         setInterval(checkIfBanned, 5000);
