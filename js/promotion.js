@@ -1093,166 +1093,146 @@ window.ReferralCodeModule = (function() {
     }
     
     function renderReferralCodeUI(hasCode, code = null) {
-        if (!referralCodeDisplay) {
-            console.error('referralCodeDisplay element not found!');
-            return;
-        }
-        
-        console.log('Rendering UI. hasCode:', hasCode, 'code:', code);
-        
-        if (!hasCode) {
-            referralCodeDisplay.innerHTML = `
-                <button class="golden-generate-btn" id="generateCodeBtn">
-                    🪙 GENERATE CODE 🪙
-                </button>
-            `;
-            
-            const generateBtn = document.getElementById('generateCodeBtn');
-            if (generateBtn && !isGenerating) {
-                generateBtn.addEventListener('click', handleGenerateCode);
-            }
-        } else {
-            referralCodeDisplay.innerHTML = `
-                <div class="code-display-box">
-                    <div class="code-label">YOUR REFERRAL CODE</div>
-                    <div class="code-value" id="referralCodeValue">${code}</div>
-                    <div class="code-actions">
-                        <button class="copy-code-btn" id="copyCodeBtn">
-                            <i class="fas fa-copy"></i> COPY CODE
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            const copyBtn = document.getElementById('copyCodeBtn');
-            if (copyBtn) {
-                copyBtn.addEventListener('click', function() {
-                    const codeValue = document.getElementById('referralCodeValue');
-                    if (codeValue) {
-                        navigator.clipboard.writeText(codeValue.textContent).then(() => {
-                            copyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
-                            setTimeout(() => {
-                                copyBtn.innerHTML = '<i class="fas fa-copy"></i> COPY CODE';
-                            }, 2000);
-                            showToast('✅ Referral code copied!');
-                        }).catch(() => {
-                            showToast('❌ Failed to copy');
-                        });
-                    }
-                });
-            }
-        }
+    if (!referralCodeDisplay) {
+        console.error('referralCodeDisplay element not found!');
+        return;
     }
     
-    async function handleGenerateCode() {
-        if (isGenerating) {
-            showToast('⏳ Already generating...');
-            return;
-        }
+    console.log('Rendering UI. hasCode:', hasCode, 'code:', code);
+    
+    if (!hasCode) {
+        // Create golden button with proper styling
+        referralCodeDisplay.innerHTML = `
+            <button class="golden-generate-btn" id="generateCodeBtn" style="cursor: pointer;">
+                <i class="fas fa-gem"></i>
+                🪙 GENERATE REFERRAL CODE 🪙
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        `;
         
-        const existingCode = await loadReferralCode();
-        if (existingCode) {
-            renderReferralCodeUI(true, existingCode);
-            return;
-        }
-        
-        isGenerating = true;
-        
+        // Get the button and attach event listener
         const generateBtn = document.getElementById('generateCodeBtn');
         if (generateBtn) {
-            generateBtn.disabled = true;
-            generateBtn.style.opacity = '0.7';
-            generateBtn.textContent = '🪄 GENERATING... 🪄';
+            // Remove any existing listeners by cloning
+            const newBtn = generateBtn.cloneNode(true);
+            generateBtn.parentNode.replaceChild(newBtn, generateBtn);
+            
+            // Attach new click listener
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Generate button clicked!');
+                handleGenerateCode();
+            });
+            
+            console.log('Generate button attached successfully');
+        } else {
+            console.error('Generate button not found in DOM');
         }
-        
-        const newCode = generateReferralCode();
-        
-        const animationContainer = document.createElement('div');
-        animationContainer.style.cssText = `
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.3));
-            border-radius: 12px;
+    } else {
+        referralCodeDisplay.innerHTML = `
+            <div class="code-display-box">
+                <div class="code-label">⭐ YOUR PERMANENT REFERRAL CODE ⭐</div>
+                <div class="code-value" id="referralCodeValue">${code}</div>
+                <div class="code-actions">
+                    <button class="copy-code-btn" id="copyCodeBtn">
+                        <i class="fas fa-copy"></i> COPY CODE
+                    </button>
+                </div>
+            </div>
         `;
-        referralCodeDisplay.innerHTML = '';
-        referralCodeDisplay.appendChild(animationContainer);
         
-        await animateCodeGeneration(animationContainer, newCode);
-        
-        const saved = await saveReferralCodeToDB(newCode);
-        
-        if (saved) {
-            currentReferralCode = newCode;
-            if (window.ConfettiModule) window.ConfettiModule.start();
-            if (window.PromotionCore) window.PromotionCore.playSound('success');
-            renderReferralCodeUI(true, newCode);
-            showToast('🎉 Referral code generated successfully!');
-        } else {
-            renderReferralCodeUI(false);
-            showToast('❌ Failed to save code. Please try again.');
+        const copyBtn = document.getElementById('copyCodeBtn');
+        if (copyBtn) {
+            const newCopyBtn = copyBtn.cloneNode(true);
+            copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
+            
+            newCopyBtn.addEventListener('click', function() {
+                const codeValue = document.getElementById('referralCodeValue');
+                if (codeValue) {
+                    navigator.clipboard.writeText(codeValue.textContent).then(() => {
+                        newCopyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
+                        setTimeout(() => {
+                            newCopyBtn.innerHTML = '<i class="fas fa-copy"></i> COPY CODE';
+                        }, 2000);
+                        showToast('✅ Referral code copied!');
+                    }).catch(() => {
+                        showToast('❌ Failed to copy');
+                    });
+                }
+            });
         }
-        
-        isGenerating = false;
+    }
+}
+    
+   async function handleGenerateCode() {
+    console.log('handleGenerateCode called!');
+    
+    if (isGenerating) {
+        showToast('⏳ Already generating...');
+        return;
     }
     
-    async function init() {
-        console.log('🎯 Referral Code Module Initializing...');
-        
-        currentUserPhone = localStorage.getItem('userPhone');
-        if (!currentUserPhone) {
-            console.log('No user phone found, retrying in 1s...');
-            if (retryCount < MAX_RETRY) {
-                retryCount++;
-                setTimeout(init, 1000);
-            }
-            return;
-        }
-        
-        const core = window.PromotionCore;
-        if (core) {
-            userRef = core.getUserRef();
-            db = firebase.database();
-        }
-        
-        referralCodeDisplay = document.getElementById('referralCodeDisplay');
-        if (!referralCodeDisplay) {
-            console.log('referralCodeDisplay not found, retrying...');
-            if (retryCount < MAX_RETRY) {
-                retryCount++;
-                setTimeout(init, 500);
-            }
-            return;
-        }
-        
-        if (!userRef) {
-            console.log('userRef not ready, retrying...');
-            if (retryCount < MAX_RETRY) {
-                retryCount++;
-                setTimeout(init, 500);
-            }
-            return;
-        }
-        
-        const existingCode = await loadReferralCode();
-        console.log('Existing code:', existingCode);
-        
-        if (existingCode) {
-            renderReferralCodeUI(true, existingCode);
-        } else {
-            renderReferralCodeUI(false);
-        }
-        
-        console.log('✅ Referral Code Module ready');
+    // Double check if code already exists
+    const existingCode = await loadReferralCode();
+    if (existingCode) {
+        renderReferralCodeUI(true, existingCode);
+        showToast('✅ You already have a referral code!');
+        return;
     }
     
-    return {
-        init: init,
-        getReferralCode: () => currentReferralCode,
-        generateNewCode: handleGenerateCode
-    };
-})();
+    isGenerating = true;
+    
+    // Update button to show generating state
+    const generateBtn = document.getElementById('generateCodeBtn');
+    if (generateBtn) {
+        generateBtn.disabled = true;
+        generateBtn.style.opacity = '0.6';
+        generateBtn.style.cursor = 'not-allowed';
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> GENERATING...';
+    }
+    
+    // Generate new code
+    const newCode = generateReferralCode();
+    console.log('Generated code:', newCode);
+    
+    // Create animation container
+    const animationContainer = document.createElement('div');
+    animationContainer.style.cssText = `
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        padding: 25px;
+        background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+        border-radius: 16px;
+    `;
+    referralCodeDisplay.innerHTML = '';
+    referralCodeDisplay.appendChild(animationContainer);
+    
+    // Animate the generation
+    await animateCodeGeneration(animationContainer, newCode);
+    
+    // Save to database
+    const saved = await saveReferralCodeToDB(newCode);
+    
+    if (saved) {
+        currentReferralCode = newCode;
+        
+        // Show success effects
+        if (window.ConfettiModule) window.ConfettiModule.start();
+        if (window.PromotionCore) window.PromotionCore.playSound('success');
+        
+        // Render the final display
+        renderReferralCodeUI(true, newCode);
+        showToast('🎉 Referral code generated successfully!');
+        console.log('✅ Code saved permanently to database');
+    } else {
+        renderReferralCodeUI(false);
+        showToast('❌ Failed to save code. Please try again.');
+    }
+    
+    isGenerating = false;
+}
 
 // ========== ADMIN FORCE LOGOUT LISTENER (V2 PREMIUM) ==========
 (function() {
