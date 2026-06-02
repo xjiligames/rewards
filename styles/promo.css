@@ -393,220 +393,6 @@ body::after {
     display: block !important;
 }
 
-/* Invite Form */
-.invite-form-container {
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border: 1px solid rgba(212,175,55,0.2);
-}
-
-.invite-input-wrapper {
-    display: flex;
-    align-items: center;
-    background: #000;
-    border: 1px solid #d4af37;
-    border-radius: 8px;
-    padding: 4px;
-    transition: all 0.3s ease;
-}
-
-.invite-input-wrapper:focus-within {
-    border-color: #fcf6ba;
-    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-}
-
-.modern-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: #fff;
-    padding: 10px 12px;
-    font-family: 'Orbitron', monospace;
-    font-size: 13px;
-    outline: none;
-    width: 100%;
-}
-
-.modern-input::placeholder {
-    color: #444;
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-}
-
-.modern-send-btn {
-    background: linear-gradient(to bottom, #d4af37, #aa771c);
-    color: #1a1100 !important;
-    border: 1px solid #fcf6ba;
-    border-radius: 6px;
-    padding: 8px 18px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: all 0.1s ease;
-    box-shadow: 0 2px 0 #6e4b0c;
-    letter-spacing: 1px;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-}
-
-.modern-send-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 0 0 #6e4b0c;
-}
-
-/* ========== INVITE SECTIONS ========== */
-.invite-section-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    color: #d4af37;
-    margin: 15px 0 10px 0;
-    padding-left: 8px;
-    border-left: 3px solid #d4af37;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.invite-list-header {
-    display: grid;
-    grid-template-columns: 1.5fr 0.9fr 0.6fr;
-    background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05));
-    border: 1px solid rgba(212,175,55,0.3);
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    font-family: 'Orbitron', monospace;
-    font-size: 9px;
-    font-weight: 700;
-    color: #d4af37;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.invite-list-header span:first-child {
-    text-align: left;
-}
-
-.invite-list-header span:nth-child(2) {
-    text-align: center;
-}
-
-.invite-list-header span:last-child {
-    text-align: center;
-}
-
-.invite-list-body {
-    max-height: 250px;
-    overflow-y: auto;
-}
-
-.invite-list-body::-webkit-scrollbar {
-    width: 4px;
-}
-
-.invite-list-body::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-}
-
-.invite-list-body::-webkit-scrollbar-thumb {
-    background: #d4af37;
-    border-radius: 10px;
-}
-
-.invite-item {
-    display: grid;
-    grid-template-columns: 1.5fr 0.9fr 0.6fr;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 6px;
-    transition: all 0.2s ease;
-}
-
-.invite-item:hover {
-    background: rgba(212, 175, 55, 0.05);
-    border-color: rgba(212, 175, 55, 0.2);
-}
-
-.invite-item-phone {
-    text-align: left;
-    font-family: 'Orbitron', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-}
-
-.invite-item-status {
-    text-align: center;
-}
-
-.invite-item-action {
-    text-align: center;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 5px;
-    font-size: 9px;
-    font-weight: 700;
-    min-width: 75px;
-    text-align: center;
-    letter-spacing: 0.5px;
-    font-family: 'Orbitron', monospace;
-}
-
-.status-badge.pending {
-    background: rgba(212, 175, 55, 0.2);
-    border: 1px solid rgba(212, 175, 55, 0.4);
-    color: #d4af37;
-}
-
-.status-badge.approved {
-    background: rgba(34, 197, 94, 0.2);
-    border: 1px solid rgba(34, 197, 94, 0.4);
-    color: #22C55E;
-}
-
-.delete-invite {
-    background: rgba(255, 68, 68, 0.2);
-    border: 1px solid rgba(255, 68, 68, 0.3);
-    color: #ff6666;
-    width: 28px;
-    height: 28px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: bold;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.delete-invite:hover {
-    background: rgba(255, 68, 68, 0.4);
-}
-
-.delete-invite:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.invite-empty {
-    text-align: center;
-    padding: 24px 20px;
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 11px;
-    font-style: italic;
-}
-
 /* ========== PRIZE GRID ========== */
 .prize-grid {
     display: flex;
@@ -1333,6 +1119,338 @@ body::after {
     display: none;
 }
 
+/* ========== REFERRAL CODE SECTION - NEW STYLES ========== */
+
+/* Referral Code Container */
+.referral-code-container {
+    padding: 16px;
+    background: linear-gradient(145deg, rgba(20, 5, 5, 0.95), rgba(0, 0, 0, 0.98));
+    border-radius: 12px;
+    margin: 5px 0;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.referral-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.referral-header i {
+    font-size: 14px;
+}
+
+.referral-code-display {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========== GOLDEN BUTTON (GOLD BAR DESIGN WITH SHINING/KINTAB EFFECT) ========== */
+.golden-generate-btn {
+    background: linear-gradient(135deg, #b8860b 0%, #d4af37 15%, #fce883 30%, #d4af37 50%, #fce883 70%, #d4af37 85%, #b8860b 100%);
+    background-size: 300% 100%;
+    border: none;
+    border-radius: 12px;
+    padding: 18px 24px;
+    width: 100%;
+    cursor: pointer;
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5), 0 0 5px rgba(255, 255, 255, 0.3);
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Main Shimmer Sweep Effect (Diagonal na kintab) */
+.golden-generate-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        115deg,
+        transparent 0%,
+        transparent 35%,
+        rgba(255, 255, 255, 0.4) 40%,
+        rgba(255, 255, 255, 0.7) 45%,
+        rgba(255, 255, 255, 0.9) 50%,
+        rgba(255, 255, 255, 0.7) 55%,
+        rgba(255, 255, 255, 0.4) 60%,
+        transparent 65%,
+        transparent 100%
+    );
+    transform: rotate(25deg);
+    animation: goldShineSweep 3.5s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+/* Horizontal Shimmer Movement (Kaliwa pakanang kintab) */
+.golden-generate-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 25%,
+        rgba(255, 255, 255, 0.5) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 100%);
+    animation: goldShimmerMove 2.5s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes goldShineSweep {
+    0% {
+        transform: rotate(25deg) translateX(-100%) translateY(-100%);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.3;
+    }
+    25% {
+        opacity: 1;
+    }
+    40% {
+        transform: rotate(25deg) translateX(0%) translateY(0%);
+        opacity: 1;
+    }
+    60% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: rotate(25deg) translateX(100%) translateY(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes goldShimmerMove {
+    0% {
+        left: -100%;
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.3;
+    }
+    40% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+    60% {
+        opacity: 0.8;
+    }
+    80% {
+        opacity: 0.3;
+    }
+    100% {
+        left: 100%;
+        opacity: 0;
+    }
+}
+
+/* Gradient Background Movement */
+.golden-generate-btn {
+    animation: goldBackgroundShift 3s infinite alternate;
+}
+
+@keyframes goldBackgroundShift {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 100% 0%;
+    }
+}
+
+/* Sparkle/Glitter Particles */
+.golden-generate-btn .sparkle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #ffffff;
+    border-radius: 50%;
+    opacity: 0;
+    animation: sparkleGlow 1.5s infinite;
+    pointer-events: none;
+}
+
+@keyframes sparkleGlow {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+        box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.5);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.9), 0 0 12px #d4af37;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0);
+        box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+    }
+}
+
+.golden-generate-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.5);
+    transition: all 0.05s ease;
+}
+
+.golden-generate-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    animation: none;
+}
+
+.golden-generate-btn:disabled::before,
+.golden-generate-btn:disabled::after {
+    animation: none;
+}
+
+/* ========== CODE DISPLAY BOX ========== */
+.code-display-box {
+    background: linear-gradient(135deg, #0a0a0a, #000000);
+    border: 2px solid #d4af37;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3), inset 0 0 10px rgba(212, 175, 55, 0.05);
+    animation: codeBoxGlow 2s infinite alternate;
+}
+
+@keyframes codeBoxGlow {
+    0% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+    100% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.5); }
+}
+
+.code-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: #d4af37;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.code-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    color: #fce883;
+    letter-spacing: 4px;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+    margin: 10px 0;
+    word-break: break-all;
+}
+
+/* ========== CODE ACTIONS BUTTONS ========== */
+.code-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.copy-code-btn {
+    background: linear-gradient(to bottom, #0066ff, #0044cc);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 0 #003399;
+}
+
+.copy-code-btn:active {
+    transform: translateY(2px);
+    box-shadow: none;
+}
+
+.copy-code-btn i {
+    font-size: 11px;
+}
+
+/* ========== REFERRAL INFO BOX ========== */
+.referral-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 10px 12px;
+    background: rgba(212, 175, 55, 0.08);
+    border-radius: 8px;
+    font-size: 10px;
+    color: #bbb;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.referral-info i {
+    color: #d4af37;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* ========== PER-CHARACTER ANIMATION SLOTS ========== */
+.code-slot {
+    display: inline-block;
+    min-width: 45px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+    animation: slotReveal 0.3s ease-out;
+}
+
+@keyframes slotReveal {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.slot-rolling {
+    animation: slotRoll 0.1s linear infinite;
+}
+
+@keyframes slotRoll {
+    0% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-5px); opacity: 0.5; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     body {
@@ -1399,26 +1517,29 @@ body::after {
         font-size: 11px;
     }
     
-    .invite-list-header,
-    .invite-item {
-        grid-template-columns: 1.3fr 0.9fr 0.8fr;
-        padding: 8px 10px;
+    /* Referral section responsive */
+    .code-value {
+        font-size: 22px;
+        letter-spacing: 2px;
     }
     
-    .invite-item-phone {
-        font-size: 10px;
+    .code-slot {
+        min-width: 35px;
+        font-size: 22px;
     }
     
-    .status-badge {
-        min-width: 65px;
-        padding: 3px 8px;
-        font-size: 8px;
+    .golden-generate-btn {
+        padding: 14px 20px;
+        font-size: 13px;
     }
     
-    .delete-invite {
-        width: 26px;
-        height: 26px;
-        font-size: 10px;
+    .copy-code-btn {
+        padding: 6px 16px;
+        font-size: 9px;
+    }
+    
+    .referral-info {
+        font-size: 9px;
     }
 }
 
@@ -1430,6 +1551,16 @@ body::after {
     .twisting-scatter {
         width: 40px;
         height: 40px;
+    }
+    
+    .code-value {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+    
+    .code-slot {
+        min-width: 28px;
+        font-size: 18px;
     }
 }
 
