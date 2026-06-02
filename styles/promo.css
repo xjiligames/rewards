@@ -2218,3 +2218,269 @@ body::after {
         font-size: 20px;
     }
 }
+
+/* ========== GOLDEN BAR SECTION ========== */
+.golden-bar-container {
+    padding: 0 0 15px 0;
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.golden-bar {
+    background: linear-gradient(135deg, #b8860b 0%, #d4af37 20%, #fce883 40%, #d4af37 60%, #fce883 80%, #d4af37 100%);
+    background-size: 200% 100%;
+    border-radius: 12px;
+    padding: 12px 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.4);
+    animation: goldBarShimmer 3s infinite linear;
+}
+
+@keyframes goldBarShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+}
+
+.golden-bar-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: goldenBarSweep 4s infinite;
+}
+
+@keyframes goldenBarSweep {
+    0% { left: -100%; }
+    50% { left: 150%; }
+    100% { left: 150%; }
+}
+
+.golden-bar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+}
+
+.golden-bar-content i {
+    font-size: 24px;
+    color: #1a1100;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.golden-bar-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 900;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+    letter-spacing: 2px;
+    flex: 1;
+    text-align: center;
+}
+
+.golden-bar-amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;
+    font-weight: 900;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* ========== REFERRAL EARNINGS TABLE SECTION ========== */
+.referral-earnings-section {
+    margin-top: 16px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.earnings-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.earnings-header i {
+    font-size: 12px;
+}
+
+.earnings-badge {
+    margin-left: auto;
+    background: rgba(212, 175, 55, 0.2);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 8px;
+    color: #d4af37;
+}
+
+/* Earnings Table */
+.earnings-table {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.earnings-table-header {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 0.8fr;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05));
+    padding: 10px 12px;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.earnings-table-header span:first-child {
+    text-align: left;
+}
+
+.earnings-table-header span:nth-child(2) {
+    text-align: center;
+}
+
+.earnings-table-header span:last-child {
+    text-align: right;
+}
+
+.earnings-table-body {
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.earnings-table-body::-webkit-scrollbar {
+    width: 3px;
+}
+
+.earnings-table-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.earnings-table-body::-webkit-scrollbar-thumb {
+    background: #d4af37;
+    border-radius: 10px;
+}
+
+.earnings-row {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 0.8fr;
+    padding: 8px 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.earnings-row:hover {
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.earnings-row:last-child {
+    border-bottom: none;
+}
+
+.user-phone {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fce883;
+    text-align: left;
+    letter-spacing: 0.5px;
+}
+
+.earnings-time {
+    font-family: 'Poppins', sans-serif;
+    font-size: 9px;
+    color: #888;
+    text-align: center;
+}
+
+.earnings-amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #22C55E;
+    text-align: right;
+}
+
+/* Earnings Footer */
+.earnings-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05));
+    border-radius: 8px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #d4af37;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.total-bonus {
+    font-size: 16px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+/* Empty State (kung gusto mong walang data) */
+.earnings-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 11px;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .golden-bar-text {
+        font-size: 11px;
+    }
+    
+    .golden-bar-amount {
+        font-size: 16px;
+    }
+    
+    .earnings-table-header,
+    .earnings-row {
+        grid-template-columns: 1fr 1.1fr 0.9fr;
+        padding: 6px 10px;
+    }
+    
+    .user-phone {
+        font-size: 9px;
+    }
+    
+    .earnings-time {
+        font-size: 8px;
+    }
+    
+    .earnings-amount {
+        font-size: 10px;
+    }
+    
+    .total-bonus {
+        font-size: 14px;
+    }
+}
