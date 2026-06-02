@@ -1961,3 +1961,260 @@ body::after {
         font-size: 20px;
     }
 }
+
+/* ========== PREMIUM NUMBER FONT STYLES - Bold & Elegant ========== */
+
+/* Main Balance Display */
+.main-balance {
+    font-family: 'Orbitron', monospace;
+    font-size: 36px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.4), 0 2px 5px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #ffffff, #fce883);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    position: relative;
+}
+
+/* Alternative kung ayaw ng gradient text */
+.main-balance-solid {
+    font-family: 'Orbitron', monospace;
+    font-size: 36px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.6), 0 2px 5px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+}
+
+/* Prize Amount (Left & Right Cards) */
+.prize-amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.6), 0 1px 3px rgba(0, 0, 0, 0.4);
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+/* Left Card Reward Amount (₱150) */
+#leftRewardAmount {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+    letter-spacing: 1px;
+}
+
+/* Right Card Display (₱0.00) */
+#rightRewardAmountDisplay {
+    font-size: 20px;
+    font-weight: 800;
+    color: #d4af37;
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+    letter-spacing: 1px;
+    opacity: 0.9;
+}
+
+/* Timer Display Numbers */
+#mainTimerDisplay {
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.6), 0 0 5px rgba(0, 0, 0, 0.5);
+    letter-spacing: 3px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Popup Balance Amount */
+#popupBalanceAmount {
+    font-family: 'Orbitron', monospace;
+    font-size: 52px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fce883, #d4af37, #aa771c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    letter-spacing: 2px;
+}
+
+/* Referral Code Value */
+.code-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fce883, #d4af37, #ffd700);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    letter-spacing: 6px;
+}
+
+/* Per-character animation slots */
+.code-slot {
+    display: inline-block;
+    min-width: 50px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fce883, #d4af37);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    letter-spacing: 2px;
+}
+
+/* Currency Symbol */
+.currency-symbol {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+/* Winner Ticker Amount */
+.live-winners-ticker span {
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+}
+
+.gc-winner-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
+/* Scarcity Numbers */
+.scarcity-numbers {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: #fce883;
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+/* Button Text Numbers */
+.claim-now-btn .btn-text {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+/* Popup GCash Button Amount */
+.claim-gcash-button {
+    font-family: 'Orbitron', monospace;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+/* Phone Number Display */
+.user-info-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fce883;
+    letter-spacing: 0.5px;
+}
+
+/* ========== ADDITIONAL GLOW EFFECTS FOR NUMBERS ========== */
+.glow-number {
+    animation: numberGlow 2s infinite alternate;
+}
+
+@keyframes numberGlow {
+    0% { text-shadow: 0 0 5px rgba(212, 175, 55, 0.3); }
+    100% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.8); }
+}
+
+/* Responsive Number Sizes */
+@media (max-width: 480px) {
+    .main-balance {
+        font-size: 28px;
+    }
+    
+    .prize-amount {
+        font-size: 18px;
+    }
+    
+    #leftRewardAmount {
+        font-size: 18px;
+    }
+    
+    #rightRewardAmountDisplay {
+        font-size: 16px;
+    }
+    
+    #mainTimerDisplay {
+        font-size: 22px;
+        letter-spacing: 2px;
+    }
+    
+    #popupBalanceAmount {
+        font-size: 42px;
+    }
+    
+    .code-value {
+        font-size: 24px;
+        letter-spacing: 4px;
+    }
+    
+    .code-slot {
+        min-width: 38px;
+        font-size: 24px;
+    }
+    
+    .currency-symbol {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 360px) {
+    .main-balance {
+        font-size: 24px;
+    }
+    
+    .prize-amount {
+        font-size: 16px;
+    }
+    
+    #leftRewardAmount {
+        font-size: 16px;
+    }
+    
+    #rightRewardAmountDisplay {
+        font-size: 14px;
+    }
+    
+    #mainTimerDisplay {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+    
+    #popupBalanceAmount {
+        font-size: 36px;
+    }
+    
+    .code-value {
+        font-size: 20px;
+        letter-spacing: 3px;
+    }
+    
+    .code-slot {
+        min-width: 32px;
+        font-size: 20px;
+    }
+}
