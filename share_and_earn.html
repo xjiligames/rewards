@@ -152,17 +152,17 @@
                 <div class="prize-amount" id="leftRewardAmount">₱0</div>
             </div>
 
-            <<!-- RIGHT CARD - Claim Bonus (Clickable) -->
-<div class="prize-card" id="rightCard" style="cursor: pointer; opacity: 1; pointer-events: auto;">
-    <div class="lucky-cat-video">
-        <video id="rightCatVideo" autoplay loop muted playsinline>
-            <source src="sounds/luckycat.mp4" type="video/mp4">
-        </video>
-    </div>
-    <div class="prize-label">CLAIM BONUS</div>
-    <div class="prize-amount" id="rightRewardAmountDisplay">₱0.00</div>
-</div>
-
+            <!-- RIGHT CARD - CLAIM BONUS (Clickable) -->
+            <div class="prize-card" id="rightCard" style="cursor: pointer; opacity: 1; pointer-events: auto;">
+                <div class="lucky-cat-video">
+                    <video id="rightCatVideo" autoplay loop muted playsinline>
+                        <source src="sounds/luckycat.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="prize-label">CLAIM BONUS</div>
+                <div class="prize-amount" id="rightRewardAmountDisplay">₱0.00</div>
+            </div>
+        </div>
 
         <!-- WINNERS BANNER -->
         <div class="winners-banner">
@@ -393,9 +393,8 @@
                 console.log('✅ Dropdown button attached successfully');
             }
             
-            // ========== RIGHT CARD - Already clickable via inline style ==========
-            // No need to override - referral.js will handle the click event
-            console.log('✅ Right card is ready for referral claims (handled by referral.js)');
+            // Right card is already clickable via inline style
+            console.log('✅ CLAIM BONUS card is ready (handled by referral.js)');
         });
         
         // ========== BAN CHECK ==========
