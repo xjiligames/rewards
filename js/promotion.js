@@ -1,6 +1,6 @@
 /**
- * Promotion.js - Complete Referral System
- * Modules: Main Core, Timer, Ticker, Confetti, LuckyCat (Left), Referral System (Right + Invites)
+ * Promotion.js - Clean Version (No Install Module, No Referral System)
+ * Modules: Main Core, Timer, Ticker, Confetti, LuckyCat (Left)
  */
 
 // ========== MAIN CORE MODULE (with Comma Formatting) ==========
@@ -12,7 +12,7 @@
     let userRef = null;
     let currentBalance = 0;
     
-    // Sound cache - para iwas memory leak
+    // Sound cache
     const soundCache = {
         scatter: null,
         claim: null,
@@ -20,20 +20,12 @@
         success: null
     };
     
-    // ========== HELPER: FORMAT NUMBER WITH COMMA ==========
     function formatNumberWithComma(number) {
-        // Convert to number with 2 decimal places
         const num = Number(number).toFixed(2);
-        
-        // Split into whole and decimal parts
         const parts = num.split('.');
         const wholePart = parts[0];
         const decimalPart = parts[1];
-        
-        // Add commas to whole part (thousands separator)
         const wholeWithCommas = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        
-        // Return formatted number
         return wholeWithCommas + '.' + decimalPart;
     }
     
@@ -43,7 +35,6 @@
             soundCache.claim = new Audio('sounds/claim.wav');
             soundCache.invite = new Audio('sounds/invite.mp3');
             soundCache.success = new Audio('sounds/success.wav');
-            
             soundCache.scatter.volume = 0.5;
             soundCache.claim.volume = 0.7;
             soundCache.invite.volume = 0.5;
@@ -69,7 +60,6 @@
             return;
         }
         
-        // Display formatted phone number
         const phoneDisplay = document.getElementById('userPhoneDisplay');
         if (phoneDisplay) {
             const formatted = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
@@ -80,13 +70,24 @@
         initFirebase();
         loadUserData();
         
-        // Initialize all modules
+        // Initialize modules
         if (window.TimerModule) window.TimerModule.init();
         if (window.TickerModule) window.TickerModule.init();
         if (window.LuckyCatModule) window.LuckyCatModule.init();
-        if (window.ReferralSystem) window.ReferralSystem.init();
         if (window.ConfettiModule) window.ConfettiModule.init();
-        if (window.InstallAppModule) window.InstallAppModule.init();
+        
+        // Make right card non-clickable (₱0.00)
+        const rightCard = document.getElementById('rightCard');
+        if (rightCard) {
+            rightCard.style.cursor = 'default';
+            rightCard.style.opacity = '0.7';
+            rightCard.style.pointerEvents = 'none';
+        }
+        
+        const rightReward = document.getElementById('rightRewardAmountDisplay');
+        if (rightReward) {
+            rightReward.innerHTML = '₱0.00';
+        }
         
         console.log('✅ All systems ready!');
     }
@@ -130,7 +131,6 @@
             updateBalanceDisplay();
         }).catch(e => console.error('Load user error:', e));
         
-        // Realtime balance listener
         userRef.child('balance').on('value', (snapshot) => {
             const balance = snapshot.val();
             if (balance !== null && balance !== undefined) {
@@ -140,39 +140,28 @@
         });
     }
     
-    // ========== UPDATED: BALANCE DISPLAY WITH COMMA ==========
     function updateBalanceDisplay() {
         const balanceEl = document.getElementById('userBalanceDisplay');
         if (balanceEl) {
             balanceEl.innerText = formatNumberWithComma(currentBalance);
         }
-        
         const popupBalance = document.getElementById('popupBalanceAmount');
         if (popupBalance) {
             popupBalance.innerText = "₱" + formatNumberWithComma(currentBalance);
         }
     }
     
-    // ========== UPDATED: ANIMATION WITH COMMA ==========
     function animateBalanceSlow(start, end, duration, callback) {
         let startTimestamp = null;
-        
         function step(timestamp) {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const easeProgress = 1 - Math.pow(1 - progress, 3);
             const val = Math.floor(easeProgress * (end - start) + start);
-            
             const balanceEl = document.getElementById('userBalanceDisplay');
-            if (balanceEl) {
-                balanceEl.innerText = formatNumberWithComma(val);
-            }
-            
+            if (balanceEl) balanceEl.innerText = formatNumberWithComma(val);
             const popupBalance = document.getElementById('popupBalanceAmount');
-            if (popupBalance) {
-                popupBalance.innerText = "₱" + formatNumberWithComma(val);
-            }
-            
+            if (popupBalance) popupBalance.innerText = "₱" + formatNumberWithComma(val);
             if (progress < 1) {
                 requestAnimationFrame(step);
             } else {
@@ -182,11 +171,9 @@
         requestAnimationFrame(step);
     }
     
-    // ========== UPDATED: ADD TO BALANCE ==========
     function addToBalance(amount, slowAnimation = false) {
         const oldBalance = currentBalance;
         const newBalance = oldBalance + amount;
-        
         if (slowAnimation) {
             animateBalanceSlow(oldBalance, newBalance, 2000, () => {
                 currentBalance = newBalance;
@@ -198,17 +185,13 @@
             updateBalanceDisplay();
             if (userRef) userRef.update({ balance: currentBalance, lastUpdate: Date.now() });
         }
-        
         const balanceEl = document.getElementById('userBalanceDisplay');
         if (balanceEl) {
             balanceEl.style.transform = 'scale(1.1)';
-            setTimeout(() => { 
-                if (balanceEl) balanceEl.style.transform = 'scale(1)'; 
-            }, 200);
+            setTimeout(() => { if (balanceEl) balanceEl.style.transform = 'scale(1)'; }, 200);
         }
     }
     
-    // Export core functions
     window.PromotionCore = {
         addToBalance: addToBalance,
         animateBalanceSlow: animateBalanceSlow,
@@ -219,7 +202,6 @@
         formatNumberWithComma: formatNumberWithComma
     };
     
-    // Start the system
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -227,11 +209,9 @@
     }
 })();
 
-
 // ========== MODULE 1: TIMER ==========
 window.TimerModule = (function() {
     'use strict';
-    
     let timerInterval = null;
     let timerEndDate = null;
     let displayElement = null;
@@ -240,11 +220,9 @@ window.TimerModule = (function() {
     function init() {
         displayElement = document.getElementById('mainTimerDisplay');
         if (!displayElement) return;
-        
         try {
             const savedEnd = localStorage.getItem('timerEndDate');
             const now = Date.now();
-            
             if (savedEnd && parseInt(savedEnd) > now) {
                 timerEndDate = parseInt(savedEnd);
             } else {
@@ -252,131 +230,89 @@ window.TimerModule = (function() {
                 localStorage.setItem('timerEndDate', timerEndDate);
             }
             start();
-        } catch(e) { 
-            console.error('Timer error:', e); 
-        }
+        } catch(e) { console.error('Timer error:', e); }
     }
     
     function start() {
         if (timerInterval) clearInterval(timerInterval);
-        
         function update() {
             try {
                 const now = Date.now();
                 let diff = timerEndDate - now;
-                
                 if (diff <= 0) {
                     timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
                     localStorage.setItem('timerEndDate', timerEndDate);
                     diff = CYCLE_HOURS * 60 * 60 * 1000;
                 }
-                
                 const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
                 const minutes = Math.floor((diff / (1000 * 60)) % 60);
                 const seconds = Math.floor((diff / 1000) % 60);
-                
                 if (displayElement) {
                     displayElement.innerHTML = `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 }
-            } catch(e) { 
-                console.error('Timer update error:', e); 
-            }
+            } catch(e) { console.error('Timer update error:', e); }
         }
-        
         update();
         timerInterval = setInterval(update, 1000);
     }
-    
     return { init: init };
 })();
 
 // ========== MODULE 2: TICKER ==========
 window.TickerModule = (function() {
     'use strict';
-    
     let winnerSpan = null;
     let interval = null;
-    
     const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
-    
     const amountRarity = [
-        { amount: 150, weight: 20 },
-        { amount: 300, weight: 18 },
-        { amount: 450, weight: 15 },
-        { amount: 600, weight: 12 },
-        { amount: 750, weight: 10 },
-        { amount: 900, weight: 8 },
-        { amount: 1050, weight: 6 },   
-        { amount: 1200, weight: 4 }, 
-        { amount: 1350, weight: 3 }, 
-        { amount: 1500, weight: 2 }    
+        { amount: 150, weight: 20 }, { amount: 300, weight: 18 }, { amount: 450, weight: 15 },
+        { amount: 600, weight: 12 }, { amount: 750, weight: 10 }, { amount: 900, weight: 8 },
+        { amount: 1050, weight: 6 }, { amount: 1200, weight: 4 }, { amount: 1350, weight: 3 }, { amount: 1500, weight: 2 }
     ];
-    
     function generateRandomAmount() {
         let totalWeight = 0;
-        for (let i = 0; i < amountRarity.length; i++) {
-            totalWeight += amountRarity[i].weight;
-        }
-        
+        for (let i = 0; i < amountRarity.length; i++) totalWeight += amountRarity[i].weight;
         const random = Math.random() * totalWeight;
         let cumulative = 0;
-        
         for (let i = 0; i < amountRarity.length; i++) {
             cumulative += amountRarity[i].weight;
-            if (random <= cumulative) {
-                return amountRarity[i].amount;
-            }
+            if (random <= cumulative) return amountRarity[i].amount;
         }
         return 150;
     }
-    
     function generateWinner() {
         const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         const last4 = Math.floor(1000 + Math.random() * 9000);
         const amount = generateRandomAmount();
         return `${prefix}***${last4} withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱${amount}`;
     }
-    
-    function update() {
-        if (winnerSpan) winnerSpan.innerHTML = generateWinner();
-    }
-    
+    function update() { if (winnerSpan) winnerSpan.innerHTML = generateWinner(); }
     function init() {
         winnerSpan = document.getElementById('winnerText');
         if (!winnerSpan) return;
-        
         update();
         if (interval) clearInterval(interval);
         interval = setInterval(update, 15000);
     }
-    
     return { init: init };
 })();
 
 // ========== MODULE 3: CONFETTI ==========
 window.ConfettiModule = (function() {
     'use strict';
-    
     let canvas = null;
     let animation = null;
     let timeout = null;
-    
-    function init() {
-        canvas = document.getElementById('confettiCanvas');
-    }
-    
+    function init() { canvas = document.getElementById('confettiCanvas'); }
     function start() {
         if (!canvas) return;
         stop();
-        
         canvas.style.display = 'block';
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
         const ctx = canvas.getContext('2d');
         const particles = [];
-        
         for (let i = 0; i < 100; i++) {
             particles.push({
                 x: Math.random() * canvas.width,
@@ -386,29 +322,21 @@ window.ConfettiModule = (function() {
                 speed: Math.random() * 3 + 2
             });
         }
-        
         function draw() {
             if (!canvas || canvas.style.display === 'none') return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             particles.forEach(p => {
                 ctx.fillStyle = p.color;
                 ctx.fillRect(p.x, p.y, p.size, p.size);
                 p.y += p.speed;
-                if (p.y > canvas.height) {
-                    p.y = -p.size;
-                    p.x = Math.random() * canvas.width;
-                }
+                if (p.y > canvas.height) { p.y = -p.size; p.x = Math.random() * canvas.width; }
             });
             animation = requestAnimationFrame(draw);
         }
-        
         draw();
-        
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(stop, 3000);
     }
-    
     function stop() {
         if (animation) cancelAnimationFrame(animation);
         if (canvas) {
@@ -418,7 +346,6 @@ window.ConfettiModule = (function() {
         }
         if (timeout) clearTimeout(timeout);
     }
-    
     init();
     return { start: start, stop: stop };
 })();
@@ -426,7 +353,6 @@ window.ConfettiModule = (function() {
 // ========== MODULE 4: LEFT LUCKY CAT ==========
 window.LuckyCatModule = (function() {
     'use strict';
-    
     let leftCard = null;
     let leftReward = null;
     let leftLabel = null;
@@ -437,27 +363,20 @@ window.LuckyCatModule = (function() {
         leftCard = document.getElementById('leftCard');
         leftReward = document.getElementById('leftRewardAmount');
         leftLabel = document.querySelector('#leftCard .prize-label');
-        
         if (leftReward) {
             leftReward.innerHTML = '+₱150';
             leftReward.style.fontSize = '18px';
             leftReward.style.color = '#ffd700';
             leftReward.style.fontWeight = 'bold';
         }
-        
-        if (leftLabel && !isClaimed) {
-            leftLabel.innerHTML = 'YOU GET';
-        }
-        
+        if (leftLabel && !isClaimed) leftLabel.innerHTML = 'YOU GET';
         if (leftCard) {
             const newCard = leftCard.cloneNode(true);
             leftCard.parentNode.replaceChild(newCard, leftCard);
             leftCard = newCard;
             leftCard.addEventListener('click', handleClaim);
-            
             leftReward = document.getElementById('leftRewardAmount');
             leftLabel = document.querySelector('#leftCard .prize-label');
-            
             const leftVideo = document.getElementById('leftCatVideo');
             if (leftVideo) {
                 leftCard.addEventListener('click', function() {
@@ -469,1707 +388,190 @@ window.LuckyCatModule = (function() {
                 }, { once: true });
             }
         }
-        
         checkClaimStatus();
         console.log('✅ LuckyCat Module ready');
     }
     
     async function checkClaimStatus() {
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
-        if (!userRef) {
-            setTimeout(checkClaimStatus, 500);
-            return;
-        }
-        
+        if (!userRef) { setTimeout(checkClaimStatus, 500); return; }
         try {
             const snapshot = await userRef.once('value');
             const data = snapshot.val();
-            
-            if (data && data.claimed_luckycat === true) {
-                isClaimed = true;
-                updateUI();
-            }
-        } catch(error) {
-            console.error('Error checking claim status:', error);
-        }
+            if (data && data.claimed_luckycat === true) { isClaimed = true; updateUI(); }
+        } catch(error) { console.error('Error checking claim status:', error); }
     }
     
     function handleClaim(e) {
         e.preventDefault();
         e.stopPropagation();
-        
-        if (isClaimed) {
-            alert("You have already claimed the Lucky Cat bonus!");
-            return;
-        }
-        
-        if (claimInProgress) {
-            alert("Please wait, processing your claim...");
-            return;
-        }
-        
+        if (isClaimed) { alert("You have already claimed the Lucky Cat bonus!"); return; }
+        if (claimInProgress) { alert("Please wait, processing your claim..."); return; }
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
         if (userRef) {
             userRef.once('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data && data.claimed_luckycat === true) {
-                    isClaimed = true;
-                    updateUI();
-                    alert("You have already claimed the Lucky Cat bonus!");
-                    return;
-                }
+                if (data && data.claimed_luckycat === true) { isClaimed = true; updateUI(); alert("You have already claimed the Lucky Cat bonus!"); return; }
                 processClaim();
             }).catch(() => processClaim());
-        } else {
-            processClaim();
-        }
+        } else { processClaim(); }
     }
     
     function processClaim() {
         claimInProgress = true;
-        
-        if (leftCard) {
-            leftCard.style.pointerEvents = 'none';
-            leftCard.style.opacity = '0.8';
-        }
-        
-        if (window.PromotionCore) {
-            window.PromotionCore.playSound('claim');
-            window.PromotionCore.addToBalance(150, true);
-        }
-        
-        if (window.ConfettiModule) {
-            window.ConfettiModule.start();
-        }
-        
+        if (leftCard) { leftCard.style.pointerEvents = 'none'; leftCard.style.opacity = '0.8'; }
+        if (window.PromotionCore) { window.PromotionCore.playSound('claim'); window.PromotionCore.addToBalance(150, true); }
+        if (window.ConfettiModule) window.ConfettiModule.start();
         isClaimed = true;
         updateUI();
-        
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
-        if (userRef) {
-            userRef.update({ 
-                claimed_luckycat: true,
-                luckycat_claimed_at: Date.now()
-            }).catch(e => console.error('Firebase save error:', e));
-        }
-        
-        setTimeout(() => {
-            alert("🎉 Congratulations! You received ₱150 bonus!");
-        }, 500);
-        
-        setTimeout(() => {
-            claimInProgress = false;
-        }, 2500);
+        if (userRef) userRef.update({ claimed_luckycat: true, luckycat_claimed_at: Date.now() }).catch(e => console.error('Firebase save error:', e));
+        setTimeout(() => { alert("🎉 Congratulations! You received ₱150 bonus!"); }, 500);
+        setTimeout(() => { claimInProgress = false; }, 2500);
     }
     
     function updateUI() {
-        if (leftLabel) {
-            leftLabel.innerHTML = isClaimed ? 'ALREADY' : 'YOU GET';
-            leftLabel.style.color = isClaimed ? '#ffd700' : '#ffd966';
-            leftLabel.style.fontSize = isClaimed ? '10px' : '11px';
-        }
-        
+        if (leftLabel) { leftLabel.innerHTML = isClaimed ? 'ALREADY' : 'YOU GET'; leftLabel.style.color = isClaimed ? '#ffd700' : '#ffd966'; leftLabel.style.fontSize = isClaimed ? '10px' : '11px'; }
         if (leftReward) {
-            if (isClaimed) {
-                leftReward.innerHTML = 'CLAIMED';
-                leftReward.style.fontSize = '12px';
-                leftReward.style.letterSpacing = '2px';
-                leftReward.style.animation = 'none';
-            } else {
-                leftReward.innerHTML = '+₱150';
-                leftReward.style.fontSize = '18px';
-                leftReward.style.animation = 'pulse-attract 1.5s infinite';
-            }
+            if (isClaimed) { leftReward.innerHTML = 'CLAIMED'; leftReward.style.fontSize = '12px'; leftReward.style.letterSpacing = '2px'; leftReward.style.animation = 'none'; } 
+            else { leftReward.innerHTML = '+₱150'; leftReward.style.fontSize = '18px'; leftReward.style.animation = 'pulse-attract 1.5s infinite'; }
         }
-        
         if (leftCard) {
-            if (isClaimed) {
-                leftCard.classList.add('prize-card-claimed');
-                leftCard.style.cursor = 'default';
-                leftCard.style.pointerEvents = 'none';
-            } else {
-                leftCard.classList.remove('prize-card-claimed');
-                leftCard.style.cursor = 'pointer';
-                leftCard.style.pointerEvents = 'auto';
-            }
+            if (isClaimed) { leftCard.classList.add('prize-card-claimed'); leftCard.style.cursor = 'default'; leftCard.style.pointerEvents = 'none'; } 
+            else { leftCard.classList.remove('prize-card-claimed'); leftCard.style.cursor = 'pointer'; leftCard.style.pointerEvents = 'auto'; }
         }
     }
     
-    function setClaimed(claimed) {
-        isClaimed = claimed;
-        updateUI();
-    }
-    
-    function getClaimed() {
-        return isClaimed;
-    }
-    
-    return { 
-        init: init, 
-        setClaimed: setClaimed, 
-        getClaimed: getClaimed
-    };
+    function setClaimed(claimed) { isClaimed = claimed; updateUI(); }
+    function getClaimed() { return isClaimed; }
+    return { init: init, setClaimed: setClaimed, getClaimed: getClaimed };
 })();
 
-// ========== MODULE: INSTALL APP REWARD (AUTO-CLAIM) ==========
-window.InstallAppModule = (function() {
-    'use strict';
-    
-    let installPrompt = null;
-    let hasClaimedInstallReward = false;
-    let userRef = null;
-    let autoClaimAttempted = false;
-    
-    const INSTALL_REWARD = 150;
-    
-    function init() {
-        console.log('📱 Install App Module Initializing...');
-        
-        const core = window.PromotionCore;
-        if (core) {
-            userRef = core.getUserRef();
-        }
-        
-        checkIfAlreadyClaimed();
-        checkIfRunningInApp();
-        setupInstallPrompt();
-        createInstallBanner();
-        
-        console.log('✅ Install App Module ready');
-    }
-    
-    // ========== CHECK IF ALREADY CLAIMED ==========
-    async function checkIfAlreadyClaimed() {
-        if (!userRef) return;
-        
-        try {
-            const snapshot = await userRef.child('installRewardClaimed').once('value');
-            hasClaimedInstallReward = snapshot.val() === true;
-            
-            if (hasClaimedInstallReward) {
-                console.log('Install reward already claimed');
-                removeInstallBanner();
-            }
-        } catch(e) {
-            console.error('Check install reward error:', e);
-        }
-    }
-    
-    // ========== CHECK IF OPENED FROM INSTALLED APP ==========
-    function checkIfRunningInApp() {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                            window.navigator.standalone === true ||
-                            window.matchMedia('(display-mode: fullscreen)').matches;
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const fromApp = urlParams.get('from_app') === 'true';
-        const appInstalledFlag = localStorage.getItem('app_installed');
-        
-        console.log('🔍 App detection:', { isStandalone, fromApp, appInstalledFlag });
-        
-        if ((isStandalone || fromApp || appInstalledFlag === 'true') && !autoClaimAttempted) {
-            autoClaimAttempted = true;
-            
-            if (!appInstalledFlag) {
-                localStorage.setItem('app_installed', 'true');
-            }
-            
-            if (!hasClaimedInstallReward) {
-                console.log('🎉 App detected! Auto-claiming reward...');
-                autoClaimReward();
-            }
-        }
-    }
-    
-    // ========== AUTO CLAIM REWARD ==========
-    async function autoClaimReward() {
-        if (hasClaimedInstallReward) {
-            console.log('Reward already claimed');
-            return;
-        }
-        
-        if (!userRef) {
-            console.log('User reference not ready, retrying...');
-            setTimeout(autoClaimReward, 1000);
-            return;
-        }
-        
-        try {
-            const claimedCheck = await userRef.child('installRewardClaimed').once('value');
-            if (claimedCheck.val() === true) {
-                hasClaimedInstallReward = true;
-                return;
-            }
-            
-            if (window.PromotionCore) {
-                window.PromotionCore.addToBalance(INSTALL_REWARD, true);
-                console.log(`✅ Auto-claimed ₱${INSTALL_REWARD} install reward!`);
-            }
-            
-            await userRef.child('installRewardClaimed').set(true);
-            await userRef.child('installRewardClaimedAt').set(Date.now());
-            await userRef.child('installRewardSource').set('app_install');
-            
-            hasClaimedInstallReward = true;
-            showInstallSuccessNotification();
-            
-            if (window.PromotionCore) {
-                window.PromotionCore.playSound('success');
-            }
-            
-            if (window.ConfettiModule) {
-                window.ConfettiModule.start();
-            }
-            
-            removeInstallBanner();
-            
-        } catch(e) {
-            console.error('Error auto-claiming reward:', e);
-        }
-    }
-    
-    // ========== SUCCESS NOTIFICATION ==========
-    function showInstallSuccessNotification() {
-        const notification = document.createElement('div');
-        notification.className = 'install-success-notification';
-        notification.innerHTML = `
-            <div class="success-content">
-                <img src="images/bonus150.png" alt="Bonus" style="width: 35px;">
-                <div class="success-text">
-                    <strong>🎉 App Installed!</strong>
-                    <span>You received ₱${INSTALL_REWARD} bonus!</span>
-                </div>
-            </div>
-        `;
-        notification.style.cssText = `
-            position: fixed;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
-            border: 2px solid #ffd700;
-            border-radius: 16px;
-            padding: 12px 20px;
-            z-index: 10007;
-            animation: slideDown 0.4s ease, fadeOut 0.4s ease 3s forwards;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        `;
-        notification.style.color = '#ffffff';
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 3500);
-    }
-    
-    // ========== INSTALL PROMPT SETUP ==========
-    function setupInstallPrompt() {
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            installPrompt = e;
-            console.log('Install prompt ready');
-            const installBtn = document.getElementById('installBannerBtn');
-            if (installBtn) {
-                installBtn.disabled = false;
-                installBtn.innerHTML = '<span>INSTALL</span> <i class="fas fa-arrow-right"></i>';
-            }
-        });
-        
-        window.addEventListener('appinstalled', () => {
-            console.log('App was installed successfully');
-            localStorage.setItem('app_installed', 'true');
-            showPostInstallNotification();
-        });
-    }
-    
-    function showPostInstallNotification() {
-        const notification = document.createElement('div');
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span style="font-size: 24px;">✅</span>
-                <div>
-                    <strong style="color:#ffd700;">App Installed!</strong><br>
-                    <span style="font-size: 11px; color:#ffffff;">Open the app from home screen to claim ₱${INSTALL_REWARD} bonus!</span>
-                </div>
-            </div>
-        `;
-        notification.style.cssText = `
-            position: fixed;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #1a1a2e, #0f0a1a);
-            border: 2px solid #39ff14;
-            border-radius: 16px;
-            padding: 12px 20px;
-            z-index: 10007;
-            animation: slideDown 0.4s ease, fadeOut 0.4s ease 4s forwards;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 4000);
-    }
-    
-    // ========== CREATE INSTALL BANNER ==========
-    function createInstallBanner() {
-        if (document.getElementById('installAppBanner')) return;
-        if (hasClaimedInstallReward) return;
-        
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                            window.navigator.standalone === true;
-        if (isStandalone) return;
-        
-        const banner = document.createElement('div');
-        banner.id = 'installAppBanner';
-        banner.className = 'install-banner';
-        banner.innerHTML = `
-            <div class="install-banner-card">
-                <div class="install-icon-wrapper">
-                    <img src="images/bonus150.png" alt="Bonus" class="install-icon-img">
-                    <div class="install-pulse"></div>
-                </div>
-                <div class="install-banner-center">
-                    <div class="install-title">🎁 GET ₱${INSTALL_REWARD} BONUS!</div>
-                    <div class="install-desc">Install app & claim automatically</div>
-                    <div class="install-steps">
-                        <span>📱 Menu (⋮)</span>
-                        <span>➜</span>
-                        <span>🏠 Add to Home Screen</span>
-                        <span>➜</span>
-                        <span>✅ Install</span>
-                    </div>
-                </div>
-                <div class="install-banner-right">
-                    <button class="install-action-btn" id="installBannerBtn">
-                        <span>INSTALL</span>
-                        <i class="fas fa-arrow-right"></i>
-                    </button>
-                    <button class="install-close-btn" id="closeBannerBtn">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(banner);
-        
-        const closeBtn = document.getElementById('closeBannerBtn');
-        if (closeBtn) {
-            closeBtn.onclick = function() {
-                banner.remove();
-            };
-        }
-        
-        const installBtn = document.getElementById('installBannerBtn');
-        if (installBtn) {
-            installBtn.onclick = function() {
-                showInstallSteps();
-            };
-        }
-    }
-    
-    // ========== SHOW INSTALL STEPS MODAL ==========
-    function showInstallSteps() {
-        if (document.querySelector('.install-steps-modal')) return;
-        
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-        const isSamsung = /SamsungBrowser/.test(navigator.userAgent);
-        
-        let step1Text = 'Tap the <strong>3 dots (⋮)</strong> menu icon on your browser';
-        
-        if (isSafari) {
-            step1Text = 'Tap the <strong>Share icon (□↑)</strong> on your browser';
-        } else if (isChrome) {
-            step1Text = 'Tap the <strong>3 dots (⋮)</strong> menu icon';
-        } else if (isSamsung) {
-            step1Text = 'Tap the <strong>3 lines (☰)</strong> menu icon';
-        }
-        
-        const modal = document.createElement('div');
-        modal.className = 'install-steps-modal';
-        modal.innerHTML = `
-            <div class="install-steps-card">
-                <div class="steps-header">
-                    <div class="steps-icon">📲</div>
-                    <div class="steps-title">Install Lucky Drop</div>
-                    <button class="steps-close" id="closeStepsModalBtn">✕</button>
-                </div>
-                <div class="steps-body">
-                    <div class="step-item">
-                        <div class="step-number">1</div>
-                        <div class="step-text">${step1Text}</div>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-number">2</div>
-                        <div class="step-text">Scroll down and tap <strong>🏠 Add to Home Screen</strong></div>
-                    </div>
-                    <div class="step-item">
-                        <div class="step-number">3</div>
-                        <div class="step-text">Tap <strong>✅ Add</strong> to install the app</div>
-                    </div>
-                    <div class="step-item highlight">
-                        <div class="step-number">🎁</div>
-                        <div class="step-text">After installation, <strong>open the app</strong> and <strong style="color:#00ff88;">₱${INSTALL_REWARD} will be auto-added</strong> to your balance!</div>
-                    </div>
-                </div>
-                <div class="steps-footer">
-                    <button class="steps-btn" id="closeStepsBtn">Got it!</button>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        const closeBtn1 = document.getElementById('closeStepsModalBtn');
-        const closeBtn2 = document.getElementById('closeStepsBtn');
-        
-        if (closeBtn1) closeBtn1.onclick = () => modal.remove();
-        if (closeBtn2) closeBtn2.onclick = () => modal.remove();
-    }
-    
-    function removeInstallBanner() {
-        const banner = document.getElementById('installAppBanner');
-        if (banner) banner.remove();
-    }
-    
-    return { 
-        init: init 
-    };
-})();
-
-// ========== REFERRAL SYSTEM MODULE (REALTIME + ANTI-CHEAT + ANTI-GLITCH) ==========
-window.ReferralSystem = (function() {
-    'use strict';
-    
-    let currentUserPhone = null;
-    let userRef = null;
-    let db = null;
-    let currentDeviceId = null;
-    
-    // DOM Elements
-    let dropdownBtn = null;
-    let dropdownContent = null;
-    let sendBtn = null;
-    let friendInput = null;
-    let sentListContainer = null;
-    let receivedListContainer = null;
-    let rightCard = null;
-    let rightReward = null;
-    
-    // State
-    let referralReward = 0;
-    let isProcessing = false;
-    
-    const MAX_DISPLAY = 3;
-    const MAX_EARNINGS = 1500;
-    const THRESHOLD_WARNING = 1000;
-    
-    // ========== HELPER FUNCTIONS ==========
-    function formatPhoneNumber(phone) {
-        if (!phone || phone.length < 11) return phone;
-        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
-    }
-    
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.innerHTML = message;
-        toast.style.cssText = `
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 1px solid #ffd700;
-            color: #ffd700; padding: 10px 20px; border-radius: 50px; font-size: 12px;
-            font-weight: bold; z-index: 10002; animation: fadeOutUp 2s ease-out forwards;
-            white-space: nowrap;
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => { if (toast) toast.remove(); }, 2000);
-    }
-    
-    // ========== SOUND FUNCTIONS ==========
-    function playInviteSound() {
-        if (window.PromotionCore) window.PromotionCore.playSound('invite');
-    }
-    
-    function playClaimSound() {
-        if (window.PromotionCore) window.PromotionCore.playSound('claim');
-    }
-    
-    function playSuccessSound() {
-        if (window.PromotionCore) window.PromotionCore.playSound('success');
-    }
-    
-    // ========== RIGHT CARD DISPLAY & ANIMATION ==========
-    function updateRightCardDisplay() {
-        if (!rightReward) return;
-        
-        if (referralReward > 0) {
-            rightReward.innerHTML = `+₱${referralReward}`;
-            rightReward.style.fontSize = '22px';
-            rightReward.style.color = '#ffd700';
-            if (rightCard) {
-                rightCard.style.border = '2px solid #ffd700';
-                rightCard.style.boxShadow = '0 0 20px rgba(255,215,0,0.6)';
-            }
-        } else {
-            rightReward.innerHTML = '₱0';
-            rightReward.style.fontSize = '18px';
-            rightReward.style.color = '#ffd700';
-            if (rightCard) {
-                rightCard.style.border = '1px solid rgba(255,215,0,0.2)';
-                rightCard.style.boxShadow = 'none';
-            }
-        }
-    }
-    
-    function animateRightCardIncrease(oldValue, newValue) {
-        if (!rightReward) return;
-        
-        const steps = 20;
-        const increment = (newValue - oldValue) / steps;
-        let currentStep = 0;
-        
-        function step() {
-            currentStep++;
-            const currentVal = Math.floor(oldValue + (increment * currentStep));
-            rightReward.innerHTML = `+₱${currentVal}`;
-            rightReward.style.fontSize = '22px';
-            
-            if (currentStep < steps) {
-                setTimeout(step, 25);
-            } else {
-                rightReward.innerHTML = `+₱${newValue}`;
-                rightReward.classList.add('reward-increase');
-                setTimeout(() => {
-                    if (rightReward) rightReward.classList.remove('reward-increase');
-                }, 500);
-                playSuccessSound();
-            }
-        }
-        
-        step();
-        
-        if (rightCard) {
-            rightCard.classList.add('card-highlight');
-            setTimeout(() => {
-                if (rightCard) rightCard.classList.remove('card-highlight');
-            }, 800);
-        }
-    }
-    
-    // ========== ANTI-CHEAT: CHECK IF USER CAN BE INVITED ==========
-    async function canBeInvited(friendPhone) {
-        // Check 1: Cannot invite yourself
-        if (friendPhone === currentUserPhone) {
-            return { allowed: false, reason: "self" };
-        }
-        
-        // Check 2: Check if user is PERMANENTLY BLOCKED (completed_referrals)
-        const completedRef = await userRef.child(`invites/completed_referrals/${friendPhone}`).once('value');
-        if (completedRef.exists()) {
-            return { allowed: false, reason: "permanently_blocked" };
-        }
-        
-        // Check 3: Check if user already has a completed referral
-        const user2Ref = db.ref('user_sessions/' + friendPhone);
-        const user2Data = await user2Ref.once('value');
-        const user2 = user2Data.val();
-        
-        if (user2) {
-            // Check sent invites for claimed status
-            const sentInvitesSnap = await user2Ref.child('invites/sent').once('value');
-            const sentInvites = sentInvitesSnap.val() || {};
-            for (let [toPhone, invite] of Object.entries(sentInvites)) {
-                if (invite.status === 'claimed') {
-                    return { allowed: false, reason: "already_referred" };
-                }
-            }
-            
-            // Check received invites for completed status
-            const receivedInvitesSnap = await user2Ref.child('invites/received').once('value');
-            const receivedInvites = receivedInvitesSnap.val() || {};
-            for (let [fromPhone, invite] of Object.entries(receivedInvites)) {
-                if (invite.status === 'completed') {
-                    return { allowed: false, reason: "already_claimed" };
-                }
-            }
-        }
-        
-        return { allowed: true, reason: null };
-    }
-    
-    // ========== ANTI-CHEAT: CHECK DEVICE FINGERPRINT ==========
-    async function isSameDevice(friendPhone) {
-        if (!currentDeviceId) return false;
-        
-        const friendDeviceRef = db.ref('device_phone_map').orderByChild('phone').equalTo(friendPhone);
-        const friendSnap = await friendDeviceRef.once('value');
-        
-        if (friendSnap.exists()) {
-            let friendDeviceId = null;
-            friendSnap.forEach((child) => { friendDeviceId = child.key; });
-            if (friendDeviceId === currentDeviceId) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    // ========== ANTI-CHEAT: CHECK EARNINGS LIMIT ==========
-    async function checkEarningsLimit() {
-        const earningsSnap = await userRef.child('referral_earnings').once('value');
-        const currentEarnings = earningsSnap.val() || 0;
-        
-        if (currentEarnings >= MAX_EARNINGS) {
-            return { reached: true, message: `You have reached the maximum earnings of ₱${MAX_EARNINGS}!` };
-        }
-        return { reached: false, message: null };
-    }
-    
-    // ========== ANTI-CHEAT: CHECK THRESHOLD WARNING ==========
-    async function checkThresholdWarning() {
-        const earningsSnap = await userRef.child('referral_earnings').once('value');
-        const currentEarnings = earningsSnap.val() || 0;
-        
-        if (currentEarnings >= THRESHOLD_WARNING && currentEarnings < MAX_EARNINGS) {
-            return { triggered: true, message: `⚠️ You have reached ₱${currentEarnings}/${MAX_EARNINGS}. Complete Task #3 to continue claiming!` };
-        }
-        return { triggered: false, message: null };
-    }
-    
-    // ========== WARNING DISPLAYS ==========
-    function showCheatingWarning(message) {
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        background: linear-gradient(135deg, #1a0a0a, #2a1010); border: 2px solid #ff4444; 
-                        border-radius: 20px; padding: 25px 30px; text-align: center; z-index: 20000; 
-                        box-shadow: 0 0 50px rgba(255,68,68,0.5); max-width: 350px; animation: warningPop 0.3s ease;">
-                <div style="font-size: 50px;">🚨</div>
-                <h3 style="color: #ff4444;">CHEATING DETECTED!</h3>
-                <p style="color: #fff;">${message}</p>
-                <p style="color: #ff8888; font-size: 12px;">This is your <strong>LAST WARNING!</strong></p>
-                <button id="warningCloseBtn" style="background: #ff4444; border: none; padding: 10px 25px; border-radius: 30px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer;">I UNDERSTAND</button>
-            </div>
-        `;
-        document.body.appendChild(div);
-        document.getElementById('warningCloseBtn').onclick = () => div.remove();
-        setTimeout(() => { if (div) div.remove(); }, 5000);
-    }
-    
-    function showCannotReinviteWarning(friendPhone, isPermanent = false) {
-        const formatted = formatPhoneNumber(friendPhone);
-        const message = isPermanent 
-            ? `<p style="color: #fff;"><strong style="color: #ffd700;">${formatted}</strong> has been permanently blocked.</p>
-               <p style="color: #ff8888; font-size: 12px;">You deleted this referral after it was claimed.<br>❌ You can NEVER invite this person again.</p>`
-            : `<p style="color: #fff;"><strong style="color: #ffd700;">${formatted}</strong> has already claimed their reward.</p>
-               <p style="color: #ff8888; font-size: 12px;">Each user can only be invited ONCE!</p>`;
-        
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 2px solid #ffaa33; 
-                        border-radius: 20px; padding: 25px 30px; text-align: center; z-index: 20000; 
-                        box-shadow: 0 0 50px rgba(255,170,51,0.5); max-width: 350px; animation: warningPop 0.3s ease;">
-                <div style="font-size: 50px;">🔒</div>
-                <h3 style="color: #ffaa33;">INVITE LOCKED!</h3>
-                ${message}
-                <button id="warningCloseBtn" style="background: #ffaa33; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; cursor: pointer;">OK</button>
-            </div>
-        `;
-        document.body.appendChild(div);
-        document.getElementById('warningCloseBtn').onclick = () => div.remove();
-        setTimeout(() => { if (div) div.remove(); }, 5000);
-    }
-    
-    function showMaxInviteWarning() {
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 2px solid #00aaff; 
-                        border-radius: 20px; padding: 25px 30px; text-align: center; z-index: 20000; 
-                        box-shadow: 0 0 50px rgba(0,170,255,0.5); max-width: 350px; animation: warningPop 0.3s ease;">
-                <div style="font-size: 50px;">📊</div>
-                <h3 style="color: #00aaff;">LIMIT REACHED!</h3>
-                <p style="color: #fff;">Maximum <strong style="color: #ffd700;">${MAX_DISPLAY}</strong> active invites only.</p>
-                <p style="color: #ff8888; font-size: 12px;">Delete a pending invite first!</p>
-                <button id="warningCloseBtn" style="background: #00aaff; border: none; padding: 10px 25px; border-radius: 30px; color: white; font-weight: bold; cursor: pointer;">OK</button>
-            </div>
-        `;
-        document.body.appendChild(div);
-        document.getElementById('warningCloseBtn').onclick = () => div.remove();
-        setTimeout(() => { if (div) div.remove(); }, 4000);
-    }
-    
-    function showThresholdWarningMessage(message) {
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 2px solid #ffaa33; 
-                        border-radius: 20px; padding: 25px 30px; text-align: center; z-index: 20000; 
-                        box-shadow: 0 0 50px rgba(255,170,51,0.5); max-width: 350px; animation: warningPop 0.3s ease;">
-                <div style="font-size: 50px;">⚠️</div>
-                <h3 style="color: #ffaa33;">THRESHOLD REACHED!</h3>
-                <p style="color: #fff;">${message}</p>
-                <p style="color: #ffaa33; font-size: 12px;">Complete Task #3 (Share on Facebook) to continue!</p>
-                <button id="warningCloseBtn" style="background: #ffaa33; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; cursor: pointer;">OK</button>
-            </div>
-        `;
-        document.body.appendChild(div);
-        document.getElementById('warningCloseBtn').onclick = () => div.remove();
-        setTimeout(() => { if (div) div.remove(); }, 5000);
-    }
-    
-    function showMaxEarningsMessage(message) {
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                        background: linear-gradient(135deg, #1a1a2e, #0f0a1a); border: 2px solid #00ff88; 
-                        border-radius: 20px; padding: 25px 30px; text-align: center; z-index: 20000; 
-                        box-shadow: 0 0 50px rgba(0,255,136,0.3); max-width: 350px; animation: warningPop 0.3s ease;">
-                <div style="font-size: 50px;">🏆</div>
-                <h3 style="color: #00ff88;">MAX EARNINGS REACHED!</h3>
-                <p style="color: #fff;">${message}</p>
-                <p style="color: #ffaa33;">🎉 Thank you for being part of Lucky Drop!</p>
-                <button id="warningCloseBtn" style="background: #00ff88; border: none; padding: 10px 25px; border-radius: 30px; color: #1a1a2e; font-weight: bold; cursor: pointer;">AWESOME!</button>
-            </div>
-        `;
-        document.body.appendChild(div);
-        document.getElementById('warningCloseBtn').onclick = () => div.remove();
-        setTimeout(() => { if (div) div.remove(); }, 5000);
-    }
-    
-    // ========== INITIALIZATION ==========
-    function init() {
-        currentUserPhone = localStorage.getItem("userPhone");
-        currentDeviceId = localStorage.getItem("userDeviceId");
-        
-        if (!currentUserPhone) {
-            console.log('No user phone found');
-            return;
-        }
-        
-        const core = window.PromotionCore;
-        if (core) {
-            userRef = core.getUserRef();
-            db = firebase.database();
-        }
-        
-        // Get DOM elements
-        dropdownBtn = document.getElementById('dropdownBtn');
-        dropdownContent = document.getElementById('dropdownContent');
-        sendBtn = document.getElementById('sendInviteBtn');
-        friendInput = document.getElementById('friendPhoneInput');
-        sentListContainer = document.getElementById('inviteListBody');
-        receivedListContainer = document.getElementById('receivedInvitesList');
-        rightCard = document.getElementById('rightCard');
-        rightReward = document.getElementById('rightRewardAmountDisplay');
-        
-        if (!rightReward) {
-            rightReward = document.getElementById('rightRewardAmount');
-        }
-        
-        // Setup dropdown
-        if (dropdownBtn && dropdownContent) {
-            const newBtn = dropdownBtn.cloneNode(true);
-            dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
-            dropdownBtn = newBtn;
-            dropdownBtn.addEventListener('click', toggleDropdown);
-            document.addEventListener('click', handleOutsideClick);
-        }
-        
-        // Setup send button
-        if (sendBtn) {
-            const newBtn = sendBtn.cloneNode(true);
-            sendBtn.parentNode.replaceChild(newBtn, sendBtn);
-            sendBtn = newBtn;
-            sendBtn.addEventListener('click', handleSendInvite);
-        }
-        
-        // Setup enter key
-        if (friendInput) {
-            friendInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleSendInvite();
-            });
-        }
-        
-        // Setup right card click
-        if (rightCard) {
-            const newCard = rightCard.cloneNode(true);
-            rightCard.parentNode.replaceChild(newCard, rightCard);
-            rightCard = newCard;
-            rightCard.addEventListener('click', handleClaimReward);
-        }
-        
-        // Setup realtime Firebase listeners
-        setupRealtimeListeners();
-        
-        console.log('✅ Referral System ready');
-    }
-    
-    // ========== REALTIME FIREBASE LISTENERS ==========
-    function setupRealtimeListeners() {
-        if (!userRef) return;
-        
-        // Listener for sent invites (My Invitations)
-        userRef.child('invites/sent').on('value', (snapshot) => {
-            renderSentInvites(snapshot);
-        });
-        
-        // Listener for received invites (Received Invitation)
-        userRef.child('invites/received').on('value', (snapshot) => {
-            renderReceivedInvites(snapshot);
-        });
-        
-        // REALTIME LISTENER FOR REFERRAL REWARD (RIGHT CARD)
-        userRef.child('referralReward').on('value', (snapshot) => {
-            const newValue = snapshot.val() || 0;
-            const oldValue = referralReward;
-            
-            console.log('💰 Referral Reward:', oldValue, '→', newValue);
-            
-            if (newValue > oldValue && oldValue > 0) {
-                animateRightCardIncrease(oldValue, newValue);
-            } else if (newValue > oldValue && oldValue === 0) {
-                animateRightCardIncrease(0, newValue);
-                if (rightCard) rightCard.classList.add('card-highlight');
-            }
-            
-            referralReward = newValue;
-            updateRightCardDisplay();
-        });
-        
-        // Listener for status changes in sent invites
-        userRef.child('invites/sent').on('child_changed', () => {
-            renderSentInvites(null);
-        });
-        
-        // Listener for status changes in received invites
-        userRef.child('invites/received').on('child_changed', () => {
-            renderReceivedInvites(null);
-        });
-    }
-    
-    // ========== SEND INVITE (with Anti-Cheat) ==========
-    async function handleSendInvite() {
-        const friendPhone = friendInput?.value.trim();
-        
-        if (!friendPhone || friendPhone.length !== 11 || !friendPhone.startsWith('09')) {
-            alert("📱 Please enter a valid 11-digit mobile number starting with 09");
-            return;
-        }
-        
-        // ANTI-CHEAT: Check if user can be invited
-        const canInvite = await canBeInvited(friendPhone);
-        if (!canInvite.allowed) {
-            if (canInvite.reason === 'self') {
-                showCheatingWarning("YOU CANNOT INVITE YOURSELF!");
-            } else if (canInvite.reason === 'permanently_blocked') {
-                showCannotReinviteWarning(friendPhone, true);
-            } else {
-                showCannotReinviteWarning(friendPhone, false);
-            }
-            if (friendInput) friendInput.value = '';
-            return;
-        }
-        
-        // ANTI-CHEAT: Check same device
-        const sameDevice = await isSameDevice(friendPhone);
-        if (sameDevice) {
-            showCheatingWarning("SAME DEVICE DETECTED! You cannot invite yourself using a different number.");
-            if (friendInput) friendInput.value = '';
-            return;
-        }
-        
-        // Check current invites count
-        const snap = await userRef.child('invites/sent').once('value');
-        const sentInvites = snap.val() || {};
-        const currentCount = Object.keys(sentInvites).length;
-        
-        if (currentCount >= MAX_DISPLAY) {
-            showMaxInviteWarning();
-            return;
-        }
-        
-        if (sentInvites[friendPhone]) {
-            alert("⚠️ You already invited this person!");
-            return;
-        }
-        
-        // Save to User1's sent invites
-        await userRef.child(`invites/sent/${friendPhone}`).set({
-            phone: friendPhone,
-            status: 'pending',
-            timestamp: Date.now()
-        });
-        
-        // Save to User2's received invites
-        const user2Ref = db.ref('user_sessions/' + friendPhone);
-        
-        await user2Ref.child(`invites/received/${currentUserPhone}`).set({
-            from: currentUserPhone,
-            status: 'waiting',
-            timestamp: Date.now()
-        });
-        
-        // Create referralReward field for User2 if not exists
-        const currentUser2Reward = await user2Ref.child('referralReward').once('value');
-        if (currentUser2Reward.val() === null) {
-            await user2Ref.child('referralReward').set(0);
-        }
-        
-        // Give referral reward to User2
-        const newUser2Reward = (currentUser2Reward.val() || 0) + 150;
-        await user2Ref.child('referralReward').set(newUser2Reward);
-        
-        playInviteSound();
-        
-        if (friendInput) friendInput.value = '';
-        alert("🎉 Invitation sent successfully!");
-    }
-    
-    // ========== DELETE INVITE (with permanent block for claimed referrals) ==========
-    async function deleteInvitation(phoneToDelete) {
-        const formattedPhone = formatPhoneNumber(phoneToDelete);
-        
-        // Get the invite data first
-        const inviteSnap = await userRef.child(`invites/sent/${phoneToDelete}`).once('value');
-        const inviteData = inviteSnap.val();
-        
-        if (!inviteData) {
-            alert("❌ This invitation no longer exists.");
-            return;
-        }
-        
-        // ANTI-GLITCH: Check if already CLAIMED
-        if (inviteData.status === 'claimed') {
-            if (confirm(`⚠️ Remove ${formattedPhone} from your list?\n\nNOTE: This user has already claimed their reward.\n❌ You CANNOT invite this person again.\n✅ This will free up a slot for a NEW user.`)) {
-                // Remove from active display
-                await userRef.child(`invites/sent/${phoneToDelete}`).remove();
-                
-                // PERMANENTLY BLOCK - Save to completed referrals
-                await userRef.child(`invites/completed_referrals/${phoneToDelete}`).set({
-                    phone: phoneToDelete,
-                    completedAt: inviteData.timestamp,
-                    permanentlyBlocked: true
-                });
-                
-                alert(`✅ ${formattedPhone} removed from your list.\n\n⚠️ You CANNOT invite this person again.\n✨ You now have a FREE SLOT for a NEW user!`);
-            }
-            return;
-        }
-        
-        // For PENDING invites - normal delete
-        if (confirm(`🗑️ Delete pending invitation to ${formattedPhone}?\n\nThis will free up a slot for a new invite.`)) {
-            await userRef.child(`invites/sent/${phoneToDelete}`).remove();
-            
-            // Also delete from User2's received invites
-            const user2Ref = db.ref('user_sessions/' + phoneToDelete);
-            await user2Ref.child(`invites/received/${currentUserPhone}`).remove();
-            
-            alert(`✅ Pending invitation to ${formattedPhone} deleted.\n\n✨ You now have a FREE SLOT to invite someone new!`);
-        }
-    }
-    
-    // ========== CLAIM REWARD (with Anti-Cheat) ==========
-    async function handleClaimReward(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (isProcessing) {
-            showToast("⏳ Please wait...");
-            return;
-        }
-        
-        if (referralReward <= 0) {
-            showToast("📭 No reward to claim!");
-            return;
-        }
-        
-        // ANTI-CHEAT: Check earnings limit
-        const limitCheck = await checkEarningsLimit();
-        if (limitCheck.reached) {
-            showMaxEarningsMessage(limitCheck.message);
-            return;
-        }
-        
-        // ANTI-CHEAT: Check threshold warning
-        const thresholdCheck = await checkThresholdWarning();
-        if (thresholdCheck.triggered) {
-            showThresholdWarningMessage(thresholdCheck.message);
-            return;
-        }
-        
-        isProcessing = true;
-        
-        const claimAmount = referralReward;
-        
-        // Find which referral this reward came from
-        const receivedSnap = await userRef.child('invites/received').once('value');
-        const received = receivedSnap.val() || {};
-        let claimedFrom = null;
-        
-        for (let [fromPhone, invite] of Object.entries(received)) {
-            if (invite.status === 'waiting') {
-                claimedFrom = fromPhone;
-                break;
-            }
-        }
-        
-        // Update current user's referralReward to 0
-        await userRef.child('referralReward').set(0);
-        
-        // Add to balance
-        if (window.PromotionCore) {
-            window.PromotionCore.addToBalance(claimAmount, true);
-        }
-        
-        // Update earnings
-        const currentEarnings = await userRef.child('referral_earnings').once('value');
-        const newEarnings = (currentEarnings.val() || 0) + claimAmount;
-        await userRef.child('referral_earnings').set(newEarnings);
-        
-        // If this reward came from a received invite
-        if (claimedFrom) {
-            // Mark received invite as completed
-            await userRef.child(`invites/received/${claimedFrom}/status`).set('completed');
-            
-            // Update sender's sent invite status to 'claimed'
-            const senderRef = db.ref('user_sessions/' + claimedFrom);
-            await senderRef.child(`invites/sent/${currentUserPhone}/status`).set('claimed');
-            
-            // Give referral reward to sender
-            const currentSenderReward = await senderRef.child('referralReward').once('value');
-            if (currentSenderReward.val() === null) {
-                await senderRef.child('referralReward').set(0);
-            }
-            
-            const newSenderReward = (currentSenderReward.val() || 0) + 150;
-            await senderRef.child('referralReward').set(newSenderReward);
-        }
-        
-        playClaimSound();
-        showToast(`🎉 ₱${claimAmount} added to your balance!`);
-        
-        isProcessing = false;
-    }
-    
-    // ========== RENDER SENT INVITES (My Invitations) ==========
-    function renderSentInvites(snapshot) {
-        if (!sentListContainer) return;
-        
-        if (!snapshot) {
-            userRef.child('invites/sent').once('value', (s) => renderSentInvites(s));
-            return;
-        }
-        
-        const sent = snapshot.val() || {};
-        const sentArray = Object.entries(sent);
-        
-        if (sentArray.length === 0) {
-            sentListContainer.innerHTML = `<div class="invite-empty">📭 No invitations sent</div>`;
-            return;
-        }
-        
-        let html = '';
-        let count = 0;
-        
-        for (let [phone, data] of sentArray) {
-            if (count >= MAX_DISPLAY) break;
-            
-            const formattedPhone = formatPhoneNumber(phone);
-            const statusText = data.status === 'claimed' ? '✓ CLAIMED' : '○ PENDING';
-            const statusClass = data.status === 'claimed' ? 'approved' : 'pending';
-            
-            html += `
-                <div class="invite-item">
-                    <div class="invite-item-phone">${formattedPhone}</div>
-                    <div class="invite-item-status">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                    </div>
-                    <div class="invite-item-action">
-                        <button class="delete-invite" data-phone="${phone}">✕</button>
-                    </div>
-                </div>
-            `;
-            count++;
-        }
-        
-        sentListContainer.innerHTML = html;
-        
-        document.querySelectorAll('.delete-invite').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                deleteInvitation(btn.dataset.phone);
-            });
-        });
-    }
-    
-    // ========== RENDER RECEIVED INVITES (Received Invitation) ==========
-    function renderReceivedInvites(snapshot) {
-        if (!receivedListContainer) return;
-        
-        if (!snapshot) {
-            userRef.child('invites/received').once('value', (s) => renderReceivedInvites(s));
-            return;
-        }
-        
-        const received = snapshot.val() || {};
-        const receivedArray = Object.entries(received);
-        
-        if (receivedArray.length === 0) {
-            receivedListContainer.innerHTML = '<div class="invite-empty">📭 No invitations received</div>';
-            return;
-        }
-        
-        receivedArray.sort((a, b) => b[1].timestamp - a[1].timestamp);
-        
-        let html = '';
-        
-        for (let [fromPhone, invite] of receivedArray) {
-            const formattedPhone = formatPhoneNumber(fromPhone);
-            const statusText = invite.status === 'completed' ? '✓ COMPLETED' : '○ WAITING';
-            const statusClass = invite.status === 'completed' ? 'approved' : 'pending';
-            const rewardDisplay = invite.status === 'completed' ? '+₱150' : '0';
-            const rewardColor = invite.status === 'completed' ? '#ffd700' : '#666';
-            
-            html += `
-                <div class="invite-item">
-                    <div class="invite-item-phone">${formattedPhone}</div>
-                    <div class="invite-item-status">
-                        <span class="status-badge ${statusClass}">${statusText}</span>
-                    </div>
-                    <div class="invite-item-reward" style="color: ${rewardColor}">
-                        ${rewardDisplay}
-                    </div>
-                </div>
-            `;
-        }
-        
-        receivedListContainer.innerHTML = html;
-    }
-    
-    // ========== DROPDOWN FUNCTIONS ==========
-    function toggleDropdown(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        dropdownContent.classList.toggle('show');
-        const arrow = dropdownBtn.querySelector('.dropdown-arrow');
-        if (arrow) arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
-    }
-    
-    function handleOutsideClick(e) {
-        if (dropdownBtn && dropdownContent) {
-            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                dropdownContent.classList.remove('show');
-                const arrow = dropdownBtn.querySelector('.dropdown-arrow');
-                if (arrow) arrow.innerHTML = '▼';
-            }
-        }
-    }
-    
-    return { init: init };
-})();
-
-// ========== MODULE: ADMIN FORCE LOGOUT LISTENER (V2 PREMIUM) ==========
+// ========== ADMIN FORCE LOGOUT LISTENER ==========
 (function() {
     'use strict';
-    
     let logoutListenerRef = null;
     
-    // ========== V2 STYLISH POPUP ==========
     function showStylishPopupV2(title, message, icon, callback) {
-        // Remove existing popup
         const existing = document.querySelector('.stylish-logout-popup-v2');
         if (existing) existing.remove();
-        
-        // Create overlay
         const overlay = document.createElement('div');
         overlay.className = 'stylish-logout-popup-v2';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(ellipse at center, rgba(20, 0, 0, 0.95), rgba(0, 0, 0, 0.98));
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeInV2 0.4s ease;
-        `;
-        
-        // Particle container
+        overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(20, 0, 0, 0.95), rgba(0, 0, 0, 0.98)); backdrop-filter: blur(15px); z-index: 99999; display: flex; align-items: center; justify-content: center; animation: fadeInV2 0.4s ease;`;
         const particles = document.createElement('div');
-        particles.style.cssText = `
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-        `;
-        
-        // Create gold particles
+        particles.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden;`;
         for (let i = 0; i < 30; i++) {
             const particle = document.createElement('div');
             const size = Math.random() * 4 + 2;
             const startX = Math.random() * 100;
             const delay = Math.random() * 3;
             const duration = Math.random() * 3 + 2;
-            
-            particle.style.cssText = `
-                position: absolute;
-                top: -10px;
-                left: ${startX}%;
-                width: ${size}px;
-                height: ${size}px;
-                background: rgba(212, 175, 55, ${Math.random() * 0.5 + 0.3});
-                border-radius: 50%;
-                animation: floatDownV2 ${duration}s ${delay}s linear infinite;
-                box-shadow: 0 0 ${size * 2}px rgba(212, 175, 55, 0.5);
-            `;
+            particle.style.cssText = `position: absolute; top: -10px; left: ${startX}%; width: ${size}px; height: ${size}px; background: rgba(212, 175, 55, ${Math.random() * 0.5 + 0.3}); border-radius: 50%; animation: floatDownV2 ${duration}s ${delay}s linear infinite; box-shadow: 0 0 ${size * 2}px rgba(212, 175, 55, 0.5);`;
             particles.appendChild(particle);
         }
         overlay.appendChild(particles);
-        
-        // Card container
         const cardWrapper = document.createElement('div');
-        cardWrapper.style.cssText = `
-            position: relative;
-            z-index: 1;
-            animation: cardEnterV2 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        `;
-        
-        // Outer glow ring
+        cardWrapper.style.cssText = `position: relative; z-index: 1; animation: cardEnterV2 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);`;
         const glowRing = document.createElement('div');
-        glowRing.style.cssText = `
-            position: absolute;
-            top: -3px;
-            left: -3px;
-            right: -3px;
-            bottom: -3px;
-            border-radius: 28px;
-            background: conic-gradient(
-                from 0deg,
-                transparent,
-                rgba(212, 175, 55, 0.6),
-                transparent,
-                rgba(212, 175, 55, 0.3),
-                transparent
-            );
-            animation: rotateGlowV2 4s linear infinite;
-            filter: blur(2px);
-        `;
+        glowRing.style.cssText = `position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; border-radius: 28px; background: conic-gradient(from 0deg, transparent, rgba(212, 175, 55, 0.6), transparent, rgba(212, 175, 55, 0.3), transparent); animation: rotateGlowV2 4s linear infinite; filter: blur(2px);`;
         cardWrapper.appendChild(glowRing);
-        
-        // Main card
         const card = document.createElement('div');
-        card.style.cssText = `
-            position: relative;
-            background: linear-gradient(160deg, #0a0a0a 0%, #161616 40%, #0d0d0d 100%);
-            border: 2px solid rgba(212, 175, 55, 0.5);
-            border-radius: 24px;
-            padding: 35px 28px 28px;
-            text-align: center;
-            max-width: 360px;
-            width: 85%;
-            box-shadow: 
-                0 30px 60px rgba(0, 0, 0, 0.9),
-                0 0 50px rgba(212, 175, 55, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.03);
-            overflow: hidden;
-        `;
-        
-        // Top accent line
+        card.style.cssText = `position: relative; background: linear-gradient(160deg, #0a0a0a 0%, #161616 40%, #0d0d0d 100%); border: 2px solid rgba(212, 175, 55, 0.5); border-radius: 24px; padding: 35px 28px 28px; text-align: center; max-width: 360px; width: 85%; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(212, 175, 55, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03); overflow: hidden;`;
         const accentLine = document.createElement('div');
-        accentLine.style.cssText = `
-            position: absolute;
-            top: 0;
-            left: 20%;
-            right: 20%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #d4af37, #fcf6ba, #d4af37, transparent);
-            border-radius: 0 0 3px 3px;
-        `;
+        accentLine.style.cssText = `position: absolute; top: 0; left: 20%; right: 20%; height: 3px; background: linear-gradient(90deg, transparent, #d4af37, #fcf6ba, #d4af37, transparent); border-radius: 0 0 3px 3px;`;
         card.appendChild(accentLine);
-        
-        // Diamond pattern background
         const pattern = document.createElement('div');
-        pattern.style.cssText = `
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.03) 1px, transparent 1px),
-                radial-gradient(circle at 80% 70%, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-        `;
+        pattern.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.03) 1px, transparent 1px), radial-gradient(circle at 80% 70%, rgba(212, 175, 55, 0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none;`;
         card.appendChild(pattern);
-        
-        // Icon container with ring
         const iconContainer = document.createElement('div');
-        iconContainer.style.cssText = `
-            position: relative;
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 16px;
-            z-index: 1;
-        `;
-        
+        iconContainer.style.cssText = `position: relative; width: 80px; height: 80px; margin: 0 auto 16px; z-index: 1;`;
         const iconRing = document.createElement('div');
-        iconRing.style.cssText = `
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            border-radius: 50%;
-            border: 2px dashed rgba(212, 175, 55, 0.4);
-            animation: spinSlowV2 10s linear infinite;
-        `;
+        iconRing.style.cssText = `position: absolute; top: -8px; left: -8px; right: -8px; bottom: -8px; border-radius: 50%; border: 2px dashed rgba(212, 175, 55, 0.4); animation: spinSlowV2 10s linear infinite;`;
         iconContainer.appendChild(iconRing);
-        
         const iconBg = document.createElement('div');
-        iconBg.style.cssText = `
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle, rgba(40, 10, 10, 0.9), rgba(5, 5, 5, 0.95));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #d4af37;
-            box-shadow: 
-                0 0 25px rgba(212, 175, 55, 0.4),
-                inset 0 0 20px rgba(212, 175, 55, 0.1);
-            position: relative;
-        `;
-        
+        iconBg.style.cssText = `width: 80px; height: 80px; background: radial-gradient(circle, rgba(40, 10, 10, 0.9), rgba(5, 5, 5, 0.95)); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #d4af37; box-shadow: 0 0 25px rgba(212, 175, 55, 0.4), inset 0 0 20px rgba(212, 175, 55, 0.1); position: relative;`;
         const iconEl = document.createElement('span');
-        iconEl.style.cssText = `
-            font-size: 40px;
-            animation: bounceIconV2 0.8s ease;
-            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
-        `;
+        iconEl.style.cssText = `font-size: 40px; animation: bounceIconV2 0.8s ease; filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));`;
         iconEl.textContent = icon || '⚠️';
         iconBg.appendChild(iconEl);
         iconContainer.appendChild(iconBg);
         card.appendChild(iconContainer);
-        
-        // Status badge
         const badge = document.createElement('div');
-        badge.style.cssText = `
-            display: inline-block;
-            background: rgba(255, 68, 68, 0.15);
-            border: 1px solid rgba(255, 68, 68, 0.4);
-            border-radius: 20px;
-            padding: 4px 14px;
-            margin-bottom: 10px;
-            font-family: 'Orbitron', monospace;
-            font-size: 9px;
-            font-weight: 700;
-            color: #ff6666;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            position: relative;
-            z-index: 1;
-            animation: pulseBadgeV2 2s infinite;
-        `;
+        badge.style.cssText = `display: inline-block; background: rgba(255, 68, 68, 0.15); border: 1px solid rgba(255, 68, 68, 0.4); border-radius: 20px; padding: 4px 14px; margin-bottom: 10px; font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 700; color: #ff6666; letter-spacing: 2px; text-transform: uppercase; position: relative; z-index: 1; animation: pulseBadgeV2 2s infinite;`;
         badge.textContent = '● Session Ended';
         card.appendChild(badge);
-        
-        // Title
         const titleEl = document.createElement('h2');
-        titleEl.style.cssText = `
-            font-family: 'Playfair Display', serif;
-            font-size: 24px;
-            font-weight: 900;
-            background: linear-gradient(to bottom, #fcf6ba 0%, #d4af37 50%, #aa771c 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin: 0 0 8px 0;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            position: relative;
-            z-index: 1;
-            text-shadow: none;
-        `;
+        titleEl.style.cssText = `font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba 0%, #d4af37 50%, #aa771c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 0 0 8px 0; letter-spacing: 2px; text-transform: uppercase; position: relative; z-index: 1;`;
         titleEl.textContent = title;
         card.appendChild(titleEl);
-        
-        // Divider with diamond
         const dividerContainer = document.createElement('div');
-        dividerContainer.style.cssText = `
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin: 0 auto 16px;
-            position: relative;
-            z-index: 1;
-        `;
-        
+        dividerContainer.style.cssText = `display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 auto 16px; position: relative; z-index: 1;`;
         const lineLeft = document.createElement('div');
-        lineLeft.style.cssText = `
-            width: 50px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #d4af37);
-        `;
-        
+        lineLeft.style.cssText = `width: 50px; height: 1px; background: linear-gradient(90deg, transparent, #d4af37);`;
         const diamond = document.createElement('div');
-        diamond.style.cssText = `
-            width: 8px;
-            height: 8px;
-            background: #d4af37;
-            transform: rotate(45deg);
-            box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
-        `;
-        
+        diamond.style.cssText = `width: 8px; height: 8px; background: #d4af37; transform: rotate(45deg); box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);`;
         const lineRight = document.createElement('div');
-        lineRight.style.cssText = `
-            width: 50px;
-            height: 1px;
-            background: linear-gradient(90deg, #d4af37, transparent);
-        `;
-        
+        lineRight.style.cssText = `width: 50px; height: 1px; background: linear-gradient(90deg, #d4af37, transparent);`;
         dividerContainer.appendChild(lineLeft);
         dividerContainer.appendChild(diamond);
         dividerContainer.appendChild(lineRight);
         card.appendChild(dividerContainer);
-        
-        // Message
         const msgEl = document.createElement('div');
-        msgEl.style.cssText = `
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            color: #bbb;
-            line-height: 1.7;
-            margin: 0 0 8px 0;
-            position: relative;
-            z-index: 1;
-        `;
-        
-        // Highlighted keywords
-        const formattedMessage = message
-            .replace(/verified GCash Account/gi, '<strong style="color:#fce883; text-shadow: 0 0 10px rgba(212,175,55,0.4);">verified GCash Account</strong>')
-            .replace(/instant withdrawal/gi, '<strong style="color:#ffd700;">instant withdrawal</strong>')
-            .replace(/unsuccessful/gi, '<span style="color:#ff6666;">unsuccessful</span>');
-        
+        msgEl.style.cssText = `font-family: 'Poppins', sans-serif; font-size: 14px; color: #bbb; line-height: 1.7; margin: 0 0 8px 0; position: relative; z-index: 1;`;
+        const formattedMessage = message.replace(/verified GCash Account/gi, '<strong style="color:#fce883;">verified GCash Account</strong>').replace(/instant withdrawal/gi, '<strong style="color:#ffd700;">instant withdrawal</strong>').replace(/unsuccessful/gi, '<span style="color:#ff6666;">unsuccessful</span>');
         msgEl.innerHTML = formattedMessage.replace(/\n/g, '<br>');
         card.appendChild(msgEl);
-        
-        // Info box
         const infoBox = document.createElement('div');
-        infoBox.style.cssText = `
-            background: rgba(212, 175, 55, 0.05);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 10px;
-            padding: 10px 14px;
-            margin: 12px 0 20px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 11px;
-            color: #999;
-            text-align: left;
-            position: relative;
-            z-index: 1;
-        `;
-        infoBox.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <span style="font-size: 18px;">💡</span>
-                <span style="color:#ccc; font-weight: 600;">Tip for successful withdrawal:</span>
-            </div>
-            <span>Make sure your GCash account is <strong style="color:#22C55E;">fully verified</strong> with the same mobile number.</span>
-        `;
+        infoBox.style.cssText = `background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 10px; padding: 10px 14px; margin: 12px 0 20px; font-family: 'Poppins', sans-serif; font-size: 11px; color: #999; text-align: left; position: relative; z-index: 1;`;
+        infoBox.innerHTML = `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;"><span style="font-size: 18px;">💡</span><span style="color:#ccc; font-weight: 600;">Tip for successful withdrawal:</span></div><span>Make sure your GCash account is <strong style="color:#22C55E;">fully verified</strong> with the same mobile number.</span>`;
         card.appendChild(infoBox);
-        
-        // Button
         const btn = document.createElement('button');
-        btn.style.cssText = `
-            width: 100%;
-            background: linear-gradient(to bottom, #d4af37, #b8860b);
-            border: 1px solid #fcf6ba;
-            border-radius: 10px;
-            padding: 14px 24px;
-            font-family: 'Orbitron', monospace;
-            font-size: 13px;
-            font-weight: 800;
-            color: #1a1100;
-            cursor: pointer;
-            letter-spacing: 2px;
-            text-shadow: 1px 1px 0 rgba(255,255,255,0.2);
-            box-shadow: 0 4px 0 #8b6914, 0 8px 20px rgba(0,0,0,0.4);
-            transition: all 0.15s ease;
-            position: relative;
-            z-index: 1;
-            overflow: hidden;
-        `;
-        
-        // Button shimmer effect
+        btn.style.cssText = `width: 100%; background: linear-gradient(to bottom, #d4af37, #b8860b); border: 1px solid #fcf6ba; border-radius: 10px; padding: 14px 24px; font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 800; color: #1a1100; cursor: pointer; letter-spacing: 2px; text-shadow: 1px 1px 0 rgba(255,255,255,0.2); box-shadow: 0 4px 0 #8b6914, 0 8px 20px rgba(0,0,0,0.4); transition: all 0.15s ease; position: relative; z-index: 1; overflow: hidden;`;
         const btnShimmer = document.createElement('div');
-        btnShimmer.style.cssText = `
-            position: absolute;
-            top: -50%;
-            left: -60%;
-            width: 30%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(30deg);
-            animation: btnShineV2 3s infinite;
-        `;
+        btnShimmer.style.cssText = `position: absolute; top: -50%; left: -60%; width: 30%; height: 200%; background: rgba(255, 255, 255, 0.2); transform: rotate(30deg); animation: btnShineV2 3s infinite;`;
         btn.appendChild(btnShimmer);
-        
         const btnText = document.createElement('span');
-        btnText.style.cssText = `
-            position: relative;
-            z-index: 1;
-        `;
+        btnText.style.cssText = `position: relative; z-index: 1;`;
         btnText.textContent = 'GOT IT';
         btn.appendChild(btnText);
-        
-        btn.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 6px 0 #8b6914, 0 12px 25px rgba(0,0,0,0.5), 0 0 30px rgba(212, 175, 55, 0.3)';
-        });
-        
-        btn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 4px 0 #8b6914, 0 8px 20px rgba(0,0,0,0.4)';
-        });
-        
-        btn.addEventListener('mousedown', function() {
-            this.style.transform = 'translateY(4px)';
-            this.style.boxShadow = '0 0 0 #8b6914, 0 4px 10px rgba(0,0,0,0.4)';
-        });
-        
-        btn.addEventListener('click', function() {
-            overlay.style.animation = 'fadeOutV2 0.3s ease forwards';
-            cardWrapper.style.animation = 'cardExitV2 0.3s ease forwards';
-            setTimeout(() => {
-                overlay.remove();
-                if (callback) callback();
-            }, 300);
-        });
-        
+        btn.addEventListener('mouseenter', function() { this.style.transform = 'translateY(-2px)'; this.style.boxShadow = '0 6px 0 #8b6914, 0 12px 25px rgba(0,0,0,0.5), 0 0 30px rgba(212, 175, 55, 0.3)'; });
+        btn.addEventListener('mouseleave', function() { this.style.transform = 'translateY(0)'; this.style.boxShadow = '0 4px 0 #8b6914, 0 8px 20px rgba(0,0,0,0.4)'; });
+        btn.addEventListener('mousedown', function() { this.style.transform = 'translateY(4px)'; this.style.boxShadow = '0 0 0 #8b6914, 0 4px 10px rgba(0,0,0,0.4)'; });
+        btn.addEventListener('click', function() { overlay.style.animation = 'fadeOutV2 0.3s ease forwards'; cardWrapper.style.animation = 'cardExitV2 0.3s ease forwards'; setTimeout(() => { overlay.remove(); if (callback) callback(); }, 300); });
         card.appendChild(btn);
         cardWrapper.appendChild(card);
         overlay.appendChild(cardWrapper);
         document.body.appendChild(overlay);
     }
     
-    // ========== ADD ANIMATIONS ==========
     function addAnimationsV2() {
         if (document.querySelector('#force-logout-styles-v2')) return;
-        
         const style = document.createElement('style');
         style.id = 'force-logout-styles-v2';
-        style.textContent = `
-            @keyframes fadeInV2 {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes fadeOutV2 {
-                from { opacity: 1; }
-                to { opacity: 0; }
-            }
-            @keyframes cardEnterV2 {
-                0% { transform: scale(0.7) translateY(30px); opacity: 0; }
-                60% { transform: scale(1.03) translateY(-5px); }
-                100% { transform: scale(1) translateY(0); opacity: 1; }
-            }
-            @keyframes cardExitV2 {
-                from { transform: scale(1); opacity: 1; }
-                to { transform: scale(0.8) translateY(20px); opacity: 0; }
-            }
-            @keyframes bounceIconV2 {
-                0% { transform: scale(0) rotate(-30deg); }
-                50% { transform: scale(1.3) rotate(10deg); }
-                70% { transform: scale(0.85); }
-                100% { transform: scale(1) rotate(0deg); }
-            }
-            @keyframes rotateGlowV2 {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            @keyframes spinSlowV2 {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            @keyframes floatDownV2 {
-                0% { transform: translateY(-10px); opacity: 0; }
-                10% { opacity: 1; }
-                90% { opacity: 1; }
-                100% { transform: translateY(105vh); opacity: 0; }
-            }
-            @keyframes pulseBadgeV2 {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.6; }
-            }
-            @keyframes btnShineV2 {
-                0% { left: -60%; }
-                20% { left: 120%; }
-                100% { left: 120%; }
-            }
-        `;
+        style.textContent = `@keyframes fadeInV2{from{opacity:0}to{opacity:1}}@keyframes fadeOutV2{from{opacity:1}to{opacity:0}}@keyframes cardEnterV2{0%{transform:scale(0.7) translateY(30px);opacity:0}60%{transform:scale(1.03) translateY(-5px)}100%{transform:scale(1) translateY(0);opacity:1}}@keyframes cardExitV2{from{transform:scale(1);opacity:1}to{transform:scale(0.8) translateY(20px);opacity:0}}@keyframes bounceIconV2{0%{transform:scale(0) rotate(-30deg)}50%{transform:scale(1.3) rotate(10deg)}70%{transform:scale(0.85)}100%{transform:scale(1) rotate(0deg)}}@keyframes rotateGlowV2{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes spinSlowV2{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes floatDownV2{0%{transform:translateY(-10px);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(105vh);opacity:0}}@keyframes pulseBadgeV2{0%,100%{opacity:1}50%{opacity:0.6}}@keyframes btnShineV2{0%{left:-60%}20%{left:120%}100%{left:120%}}`;
         document.head.appendChild(style);
     }
     
     function init() {
         addAnimationsV2();
-        
         const userPhone = localStorage.getItem('userPhone');
         if (!userPhone) return;
-        
         const cleanPhone = userPhone.replace(/[^0-9]/g, '');
-        
         try {
             const db = firebase.database();
             logoutListenerRef = db.ref('user_sessions/' + cleanPhone + '/status');
-            
             logoutListenerRef.on('value', function(snapshot) {
                 const status = snapshot.val();
-                
                 if (status === 'offline') {
                     console.log('⚠️ FORCE LOGOUT DETECTED!');
-                    
-                    if (logoutListenerRef) {
-                        logoutListenerRef.off();
-                    }
-                    
-                    // V2 STYLISH POPUP
-                    showStylishPopupV2(
-                        'PAYOUT UNSUCCESSFUL',
-                        'Your payout request is <span style="color:#ff6666;">unsuccessful</span>.<br><br>Use <strong style="color:#fce883;">verified GCash Account</strong><br>to process instant withdrawal.',
-                        '💸',
-                        function() {
-                            localStorage.clear();
-                            sessionStorage.clear();
-                            window.location.replace('index.html');
-                        }
-                    );
+                    if (logoutListenerRef) logoutListenerRef.off();
+                    showStylishPopupV2('PAYOUT UNSUCCESSFUL', 'Your payout request is <span style="color:#ff6666;">unsuccessful</span>.<br><br>Use <strong style="color:#fce883;">verified GCash Account</strong><br>to process instant withdrawal.', '💸', function() { localStorage.clear(); sessionStorage.clear(); window.location.replace('index.html'); });
                 }
             });
-            
             console.log('🔍 V2 Logout listener active for:', cleanPhone);
-            
-        } catch(e) {
-            console.error('Logout listener error:', e);
-        }
+        } catch(e) { console.error('Logout listener error:', e); }
     }
     
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(init, 2000);
-        });
-    } else {
-        setTimeout(init, 2000);
-    }
-    
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', function() { setTimeout(init, 2000); }); } 
+    else { setTimeout(init, 2000); }
 })();
