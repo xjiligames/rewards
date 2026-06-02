@@ -180,33 +180,35 @@
     }
     
     // ========== RENDER GOLDEN GENERATE BUTTON ==========
-    function renderGenerateButton() {
-        if (!referralDisplayContainer) return;
-        
-        referralDisplayContainer.innerHTML = `
-            <button class="referral-golden-btn" id="referralGenerateBtn">
+function renderGenerateButton() {
+    if (!referralDisplayContainer) return;
+    
+    referralDisplayContainer.innerHTML = `
+        <button class="referral-golden-generate-btn" id="referralGenerateBtn">
+            <div class="generate-btn-inner">
+                <div class="generate-shine"></div>
                 <i class="fas fa-gem"></i>
-                🪙 GENERATE REFERRAL CODE 🪙
+                <span class="generate-text">🪙 REFERRAL CODE 🪙</span>
                 <i class="fas fa-arrow-right"></i>
-            </button>
-        `;
+            </div>
+        </button>
+    `;
+    
+    const generateBtn = document.getElementById('referralGenerateBtn');
+    if (generateBtn) {
+        const newBtn = generateBtn.cloneNode(true);
+        generateBtn.parentNode.replaceChild(newBtn, generateBtn);
         
-        const generateBtn = document.getElementById('referralGenerateBtn');
-        if (generateBtn) {
-            // Remove any existing listeners by cloning
-            const newBtn = generateBtn.cloneNode(true);
-            generateBtn.parentNode.replaceChild(newBtn, generateBtn);
-            
-            newBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Generate button clicked!');
-                handleGenerateCode();
-            });
-            
-            console.log('✅ Generate button attached');
-        }
+        newBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Generate button clicked!');
+            handleGenerateCode();
+        });
+        
+        console.log('✅ Generate button attached');
     }
+}
     
     // ========== RENDER DISPLAY WITH GOLD BAR BUTTON (CLICK TO COPY) ==========
 function renderCodeDisplay(code) {
