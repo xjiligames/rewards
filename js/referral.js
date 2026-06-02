@@ -208,45 +208,63 @@
         }
     }
     
-    // ========== RENDER DISPLAY WITH COPY BUTTON ==========
-    function renderCodeDisplay(code) {
-        if (!referralDisplayContainer) return;
-        
-        referralDisplayContainer.innerHTML = `
-            <div class="referral-code-box">
-                <div class="referral-code-label">⭐ YOUR REFERRAL CODE ⭐</div>
-                <div class="referral-code-value" id="referralCodeValue">${code}</div>
-                <button class="referral-copy-btn" id="referralCopyBtn">
-                    <i class="fas fa-copy"></i> COPY CODE
-                </button>
-                <div class="referral-code-note">
-                    <i class="fas fa-info-circle"></i>
-                    Share this code with friends to earn rewards!
+    // ========== RENDER DISPLAY WITH GOLD BAR BUTTON (CLICK TO COPY) ==========
+function renderCodeDisplay(code) {
+    if (!referralDisplayContainer) return;
+    
+    referralDisplayContainer.innerHTML = `
+        <button class="referral-gold-bar-btn" id="referralGoldBarBtn">
+            <div class="gold-bar-inner">
+                <div class="gold-bar-shine-effect"></div>
+                <div class="gold-bar-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div class="gold-bar-code-label">YOUR REFERRAL CODE</div>
+                <div class="gold-bar-code-value" id="referralCodeValue">${code}</div>
+                <div class="gold-bar-click-hint">
+                    <i class="fas fa-copy"></i> TAP TO COPY
                 </div>
             </div>
-        `;
+        </button>
+    `;
+    
+    const goldBarBtn = document.getElementById('referralGoldBarBtn');
+    if (goldBarBtn) {
+        // Remove any existing listeners by cloning
+        const newBtn = goldBarBtn.cloneNode(true);
+        goldBarBtn.parentNode.replaceChild(newBtn, goldBarBtn);
         
-        const copyBtn = document.getElementById('referralCopyBtn');
-        if (copyBtn) {
-            const newCopyBtn = copyBtn.cloneNode(true);
-            copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
+        newBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            newCopyBtn.addEventListener('click', function() {
-                const codeValue = document.getElementById('referralCodeValue');
-                if (codeValue) {
-                    navigator.clipboard.writeText(codeValue.textContent).then(() => {
-                        newCopyBtn.innerHTML = '<i class="fas fa-check"></i> COPIED!';
+            const codeValue = document.getElementById('referralCodeValue');
+            if (codeValue) {
+                const code = codeValue.textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    // Show copied feedback
+                    const hint = newBtn.querySelector('.gold-bar-click-hint');
+                    if (hint) {
+                        const originalText = hint.innerHTML;
+                        hint.innerHTML = '<i class="fas fa-check"></i> COPIED!';
                         setTimeout(() => {
-                            newCopyBtn.innerHTML = '<i class="fas fa-copy"></i> COPY CODE';
-                        }, 2000);
-                        showToast('✅ Referral code copied to clipboard!');
-                    }).catch(() => {
-                        showToast('❌ Failed to copy');
-                    });
-                }
-            });
-        }
+                            hint.innerHTML = originalText;
+                        }, 1500);
+                    }
+                    showToast('✅ Referral code copied!');
+                    
+                    // Add click animation
+                    newBtn.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        newBtn.style.transform = 'scale(1)';
+                    }, 150);
+                }).catch(() => {
+                    showToast('❌ Failed to copy');
+                });
+            }
+        });
     }
+}
     
     // ========== SHOW TOAST NOTIFICATION ==========
     function showToast(message) {
