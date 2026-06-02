@@ -651,7 +651,68 @@
         }
         
         await loadReferralEarnings();
+        await loadReferralHistory();
         console.log('✅ Referral Claim System ready');
+    }
+
+        // ========== LOAD REFERRAL HISTORY FOR CURRENT USER ==========
+    async function loadReferralHistory() {
+        if (!userRef) return;
+        
+        const tableBody = document.getElementById('earningsTableBody');
+        const totalBonusSpan = document.getElementById('totalReferralBonus');
+        
+        if (!tableBody) return;
+        
+        try {
+            const historySnap = await userRef.child('referral_history').once('value');
+            const history = historySnap.val();
+            const totalSnap = await userRef.child('referral_claims_total').once('value');
+            const total = totalSnap.val() || 0;
+            
+            // Update total bonus display
+            if (totalBonusSpan) {
+                totalBonusSpan.innerHTML = `₱${total}`;
+            }
+            
+            // Clear table body
+            tableBody.innerHTML = '';
+            
+            if (!history || Object.keys(history).length === 0) {
+                tableBody.innerHTML = '<div class="earnings-empty"><i class="fas fa-history"></i> No referral history yet</div>';
+                return;
+            }
+            
+            // Convert to array and sort by date (newest first)
+            const historyArray = Object.entries(history).map(([key, value]) => ({
+                id: key,
+                ...value
+            })).sort((a, b) => b.claimedAt - a.claimedAt);
+            
+            // Display each history entry
+            for (const entry of historyArray) {
+                const claimedBy = entry.claimedBy || 'Unknown';
+                const formattedPhone = claimedBy.substring(0, 4) + '***' + claimedBy.substring(7, 11);
+                const date = new Date(entry.claimedAt);
+                const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                const amount = entry.amount || 150;
+                
+                const row = document.createElement('div');
+                row.className = 'earnings-row';
+                row.innerHTML = `
+                    <span class="user-phone">${formattedPhone}</span>
+                    <span class="earnings-time">${formattedDate}</span>
+                    <span class="earnings-amount">+₱${amount}</span>
+                `;
+                tableBody.appendChild(row);
+            }
+            
+        } catch(e) {
+            console.error('Error loading referral history:', e);
+            if (tableBody) {
+                tableBody.innerHTML = '<div class="earnings-empty"><i class="fas fa-exclamation-triangle"></i> Error loading history</div>';
+            }
+        }
     }
     
     // ========== FIREBASE INITIALIZATION ==========
