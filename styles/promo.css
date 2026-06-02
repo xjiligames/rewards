@@ -2787,3 +2787,206 @@ body::after {
     pointer-events: auto !important;
     cursor: pointer !important;
 }
+
+/* ========== REFERRAL SYSTEM STYLES ========== */
+
+/* Golden Generate Button */
+.referral-golden-btn {
+    background: linear-gradient(135deg, #b8860b 0%, #d4af37 15%, #fce883 30%, #d4af37 50%, #fce883 70%, #d4af37 85%, #b8860b 100%);
+    background-size: 300% 100%;
+    border: none;
+    border-radius: 16px;
+    padding: 20px 16px;
+    width: 100%;
+    cursor: pointer;
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.6);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.referral-golden-btn i {
+    font-size: 22px;
+}
+
+.referral-golden-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.4) 60%, transparent 65%);
+    transform: rotate(25deg);
+    animation: referralShineSweep 3.5s infinite;
+    pointer-events: none;
+}
+
+.referral-golden-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: referralShimmerMove 2.5s infinite;
+    pointer-events: none;
+}
+
+@keyframes referralShineSweep {
+    0% { transform: rotate(25deg) translateX(-100%) translateY(-100%); opacity: 0; }
+    25% { opacity: 1; }
+    50% { transform: rotate(25deg) translateX(0%) translateY(0%); opacity: 1; }
+    100% { transform: rotate(25deg) translateX(100%) translateY(100%); opacity: 0; }
+}
+
+@keyframes referralShimmerMove {
+    0% { left: -100%; opacity: 0; }
+    20% { opacity: 0.5; }
+    40% { opacity: 1; }
+    60% { opacity: 0.5; }
+    100% { left: 100%; opacity: 0; }
+}
+
+.referral-golden-btn:active {
+    transform: scale(0.98);
+}
+
+.referral-golden-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Code Display Box */
+.referral-code-box {
+    background: linear-gradient(135deg, #0a0a0a, #000000);
+    border: 2px solid #d4af37;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.3);
+    animation: codeBoxPulse 2s infinite alternate;
+}
+
+@keyframes codeBoxPulse {
+    0% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
+    100% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.5); }
+}
+
+.referral-code-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: #d4af37;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.referral-code-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 36px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fce883, #d4af37, #ffd700);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: 8px;
+    margin: 15px 0;
+}
+
+.referral-copy-btn {
+    background: linear-gradient(to bottom, #0066ff, #0044cc);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 25px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 0 #003399;
+}
+
+.referral-copy-btn:active {
+    transform: translateY(2px);
+    box-shadow: none;
+}
+
+.referral-code-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 10px 12px;
+    background: rgba(212, 175, 55, 0.08);
+    border-radius: 8px;
+    font-size: 10px;
+    color: #bbb;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+}
+
+.referral-code-note i {
+    color: #d4af37;
+}
+
+/* Animation Slots */
+.referral-code-slot {
+    display: inline-block;
+    min-width: 55px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    transition: all 0.1s ease;
+}
+
+@keyframes slotReveal {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes toastFadeOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .referral-golden-btn {
+        padding: 16px 12px;
+        font-size: 13px;
+    }
+    
+    .referral-golden-btn i {
+        font-size: 18px;
+    }
+    
+    .referral-code-value {
+        font-size: 24px;
+        letter-spacing: 4px;
+    }
+    
+    .referral-code-slot {
+        min-width: 38px;
+        font-size: 24px;
+    }
+}
