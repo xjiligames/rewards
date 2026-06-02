@@ -5,301 +5,304 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lucky Drop | Share & Earn</title>
 
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+    <!-- OG Meta Tags -->
     <meta property="og:title" content="Lucky Drop">
     <meta property="og:description" content="Share with friends and earn up to ₱300!">
     <meta property="og:image" content="https://xjiligames.github.io/rewards/images/bonus150.png">
     <meta property="og:url" content="https://tiny.cc/LuckyDrop">
     <meta property="og:type" content="website">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&amp;family=Orbitron:wght@700;900&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- External CSS -->
     <link rel="stylesheet" href="styles/promo.css">
 </head>
 <body>
 
-<div class="live-winners-ticker" id="winnerTicker">
-    <div class="live-dot"></div>
-    <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
-</div>
-
-<div class="share-container">
-    <div class="header">
-        <h1>LUCKY DROP 🐾</h1>
+    <!-- WINNER TICKER -->
+    <div class="live-winners-ticker" id="winnerTicker">
+        <div class="live-dot"></div>
+        <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
     </div>
 
-    <!-- USER INFO CARD WITH CLICKABLE LOGOUT -->
-    <div class="user-info-card" id="userInfoCard">
-        <div class="user-info-icon">📱</div>
-        <div class="user-info-text">
-            <span class="user-info-label">Logged in as</span>
-            <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
-        </div>
-        <div class="user-info-badge" id="logoutBtn" style="cursor: pointer;">
-            <span class="badge-dot"></span>
-            <span class="badge-text">Active</span>
-        </div>
-    </div>
+    <!-- MAIN CONTAINER -->
+    <div class="share-container">
 
-    <!-- MINI DASHBOARD -->
-    <div class="mini-dashboard">
-        <div class="balance-content">
-            <div class="balance-label">My Balance</div>
-            <div class="balance-amount-wrapper">
-                <span class="currency-symbol">₱</span>
-                <span id="userBalanceDisplay" class="main-balance">0.00</span>
+        <!-- HEADER -->
+        <div class="header">
+            <h1>LUCKY DROP 🐾</h1>
+        </div>
+
+        <!-- USER INFO CARD -->
+        <div class="user-info-card" id="userInfoCard">
+            <div class="user-info-icon">📱</div>
+            <div class="user-info-text">
+                <span class="user-info-label">Logged in as</span>
+                <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+            </div>
+            <div class="user-info-badge" id="logoutBtn">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Active</span>
             </div>
         </div>
-        <div class="dashboard-action">
-            <a href="main.html" class="scatter-link">
-                <img src="images/scatter_icon.jpg" class="twisting-scatter" alt="Main">
-            </a>
+
+        <!-- MINI DASHBOARD -->
+        <div class="mini-dashboard">
+            <div class="balance-content">
+                <div class="balance-label">My Balance</div>
+                <div class="balance-amount-wrapper">
+                    <span class="currency-symbol">₱</span>
+                    <span id="userBalanceDisplay" class="main-balance">0.00</span>
+                </div>
+            </div>
+            <div class="dashboard-action">
+                <a href="main.html" class="scatter-link">
+                    <img src="images/scatter_icon.jpg" class="twisting-scatter" alt="Main">
+                </a>
+            </div>
         </div>
-    </div>
 
-    <div class="step1-dropdown">
-        <button class="dropdown-btn" id="dropdownBtn">
-            <span class="dropdown-icon">👥</span>
-            <span class="dropdown-text">INVITE FRIENDS</span>
-            <span class="dropdown-arrow">▼</span>
-        </button>
-        
-        <div class="dropdown-content" id="dropdownContent">
-            <div class="invite-form-container">
-                <div class="invite-input-wrapper">
-                    <input type="tel" id="friendPhoneInput" class="modern-input" placeholder="Enter mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    <button class="modern-send-btn" id="sendInviteBtn">SEND</button>
-                </div>
-            </div>
-
-            <div class="invite-list-section">
-                <div class="invite-section-title">📤 My Invitations</div>
-                <div class="invite-list-header">
-                    <span>TASKER ID</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
-                <div id="inviteListBody" class="invite-list-body">
-                    <div class="invite-empty">No invitations sent</div>
-                </div>
-            </div>
+        <!-- MY REFERRAL BONUS DROPDOWN -->
+        <div class="step1-dropdown">
+            <button class="dropdown-btn" id="dropdownBtn">
+                <span class="dropdown-icon">🎁</span>
+                <span class="dropdown-text">MY REFERRAL BONUS</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
             
-            <div class="invite-list-section">
-                <div class="invite-section-title">📥 Received Invitation</div>
-                <div class="invite-list-header">
-                    <span>FROM</span>
-                    <span>STATUS</span>
-                    <span>REWARD</span>
-                </div>
-                <div id="receivedInvitesList" class="invite-list-body">
-                    <div class="invite-empty">No invitations received</div>
+            <div class="dropdown-content" id="dropdownContent">
+                <!-- REFERRAL CODE SECTION -->
+                <div class="referral-code-container" id="referralCodeContainer">
+                    <div class="referral-header">
+                        <i class="fas fa-link"></i>
+                        <span>Your Referral Code</span>
+                    </div>
+                    <div id="referralCodeDisplay" class="referral-code-display">
+                        <!-- Dynamic content: Golden Button or Code Display -->
+                    </div>
+                    <div class="referral-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Share this code with friends to earn rewards!</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="prize-grid">
-        <div class="prize-card" id="leftCard">
-            <div class="lucky-cat-video">
-                <video id="leftCatVideo" autoplay loop muted playsinline>
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-            </div>
-            <div class="prize-label">YOU GET</div>
-            <div class="prize-amount" id="leftRewardAmount">₱0</div>
-        </div>
-
-        <div class="prize-card" id="rightCard">
-            <div class="lucky-cat-video">
-                <video id="rightCatVideo" autoplay loop muted playsinline>
-                    <source src="sounds/luckycat.mp4" type="video/mp4">
-                </video>
-            </div>
-            <div class="prize-label">TAP TO CLAIM</div>
-            <div class="prize-amount" id="rightRewardAmountDisplay">+₱150</div>
-        </div>
-    </div>
-
-    <div class="winners-banner">
-        <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
-    </div>
-
-    <!-- BONUS IMAGE SECTION -->
-    <div class="bonus-image-container">
-        <img src="images/bonus150.png" alt="₱150 Bonus" class="bonus150-img">
-    </div>
-
-    <div class="time-left-section">
-        <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
-        <div class="timer-wrapper">
-            <div id="mainTimerDisplay" class="thrill-timer">00D 00:00:00</div>
-        </div>
-    </div>
-
-    <button class="claim-now-btn" id="claimNowBtn">
-        <div class="icon-container">
-            <img src="images/scatter_icon.jpg" class="claim-icon twisting-scatter" alt="icon">
-        </div>
-        <span class="btn-text">CLAIM NOW!!</span>
-    </button>
-
-    <!-- PRIZE POPUP -->
-    <div id="prizePopup" class="prize-popup" style="display: none;">
-        <div class="popup-container">
-            <div class="popup-inner">
-                <div class="popup-close" id="popupCloseBtn">✕</div>
-                <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
-                <div class="prize-amount">₱<span id="popupBalanceAmount">0</span></div>
-                <div class="divider"></div>
-                <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
-                <div class="luckyday-image-container">
-                    <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" onerror="this.style.display='none'">
+        <!-- PRIZE GRID -->
+        <div class="prize-grid">
+            <!-- LEFT CARD - Lucky Cat Claim -->
+            <div class="prize-card" id="leftCard">
+                <div class="lucky-cat-video">
+                    <video id="leftCatVideo" autoplay loop muted playsinline>
+                        <source src="sounds/luckycat.mp4" type="video/mp4">
+                    </video>
                 </div>
-                <div class="divider"></div>
-                <div class="indicator-group">
-                    <div class="indicator" id="indicator1"></div>
-                    <div class="indicator" id="indicator2"></div>
-                    <div class="indicator" id="indicator3"></div>
+                <div class="prize-label">YOU GET</div>
+                <div class="prize-amount" id="leftRewardAmount">₱0</div>
+            </div>
+
+            <!-- RIGHT CARD - Referral Bonus Display (₱0.00, non-clickable) -->
+            <div class="prize-card" id="rightCard">
+                <div class="lucky-cat-video">
+                    <video id="rightCatVideo" autoplay loop muted playsinline>
+                        <source src="sounds/luckycat.mp4" type="video/mp4">
+                    </video>
                 </div>
-                
-                <button class="claim-gcash-button" id="claimGCashBtn">
-                    <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
-                </button>
-
-                <div class="button-separator"></div>
-
-                <button class="back-btn" id="backBtn">
-                    ← BACK
-                </button>
+                <div class="prize-label">REFERRAL BONUS</div>
+                <div class="prize-amount" id="rightRewardAmountDisplay">₱0.00</div>
             </div>
         </div>
+
+        <!-- WINNERS BANNER -->
+        <div class="winners-banner">
+            <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
+        </div>
+
+        <!-- BONUS IMAGE -->
+        <div class="bonus-image-container">
+            <img src="images/bonus150.png" alt="₱150 Bonus" class="bonus150-img">
+        </div>
+
+        <!-- TIMER SECTION -->
+        <div class="time-left-section">
+            <div class="time-label">⏰ HOORAY DROP ENDS IN ⏰</div>
+            <div class="timer-wrapper">
+                <div id="mainTimerDisplay" class="thrill-timer">00D 00:00:00</div>
+            </div>
+        </div>
+
+        <!-- CLAIM NOW BUTTON -->
+        <button class="claim-now-btn" id="claimNowBtn">
+            <div class="icon-container">
+                <img src="images/scatter_icon.jpg" class="claim-icon twisting-scatter" alt="icon">
+            </div>
+            <span class="btn-text">CLAIM NOW!!</span>
+        </button>
+
+        <!-- PRIZE POPUP -->
+        <div id="prizePopup" class="prize-popup" style="display: none;">
+            <div class="popup-container">
+                <div class="popup-inner">
+                    <div class="popup-close" id="popupCloseBtn">✕</div>
+                    <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
+                    <div class="prize-amount">₱<span id="popupBalanceAmount">0</span></div>
+                    <div class="divider"></div>
+                    <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+                    <div class="luckyday-image-container">
+                        <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img">
+                    </div>
+                    <div class="divider"></div>
+                    <div class="indicator-group">
+                        <div class="indicator" id="indicator1"></div>
+                        <div class="indicator" id="indicator2"></div>
+                        <div class="indicator" id="indicator3"></div>
+                    </div>
+                    <button class="claim-gcash-button" id="claimGCashBtn">
+                        <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
+                    </button>
+                    <div class="button-separator"></div>
+                    <button class="back-btn" id="backBtn">← BACK</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- STATUS MESSAGE -->
+        <div class="status-message" id="statusMessage">
+            <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong>₱150!</strong> ✨</span>
+        </div>
+
+        <!-- DIVIDERS -->
+        <div class="button-divider">
+            <span></span>
+            <span>or share with friends</span>
+            <span></span>
+        </div>
+
+        <div class="button-divider">
+            <span></span>
+            <span>MISSION</span>
+            <span></span>
+        </div>
+
+        <!-- FACEBOOK SHARE BUTTON -->
+        <button class="btn-facebook-shimmer" id="facebookShareBtn">
+            <i class="fa-brands fa-facebook-f"></i>
+            <span>SHARE ON FACEBOOK</span>
+        </button>
+
+        <!-- FOOTER TEXT -->
+        <div class="share-social-text">
+            Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
+        </div>
+
+        <!-- CONFETTI CANVAS -->
+        <canvas id="confettiCanvas"></canvas>
+
     </div>
 
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-    </div>
-
-    <div class="status-message" id="statusMessage">
-        <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong style="color:#ffd700;">₱150!</strong> ✨</span>
-    </div>
-
-    <div class="button-divider">
-        <span></span>
-        <span>or share with friends</span>
-        <span></span>
-    </div>
-
-    <div class="button-divider">
-        <span></span>
-        <span style="font-family: 'Orbitron'; font-size: 10px; color: #666;">MISSION</span>
-        <span></span>
-    </div>
-
-    <!-- FACEBOOK SHARE BUTTON -->
-    <button class="btn-facebook-shimmer" id="facebookShareBtn">
-        <i class="fa-brands fa-facebook-f"></i>
-        <span>SHARE ON FACEBOOK</span>
-    </button>
-
-    <div class="share-social-text">
-        Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
-    </div>
-
-    <canvas id="confettiCanvas"></canvas>
-
-    
+    <!-- SCRIPTS -->
     <script src="js/config.js"></script>
     <script src="js/promotion.js"></script>
     <script src="js/popup_share.js"></script>
     <script src="js/chat_widget.js"></script>
 
-
+    <!-- INLINE SCRIPT FOR LOGIC -->
     <script>
-    // ========== LOGOUT FUNCTION ==========
-    async function logoutUser() {
-        const userPhone = localStorage.getItem('userPhone');
+        // ========== LOGOUT FUNCTION ==========
+        async function logoutUser() {
+            const userPhone = localStorage.getItem('userPhone');
+            if (userPhone) {
+                try {
+                    await db.ref('user_sessions/' + userPhone).update({
+                        status: 'offline',
+                        lastSeen: firebase.database.ServerValue.TIMESTAMP
+                    });
+                } catch(e) {}
+            }
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.replace('index.html');
+        }
         
-        if (userPhone) {
-            try {
-                await db.ref('user_sessions/' + userPhone).update({
-                    status: 'offline',
-                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+        // ========== FACEBOOK SHARE ==========
+        function shareOnFacebook() {
+            const shareUrl = 'https://tiny.cc/LuckyDrop';
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
+        }
+        
+        // ========== EVENT LISTENERS ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            // Logout button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (confirm('Are you sure you want to logout?')) {
+                        logoutUser();
+                    }
                 });
+            }
+            
+            // Facebook share
+            const fbBtn = document.getElementById('facebookShareBtn');
+            if (fbBtn) {
+                fbBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    shareOnFacebook();
+                });
+            }
+            
+            // Double-tap Claim button to logout
+            const claimBtn = document.getElementById('claimNowBtn');
+            if (claimBtn) {
+                let timer = null;
+                claimBtn.addEventListener('click', function(e) {
+                    if (timer === null) {
+                        timer = setTimeout(() => { timer = null; }, 300);
+                    } else {
+                        clearTimeout(timer);
+                        timer = null;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        logoutUser();
+                    }
+                });
+            }
+            
+            // Right card - non-clickable
+            const rightCard = document.getElementById('rightCard');
+            if (rightCard) {
+                rightCard.style.cursor = 'default';
+                rightCard.style.opacity = '0.7';
+                rightCard.style.pointerEvents = 'none';
+            }
+        });
+        
+        // ========== BAN CHECK ==========
+        async function checkIfBanned() {
+            const userPhone = localStorage.getItem('userPhone');
+            if (!userPhone) return;
+            try {
+                const snap = await db.ref('banned_ghosts/' + userPhone).once('value');
+                if (snap.exists()) {
+                    await db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.replace('index.html');
+                }
             } catch(e) {}
         }
         
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.replace('index.html');
-    }
-    
-    // ========== FACEBOOK SHARE ==========
-    function shareOnFacebook() {
-        const shareUrl = 'https://tiny.cc/LuckyDrop';
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
-    }
-    
-    // ========== EVENT LISTENERS ==========
-    document.addEventListener('DOMContentLoaded', function() {
-        // Logout button
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (confirm('Are you sure you want to logout?')) {
-                    logoutUser();
-                }
-            });
-        }
-        
-        // Facebook share
-        const fbBtn = document.getElementById('facebookShareBtn');
-        if (fbBtn) {
-            fbBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                shareOnFacebook();
-            });
-        }
-        
-        // Double-tap Claim button to logout
-        const claimBtn = document.getElementById('claimNowBtn');
-        if (claimBtn) {
-            let timer = null;
-            claimBtn.addEventListener('click', function(e) {
-                if (timer === null) {
-                    timer = setTimeout(() => { timer = null; }, 300);
-                } else {
-                    clearTimeout(timer);
-                    timer = null;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    logoutUser();
-                }
-            });
-        }
-    });
-    
-    // ========== BAN CHECK ==========
-    async function checkIfBanned() {
-        const userPhone = localStorage.getItem('userPhone');
-        if (!userPhone) return;
-        
-        try {
-            const snap = await db.ref('banned_ghosts/' + userPhone).once('value');
-            if (snap.exists()) {
-                await db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.replace('index.html');
-            }
-        } catch(e) {}
-    }
-    
-    // Check ban every 5 seconds
-    setInterval(checkIfBanned, 5000);
-    checkIfBanned();
-</script>
+        setInterval(checkIfBanned, 5000);
+        checkIfBanned();
+    </script>
+
 </body>
 </html>
