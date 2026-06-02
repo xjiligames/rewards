@@ -655,6 +655,7 @@
         
         await loadReferralEarnings();
         await loadReferralHistory();
+        
         console.log('✅ Referral Claim System ready');
     }
 
