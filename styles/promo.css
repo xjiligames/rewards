@@ -1972,3 +1972,186 @@ body::after {
     .chat-toggle-btn { width: 50px; height: 50px; }
     .chat-toggle-btn i { font-size: 20px; }
 }
+
+/* ========== REFERRAL GOLD BAR BUTTON (CLICKABLE - COPY CODE) ========== */
+.referral-gold-bar-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    transition: transform 0.15s ease;
+}
+
+.referral-gold-bar-btn:active {
+    transform: scale(0.98);
+}
+
+.gold-bar-inner {
+    background: linear-gradient(135deg, #b8860b 0%, #d4af37 15%, #fce883 30%, #d4af37 50%, #fce883 70%, #d4af37 85%, #b8860b 100%);
+    background-size: 300% 100%;
+    border-radius: 16px;
+    padding: 20px 16px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.6);
+    animation: goldBarGlow 2s infinite alternate;
+}
+
+@keyframes goldBarGlow {
+    0% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+    100% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.7); }
+}
+
+.gold-bar-shine-effect {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.4) 60%, transparent 65%);
+    transform: rotate(25deg);
+    animation: goldBarShineSweep 3.5s infinite;
+    pointer-events: none;
+}
+
+@keyframes goldBarShineSweep {
+    0% { transform: rotate(25deg) translateX(-100%) translateY(-100%); opacity: 0; }
+    25% { opacity: 1; }
+    50% { transform: rotate(25deg) translateX(0%) translateY(0%); opacity: 1; }
+    100% { transform: rotate(25deg) translateX(100%) translateY(100%); opacity: 0; }
+}
+
+.gold-bar-icon {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.gold-bar-icon i {
+    font-size: 28px;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.gold-bar-code-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.gold-bar-code-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 36px;
+    font-weight: 900;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
+    letter-spacing: 8px;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.gold-bar-click-hint {
+    font-family: 'Poppins', sans-serif;
+    font-size: 9px;
+    color: #1a1100;
+    text-align: center;
+    margin-top: 8px;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.gold-bar-click-hint i {
+    font-size: 10px;
+}
+
+/* ========== GENERATE BUTTON STYLES ========== */
+.referral-golden-generate-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s ease;
+}
+
+.referral-golden-generate-btn:active {
+    transform: scale(0.98);
+}
+
+.generate-btn-inner {
+    background: linear-gradient(135deg, #b8860b 0%, #d4af37 15%, #fce883 30%, #d4af37 50%, #fce883 70%, #d4af37 85%, #b8860b 100%);
+    background-size: 300% 100%;
+    border-radius: 16px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.6);
+}
+
+.generate-btn-inner i {
+    font-size: 24px;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.generate-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: #1a1100;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
+}
+
+.generate-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.4) 60%, transparent 65%);
+    transform: rotate(25deg);
+    animation: generateShineSweep 3.5s infinite;
+    pointer-events: none;
+}
+
+@keyframes generateShineSweep {
+    0% { transform: rotate(25deg) translateX(-100%) translateY(-100%); opacity: 0; }
+    25% { opacity: 1; }
+    50% { transform: rotate(25deg) translateX(0%) translateY(0%); opacity: 1; }
+    100% { transform: rotate(25deg) translateX(100%) translateY(100%); opacity: 0; }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .gold-bar-code-value {
+        font-size: 24px;
+        letter-spacing: 4px;
+    }
+    
+    .generate-text {
+        font-size: 13px;
+    }
+    
+    .generate-btn-inner i {
+        font-size: 18px;
+    }
+    
+    .gold-bar-icon i {
+        font-size: 22px;
+    }
+}
