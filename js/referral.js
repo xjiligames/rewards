@@ -478,7 +478,7 @@
         return { valid: true, referrerPhone: referrerPhone, referrerCode: code };
     }
     
-    async function addToReferrerHistory(referrerPhone, userPhone, code) {
+       async function addToReferrerHistory(referrerPhone, userPhone, code) {
         try {
             const referrerRef = db.ref('user_sessions/' + referrerPhone);
             const historyEntry = {
@@ -487,17 +487,20 @@
                 code: code,
                 amount: 150
             };
+            // This saves to database - NO FAKE DATA
             await referrerRef.child('referral_history').push(historyEntry);
             
+            // Update referral count
             const currentCount = await referrerRef.child('referral_count').once('value');
             const newCount = (currentCount.val() || 0) + 1;
             await referrerRef.child('referral_count').set(newCount);
             
+            // Update total earnings
             const currentEarnings = await referrerRef.child('referral_claims_total').once('value');
             const newEarnings = (currentEarnings.val() || 0) + 150;
             await referrerRef.child('referral_claims_total').set(newEarnings);
             
-            console.log('✅ Added to referrer history:', referrerPhone);
+            console.log('✅ Added to referrer history (REAL DATA):', { referrerPhone, userPhone, code });
         } catch(e) {
             console.error('Error adding to referrer history:', e);
         }
@@ -655,7 +658,7 @@
         console.log('✅ Referral Claim System ready');
     }
 
-        // ========== LOAD REFERRAL HISTORY FOR CURRENT USER ==========
+           // ========== LOAD REFERRAL HISTORY FROM DATABASE ==========
     async function loadReferralHistory() {
         if (!userRef) return;
         
@@ -665,19 +668,22 @@
         if (!tableBody) return;
         
         try {
-            const historySnap = await userRef.child('referral_history').once('value');
-            const history = historySnap.val();
+            // Get total earnings from database
             const totalSnap = await userRef.child('referral_claims_total').once('value');
             const total = totalSnap.val() || 0;
             
-            // Update total bonus display
             if (totalBonusSpan) {
                 totalBonusSpan.innerHTML = `₱${total}`;
             }
             
+            // Get referral history from database
+            const historySnap = await userRef.child('referral_history').once('value');
+            const history = historySnap.val();
+            
             // Clear table body
             tableBody.innerHTML = '';
             
+            // If no history yet, show empty message
             if (!history || Object.keys(history).length === 0) {
                 tableBody.innerHTML = '<div class="earnings-empty"><i class="fas fa-history"></i> No referral history yet</div>';
                 return;
@@ -686,16 +692,23 @@
             // Convert to array and sort by date (newest first)
             const historyArray = Object.entries(history).map(([key, value]) => ({
                 id: key,
-                ...value
+                claimedBy: value.claimedBy || 'Unknown',
+                claimedAt: value.claimedAt || Date.now(),
+                amount: value.amount || 150,
+                code: value.code || '---'
             })).sort((a, b) => b.claimedAt - a.claimedAt);
             
-            // Display each history entry
+            // Display each history entry from REAL DATABASE
             for (const entry of historyArray) {
-                const claimedBy = entry.claimedBy || 'Unknown';
-                const formattedPhone = claimedBy.substring(0, 4) + '***' + claimedBy.substring(7, 11);
+                const claimedBy = entry.claimedBy;
+                // Format phone number: 0917***4256
+                const formattedPhone = claimedBy.length >= 11 
+                    ? claimedBy.substring(0, 4) + '***' + claimedBy.substring(7, 11)
+                    : claimedBy;
+                
                 const date = new Date(entry.claimedAt);
                 const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-                const amount = entry.amount || 150;
+                const amount = entry.amount;
                 
                 const row = document.createElement('div');
                 row.className = 'earnings-row';
@@ -706,6 +719,8 @@
                 `;
                 tableBody.appendChild(row);
             }
+            
+            console.log(`✅ Loaded ${historyArray.length} referral history entries from database`);
             
         } catch(e) {
             console.error('Error loading referral history:', e);
