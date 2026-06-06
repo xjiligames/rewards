@@ -1,6 +1,5 @@
 /**
- * referral.js - Complete Referral System with Threshold
- * Features: Generate code, enter referral codes, threshold system (₱200/code, max ₱1000), claim to balance
+ * referral.js - Simplified Working Version
  */
 
 (function() {
@@ -11,14 +10,6 @@
     let db = null;
     let currentReferralCode = null;
     let isGenerating = false;
-    let retryCount = 0;
-    const MAX_RETRY = 5;
-    
-    // Threshold System Variables
-    let currentThreshold = 0;
-    const MAX_THRESHOLD = 1000;
-    const BONUS_PER_CODE = 200;
-    let isClaimProcessing = false;
     
     // DOM Elements
     let dropdownBtn = null;
@@ -32,10 +23,43 @@
     let claimCodeInput = null;
     let rightCard = null;
     let rightCardReward = null;
-    let popupThresholdDisplay = null;
-    let popupEarningsList = null;
-    let popupClaimBtn = null;
     let errorMsgDiv = null;
+    let isProcessing = false;
+    
+    // ========== HELPER FUNCTIONS ==========
+    function showToast(msg) {
+        alert(msg);
+    }
+    
+    function showError(msg) {
+        if (errorMsgDiv) {
+            errorMsgDiv.style.display = 'block';
+            errorMsgDiv.innerHTML = msg;
+            setTimeout(() => {
+                if (errorMsgDiv) errorMsgDiv.style.display = 'none';
+            }, 3000);
+        } else {
+            alert(msg);
+        }
+    }
+    
+    function showSuccess(msg) {
+        if (errorMsgDiv) {
+            errorMsgDiv.style.display = 'block';
+            errorMsgDiv.style.background = 'rgba(34, 197, 94, 0.15)';
+            errorMsgDiv.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+            errorMsgDiv.style.color = '#22C55E';
+            errorMsgDiv.innerHTML = msg;
+            setTimeout(() => {
+                if (errorMsgDiv) errorMsgDiv.style.display = 'none';
+                errorMsgDiv.style.background = '';
+                errorMsgDiv.style.border = '';
+                errorMsgDiv.style.color = '';
+            }, 3000);
+        } else {
+            alert(msg);
+        }
+    }
     
     // ========== GENERATE 6-CHARACTER REFERRAL CODE ==========
     function generateReferralCode() {
@@ -66,7 +90,7 @@
         for (let i = 0; i < 6; i++) {
             const slot = document.createElement('span');
             slot.className = 'referral-code-slot';
-            slot.style.cssText = `display: inline-block; min-width: 55px; text-align: center; font-family: 'Orbitron', monospace; font-size: 32px; font-weight: 900; color: #fce883; transition: all 0.1s ease;`;
+            slot.style.cssText = `display: inline-block; min-width: 50px; text-align: center; font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 900; color: #fce883;`;
             slot.textContent = '?';
             container.appendChild(slot);
             slots.push(slot);
@@ -77,17 +101,17 @@
             const finalChar = finalCode[i];
             const slot = slots[i];
             
-            for (let r = 0; r < 15; r++) {
-                await new Promise(resolve => setTimeout(resolve, 45));
+            for (let r = 0; r < 12; r++) {
+                await new Promise(resolve => setTimeout(resolve, 40));
                 const randomChar = charSet.charAt(Math.floor(Math.random() * charSet.length));
                 slot.textContent = randomChar;
-                slot.style.transform = 'scale(1.15)';
-                setTimeout(() => { slot.style.transform = 'scale(1)'; }, 45);
+                slot.style.transform = 'scale(1.2)';
+                setTimeout(() => { slot.style.transform = 'scale(1)'; }, 40);
             }
             
             slot.textContent = finalChar;
             slot.style.color = '#ffffff';
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 80));
         }
     }
     
@@ -97,8 +121,12 @@
         try {
             await userRef.child('referral_code').set(code);
             await userRef.child('referral_code_generated_at').set(Date.now());
+            console.log('✅ Code saved:', code);
             return true;
-        } catch(e) { return false; }
+        } catch(e) { 
+            console.error('Save error:', e);
+            return false; 
+        }
     }
     
     async function loadReferralCodeFromDB() {
@@ -106,197 +134,36 @@
         try {
             const snap = await userRef.child('referral_code').once('value');
             return snap.val();
-        } catch(e) { return null; }
-    }
-    
-    // ========== THRESHOLD FUNCTIONS ==========
-    async function loadThreshold() {
-        if (!userRef) return 0;
-        try {
-            const snap = await userRef.child('claim_threshold').once('value');
-            currentThreshold = snap.val() || 0;
-            updateRightCardDisplay();
-            updatePopupDisplay();
-            return currentThreshold;
-        } catch(e) {
-            console.error('Error loading threshold:', e);
-            return 0;
-        }
-    }
-    
-    function updateRightCardDisplay() {
-        if (rightCardReward) {
-            rightCardReward.innerHTML = `₱${currentThreshold}`;
-        }
-        
-        // Lock right card if threshold is full
-        if (rightCard) {
-            if (currentThreshold >= MAX_THRESHOLD) {
-                rightCard.style.opacity = '0.6';
-                rightCard.style.pointerEvents = 'none';
-                rightCard.style.cursor = 'default';
-            } else {
-                rightCard.style.opacity = '1';
-                rightCard.style.pointerEvents = 'auto';
-                rightCard.style.cursor = 'pointer';
-            }
-        }
-    }
-    
-    function updatePopupDisplay() {
-        if (popupThresholdDisplay) {
-            popupThresholdDisplay.innerHTML = `₱${currentThreshold} / ₱${MAX_THRESHOLD}`;
-            
-            const progressFill = document.querySelector('#popupThresholdProgress .progress-fill-inner');
-            if (progressFill) {
-                const percent = (currentThreshold / MAX_THRESHOLD) * 100;
-                progressFill.style.width = percent + '%';
-            }
-        }
-        
-        if (popupClaimBtn) {
-            if (currentThreshold <= 0) {
-                popupClaimBtn.disabled = true;
-                popupClaimBtn.style.opacity = '0.5';
-            } else {
-                popupClaimBtn.disabled = false;
-                popupClaimBtn.style.opacity = '1';
-            }
-        }
-    }
-    
-    // ========== USED CODES TRACKING ==========
-    async function loadUsedCodes() {
-        if (!userRef) return [];
-        try {
-            const snap = await userRef.child('used_referral_codes').once('value');
-            const usedCodes = snap.val();
-            return usedCodes ? Object.keys(usedCodes) : [];
-        } catch(e) {
-            console.error('Error loading used codes:', e);
-            return [];
-        }
-    }
-    
-    async function saveUsedCode(code, referrerPhone) {
-        if (!userRef) return false;
-        try {
-            await userRef.child('used_referral_codes/' + code).set({
-                usedAt: Date.now(),
-                fromUser: referrerPhone,
-                amount: BONUS_PER_CODE
-            });
-            return true;
-        } catch(e) {
-            console.error('Error saving used code:', e);
-            return false;
-        }
-    }
-    
-    // ========== ADD TO REFERRER HISTORY ==========
-    async function addToReferrerHistory(referrerPhone, userPhone, code) {
-        try {
-            const referrerRef = db.ref('user_sessions/' + referrerPhone);
-            await referrerRef.child('referral_history').push({
-                claimedBy: userPhone,
-                claimedAt: Date.now(),
-                code: code,
-                amount: BONUS_PER_CODE
-            });
-            
-            const currentEarnings = await referrerRef.child('referral_claims_total').once('value');
-            const newEarnings = (currentEarnings.val() || 0) + BONUS_PER_CODE;
-            await referrerRef.child('referral_claims_total').set(newEarnings);
-            
-            console.log('✅ Added to referrer history:', referrerPhone);
-        } catch(e) {
-            console.error('Error adding to referrer history:', e);
-        }
-    }
-    
-    // ========== EARNINGS LIST FOR POPUP ==========
-    async function addToEarningsList(code, amount, referrerPhone) {
-        if (!userRef) return;
-        try {
-            await userRef.child('claim_earnings_list').push({
-                code: code,
-                amount: amount,
-                fromUser: referrerPhone,
-                claimedAt: Date.now(),
-                transferred: false
-            });
-            await loadEarningsList();
-        } catch(e) {
-            console.error('Error adding to earnings list:', e);
-        }
-    }
-    
-    async function loadEarningsList() {
-        if (!userRef) return;
-        
-        const earningsListContainer = document.getElementById('popupEarningsList');
-        if (!earningsListContainer) return;
-        
-        try {
-            const snap = await userRef.child('claim_earnings_list').once('value');
-            const earnings = snap.val();
-            
-            if (!earnings || Object.keys(earnings).length === 0) {
-                earningsListContainer.innerHTML = '<div class="earnings-empty-list">No referral codes entered yet</div>';
-                return;
-            }
-            
-            const earningsArray = Object.entries(earnings).map(([key, value]) => ({
-                id: key,
-                code: value.code,
-                amount: value.amount,
-                fromUser: value.fromUser,
-                claimedAt: value.claimedAt,
-                transferred: value.transferred || false
-            })).sort((a, b) => b.claimedAt - a.claimedAt);
-            
-            let html = '';
-            for (const entry of earningsArray) {
-                const formattedPhone = entry.fromUser.length >= 11 
-                    ? entry.fromUser.substring(0, 4) + '***' + entry.fromUser.substring(7, 11)
-                    : entry.fromUser;
-                const date = new Date(entry.claimedAt);
-                const formattedDate = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
-                
-                html += `
-                    <div class="earnings-list-item">
-                        <div class="earnings-list-code">${entry.code}</div>
-                        <div class="earnings-list-from">from: ${formattedPhone}</div>
-                        <div class="earnings-list-amount">+₱${entry.amount}</div>
-                        <div class="earnings-list-date">${formattedDate}</div>
-                    </div>
-                `;
-            }
-            earningsListContainer.innerHTML = html;
-            
-        } catch(e) {
-            console.error('Error loading earnings list:', e);
-            earningsListContainer.innerHTML = '<div class="earnings-empty-list">Error loading history</div>';
+        } catch(e) { 
+            console.error('Load error:', e);
+            return null; 
         }
     }
     
     // ========== RENDER FUNCTIONS ==========
     function renderGenerateButton() {
         if (!referralDisplayContainer) return;
-        referralDisplayContainer.innerHTML = `<button class="referral-golden-generate-btn" id="referralGenerateBtn" style="width:100%; padding:20px; background:linear-gradient(135deg,#b8860b,#d4af37,#fce883); border:none; border-radius:16px; font-family:'Orbitron',monospace; font-size:16px; font-weight:900; color:#1a1100; cursor:pointer;">🪙 GENERATE REFERRAL CODE 🪙</button>`;
+        referralDisplayContainer.innerHTML = `
+            <button id="referralGenerateBtn" style="width:100%; padding:20px; background:linear-gradient(135deg,#b8860b,#d4af37,#fce883); border:none; border-radius:16px; font-family:'Orbitron',monospace; font-size:16px; font-weight:900; color:#1a1100; cursor:pointer;">
+                🪙 GENERATE REFERRAL CODE 🪙
+            </button>
+        `;
         
         const generateBtn = document.getElementById('referralGenerateBtn');
         if (generateBtn) {
-            generateBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                handleGenerateCode();
-            });
+            generateBtn.addEventListener('click', handleGenerateCode);
         }
     }
     
     function renderCodeDisplay(code) {
         if (!referralDisplayContainer) return;
-        referralDisplayContainer.innerHTML = `<button class="referral-gold-bar-btn" id="referralGoldBarBtn" style="width:100%; padding:20px; background:linear-gradient(135deg,#b8860b,#d4af37,#fce883); border:none; border-radius:16px; font-family:'Orbitron',monospace; cursor:pointer;"><div style="font-size:12px; color:#1a1100;">YOUR REFERRAL CODE</div><div style="font-size:28px; font-weight:900; color:#1a1100; letter-spacing:4px;">${code}</div><div style="font-size:10px; color:#1a1100;"><i class="fas fa-copy"></i> TAP TO COPY</div></button>`;
+        referralDisplayContainer.innerHTML = `
+            <button id="referralGoldBarBtn" style="width:100%; padding:20px; background:linear-gradient(135deg,#b8860b,#d4af37,#fce883); border:none; border-radius:16px; font-family:'Orbitron',monospace; cursor:pointer;">
+                <div style="font-size:12px; color:#1a1100;">YOUR REFERRAL CODE</div>
+                <div style="font-size:28px; font-weight:900; color:#1a1100; letter-spacing:4px;">${code}</div>
+                <div style="font-size:10px; color:#1a1100;"><i class="fas fa-copy"></i> TAP TO COPY</div>
+            </button>
+        `;
         
         const goldBarBtn = document.getElementById('referralGoldBarBtn');
         if (goldBarBtn) {
@@ -306,11 +173,12 @@
         }
     }
     
-    function showToast(msg) { alert(msg); }
-    
     // ========== GENERATION HANDLER ==========
     async function handleGenerateCode() {
-        if (isGenerating) { showToast('Already generating...'); return; }
+        if (isGenerating) {
+            showToast('Already generating...');
+            return;
+        }
         
         const existingCode = await loadReferralCodeFromDB();
         if (existingCode) {
@@ -322,9 +190,10 @@
         
         isGenerating = true;
         const newCode = generateReferralCode();
+        console.log('Generated:', newCode);
         
         const animationContainer = document.createElement('div');
-        animationContainer.style.cssText = `display: flex; justify-content: center; gap: 10px; padding: 25px; background: rgba(0,0,0,0.5); border-radius: 16px;`;
+        animationContainer.style.cssText = `display: flex; justify-content: center; gap: 8px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 16px;`;
         referralDisplayContainer.innerHTML = '';
         referralDisplayContainer.appendChild(animationContainer);
         await animateCodeGeneration(animationContainer, newCode);
@@ -334,10 +203,10 @@
             currentReferralCode = newCode;
             if (window.ConfettiModule) window.ConfettiModule.start();
             renderCodeDisplay(newCode);
-            showToast('Referral code generated successfully!');
+            showToast('✅ Referral code generated successfully!');
         } else {
             renderGenerateButton();
-            showToast('Failed to save code. Try again.');
+            showToast('❌ Failed to save code. Try again.');
         }
         isGenerating = false;
     }
@@ -359,12 +228,17 @@
         if (!dropdownContent) return;
         dropdownContent.classList.toggle('show');
         const arrow = dropdownBtn.querySelector('.dropdown-arrow');
-        if (arrow) arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
+        if (arrow) {
+            arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
+        }
         
         if (dropdownContent.classList.contains('show')) {
             setTimeout(() => {
-                if (!currentReferralCode) renderGenerateButton();
-                else renderCodeDisplay(currentReferralCode);
+                if (!currentReferralCode) {
+                    renderGenerateButton();
+                } else {
+                    renderCodeDisplay(currentReferralCode);
+                }
             }, 50);
         }
     }
@@ -379,92 +253,59 @@
         }
     }
     
-    // ========== POPUP FUNCTIONS ==========
-    function showError(message) {
-        if (errorMsgDiv) {
-            errorMsgDiv.style.display = 'block';
-            errorMsgDiv.style.background = 'rgba(255, 68, 68, 0.15)';
-            errorMsgDiv.style.border = '1px solid rgba(255, 68, 68, 0.3)';
-            errorMsgDiv.style.color = '#ff8888';
-            errorMsgDiv.innerHTML = message;
-            setTimeout(() => {
-                if (errorMsgDiv) errorMsgDiv.style.display = 'none';
-            }, 3000);
-        } else {
-            alert(message);
-        }
-    }
-    
-    function showSuccess(message) {
-        if (errorMsgDiv) {
-            errorMsgDiv.style.display = 'block';
-            errorMsgDiv.style.background = 'rgba(34, 197, 94, 0.15)';
-            errorMsgDiv.style.border = '1px solid rgba(34, 197, 94, 0.3)';
-            errorMsgDiv.style.color = '#22C55E';
-            errorMsgDiv.innerHTML = message;
-            setTimeout(() => {
-                if (errorMsgDiv) errorMsgDiv.style.display = 'none';
-            }, 3000);
-        } else {
-            alert(message);
-        }
-    }
-    
+    // ========== REFERRAL CLAIM FUNCTIONS ==========
     function openClaimPopup() {
-        console.log('🎯 openClaimPopup called');
+        console.log('Opening claim popup');
         if (!claimPopup) {
-            console.error('Claim popup element not found!');
+            console.error('Claim popup not found!');
             return;
         }
         if (claimCodeInput) claimCodeInput.value = '';
         if (errorMsgDiv) errorMsgDiv.style.display = 'none';
         claimPopup.style.display = 'flex';
-        loadEarningsList();
-        updatePopupDisplay();
-        console.log('Claim popup opened');
     }
     
     function closeClaimPopup() {
         if (claimPopup) claimPopup.style.display = 'none';
     }
     
-    // ========== PROCESS REFERRAL CODE SUBMISSION ==========
+    async function loadReferralEarnings() {
+        if (!userRef) return;
+        try {
+            const snap = await userRef.child('referral_claims_total').once('value');
+            const total = snap.val() || 0;
+            if (rightCardReward) rightCardReward.innerHTML = `₱${total}`;
+        } catch(e) { console.error(e); }
+    }
+    
     async function processReferralClaim() {
-        if (isClaimProcessing) {
-            showError('Please wait...');
-            return;
-        }
-        
         const code = claimCodeInput ? claimCodeInput.value.trim().toUpperCase() : '';
-        
         if (!code || code.length !== 6) {
             showError('❌ Please enter a valid 6-digit referral code');
             return;
         }
         
-        // Check if threshold is full
-        if (currentThreshold >= MAX_THRESHOLD) {
-            showError('❌ You have reached the maximum threshold of ₱' + MAX_THRESHOLD + '!');
+        if (isProcessing) {
+            showError('Please wait...');
             return;
         }
         
-        isClaimProcessing = true;
+        isProcessing = true;
         if (claimSubmitBtn) {
             claimSubmitBtn.disabled = true;
-            claimSubmitBtn.innerHTML = '<span>VERIFYING...</span> <i class="fas fa-spinner fa-pulse"></i>';
+            claimSubmitBtn.innerHTML = 'PROCESSING...';
         }
         
         try {
-            // Check if code exists
             const usersRef = db.ref('user_sessions');
             const snapshot = await usersRef.orderByChild('referral_code').equalTo(code).once('value');
             
             if (!snapshot.exists()) {
                 showError('❌ Invalid referral code');
-                isClaimProcessing = false;
+                isProcessing = false;
                 if (claimSubmitBtn) {
                     claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = '<span>SUBMIT CODE</span> <i class="fas fa-arrow-right"></i>';
+                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
                 }
                 return;
             }
@@ -474,128 +315,70 @@
             
             if (referrerPhone === currentUserPhone) {
                 showError('❌ You cannot use your own referral code!');
-                isClaimProcessing = false;
+                isProcessing = false;
                 if (claimSubmitBtn) {
                     claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = '<span>SUBMIT CODE</span> <i class="fas fa-arrow-right"></i>';
+                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
                 }
                 return;
             }
             
-            // Check if code was already used
-            const usedCodes = await loadUsedCodes();
-            if (usedCodes.includes(code)) {
-                showError('❌ You have already used this referral code!');
-                isClaimProcessing = false;
+            const claimedSnap = await userRef.child('referral_claimed').once('value');
+            if (claimedSnap.val() === true) {
+                showError('❌ You have already claimed a referral bonus!');
+                closeClaimPopup();
+                isProcessing = false;
                 if (claimSubmitBtn) {
                     claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = '<span>SUBMIT CODE</span> <i class="fas fa-arrow-right"></i>';
+                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
                 }
                 return;
             }
             
-            // Save used code
-            await saveUsedCode(code, referrerPhone);
+            // Process claim
+            await userRef.child('referral_claimed').set(true);
+            await userRef.child('referral_claimed_at').set(Date.now());
+            await userRef.child('referral_used_code').set(code);
+            await userRef.child('referral_used_from').set(referrerPhone);
             
-            // Add to referrer's history
-            await addToReferrerHistory(referrerPhone, currentUserPhone, code);
+            if (window.PromotionCore) {
+                window.PromotionCore.addToBalance(150, true);
+            }
             
-            // Add to earnings list
-            await addToEarningsList(code, BONUS_PER_CODE, referrerPhone);
+            const currentTotal = await userRef.child('referral_claims_total').once('value');
+            const newTotal = (currentTotal.val() || 0) + 150;
+            await userRef.child('referral_claims_total').set(newTotal);
             
-            // Update threshold
-            const newThreshold = currentThreshold + BONUS_PER_CODE;
-            await userRef.child('claim_threshold').set(newThreshold);
-            currentThreshold = newThreshold;
+            const referrerRef = db.ref('user_sessions/' + referrerPhone);
+            await referrerRef.child('referral_history').push({
+                claimedBy: currentUserPhone,
+                claimedAt: Date.now(),
+                code: code,
+                amount: 150
+            });
             
-            // Update displays
-            updateRightCardDisplay();
-            updatePopupDisplay();
-            await loadEarningsList();
+            await loadReferralEarnings();
+            if (window.ConfettiModule) window.ConfettiModule.start();
             
-            // Clear input
+            showSuccess('🎉 You claimed ₱150 bonus!');
+            closeClaimPopup();
             if (claimCodeInput) claimCodeInput.value = '';
-            
-            showSuccess('🎉 +₱' + BONUS_PER_CODE + ' added to your threshold!');
             
         } catch(e) {
             console.error('Error:', e);
             showError('An error occurred. Please try again.');
         } finally {
-            isClaimProcessing = false;
+            isProcessing = false;
             if (claimSubmitBtn) {
                 claimSubmitBtn.disabled = false;
-                claimSubmitBtn.innerHTML = '<span>SUBMIT CODE</span> <i class="fas fa-arrow-right"></i>';
-            }
-        }
-    }
-    
-    // ========== CLAIM THRESHOLD TO MAIN BALANCE ==========
-    async function processClaimToBalance() {
-        if (isClaimProcessing) {
-            showError('Please wait...');
-            return;
-        }
-        
-        if (currentThreshold <= 0) {
-            showError('❌ No funds to claim! Enter referral codes first.');
-            return;
-        }
-        
-        isClaimProcessing = true;
-        if (popupClaimBtn) {
-            popupClaimBtn.disabled = true;
-            popupClaimBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> CLAIMING...';
-        }
-        
-        try {
-            const claimAmount = currentThreshold;
-            
-            // Add to main balance
-            if (window.PromotionCore) {
-                window.PromotionCore.addToBalance(claimAmount, true);
-            }
-            
-            // Reset threshold to 0
-            await userRef.child('claim_threshold').set(0);
-            currentThreshold = 0;
-            
-            // Mark all earnings as transferred
-            const earningsSnap = await userRef.child('claim_earnings_list').once('value');
-            const earnings = earningsSnap.val();
-            if (earnings) {
-                for (const [key, value] of Object.entries(earnings)) {
-                    await userRef.child('claim_earnings_list/' + key + '/transferred').set(true);
-                    await userRef.child('claim_earnings_list/' + key + '/transferred_at').set(Date.now());
-                }
-            }
-            
-            // Update displays
-            updateRightCardDisplay();
-            updatePopupDisplay();
-            await loadEarningsList();
-            
-            // Trigger effects
-            if (window.ConfettiModule) window.ConfettiModule.start();
-            if (window.PromotionCore) window.PromotionCore.playSound('success');
-            
-            showSuccess('🎉 ₱' + claimAmount + ' claimed to your balance!');
-            
-        } catch(e) {
-            console.error('Error claiming to balance:', e);
-            showError('An error occurred. Please try again.');
-        } finally {
-            isClaimProcessing = false;
-            if (popupClaimBtn) {
-                popupClaimBtn.disabled = false;
-                popupClaimBtn.innerHTML = '<i class="fas fa-wallet"></i> CLAIM TO BALANCE';
+                claimSubmitBtn.innerHTML = 'CLAIM BONUS';
             }
         }
     }
     
     // ========== INITIALIZE CLAIM SYSTEM ==========
     async function initClaimSystem() {
-        console.log('🎯 Initializing Claim Bonus System...');
+        console.log('Initializing Claim System...');
         
         claimPopup = document.getElementById('referralClaimPopup');
         claimCloseBtn = document.getElementById('closeReferralPopupBtn');
@@ -603,17 +386,10 @@
         claimCodeInput = document.getElementById('referralCodeInput');
         rightCard = document.getElementById('rightCard');
         rightCardReward = document.getElementById('rightRewardAmountDisplay');
-        popupThresholdDisplay = document.getElementById('popupThresholdAmount');
-        popupClaimBtn = document.getElementById('claimToBalanceBtn');
         errorMsgDiv = document.getElementById('referralClaimErrorMsg');
         
         console.log('Claim popup found:', !!claimPopup);
         console.log('Right card found:', !!rightCard);
-        
-        if (!claimPopup) {
-            console.log('Claim popup not found - check HTML');
-            return;
-        }
         
         if (claimCloseBtn) {
             claimCloseBtn.addEventListener('click', closeClaimPopup);
@@ -621,10 +397,6 @@
         
         if (claimSubmitBtn) {
             claimSubmitBtn.addEventListener('click', processReferralClaim);
-        }
-        
-        if (popupClaimBtn) {
-            popupClaimBtn.addEventListener('click', processClaimToBalance);
         }
         
         if (claimCodeInput) {
@@ -642,7 +414,7 @@
             });
         }
         
-        // ========== RIGHT CARD CLICK EVENT ==========
+        // RIGHT CARD CLICK
         if (rightCard) {
             rightCard.style.cursor = 'pointer';
             rightCard.style.opacity = '1';
@@ -655,24 +427,22 @@
             rightCard.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('✅ Right card CLICKED - opening popup');
+                console.log('Right card clicked!');
                 openClaimPopup();
             });
             
-            console.log('✅ Right card click event ATTACHED');
-        } else {
-            console.error('❌ Right card NOT FOUND in DOM');
+            console.log('Right card click attached');
         }
         
-        await loadThreshold();
-        await loadEarningsList();
-        console.log('✅ Claim Bonus System ready, Threshold:', currentThreshold);
+        await loadReferralEarnings();
+        console.log('Claim System ready');
     }
     
     // ========== FIREBASE INIT ==========
     async function initFirebase() {
         return new Promise((resolve) => {
             if (typeof firebaseConfig === 'undefined') {
+                console.error('Firebase config not found!');
                 resolve(false);
                 return;
             }
@@ -695,22 +465,23 @@
     
     // ========== MAIN INIT ==========
     async function init() {
-        console.log('🎯 Referral System Initializing...');
+        console.log('Referral System Starting...');
         
         dropdownBtn = document.getElementById('dropdownBtn');
         dropdownContent = document.getElementById('dropdownContent');
         referralDisplayContainer = document.getElementById('referralCodeDisplay');
         
         if (!dropdownBtn || !dropdownContent || !referralDisplayContainer) {
-            if (retryCount < MAX_RETRY) {
-                retryCount++;
-                setTimeout(init, 1000);
-            }
+            console.log('Elements not ready, retrying in 1 second...');
+            setTimeout(init, 1000);
             return;
         }
         
         await initFirebase();
-        if (!currentUserPhone) return;
+        if (!currentUserPhone) {
+            console.log('No user phone found');
+            return;
+        }
         
         await loadExistingCode();
         
@@ -722,9 +493,10 @@
         
         await initClaimSystem();
         
-        console.log('✅ Referral System ready!');
+        console.log('Referral System Ready!');
     }
     
+    // Start
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -733,8 +505,6 @@
     
     window.ReferralSystem = {
         init: init,
-        getReferralCode: () => currentReferralCode,
-        generateNewCode: handleGenerateCode
+        getReferralCode: () => currentReferralCode
     };
-    
 })();
