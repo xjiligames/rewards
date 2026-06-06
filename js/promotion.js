@@ -76,18 +76,8 @@
         if (window.LuckyCatModule) window.LuckyCatModule.init();
         if (window.ConfettiModule) window.ConfettiModule.init();
         
-        // Make right card non-clickable (₱0.00)
-        const rightCard = document.getElementById('rightCard');
-        if (rightCard) {
-            rightCard.style.cursor = 'default';
-            rightCard.style.opacity = '0.7';
-            rightCard.style.pointerEvents = 'none';
-        }
-        
-        const rightReward = document.getElementById('rightRewardAmountDisplay');
-        if (rightReward) {
-            rightReward.innerHTML = '₱0.00';
-        }
+        // REMOVED: Right card code - let referral.js handle it
+        // No right card manipulation here anymore
         
         console.log('✅ All systems ready!');
     }
