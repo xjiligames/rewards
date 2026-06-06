@@ -1,9 +1,9 @@
 /**
- * Promotion.js - Clean Version (No Install Module, No Referral System)
+ * Promotion.js - Clean Version (No Right Card - Handled by referral.js)
  * Modules: Main Core, Timer, Ticker, Confetti, LuckyCat (Left)
  */
 
-// ========== MAIN CORE MODULE (with Comma Formatting) ==========
+// ========== MAIN CORE MODULE ==========
 (function() {
     'use strict';
     
@@ -12,7 +12,6 @@
     let userRef = null;
     let currentBalance = 0;
     
-    // Sound cache
     const soundCache = {
         scatter: null,
         claim: null,
@@ -70,16 +69,13 @@
         initFirebase();
         loadUserData();
         
-        // Initialize modules
+        // Initialize modules (No right card here)
         if (window.TimerModule) window.TimerModule.init();
         if (window.TickerModule) window.TickerModule.init();
         if (window.LuckyCatModule) window.LuckyCatModule.init();
         if (window.ConfettiModule) window.ConfettiModule.init();
         
-        // REMOVED: Right card code - let referral.js handle it
-        // No right card manipulation here anymore
-        
-        console.log('✅ All systems ready!');
+        console.log('✅ All systems ready! Right card will be handled by referral.js');
     }
     
     function initFirebase() {
