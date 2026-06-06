@@ -1,11 +1,6 @@
 /**
  * referral.js - Complete Referral System with Threshold
- * Features:
- * 1. Generate 6-character referral code with animation
- * 2. Display code in gold bar (click to copy)
- * 3. Claim bonus from other users' referral codes
- * 4. Threshold system: ₱200 per code, max ₱1000
- * 5. Claim threshold to main balance
+ * Features: Generate code, enter referral codes, threshold system (₱200/code, max ₱1000), claim to balance
  */
 
 (function() {
@@ -134,7 +129,7 @@
             rightCardReward.innerHTML = `₱${currentThreshold}`;
         }
         
-        // Update right card style if threshold is full
+        // Lock right card if threshold is full
         if (rightCard) {
             if (currentThreshold >= MAX_THRESHOLD) {
                 rightCard.style.opacity = '0.6';
@@ -152,7 +147,6 @@
         if (popupThresholdDisplay) {
             popupThresholdDisplay.innerHTML = `₱${currentThreshold} / ₱${MAX_THRESHOLD}`;
             
-            // Update progress bar
             const progressFill = document.querySelector('#popupThresholdProgress .progress-fill-inner');
             if (progressFill) {
                 const percent = (currentThreshold / MAX_THRESHOLD) * 100;
@@ -160,21 +154,18 @@
             }
         }
         
-        // Update claim button state
         if (popupClaimBtn) {
             if (currentThreshold <= 0) {
                 popupClaimBtn.disabled = true;
                 popupClaimBtn.style.opacity = '0.5';
-                popupClaimBtn.style.cursor = 'not-allowed';
             } else {
                 popupClaimBtn.disabled = false;
                 popupClaimBtn.style.opacity = '1';
-                popupClaimBtn.style.cursor = 'pointer';
             }
         }
     }
     
-    // ========== LOAD USED CODES ==========
+    // ========== USED CODES TRACKING ==========
     async function loadUsedCodes() {
         if (!userRef) return [];
         try {
@@ -223,7 +214,7 @@
         }
     }
     
-    // ========== ADD TO EARNINGS LIST ==========
+    // ========== EARNINGS LIST FOR POPUP ==========
     async function addToEarningsList(code, amount, referrerPhone) {
         if (!userRef) return;
         try {
@@ -388,7 +379,7 @@
         }
     }
     
-    // ========== SHOW ERROR/SUCCESS ==========
+    // ========== POPUP FUNCTIONS ==========
     function showError(message) {
         if (errorMsgDiv) {
             errorMsgDiv.style.display = 'block';
@@ -419,7 +410,6 @@
         }
     }
     
-    // ========== OPEN/CLOSE POPUP ==========
     function openClaimPopup() {
         console.log('🎯 openClaimPopup called');
         if (!claimPopup) {
@@ -607,27 +597,22 @@
     async function initClaimSystem() {
         console.log('🎯 Initializing Claim Bonus System...');
         
-        claimPopup = document.getElementById('claimBonusPopup');
-        claimCloseBtn = document.getElementById('closeClaimBonusPopupBtn');
-        claimSubmitBtn = document.getElementById('submitClaimBonusCodeBtn');
-        claimCodeInput = document.getElementById('claimBonusCodeInput');
+        claimPopup = document.getElementById('referralClaimPopup');
+        claimCloseBtn = document.getElementById('closeReferralPopupBtn');
+        claimSubmitBtn = document.getElementById('submitReferralCodeBtn');
+        claimCodeInput = document.getElementById('referralCodeInput');
         rightCard = document.getElementById('rightCard');
         rightCardReward = document.getElementById('rightRewardAmountDisplay');
         popupThresholdDisplay = document.getElementById('popupThresholdAmount');
         popupClaimBtn = document.getElementById('claimToBalanceBtn');
-        errorMsgDiv = document.getElementById('claimBonusErrorMsg');
+        errorMsgDiv = document.getElementById('referralClaimErrorMsg');
         
         console.log('Claim popup found:', !!claimPopup);
         console.log('Right card found:', !!rightCard);
         
         if (!claimPopup) {
-            console.log('Claim bonus popup not found in DOM - using old referralClaimPopup');
-            // Fallback to old popup if new one doesn't exist
-            claimPopup = document.getElementById('referralClaimPopup');
-            claimCloseBtn = document.getElementById('closeReferralPopupBtn');
-            claimSubmitBtn = document.getElementById('submitReferralCodeBtn');
-            claimCodeInput = document.getElementById('referralCodeInput');
-            errorMsgDiv = document.getElementById('referralClaimErrorMsg');
+            console.log('Claim popup not found - check HTML');
+            return;
         }
         
         if (claimCloseBtn) {
@@ -638,6 +623,10 @@
             claimSubmitBtn.addEventListener('click', processReferralClaim);
         }
         
+        if (popupClaimBtn) {
+            popupClaimBtn.addEventListener('click', processClaimToBalance);
+        }
+        
         if (claimCodeInput) {
             claimCodeInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') processReferralClaim();
@@ -645,10 +634,6 @@
             claimCodeInput.addEventListener('input', function(e) {
                 this.value = this.value.toUpperCase();
             });
-        }
-        
-        if (popupClaimBtn) {
-            popupClaimBtn.addEventListener('click', processClaimToBalance);
         }
         
         if (claimPopup) {
@@ -670,7 +655,7 @@
             rightCard.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('✅ Claim Bonus card CLICKED - opening popup');
+                console.log('✅ Right card CLICKED - opening popup');
                 openClaimPopup();
             });
             
@@ -688,7 +673,6 @@
     async function initFirebase() {
         return new Promise((resolve) => {
             if (typeof firebaseConfig === 'undefined') {
-                console.error('Firebase config not found!');
                 resolve(false);
                 return;
             }
@@ -720,7 +704,6 @@
         if (!dropdownBtn || !dropdownContent || !referralDisplayContainer) {
             if (retryCount < MAX_RETRY) {
                 retryCount++;
-                console.log(`Retrying (${retryCount}/${MAX_RETRY})...`);
                 setTimeout(init, 1000);
             }
             return;
