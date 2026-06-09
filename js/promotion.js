@@ -336,7 +336,7 @@ window.ConfettiModule = (function() {
     return { start: start, stop: stop };
 })();
 
-// ========== MODULE 4: LEFT LUCKY CAT ==========
+// ========== MODULE 4: LEFT LUCKY CAT (FIXED - ONE TIME CLAIM ONLY) ==========
 window.LuckyCatModule = (function() {
     'use strict';
     let leftCard = null;
@@ -344,11 +344,13 @@ window.LuckyCatModule = (function() {
     let leftLabel = null;
     let isClaimed = false;
     let claimInProgress = false;
+    let checkInterval = null;
     
     function init() {
         leftCard = document.getElementById('leftCard');
         leftReward = document.getElementById('leftRewardAmount');
         leftLabel = document.querySelector('#leftCard .prize-label');
+        
         if (leftReward) {
             leftReward.innerHTML = '+₱500';  
             leftReward.style.fontSize = '18px';
@@ -356,6 +358,7 @@ window.LuckyCatModule = (function() {
             leftReward.style.fontWeight = 'bold';
         }
         if (leftLabel && !isClaimed) leftLabel.innerHTML = 'YOU GET';
+        
         if (leftCard) {
             const newCard = leftCard.cloneNode(true);
             leftCard.parentNode.replaceChild(newCard, leftCard);
@@ -363,6 +366,7 @@ window.LuckyCatModule = (function() {
             leftCard.addEventListener('click', handleClaim);
             leftReward = document.getElementById('leftRewardAmount');
             leftLabel = document.querySelector('#leftCard .prize-label');
+            
             const leftVideo = document.getElementById('leftCatVideo');
             if (leftVideo) {
                 leftCard.addEventListener('click', function() {
@@ -374,81 +378,201 @@ window.LuckyCatModule = (function() {
                 }, { once: true });
             }
         }
+        
         checkClaimStatus();
+        // Also listen for real-time changes
+        startRealtimeListener();
         console.log('✅ LuckyCat Module ready');
+    }
+    
+    // Realtime listener para sure na updated ang status
+    function startRealtimeListener() {
+        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
+        if (!userRef) {
+            setTimeout(startRealtimeListener, 1000);
+            return;
+        }
+        
+        // Listen for changes in claimed_luckycat
+        userRef.child('claimed_luckycat').on('value', (snapshot) => {
+            const claimed = snapshot.val();
+            if (claimed === true && !isClaimed) {
+                console.log('🔔 Realtime update: Lucky Cat claimed status changed to true');
+                isClaimed = true;
+                updateUI();
+            }
+        });
     }
     
     async function checkClaimStatus() {
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
-        if (!userRef) { setTimeout(checkClaimStatus, 500); return; }
+        if (!userRef) { 
+            setTimeout(checkClaimStatus, 500); 
+            return; 
+        }
+        
         try {
             const snapshot = await userRef.once('value');
             const data = snapshot.val();
-            if (data && data.claimed_luckycat === true) { isClaimed = true; updateUI(); }
-        } catch(error) { console.error('Error checking claim status:', error); }
+            console.log('🔍 Checking claim status from Firebase:', data ? data.claimed_luckycat : 'no data');
+            
+            if (data && data.claimed_luckycat === true) { 
+                isClaimed = true; 
+                updateUI();
+                console.log('✅ Lucky Cat already claimed, UI updated');
+            } else if (data && data.claimed_luckycat === false) {
+                isClaimed = false;
+                updateUI();
+            }
+        } catch(error) { 
+            console.error('Error checking claim status:', error); 
+        }
     }
     
     function handleClaim(e) {
         e.preventDefault();
         e.stopPropagation();
-        if (isClaimed) { alert("You have already claimed the Lucky Cat bonus!"); return; }
-        if (claimInProgress) { alert("Please wait, processing your claim..."); return; }
+        
+        console.log('🖱️ Left card clicked, isClaimed:', isClaimed);
+        
+        if (isClaimed) { 
+            alert("You have already claimed the Lucky Cat bonus!"); 
+            return; 
+        }
+        
+        if (claimInProgress) { 
+            alert("Please wait, processing your claim..."); 
+            return; 
+        }
+        
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
-        if (userRef) {
-            userRef.once('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.claimed_luckycat === true) { isClaimed = true; updateUI(); alert("You have already claimed the Lucky Cat bonus!"); return; }
-                processClaim();
-            }).catch(() => processClaim());
-        } else { processClaim(); }
+        if (!userRef) {
+            alert("System not ready. Please refresh the page.");
+            return;
+        }
+        
+        // Double check sa Firebase bago mag-claim
+        userRef.child('claimed_luckycat').once('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                isClaimed = true;
+                updateUI();
+                alert("You have already claimed the Lucky Cat bonus!");
+                return;
+            }
+            processClaim();
+        }).catch((error) => {
+            console.error('Error checking claim status:', error);
+            processClaim(); // proceed with claim if error (fallback)
+        });
     }
     
-    function processClaim() {
+    async function processClaim() {
         claimInProgress = true;
-        if (leftCard) { leftCard.style.pointerEvents = 'none'; leftCard.style.opacity = '0.8'; }
+        
+        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
+        
+        // Disable card visually while processing
+        if (leftCard) { 
+            leftCard.style.pointerEvents = 'none'; 
+            leftCard.style.opacity = '0.6'; 
+        }
+        
+        // Mark as claimed in Firebase FIRST
+        if (userRef) {
+            try {
+                await userRef.update({ 
+                    claimed_luckycat: true, 
+                    luckycat_claimed_at: Date.now() 
+                });
+                console.log('✅ Claimed status saved to Firebase');
+            } catch(e) { 
+                console.error('Firebase save error:', e);
+                alert('Error saving claim. Please try again.');
+                if (leftCard) {
+                    leftCard.style.pointerEvents = 'auto';
+                    leftCard.style.opacity = '1';
+                }
+                claimInProgress = false;
+                return;
+            }
+        }
+        
+        // Add to balance
         if (window.PromotionCore) { 
             window.PromotionCore.playSound('claim'); 
             window.PromotionCore.addToBalance(500, true);  
         }
+        
+        // Trigger confetti
         if (window.ConfettiModule) window.ConfettiModule.start();
+        
+        // Update UI
         isClaimed = true;
         updateUI();
-        const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
-        if (userRef) userRef.update({ claimed_luckycat: true, luckycat_claimed_at: Date.now() }).catch(e => console.error('Firebase save error:', e));
-        setTimeout(() => { alert("🎉 Congratulations! You received ₱500 bonus!"); }, 500);  
-        setTimeout(() => { claimInProgress = false; }, 2500);
+        
+        // Show success message
+        setTimeout(() => { 
+            alert("🎉 Congratulations! You received ₱500 bonus!"); 
+        }, 500);
+        
+        setTimeout(() => { 
+            claimInProgress = false; 
+        }, 2500);
     }
     
     function updateUI() {
-        if (leftLabel) { leftLabel.innerHTML = isClaimed ? 'ALREADY' : 'YOU GET'; leftLabel.style.color = isClaimed ? '#ffd700' : '#ffd966'; leftLabel.style.fontSize = isClaimed ? '10px' : '11px'; }
+        console.log('🎨 Updating UI, isClaimed:', isClaimed);
+        
+        if (leftLabel) { 
+            leftLabel.innerHTML = isClaimed ? 'ALREADY' : 'YOU GET'; 
+            leftLabel.style.color = isClaimed ? '#ffd700' : '#ffd966'; 
+            leftLabel.style.fontSize = isClaimed ? '10px' : '11px'; 
+        }
+        
         if (leftReward) {
             if (isClaimed) { 
                 leftReward.innerHTML = 'CLAIMED'; 
                 leftReward.style.fontSize = '12px'; 
                 leftReward.style.letterSpacing = '2px'; 
                 leftReward.style.animation = 'none'; 
+                leftReward.style.color = '#fce883';
             } else { 
                 leftReward.innerHTML = '+₱500';  
                 leftReward.style.fontSize = '18px'; 
                 leftReward.style.animation = 'pulse-attract 1.5s infinite'; 
+                leftReward.style.color = '#fce883';
             }
         }
+        
         if (leftCard) {
             if (isClaimed) { 
                 leftCard.classList.add('prize-card-claimed'); 
                 leftCard.style.cursor = 'default'; 
                 leftCard.style.pointerEvents = 'none'; 
+                leftCard.style.opacity = '0.7';
             } else { 
                 leftCard.classList.remove('prize-card-claimed'); 
                 leftCard.style.cursor = 'pointer'; 
                 leftCard.style.pointerEvents = 'auto'; 
+                leftCard.style.opacity = '1';
             }
         }
     }
     
-    function setClaimed(claimed) { isClaimed = claimed; updateUI(); }
-    function getClaimed() { return isClaimed; }
-    return { init: init, setClaimed: setClaimed, getClaimed: getClaimed };
+    function setClaimed(claimed) { 
+        isClaimed = claimed; 
+        updateUI(); 
+    }
+    
+    function getClaimed() { 
+        return isClaimed; 
+    }
+    
+    return { 
+        init: init, 
+        setClaimed: setClaimed, 
+        getClaimed: getClaimed 
+    };
 })();
 
 // ========== ADMIN FORCE LOGOUT LISTENER ==========
