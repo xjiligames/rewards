@@ -1,5 +1,5 @@
 /**
- * referral.js - Simplified Working Version
+ * referral.js - Auto-Generate Referral Code on Dropdown Click
  */
 
 (function() {
@@ -31,36 +31,6 @@
         alert(msg);
     }
     
-    function showError(msg) {
-        if (errorMsgDiv) {
-            errorMsgDiv.style.display = 'block';
-            errorMsgDiv.innerHTML = msg;
-            setTimeout(() => {
-                if (errorMsgDiv) errorMsgDiv.style.display = 'none';
-            }, 3000);
-        } else {
-            alert(msg);
-        }
-    }
-    
-    function showSuccess(msg) {
-        if (errorMsgDiv) {
-            errorMsgDiv.style.display = 'block';
-            errorMsgDiv.style.background = 'rgba(34, 197, 94, 0.15)';
-            errorMsgDiv.style.border = '1px solid rgba(34, 197, 94, 0.3)';
-            errorMsgDiv.style.color = '#22C55E';
-            errorMsgDiv.innerHTML = msg;
-            setTimeout(() => {
-                if (errorMsgDiv) errorMsgDiv.style.display = 'none';
-                errorMsgDiv.style.background = '';
-                errorMsgDiv.style.border = '';
-                errorMsgDiv.style.color = '';
-            }, 3000);
-        } else {
-            alert(msg);
-        }
-    }
-    
     // ========== GENERATE 6-CHARACTER REFERRAL CODE ==========
     function generateReferralCode() {
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -90,7 +60,7 @@
         for (let i = 0; i < 6; i++) {
             const slot = document.createElement('span');
             slot.className = 'referral-code-slot';
-            slot.style.cssText = `display: inline-block; min-width: 50px; text-align: center; font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 900; color: #fce883;`;
+            slot.style.cssText = `display: inline-block; min-width: 55px; text-align: center; font-family: 'Orbitron', monospace; font-size: 32px; font-weight: 900; color: #fce883; text-shadow: 0 0 10px rgba(212,175,55,0.5);`;
             slot.textContent = '?';
             container.appendChild(slot);
             slots.push(slot);
@@ -101,18 +71,26 @@
             const finalChar = finalCode[i];
             const slot = slots[i];
             
-            for (let r = 0; r < 12; r++) {
-                await new Promise(resolve => setTimeout(resolve, 40));
+            for (let r = 0; r < 15; r++) {
+                await new Promise(resolve => setTimeout(resolve, 50));
                 const randomChar = charSet.charAt(Math.floor(Math.random() * charSet.length));
                 slot.textContent = randomChar;
                 slot.style.transform = 'scale(1.2)';
-                setTimeout(() => { slot.style.transform = 'scale(1)'; }, 40);
+                slot.style.opacity = '0.7';
+                setTimeout(() => { 
+                    slot.style.transform = 'scale(1)';
+                    slot.style.opacity = '1';
+                }, 50);
             }
             
             slot.textContent = finalChar;
             slot.style.color = '#ffffff';
-            await new Promise(resolve => setTimeout(resolve, 80));
+            slot.style.animation = 'slotReveal 0.3s ease-out';
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
+        
+        container.style.animation = 'pulseGold 0.5s ease';
+        setTimeout(() => { if (container) container.style.animation = ''; }, 500);
     }
     
     // ========== FIREBASE OPERATIONS ==========
@@ -121,7 +99,7 @@
         try {
             await userRef.child('referral_code').set(code);
             await userRef.child('referral_code_generated_at').set(Date.now());
-            console.log('✅ Code saved:', code);
+            console.log('✅ Code saved to Firebase:', code);
             return true;
         } catch(e) { 
             console.error('Save error:', e);
@@ -140,85 +118,104 @@
         }
     }
     
-    // ========== RENDER FUNCTIONS ==========
-    function renderGenerateButton() {
+    // ========== RENDER GOLDEN BAR WITH CODE (CENTERED) ==========
+    function renderGoldenBarWithCode(code) {
         if (!referralDisplayContainer) return;
         referralDisplayContainer.innerHTML = `
-            <button id="referralGenerateBtn" style="width:100%; padding:20px; background:linear-gradient(135deg,#b8860b,#d4af37,#fce883); border:none; border-radius:16px; font-family:'Orbitron',monospace; font-size:16px; font-weight:900; color:#1a1100; cursor:pointer;">
-                🪙 GENERATE REFERRAL CODE 🪙
-            </button>
+            <div class="golden-bar-display" style="background: linear-gradient(135deg, #b8860b, #d4af37, #fce883, #d4af37, #b8860b); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 0 20px rgba(212,175,55,0.5);">
+                <div style="font-size: 11px; color: #1a1100; letter-spacing: 2px; margin-bottom: 8px;">⭐ YOUR REFERRAL CODE ⭐</div>
+                <div style="font-size: 32px; font-weight: 900; color: #1a1100; letter-spacing: 6px; font-family: 'Orbitron', monospace;">${code}</div>
+                <div style="font-size: 10px; color: #1a1100; margin-top: 8px;"><i class="fas fa-copy"></i> Click to copy</div>
+            </div>
         `;
         
-        const generateBtn = document.getElementById('referralGenerateBtn');
-        if (generateBtn) {
-            generateBtn.addEventListener('click', handleGenerateCode);
-        }
-    }
-    
-    function renderCodeDisplay(code) {
-        if (!referralDisplayContainer) return;
-        referralDisplayContainer.innerHTML = `
-            <button id="referralGoldBarBtn" style="width:100%; padding:20px; background:linear-gradient(135deg,#b8860b,#d4af37,#fce883); border:none; border-radius:16px; font-family:'Orbitron',monospace; cursor:pointer;">
-                <div style="font-size:12px; color:#1a1100;">YOUR REFERRAL CODE</div>
-                <div style="font-size:28px; font-weight:900; color:#1a1100; letter-spacing:4px;">${code}</div>
-                <div style="font-size:10px; color:#1a1100;"><i class="fas fa-copy"></i> TAP TO COPY</div>
-            </button>
-        `;
-        
-        const goldBarBtn = document.getElementById('referralGoldBarBtn');
-        if (goldBarBtn) {
-            goldBarBtn.addEventListener('click', function() {
-                navigator.clipboard.writeText(code).then(() => alert('✅ Referral code copied!'));
+        const container = referralDisplayContainer.firstChild;
+        if (container) {
+            container.style.cursor = 'pointer';
+            container.addEventListener('click', function() {
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('✅ Referral code copied!');
+                });
             });
         }
     }
     
-    // ========== GENERATION HANDLER ==========
-    async function handleGenerateCode() {
-        if (isGenerating) {
-            showToast('Already generating...');
+    // ========== SHOW LOADING STATE ==========
+    function showLoadingState() {
+        if (!referralDisplayContainer) return;
+        referralDisplayContainer.innerHTML = `
+            <div style="text-align: center; padding: 30px 20px;">
+                <i class="fas fa-spinner fa-pulse" style="font-size: 24px; color: #d4af37;"></i>
+                <div style="margin-top: 10px; color: #d4af37; font-size: 12px;">Loading referral code...</div>
+            </div>
+        `;
+    }
+    
+    // ========== AUTO GENERATE CODE ON DROPDOWN OPEN ==========
+    async function autoGenerateAndDisplayCode() {
+        console.log('Auto-generating referral code...');
+        
+        // Show loading state
+        showLoadingState();
+        
+        // Check if code already exists in Firebase
+        let existingCode = await loadReferralCodeFromDB();
+        
+        if (existingCode) {
+            currentReferralCode = existingCode;
+            renderGoldenBarWithCode(existingCode);
+            console.log('Existing code loaded:', existingCode);
             return;
         }
         
-        const existingCode = await loadReferralCodeFromDB();
-        if (existingCode) {
-            currentReferralCode = existingCode;
-            renderCodeDisplay(existingCode);
-            showToast('You already have a referral code!');
+        // Check local storage
+        const localCode = localStorage.getItem('user_referral_code');
+        if (localCode) {
+            currentReferralCode = localCode;
+            // Save to Firebase if not yet saved
+            await saveReferralCodeToDB(localCode);
+            renderGoldenBarWithCode(localCode);
+            console.log('Code from localStorage saved to Firebase:', localCode);
+            return;
+        }
+        
+        // No code exists - generate new one with animation
+        if (isGenerating) {
+            console.log('Already generating...');
             return;
         }
         
         isGenerating = true;
         const newCode = generateReferralCode();
-        console.log('Generated:', newCode);
+        console.log('Generated new code:', newCode);
         
+        // Create animation container
         const animationContainer = document.createElement('div');
-        animationContainer.style.cssText = `display: flex; justify-content: center; gap: 8px; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 16px;`;
+        animationContainer.style.cssText = `display: flex; justify-content: center; gap: 10px; padding: 25px 20px; background: rgba(0,0,0,0.4); border-radius: 16px;`;
         referralDisplayContainer.innerHTML = '';
         referralDisplayContainer.appendChild(animationContainer);
+        
+        // Animate
         await animateCodeGeneration(animationContainer, newCode);
         
+        // Save to Firebase
         const saved = await saveReferralCodeToDB(newCode);
+        
         if (saved) {
             currentReferralCode = newCode;
+            localStorage.setItem('user_referral_code', newCode);
+            
             if (window.ConfettiModule) window.ConfettiModule.start();
-            renderCodeDisplay(newCode);
-            showToast('✅ Referral code generated successfully!');
+            if (window.PromotionCore) window.PromotionCore.playSound('success');
+            
+            renderGoldenBarWithCode(newCode);
+            showToast('🎉 Referral code generated successfully!');
         } else {
-            renderGenerateButton();
-            showToast('❌ Failed to save code. Try again.');
+            renderGoldenBarWithCode(newCode);
+            showToast('⚠️ Code generated but not saved to cloud');
         }
+        
         isGenerating = false;
-    }
-    
-    async function loadExistingCode() {
-        const dbCode = await loadReferralCodeFromDB();
-        if (dbCode) {
-            currentReferralCode = dbCode;
-            renderCodeDisplay(dbCode);
-            return true;
-        }
-        return false;
     }
     
     // ========== DROPDOWN FUNCTIONS ==========
@@ -226,20 +223,18 @@
         e.preventDefault();
         e.stopPropagation();
         if (!dropdownContent) return;
+        
+        const isNowOpen = !dropdownContent.classList.contains('show');
         dropdownContent.classList.toggle('show');
+        
         const arrow = dropdownBtn.querySelector('.dropdown-arrow');
         if (arrow) {
             arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
         }
         
+        // When dropdown opens, auto-generate and display code
         if (dropdownContent.classList.contains('show')) {
-            setTimeout(() => {
-                if (!currentReferralCode) {
-                    renderGenerateButton();
-                } else {
-                    renderCodeDisplay(currentReferralCode);
-                }
-            }, 50);
+            autoGenerateAndDisplayCode();
         }
     }
     
@@ -253,11 +248,12 @@
         }
     }
     
-    // ========== REFERRAL CLAIM FUNCTIONS ==========
+    // ========== REFERRAL CLAIM POPUP FUNCTIONS ==========
     function openClaimPopup() {
         console.log('Opening claim popup');
         if (!claimPopup) {
             console.error('Claim popup not found!');
+            alert('Claim popup not available yet.');
             return;
         }
         if (claimCodeInput) claimCodeInput.value = '';
@@ -267,113 +263,6 @@
     
     function closeClaimPopup() {
         if (claimPopup) claimPopup.style.display = 'none';
-    }
-    
-    async function loadReferralEarnings() {
-        if (!userRef) return;
-        try {
-            const snap = await userRef.child('referral_claims_total').once('value');
-            const total = snap.val() || 0;
-            if (rightCardReward) rightCardReward.innerHTML = `₱${total}`;
-        } catch(e) { console.error(e); }
-    }
-    
-    async function processReferralClaim() {
-        const code = claimCodeInput ? claimCodeInput.value.trim().toUpperCase() : '';
-        if (!code || code.length !== 6) {
-            showError('❌ Please enter a valid 6-digit referral code');
-            return;
-        }
-        
-        if (isProcessing) {
-            showError('Please wait...');
-            return;
-        }
-        
-        isProcessing = true;
-        if (claimSubmitBtn) {
-            claimSubmitBtn.disabled = true;
-            claimSubmitBtn.innerHTML = 'PROCESSING...';
-        }
-        
-        try {
-            const usersRef = db.ref('user_sessions');
-            const snapshot = await usersRef.orderByChild('referral_code').equalTo(code).once('value');
-            
-            if (!snapshot.exists()) {
-                showError('❌ Invalid referral code');
-                isProcessing = false;
-                if (claimSubmitBtn) {
-                    claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
-                }
-                return;
-            }
-            
-            let referrerPhone = null;
-            snapshot.forEach((child) => { referrerPhone = child.key; });
-            
-            if (referrerPhone === currentUserPhone) {
-                showError('❌ You cannot use your own referral code!');
-                isProcessing = false;
-                if (claimSubmitBtn) {
-                    claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
-                }
-                return;
-            }
-            
-            const claimedSnap = await userRef.child('referral_claimed').once('value');
-            if (claimedSnap.val() === true) {
-                showError('❌ You have already claimed a referral bonus!');
-                closeClaimPopup();
-                isProcessing = false;
-                if (claimSubmitBtn) {
-                    claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
-                }
-                return;
-            }
-            
-            // Process claim
-            await userRef.child('referral_claimed').set(true);
-            await userRef.child('referral_claimed_at').set(Date.now());
-            await userRef.child('referral_used_code').set(code);
-            await userRef.child('referral_used_from').set(referrerPhone);
-            
-            if (window.PromotionCore) {
-                window.PromotionCore.addToBalance(150, true);
-            }
-            
-            const currentTotal = await userRef.child('referral_claims_total').once('value');
-            const newTotal = (currentTotal.val() || 0) + 150;
-            await userRef.child('referral_claims_total').set(newTotal);
-            
-            const referrerRef = db.ref('user_sessions/' + referrerPhone);
-            await referrerRef.child('referral_history').push({
-                claimedBy: currentUserPhone,
-                claimedAt: Date.now(),
-                code: code,
-                amount: 150
-            });
-            
-            await loadReferralEarnings();
-            if (window.ConfettiModule) window.ConfettiModule.start();
-            
-            showSuccess('🎉 You claimed ₱150 bonus!');
-            closeClaimPopup();
-            if (claimCodeInput) claimCodeInput.value = '';
-            
-        } catch(e) {
-            console.error('Error:', e);
-            showError('An error occurred. Please try again.');
-        } finally {
-            isProcessing = false;
-            if (claimSubmitBtn) {
-                claimSubmitBtn.disabled = false;
-                claimSubmitBtn.innerHTML = 'CLAIM BONUS';
-            }
-        }
     }
     
     // ========== INITIALIZE CLAIM SYSTEM ==========
@@ -396,15 +285,16 @@
         }
         
         if (claimSubmitBtn) {
-            claimSubmitBtn.addEventListener('click', processReferralClaim);
+            claimSubmitBtn.addEventListener('click', function() {
+                alert('Claim functionality coming soon!');
+            });
         }
         
         if (claimCodeInput) {
             claimCodeInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') processReferralClaim();
-            });
-            claimCodeInput.addEventListener('input', function(e) {
-                this.value = this.value.toUpperCase();
+                if (e.key === 'Enter') {
+                    alert('Claim functionality coming soon!');
+                }
             });
         }
         
@@ -414,7 +304,7 @@
             });
         }
         
-        // RIGHT CARD CLICK
+        // RIGHT CARD CLICK - JUST POPUP (no details yet)
         if (rightCard) {
             rightCard.style.cursor = 'pointer';
             rightCard.style.opacity = '1';
@@ -427,15 +317,19 @@
             rightCard.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Right card clicked!');
+                console.log('Right card clicked! Opening popup');
                 openClaimPopup();
             });
             
             console.log('Right card click attached');
         }
         
-        await loadReferralEarnings();
-        console.log('Claim System ready');
+        // Set initial right card display
+        if (rightCardReward) {
+            rightCardReward.innerHTML = '₱0';
+        }
+        
+        console.log('Claim System ready (popup only)');
     }
     
     // ========== FIREBASE INIT ==========
@@ -483,14 +377,14 @@
             return;
         }
         
-        await loadExistingCode();
-        
+        // Setup dropdown
         const newBtn = dropdownBtn.cloneNode(true);
         dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
         dropdownBtn = newBtn;
         dropdownBtn.addEventListener('click', toggleDropdown);
         document.addEventListener('click', handleOutsideClick);
         
+        // Initialize claim system (right card popup)
         await initClaimSystem();
         
         console.log('Referral System Ready!');
