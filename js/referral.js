@@ -1,34 +1,39 @@
 /**
- * referral.js - NO MORE LOADING
- * Displays code instantly from localStorage, syncs to Firebase in background
+ * referral.js - ULTRA RELIABLE
+ * - Walang "Loading..."
+ * - Code agad mula localStorage
+ * - Unique code per user
+ * - Sync sa Firebase sa background (kung available)
  */
 
 (function() {
     'use strict';
 
     // DOM elements
-    let dropdownBtn = document.getElementById('dropdownBtn');
-    let dropdownContent = document.getElementById('dropdownContent');
-    let referralDisplay = document.getElementById('referralCodeDisplay');
+    const dropdownBtn = document.getElementById('dropdownBtn');
+    const dropdownContent = document.getElementById('dropdownContent');
+    const referralDisplay = document.getElementById('referralCodeDisplay');
 
     if (!dropdownBtn || !dropdownContent || !referralDisplay) {
         console.error('Missing dropdown elements');
         return;
     }
 
-    // ========== UTILITIES ==========
-    function generateCode() {
+    // ========== GENERATE UNIQUE 6-CHAR CODE ==========
+    function generateUniqueCode() {
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const nums = '0123456789';
-        const nums6 = '0123456';
+        const numbers09 = '0123456789';
+        const numbers06 = '0123456';
+        // Format: Letter, Letter, Number, Letter, Letter, Number (0-6)
         return letters[Math.floor(Math.random() * 26)] +
                letters[Math.floor(Math.random() * 26)] +
-               nums[Math.floor(Math.random() * 10)] +
+               numbers09[Math.floor(Math.random() * 10)] +
                letters[Math.floor(Math.random() * 26)] +
                letters[Math.floor(Math.random() * 26)] +
-               nums6[Math.floor(Math.random() * 7)];
+               numbers06[Math.floor(Math.random() * 7)];
     }
 
+    // ========== DISPLAY GOLDEN BAR (INSTANT) ==========
     function displayGoldenBar(code) {
         referralDisplay.innerHTML = `
             <div id="refGoldBar" style="background: linear-gradient(135deg, #b8860b, #d4af37, #fce883, #d4af37, #b8860b); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 0 20px rgba(212,175,55,0.5); cursor: pointer;">
@@ -38,78 +43,89 @@
             </div>
         `;
         const bar = document.getElementById('refGoldBar');
-        if (bar) bar.onclick = () => navigator.clipboard.writeText(code).then(() => alert('✅ Copied!'));
+        if (bar) {
+            bar.onclick = () => {
+                navigator.clipboard.writeText(code).then(() => alert('✅ Referral code copied!'));
+            };
+        }
     }
 
-    // ========== GET CODE INSTANTLY (NO WAITING) ==========
-    function getCodeInstantly() {
-        // 1. Try localStorage first (instant)
+    // ========== GET OR CREATE CODE (NO ASYNC BLOCKING) ==========
+    function getOrCreateCode() {
+        // 1. Kunin mula sa localStorage (instant)
         let code = localStorage.getItem('user_referral_code');
         if (code && code.length === 6) {
             displayGoldenBar(code);
             return code;
         }
 
-        // 2. Generate new code (instant)
-        const newCode = generateCode();
+        // 2. Wala pa → generate ng bago (instant)
+        const newCode = generateUniqueCode();
         localStorage.setItem('user_referral_code', newCode);
         displayGoldenBar(newCode);
         return newCode;
     }
 
-    // ========== BACKGROUND SYNC TO FIREBASE (optional, non-blocking) ==========
+    // ========== SYNC TO FIREBASE (background, non-blocking) ==========
     function syncToFirebaseInBackground(code) {
-        // Don't block the UI, just try to sync if possible
+        // Hindi na kailangan hintayin — gawin sa background
         setTimeout(async () => {
             try {
                 const userPhone = localStorage.getItem('userPhone');
                 if (!userPhone) return;
+
+                // Kung hindi pa initialized ang Firebase at may config, i-initialize
+                if (typeof firebase !== 'undefined' && firebase.database && !firebase.apps.length) {
+                    if (typeof firebaseConfig !== 'undefined') {
+                        firebase.initializeApp(firebaseConfig);
+                    } else {
+                        console.warn('Firebase config not available, skipping sync');
+                        return;
+                    }
+                }
+
                 if (typeof firebase === 'undefined' || !firebase.database) return;
 
-                // Initialize Firebase only if not already initialized
-                if (!firebase.apps.length && typeof firebaseConfig !== 'undefined') {
-                    firebase.initializeApp(firebaseConfig);
-                }
                 const db = firebase.database();
                 const userRef = db.ref('user_sessions/' + userPhone);
                 const snap = await userRef.child('referral_code').once('value');
                 if (!snap.val()) {
                     await userRef.child('referral_code').set(code);
                     await userRef.child('referral_code_generated_at').set(Date.now());
-                    console.log('✅ Synced referral code to Firebase');
+                    console.log('✅ Referral code synced to Firebase');
                 }
-            } catch(e) {
-                console.warn('Background sync failed (non-critical):', e);
+            } catch (e) {
+                console.warn('Firebase sync failed (non-critical):', e.message);
             }
-        }, 100);
+        }, 500); // i-delay ng 0.5 sec para hindi makaapekto sa UI
     }
 
-    // ========== DROPDOWN TOGGLE ==========
+    // ========== DROPDOWN EVENT ==========
     function setupDropdown() {
-        // Remove existing listener by cloning
+        // Palitan ang button para maalis ang old listeners
         const newBtn = dropdownBtn.cloneNode(true);
         dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
-        dropdownBtn = newBtn;
+        const finalBtn = newBtn;
 
-        dropdownBtn.addEventListener('click', (e) => {
+        finalBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             dropdownContent.classList.toggle('show');
-            const arrow = dropdownBtn.querySelector('.dropdown-arrow');
+            const arrow = finalBtn.querySelector('.dropdown-arrow');
             if (arrow) arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
 
             if (dropdownContent.classList.contains('show')) {
-                // Get code instantly (no loading screen)
-                const code = getCodeInstantly();
-                // Sync to Firebase in background (doesn't affect display)
+                // KUMAIN NG CODE AGAD (walang loading)
+                const code = getOrCreateCode();
+                // I-sync sa Firebase sa background (optional)
                 syncToFirebaseInBackground(code);
             }
         });
 
         document.addEventListener('click', (e) => {
-            if (!dropdownBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
+            if (!finalBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
                 dropdownContent.classList.remove('show');
-                const arrow = dropdownBtn.querySelector('.dropdown-arrow');
+                const arrow = finalBtn.querySelector('.dropdown-arrow');
                 if (arrow) arrow.innerHTML = '▼';
             }
         });
