@@ -338,25 +338,25 @@ async function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
     });
 }
 
-// ========== CREATE USER SESSION (with referral_code) ==========
+// Simple 6-character referral code generator (A-Z, 0-9)
 function generateReferralCode() {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numbers09 = '0123456789';
-    const numbers06 = '0123456';
-    return letters.charAt(Math.floor(Math.random() * 26)) +
-           letters.charAt(Math.floor(Math.random() * 26)) +
-           numbers09.charAt(Math.floor(Math.random() * 10)) +
-           letters.charAt(Math.floor(Math.random() * 26)) +
-           letters.charAt(Math.floor(Math.random() * 26)) +
-           numbers06.charAt(Math.floor(Math.random() * 7));
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
 }
 
+// Create or update user session with referral code
 async function createUserSession(phone, fingerprint, deviceDisplayId) {
     const sessionRef = db.ref('user_sessions/' + phone);
     const sessionSnap = await sessionRef.once('value');
     
     if (!sessionSnap.exists()) {
+        // New user: generate a referral code
         const initialCode = generateReferralCode();
+        
         await sessionRef.set({
             phone: phone,
             balance: 0,
@@ -370,14 +370,17 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
             referral_code_generated_at: Date.now(),
             claimed_luckycat: false
         });
-        console.log('✅ New user session with referral code:', initialCode);
+        
+        console.log('✅ New user session created with referral code:', initialCode);
     } else {
+        // Existing user: update status and check for missing referral_code
         await sessionRef.update({
             status: 'online',
             lastUpdate: Date.now(),
             deviceFingerprint: fingerprint,
             deviceDisplayId: deviceDisplayId
         });
+        
         const data = sessionSnap.val();
         if (!data.referral_code) {
             const newCode = generateReferralCode();
