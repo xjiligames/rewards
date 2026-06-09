@@ -1,11 +1,11 @@
 /**
- * referral.js - Complete Referral System with Right Card Popup
- * - Direct display of referral code from Firebase
- * - Right card shows total earnings from referrals
- * - Popup for entering other user's referral code
+ * referral.js - Complete Referral System
+ * - Displays referral code from Firebase
+ * - Right card click opens popup
+ * - Enter referral code to earn ₱500
  * - Max 3 referrals (₱1500 limit)
  * - Claim button transfers earnings to main balance
- * - Working close button and outside click to close
+ * - Working close button
  */
 
 (function() {
@@ -24,9 +24,8 @@
     const claimSubmitBtn = document.getElementById('submitReferralCodeBtn');
     const claimCodeInput = document.getElementById('referralCodeInput');
     const claimErrorMsg = document.getElementById('referralClaimErrorMsg');
-    const popupClaimBtn = document.getElementById('claimToBalanceBtn');
+    const claimToBalanceBtn = document.getElementById('claimToBalanceBtn');
     const popupThresholdDisplay = document.getElementById('popupThresholdAmount');
-    const popupEarningsList = document.getElementById('popupEarningsList');
 
     // State
     let currentUserPhone = null;
@@ -57,36 +56,19 @@
         return false;
     }
 
-    // ========== FORMAT PHONE NUMBER ==========
-    function formatPhone(phone) {
-        if (!phone || phone.length < 11) return phone;
-        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
-    }
-
-    // ========== SHOW TOAST ==========
-    function showToast(msg, isError = false) {
-        const toast = document.createElement('div');
-        toast.innerHTML = msg;
-        toast.style.cssText = `
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: ${isError ? '#ff4444' : '#22C55E'};
-            color: white; padding: 10px 20px; border-radius: 50px; font-size: 12px;
-            font-weight: bold; z-index: 10002; animation: fadeOutUp 2s ease-out forwards;
-            white-space: nowrap; font-family: 'Orbitron', monospace;
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-    }
-
-    function showError(msg) {
+    // ========== SHOW MESSAGE ==========
+    function showMessage(msg, isError = false) {
         if (claimErrorMsg) {
             claimErrorMsg.style.display = 'block';
             claimErrorMsg.innerHTML = msg;
+            claimErrorMsg.style.background = isError ? 'rgba(255,68,68,0.15)' : 'rgba(34,197,94,0.15)';
+            claimErrorMsg.style.border = isError ? '1px solid rgba(255,68,68,0.3)' : '1px solid rgba(34,197,94,0.3)';
+            claimErrorMsg.style.color = isError ? '#ff8888' : '#22C55E';
             setTimeout(() => {
                 if (claimErrorMsg) claimErrorMsg.style.display = 'none';
             }, 3000);
         } else {
-            showToast(msg, true);
+            alert(msg);
         }
     }
 
@@ -105,13 +87,21 @@
             }
         }
         
-        if (popupClaimBtn) {
-            if (currentEarnings <= 0) {
-                popupClaimBtn.disabled = true;
-                popupClaimBtn.style.opacity = '0.5';
-            } else {
-                popupClaimBtn.disabled = false;
-                popupClaimBtn.style.opacity = '1';
+        if (claimToBalanceBtn) {
+            claimToBalanceBtn.disabled = (currentEarnings <= 0);
+            claimToBalanceBtn.style.opacity = currentEarnings <= 0 ? '0.5' : '1';
+        }
+        
+        // Check if max reached - disable right card
+        if (currentEarnings >= MAX_EARNINGS) {
+            if (rightCard) {
+                rightCard.style.opacity = '0.6';
+                rightCard.style.pointerEvents = 'none';
+            }
+        } else {
+            if (rightCard) {
+                rightCard.style.opacity = '1';
+                rightCard.style.pointerEvents = 'auto';
             }
         }
     }
@@ -137,10 +127,18 @@
                         </div>
                     `;
                     const bar = document.getElementById('refGoldBar');
-                    if (bar) bar.onclick = () => navigator.clipboard.writeText(code).then(() => showToast('✅ Copied!'));
+                    if (bar) {
+                        bar.onclick = () => {
+                            navigator.clipboard.writeText(code).then(() => {
+                                showMessage('✅ Referral code copied!');
+                            });
+                        };
+                    }
                 }
             } else {
-                if (referralDisplay) referralDisplay.innerHTML = '<div style="text-align:center;padding:20px;color:#ff6666;">No code found</div>';
+                if (referralDisplay) {
+                    referralDisplay.innerHTML = '<div style="text-align:center;padding:20px;color:#ff6666;">No code found</div>';
+                }
             }
         } catch(err) {
             console.error('Error loading referral code:', err);
@@ -169,7 +167,6 @@
             }
             
             updateHistoryTable();
-            updatePopupEarningsList();
             
         } catch(err) {
             console.error('Error loading referral data:', err);
@@ -194,7 +191,7 @@
         
         let html = '';
         for (const entry of referralHistory.slice(0, MAX_REFERRALS)) {
-            const formattedPhone = formatPhone(entry.claimedBy);
+            const formattedPhone = entry.claimedBy ? entry.claimedBy.substring(0, 4) + '***' + entry.claimedBy.substring(7, 11) : 'Unknown';
             const date = new Date(entry.claimedAt);
             const formattedDate = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
             html += `
@@ -206,32 +203,6 @@
             `;
         }
         tableBody.innerHTML = html;
-    }
-
-    // ========== UPDATE POPUP EARNINGS LIST ==========
-    function updatePopupEarningsList() {
-        if (!popupEarningsList) return;
-        
-        if (referralHistory.length === 0) {
-            popupEarningsList.innerHTML = '<div class="earnings-empty-list">No referral codes entered yet</div>';
-            return;
-        }
-        
-        let html = '';
-        for (const entry of referralHistory) {
-            const formattedPhone = formatPhone(entry.claimedBy);
-            const date = new Date(entry.claimedAt);
-            const formattedDate = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
-            html += `
-                <div class="earnings-list-item">
-                    <div class="earnings-list-code">REFERRAL</div>
-                    <div class="earnings-list-from">from: ${formattedPhone}</div>
-                    <div class="earnings-list-amount">+₱${entry.amount}</div>
-                    <div class="earnings-list-date">${formattedDate}</div>
-                </div>
-            `;
-        }
-        popupEarningsList.innerHTML = html;
     }
 
     // ========== CHECK IF USER CAN STILL RECEIVE REFERRALS ==========
@@ -251,7 +222,6 @@
     // ========== CHECK IF CODE WAS ALREADY USED ==========
     async function isCodeAlreadyUsed(code) {
         if (!userRef) return true;
-        
         try {
             const usedSnap = await userRef.child('used_referral_codes/' + code).once('value');
             return usedSnap.exists();
@@ -262,7 +232,6 @@
 
     async function saveUsedCode(code, referrerPhone) {
         if (!userRef) return;
-        
         try {
             await userRef.child('used_referral_codes/' + code).set({
                 usedAt: Date.now(),
@@ -276,58 +245,51 @@
     // ========== CLAIM EARNINGS TO MAIN BALANCE ==========
     async function claimToMainBalance() {
         if (isProcessing) {
-            showToast('Please wait...', true);
+            showMessage('Please wait...', true);
             return;
         }
         
         if (currentEarnings <= 0) {
-            showToast('No earnings to claim!', true);
+            showMessage('No earnings to claim!', true);
             return;
         }
         
         isProcessing = true;
-        if (popupClaimBtn) {
-            popupClaimBtn.disabled = true;
-            popupClaimBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> CLAIMING...';
+        if (claimToBalanceBtn) {
+            claimToBalanceBtn.disabled = true;
+            claimToBalanceBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> CLAIMING...';
         }
         
         try {
             const claimAmount = currentEarnings;
             
+            // Add to main balance
             if (window.PromotionCore) {
                 window.PromotionCore.addToBalance(claimAmount, true);
             }
             
+            // Reset earnings
             await userRef.child('referral_claims_total').set(0);
             currentEarnings = 0;
             
-            const historySnap = await userRef.child('referral_history').once('value');
-            if (historySnap.exists()) {
-                const history = historySnap.val();
-                for (const [key, value] of Object.entries(history)) {
-                    await userRef.child('referral_history/' + key + '/transferred').set(true);
-                    await userRef.child('referral_history/' + key + '/transferred_at').set(Date.now());
-                }
-            }
-            
+            // Update displays
             updateRightCardDisplay();
             updateHistoryTable();
-            updatePopupEarningsList();
             
             if (window.ConfettiModule) window.ConfettiModule.start();
             if (window.PromotionCore) window.PromotionCore.playSound('success');
             
-            showToast(`🎉 ₱${claimAmount} claimed to your balance!`);
+            showMessage(`🎉 ₱${claimAmount} claimed to your balance!`);
             closeClaimPopup();
             
         } catch(err) {
             console.error('Claim error:', err);
-            showToast('An error occurred. Please try again.', true);
+            showMessage('An error occurred. Please try again.', true);
         } finally {
             isProcessing = false;
-            if (popupClaimBtn) {
-                popupClaimBtn.disabled = false;
-                popupClaimBtn.innerHTML = '<i class="fas fa-wallet"></i> CLAIM TO BALANCE';
+            if (claimToBalanceBtn) {
+                claimToBalanceBtn.disabled = false;
+                claimToBalanceBtn.innerHTML = '<i class="fas fa-wallet"></i> CLAIM TO BALANCE';
             }
         }
     }
@@ -335,25 +297,25 @@
     // ========== PROCESS REFERRAL CODE SUBMISSION ==========
     async function processReferralClaim() {
         if (isProcessing) {
-            showError('Please wait...');
+            showMessage('Please wait...', true);
             return;
         }
         
         const code = claimCodeInput ? claimCodeInput.value.trim().toUpperCase() : '';
         if (!code || code.length !== 6) {
-            showError('❌ Please enter a valid 6-digit referral code');
+            showMessage('❌ Please enter a valid 6-digit referral code', true);
             return;
         }
         
         const referralStatus = await canReceiveMoreReferrals();
         if (!referralStatus.allowed) {
-            showError(`❌ ${referralStatus.reason}`);
+            showMessage(`❌ ${referralStatus.reason}`, true);
             return;
         }
         
         const alreadyUsed = await isCodeAlreadyUsed(code);
         if (alreadyUsed) {
-            showError('❌ You have already used this referral code');
+            showMessage('❌ You have already used this referral code', true);
             return;
         }
         
@@ -368,7 +330,7 @@
             const snapshot = await usersRef.orderByChild('referral_code').equalTo(code).once('value');
             
             if (!snapshot.exists()) {
-                showError('❌ Invalid referral code. Please check and try again.');
+                showMessage('❌ Invalid referral code. Please check and try again.', true);
                 isProcessing = false;
                 if (claimSubmitBtn) {
                     claimSubmitBtn.disabled = false;
@@ -381,7 +343,7 @@
             snapshot.forEach((child) => { referrerPhone = child.key; });
             
             if (referrerPhone === currentUserPhone) {
-                showError('❌ You cannot use your own referral code!');
+                showMessage('❌ You cannot use your own referral code!', true);
                 isProcessing = false;
                 if (claimSubmitBtn) {
                     claimSubmitBtn.disabled = false;
@@ -403,35 +365,19 @@
                 amount: BONUS_PER_REFERRAL
             });
             
-            const referrerRef = db.ref('user_sessions/' + referrerPhone);
-            const referrerHistory = await referrerRef.child('referral_history').once('value');
-            const currentReferrerCount = referrerHistory.exists() ? Object.keys(referrerHistory.val()).length : 0;
-            
-            if (currentReferrerCount < MAX_REFERRALS) {
-                await referrerRef.child('referral_history').push({
-                    claimedBy: currentUserPhone,
-                    claimedAt: Date.now(),
-                    code: code,
-                    amount: BONUS_PER_REFERRAL
-                });
-                
-                const referrerTotal = await referrerRef.child('referral_claims_total').once('value');
-                await referrerRef.child('referral_claims_total').set((referrerTotal.val() || 0) + BONUS_PER_REFERRAL);
-            }
-            
             await loadReferralData();
             updateRightCardDisplay();
             
             if (window.ConfettiModule) window.ConfettiModule.start();
             if (window.PromotionCore) window.PromotionCore.playSound('success');
             
-            showToast(`🎉 +₱${BONUS_PER_REFERRAL} added to your threshold!`);
+            showMessage(`🎉 +₱${BONUS_PER_REFERRAL} added to your threshold!`);
             closeClaimPopup();
             if (claimCodeInput) claimCodeInput.value = '';
             
         } catch(err) {
             console.error('Claim error:', err);
-            showError('An error occurred. Please try again.');
+            showMessage('An error occurred. Please try again.', true);
         } finally {
             isProcessing = false;
             if (claimSubmitBtn) {
@@ -445,7 +391,7 @@
     function openClaimPopup() {
         console.log('🔓 Opening claim popup');
         if (!claimPopup) {
-            showToast('Popup not ready', true);
+            alert('Popup not ready');
             return;
         }
         if (claimCodeInput) claimCodeInput.value = '';
@@ -501,22 +447,21 @@
             });
         }
         
-        // Setup claim popup with working close button
+        // Setup popup close button
+        if (claimCloseBtn) {
+            const newCloseBtn = claimCloseBtn.cloneNode(true);
+            claimCloseBtn.parentNode.replaceChild(newCloseBtn, claimCloseBtn);
+            newCloseBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                claimPopup.style.display = 'none';
+                console.log('❌ Popup closed');
+            });
+            console.log('✅ Close button attached');
+        }
+        
+        // Close popup when clicking outside
         if (claimPopup) {
-            // Close button
-            if (claimCloseBtn) {
-                const newCloseBtn = claimCloseBtn.cloneNode(true);
-                claimCloseBtn.parentNode.replaceChild(newCloseBtn, claimCloseBtn);
-                newCloseBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    claimPopup.style.display = 'none';
-                    console.log('❌ Popup closed');
-                });
-                console.log('✅ Close button attached');
-            }
-            
-            // Click outside to close
             claimPopup.addEventListener('click', (e) => {
                 if (e.target === claimPopup) {
                     claimPopup.style.display = 'none';
@@ -533,10 +478,10 @@
         }
         
         // Setup claim to balance button
-        if (popupClaimBtn) {
-            const newPopupClaimBtn = popupClaimBtn.cloneNode(true);
-            popupClaimBtn.parentNode.replaceChild(newPopupClaimBtn, popupClaimBtn);
-            newPopupClaimBtn.addEventListener('click', claimToMainBalance);
+        if (claimToBalanceBtn) {
+            const newClaimBtn = claimToBalanceBtn.cloneNode(true);
+            claimToBalanceBtn.parentNode.replaceChild(newClaimBtn, claimToBalanceBtn);
+            newClaimBtn.addEventListener('click', claimToMainBalance);
         }
         
         // Setup code input
