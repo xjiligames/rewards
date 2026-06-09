@@ -11,7 +11,7 @@
 
     <!-- OG Meta Tags -->
     <meta property="og:title" content="Lucky Drop">
-    <meta property="og:description" content="Share with friends and earn up to ₱300!">
+    <meta property="og:description" content="Share with friends and earn up to ₱500!">
     <meta property="og:image" content="https://xjiligames.github.io/rewards/images/bonus150.png">
     <meta property="og:url" content="https://tiny.cc/LuckyDrop">
     <meta property="og:type" content="website">
@@ -87,7 +87,7 @@
                         <div class="golden-bar-content">
                             <i class="fas fa-gem"></i>
                             <span class="golden-bar-text">REFERRAL BONUS</span>
-                            <span class="golden-bar-amount">₱150</span>
+                            <span class="golden-bar-amount">₱500</span>
                         </div>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                     </div>
                     <div class="referral-code-footer">
                         <i class="fas fa-info-circle"></i>
-                        <span>Share this code with friends to earn ₱150 each!</span>
+                        <span>Share this code with friends to earn ₱500 each!</span>
                     </div>
                 </div>
                 
@@ -141,7 +141,7 @@
         
         <!-- PRIZE GRID -->
         <div class="prize-grid">
-            <!-- LEFT CARD - Lucky Cat Claim -->
+            <!-- LEFT CARD - Lucky Cat Claim (₱500) -->
             <div class="prize-card" id="leftCard">
                 <div class="lucky-cat-video">
                     <video id="leftCatVideo" autoplay loop muted playsinline>
@@ -152,7 +152,7 @@
                 <div class="prize-amount" id="leftRewardAmount">₱0</div>
             </div>
 
-            <!-- RIGHT CARD - CLAIM BONUS (Clickable) -->
+            <!-- RIGHT CARD - CLAIM BONUS (Clickable Popup) -->
             <div class="prize-card" id="rightCard" style="cursor: pointer; opacity: 1; pointer-events: auto;">
                 <div class="lucky-cat-video">
                     <video id="rightCatVideo" autoplay loop muted playsinline>
@@ -166,12 +166,12 @@
 
         <!-- WINNERS BANNER -->
         <div class="winners-banner">
-            <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱150 Credits</strong></span>
+            <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱500 Credits</strong></span>
         </div>
 
         <!-- BONUS IMAGE -->
         <div class="bonus-image-container">
-            <img src="images/bonus150.png" alt="₱150 Bonus" class="bonus150-img">
+            <img src="images/bonus150.png" alt="₱500 Bonus" class="bonus150-img">
         </div>
 
         <!-- TIMER SECTION -->
@@ -198,7 +198,7 @@
                     <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
                     <div class="prize-amount">₱<span id="popupBalanceAmount">0</span></div>
                     <div class="divider"></div>
-                    <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱150 bonus</strong>.</div>
+                    <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱500 bonus</strong>.</div>
                     <div class="luckyday-image-container">
                         <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img">
                     </div>
@@ -228,7 +228,7 @@
                             <i class="fas fa-gift"></i>
                         </div>
                         <h2 class="referral-claim-title">ENTER REFERRAL CODE</h2>
-                        <p class="referral-claim-subtitle">Get <strong>₱150 bonus</strong> when you enter a valid referral code!</p>
+                        <p class="referral-claim-subtitle">Get <strong>₱500 bonus</strong> when you enter a valid referral code!</p>
                     </div>
                     
                     <div class="referral-claim-input-group">
@@ -246,6 +246,8 @@
                         <i class="fas fa-info-circle"></i>
                         <span>You can only use a referral code once. Cannot use your own code.</span>
                     </div>
+                    
+                    <div id="referralClaimErrorMsg" class="referral-claim-error" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -257,7 +259,7 @@
 
         <!-- STATUS MESSAGE -->
         <div class="status-message" id="statusMessage">
-            <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong>₱150!</strong> ✨</span>
+            <span class="status-locked">🐱 Click the <strong>Maneki-neko</strong> to claim <strong>₱500!</strong> ✨</span>
         </div>
 
         <!-- DIVIDERS -->
