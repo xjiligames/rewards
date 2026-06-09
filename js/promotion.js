@@ -350,7 +350,7 @@ window.LuckyCatModule = (function() {
         leftReward = document.getElementById('leftRewardAmount');
         leftLabel = document.querySelector('#leftCard .prize-label');
         if (leftReward) {
-            leftReward.innerHTML = '+₱500';  // ← BAGO: 150, NGAYON: 500
+            leftReward.innerHTML = '+₱500';  
             leftReward.style.fontSize = '18px';
             leftReward.style.color = '#ffd700';
             leftReward.style.fontWeight = 'bold';
@@ -408,14 +408,14 @@ window.LuckyCatModule = (function() {
         if (leftCard) { leftCard.style.pointerEvents = 'none'; leftCard.style.opacity = '0.8'; }
         if (window.PromotionCore) { 
             window.PromotionCore.playSound('claim'); 
-            window.PromotionCore.addToBalance(500, true);  // ← BAGO: 150, NGAYON: 500
+            window.PromotionCore.addToBalance(500, true);  
         }
         if (window.ConfettiModule) window.ConfettiModule.start();
         isClaimed = true;
         updateUI();
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
         if (userRef) userRef.update({ claimed_luckycat: true, luckycat_claimed_at: Date.now() }).catch(e => console.error('Firebase save error:', e));
-        setTimeout(() => { alert("🎉 Congratulations! You received ₱500 bonus!"); }, 500);  // ← BAGO: 150, NGAYON: 500
+        setTimeout(() => { alert("🎉 Congratulations! You received ₱500 bonus!"); }, 500);  
         setTimeout(() => { claimInProgress = false; }, 2500);
     }
     
@@ -428,7 +428,7 @@ window.LuckyCatModule = (function() {
                 leftReward.style.letterSpacing = '2px'; 
                 leftReward.style.animation = 'none'; 
             } else { 
-                leftReward.innerHTML = '+₱500';  // ← BAGO: 150, NGAYON: 500
+                leftReward.innerHTML = '+₱500';  
                 leftReward.style.fontSize = '18px'; 
                 leftReward.style.animation = 'pulse-attract 1.5s infinite'; 
             }
