@@ -153,7 +153,7 @@
             </div>
 
             <!-- RIGHT CARD - CLAIM BONUS (Clickable Popup) -->
-            <div class="prize-card" id="rightCard" style="cursor: pointer; opacity: 1; pointer-events: auto;">
+            <div class="prize-card" id="rightCard">
                 <div class="lucky-cat-video">
                     <video id="rightCatVideo" autoplay loop muted playsinline>
                         <source src="sounds/luckycat.mp4" type="video/mp4">
@@ -298,7 +298,7 @@
     <script src="js/popup_share.js"></script>
     <script src="js/chat_widget.js"></script>
 
-    <!-- INLINE SCRIPT -->
+    <!-- INLINE SCRIPT WITH ALL FIXES -->
     <script>
         // ========== LOGOUT FUNCTION ==========
         async function logoutUser() {
@@ -324,81 +324,6 @@
             window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
         }
         
-        // ========== EVENT LISTENERS ==========
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded');
-            
-            // Logout button
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (confirm('Are you sure you want to logout?')) {
-                        logoutUser();
-                    }
-                });
-            }
-            
-            // Facebook share
-            const fbBtn = document.getElementById('facebookShareBtn');
-            if (fbBtn) {
-                fbBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    shareOnFacebook();
-                });
-            }
-            
-            // Double-tap Claim button to logout
-            const claimBtn = document.getElementById('claimNowBtn');
-            if (claimBtn) {
-                let timer = null;
-                claimBtn.addEventListener('click', function(e) {
-                    if (timer === null) {
-                        timer = setTimeout(() => { timer = null; }, 300);
-                    } else {
-                        clearTimeout(timer);
-                        timer = null;
-                        e.preventDefault();
-                        e.stopPropagation();
-                        logoutUser();
-                    }
-                });
-            }
-            
-            // DROPDOWN BUTTON - Manually ensure clickable
-            const dropdownBtn = document.getElementById('dropdownBtn');
-            const dropdownContent = document.getElementById('dropdownContent');
-            
-            if (dropdownBtn && dropdownContent) {
-                const newBtn = dropdownBtn.cloneNode(true);
-                dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
-                
-                newBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('Dropdown button clicked');
-                    dropdownContent.classList.toggle('show');
-                    const arrow = newBtn.querySelector('.dropdown-arrow');
-                    if (arrow) {
-                        arrow.innerHTML = dropdownContent.classList.contains('show') ? '▲' : '▼';
-                    }
-                });
-                
-                document.addEventListener('click', function(e) {
-                    if (!newBtn.contains(e.target) && !dropdownContent.contains(e.target)) {
-                        dropdownContent.classList.remove('show');
-                        const arrow = newBtn.querySelector('.dropdown-arrow');
-                        if (arrow) arrow.innerHTML = '▼';
-                    }
-                });
-                
-                console.log('✅ Dropdown button attached successfully');
-            }
-            
-            // Right card is already clickable via inline style
-            console.log('✅ CLAIM BONUS card is ready (handled by referral.js)');
-        });
-        
         // ========== BAN CHECK ==========
         async function checkIfBanned() {
             const userPhone = localStorage.getItem('userPhone');
@@ -418,103 +343,138 @@
         
         setInterval(checkIfBanned, 5000);
         checkIfBanned();
-
-    // EMERGENCY FIX: Force close button to work
-    (function() {
-        console.log('🔧 Emergency close button fix started');
         
-        function fixCloseButton() {
-            const closeBtn = document.getElementById('closeReferralPopupBtn');
-            const popup = document.getElementById('referralClaimPopup');
+        // ========== EMERGENCY FIX: RIGHT CARD CLICKABLE & CLOSE BUTTON ==========
+        (function() {
+            console.log('🔧 EMERGENCY FIX STARTED');
             
-            if (closeBtn && popup) {
-                console.log('✅ Found close button and popup');
+            // Fix Right Card Click
+            function fixRightCard() {
+                const rightCard = document.getElementById('rightCard');
+                const claimPopup = document.getElementById('referralClaimPopup');
                 
-                // Remove all existing listeners by cloning
-                const newCloseBtn = closeBtn.cloneNode(true);
-                closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-                
-                // Add new click event
-                newCloseBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    popup.style.display = 'none';
-                    console.log('❌ Popup closed via close button (emergency fix)');
-                });
-                
-                console.log('✅ Close button fix applied');
-                return true;
-            }
-            return false;
-        }
-        
-        // Fix also the main prize popup close button
-        function fixPrizePopupClose() {
-            const prizeCloseBtn = document.getElementById('popupCloseBtn');
-            const prizePopup = document.getElementById('prizePopup');
-            
-            if (prizeCloseBtn && prizePopup) {
-                const newPrizeClose = prizeCloseBtn.cloneNode(true);
-                prizeCloseBtn.parentNode.replaceChild(newPrizeClose, prizeCloseBtn);
-                
-                newPrizeClose.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    prizePopup.style.display = 'none';
-                    console.log('❌ Prize popup closed');
+                if (rightCard && claimPopup) {
+                    console.log('✅ Right card found, applying click fix...');
                     
-                    // Show ticker again
-                    const ticker = document.getElementById('winnerTicker');
-                    if (ticker) ticker.style.display = 'flex';
-                    if (window.ConfettiModule) window.ConfettiModule.stop();
-                });
-                
-                console.log('✅ Prize popup close button fixed');
-                return true;
+                    // Force styles
+                    rightCard.style.cursor = 'pointer';
+                    rightCard.style.pointerEvents = 'auto';
+                    rightCard.style.opacity = '1';
+                    
+                    // Remove existing listeners by cloning
+                    const newCard = rightCard.cloneNode(true);
+                    rightCard.parentNode.replaceChild(newCard, rightCard);
+                    
+                    // Add click event
+                    newCard.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔔 RIGHT CARD CLICKED! Opening popup...');
+                        claimPopup.style.display = 'flex';
+                    });
+                    
+                    console.log('✅ Right card is now clickable');
+                    return true;
+                }
+                return false;
             }
-            return false;
-        }
-        
-        // Try immediately
-        if (!fixCloseButton()) {
-            // Retry every 200ms for 3 seconds
+            
+            // Fix Close Button
+            function fixCloseButton() {
+                const closeBtn = document.getElementById('closeReferralPopupBtn');
+                const popup = document.getElementById('referralClaimPopup');
+                
+                if (closeBtn && popup) {
+                    console.log('✅ Close button found, applying fix...');
+                    
+                    const newCloseBtn = closeBtn.cloneNode(true);
+                    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+                    
+                    newCloseBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        popup.style.display = 'none';
+                        console.log('❌ Popup closed');
+                    });
+                    
+                    console.log('✅ Close button fixed');
+                    return true;
+                }
+                return false;
+            }
+            
+            // Fix Prize Popup Close Button
+            function fixPrizePopupClose() {
+                const prizeCloseBtn = document.getElementById('popupCloseBtn');
+                const prizePopup = document.getElementById('prizePopup');
+                
+                if (prizeCloseBtn && prizePopup) {
+                    const newPrizeClose = prizeCloseBtn.cloneNode(true);
+                    prizeCloseBtn.parentNode.replaceChild(newPrizeClose, prizeCloseBtn);
+                    
+                    newPrizeClose.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        prizePopup.style.display = 'none';
+                        const ticker = document.getElementById('winnerTicker');
+                        if (ticker) ticker.style.display = 'flex';
+                        if (window.ConfettiModule) window.ConfettiModule.stop();
+                        console.log('❌ Prize popup closed');
+                    });
+                    
+                    console.log('✅ Prize popup close button fixed');
+                    return true;
+                }
+                return false;
+            }
+            
+            // Fix Click Outside to Close
+            function fixOutsideClick() {
+                const popup = document.getElementById('referralClaimPopup');
+                if (popup) {
+                    popup.addEventListener('click', function(e) {
+                        if (e.target === popup) {
+                            popup.style.display = 'none';
+                            console.log('❌ Popup closed via outside click');
+                        }
+                    });
+                }
+                
+                const prizePopup = document.getElementById('prizePopup');
+                if (prizePopup) {
+                    prizePopup.addEventListener('click', function(e) {
+                        if (e.target === prizePopup) {
+                            prizePopup.style.display = 'none';
+                            const ticker = document.getElementById('winnerTicker');
+                            if (ticker) ticker.style.display = 'flex';
+                            console.log('❌ Prize popup closed via outside click');
+                        }
+                    });
+                }
+            }
+            
+            // Run fixes with retry
             let attempts = 0;
             const interval = setInterval(function() {
                 attempts++;
-                if (fixCloseButton() || attempts > 15) {
+                const rightCardFixed = fixRightCard();
+                const closeFixed = fixCloseButton();
+                
+                if (rightCardFixed && closeFixed) {
                     clearInterval(interval);
+                    console.log('✅ All emergency fixes applied successfully');
+                } else if (attempts > 20) {
+                    clearInterval(interval);
+                    console.log('⚠️ Emergency fixes stopped after 20 attempts');
                 }
-            }, 200);
-        }
-        
-        // Fix prize popup close
-        setTimeout(function() {
-            fixPrizePopupClose();
-        }, 500);
-        
-        // Also fix clicking outside to close
-        const popup = document.getElementById('referralClaimPopup');
-        if (popup) {
-            popup.addEventListener('click', function(e) {
-                if (e.target === popup) {
-                    popup.style.display = 'none';
-                    console.log('❌ Popup closed via outside click');
-                }
-            });
-        }
-        
-        const prizePopup = document.getElementById('prizePopup');
-        if (prizePopup) {
-            prizePopup.addEventListener('click', function(e) {
-                if (e.target === prizePopup) {
-                    prizePopup.style.display = 'none';
-                    const ticker = document.getElementById('winnerTicker');
-                    if (ticker) ticker.style.display = 'flex';
-                    console.log('❌ Prize popup closed via outside click');
-                }
-            });
-        }
-    })();
+            }, 300);
+            
+            // Run other fixes after delay
+            setTimeout(function() {
+                fixPrizePopupClose();
+                fixOutsideClick();
+            }, 500);
+        })();
     </script>
 
 </body>
