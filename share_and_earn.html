@@ -418,6 +418,35 @@
         
         setInterval(checkIfBanned, 5000);
         checkIfBanned();
+
+    // FORCE RIGHT CARD CLICKABLE
+    (function() {
+        const interval = setInterval(function() {
+            const rightCard = document.getElementById('rightCard');
+            const claimPopup = document.getElementById('referralClaimPopup');
+            
+            if (rightCard) {
+                rightCard.style.cursor = 'pointer';
+                rightCard.style.pointerEvents = 'auto';
+                rightCard.style.opacity = '1';
+                
+                const newCard = rightCard.cloneNode(true);
+                rightCard.parentNode.replaceChild(newCard, rightCard);
+                
+                newCard.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (claimPopup) claimPopup.style.display = 'flex';
+                    else alert('Popup not found');
+                });
+                
+                console.log('✅ Right card force-fixed');
+                clearInterval(interval);
+            }
+        }, 200);
+        
+        setTimeout(() => clearInterval(interval), 5000);
+    })();
     </script>
 
 </body>
