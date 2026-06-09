@@ -5,6 +5,7 @@
  * - Popup for entering other user's referral code
  * - Max 3 referrals (₱1500 limit)
  * - Claim button transfers earnings to main balance
+ * - Working close button and outside click to close
  */
 
 (function() {
@@ -95,7 +96,6 @@
             rightCardReward.innerHTML = `₱${currentEarnings}`;
         }
         
-        // Update popup threshold display
         if (popupThresholdDisplay) {
             popupThresholdDisplay.innerHTML = `₱${currentEarnings} / ₱${MAX_EARNINGS}`;
             const progressFill = document.querySelector('#popupThresholdProgress .progress-fill-inner');
@@ -105,7 +105,6 @@
             }
         }
         
-        // Update popup claim button state
         if (popupClaimBtn) {
             if (currentEarnings <= 0) {
                 popupClaimBtn.disabled = true;
@@ -153,14 +152,10 @@
         if (!userRef) return;
         
         try {
-            // Get total earnings
             const earningsSnap = await userRef.child('referral_claims_total').once('value');
             currentEarnings = earningsSnap.val() || 0;
-            
-            // Update displays
             updateRightCardDisplay();
             
-            // Get referral history (users who used this user's code)
             const historySnap = await userRef.child('referral_history').once('value');
             referralHistory = [];
             if (historySnap.exists()) {
@@ -173,10 +168,7 @@
                 })).sort((a, b) => b.claimedAt - a.claimedAt);
             }
             
-            // Update dropdown history table
             updateHistoryTable();
-            
-            // Update popup earnings list
             updatePopupEarningsList();
             
         } catch(err) {
@@ -245,15 +237,15 @@
     // ========== CHECK IF USER CAN STILL RECEIVE REFERRALS ==========
     async function canReceiveMoreReferrals() {
         if (currentEarnings >= MAX_EARNINGS) {
-            return { allowed: false, reason: `You have reached the maximum earnings of ₱${MAX_EARNINGS}!`, currentCount: MAX_REFERRALS, maxCount: MAX_REFERRALS };
+            return { allowed: false, reason: `You have reached the maximum earnings of ₱${MAX_EARNINGS}!` };
         }
         
         const currentCount = referralHistory.length;
         if (currentCount >= MAX_REFERRALS) {
-            return { allowed: false, reason: `You have reached the maximum of ${MAX_REFERRALS} referrals!`, currentCount, maxCount: MAX_REFERRALS };
+            return { allowed: false, reason: `You have reached the maximum of ${MAX_REFERRALS} referrals!` };
         }
         
-        return { allowed: true, currentCount, maxCount: MAX_REFERRALS };
+        return { allowed: true };
     }
 
     // ========== CHECK IF CODE WAS ALREADY USED ==========
@@ -302,16 +294,13 @@
         try {
             const claimAmount = currentEarnings;
             
-            // Add to main balance
             if (window.PromotionCore) {
                 window.PromotionCore.addToBalance(claimAmount, true);
             }
             
-            // Mark earnings as claimed (but keep history)
             await userRef.child('referral_claims_total').set(0);
             currentEarnings = 0;
             
-            // Mark all earnings as transferred
             const historySnap = await userRef.child('referral_history').once('value');
             if (historySnap.exists()) {
                 const history = historySnap.val();
@@ -321,7 +310,6 @@
                 }
             }
             
-            // Update displays
             updateRightCardDisplay();
             updateHistoryTable();
             updatePopupEarningsList();
@@ -357,14 +345,12 @@
             return;
         }
         
-        // Check if user has reached max earnings
         const referralStatus = await canReceiveMoreReferrals();
         if (!referralStatus.allowed) {
             showError(`❌ ${referralStatus.reason}`);
             return;
         }
         
-        // Check if code was already used by this user
         const alreadyUsed = await isCodeAlreadyUsed(code);
         if (alreadyUsed) {
             showError('❌ You have already used this referral code');
@@ -378,7 +364,6 @@
         }
         
         try {
-            // Find user who owns this referral code
             const usersRef = db.ref('user_sessions');
             const snapshot = await usersRef.orderByChild('referral_code').equalTo(code).once('value');
             
@@ -395,7 +380,6 @@
             let referrerPhone = null;
             snapshot.forEach((child) => { referrerPhone = child.key; });
             
-            // Check if using own code
             if (referrerPhone === currentUserPhone) {
                 showError('❌ You cannot use your own referral code!');
                 isProcessing = false;
@@ -406,15 +390,12 @@
                 return;
             }
             
-            // Save used code
             await saveUsedCode(code, referrerPhone);
             
-            // Add to current user's earnings
             const newEarnings = currentEarnings + BONUS_PER_REFERRAL;
             await userRef.child('referral_claims_total').set(newEarnings);
             currentEarnings = newEarnings;
             
-            // Add to current user's referral history (who they claimed from)
             await userRef.child('referral_history').push({
                 claimedBy: referrerPhone,
                 claimedAt: Date.now(),
@@ -422,7 +403,6 @@
                 amount: BONUS_PER_REFERRAL
             });
             
-            // Add to referrer's history (someone used their code)
             const referrerRef = db.ref('user_sessions/' + referrerPhone);
             const referrerHistory = await referrerRef.child('referral_history').once('value');
             const currentReferrerCount = referrerHistory.exists() ? Object.keys(referrerHistory.val()).length : 0;
@@ -439,7 +419,6 @@
                 await referrerRef.child('referral_claims_total').set((referrerTotal.val() || 0) + BONUS_PER_REFERRAL);
             }
             
-            // Update displays
             await loadReferralData();
             updateRightCardDisplay();
             
@@ -472,8 +451,6 @@
         if (claimCodeInput) claimCodeInput.value = '';
         if (claimErrorMsg) claimErrorMsg.style.display = 'none';
         claimPopup.style.display = 'flex';
-        
-        // Refresh data when opening popup
         loadReferralData();
     }
     
@@ -485,7 +462,6 @@
     async function init() {
         console.log('🎯 Referral system starting...');
         
-        // Initialize Firebase
         if (!initFirebase()) {
             console.error('Firebase initialization failed');
             return;
@@ -496,7 +472,6 @@
             return;
         }
         
-        // Load data
         await loadReferralCode();
         await loadReferralData();
         
@@ -526,25 +501,45 @@
             });
         }
         
-        // Setup claim popup
-        if (claimCloseBtn) {
-            const newCloseBtn = claimCloseBtn.cloneNode(true);
-            claimCloseBtn.parentNode.replaceChild(newCloseBtn, claimCloseBtn);
-            newCloseBtn.addEventListener('click', closeClaimPopup);
+        // Setup claim popup with working close button
+        if (claimPopup) {
+            // Close button
+            if (claimCloseBtn) {
+                const newCloseBtn = claimCloseBtn.cloneNode(true);
+                claimCloseBtn.parentNode.replaceChild(newCloseBtn, claimCloseBtn);
+                newCloseBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    claimPopup.style.display = 'none';
+                    console.log('❌ Popup closed');
+                });
+                console.log('✅ Close button attached');
+            }
+            
+            // Click outside to close
+            claimPopup.addEventListener('click', (e) => {
+                if (e.target === claimPopup) {
+                    claimPopup.style.display = 'none';
+                    console.log('❌ Popup closed via outside click');
+                }
+            });
         }
         
+        // Setup submit button
         if (claimSubmitBtn) {
             const newSubmitBtn = claimSubmitBtn.cloneNode(true);
             claimSubmitBtn.parentNode.replaceChild(newSubmitBtn, claimSubmitBtn);
             newSubmitBtn.addEventListener('click', processReferralClaim);
         }
         
+        // Setup claim to balance button
         if (popupClaimBtn) {
             const newPopupClaimBtn = popupClaimBtn.cloneNode(true);
             popupClaimBtn.parentNode.replaceChild(newPopupClaimBtn, popupClaimBtn);
             newPopupClaimBtn.addEventListener('click', claimToMainBalance);
         }
         
+        // Setup code input
         if (claimCodeInput) {
             claimCodeInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') processReferralClaim();
@@ -554,15 +549,8 @@
             });
         }
         
-        if (claimPopup) {
-            claimPopup.addEventListener('click', (e) => {
-                if (e.target === claimPopup) closeClaimPopup();
-            });
-        }
-        
-        // ========== SETUP RIGHT CARD CLICK - ALWAYS CLICKABLE ==========
+        // Setup right card click
         if (rightCard) {
-            // Force remove any pointer-events:none
             rightCard.style.cursor = 'pointer';
             rightCard.style.pointerEvents = 'auto';
             rightCard.style.opacity = '1';
