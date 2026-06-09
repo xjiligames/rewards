@@ -2357,3 +2357,96 @@ body::after {
     color: #d4af37;
     font-size: 14px;
 }
+
+/* ========== PREMIUM UI ENHANCEMENTS (add at the end of file) ========== */
+
+/* Better font smoothing & readability */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Softer card hover effects */
+.prize-card {
+    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1), box-shadow 0.25s ease;
+}
+.prize-card:hover:not(.prize-card-claimed) {
+    transform: translateY(-4px);
+}
+
+/* Smoother button press */
+.dropdown-btn, .claim-now-btn, .btn-facebook-shimmer, .referral-claim-submit-btn {
+    transition: transform 0.08s linear, box-shadow 0.08s linear;
+}
+
+/* Glassmorphism upgrade for dropdown */
+.dropdown-content {
+    backdrop-filter: blur(16px);
+    background: rgba(0, 0, 0, 0.85);
+}
+
+/* Golden bar shimmer improvement */
+.golden-bar {
+    background: linear-gradient(125deg, #b8860b, #d4af37, #fce883, #d4af37, #b8860b);
+    background-size: 250% 100%;
+    animation: goldBarShimmer 4s infinite linear;
+}
+@keyframes goldBarShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 0%; }
+}
+
+/* Referral code slots – smoother transition */
+.referral-code-slot {
+    transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+/* Claim button hover effect */
+.claim-now-btn:hover {
+    filter: brightness(1.05);
+}
+
+/* Status message premium feel */
+.status-message {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    border-radius: 40px;
+}
+
+/* Winner ticker pill shape */
+.live-winners-ticker {
+    border-radius: 40px;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Timer glow */
+#mainTimerDisplay {
+    text-shadow: 0 0 12px #fce883, 0 0 5px #d4af37;
+}
+
+/* Balance gradient text */
+.main-balance {
+    background: linear-gradient(135deg, #fff5cf, #fce883);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* User badge glow */
+.user-info-badge {
+    backdrop-filter: blur(4px);
+    border-radius: 40px;
+}
+
+/* Scrollbar for earnings table */
+.earnings-table-body::-webkit-scrollbar {
+    width: 4px;
+}
+.earnings-table-body::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 10px;
+}
+.earnings-table-body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #d4af37, #aa771c);
+    border-radius: 10px;
+}
