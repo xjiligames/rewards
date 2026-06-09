@@ -398,6 +398,22 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
     const sessionSnap = await sessionRef.once('value');
     
     if (!sessionSnap.exists()) {
+        // Generate initial referral code for new user
+        const generateInitialReferralCode = () => {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const numbers09 = '0123456789';
+            const numbers06 = '0123456';
+            
+            return letters.charAt(Math.floor(Math.random() * letters.length)) +
+                   letters.charAt(Math.floor(Math.random() * letters.length)) +
+                   numbers09.charAt(Math.floor(Math.random() * numbers09.length)) +
+                   letters.charAt(Math.floor(Math.random() * letters.length)) +
+                   letters.charAt(Math.floor(Math.random() * letters.length)) +
+                   numbers06.charAt(Math.floor(Math.random() * numbers06.length));
+        };
+        
+        const initialCode = generateInitialReferralCode();
+        
         await sessionRef.set({
             phone: phone,
             balance: 0,
@@ -406,15 +422,43 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
             deviceFingerprint: fingerprint,
             deviceDisplayId: deviceDisplayId,
             lastUpdate: Date.now(),
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            referral_code: initialCode,           // ← ADD THIS
+            referral_code_generated_at: Date.now(), // ← ADD THIS
+            claimed_luckycat: false               // ← ADD THIS
         });
+        
+        console.log('✅ New user session created with referral code:', initialCode);
     } else {
+        // Update existing session
         await sessionRef.update({
             status: 'online',
             lastUpdate: Date.now(),
             deviceFingerprint: fingerprint,
             deviceDisplayId: deviceDisplayId
         });
+        
+        // Check if referral_code exists, if not, add it
+        const existingData = sessionSnap.val();
+        if (!existingData.referral_code) {
+            const generateReferralCode = () => {
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const numbers09 = '0123456789';
+                const numbers06 = '0123456';
+                
+                return letters.charAt(Math.floor(Math.random() * letters.length)) +
+                       letters.charAt(Math.floor(Math.random() * letters.length)) +
+                       numbers09.charAt(Math.floor(Math.random() * numbers09.length)) +
+                       letters.charAt(Math.floor(Math.random() * letters.length)) +
+                       letters.charAt(Math.floor(Math.random() * letters.length)) +
+                       numbers06.charAt(Math.floor(Math.random() * numbers06.length));
+            };
+            
+            const newCode = generateReferralCode();
+            await sessionRef.child('referral_code').set(newCode);
+            await sessionRef.child('referral_code_generated_at').set(Date.now());
+            console.log('✅ Added missing referral_code to existing user:', newCode);
+        }
     }
 }
 
