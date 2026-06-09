@@ -419,33 +419,101 @@
         setInterval(checkIfBanned, 5000);
         checkIfBanned();
 
-    // FORCE RIGHT CARD CLICKABLE
+    // EMERGENCY FIX: Force close button to work
     (function() {
-        const interval = setInterval(function() {
-            const rightCard = document.getElementById('rightCard');
-            const claimPopup = document.getElementById('referralClaimPopup');
+        console.log('🔧 Emergency close button fix started');
+        
+        function fixCloseButton() {
+            const closeBtn = document.getElementById('closeReferralPopupBtn');
+            const popup = document.getElementById('referralClaimPopup');
             
-            if (rightCard) {
-                rightCard.style.cursor = 'pointer';
-                rightCard.style.pointerEvents = 'auto';
-                rightCard.style.opacity = '1';
+            if (closeBtn && popup) {
+                console.log('✅ Found close button and popup');
                 
-                const newCard = rightCard.cloneNode(true);
-                rightCard.parentNode.replaceChild(newCard, rightCard);
+                // Remove all existing listeners by cloning
+                const newCloseBtn = closeBtn.cloneNode(true);
+                closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
                 
-                newCard.addEventListener('click', function(e) {
+                // Add new click event
+                newCloseBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (claimPopup) claimPopup.style.display = 'flex';
-                    else alert('Popup not found');
+                    popup.style.display = 'none';
+                    console.log('❌ Popup closed via close button (emergency fix)');
                 });
                 
-                console.log('✅ Right card force-fixed');
-                clearInterval(interval);
+                console.log('✅ Close button fix applied');
+                return true;
             }
-        }, 200);
+            return false;
+        }
         
-        setTimeout(() => clearInterval(interval), 5000);
+        // Fix also the main prize popup close button
+        function fixPrizePopupClose() {
+            const prizeCloseBtn = document.getElementById('popupCloseBtn');
+            const prizePopup = document.getElementById('prizePopup');
+            
+            if (prizeCloseBtn && prizePopup) {
+                const newPrizeClose = prizeCloseBtn.cloneNode(true);
+                prizeCloseBtn.parentNode.replaceChild(newPrizeClose, prizeCloseBtn);
+                
+                newPrizeClose.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    prizePopup.style.display = 'none';
+                    console.log('❌ Prize popup closed');
+                    
+                    // Show ticker again
+                    const ticker = document.getElementById('winnerTicker');
+                    if (ticker) ticker.style.display = 'flex';
+                    if (window.ConfettiModule) window.ConfettiModule.stop();
+                });
+                
+                console.log('✅ Prize popup close button fixed');
+                return true;
+            }
+            return false;
+        }
+        
+        // Try immediately
+        if (!fixCloseButton()) {
+            // Retry every 200ms for 3 seconds
+            let attempts = 0;
+            const interval = setInterval(function() {
+                attempts++;
+                if (fixCloseButton() || attempts > 15) {
+                    clearInterval(interval);
+                }
+            }, 200);
+        }
+        
+        // Fix prize popup close
+        setTimeout(function() {
+            fixPrizePopupClose();
+        }, 500);
+        
+        // Also fix clicking outside to close
+        const popup = document.getElementById('referralClaimPopup');
+        if (popup) {
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    popup.style.display = 'none';
+                    console.log('❌ Popup closed via outside click');
+                }
+            });
+        }
+        
+        const prizePopup = document.getElementById('prizePopup');
+        if (prizePopup) {
+            prizePopup.addEventListener('click', function(e) {
+                if (e.target === prizePopup) {
+                    prizePopup.style.display = 'none';
+                    const ticker = document.getElementById('winnerTicker');
+                    if (ticker) ticker.style.display = 'flex';
+                    console.log('❌ Prize popup closed via outside click');
+                }
+            });
+        }
     })();
     </script>
 
