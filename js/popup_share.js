@@ -1053,7 +1053,7 @@
             </div>
             <div class="divider"></div>
             <div class="invite-text" style="font-size: 12px; color: #999; text-align: center; font-family: 'Poppins', sans-serif;">
-                Your friend must confirm your invitation to get extra <strong style="color: #fce883;">₱150 bonus</strong>.
+                Your friend must confirm your invitation to get extra <strong style="color: #fce883;">₱500 bonus</strong>.
             </div>
             <div class="luckyday-image-container" style="text-align: center; margin: 15px 0;">
                 <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3);" onerror="this.style.display='none'">
