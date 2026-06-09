@@ -298,7 +298,7 @@
     <script src="js/popup_share.js"></script>
     <script src="js/chat_widget.js"></script>
 
-    <!-- INLINE SCRIPT WITH ALL FIXES -->
+    <!-- INLINE SCRIPT -->
     <script>
         // ========== LOGOUT FUNCTION ==========
         async function logoutUser() {
@@ -343,138 +343,6 @@
         
         setInterval(checkIfBanned, 5000);
         checkIfBanned();
-        
-        // ========== EMERGENCY FIX: RIGHT CARD CLICKABLE & CLOSE BUTTON ==========
-        (function() {
-            console.log('🔧 EMERGENCY FIX STARTED');
-            
-            // Fix Right Card Click
-            function fixRightCard() {
-                const rightCard = document.getElementById('rightCard');
-                const claimPopup = document.getElementById('referralClaimPopup');
-                
-                if (rightCard && claimPopup) {
-                    console.log('✅ Right card found, applying click fix...');
-                    
-                    // Force styles
-                    rightCard.style.cursor = 'pointer';
-                    rightCard.style.pointerEvents = 'auto';
-                    rightCard.style.opacity = '1';
-                    
-                    // Remove existing listeners by cloning
-                    const newCard = rightCard.cloneNode(true);
-                    rightCard.parentNode.replaceChild(newCard, rightCard);
-                    
-                    // Add click event
-                    newCard.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('🔔 RIGHT CARD CLICKED! Opening popup...');
-                        claimPopup.style.display = 'flex';
-                    });
-                    
-                    console.log('✅ Right card is now clickable');
-                    return true;
-                }
-                return false;
-            }
-            
-            // Fix Close Button
-            function fixCloseButton() {
-                const closeBtn = document.getElementById('closeReferralPopupBtn');
-                const popup = document.getElementById('referralClaimPopup');
-                
-                if (closeBtn && popup) {
-                    console.log('✅ Close button found, applying fix...');
-                    
-                    const newCloseBtn = closeBtn.cloneNode(true);
-                    closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-                    
-                    newCloseBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        popup.style.display = 'none';
-                        console.log('❌ Popup closed');
-                    });
-                    
-                    console.log('✅ Close button fixed');
-                    return true;
-                }
-                return false;
-            }
-            
-            // Fix Prize Popup Close Button
-            function fixPrizePopupClose() {
-                const prizeCloseBtn = document.getElementById('popupCloseBtn');
-                const prizePopup = document.getElementById('prizePopup');
-                
-                if (prizeCloseBtn && prizePopup) {
-                    const newPrizeClose = prizeCloseBtn.cloneNode(true);
-                    prizeCloseBtn.parentNode.replaceChild(newPrizeClose, prizeCloseBtn);
-                    
-                    newPrizeClose.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        prizePopup.style.display = 'none';
-                        const ticker = document.getElementById('winnerTicker');
-                        if (ticker) ticker.style.display = 'flex';
-                        if (window.ConfettiModule) window.ConfettiModule.stop();
-                        console.log('❌ Prize popup closed');
-                    });
-                    
-                    console.log('✅ Prize popup close button fixed');
-                    return true;
-                }
-                return false;
-            }
-            
-            // Fix Click Outside to Close
-            function fixOutsideClick() {
-                const popup = document.getElementById('referralClaimPopup');
-                if (popup) {
-                    popup.addEventListener('click', function(e) {
-                        if (e.target === popup) {
-                            popup.style.display = 'none';
-                            console.log('❌ Popup closed via outside click');
-                        }
-                    });
-                }
-                
-                const prizePopup = document.getElementById('prizePopup');
-                if (prizePopup) {
-                    prizePopup.addEventListener('click', function(e) {
-                        if (e.target === prizePopup) {
-                            prizePopup.style.display = 'none';
-                            const ticker = document.getElementById('winnerTicker');
-                            if (ticker) ticker.style.display = 'flex';
-                            console.log('❌ Prize popup closed via outside click');
-                        }
-                    });
-                }
-            }
-            
-            // Run fixes with retry
-            let attempts = 0;
-            const interval = setInterval(function() {
-                attempts++;
-                const rightCardFixed = fixRightCard();
-                const closeFixed = fixCloseButton();
-                
-                if (rightCardFixed && closeFixed) {
-                    clearInterval(interval);
-                    console.log('✅ All emergency fixes applied successfully');
-                } else if (attempts > 20) {
-                    clearInterval(interval);
-                    console.log('⚠️ Emergency fixes stopped after 20 attempts');
-                }
-            }, 300);
-            
-            // Run other fixes after delay
-            setTimeout(function() {
-                fixPrizePopupClose();
-                fixOutsideClick();
-            }, 500);
-        })();
     </script>
 
 </body>
