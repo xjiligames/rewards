@@ -347,20 +347,12 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
     const sessionSnap = await sessionRef.once('value');
     
     if (!sessionSnap.exists()) {
-        // Generate referral code sa registration pa lang
-        const generateReferralCode = () => {
-            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const numbers09 = '0123456789';
-            const numbers06 = '0123456';
-            return letters.charAt(Math.floor(Math.random() * 26)) +
-                   letters.charAt(Math.floor(Math.random() * 26)) +
-                   numbers09.charAt(Math.floor(Math.random() * 10)) +
-                   letters.charAt(Math.floor(Math.random() * 26)) +
-                   letters.charAt(Math.floor(Math.random() * 26)) +
-                   numbers06.charAt(Math.floor(Math.random() * 7));
+        // Generate referral code agad sa registration
+        const generateCode = () => {
+            const l='ABCDEFGHIJKLMNOPQRSTUVWXYZ', n='0123456789', n6='0123456';
+            return l[Math.floor(Math.random()*26)]+l[Math.floor(Math.random()*26)]+n[Math.floor(Math.random()*10)]+l[Math.floor(Math.random()*26)]+l[Math.floor(Math.random()*26)]+n6[Math.floor(Math.random()*7)];
         };
-        const initialCode = generateReferralCode();
-        
+        const initialCode = generateCode();
         await sessionRef.set({
             phone: phone,
             balance: 0,
@@ -370,20 +362,14 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
             deviceDisplayId: deviceDisplayId,
             lastUpdate: Date.now(),
             createdAt: Date.now(),
-            referral_code: initialCode,            // ← CRUCIAL
+            referral_code: initialCode,   // ← CRUCIAL
             referral_code_generated_at: Date.now(),
             claimed_luckycat: false
         });
         console.log('✅ New user session with referral code:', initialCode);
     } else {
-        // Update existing session
-        await sessionRef.update({
-            status: 'online',
-            lastUpdate: Date.now(),
-            deviceFingerprint: fingerprint,
-            deviceDisplayId: deviceDisplayId
-        });
-        // If missing referral_code, add it
+        // Update existing session (at kung walang referral_code, idagdag)
+        await sessionRef.update({ status: 'online', lastUpdate: Date.now(), deviceFingerprint: fingerprint, deviceDisplayId: deviceDisplayId });
         const data = sessionSnap.val();
         if (!data.referral_code) {
             const newCode = (() => {
@@ -392,7 +378,6 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
             })();
             await sessionRef.child('referral_code').set(newCode);
             await sessionRef.child('referral_code_generated_at').set(Date.now());
-            console.log('✅ Added missing referral code:', newCode);
         }
     }
 }
