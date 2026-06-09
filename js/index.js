@@ -1,6 +1,6 @@
 /**
  * Lucky Drop Index Page - Swipe to Verify with Fire Trail
- * With Online Status System
+ * With Online Status System - UPDATED: ₱500 rewards
  */
 
 // Initialize Firebase
@@ -28,76 +28,23 @@ const swipeFireTrail = document.getElementById('swipeFireTrail');
 // Scarcity counter
 let count = 88;
 
-// ========== FIXED PHONE FORMATTER ==========
-function formatPhoneNumber(input) {
-    let cleaned = input.replace(/\D/g, '');
-    
-    if (!cleaned || cleaned.length === 0) {
-        return '';
-    }
-    
+// ========== SIMPLE PHONE VALIDATION (11 digits only) ==========
+function isValidPhoneNumber(phone) {
+    // Remove all non-digits
+    const cleaned = phone.replace(/\D/g, '');
+    // Must be exactly 11 digits and start with 09
+    return cleaned.length === 11 && cleaned.startsWith('09');
+}
+
+function formatPhoneNumber(phone) {
+    const cleaned = phone.replace(/\D/g, '');
     if (cleaned.length === 11 && cleaned.startsWith('09')) {
         return cleaned;
     }
-    
-    if (cleaned.length === 12 && cleaned.startsWith('099')) {
-        return cleaned.substring(1);
-    }
-    
-    if (cleaned.length === 12 && cleaned.startsWith('09')) {
-        return cleaned.substring(0, 11);
-    }
-    
-    if (cleaned.length >= 13) {
-        const index09 = cleaned.indexOf('09');
-        if (index09 !== -1 && cleaned.length >= index09 + 11) {
-            return cleaned.substring(index09, index09 + 11);
-        }
-        return cleaned.slice(-11);
-    }
-    
-    if (cleaned.length === 11 && !cleaned.startsWith('09')) {
-        if (cleaned.startsWith('99')) {
-            return '09' + cleaned.substring(2);
-        }
-        return '09' + cleaned.substring(2);
-    }
-    
-    if (cleaned.startsWith('63') && cleaned.length >= 12) {
-        let without63 = cleaned.substring(2);
-        if (without63.startsWith('9')) {
-            without63 = '0' + without63;
-        }
-        return without63.substring(0, 11);
-    }
-    
-    if (cleaned.length === 10) {
+    if (cleaned.length === 10 && cleaned.startsWith('9')) {
         return '0' + cleaned;
     }
-    
-    if (cleaned.length === 9) {
-        return '09' + cleaned;
-    }
-    
-    if (cleaned.startsWith('0') && cleaned.length === 11) {
-        return cleaned;
-    }
-    
-    if (cleaned.startsWith('0') && cleaned.length > 11) {
-        return cleaned.substring(0, 11);
-    }
-    
-    if (cleaned.startsWith('9') && cleaned.length === 10) {
-        return '0' + cleaned;
-    }
-    
     return cleaned;
-}
-
-// ========== VALIDATE PHONE NUMBER ==========
-function isValidPhoneNumber(phone) {
-    const formatted = formatPhoneNumber(phone);
-    return formatted.length === 11 && formatted.startsWith('09');
 }
 
 // ========== SET USER ONLINE STATUS ==========
@@ -265,7 +212,7 @@ async function completeSwipe() {
     }, 500);
 }
 
-// ========== LIVE WINNERS TICKER ==========
+// ========== LIVE WINNERS TICKER (Updated with new amounts) ==========
 function updateTickerWithTransition(phoneNumber, amount, type) {
     if (!winnerEntry) return;
     
@@ -289,12 +236,14 @@ function updateTickerWithTransition(phoneNumber, amount, type) {
 function startTicker() {
     const prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
     
+    // Updated amount distribution
+    // 500 = 90%, 1000 = 15%, 1500 = 10%, 2000 = 5%
     function generateRandomAmount() {
-        const rand = Math.random();
-        if (rand < 0.60) return 150;
-        else if (rand < 0.85) return 300;
-        else if (rand < 0.95) return 450;
-        else return 600;
+        const rand = Math.random() * 100;
+        if (rand < 90) return 500;      // 90% chance
+        else if (rand < 105) return 1000; // 15% chance (90-105)
+        else if (rand < 115) return 1500; // 10% chance (105-115)
+        else return 2000;                 // 5% chance (115-120)
     }
     
     function generateWinner() {
@@ -392,7 +341,7 @@ async function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
     });
 }
 
-// ========== CREATE USER SESSION ==========
+// ========== CREATE USER SESSION (with referral_code) ==========
 async function createUserSession(phone, fingerprint, deviceDisplayId) {
     const sessionRef = db.ref('user_sessions/' + phone);
     const sessionSnap = await sessionRef.once('value');
@@ -423,9 +372,9 @@ async function createUserSession(phone, fingerprint, deviceDisplayId) {
             deviceDisplayId: deviceDisplayId,
             lastUpdate: Date.now(),
             createdAt: Date.now(),
-            referral_code: initialCode,           // ← ADD THIS
-            referral_code_generated_at: Date.now(), // ← ADD THIS
-            claimed_luckycat: false               // ← ADD THIS
+            referral_code: initialCode,
+            referral_code_generated_at: Date.now(),
+            claimed_luckycat: false
         });
         
         console.log('✅ New user session created with referral code:', initialCode);
@@ -536,19 +485,20 @@ function showBlockedUI(reason) {
 window.processStep1 = async function() {
     if (!userPhoneInput || !claimBtn) return;
     
-    let phone = '09' + userPhoneInput.value.trim();
+    let rawPhone = userPhoneInput.value.trim();
     const btn = claimBtn;
     const fingerprint = getDeviceFingerprint();
 
-    if (!phone || phone.length === 0) {
+    if (!rawPhone || rawPhone.length === 0) {
         alert("Please enter your mobile number.");
         return;
     }
     
-    const fullPhone = formatPhoneNumber(phone);
+    // Format and validate phone number
+    const fullPhone = formatPhoneNumber(rawPhone);
     
     if (!isValidPhoneNumber(fullPhone)) {
-        alert("Invalid mobile number.\n\nPlease enter a valid number like:\n• 09123456789\n• 9123456789\n• 639123456789");
+        alert("Invalid mobile number.\n\nPlease enter a valid 11-digit number starting with 09 (e.g., 09123456789)");
         return;
     }
     
