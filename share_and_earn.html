@@ -418,6 +418,55 @@
         
         setInterval(checkIfBanned, 5000);
         checkIfBanned();
+
+         // EMERGENCY FIX: Force right card clickable
+    (function() {
+        console.log('🔧 EMERGENCY FIX STARTING...');
+        
+        const forceInterval = setInterval(function() {
+            const rightCard = document.getElementById('rightCard');
+            const claimPopup = document.getElementById('referralClaimPopup');
+            
+            if (rightCard) {
+                console.log('✅ Right card found!');
+                
+                // Force styles
+                rightCard.style.cursor = 'pointer';
+                rightCard.style.pointerEvents = 'auto';
+                rightCard.style.opacity = '1';
+                
+                // Clone to remove old listeners
+                const newCard = rightCard.cloneNode(true);
+                rightCard.parentNode.replaceChild(newCard, rightCard);
+                
+                // Add click event
+                newCard.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔔 RIGHT CARD CLICKED!');
+                    
+                    if (claimPopup) {
+                        claimPopup.style.display = 'flex';
+                        console.log('✅ Popup opened');
+                    } else {
+                        console.error('❌ Popup not found');
+                        alert('Popup not available');
+                    }
+                });
+                
+                console.log('✅ EMERGENCY FIX: Right card is now clickable');
+                clearInterval(forceInterval);
+            } else {
+                console.log('⏳ Waiting for right card...');
+            }
+        }, 200);
+        
+        // Stop after 5 seconds
+        setTimeout(function() {
+            clearInterval(forceInterval);
+            console.log('🔧 Emergency fix stopped after 5 seconds');
+        }, 5000);
+    })();
     </script>
 
 </body>
