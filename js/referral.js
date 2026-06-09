@@ -16,7 +16,6 @@
     const referralDisplay = document.getElementById('referralCodeDisplay');
     const rightCard = document.getElementById('rightCard');
     const rightCardReward = document.getElementById('rightRewardAmountDisplay');
-    const rightCardLabel = document.querySelector('#rightCard .prize-label');
     
     // Popup elements
     const claimPopup = document.getElementById('referralClaimPopup');
@@ -94,28 +93,6 @@
     function updateRightCardDisplay() {
         if (rightCardReward) {
             rightCardReward.innerHTML = `₱${currentEarnings}`;
-        }
-        
-        // Check if max threshold reached
-        if (currentEarnings >= MAX_EARNINGS) {
-            if (rightCardLabel) {
-                rightCardLabel.innerHTML = 'FULL CLAIMED';
-                rightCardLabel.style.color = '#ffd700';
-            }
-            if (rightCard) {
-                rightCard.style.opacity = '0.7';
-                rightCard.style.pointerEvents = 'none';
-                rightCard.style.cursor = 'default';
-            }
-        } else {
-            if (rightCardLabel && rightCardLabel.innerHTML !== 'CLAIM BONUS') {
-                rightCardLabel.innerHTML = 'CLAIM BONUS';
-            }
-            if (rightCard) {
-                rightCard.style.opacity = '1';
-                rightCard.style.pointerEvents = 'auto';
-                rightCard.style.cursor = 'pointer';
-            }
         }
         
         // Update popup threshold display
@@ -410,7 +387,7 @@
                 isProcessing = false;
                 if (claimSubmitBtn) {
                     claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
+                    claimSubmitBtn.innerHTML = 'SUBMIT CODE';
                 }
                 return;
             }
@@ -424,7 +401,7 @@
                 isProcessing = false;
                 if (claimSubmitBtn) {
                     claimSubmitBtn.disabled = false;
-                    claimSubmitBtn.innerHTML = 'CLAIM BONUS';
+                    claimSubmitBtn.innerHTML = 'SUBMIT CODE';
                 }
                 return;
             }
@@ -487,6 +464,7 @@
 
     // ========== POPUP FUNCTIONS ==========
     function openClaimPopup() {
+        console.log('🔓 Opening claim popup');
         if (!claimPopup) {
             showToast('Popup not ready', true);
             return;
@@ -582,13 +560,26 @@
             });
         }
         
-        // Setup right card click
+        // ========== SETUP RIGHT CARD CLICK - ALWAYS CLICKABLE ==========
         if (rightCard) {
+            // Force remove any pointer-events:none
             rightCard.style.cursor = 'pointer';
+            rightCard.style.pointerEvents = 'auto';
+            rightCard.style.opacity = '1';
+            
             const newRightCard = rightCard.cloneNode(true);
             rightCard.parentNode.replaceChild(newRightCard, rightCard);
-            newRightCard.addEventListener('click', openClaimPopup);
-            console.log('✅ Right card click attached');
+            
+            newRightCard.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🖱️ Right card clicked - opening popup');
+                openClaimPopup();
+            });
+            
+            console.log('✅ Right card is now clickable');
+        } else {
+            console.error('❌ Right card element not found!');
         }
         
         console.log('✅ Referral system ready!');
