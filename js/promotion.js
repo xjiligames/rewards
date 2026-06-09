@@ -350,7 +350,7 @@ window.LuckyCatModule = (function() {
         leftReward = document.getElementById('leftRewardAmount');
         leftLabel = document.querySelector('#leftCard .prize-label');
         if (leftReward) {
-            leftReward.innerHTML = '+₱150';
+            leftReward.innerHTML = '+₱500';  // ← BAGO: 150, NGAYON: 500
             leftReward.style.fontSize = '18px';
             leftReward.style.color = '#ffd700';
             leftReward.style.fontWeight = 'bold';
@@ -406,25 +406,43 @@ window.LuckyCatModule = (function() {
     function processClaim() {
         claimInProgress = true;
         if (leftCard) { leftCard.style.pointerEvents = 'none'; leftCard.style.opacity = '0.8'; }
-        if (window.PromotionCore) { window.PromotionCore.playSound('claim'); window.PromotionCore.addToBalance(150, true); }
+        if (window.PromotionCore) { 
+            window.PromotionCore.playSound('claim'); 
+            window.PromotionCore.addToBalance(500, true);  // ← BAGO: 150, NGAYON: 500
+        }
         if (window.ConfettiModule) window.ConfettiModule.start();
         isClaimed = true;
         updateUI();
         const userRef = window.PromotionCore ? window.PromotionCore.getUserRef() : null;
         if (userRef) userRef.update({ claimed_luckycat: true, luckycat_claimed_at: Date.now() }).catch(e => console.error('Firebase save error:', e));
-        setTimeout(() => { alert("🎉 Congratulations! You received ₱150 bonus!"); }, 500);
+        setTimeout(() => { alert("🎉 Congratulations! You received ₱500 bonus!"); }, 500);  // ← BAGO: 150, NGAYON: 500
         setTimeout(() => { claimInProgress = false; }, 2500);
     }
     
     function updateUI() {
         if (leftLabel) { leftLabel.innerHTML = isClaimed ? 'ALREADY' : 'YOU GET'; leftLabel.style.color = isClaimed ? '#ffd700' : '#ffd966'; leftLabel.style.fontSize = isClaimed ? '10px' : '11px'; }
         if (leftReward) {
-            if (isClaimed) { leftReward.innerHTML = 'CLAIMED'; leftReward.style.fontSize = '12px'; leftReward.style.letterSpacing = '2px'; leftReward.style.animation = 'none'; } 
-            else { leftReward.innerHTML = '+₱150'; leftReward.style.fontSize = '18px'; leftReward.style.animation = 'pulse-attract 1.5s infinite'; }
+            if (isClaimed) { 
+                leftReward.innerHTML = 'CLAIMED'; 
+                leftReward.style.fontSize = '12px'; 
+                leftReward.style.letterSpacing = '2px'; 
+                leftReward.style.animation = 'none'; 
+            } else { 
+                leftReward.innerHTML = '+₱500';  // ← BAGO: 150, NGAYON: 500
+                leftReward.style.fontSize = '18px'; 
+                leftReward.style.animation = 'pulse-attract 1.5s infinite'; 
+            }
         }
         if (leftCard) {
-            if (isClaimed) { leftCard.classList.add('prize-card-claimed'); leftCard.style.cursor = 'default'; leftCard.style.pointerEvents = 'none'; } 
-            else { leftCard.classList.remove('prize-card-claimed'); leftCard.style.cursor = 'pointer'; leftCard.style.pointerEvents = 'auto'; }
+            if (isClaimed) { 
+                leftCard.classList.add('prize-card-claimed'); 
+                leftCard.style.cursor = 'default'; 
+                leftCard.style.pointerEvents = 'none'; 
+            } else { 
+                leftCard.classList.remove('prize-card-claimed'); 
+                leftCard.style.cursor = 'pointer'; 
+                leftCard.style.pointerEvents = 'auto'; 
+            }
         }
     }
     
