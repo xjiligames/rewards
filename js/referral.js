@@ -1,6 +1,5 @@
 /**
- * referral.js - Simple Independent Referral System
- * No dependencies, direct Firebase operations
+ * referral.js - Fixed: Adds to main balance when entering referral code
  */
 
 (function() {
@@ -27,7 +26,6 @@
     let isProcessing = false;
     let userRef = null;
     let db = null;
-    let animationInterval = null;
 
     const MAX_EARNINGS = 1500;
     const BONUS_PER_REFERRAL = 500;
@@ -56,40 +54,17 @@
         }
     }
 
-    // ========== ANIMATE NUMBER (SIMPLE) ==========
-    function animateNumber(element, targetValue) {
-        if (!element) return;
-        if (animationInterval) clearInterval(animationInterval);
-        
-        let current = parseInt(element.innerText.replace('₱', '')) || 0;
-        if (current === targetValue) return;
-        
-        const step = current < targetValue ? 10 : -10;
-        animationInterval = setInterval(() => {
-            current += step;
-            if ((step > 0 && current >= targetValue) || (step < 0 && current <= targetValue)) {
-                element.innerText = `₱${targetValue}`;
-                clearInterval(animationInterval);
-                animationInterval = null;
-            } else {
-                element.innerText = `₱${current}`;
-            }
-        }, 20);
-    }
-
     // ========== UPDATE RIGHT CARD DISPLAY ==========
     function updateRightCardDisplay() {
         if (rightCardReward) {
             rightCardReward.innerText = `₱${currentEarnings}`;
         }
         
-        // Update claim button state
         if (claimToBalanceBtn) {
             claimToBalanceBtn.disabled = (currentEarnings <= 0);
             claimToBalanceBtn.style.opacity = currentEarnings <= 0 ? '0.5' : '1';
         }
         
-        // Update right card label when max reached
         const rightLabel = document.querySelector('#rightCard .prize-label');
         if (currentEarnings >= MAX_EARNINGS) {
             if (rightLabel) rightLabel.innerText = 'FULL CLAIMED';
@@ -189,7 +164,34 @@
         }
     }
 
-    // ========== CLAIM TO MAIN BALANCE ==========
+    // ========== ADD TO MAIN BALANCE DIRECTLY ==========
+    async function addToMainBalance(amount) {
+        // First try PromotionCore
+        if (window.PromotionCore && window.PromotionCore.addToBalance) {
+            window.PromotionCore.addToBalance(amount, true);
+            return true;
+        }
+        
+        // Fallback: direct Firebase update
+        try {
+            const balanceSnap = await userRef.child('balance').once('value');
+            const currentBalance = balanceSnap.val() || 0;
+            const newBalance = currentBalance + amount;
+            await userRef.child('balance').set(newBalance);
+            
+            // Also update the balance display
+            const balanceEl = document.getElementById('userBalanceDisplay');
+            if (balanceEl) {
+                balanceEl.innerText = newBalance.toFixed(2);
+            }
+            return true;
+        } catch(e) {
+            console.error('Error adding to balance:', e);
+            return false;
+        }
+    }
+
+    // ========== CLAIM TO MAIN BALANCE (from right card earnings) ==========
     async function claimToMainBalance() {
         if (isProcessing) {
             showMessage('Please wait...', true);
@@ -209,28 +211,19 @@
         try {
             const claimAmount = currentEarnings;
             
-            // 1. Reset earnings in Firebase
+            // Add to main balance
+            await addToMainBalance(claimAmount);
+            
+            // Reset earnings in Firebase
             await userRef.child('referral_claims_total').set(0);
             currentEarnings = 0;
             updateRightCardDisplay();
             await updateHistoryTable();
             
-            // 2. Add to main balance via PromotionCore
-            if (window.PromotionCore && window.PromotionCore.addToBalance) {
-                window.PromotionCore.addToBalance(claimAmount, true);
-                showMessage(`🎉 ₱${claimAmount} added to your balance!`);
-            } else {
-                // Fallback: direct Firebase update
-                const balanceSnap = await userRef.child('balance').once('value');
-                const newBalance = (balanceSnap.val() || 0) + claimAmount;
-                await userRef.child('balance').set(newBalance);
-                showMessage(`🎉 ₱${claimAmount} added to your balance!`);
-            }
-            
-            // 3. Trigger effects
             if (window.ConfettiModule) window.ConfettiModule.start();
             if (window.PromotionCore) window.PromotionCore.playSound('success');
             
+            showMessage(`🎉 ₱${claimAmount} added to your balance!`);
             closeClaimPopup();
             
         } catch(e) {
@@ -245,7 +238,7 @@
         }
     }
 
-    // ========== SUBMIT REFERRAL CODE ==========
+    // ========== SUBMIT REFERRAL CODE - FIXED ==========
     async function submitReferralCode() {
         if (isProcessing) {
             showMessage('Please wait...', true);
@@ -297,7 +290,16 @@
                 return;
             }
             
-            // Add earnings to current user
+            // ========== ADD TO MAIN BALANCE IMMEDIATELY ==========
+            const addSuccess = await addToMainBalance(BONUS_PER_REFERRAL);
+            
+            if (addSuccess) {
+                showMessage(`🎉 ₱${BONUS_PER_REFERRAL} added to your balance!`);
+            } else {
+                showMessage('⚠️ Bonus added but failed to update display', true);
+            }
+            
+            // Also add to earnings (for right card display)
             const newEarnings = currentEarnings + BONUS_PER_REFERRAL;
             await userRef.child('referral_claims_total').set(newEarnings);
             currentEarnings = newEarnings;
@@ -331,7 +333,6 @@
             if (window.ConfettiModule) window.ConfettiModule.start();
             if (window.PromotionCore) window.PromotionCore.playSound('success');
             
-            showMessage(`🎉 +₱${BONUS_PER_REFERRAL} added!`);
             closeClaimPopup();
             if (claimCodeInput) claimCodeInput.value = '';
             
