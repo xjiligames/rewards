@@ -1168,6 +1168,11 @@ body {
         font-size: 28px;
     }
     
+    .logo-sub {
+        font-size: 9px;
+        letter-spacing: 4px;
+    }
+    
     .prop-title {
         font-size: 11px;
     }
@@ -1210,6 +1215,10 @@ body {
     
     .swipe-text {
         font-size: 11px;
+    }
+    
+    .corner-deco {
+        font-size: 12px;
     }
 }
 
