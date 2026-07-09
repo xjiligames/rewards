@@ -1,6 +1,6 @@
 /* ============================================================
-   WILD WEST CASINO THEME
-   Premium gambling aesthetic with golden sunset atmosphere
+   ZEUS DROP - GREEK MYTHOLOGY CASINO THEME
+   Divine Olympus casino aesthetic with golden heavenly light
    ============================================================ */
 
 * {
@@ -17,17 +17,21 @@
     --gold-light: #f5d97e;
     --gold-dark: #a87c2e;
     --gold-glow: rgba(212, 168, 75, 0.4);
-    --amber: #c87a2e;
-    --sunset-orange: #e8651a;
-    --sunset-red: #b8401a;
-    --wood-dark: #2a1a0a;
-    --wood-medium: #3d2815;
-    --wood-light: #5a3d1e;
-    --leather: #4a2810;
-    --cream: #f5ece0;
+    --royal-purple: #6a1b9a;
+    --royal-purple-dark: #4a148c;
+    --royal-purple-light: #9c27b0;
+    --electric-blue: #00b0ff;
+    --electric-blue-glow: rgba(0, 176, 255, 0.3);
+    --divine-white: #f5f0eb;
+    --marble: #e8e0d8;
+    --marble-dark: #c4b8a8;
+    --cloud-white: rgba(255, 255, 255, 0.1);
+    --storm-dark: #1a1a2e;
     --text-gold: #f5d97e;
-    --shadow-warm: rgba(212, 168, 75, 0.3);
+    --shadow-divine: rgba(212, 168, 75, 0.3);
     --font-serif: 'Playfair Display', serif;
+    --font-cinzel: 'Cinzel', serif;
+    --font-forum: 'Forum', cursive;
     --font-display: 'Orbitron', monospace;
     --font-body: 'Poppins', sans-serif;
 }
@@ -35,7 +39,7 @@
 /* ========== BASE ========== */
 body {
     min-height: 100vh;
-    background: #0a0604;
+    background: #0a0815;
     font-family: var(--font-body);
     display: flex;
     align-items: center;
@@ -45,7 +49,7 @@ body {
     overflow-x: hidden;
 }
 
-/* ========== BACKGROUND - Wild West Sunset ========== */
+/* ========== BACKGROUND - Olympus Sky ========== */
 .bg-gradient {
     position: fixed;
     top: 0;
@@ -54,62 +58,149 @@ body {
     height: 100%;
     z-index: 0;
     background: 
-        radial-gradient(ellipse at 30% 80%, #e8651a 0%, transparent 40%),
-        radial-gradient(ellipse at 70% 85%, #b8401a 0%, transparent 35%),
-        radial-gradient(ellipse at 50% 20%, #d4a84b 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 100%, #2a1a0a 0%, #0a0604 70%);
+        radial-gradient(ellipse at 20% 30%, #4a148c 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, #1a1a2e 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 60%, #2a1040 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, #0a0815 0%, #0a0815 70%);
 }
 
 .bg-glow {
     position: fixed;
-    top: 40%;
+    top: 30%;
     left: 50%;
-    width: 600px;
-    height: 400px;
-    background: radial-gradient(ellipse, rgba(212, 168, 75, 0.25), transparent 70%);
+    width: 700px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(212, 168, 75, 0.15), rgba(106, 27, 154, 0.1), transparent 70%);
     transform: translate(-50%, -50%);
-    filter: blur(100px);
+    filter: blur(80px);
     z-index: 0;
-    animation: sunsetPulse 5s ease-in-out infinite alternate;
+    animation: divineGlow 6s ease-in-out infinite alternate;
 }
 
-@keyframes sunsetPulse {
+@keyframes divineGlow {
     0% { 
         transform: translate(-50%, -50%) scale(1); 
         opacity: 0.6;
-        background: radial-gradient(ellipse, rgba(212, 168, 75, 0.25), transparent 70%);
+        background: radial-gradient(ellipse, rgba(212, 168, 75, 0.15), rgba(106, 27, 154, 0.1), transparent 70%);
     }
     50% {
-        background: radial-gradient(ellipse, rgba(232, 101, 26, 0.2), transparent 70%);
+        background: radial-gradient(ellipse, rgba(0, 176, 255, 0.08), rgba(212, 168, 75, 0.12), transparent 70%);
     }
     100% { 
-        transform: translate(-50%, -50%) scale(1.15); 
+        transform: translate(-50%, -50%) scale(1.2); 
         opacity: 1;
-        background: radial-gradient(ellipse, rgba(212, 168, 75, 0.35), transparent 70%);
+        background: radial-gradient(ellipse, rgba(212, 168, 75, 0.2), rgba(106, 27, 154, 0.15), transparent 70%);
     }
 }
 
-/* Dust particles overlay */
-.bg-gradient::after {
+/* ========== ZEUS BACKGROUND IMAGE ========== */
+.bg-zeus {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background-image: url('../images/Zues.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.35;
+    filter: brightness(0.7) contrast(1.2) saturate(1.3);
+    mix-blend-mode: overlay;
+}
+
+/* Zeus image with divine glow overlay */
+.bg-zeus::after {
     content: '';
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: 
-        radial-gradient(2px 2px at 20% 30%, rgba(212, 168, 75, 0.1), transparent),
-        radial-gradient(2px 2px at 40% 70%, rgba(212, 168, 75, 0.08), transparent),
-        radial-gradient(1px 1px at 60% 20%, rgba(212, 168, 75, 0.12), transparent),
-        radial-gradient(2px 2px at 80% 50%, rgba(212, 168, 75, 0.06), transparent),
-        radial-gradient(1px 1px at 10% 80%, rgba(212, 168, 75, 0.1), transparent);
-    background-size: 200px 200px;
+    background: 
+        radial-gradient(ellipse at 50% 40%, rgba(212, 168, 75, 0.2), transparent 60%),
+        radial-gradient(ellipse at 50% 80%, rgba(106, 27, 154, 0.3), transparent 50%);
     pointer-events: none;
     z-index: 1;
 }
 
-/* ========== WOODEN TEXTURE OVERLAY ========== */
-.wood-texture {
+/* ========== DIVINE PARTICLES / LIGHTNING ========== */
+.divine-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: var(--gold-light);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--gold-light), 0 0 20px var(--gold-glow);
+    animation: floatParticle 15s infinite linear;
+    opacity: 0;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 18s; }
+.particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 14s; }
+.particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 20s; }
+.particle:nth-child(4) { left: 40%; animation-delay: 1s; animation-duration: 16s; }
+.particle:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 22s; }
+.particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 17s; }
+.particle:nth-child(7) { left: 70%; animation-delay: 2.5s; animation-duration: 19s; }
+.particle:nth-child(8) { left: 80%; animation-delay: 4.5s; animation-duration: 15s; }
+.particle:nth-child(9) { left: 90%; animation-delay: 1.5s; animation-duration: 21s; }
+.particle:nth-child(10) { left: 15%; animation-delay: 3.5s; animation-duration: 13s; }
+.particle:nth-child(11) { left: 45%; animation-delay: 2s; animation-duration: 24s; }
+.particle:nth-child(12) { left: 75%; animation-delay: 4s; animation-duration: 16s; }
+
+@keyframes floatParticle {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Lightning bolt flashes */
+.lightning-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(ellipse at 30% 20%, rgba(0, 176, 255, 0.1), transparent 60%);
+    opacity: 0;
+    animation: lightningBolt 8s infinite;
+}
+
+@keyframes lightningBolt {
+    0%, 92%, 94%, 96%, 100% { opacity: 0; }
+    93% { opacity: 0.3; }
+    95% { opacity: 0.1; }
+    97% { opacity: 0.2; }
+}
+
+/* ========== MARBLE TEXTURE OVERLAY ========== */
+.marble-texture {
     position: fixed;
     top: 0;
     left: 0;
@@ -117,31 +208,31 @@ body {
     height: 100%;
     z-index: 0;
     pointer-events: none;
-    opacity: 0.05;
+    opacity: 0.03;
     background: 
         repeating-linear-gradient(
-            90deg,
+            45deg,
             transparent,
-            transparent 2px,
-            rgba(139, 90, 43, 0.3) 2px,
-            rgba(139, 90, 43, 0.3) 4px
+            transparent 5px,
+            rgba(255, 255, 255, 0.1) 5px,
+            rgba(255, 255, 255, 0.1) 6px
         ),
         repeating-linear-gradient(
-            0deg,
+            -45deg,
             transparent,
             transparent 8px,
-            rgba(139, 90, 43, 0.1) 8px,
-            rgba(139, 90, 43, 0.1) 9px
+            rgba(255, 255, 255, 0.05) 8px,
+            rgba(255, 255, 255, 0.05) 9px
         );
 }
 
-/* ========== LIVE TICKER - Saloon Style ========== */
+/* ========== LIVE TICKER - Divine ========== */
 .live-ticker {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(180deg, rgba(42, 26, 10, 0.95), rgba(20, 12, 6, 0.98));
+    background: linear-gradient(180deg, rgba(26, 16, 40, 0.95), rgba(10, 8, 21, 0.98));
     backdrop-filter: blur(10px);
     border: 2px solid var(--gold-primary);
     border-radius: 4px;
@@ -152,9 +243,9 @@ body {
     gap: 12px;
     z-index: 100;
     box-shadow: 
-        0 0 30px rgba(212, 168, 75, 0.2),
-        inset 0 1px 0 rgba(212, 168, 75, 0.3),
-        inset 0 -2px 0 rgba(0,0,0,0.5);
+        0 0 40px rgba(212, 168, 75, 0.15),
+        0 0 80px rgba(106, 27, 154, 0.1),
+        inset 0 1px 0 rgba(212, 168, 75, 0.2);
     min-width: 280px;
 }
 
@@ -169,7 +260,7 @@ body {
     justify-content: center;
     gap: 8px;
     font-family: var(--font-display);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--gold-light);
     letter-spacing: 1px;
@@ -191,9 +282,9 @@ body {
 .ticker-dot {
     width: 8px;
     height: 8px;
-    background: #ff3333;
+    background: #00b0ff;
     border-radius: 50%;
-    box-shadow: 0 0 15px #ff3333, 0 0 30px rgba(255, 51, 51, 0.3);
+    box-shadow: 0 0 20px #00b0ff, 0 0 40px rgba(0, 176, 255, 0.3);
     animation: pulseDot 1s infinite;
     flex-shrink: 0;
 }
@@ -201,11 +292,11 @@ body {
 @keyframes pulseDot {
     0%, 100% { 
         opacity: 1; 
-        box-shadow: 0 0 15px #ff3333, 0 0 30px rgba(255, 51, 51, 0.3);
+        box-shadow: 0 0 20px #00b0ff, 0 0 40px rgba(0, 176, 255, 0.3);
     }
     50% { 
         opacity: 0.3; 
-        box-shadow: 0 0 5px #ff3333;
+        box-shadow: 0 0 5px #00b0ff;
     }
 }
 
@@ -223,85 +314,73 @@ body {
     border: 1px solid var(--gold-light);
 }
 
-/* ========== MAIN CARD - Saloon Wood Frame ========== */
+/* ========== MAIN CARD - Marble Temple ========== */
 .main-card {
     position: relative;
     width: 100%;
     max-width: 420px;
-    background: linear-gradient(170deg, #2a1a0a 0%, #1a0e06 50%, #0d0804 100%);
-    border-radius: 12px;
+    background: linear-gradient(170deg, rgba(26, 16, 40, 0.95), rgba(10, 8, 21, 0.98));
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
     padding: 32px 24px 36px;
     text-align: center;
     z-index: 10;
-    border: 3px solid var(--gold-primary);
+    border: 2px solid var(--gold-primary);
     box-shadow: 
-        0 0 60px rgba(212, 168, 75, 0.15),
-        inset 0 0 60px rgba(212, 168, 75, 0.05),
-        inset 0 2px 0 rgba(212, 168, 75, 0.2);
+        0 0 60px rgba(212, 168, 75, 0.1),
+        0 0 120px rgba(106, 27, 154, 0.08),
+        inset 0 0 60px rgba(212, 168, 75, 0.03),
+        inset 0 2px 0 rgba(212, 168, 75, 0.15);
     margin: 0 auto;
-    /* Wood grain effect */
-    background-image: 
-        repeating-linear-gradient(
-            90deg,
-            transparent,
-            transparent 3px,
-            rgba(139, 90, 43, 0.05) 3px,
-            rgba(139, 90, 43, 0.05) 4px
-        ),
-        repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 10px,
-            rgba(139, 90, 43, 0.03) 10px,
-            rgba(139, 90, 43, 0.03) 11px
-        );
 }
 
-/* ========== WOODEN FRAME DECORATION ========== */
+/* Greek column borders */
 .main-card::before {
     content: '';
     position: absolute;
-    inset: -6px;
-    border-radius: 16px;
+    inset: -4px;
+    border-radius: 18px;
     background: linear-gradient(180deg, 
         var(--gold-primary),
-        var(--gold-dark),
+        var(--royal-purple),
         var(--gold-primary),
-        var(--gold-dark)
+        var(--royal-purple)
     );
     z-index: -1;
-    opacity: 0.3;
-    filter: blur(1px);
+    opacity: 0.2;
+    filter: blur(2px);
 }
 
+/* Divine light beam from top */
 .main-card::after {
     content: '';
     position: absolute;
-    top: -8px;
+    top: -30px;
     left: 50%;
     transform: translateX(-50%);
-    width: 60%;
-    height: 4px;
-    background: linear-gradient(90deg, transparent, var(--gold-primary), var(--gold-light), var(--gold-primary), transparent);
-    border-radius: 50%;
-    filter: blur(2px);
+    width: 2px;
+    height: 60px;
+    background: linear-gradient(180deg, 
+        rgba(212, 168, 75, 0.6),
+        rgba(212, 168, 75, 0)
+    );
+    box-shadow: 0 0 30px rgba(212, 168, 75, 0.3);
     opacity: 0.5;
 }
 
-/* Corner decorations - Sheriff Stars */
+/* ========== GREEK CORNER DECORATIONS ========== */
 .corner-deco {
     position: absolute;
-    width: 24px;
-    height: 24px;
+    font-family: var(--font-cinzel);
     color: var(--gold-primary);
-    font-size: 20px;
-    opacity: 0.3;
+    font-size: 16px;
+    opacity: 0.25;
     text-shadow: 0 0 20px rgba(212, 168, 75, 0.2);
 }
-.corner-deco.tl { top: 12px; left: 12px; }
-.corner-deco.tr { top: 12px; right: 12px; }
-.corner-deco.bl { bottom: 12px; left: 12px; }
-.corner-deco.br { bottom: 12px; right: 12px; }
+.corner-deco.tl { top: 12px; left: 16px; }
+.corner-deco.tr { top: 12px; right: 16px; }
+.corner-deco.bl { bottom: 12px; left: 16px; }
+.corner-deco.br { bottom: 12px; right: 16px; }
 
 /* ========== LOGO ========== */
 .logo-area {
@@ -309,9 +388,9 @@ body {
 }
 
 .logo-icon {
-    width: 72px;
-    height: 72px;
-    background: radial-gradient(circle, #3d2815, #1a0e06);
+    width: 76px;
+    height: 76px;
+    background: radial-gradient(circle, rgba(26, 16, 40, 0.8), rgba(10, 8, 21, 0.9));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -319,20 +398,30 @@ body {
     margin: 0 auto 15px;
     border: 3px solid var(--gold-primary);
     box-shadow: 
-        0 0 30px rgba(212, 168, 75, 0.3),
-        inset 0 0 30px rgba(212, 168, 75, 0.1);
+        0 0 40px rgba(212, 168, 75, 0.2),
+        0 0 80px rgba(106, 27, 154, 0.1),
+        inset 0 0 40px rgba(212, 168, 75, 0.05);
     position: relative;
 }
 
 .logo-icon::after {
     content: '';
     position: absolute;
-    inset: -4px;
+    inset: -6px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--gold-primary), transparent, var(--gold-primary));
+    background: conic-gradient(
+        from 0deg,
+        var(--gold-primary),
+        var(--royal-purple),
+        var(--electric-blue),
+        var(--gold-primary),
+        var(--royal-purple),
+        var(--electric-blue),
+        var(--gold-primary)
+    );
     z-index: -1;
     opacity: 0.3;
-    animation: spinGlow 6s linear infinite;
+    animation: spinGlow 8s linear infinite;
 }
 
 @keyframes spinGlow {
@@ -341,14 +430,14 @@ body {
 }
 
 .logo-icon i {
-    font-size: 34px;
+    font-size: 36px;
     color: var(--gold-primary);
-    text-shadow: 0 0 30px rgba(212, 168, 75, 0.5);
+    text-shadow: 0 0 30px rgba(212, 168, 75, 0.4);
 }
 
 .logo-text {
-    font-family: var(--font-serif);
-    font-size: 32px;
+    font-family: var(--font-cinzel);
+    font-size: 30px;
     font-weight: 900;
     letter-spacing: 4px;
     background: linear-gradient(180deg, #f5d97e 0%, #d4a84b 40%, #a87c2e 70%, #8a6520 100%);
@@ -356,16 +445,27 @@ body {
     background-clip: text;
     color: transparent;
     text-transform: uppercase;
-    text-shadow: 0 2px 20px rgba(212, 168, 75, 0.2);
+    text-shadow: 0 2px 30px rgba(212, 168, 75, 0.2);
     position: relative;
 }
 
 .logo-text::after {
-    content: '★';
-    font-size: 12px;
+    content: '⚡';
+    font-size: 14px;
     color: var(--gold-primary);
     margin-left: 8px;
-    opacity: 0.5;
+    opacity: 0.6;
+    text-shadow: 0 0 20px rgba(0, 176, 255, 0.3);
+}
+
+.logo-sub {
+    font-family: var(--font-forum);
+    font-size: 11px;
+    color: var(--gold-dark);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-top: 2px;
+    opacity: 0.6;
 }
 
 /* ========== VALUE PROPS ========== */
@@ -375,10 +475,10 @@ body {
     gap: 14px;
     margin-bottom: 24px;
     text-align: left;
-    background: rgba(20, 12, 6, 0.6);
+    background: rgba(10, 8, 21, 0.5);
     padding: 16px;
-    border-radius: 8px;
-    border: 1px solid rgba(212, 168, 75, 0.15);
+    border-radius: 12px;
+    border: 1px solid rgba(212, 168, 75, 0.1);
     backdrop-filter: blur(5px);
 }
 
@@ -391,13 +491,13 @@ body {
 .prop-icon {
     width: 44px;
     height: 44px;
-    background: linear-gradient(135deg, #2a1a0a, #1a0e06);
+    background: linear-gradient(135deg, rgba(26, 16, 40, 0.8), rgba(10, 8, 21, 0.9));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 2px solid var(--gold-primary);
-    box-shadow: 0 0 15px rgba(212, 168, 75, 0.15);
+    box-shadow: 0 0 20px rgba(212, 168, 75, 0.1);
     flex-shrink: 0;
 }
 
@@ -416,20 +516,20 @@ body {
 
 .prop-desc {
     font-size: 10px;
-    color: #a08060;
+    color: #8a7a9a;
     font-weight: 300;
 }
 
 /* ========== SCARCITY TRACKER ========== */
 .scarcity-box {
-    background: linear-gradient(180deg, #1a0e06, #0d0804);
-    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(26, 16, 40, 0.6), rgba(10, 8, 21, 0.8));
+    border-radius: 12px;
     padding: 16px;
     margin-bottom: 24px;
     border: 1px solid var(--gold-primary);
     position: relative;
     overflow: hidden;
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
 }
 
 .scarcity-box::after {
@@ -441,10 +541,10 @@ body {
     height: 100%;
     background: linear-gradient(90deg, 
         transparent, 
-        rgba(212, 168, 75, 0.08), 
+        rgba(212, 168, 75, 0.05), 
         transparent
     );
-    animation: scanner 4s infinite;
+    animation: scanner 5s infinite;
 }
 
 @keyframes scanner {
@@ -471,23 +571,23 @@ body {
     font-size: 28px;
     font-weight: 900;
     color: #ff4444;
-    text-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+    text-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
 }
 
 .scarcity-total {
     font-size: 12px;
     font-weight: 500;
-    color: #665040;
+    color: #6a5a7a;
 }
 
 .progress-track {
     width: 100%;
     height: 12px;
-    background: #1a0e06;
+    background: rgba(26, 16, 40, 0.6);
     border-radius: 6px;
-    border: 1px solid rgba(212, 168, 75, 0.2);
+    border: 1px solid rgba(212, 168, 75, 0.15);
     overflow: hidden;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .progress-fill {
@@ -501,7 +601,7 @@ body {
     );
     background-size: 200% 100%;
     border-radius: 6px;
-    box-shadow: 0 0 20px rgba(212, 168, 75, 0.4);
+    box-shadow: 0 0 30px rgba(212, 168, 75, 0.3);
     transition: width 0.5s ease;
     animation: shimmerProgress 3s infinite;
 }
@@ -511,7 +611,7 @@ body {
     100% { background-position: -200% 0; }
 }
 
-/* ========== SWIPE TO VERIFY ========== */
+/* ========== SWIPE TO VERIFY - Divine ========== */
 .swipe-container {
     margin-bottom: 24px;
 }
@@ -520,12 +620,12 @@ body {
     position: relative;
     width: 100%;
     height: 60px;
-    background: #0d0804;
+    background: rgba(10, 8, 21, 0.8);
     border-radius: 30px;
     border: 2px solid var(--gold-primary);
     box-shadow: 
-        inset 0 4px 20px rgba(0,0,0,0.8),
-        0 0 30px rgba(212, 168, 75, 0.1);
+        inset 0 4px 20px rgba(0,0,0,0.5),
+        0 0 40px rgba(212, 168, 75, 0.08);
     cursor: pointer;
     overflow: hidden;
 }
@@ -536,10 +636,10 @@ body {
     left: 0;
     height: 100%;
     background: linear-gradient(90deg, 
-        #8a6520,
-        #d4a84b,
-        #f5d97e,
-        #d4a84b
+        var(--royal-purple),
+        var(--gold-primary),
+        var(--electric-blue),
+        var(--gold-primary)
     );
     background-size: 300% 100%;
     border-radius: 30px;
@@ -547,17 +647,17 @@ body {
     transition: width 0.05s linear;
     pointer-events: none;
     z-index: 1;
-    animation: fireGlow 1s infinite;
+    animation: divineTrail 1.5s infinite;
 }
 
-@keyframes fireGlow {
-    0%, 100% { opacity: 0.7; }
+@keyframes divineTrail {
+    0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
 }
 
 .swipe-fire-trail.active {
     opacity: 0.8;
-    animation: blazeTrail 0.3s ease-out, fireGlow 1s infinite;
+    animation: blazeTrail 0.3s ease-out, divineTrail 1.5s infinite;
 }
 
 @keyframes blazeTrail {
@@ -571,15 +671,16 @@ body {
     top: 2px;
     width: 52px;
     height: 52px;
-    background: radial-gradient(circle, #3d2815, #1a0e06);
+    background: radial-gradient(circle, rgba(26, 16, 40, 0.9), rgba(10, 8, 21, 0.95));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 2px solid var(--gold-primary);
     box-shadow: 
-        0 0 25px rgba(212, 168, 75, 0.4),
-        inset 0 0 20px rgba(212, 168, 75, 0.1);
+        0 0 30px rgba(212, 168, 75, 0.25),
+        0 0 60px rgba(106, 27, 154, 0.1),
+        inset 0 0 20px rgba(212, 168, 75, 0.05);
     z-index: 3;
     cursor: grab;
     transition: left 0.05s linear;
@@ -594,7 +695,8 @@ body {
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    animation: twistIcon 4s linear infinite;
+    animation: twistIcon 5s linear infinite;
+    border: 1px solid rgba(212, 168, 75, 0.2);
 }
 
 @keyframes twistIcon {
@@ -612,7 +714,7 @@ body {
     font-weight: 800;
     color: var(--gold-light);
     letter-spacing: 2px;
-    text-shadow: 0 0 20px rgba(212, 168, 75, 0.3);
+    text-shadow: 0 0 30px rgba(212, 168, 75, 0.2);
     pointer-events: none;
     white-space: nowrap;
     z-index: 1;
@@ -633,18 +735,18 @@ body {
 
 .card-footer span {
     font-size: 8px;
-    color: #665040;
+    color: #6a5a7a;
     font-family: var(--font-display);
     letter-spacing: 1px;
 }
 
-/* ========== MODAL ========== */
+/* ========== MODAL - Temple of Zeus ========== */
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.93);
+    backdrop-filter: blur(15px);
     z-index: 10000;
     align-items: center;
     justify-content: center;
@@ -654,14 +756,14 @@ body {
     width: 100%;
     max-width: 360px;
     padding: 20px;
-    animation: modalIn 0.4s ease;
+    animation: modalIn 0.5s ease;
     margin: 0 auto;
 }
 
 @keyframes modalIn {
     from { 
         opacity: 0; 
-        transform: scale(0.9) translateY(20px); 
+        transform: scale(0.9) translateY(30px); 
     }
     to { 
         opacity: 1; 
@@ -670,22 +772,38 @@ body {
 }
 
 .modal-card {
-    background: linear-gradient(170deg, #2a1a0a, #1a0e06, #0d0804);
+    background: linear-gradient(170deg, rgba(26, 16, 40, 0.98), rgba(10, 8, 21, 0.99));
     border-radius: 16px;
     border: 2px solid var(--gold-primary);
     padding: 32px 24px;
     box-shadow: 
-        0 0 60px rgba(212, 168, 75, 0.15),
-        inset 0 0 60px rgba(212, 168, 75, 0.05);
+        0 0 60px rgba(212, 168, 75, 0.1),
+        0 0 120px rgba(106, 27, 154, 0.08),
+        inset 0 0 60px rgba(212, 168, 75, 0.03);
     position: relative;
+    overflow: hidden;
+}
+
+/* Divine light beam in modal */
+.modal-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 100px;
+    background: radial-gradient(ellipse, rgba(212, 168, 75, 0.1), transparent 70%);
+    filter: blur(30px);
+    pointer-events: none;
 }
 
 .modal-close {
     position: absolute;
     top: 15px;
     right: 15px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(212, 168, 75, 0.2);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(212, 168, 75, 0.15);
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -693,6 +811,7 @@ body {
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s;
+    z-index: 10;
 }
 
 .modal-close:hover {
@@ -702,26 +821,26 @@ body {
 }
 
 .modal-icon {
-    width: 64px;
-    height: 64px;
-    background: radial-gradient(circle, #3d2815, #1a0e06);
+    width: 68px;
+    height: 68px;
+    background: radial-gradient(circle, rgba(26, 16, 40, 0.8), rgba(10, 8, 21, 0.9));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
     border: 2px solid var(--gold-primary);
-    box-shadow: 0 0 30px rgba(212, 168, 75, 0.2);
+    box-shadow: 0 0 40px rgba(212, 168, 75, 0.15);
 }
 
 .modal-icon i {
-    font-size: 30px;
+    font-size: 32px;
     color: var(--gold-primary);
 }
 
 .modal-title {
-    font-family: var(--font-serif);
-    font-size: 22px;
+    font-family: var(--font-cinzel);
+    font-size: 20px;
     font-weight: 900;
     text-align: center;
     background: linear-gradient(180deg, #f5d97e, #d4a84b);
@@ -730,14 +849,14 @@ body {
     color: transparent;
     margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
 }
 
 .modal-subtitle {
     font-family: var(--font-body);
     font-size: 11px;
     text-align: center;
-    color: #a08060;
+    color: #8a7a9a;
     margin-bottom: 24px;
     line-height: 1.6;
 }
@@ -747,7 +866,7 @@ body {
     font-weight: 600;
 }
 
-/* ========== BONUS BOX - Wild West Jackpot ========== */
+/* ========== BONUS BOX - Divine Blessing ========== */
 .bonus-box-premium {
     position: relative;
     background: linear-gradient(135deg, 
@@ -766,9 +885,9 @@ body {
     margin-bottom: 24px;
     overflow: hidden;
     box-shadow: 
-        0 10px 30px rgba(0,0,0,0.5),
-        inset 0 0 40px rgba(255,255,255,0.3),
-        0 0 40px rgba(212, 168, 75, 0.2);
+        0 10px 30px rgba(0,0,0,0.4),
+        inset 0 0 50px rgba(255,255,255,0.2),
+        0 0 50px rgba(212, 168, 75, 0.15);
     animation: goldShimmer 3s ease-in-out infinite;
 }
 
@@ -819,8 +938,8 @@ body {
     font-weight: 900;
     color: #2a1808;
     text-shadow: 
-        2px 2px 0px rgba(255,255,255,0.4),
-        0 0 30px rgba(255,255,255,0.2);
+        2px 2px 0px rgba(255,255,255,0.3),
+        0 0 40px rgba(255,255,255,0.1);
     position: relative;
     z-index: 2;
 }
@@ -835,6 +954,10 @@ body {
     position: relative;
     z-index: 2;
     text-transform: uppercase;
+}
+
+.bonus-label-premium::before {
+    content: '⚡ ';
 }
 
 /* ========== INPUT ========== */
@@ -862,11 +985,11 @@ body {
 .input-wrapper-premium {
     display: flex;
     align-items: center;
-    background: #0d0804;
+    background: rgba(10, 8, 21, 0.8);
     border: 1px solid var(--gold-primary);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
 }
 
 .input-wrapper-premium input {
@@ -874,7 +997,7 @@ body {
     background: transparent;
     border: none;
     padding: 14px 16px;
-    color: #f5ece0;
+    color: #f5f0eb;
     font-family: var(--font-display);
     font-size: 14px;
     font-weight: 500;
@@ -882,7 +1005,7 @@ body {
 }
 
 .input-wrapper-premium input::placeholder {
-    color: #4a3a2a;
+    color: #4a3a5a;
     font-family: var(--font-body);
     font-weight: 300;
 }
@@ -901,8 +1024,8 @@ body {
     overflow: hidden;
     box-shadow: 
         0 4px 0 #5a3d15,
-        0 10px 30px rgba(0,0,0,0.5),
-        0 0 30px rgba(212, 168, 75, 0.1);
+        0 10px 30px rgba(0,0,0,0.4),
+        0 0 40px rgba(212, 168, 75, 0.08);
 }
 
 .login-btn::before {
@@ -920,7 +1043,7 @@ body {
     transform: translateY(4px);
     box-shadow: 
         0 2px 0 #5a3d15,
-        0 5px 15px rgba(0,0,0,0.5);
+        0 5px 15px rgba(0,0,0,0.4);
 }
 
 .login-text {
@@ -929,7 +1052,11 @@ body {
     font-weight: 800;
     letter-spacing: 3px;
     color: #1a0e04;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.2);
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.15);
+}
+
+.login-text::before {
+    content: '⚡ ';
 }
 
 .login-dots {
@@ -950,15 +1077,15 @@ body {
 }
 
 .login-btn.loading .login-dots::before {
-    content: 'Checking';
+    content: 'Summoning';
     animation: dotPulse 1.5s infinite;
 }
 
 @keyframes dotPulse {
-    0% { content: 'Checking'; }
-    33% { content: 'Checking.'; }
-    66% { content: 'Checking..'; }
-    100% { content: 'Checking...'; }
+    0% { content: 'Summoning'; }
+    33% { content: 'Summoning.'; }
+    66% { content: 'Summoning..'; }
+    100% { content: 'Summoning...'; }
 }
 
 .login-btn.success {
@@ -981,7 +1108,7 @@ body {
     gap: 8px;
     font-family: var(--font-body);
     font-size: 9px;
-    color: #665040;
+    color: #6a5a7a;
 }
 
 .warning-text-premium i {
@@ -989,7 +1116,7 @@ body {
     font-size: 9px;
 }
 
-/* ========== PARTICLES ========== */
+/* ========== PARTICLES CANVAS ========== */
 #particleCanvas {
     position: fixed;
     top: 0;
@@ -1033,8 +1160,8 @@ body {
     }
     
     .logo-icon {
-        width: 56px;
-        height: 56px;
+        width: 60px;
+        height: 60px;
     }
     
     .logo-icon i {
@@ -1102,11 +1229,20 @@ input:focus-visible {
     outline-offset: 2px;
 }
 
-/* ========== WESTERN DECORATIVE ELEMENTS ========== */
-/* Add these via JavaScript or HTML */
-.western-badge {
-    display: inline-block;
-    font-size: 14px;
-    color: var(--gold-primary);
-    margin: 0 4px;
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(10, 8, 21, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--gold-primary), var(--royal-purple));
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-primary);
 }
