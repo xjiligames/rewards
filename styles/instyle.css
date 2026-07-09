@@ -1,7 +1,6 @@
 /* ============================================================
-   ZEUS DROP - GREEK MYTHOLOGY CASINO THEME (REMASTERED)
-   Epic Mount Olympus aesthetic, volumetric golden light, 
-   electric blue lightning, and premium 3D casino UI.
+   ZEUS DROP - GREEK MYTHOLOGY CASINO THEME (LIGHT VERSION)
+   WITH VISIBLE ZEUS BACKGROUND
    ============================================================ */
 
 * {
@@ -12,33 +11,21 @@
     user-select: none;
 }
 
-/* ========== VARIABLES - Divine Palette ========== */
+/* ========== VARIABLES ========== */
 :root {
-    /* Rich Metallics & Golds */
-    --gold-primary: #d4a84b;
-    --gold-light: #fff1c5;
-    --gold-dark: #8a6520;
-    --gold-metallic: linear-gradient(135deg, #a87c2e 0%, #f5d97e 25%, #fff 50%, #d4a84b 75%, #8a6520 100%);
-    --gold-glow: rgba(255, 241, 197, 0.5);
-    
-    /* Celestial & Storm */
-    --royal-purple: #4a148c;
-    --royal-purple-dark: #1f053a;
-    --electric-blue: #00e5ff;
-    --electric-blue-glow: rgba(0, 229, 255, 0.6);
-    --zeus-eye-glow: #a6faff;
-    
-    /* Marble & Architecture */
-    --marble-light: #f4efe9;
-    --marble-dark: #c8bcae;
-    --temple-bg: rgba(18, 12, 28, 0.85);
-    
-    /* Shadows & Atmosphere */
-    --shadow-divine: 0 10px 40px rgba(212, 168, 75, 0.4);
-    --shadow-abyss: 0 20px 50px rgba(0, 0, 0, 0.9);
-    --volumetric-light: radial-gradient(ellipse at top center, rgba(255, 241, 197, 0.15) 0%, transparent 70%);
-    
-    /* Typography */
+    --gold-primary: #c99a2e;
+    --gold-light: #f5d97e;
+    --gold-dark: #a87c2e;
+    --gold-glow: rgba(201, 154, 46, 0.3);
+    --royal-purple: #7b1fa2;
+    --royal-purple-light: #ce93d8;
+    --electric-blue: #0288d1;
+    --electric-blue-light: #4fc3f7;
+    --divine-white: #f5f0eb;
+    --marble-white: #faf8f5;
+    --text-dark: #2a1a0a;
+    --text-muted: #6a5a7a;
+    --shadow-divine: rgba(201, 154, 46, 0.15);
     --font-serif: 'Playfair Display', serif;
     --font-cinzel: 'Cinzel', serif;
     --font-forum: 'Forum', cursive;
@@ -49,7 +36,7 @@
 /* ========== BASE ========== */
 body {
     min-height: 100vh;
-    background: #05030a;
+    background: #f5f0eb;
     font-family: var(--font-body);
     display: flex;
     align-items: center;
@@ -57,69 +44,99 @@ body {
     padding: 20px;
     position: relative;
     overflow-x: hidden;
-    color: var(--marble-light);
 }
 
-/* ========== BACKGROUND - Epic Mount Olympus ========== */
+/* ========== BACKGROUND - Olympus Sky ========== */
 .bg-gradient {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 0;
     background: 
-        radial-gradient(ellipse at 50% 0%, var(--royal-purple) 0%, transparent 60%),
-        radial-gradient(circle at 15% 40%, rgba(0, 229, 255, 0.1) 0%, transparent 40%),
-        radial-gradient(circle at 85% 60%, rgba(212, 168, 75, 0.15) 0%, transparent 50%),
-        linear-gradient(180deg, #05030a 0%, var(--royal-purple-dark) 50%, #000000 100%);
+        radial-gradient(ellipse at 20% 30%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(123, 31, 162, 0.05) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 60%, rgba(255, 215, 0, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 100%, rgba(255, 248, 240, 0.8) 0%, rgba(245, 240, 235, 0.9) 70%);
 }
 
 .bg-glow {
     position: fixed;
-    top: 20%;
+    top: 30%;
     left: 50%;
-    width: 120vw;
-    height: 80vh;
-    background: radial-gradient(ellipse, rgba(255, 241, 197, 0.15), transparent 60%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(201, 154, 46, 0.08), rgba(123, 31, 162, 0.04), transparent 70%);
     transform: translate(-50%, -50%);
-    filter: blur(60px);
+    filter: blur(80px);
     z-index: 0;
-    animation: heavenlyBreathe 8s ease-in-out infinite alternate;
+    animation: divineGlowLight 6s ease-in-out infinite alternate;
 }
 
-@keyframes heavenlyBreathe {
-    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; filter: blur(60px); }
-    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; filter: blur(90px); }
+@keyframes divineGlowLight {
+    0% { 
+        transform: translate(-50%, -50%) scale(1); 
+        opacity: 0.5;
+    }
+    100% { 
+        transform: translate(-50%, -50%) scale(1.15); 
+        opacity: 1;
+    }
 }
 
-/* ========== ZEUS BACKGROUND ARTWORK ========== */
+/* ========== ZEUS BACKGROUND IMAGE - VISIBLE ========== */
 .bg-zeus {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 0;
     background-image: url('../images/Zues.jpg');
-    background-size: cover;
-    background-position: center top;
+    background-size: contain;
+    background-position: center;
     background-repeat: no-repeat;
     opacity: 0.45;
-    filter: brightness(0.8) contrast(1.3) saturate(1.4) drop-shadow(0 0 20px var(--electric-blue));
-    mix-blend-mode: luminosity; /* Adds a dramatic cinematic finish */
-}
-
-/* Divine Mist & Volumetric Light Overlay */
-.bg-zeus::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: 
-        linear-gradient(180deg, rgba(255, 241, 197, 0.2) 0%, transparent 30%),
-        linear-gradient(0deg, #05030a 0%, transparent 40%);
+    filter: brightness(1.1) contrast(1.1) saturate(1.2);
+    mix-blend-mode: normal;
     pointer-events: none;
-    z-index: 1;
 }
 
-/* ========== DIVINE PARTICLES & LIGHTNING ========== */
+/* ========== MARBLE TEXTURE OVERLAY - VERY LIGHT ========== */
+.marble-texture {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background: 
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 5px,
+            rgba(0, 0, 0, 0.03) 5px,
+            rgba(0, 0, 0, 0.03) 6px
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 8px,
+            rgba(0, 0, 0, 0.02) 8px,
+            rgba(0, 0, 0, 0.02) 9px
+        );
+}
+
+/* ========== DIVINE PARTICLES ========== */
 .divine-particles {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
     z-index: 1;
     overflow: hidden;
@@ -127,84 +144,105 @@ body {
 
 .particle {
     position: absolute;
-    width: 4px;
-    height: 4px;
-    background: #fff;
+    width: 3px;
+    height: 3px;
+    background: var(--gold-primary);
     border-radius: 50%;
-    box-shadow: 0 0 15px 3px var(--gold-light), 0 0 30px var(--gold-primary);
-    animation: floatEmber 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px var(--gold-primary), 0 0 20px rgba(201, 154, 46, 0.15);
+    animation: floatParticleLight 15s infinite linear;
     opacity: 0;
 }
 
-/* Staggered Particle Generations */
-.particle:nth-child(even) { background: var(--zeus-eye-glow); box-shadow: 0 0 15px 3px var(--electric-blue); }
 .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 18s; }
-.particle:nth-child(2) { left: 25%; animation-delay: 2s; animation-duration: 14s; }
-.particle:nth-child(3) { left: 40%; animation-delay: 7s; animation-duration: 20s; }
-.particle:nth-child(4) { left: 60%; animation-delay: 1s; animation-duration: 16s; }
-.particle:nth-child(5) { left: 75%; animation-delay: 5s; animation-duration: 22s; }
-.particle:nth-child(6) { left: 90%; animation-delay: 3s; animation-duration: 17s; }
+.particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 14s; }
+.particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 20s; }
+.particle:nth-child(4) { left: 40%; animation-delay: 1s; animation-duration: 16s; }
+.particle:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 22s; }
+.particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 17s; }
+.particle:nth-child(7) { left: 70%; animation-delay: 2.5s; animation-duration: 19s; }
+.particle:nth-child(8) { left: 80%; animation-delay: 4.5s; animation-duration: 15s; }
+.particle:nth-child(9) { left: 90%; animation-delay: 1.5s; animation-duration: 21s; }
+.particle:nth-child(10) { left: 15%; animation-delay: 3.5s; animation-duration: 13s; }
+.particle:nth-child(11) { left: 45%; animation-delay: 2s; animation-duration: 24s; }
+.particle:nth-child(12) { left: 75%; animation-delay: 4s; animation-duration: 16s; }
 
-@keyframes floatEmber {
-    0% { transform: translateY(110vh) scale(0) rotate(0deg); opacity: 0; }
-    20% { opacity: 0.8; transform: scale(1.5); }
-    80% { opacity: 0.6; }
-    100% { transform: translateY(-10vh) scale(0.5) rotate(360deg); opacity: 0; }
+@keyframes floatParticleLight {
+    0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.7;
+    }
+    90% {
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateY(-10vh) scale(1);
+        opacity: 0;
+    }
 }
 
-/* Crackling Lightning Bolt Flashes */
+/* ========== LIGHTNING FLASH ========== */
 .lightning-flash {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
-    z-index: 2;
-    background: radial-gradient(ellipse at 50% 20%, rgba(0, 229, 255, 0.25), transparent 70%);
+    z-index: 1;
+    background: radial-gradient(ellipse at 30% 20%, rgba(2, 136, 209, 0.05), transparent 60%);
     opacity: 0;
-    mix-blend-mode: color-dodge;
-    animation: zeusWrath 10s infinite;
+    animation: lightningBoltLight 10s infinite;
 }
 
-@keyframes zeusWrath {
-    0%, 91%, 93%, 95%, 100% { opacity: 0; filter: brightness(1); }
-    92% { opacity: 0.8; filter: brightness(2); }
-    94% { opacity: 0.2; }
-    96% { opacity: 0.9; filter: brightness(1.5); }
+@keyframes lightningBoltLight {
+    0%, 94%, 96%, 98%, 100% { opacity: 0; }
+    95% { opacity: 0.2; }
+    97% { opacity: 0.08; }
+    99% { opacity: 0.15; }
 }
 
-/* ========== LIVE TICKER - Premium Gold ========== */
+/* ========== LIVE TICKER ========== */
 .live-ticker {
     position: fixed;
-    top: 24px;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(15, 8, 25, 0.85);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 241, 197, 0.3);
-    border-radius: 50px; /* Pill shape for premium feel */
-    padding: 8px 24px;
+    background: rgba(255, 252, 248, 0.92);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--gold-primary);
+    border-radius: 4px;
+    padding: 8px 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 12px;
     z-index: 100;
     box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.6),
-        inset 0 2px 0 rgba(255, 255, 255, 0.1),
-        0 0 20px rgba(212, 168, 75, 0.2);
-    min-width: 320px;
+        0 4px 20px rgba(201, 154, 46, 0.12),
+        0 8px 40px rgba(123, 31, 162, 0.05);
+    min-width: 280px;
+}
+
+.ticker-content {
+    overflow: hidden;
+    text-align: center;
 }
 
 .ticker-text {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 8px;
     font-family: var(--font-display);
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--gold-light);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(212, 168, 75, 0.5);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gold-dark);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    transition: all 0.3s ease;
 }
 
 .ticker-dot {
@@ -212,292 +250,334 @@ body {
     height: 8px;
     background: var(--electric-blue);
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--electric-blue), 0 0 20px var(--zeus-eye-glow);
-    animation: electricPulse 1.2s infinite alternate;
+    box-shadow: 0 0 20px var(--electric-blue), 0 0 40px rgba(2, 136, 209, 0.15);
+    animation: pulseDotLight 1s infinite;
+    flex-shrink: 0;
 }
 
-@keyframes electricPulse {
-    0% { transform: scale(0.8); opacity: 0.7; }
-    100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 15px var(--electric-blue), 0 0 30px #fff; }
+@keyframes pulseDotLight {
+    0%, 100% { 
+        opacity: 1; 
+        box-shadow: 0 0 20px var(--electric-blue), 0 0 40px rgba(2, 136, 209, 0.15);
+    }
+    50% { 
+        opacity: 0.3; 
+        box-shadow: 0 0 5px var(--electric-blue);
+    }
 }
 
 .ticker-badge {
-    background: var(--gold-metallic);
-    padding: 4px 14px;
-    border-radius: 20px;
-    font-size: 9px;
+    background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-size: 8px;
     font-family: var(--font-display);
-    font-weight: 900;
-    color: #110800;
-    letter-spacing: 1.5px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+    letter-spacing: 1px;
     text-transform: uppercase;
-    box-shadow: 0 2px 10px rgba(212, 168, 75, 0.4);
 }
 
-/* ========== MAIN CARD - Ancient Marble Temple ========== */
+/* ========== MAIN CARD - With Glass Effect ========== */
 .main-card {
     position: relative;
     width: 100%;
-    max-width: 440px;
-    background: linear-gradient(160deg, rgba(28, 20, 45, 0.95), rgba(12, 8, 20, 0.98));
-    backdrop-filter: blur(24px);
-    border-radius: 2px; /* Sharper edges for temple stone */
-    padding: 40px 32px;
+    max-width: 420px;
+    background: rgba(255, 252, 248, 0.88);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    padding: 32px 24px 36px;
     text-align: center;
     z-index: 10;
-    /* Massive 3D structural border */
-    border: 2px solid transparent;
-    border-image: var(--gold-metallic) 1;
+    border: 2px solid var(--gold-primary);
     box-shadow: 
-        var(--shadow-abyss),
-        0 0 80px rgba(106, 27, 154, 0.3),
-        inset 0 0 100px rgba(0, 0, 0, 0.8),
-        inset 0 0 20px rgba(212, 168, 75, 0.1);
-    margin: 40px auto 0;
+        0 8px 40px rgba(201, 154, 46, 0.1),
+        0 16px 80px rgba(123, 31, 162, 0.04);
+    margin: 0 auto;
 }
 
-/* Greek column side pillars */
-.main-card::before, .main-card::after {
+/* Greek column borders */
+.main-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 12px;
-    background: linear-gradient(90deg, 
-        rgba(212, 168, 75, 0.8), 
-        rgba(255, 241, 197, 0.9), 
-        rgba(138, 101, 32, 0.8)
+    inset: -4px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, 
+        var(--gold-primary),
+        var(--royal-purple-light),
+        var(--gold-primary),
+        var(--royal-purple-light)
     );
-    box-shadow: inset 2px 0 5px rgba(0,0,0,0.5), inset -2px 0 5px rgba(0,0,0,0.5);
-    z-index: 2;
+    z-index: -1;
+    opacity: 0.25;
+    filter: blur(2px);
 }
-.main-card::before { left: -6px; }
-.main-card::after { right: -6px; }
+
+/* Divine light beam from top */
+.main-card::after {
+    content: '';
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 60px;
+    background: linear-gradient(180deg, 
+        rgba(201, 154, 46, 0.3),
+        rgba(201, 154, 46, 0)
+    );
+    box-shadow: 0 0 30px rgba(201, 154, 46, 0.15);
+    opacity: 0.5;
+}
 
 /* ========== GREEK CORNER DECORATIONS ========== */
 .corner-deco {
     position: absolute;
     font-family: var(--font-cinzel);
-    color: var(--gold-light);
-    font-size: 24px;
-    opacity: 0.8;
-    text-shadow: 0 0 15px var(--gold-primary);
-    z-index: 5;
+    color: var(--gold-primary);
+    font-size: 16px;
+    opacity: 0.3;
 }
-.corner-deco.tl { top: 8px; left: 16px; }
-.corner-deco.tr { top: 8px; right: 16px; }
-.corner-deco.bl { bottom: 8px; left: 16px; transform: rotate(180deg); }
-.corner-deco.br { bottom: 8px; right: 16px; transform: rotate(180deg); }
+.corner-deco.tl { top: 12px; left: 16px; }
+.corner-deco.tr { top: 12px; right: 16px; }
+.corner-deco.bl { bottom: 12px; left: 16px; }
+.corner-deco.br { bottom: 12px; right: 16px; }
 
-/* ========== LOGO - Heavenly Grandeur ========== */
+/* ========== LOGO ========== */
 .logo-area {
-    margin-bottom: 32px;
-    position: relative;
+    margin-bottom: 24px;
 }
 
 .logo-icon {
-    width: 90px;
-    height: 90px;
-    background: linear-gradient(135deg, #1a1025, #08050e);
+    width: 76px;
+    height: 76px;
+    background: radial-gradient(circle, rgba(255, 252, 248, 0.95), rgba(245, 240, 235, 0.8));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 20px;
-    border: 4px solid transparent;
-    background-clip: padding-box;
-    position: relative;
+    margin: 0 auto 15px;
+    border: 3px solid var(--gold-primary);
     box-shadow: 
-        var(--shadow-divine),
-        inset 0 0 30px rgba(0,0,0,0.8);
+        0 0 40px rgba(201, 154, 46, 0.12),
+        0 0 80px rgba(123, 31, 162, 0.04);
+    position: relative;
 }
 
-/* Spinning Metallic Ring */
-.logo-icon::before {
+.logo-icon::after {
     content: '';
     position: absolute;
-    inset: -4px;
+    inset: -6px;
     border-radius: 50%;
-    background: var(--gold-metallic);
+    background: conic-gradient(
+        from 0deg,
+        var(--gold-primary),
+        var(--royal-purple-light),
+        var(--electric-blue-light),
+        var(--gold-primary),
+        var(--royal-purple-light),
+        var(--electric-blue-light),
+        var(--gold-primary)
+    );
     z-index: -1;
-    animation: spinRing 6s linear infinite;
+    opacity: 0.25;
+    animation: spinGlowLight 8s linear infinite;
 }
 
-@keyframes spinRing {
+@keyframes spinGlowLight {
+    0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
 .logo-icon i {
-    font-size: 42px;
-    background: var(--gold-metallic);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    filter: drop-shadow(0 0 15px rgba(212, 168, 75, 0.6));
+    font-size: 36px;
+    color: var(--gold-primary);
+    text-shadow: 0 0 30px rgba(201, 154, 46, 0.15);
 }
 
 .logo-text {
     font-family: var(--font-cinzel);
-    font-size: 38px;
+    font-size: 30px;
     font-weight: 900;
-    letter-spacing: 6px;
-    /* Embossed typography */
-    background: var(--gold-metallic);
+    letter-spacing: 4px;
+    background: linear-gradient(180deg, #c99a2e 0%, #a87c2e 40%, #8a6520 70%, #6a4a15 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     text-transform: uppercase;
-    text-shadow: 
-        2px 2px 4px rgba(0, 0, 0, 0.8),
-        -1px -1px 0 rgba(255, 255, 255, 0.2),
-        0 0 40px rgba(212, 168, 75, 0.3);
+}
+
+.logo-text::after {
+    content: '⚡';
+    font-size: 14px;
+    color: var(--gold-primary);
+    margin-left: 8px;
+    opacity: 0.6;
 }
 
 .logo-sub {
     font-family: var(--font-forum);
-    font-size: 13px;
-    color: var(--gold-light);
-    letter-spacing: 8px;
+    font-size: 11px;
+    color: var(--gold-dark);
+    letter-spacing: 6px;
     text-transform: uppercase;
-    margin-top: 6px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    opacity: 0.9;
+    margin-top: 2px;
+    opacity: 0.5;
 }
 
 /* ========== VALUE PROPS ========== */
 .value-props {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 30px;
+    gap: 14px;
+    margin-bottom: 24px;
     text-align: left;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 20px;
-    border-radius: 4px;
-    border: 1px solid rgba(212, 168, 75, 0.15);
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-    position: relative;
+    background: rgba(255, 252, 248, 0.5);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(201, 154, 46, 0.12);
 }
 
 .prop-row {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
 }
 
 .prop-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, rgba(40, 20, 60, 0.9), rgba(10, 5, 20, 0.9));
-    border-radius: 8px; /* Square with slight rounding for premium feel */
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 252, 248, 0.8);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--gold-primary);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(212,168,75,0.2);
+    border: 2px solid var(--gold-primary);
     flex-shrink: 0;
 }
 
 .prop-icon i {
-    font-size: 20px;
-    color: var(--gold-light);
-    text-shadow: 0 0 10px var(--gold-primary);
+    font-size: 18px;
+    color: var(--gold-primary);
 }
 
 .prop-title {
-    font-size: 14px;
+    font-size: 13px;
     font-family: var(--font-display);
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: 0.5px;
 }
 
 .prop-desc {
-    font-size: 11px;
-    color: #a89bb8;
-    font-weight: 400;
-    margin-top: 2px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 300;
 }
 
 /* ========== SCARCITY TRACKER ========== */
 .scarcity-box {
-    background: linear-gradient(180deg, #160a22, #08030d);
-    border-radius: 4px;
-    padding: 20px;
-    margin-bottom: 30px;
-    border: 1px solid rgba(212, 168, 75, 0.3);
+    background: rgba(255, 252, 248, 0.5);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid var(--gold-primary);
     position: relative;
     overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.8);
+}
+
+.scarcity-box::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(201, 154, 46, 0.05), 
+        transparent
+    );
+    animation: scannerLight 5s infinite;
+}
+
+@keyframes scannerLight {
+    100% { left: 200%; }
 }
 
 .scarcity-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+    align-items: baseline;
+    margin-bottom: 10px;
 }
 
 .scarcity-label {
     font-family: var(--font-display);
-    font-size: 10px;
-    color: var(--gold-light);
+    font-size: 9px;
+    color: var(--gold-dark);
     text-transform: uppercase;
-    letter-spacing: 3px;
-    font-weight: 700;
+    letter-spacing: 2px;
 }
 
 .scarcity-numbers {
     font-family: var(--font-display);
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 900;
-    color: var(--electric-blue);
-    text-shadow: 0 0 20px rgba(0, 229, 255, 0.5), 2px 2px 0 #000;
+    color: #d32f2f;
+    text-shadow: 0 0 20px rgba(211, 47, 47, 0.1);
 }
 
 .scarcity-total {
-    font-size: 14px;
-    color: #5a4b69;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
 }
 
 .progress-track {
     width: 100%;
-    height: 16px;
-    background: #000;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 2px;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+    height: 12px;
+    background: rgba(255, 252, 248, 0.6);
+    border-radius: 6px;
+    border: 1px solid rgba(201, 154, 46, 0.1);
+    overflow: hidden;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #005c8a, var(--electric-blue), #ffffff);
+    background: linear-gradient(90deg, 
+        #a87c2e,
+        #c99a2e,
+        #f5d97e,
+        #c99a2e,
+        #a87c2e
+    );
     background-size: 200% 100%;
     border-radius: 6px;
-    box-shadow: 0 0 20px var(--electric-blue);
-    animation: lightningFill 2s infinite linear;
+    box-shadow: 0 0 30px rgba(201, 154, 46, 0.15);
+    transition: width 0.5s ease;
+    animation: shimmerProgressLight 3s infinite;
 }
 
-@keyframes lightningFill {
+@keyframes shimmerProgressLight {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
 
-/* ========== SWIPE TO VERIFY - Eternal Flame ========== */
+/* ========== SWIPE TO VERIFY ========== */
 .swipe-container {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 .swipe-track {
     position: relative;
     width: 100%;
-    height: 68px;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 34px;
-    border: 2px solid var(--gold-dark);
-    box-shadow: inset 0 5px 20px rgba(0,0,0,0.8), 0 0 20px rgba(212, 168, 75, 0.1);
+    height: 60px;
+    background: rgba(255, 252, 248, 0.5);
+    border-radius: 30px;
+    border: 2px solid var(--gold-primary);
+    box-shadow: inset 0 4px 20px rgba(0,0,0,0.02);
     cursor: pointer;
     overflow: hidden;
 }
@@ -508,11 +588,13 @@ body {
     left: 0;
     height: 100%;
     background: linear-gradient(90deg, 
-        rgba(212, 168, 75, 0.2), 
-        var(--gold-primary), 
-        #fff
+        var(--royal-purple-light),
+        var(--gold-primary),
+        var(--electric-blue-light),
+        var(--gold-primary)
     );
-    border-radius: 34px;
+    background-size: 300% 100%;
+    border-radius: 30px;
     opacity: 0;
     transition: width 0.05s linear;
     pointer-events: none;
@@ -520,36 +602,42 @@ body {
 }
 
 .swipe-fire-trail.active {
-    opacity: 1;
-    box-shadow: 0 0 30px var(--gold-primary), 0 0 60px rgba(255, 241, 197, 0.5);
+    opacity: 0.6;
 }
 
 .swipe-icon {
     position: absolute;
-    left: 4px;
-    top: 4px;
-    width: 56px;
-    height: 56px;
-    background: var(--gold-metallic);
+    left: 2px;
+    top: 2px;
+    width: 52px;
+    height: 52px;
+    background: radial-gradient(circle, rgba(255, 252, 248, 0.95), rgba(245, 240, 235, 0.9));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 
-        0 0 20px rgba(0,0,0,0.8),
-        inset 0 2px 5px rgba(255,255,255,0.8),
-        0 0 30px rgba(212, 168, 75, 0.4);
+    border: 2px solid var(--gold-primary);
+    box-shadow: 0 0 30px rgba(201, 154, 46, 0.12);
     z-index: 3;
     cursor: grab;
+    transition: left 0.05s linear;
 }
 
-.swipe-icon:active { cursor: grabbing; }
+.swipe-icon:active {
+    cursor: grabbing;
+}
 
 .scatter-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    object-fit: cover;
+    animation: twistIconLight 5s linear infinite;
+}
+
+@keyframes twistIconLight {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .swipe-text {
@@ -558,21 +646,13 @@ body {
     top: 50%;
     transform: translate(-50%, -50%);
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
-    color: rgba(255, 241, 197, 0.6);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    text-shadow: 0 2px 10px rgba(0,0,0,1);
+    color: var(--gold-dark);
+    letter-spacing: 2px;
     pointer-events: none;
     white-space: nowrap;
     z-index: 1;
-    animation: textBreathe 2s infinite alternate;
-}
-
-@keyframes textBreathe {
-    0% { opacity: 0.5; text-shadow: 0 0 5px var(--gold-primary); }
-    100% { opacity: 1; text-shadow: 0 0 20px var(--gold-light); }
 }
 
 /* ========== CARD FOOTER ========== */
@@ -580,31 +660,28 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(212, 168, 75, 0.1);
+    gap: 8px;
 }
 
 .card-footer i {
-    font-size: 12px;
-    color: var(--gold-dark);
+    font-size: 10px;
+    color: var(--gold-primary);
 }
 
 .card-footer span {
-    font-size: 9px;
-    color: #6a5a7a;
+    font-size: 8px;
+    color: var(--text-muted);
     font-family: var(--font-display);
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* ========== MODAL - Temple of Zeus / Divine Blessing ========== */
+/* ========== MODAL ========== */
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(20px);
+    background: rgba(255, 252, 248, 0.92);
+    backdrop-filter: blur(15px);
     z-index: 10000;
     align-items: center;
     justify-content: center;
@@ -612,151 +689,186 @@ body {
 
 .modal-container {
     width: 100%;
-    max-width: 400px;
+    max-width: 360px;
     padding: 20px;
-    animation: modalDescend 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: modalInLight 0.5s ease;
     margin: 0 auto;
 }
 
-@keyframes modalDescend {
-    from { opacity: 0; transform: scale(1.1) translateY(-50px); filter: brightness(2); }
-    to { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1); }
+@keyframes modalInLight {
+    from { 
+        opacity: 0; 
+        transform: scale(0.9) translateY(30px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    }
 }
 
 .modal-card {
-    background: linear-gradient(170deg, #180f24, #0a0610);
-    border-radius: 4px;
+    background: rgba(255, 252, 248, 0.98);
+    border-radius: 16px;
     border: 2px solid var(--gold-primary);
-    padding: 40px 32px;
-    box-shadow: 
-        0 20px 60px rgba(0,0,0,0.9),
-        0 0 100px rgba(212, 168, 75, 0.15),
-        inset 0 0 40px rgba(0,0,0,0.8);
+    padding: 32px 24px;
+    box-shadow: 0 8px 40px rgba(201, 154, 46, 0.08);
     position: relative;
     overflow: hidden;
 }
 
 .modal-close {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    background: transparent;
-    border: 1px solid var(--gold-dark);
-    width: 36px;
-    height: 36px;
+    top: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.03);
+    border: 1px solid rgba(201, 154, 46, 0.12);
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    color: var(--gold-light);
+    color: var(--text-dark);
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     transition: all 0.3s;
     z-index: 10;
 }
 
 .modal-close:hover {
-    background: var(--gold-primary);
-    color: #000;
-    transform: rotate(90deg) scale(1.1);
-    box-shadow: 0 0 20px var(--gold-primary);
+    background: rgba(201, 154, 46, 0.08);
+    border-color: var(--gold-primary);
+    transform: rotate(90deg);
 }
 
 .modal-icon {
-    width: 80px;
-    height: 80px;
-    background: var(--gold-metallic);
+    width: 68px;
+    height: 68px;
+    background: radial-gradient(circle, rgba(255, 252, 248, 0.9), rgba(245, 240, 235, 0.8));
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 24px;
-    box-shadow: 0 10px 30px rgba(212, 168, 75, 0.4), inset 0 2px 10px #fff;
+    margin: 0 auto 16px;
+    border: 2px solid var(--gold-primary);
 }
 
 .modal-icon i {
-    font-size: 40px;
-    color: #110800;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    font-size: 32px;
+    color: var(--gold-primary);
 }
 
 .modal-title {
     font-family: var(--font-cinzel);
-    font-size: 26px;
+    font-size: 20px;
     font-weight: 900;
     text-align: center;
-    background: var(--gold-metallic);
+    background: linear-gradient(180deg, #c99a2e, #a87c2e);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 3px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    letter-spacing: 2px;
 }
 
 .modal-subtitle {
-    font-size: 13px;
+    font-family: var(--font-body);
+    font-size: 11px;
     text-align: center;
-    color: #a89bb8;
-    margin-bottom: 32px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
     line-height: 1.6;
 }
 
-/* ========== BONUS BOX - 3D Divine Offering ========== */
+.gold-text {
+    color: var(--gold-dark);
+    font-weight: 600;
+}
+
+/* ========== BONUS BOX ========== */
 .bonus-box-premium {
     position: relative;
-    background: var(--gold-metallic);
-    border-radius: 8px;
-    padding: 32px 24px;
+    background: linear-gradient(135deg, 
+        #c99a2e 0%, 
+        #f5d97e 20%, 
+        #c99a2e 40%, 
+        #f5d97e 60%, 
+        #c99a2e 80%, 
+        #a87c2e 100%
+    );
+    background-size: 200% 200%;
+    border: 2px solid #f5d97e;
+    border-radius: 12px;
+    padding: 24px;
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     overflow: hidden;
-    box-shadow: 
-        0 15px 35px rgba(0,0,0,0.6),
-        inset 0 5px 15px rgba(255,255,255,0.6),
-        inset 0 -5px 15px rgba(0,0,0,0.3);
-    border: 1px solid #fff;
+    box-shadow: 0 8px 30px rgba(201, 154, 46, 0.15);
+    animation: goldShimmerLight 3s ease-in-out infinite;
+}
+
+@keyframes goldShimmerLight {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .bonus-glow {
     position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top, rgba(255,255,255,0.8), transparent 60%);
-    opacity: 0.6;
-    mix-blend-mode: overlay;
-    animation: premiumShine 3s ease-in-out infinite;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.4), transparent 70%);
+    opacity: 0.5;
+    animation: glowPulseLight 2s ease-in-out infinite;
 }
 
-@keyframes premiumShine {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.9; transform: scale(1.05); }
+@keyframes glowPulseLight {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+}
+
+.bonus-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255,255,255,0.15) 50%, 
+        transparent 70%
+    );
+    transform: rotate(45deg);
+    animation: bonusShineLight 4s infinite;
+}
+
+@keyframes bonusShineLight {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
 }
 
 .bonus-amount-premium {
     font-family: var(--font-display);
-    font-size: 64px;
+    font-size: 52px;
     font-weight: 900;
-    color: #1a0f00;
-    text-shadow: 
-        1px 1px 0px rgba(255,255,255,0.8),
-        -1px -1px 0px rgba(0,0,0,0.2),
-        0 10px 20px rgba(0,0,0,0.4);
+    color: #2a1808;
+    text-shadow: 2px 2px 0px rgba(255,255,255,0.25);
     position: relative;
     z-index: 2;
-    line-height: 1;
 }
 
 .bonus-label-premium {
     font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 3px;
     color: #3d2815;
-    margin-top: 12px;
+    margin-top: 8px;
     position: relative;
     z-index: 2;
     text-transform: uppercase;
 }
 
-/* ========== INPUT - Ancient Scroll Aesthetic ========== */
+/* ========== INPUT ========== */
 .input-group-premium {
     margin-bottom: 24px;
 }
@@ -764,129 +876,242 @@ body {
 .input-label-premium {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+}
+
+.input-label-premium i {
+    color: var(--gold-primary);
     font-size: 12px;
-    font-weight: 700;
-    color: var(--gold-light);
-    margin-bottom: 12px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
 }
 
 .input-wrapper-premium {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--gold-dark);
-    border-radius: 4px;
+    background: rgba(255, 252, 248, 0.8);
+    border: 1px solid var(--gold-primary);
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: inset 0 4px 10px rgba(0,0,0,0.8);
-    transition: all 0.3s;
-}
-
-.input-wrapper-premium:focus-within {
-    border-color: var(--gold-primary);
-    box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 0 15px rgba(212, 168, 75, 0.3);
 }
 
 .input-wrapper-premium input {
     flex: 1;
     background: transparent;
     border: none;
-    padding: 16px 20px;
-    color: #fff;
+    padding: 14px 16px;
+    color: var(--text-dark);
     font-family: var(--font-display);
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
     outline: none;
-    letter-spacing: 1px;
 }
 
 .input-wrapper-premium input::placeholder {
-    color: #5a4b69;
+    color: #b5a5a5;
     font-family: var(--font-body);
-    font-weight: 400;
+    font-weight: 300;
 }
 
-/* ========== BUTTON - Thunderbolt Strike ========== */
+/* ========== BUTTON ========== */
 .login-btn {
     width: 100%;
-    background: var(--gold-metallic);
-    border: none;
-    border-radius: 4px;
-    padding: 18px 24px;
+    background: linear-gradient(180deg, #c99a2e, #a87c2e, #8a6520);
+    border: 2px solid var(--gold-light);
+    border-radius: 8px;
+    padding: 16px 20px;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    margin-bottom: 20px;
+    transition: all 0.15s ease;
+    margin-bottom: 16px;
     position: relative;
     overflow: hidden;
-    box-shadow: 
-        0 6px 0 #735010,
-        0 15px 30px rgba(0,0,0,0.6),
-        inset 0 2px 5px rgba(255,255,255,0.6);
+    box-shadow: 0 4px 0 #6a4a15, 0 8px 30px rgba(201, 154, 46, 0.15);
 }
 
-.login-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0 8px 0 #735010,
-        0 20px 40px rgba(0,0,0,0.7),
-        0 0 30px rgba(212, 168, 75, 0.4),
-        inset 0 2px 5px rgba(255,255,255,0.6);
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
 }
 
 .login-btn:active {
-    transform: translateY(6px);
-    box-shadow: 
-        0 0px 0 #735010,
-        0 5px 10px rgba(0,0,0,0.5),
-        inset 0 2px 10px rgba(0,0,0,0.4);
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #6a4a15, 0 5px 15px rgba(201, 154, 46, 0.1);
 }
 
 .login-text {
     font-family: var(--font-display);
-    font-size: 16px;
-    font-weight: 900;
-    letter-spacing: 4px;
-    color: #110800;
-    text-transform: uppercase;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
 }
 
-.login-btn.success {
-    background: linear-gradient(135deg, #10b981, #047857);
-    box-shadow: 0 6px 0 #064e3b, 0 15px 30px rgba(0,0,0,0.6);
+.login-text::before {
+    content: '⚡ ';
 }
-.login-btn.success .login-text { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+.login-dots {
+    display: inline-block;
+    margin-left: 8px;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.login-btn.loading .login-text {
+    display: none;
+}
+
+.login-btn.loading .login-dots {
+    display: inline-block;
+}
+
+.login-btn.loading .login-dots::before {
+    content: 'Summoning';
+    animation: dotPulseLight 1.5s infinite;
+}
+
+@keyframes dotPulseLight {
+    0% { content: 'Summoning'; }
+    33% { content: 'Summoning.'; }
+    66% { content: 'Summoning..'; }
+    100% { content: 'Summoning...'; }
+}
+
+/* ========== WARNING ========== */
+.warning-text-premium {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 9px;
+    color: var(--text-muted);
+}
+
+.warning-text-premium i {
+    color: var(--gold-primary);
+    font-size: 9px;
+}
+
+/* ========== PARTICLES CANVAS ========== */
+#particleCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
-    body { padding: 12px; }
+    body {
+        padding: 16px;
+    }
     
     .main-card {
-        padding: 32px 20px;
-        max-width: 100%;
-        margin-top: 20px;
-        border-width: 0; /* Remove heavy borders on mobile to save space */
+        padding: 28px 20px 32px;
+        max-width: 360px;
     }
-    .main-card::before, .main-card::after { display: none; }
     
-    .logo-icon { width: 70px; height: 70px; }
-    .logo-icon i { font-size: 32px; }
-    .logo-text { font-size: 28px; letter-spacing: 4px; }
+    .live-ticker {
+        top: 16px;
+        padding: 6px 14px;
+        gap: 8px;
+        min-width: 260px;
+    }
     
-    .scarcity-numbers { font-size: 26px; }
+    .ticker-text {
+        font-size: 9px;
+        gap: 4px;
+    }
     
-    .bonus-amount-premium { font-size: 48px; }
+    .ticker-badge {
+        padding: 3px 8px;
+        font-size: 7px;
+    }
     
-    .swipe-track { height: 60px; }
-    .swipe-icon { width: 50px; height: 50px; left: 3px; top: 3px; }
+    .logo-text {
+        font-size: 24px;
+    }
     
-    .modal-card { padding: 30px 20px; }
-    .modal-title { font-size: 22px; }
+    .logo-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .logo-icon i {
+        font-size: 28px;
+    }
+    
+    .logo-sub {
+        font-size: 9px;
+        letter-spacing: 4px;
+    }
+    
+    .prop-title {
+        font-size: 11px;
+    }
+    
+    .prop-desc {
+        font-size: 9px;
+    }
+    
+    .scarcity-numbers {
+        font-size: 24px;
+    }
+    
+    .bonus-amount-premium {
+        font-size: 42px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+    }
+    
+    .modal-card {
+        padding: 24px 20px;
+    }
+    
+    .swipe-track {
+        height: 50px;
+    }
+    
+    .swipe-icon {
+        width: 44px;
+        height: 44px;
+        top: 2px;
+        left: 2px;
+    }
+    
+    .scatter-icon {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .swipe-text {
+        font-size: 11px;
+    }
+    
+    .corner-deco {
+        font-size: 12px;
+    }
 }
 
-/* ========== ACCESSIBILITY & UTILITIES ========== */
+/* ========== ACCESSIBILITY ========== */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
@@ -895,12 +1120,21 @@ body {
     }
 }
 
-button:focus-visible, input:focus-visible {
-    outline: 2px solid var(--electric-blue);
-    outline-offset: 4px;
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--gold-primary);
+    outline-offset: 2px;
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #05030a; }
-::-webkit-scrollbar-thumb { background: var(--gold-metallic); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #fff; }
+::-webkit-scrollbar {
+    width: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 252, 248, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--gold-primary), var(--royal-purple-light));
+    border-radius: 2px;
+}
