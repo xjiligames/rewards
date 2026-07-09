@@ -1,6 +1,7 @@
 /* ============================================================
-   ZEUS DROP - GREEK MYTHOLOGY CASINO THEME
-   Divine Olympus casino aesthetic with golden heavenly light
+   ZEUS DROP - GREEK MYTHOLOGY CASINO THEME (REMASTERED)
+   Epic Mount Olympus aesthetic, volumetric golden light, 
+   electric blue lightning, and premium 3D casino UI.
    ============================================================ */
 
 * {
@@ -11,24 +12,33 @@
     user-select: none;
 }
 
-/* ========== VARIABLES ========== */
+/* ========== VARIABLES - Divine Palette ========== */
 :root {
+    /* Rich Metallics & Golds */
     --gold-primary: #d4a84b;
-    --gold-light: #f5d97e;
-    --gold-dark: #a87c2e;
-    --gold-glow: rgba(212, 168, 75, 0.4);
-    --royal-purple: #6a1b9a;
-    --royal-purple-dark: #4a148c;
-    --royal-purple-light: #9c27b0;
-    --electric-blue: #00b0ff;
-    --electric-blue-glow: rgba(0, 176, 255, 0.3);
-    --divine-white: #f5f0eb;
-    --marble: #e8e0d8;
-    --marble-dark: #c4b8a8;
-    --cloud-white: rgba(255, 255, 255, 0.1);
-    --storm-dark: #1a1a2e;
-    --text-gold: #f5d97e;
-    --shadow-divine: rgba(212, 168, 75, 0.3);
+    --gold-light: #fff1c5;
+    --gold-dark: #8a6520;
+    --gold-metallic: linear-gradient(135deg, #a87c2e 0%, #f5d97e 25%, #fff 50%, #d4a84b 75%, #8a6520 100%);
+    --gold-glow: rgba(255, 241, 197, 0.5);
+    
+    /* Celestial & Storm */
+    --royal-purple: #4a148c;
+    --royal-purple-dark: #1f053a;
+    --electric-blue: #00e5ff;
+    --electric-blue-glow: rgba(0, 229, 255, 0.6);
+    --zeus-eye-glow: #a6faff;
+    
+    /* Marble & Architecture */
+    --marble-light: #f4efe9;
+    --marble-dark: #c8bcae;
+    --temple-bg: rgba(18, 12, 28, 0.85);
+    
+    /* Shadows & Atmosphere */
+    --shadow-divine: 0 10px 40px rgba(212, 168, 75, 0.4);
+    --shadow-abyss: 0 20px 50px rgba(0, 0, 0, 0.9);
+    --volumetric-light: radial-gradient(ellipse at top center, rgba(255, 241, 197, 0.15) 0%, transparent 70%);
+    
+    /* Typography */
     --font-serif: 'Playfair Display', serif;
     --font-cinzel: 'Cinzel', serif;
     --font-forum: 'Forum', cursive;
@@ -39,7 +49,7 @@
 /* ========== BASE ========== */
 body {
     min-height: 100vh;
-    background: #0a0815;
+    background: #05030a;
     font-family: var(--font-body);
     display: flex;
     align-items: center;
@@ -47,91 +57,69 @@ body {
     padding: 20px;
     position: relative;
     overflow-x: hidden;
+    color: var(--marble-light);
 }
 
-/* ========== BACKGROUND - Olympus Sky ========== */
+/* ========== BACKGROUND - Epic Mount Olympus ========== */
 .bg-gradient {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     z-index: 0;
     background: 
-        radial-gradient(ellipse at 20% 30%, #4a148c 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, #1a1a2e 0%, transparent 40%),
-        radial-gradient(ellipse at 50% 60%, #2a1040 0%, transparent 60%),
-        radial-gradient(ellipse at 50% 100%, #0a0815 0%, #0a0815 70%);
+        radial-gradient(ellipse at 50% 0%, var(--royal-purple) 0%, transparent 60%),
+        radial-gradient(circle at 15% 40%, rgba(0, 229, 255, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 85% 60%, rgba(212, 168, 75, 0.15) 0%, transparent 50%),
+        linear-gradient(180deg, #05030a 0%, var(--royal-purple-dark) 50%, #000000 100%);
 }
 
 .bg-glow {
     position: fixed;
-    top: 30%;
+    top: 20%;
     left: 50%;
-    width: 700px;
-    height: 500px;
-    background: radial-gradient(ellipse, rgba(212, 168, 75, 0.15), rgba(106, 27, 154, 0.1), transparent 70%);
+    width: 120vw;
+    height: 80vh;
+    background: radial-gradient(ellipse, rgba(255, 241, 197, 0.15), transparent 60%);
     transform: translate(-50%, -50%);
-    filter: blur(80px);
+    filter: blur(60px);
     z-index: 0;
-    animation: divineGlow 6s ease-in-out infinite alternate;
+    animation: heavenlyBreathe 8s ease-in-out infinite alternate;
 }
 
-@keyframes divineGlow {
-    0% { 
-        transform: translate(-50%, -50%) scale(1); 
-        opacity: 0.6;
-        background: radial-gradient(ellipse, rgba(212, 168, 75, 0.15), rgba(106, 27, 154, 0.1), transparent 70%);
-    }
-    50% {
-        background: radial-gradient(ellipse, rgba(0, 176, 255, 0.08), rgba(212, 168, 75, 0.12), transparent 70%);
-    }
-    100% { 
-        transform: translate(-50%, -50%) scale(1.2); 
-        opacity: 1;
-        background: radial-gradient(ellipse, rgba(212, 168, 75, 0.2), rgba(106, 27, 154, 0.15), transparent 70%);
-    }
+@keyframes heavenlyBreathe {
+    0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; filter: blur(60px); }
+    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; filter: blur(90px); }
 }
 
-/* ========== ZEUS BACKGROUND IMAGE ========== */
+/* ========== ZEUS BACKGROUND ARTWORK ========== */
 .bg-zeus {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     z-index: 0;
     background-image: url('../images/Zues.jpg');
     background-size: cover;
-    background-position: center;
+    background-position: center top;
     background-repeat: no-repeat;
-    opacity: 0.35;
-    filter: brightness(0.7) contrast(1.2) saturate(1.3);
-    mix-blend-mode: overlay;
+    opacity: 0.45;
+    filter: brightness(0.8) contrast(1.3) saturate(1.4) drop-shadow(0 0 20px var(--electric-blue));
+    mix-blend-mode: luminosity; /* Adds a dramatic cinematic finish */
 }
 
-/* Zeus image with divine glow overlay */
+/* Divine Mist & Volumetric Light Overlay */
 .bg-zeus::after {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: 
-        radial-gradient(ellipse at 50% 40%, rgba(212, 168, 75, 0.2), transparent 60%),
-        radial-gradient(ellipse at 50% 80%, rgba(106, 27, 154, 0.3), transparent 50%);
+        linear-gradient(180deg, rgba(255, 241, 197, 0.2) 0%, transparent 30%),
+        linear-gradient(0deg, #05030a 0%, transparent 40%);
     pointer-events: none;
     z-index: 1;
 }
 
-/* ========== DIVINE PARTICLES / LIGHTNING ========== */
+/* ========== DIVINE PARTICLES & LIGHTNING ========== */
 .divine-particles {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     pointer-events: none;
     z-index: 1;
     overflow: hidden;
@@ -139,493 +127,377 @@ body {
 
 .particle {
     position: absolute;
-    width: 3px;
-    height: 3px;
-    background: var(--gold-light);
+    width: 4px;
+    height: 4px;
+    background: #fff;
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--gold-light), 0 0 20px var(--gold-glow);
-    animation: floatParticle 15s infinite linear;
+    box-shadow: 0 0 15px 3px var(--gold-light), 0 0 30px var(--gold-primary);
+    animation: floatEmber 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
 }
 
+/* Staggered Particle Generations */
+.particle:nth-child(even) { background: var(--zeus-eye-glow); box-shadow: 0 0 15px 3px var(--electric-blue); }
 .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 18s; }
-.particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 14s; }
-.particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 20s; }
-.particle:nth-child(4) { left: 40%; animation-delay: 1s; animation-duration: 16s; }
-.particle:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 22s; }
-.particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 17s; }
-.particle:nth-child(7) { left: 70%; animation-delay: 2.5s; animation-duration: 19s; }
-.particle:nth-child(8) { left: 80%; animation-delay: 4.5s; animation-duration: 15s; }
-.particle:nth-child(9) { left: 90%; animation-delay: 1.5s; animation-duration: 21s; }
-.particle:nth-child(10) { left: 15%; animation-delay: 3.5s; animation-duration: 13s; }
-.particle:nth-child(11) { left: 45%; animation-delay: 2s; animation-duration: 24s; }
-.particle:nth-child(12) { left: 75%; animation-delay: 4s; animation-duration: 16s; }
+.particle:nth-child(2) { left: 25%; animation-delay: 2s; animation-duration: 14s; }
+.particle:nth-child(3) { left: 40%; animation-delay: 7s; animation-duration: 20s; }
+.particle:nth-child(4) { left: 60%; animation-delay: 1s; animation-duration: 16s; }
+.particle:nth-child(5) { left: 75%; animation-delay: 5s; animation-duration: 22s; }
+.particle:nth-child(6) { left: 90%; animation-delay: 3s; animation-duration: 17s; }
 
-@keyframes floatParticle {
-    0% {
-        transform: translateY(100vh) scale(0);
-        opacity: 0;
-    }
-    10% {
-        opacity: 1;
-    }
-    90% {
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-10vh) scale(1);
-        opacity: 0;
-    }
+@keyframes floatEmber {
+    0% { transform: translateY(110vh) scale(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 0.8; transform: scale(1.5); }
+    80% { opacity: 0.6; }
+    100% { transform: translateY(-10vh) scale(0.5) rotate(360deg); opacity: 0; }
 }
 
-/* Lightning bolt flashes */
+/* Crackling Lightning Bolt Flashes */
 .lightning-flash {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     pointer-events: none;
-    z-index: 1;
-    background: radial-gradient(ellipse at 30% 20%, rgba(0, 176, 255, 0.1), transparent 60%);
+    z-index: 2;
+    background: radial-gradient(ellipse at 50% 20%, rgba(0, 229, 255, 0.25), transparent 70%);
     opacity: 0;
-    animation: lightningBolt 8s infinite;
+    mix-blend-mode: color-dodge;
+    animation: zeusWrath 10s infinite;
 }
 
-@keyframes lightningBolt {
-    0%, 92%, 94%, 96%, 100% { opacity: 0; }
-    93% { opacity: 0.3; }
-    95% { opacity: 0.1; }
-    97% { opacity: 0.2; }
+@keyframes zeusWrath {
+    0%, 91%, 93%, 95%, 100% { opacity: 0; filter: brightness(1); }
+    92% { opacity: 0.8; filter: brightness(2); }
+    94% { opacity: 0.2; }
+    96% { opacity: 0.9; filter: brightness(1.5); }
 }
 
-/* ========== MARBLE TEXTURE OVERLAY ========== */
-.marble-texture {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0.03;
-    background: 
-        repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 5px,
-            rgba(255, 255, 255, 0.1) 5px,
-            rgba(255, 255, 255, 0.1) 6px
-        ),
-        repeating-linear-gradient(
-            -45deg,
-            transparent,
-            transparent 8px,
-            rgba(255, 255, 255, 0.05) 8px,
-            rgba(255, 255, 255, 0.05) 9px
-        );
-}
-
-/* ========== LIVE TICKER - Divine ========== */
+/* ========== LIVE TICKER - Premium Gold ========== */
 .live-ticker {
     position: fixed;
-    top: 20px;
+    top: 24px;
     left: 50%;
     transform: translateX(-50%);
-    background: linear-gradient(180deg, rgba(26, 16, 40, 0.95), rgba(10, 8, 21, 0.98));
-    backdrop-filter: blur(10px);
-    border: 2px solid var(--gold-primary);
-    border-radius: 4px;
-    padding: 8px 20px;
+    background: rgba(15, 8, 25, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 241, 197, 0.3);
+    border-radius: 50px; /* Pill shape for premium feel */
+    padding: 8px 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
     z-index: 100;
     box-shadow: 
-        0 0 40px rgba(212, 168, 75, 0.15),
-        0 0 80px rgba(106, 27, 154, 0.1),
-        inset 0 1px 0 rgba(212, 168, 75, 0.2);
-    min-width: 280px;
-}
-
-.ticker-content {
-    overflow: hidden;
-    text-align: center;
+        0 8px 32px rgba(0, 0, 0, 0.6),
+        inset 0 2px 0 rgba(255, 255, 255, 0.1),
+        0 0 20px rgba(212, 168, 75, 0.2);
+    min-width: 320px;
 }
 
 .ticker-text {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    gap: 10px;
     font-family: var(--font-display);
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     color: var(--gold-light);
-    letter-spacing: 1px;
-    white-space: nowrap;
-    text-shadow: 0 0 20px rgba(212, 168, 75, 0.3);
-    transition: all 0.3s ease;
-}
-
-.ticker-text.fade-out {
-    opacity: 0;
-    transform: translateY(5px);
-}
-
-.ticker-text.fade-in {
-    opacity: 1;
-    transform: translateY(0);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(212, 168, 75, 0.5);
 }
 
 .ticker-dot {
     width: 8px;
     height: 8px;
-    background: #00b0ff;
+    background: var(--electric-blue);
     border-radius: 50%;
-    box-shadow: 0 0 20px #00b0ff, 0 0 40px rgba(0, 176, 255, 0.3);
-    animation: pulseDot 1s infinite;
-    flex-shrink: 0;
+    box-shadow: 0 0 10px var(--electric-blue), 0 0 20px var(--zeus-eye-glow);
+    animation: electricPulse 1.2s infinite alternate;
 }
 
-@keyframes pulseDot {
-    0%, 100% { 
-        opacity: 1; 
-        box-shadow: 0 0 20px #00b0ff, 0 0 40px rgba(0, 176, 255, 0.3);
-    }
-    50% { 
-        opacity: 0.3; 
-        box-shadow: 0 0 5px #00b0ff;
-    }
+@keyframes electricPulse {
+    0% { transform: scale(0.8); opacity: 0.7; }
+    100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 15px var(--electric-blue), 0 0 30px #fff; }
 }
 
 .ticker-badge {
-    background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
-    padding: 4px 12px;
-    border-radius: 3px;
-    font-size: 8px;
+    background: var(--gold-metallic);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 9px;
     font-family: var(--font-display);
-    font-weight: 800;
-    color: #1a0e04;
-    flex-shrink: 0;
-    letter-spacing: 1px;
+    font-weight: 900;
+    color: #110800;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
-    border: 1px solid var(--gold-light);
+    box-shadow: 0 2px 10px rgba(212, 168, 75, 0.4);
 }
 
-/* ========== MAIN CARD - Marble Temple ========== */
+/* ========== MAIN CARD - Ancient Marble Temple ========== */
 .main-card {
     position: relative;
     width: 100%;
-    max-width: 420px;
-    background: linear-gradient(170deg, rgba(26, 16, 40, 0.95), rgba(10, 8, 21, 0.98));
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    padding: 32px 24px 36px;
+    max-width: 440px;
+    background: linear-gradient(160deg, rgba(28, 20, 45, 0.95), rgba(12, 8, 20, 0.98));
+    backdrop-filter: blur(24px);
+    border-radius: 2px; /* Sharper edges for temple stone */
+    padding: 40px 32px;
     text-align: center;
     z-index: 10;
-    border: 2px solid var(--gold-primary);
+    /* Massive 3D structural border */
+    border: 2px solid transparent;
+    border-image: var(--gold-metallic) 1;
     box-shadow: 
-        0 0 60px rgba(212, 168, 75, 0.1),
-        0 0 120px rgba(106, 27, 154, 0.08),
-        inset 0 0 60px rgba(212, 168, 75, 0.03),
-        inset 0 2px 0 rgba(212, 168, 75, 0.15);
-    margin: 0 auto;
+        var(--shadow-abyss),
+        0 0 80px rgba(106, 27, 154, 0.3),
+        inset 0 0 100px rgba(0, 0, 0, 0.8),
+        inset 0 0 20px rgba(212, 168, 75, 0.1);
+    margin: 40px auto 0;
 }
 
-/* Greek column borders */
-.main-card::before {
+/* Greek column side pillars */
+.main-card::before, .main-card::after {
     content: '';
     position: absolute;
-    inset: -4px;
-    border-radius: 18px;
-    background: linear-gradient(180deg, 
-        var(--gold-primary),
-        var(--royal-purple),
-        var(--gold-primary),
-        var(--royal-purple)
+    top: 0;
+    bottom: 0;
+    width: 12px;
+    background: linear-gradient(90deg, 
+        rgba(212, 168, 75, 0.8), 
+        rgba(255, 241, 197, 0.9), 
+        rgba(138, 101, 32, 0.8)
     );
-    z-index: -1;
-    opacity: 0.2;
-    filter: blur(2px);
+    box-shadow: inset 2px 0 5px rgba(0,0,0,0.5), inset -2px 0 5px rgba(0,0,0,0.5);
+    z-index: 2;
 }
-
-/* Divine light beam from top */
-.main-card::after {
-    content: '';
-    position: absolute;
-    top: -30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 60px;
-    background: linear-gradient(180deg, 
-        rgba(212, 168, 75, 0.6),
-        rgba(212, 168, 75, 0)
-    );
-    box-shadow: 0 0 30px rgba(212, 168, 75, 0.3);
-    opacity: 0.5;
-}
+.main-card::before { left: -6px; }
+.main-card::after { right: -6px; }
 
 /* ========== GREEK CORNER DECORATIONS ========== */
 .corner-deco {
     position: absolute;
     font-family: var(--font-cinzel);
-    color: var(--gold-primary);
-    font-size: 16px;
-    opacity: 0.25;
-    text-shadow: 0 0 20px rgba(212, 168, 75, 0.2);
+    color: var(--gold-light);
+    font-size: 24px;
+    opacity: 0.8;
+    text-shadow: 0 0 15px var(--gold-primary);
+    z-index: 5;
 }
-.corner-deco.tl { top: 12px; left: 16px; }
-.corner-deco.tr { top: 12px; right: 16px; }
-.corner-deco.bl { bottom: 12px; left: 16px; }
-.corner-deco.br { bottom: 12px; right: 16px; }
+.corner-deco.tl { top: 8px; left: 16px; }
+.corner-deco.tr { top: 8px; right: 16px; }
+.corner-deco.bl { bottom: 8px; left: 16px; transform: rotate(180deg); }
+.corner-deco.br { bottom: 8px; right: 16px; transform: rotate(180deg); }
 
-/* ========== LOGO ========== */
+/* ========== LOGO - Heavenly Grandeur ========== */
 .logo-area {
-    margin-bottom: 24px;
+    margin-bottom: 32px;
+    position: relative;
 }
 
 .logo-icon {
-    width: 76px;
-    height: 76px;
-    background: radial-gradient(circle, rgba(26, 16, 40, 0.8), rgba(10, 8, 21, 0.9));
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, #1a1025, #08050e);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 15px;
-    border: 3px solid var(--gold-primary);
-    box-shadow: 
-        0 0 40px rgba(212, 168, 75, 0.2),
-        0 0 80px rgba(106, 27, 154, 0.1),
-        inset 0 0 40px rgba(212, 168, 75, 0.05);
+    margin: 0 auto 20px;
+    border: 4px solid transparent;
+    background-clip: padding-box;
     position: relative;
+    box-shadow: 
+        var(--shadow-divine),
+        inset 0 0 30px rgba(0,0,0,0.8);
 }
 
-.logo-icon::after {
+/* Spinning Metallic Ring */
+.logo-icon::before {
     content: '';
     position: absolute;
-    inset: -6px;
+    inset: -4px;
     border-radius: 50%;
-    background: conic-gradient(
-        from 0deg,
-        var(--gold-primary),
-        var(--royal-purple),
-        var(--electric-blue),
-        var(--gold-primary),
-        var(--royal-purple),
-        var(--electric-blue),
-        var(--gold-primary)
-    );
+    background: var(--gold-metallic);
     z-index: -1;
-    opacity: 0.3;
-    animation: spinGlow 8s linear infinite;
+    animation: spinRing 6s linear infinite;
 }
 
-@keyframes spinGlow {
-    0% { transform: rotate(0deg); }
+@keyframes spinRing {
     100% { transform: rotate(360deg); }
 }
 
 .logo-icon i {
-    font-size: 36px;
-    color: var(--gold-primary);
-    text-shadow: 0 0 30px rgba(212, 168, 75, 0.4);
+    font-size: 42px;
+    background: var(--gold-metallic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 15px rgba(212, 168, 75, 0.6));
 }
 
 .logo-text {
     font-family: var(--font-cinzel);
-    font-size: 30px;
+    font-size: 38px;
     font-weight: 900;
-    letter-spacing: 4px;
-    background: linear-gradient(180deg, #f5d97e 0%, #d4a84b 40%, #a87c2e 70%, #8a6520 100%);
+    letter-spacing: 6px;
+    /* Embossed typography */
+    background: var(--gold-metallic);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     text-transform: uppercase;
-    text-shadow: 0 2px 30px rgba(212, 168, 75, 0.2);
-    position: relative;
-}
-
-.logo-text::after {
-    content: '⚡';
-    font-size: 14px;
-    color: var(--gold-primary);
-    margin-left: 8px;
-    opacity: 0.6;
-    text-shadow: 0 0 20px rgba(0, 176, 255, 0.3);
+    text-shadow: 
+        2px 2px 4px rgba(0, 0, 0, 0.8),
+        -1px -1px 0 rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(212, 168, 75, 0.3);
 }
 
 .logo-sub {
     font-family: var(--font-forum);
-    font-size: 11px;
-    color: var(--gold-dark);
-    letter-spacing: 6px;
+    font-size: 13px;
+    color: var(--gold-light);
+    letter-spacing: 8px;
     text-transform: uppercase;
-    margin-top: 2px;
-    opacity: 0.6;
+    margin-top: 6px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    opacity: 0.9;
 }
 
 /* ========== VALUE PROPS ========== */
 .value-props {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 24px;
+    gap: 16px;
+    margin-bottom: 30px;
     text-align: left;
-    background: rgba(10, 8, 21, 0.5);
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(212, 168, 75, 0.1);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(212, 168, 75, 0.15);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    position: relative;
 }
 
 .prop-row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
 }
 
 .prop-icon {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, rgba(26, 16, 40, 0.8), rgba(10, 8, 21, 0.9));
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, rgba(40, 20, 60, 0.9), rgba(10, 5, 20, 0.9));
+    border-radius: 8px; /* Square with slight rounding for premium feel */
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--gold-primary);
-    box-shadow: 0 0 20px rgba(212, 168, 75, 0.1);
+    border: 1px solid var(--gold-primary);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(212,168,75,0.2);
     flex-shrink: 0;
 }
 
 .prop-icon i {
-    font-size: 18px;
-    color: var(--gold-primary);
+    font-size: 20px;
+    color: var(--gold-light);
+    text-shadow: 0 0 10px var(--gold-primary);
 }
 
 .prop-title {
-    font-size: 13px;
+    font-size: 14px;
     font-family: var(--font-display);
-    font-weight: 700;
-    color: var(--gold-light);
-    letter-spacing: 0.5px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
 
 .prop-desc {
-    font-size: 10px;
-    color: #8a7a9a;
-    font-weight: 300;
+    font-size: 11px;
+    color: #a89bb8;
+    font-weight: 400;
+    margin-top: 2px;
 }
 
 /* ========== SCARCITY TRACKER ========== */
 .scarcity-box {
-    background: linear-gradient(180deg, rgba(26, 16, 40, 0.6), rgba(10, 8, 21, 0.8));
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-    border: 1px solid var(--gold-primary);
+    background: linear-gradient(180deg, #160a22, #08030d);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(212, 168, 75, 0.3);
     position: relative;
     overflow: hidden;
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
-}
-
-.scarcity-box::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(212, 168, 75, 0.05), 
-        transparent
-    );
-    animation: scanner 5s infinite;
-}
-
-@keyframes scanner {
-    100% { left: 200%; }
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.8);
 }
 
 .scarcity-header {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 10px;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
 .scarcity-label {
     font-family: var(--font-display);
-    font-size: 9px;
-    color: var(--gold-primary);
+    font-size: 10px;
+    color: var(--gold-light);
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    font-weight: 700;
 }
 
 .scarcity-numbers {
     font-family: var(--font-display);
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 900;
-    color: #ff4444;
-    text-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+    color: var(--electric-blue);
+    text-shadow: 0 0 20px rgba(0, 229, 255, 0.5), 2px 2px 0 #000;
 }
 
 .scarcity-total {
-    font-size: 12px;
-    font-weight: 500;
-    color: #6a5a7a;
+    font-size: 14px;
+    color: #5a4b69;
 }
 
 .progress-track {
     width: 100%;
-    height: 12px;
-    background: rgba(26, 16, 40, 0.6);
-    border-radius: 6px;
-    border: 1px solid rgba(212, 168, 75, 0.15);
-    overflow: hidden;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    height: 16px;
+    background: #000;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, 
-        #8a6520,
-        #d4a84b,
-        #f5d97e,
-        #d4a84b,
-        #8a6520
-    );
+    background: linear-gradient(90deg, #005c8a, var(--electric-blue), #ffffff);
     background-size: 200% 100%;
     border-radius: 6px;
-    box-shadow: 0 0 30px rgba(212, 168, 75, 0.3);
-    transition: width 0.5s ease;
-    animation: shimmerProgress 3s infinite;
+    box-shadow: 0 0 20px var(--electric-blue);
+    animation: lightningFill 2s infinite linear;
 }
 
-@keyframes shimmerProgress {
+@keyframes lightningFill {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
 
-/* ========== SWIPE TO VERIFY - Divine ========== */
+/* ========== SWIPE TO VERIFY - Eternal Flame ========== */
 .swipe-container {
-    margin-bottom: 24px;
+    margin-bottom: 30px;
 }
 
 .swipe-track {
     position: relative;
     width: 100%;
-    height: 60px;
-    background: rgba(10, 8, 21, 0.8);
-    border-radius: 30px;
-    border: 2px solid var(--gold-primary);
-    box-shadow: 
-        inset 0 4px 20px rgba(0,0,0,0.5),
-        0 0 40px rgba(212, 168, 75, 0.08);
+    height: 68px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 34px;
+    border: 2px solid var(--gold-dark);
+    box-shadow: inset 0 5px 20px rgba(0,0,0,0.8), 0 0 20px rgba(212, 168, 75, 0.1);
     cursor: pointer;
     overflow: hidden;
 }
@@ -636,72 +508,48 @@ body {
     left: 0;
     height: 100%;
     background: linear-gradient(90deg, 
-        var(--royal-purple),
-        var(--gold-primary),
-        var(--electric-blue),
-        var(--gold-primary)
+        rgba(212, 168, 75, 0.2), 
+        var(--gold-primary), 
+        #fff
     );
-    background-size: 300% 100%;
-    border-radius: 30px;
+    border-radius: 34px;
     opacity: 0;
     transition: width 0.05s linear;
     pointer-events: none;
     z-index: 1;
-    animation: divineTrail 1.5s infinite;
-}
-
-@keyframes divineTrail {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
 }
 
 .swipe-fire-trail.active {
-    opacity: 0.8;
-    animation: blazeTrail 0.3s ease-out, divineTrail 1.5s infinite;
-}
-
-@keyframes blazeTrail {
-    0% { filter: blur(10px); opacity: 0; }
-    100% { filter: blur(4px); opacity: 0.8; }
+    opacity: 1;
+    box-shadow: 0 0 30px var(--gold-primary), 0 0 60px rgba(255, 241, 197, 0.5);
 }
 
 .swipe-icon {
     position: absolute;
-    left: 2px;
-    top: 2px;
-    width: 52px;
-    height: 52px;
-    background: radial-gradient(circle, rgba(26, 16, 40, 0.9), rgba(10, 8, 21, 0.95));
+    left: 4px;
+    top: 4px;
+    width: 56px;
+    height: 56px;
+    background: var(--gold-metallic);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--gold-primary);
     box-shadow: 
-        0 0 30px rgba(212, 168, 75, 0.25),
-        0 0 60px rgba(106, 27, 154, 0.1),
-        inset 0 0 20px rgba(212, 168, 75, 0.05);
+        0 0 20px rgba(0,0,0,0.8),
+        inset 0 2px 5px rgba(255,255,255,0.8),
+        0 0 30px rgba(212, 168, 75, 0.4);
     z-index: 3;
     cursor: grab;
-    transition: left 0.05s linear;
 }
 
-.swipe-icon:active {
-    cursor: grabbing;
-}
+.swipe-icon:active { cursor: grabbing; }
 
 .scatter-icon {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    object-fit: cover;
-    animation: twistIcon 5s linear infinite;
-    border: 1px solid rgba(212, 168, 75, 0.2);
-}
-
-@keyframes twistIcon {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
 .swipe-text {
@@ -710,14 +558,21 @@ body {
     top: 50%;
     transform: translate(-50%, -50%);
     font-family: var(--font-display);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
-    color: var(--gold-light);
-    letter-spacing: 2px;
-    text-shadow: 0 0 30px rgba(212, 168, 75, 0.2);
+    color: rgba(255, 241, 197, 0.6);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 10px rgba(0,0,0,1);
     pointer-events: none;
     white-space: nowrap;
     z-index: 1;
+    animation: textBreathe 2s infinite alternate;
+}
+
+@keyframes textBreathe {
+    0% { opacity: 0.5; text-shadow: 0 0 5px var(--gold-primary); }
+    100% { opacity: 1; text-shadow: 0 0 20px var(--gold-light); }
 }
 
 /* ========== CARD FOOTER ========== */
@@ -725,28 +580,31 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(212, 168, 75, 0.1);
 }
 
 .card-footer i {
-    font-size: 10px;
-    color: var(--gold-primary);
+    font-size: 12px;
+    color: var(--gold-dark);
 }
 
 .card-footer span {
-    font-size: 8px;
+    font-size: 9px;
     color: #6a5a7a;
     font-family: var(--font-display);
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
-/* ========== MODAL - Temple of Zeus ========== */
+/* ========== MODAL - Temple of Zeus / Divine Blessing ========== */
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.93);
-    backdrop-filter: blur(15px);
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(20px);
     z-index: 10000;
     align-items: center;
     justify-content: center;
@@ -754,213 +612,151 @@ body {
 
 .modal-container {
     width: 100%;
-    max-width: 360px;
+    max-width: 400px;
     padding: 20px;
-    animation: modalIn 0.5s ease;
+    animation: modalDescend 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     margin: 0 auto;
 }
 
-@keyframes modalIn {
-    from { 
-        opacity: 0; 
-        transform: scale(0.9) translateY(30px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: scale(1) translateY(0); 
-    }
+@keyframes modalDescend {
+    from { opacity: 0; transform: scale(1.1) translateY(-50px); filter: brightness(2); }
+    to { opacity: 1; transform: scale(1) translateY(0); filter: brightness(1); }
 }
 
 .modal-card {
-    background: linear-gradient(170deg, rgba(26, 16, 40, 0.98), rgba(10, 8, 21, 0.99));
-    border-radius: 16px;
+    background: linear-gradient(170deg, #180f24, #0a0610);
+    border-radius: 4px;
     border: 2px solid var(--gold-primary);
-    padding: 32px 24px;
+    padding: 40px 32px;
     box-shadow: 
-        0 0 60px rgba(212, 168, 75, 0.1),
-        0 0 120px rgba(106, 27, 154, 0.08),
-        inset 0 0 60px rgba(212, 168, 75, 0.03);
+        0 20px 60px rgba(0,0,0,0.9),
+        0 0 100px rgba(212, 168, 75, 0.15),
+        inset 0 0 40px rgba(0,0,0,0.8);
     position: relative;
     overflow: hidden;
 }
 
-/* Divine light beam in modal */
-.modal-card::before {
-    content: '';
-    position: absolute;
-    top: -50px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150px;
-    height: 100px;
-    background: radial-gradient(ellipse, rgba(212, 168, 75, 0.1), transparent 70%);
-    filter: blur(30px);
-    pointer-events: none;
-}
-
 .modal-close {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(212, 168, 75, 0.15);
-    width: 32px;
-    height: 32px;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: 1px solid var(--gold-dark);
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    color: var(--gold-primary);
+    color: var(--gold-light);
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     transition: all 0.3s;
     z-index: 10;
 }
 
 .modal-close:hover {
-    background: rgba(212, 168, 75, 0.1);
-    border-color: var(--gold-primary);
-    transform: rotate(90deg);
+    background: var(--gold-primary);
+    color: #000;
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 20px var(--gold-primary);
 }
 
 .modal-icon {
-    width: 68px;
-    height: 68px;
-    background: radial-gradient(circle, rgba(26, 16, 40, 0.8), rgba(10, 8, 21, 0.9));
+    width: 80px;
+    height: 80px;
+    background: var(--gold-metallic);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 16px;
-    border: 2px solid var(--gold-primary);
-    box-shadow: 0 0 40px rgba(212, 168, 75, 0.15);
+    margin: 0 auto 24px;
+    box-shadow: 0 10px 30px rgba(212, 168, 75, 0.4), inset 0 2px 10px #fff;
 }
 
 .modal-icon i {
-    font-size: 32px;
-    color: var(--gold-primary);
+    font-size: 40px;
+    color: #110800;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
 
 .modal-title {
     font-family: var(--font-cinzel);
-    font-size: 20px;
+    font-size: 26px;
     font-weight: 900;
     text-align: center;
-    background: linear-gradient(180deg, #f5d97e, #d4a84b);
+    background: var(--gold-metallic);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 .modal-subtitle {
-    font-family: var(--font-body);
-    font-size: 11px;
+    font-size: 13px;
     text-align: center;
-    color: #8a7a9a;
-    margin-bottom: 24px;
+    color: #a89bb8;
+    margin-bottom: 32px;
     line-height: 1.6;
 }
 
-.gold-text {
-    color: var(--gold-light);
-    font-weight: 600;
-}
-
-/* ========== BONUS BOX - Divine Blessing ========== */
+/* ========== BONUS BOX - 3D Divine Offering ========== */
 .bonus-box-premium {
     position: relative;
-    background: linear-gradient(135deg, 
-        #d4a84b 0%, 
-        #f5d97e 20%, 
-        #d4a84b 40%, 
-        #f5d97e 60%, 
-        #d4a84b 80%, 
-        #a87c2e 100%
-    );
-    background-size: 200% 200%;
-    border: 2px solid #f5d97e;
-    border-radius: 12px;
-    padding: 24px;
+    background: var(--gold-metallic);
+    border-radius: 8px;
+    padding: 32px 24px;
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
     overflow: hidden;
     box-shadow: 
-        0 10px 30px rgba(0,0,0,0.4),
-        inset 0 0 50px rgba(255,255,255,0.2),
-        0 0 50px rgba(212, 168, 75, 0.15);
-    animation: goldShimmer 3s ease-in-out infinite;
-}
-
-@keyframes goldShimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+        0 15px 35px rgba(0,0,0,0.6),
+        inset 0 5px 15px rgba(255,255,255,0.6),
+        inset 0 -5px 15px rgba(0,0,0,0.3);
+    border: 1px solid #fff;
 }
 
 .bonus-glow {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.4), transparent 70%);
-    opacity: 0.5;
-    animation: glowPulse 2s ease-in-out infinite;
+    inset: 0;
+    background: radial-gradient(circle at top, rgba(255,255,255,0.8), transparent 60%);
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+    animation: premiumShine 3s ease-in-out infinite;
 }
 
-@keyframes glowPulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.7; }
-}
-
-.bonus-shine {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, 
-        transparent 30%, 
-        rgba(255,255,255,0.15) 50%, 
-        transparent 70%
-    );
-    transform: rotate(45deg);
-    animation: bonusShine 4s infinite;
-}
-
-@keyframes bonusShine {
-    0% { transform: translateX(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) rotate(45deg); }
+@keyframes premiumShine {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.9; transform: scale(1.05); }
 }
 
 .bonus-amount-premium {
     font-family: var(--font-display);
-    font-size: 52px;
+    font-size: 64px;
     font-weight: 900;
-    color: #2a1808;
+    color: #1a0f00;
     text-shadow: 
-        2px 2px 0px rgba(255,255,255,0.3),
-        0 0 40px rgba(255,255,255,0.1);
+        1px 1px 0px rgba(255,255,255,0.8),
+        -1px -1px 0px rgba(0,0,0,0.2),
+        0 10px 20px rgba(0,0,0,0.4);
     position: relative;
     z-index: 2;
+    line-height: 1;
 }
 
 .bonus-label-premium {
     font-family: var(--font-display);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 4px;
     color: #3d2815;
-    margin-top: 8px;
+    margin-top: 12px;
     position: relative;
     z-index: 2;
     text-transform: uppercase;
 }
 
-.bonus-label-premium::before {
-    content: '⚡ ';
-}
-
-/* ========== INPUT ========== */
+/* ========== INPUT - Ancient Scroll Aesthetic ========== */
 .input-group-premium {
     margin-bottom: 24px;
 }
@@ -968,261 +764,129 @@ body {
 .input-label-premium {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-family: var(--font-body);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--gold-light);
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
-}
-
-.input-label-premium i {
-    color: var(--gold-primary);
+    gap: 10px;
     font-size: 12px;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 .input-wrapper-premium {
     display: flex;
     align-items: center;
-    background: rgba(10, 8, 21, 0.8);
-    border: 1px solid var(--gold-primary);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--gold-dark);
+    border-radius: 4px;
     overflow: hidden;
-    box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+    box-shadow: inset 0 4px 10px rgba(0,0,0,0.8);
+    transition: all 0.3s;
+}
+
+.input-wrapper-premium:focus-within {
+    border-color: var(--gold-primary);
+    box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 0 15px rgba(212, 168, 75, 0.3);
 }
 
 .input-wrapper-premium input {
     flex: 1;
     background: transparent;
     border: none;
-    padding: 14px 16px;
-    color: #f5f0eb;
+    padding: 16px 20px;
+    color: #fff;
     font-family: var(--font-display);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     outline: none;
+    letter-spacing: 1px;
 }
 
 .input-wrapper-premium input::placeholder {
-    color: #4a3a5a;
+    color: #5a4b69;
     font-family: var(--font-body);
-    font-weight: 300;
+    font-weight: 400;
 }
 
-/* ========== BUTTON ========== */
+/* ========== BUTTON - Thunderbolt Strike ========== */
 .login-btn {
     width: 100%;
-    background: linear-gradient(180deg, #d4a84b, #a87c2e, #8a6520);
-    border: 2px solid var(--gold-light);
-    border-radius: 8px;
-    padding: 16px 20px;
+    background: var(--gold-metallic);
+    border: none;
+    border-radius: 4px;
+    padding: 18px 24px;
     cursor: pointer;
-    transition: all 0.15s ease;
-    margin-bottom: 16px;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin-bottom: 20px;
     position: relative;
     overflow: hidden;
     box-shadow: 
-        0 4px 0 #5a3d15,
-        0 10px 30px rgba(0,0,0,0.4),
-        0 0 40px rgba(212, 168, 75, 0.08);
+        0 6px 0 #735010,
+        0 15px 30px rgba(0,0,0,0.6),
+        inset 0 2px 5px rgba(255,255,255,0.6);
 }
 
-.login-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
-    pointer-events: none;
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 0 #735010,
+        0 20px 40px rgba(0,0,0,0.7),
+        0 0 30px rgba(212, 168, 75, 0.4),
+        inset 0 2px 5px rgba(255,255,255,0.6);
 }
 
 .login-btn:active {
-    transform: translateY(4px);
+    transform: translateY(6px);
     box-shadow: 
-        0 2px 0 #5a3d15,
-        0 5px 15px rgba(0,0,0,0.4);
+        0 0px 0 #735010,
+        0 5px 10px rgba(0,0,0,0.5),
+        inset 0 2px 10px rgba(0,0,0,0.4);
 }
 
 .login-text {
     font-family: var(--font-display);
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: 3px;
-    color: #1a0e04;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.15);
-}
-
-.login-text::before {
-    content: '⚡ ';
-}
-
-.login-dots {
-    display: inline-block;
-    margin-left: 8px;
-    font-family: monospace;
-    font-size: 14px;
-    font-weight: bold;
-    color: #1a0e04;
-}
-
-.login-btn.loading .login-text {
-    display: none;
-}
-
-.login-btn.loading .login-dots {
-    display: inline-block;
-}
-
-.login-btn.loading .login-dots::before {
-    content: 'Summoning';
-    animation: dotPulse 1.5s infinite;
-}
-
-@keyframes dotPulse {
-    0% { content: 'Summoning'; }
-    33% { content: 'Summoning.'; }
-    66% { content: 'Summoning..'; }
-    100% { content: 'Summoning...'; }
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: #110800;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
 }
 
 .login-btn.success {
-    background: linear-gradient(180deg, #22C55E, #16A34A);
+    background: linear-gradient(135deg, #10b981, #047857);
+    box-shadow: 0 6px 0 #064e3b, 0 15px 30px rgba(0,0,0,0.6);
 }
-
-.login-btn.success .login-text {
-    display: inline-block;
-}
-
-.login-btn.success .login-dots {
-    display: none;
-}
-
-/* ========== WARNING ========== */
-.warning-text-premium {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-family: var(--font-body);
-    font-size: 9px;
-    color: #6a5a7a;
-}
-
-.warning-text-premium i {
-    color: var(--gold-primary);
-    font-size: 9px;
-}
-
-/* ========== PARTICLES CANVAS ========== */
-#particleCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-}
+.login-btn.success .login-text { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
-    body {
-        padding: 16px;
-    }
+    body { padding: 12px; }
     
     .main-card {
-        padding: 28px 20px 32px;
-        max-width: 360px;
+        padding: 32px 20px;
+        max-width: 100%;
+        margin-top: 20px;
+        border-width: 0; /* Remove heavy borders on mobile to save space */
     }
+    .main-card::before, .main-card::after { display: none; }
     
-    .live-ticker {
-        top: 16px;
-        padding: 6px 14px;
-        gap: 8px;
-        min-width: 260px;
-    }
+    .logo-icon { width: 70px; height: 70px; }
+    .logo-icon i { font-size: 32px; }
+    .logo-text { font-size: 28px; letter-spacing: 4px; }
     
-    .ticker-text {
-        font-size: 9px;
-        gap: 4px;
-    }
+    .scarcity-numbers { font-size: 26px; }
     
-    .ticker-badge {
-        padding: 3px 8px;
-        font-size: 7px;
-    }
+    .bonus-amount-premium { font-size: 48px; }
     
-    .logo-text {
-        font-size: 24px;
-    }
+    .swipe-track { height: 60px; }
+    .swipe-icon { width: 50px; height: 50px; left: 3px; top: 3px; }
     
-    .logo-icon {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .logo-icon i {
-        font-size: 28px;
-    }
-    
-    .logo-sub {
-        font-size: 9px;
-        letter-spacing: 4px;
-    }
-    
-    .prop-title {
-        font-size: 11px;
-    }
-    
-    .prop-desc {
-        font-size: 9px;
-    }
-    
-    .scarcity-numbers {
-        font-size: 24px;
-    }
-    
-    .bonus-amount-premium {
-        font-size: 42px;
-    }
-    
-    .modal-title {
-        font-size: 18px;
-    }
-    
-    .modal-card {
-        padding: 24px 20px;
-    }
-    
-    .swipe-track {
-        height: 50px;
-    }
-    
-    .swipe-icon {
-        width: 44px;
-        height: 44px;
-        top: 2px;
-        left: 2px;
-    }
-    
-    .scatter-icon {
-        width: 38px;
-        height: 38px;
-    }
-    
-    .swipe-text {
-        font-size: 11px;
-    }
-    
-    .corner-deco {
-        font-size: 12px;
-    }
+    .modal-card { padding: 30px 20px; }
+    .modal-title { font-size: 22px; }
 }
 
-/* ========== ACCESSIBILITY ========== */
+/* ========== ACCESSIBILITY & UTILITIES ========== */
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
@@ -1231,27 +895,12 @@ body {
     }
 }
 
-/* Focus states for keyboard navigation */
-button:focus-visible,
-input:focus-visible {
-    outline: 2px solid var(--gold-primary);
-    outline-offset: 2px;
+button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--electric-blue);
+    outline-offset: 4px;
 }
 
-/* ========== SCROLLBAR ========== */
-::-webkit-scrollbar {
-    width: 4px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(10, 8, 21, 0.5);
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--gold-primary), var(--royal-purple));
-    border-radius: 2px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--gold-primary);
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #05030a; }
+::-webkit-scrollbar-thumb { background: var(--gold-metallic); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #fff; }
