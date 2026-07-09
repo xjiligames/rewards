@@ -1,6 +1,6 @@
 /* ============================================================
    ZEUS DROP - GREEK MYTHOLOGY CASINO THEME (LIGHT VERSION)
-   WITH FULLY VISIBLE ZEUS BACKGROUND - TRANSPARENT CONTAINER
+   FULLY TRANSPARENT - NO BLUR - CLEAR ZEUS BACKGROUND
    ============================================================ */
 
 * {
@@ -55,10 +55,9 @@ body {
     height: 100%;
     z-index: 0;
     background: 
-        radial-gradient(ellipse at 20% 30%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(123, 31, 162, 0.03) 0%, transparent 40%),
-        radial-gradient(ellipse at 50% 60%, rgba(255, 215, 0, 0.03) 0%, transparent 60%),
-        radial-gradient(ellipse at 50% 100%, rgba(255, 248, 240, 0.3) 0%, rgba(245, 240, 235, 0.5) 70%);
+        radial-gradient(ellipse at 20% 30%, rgba(255, 215, 0, 0.03) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(123, 31, 162, 0.02) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 60%, rgba(255, 215, 0, 0.02) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -68,7 +67,7 @@ body {
     left: 50%;
     width: 600px;
     height: 400px;
-    background: radial-gradient(ellipse, rgba(201, 154, 46, 0.06), rgba(123, 31, 162, 0.03), transparent 70%);
+    background: radial-gradient(ellipse, rgba(201, 154, 46, 0.05), rgba(123, 31, 162, 0.02), transparent 70%);
     transform: translate(-50%, -50%);
     filter: blur(80px);
     z-index: 0;
@@ -99,7 +98,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.6;
+    opacity: 0.65;
     filter: brightness(1.1) contrast(1.05) saturate(1.1);
     pointer-events: none;
 }
@@ -193,26 +192,25 @@ body {
     height: 100%;
     pointer-events: none;
     z-index: 1;
-    background: radial-gradient(ellipse at 30% 20%, rgba(2, 136, 209, 0.04), transparent 60%);
+    background: radial-gradient(ellipse at 30% 20%, rgba(2, 136, 209, 0.03), transparent 60%);
     opacity: 0;
     animation: lightningBoltLight 10s infinite;
 }
 
 @keyframes lightningBoltLight {
     0%, 94%, 96%, 98%, 100% { opacity: 0; }
-    95% { opacity: 0.15; }
-    97% { opacity: 0.06; }
-    99% { opacity: 0.1; }
+    95% { opacity: 0.12; }
+    97% { opacity: 0.05; }
+    99% { opacity: 0.08; }
 }
 
-/* ========== LIVE TICKER - TRANSPARENT ========== */
+/* ========== LIVE TICKER - TRANSPARENT NO BLUR ========== */
 .live-ticker {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(255, 252, 248, 0.75);
-    backdrop-filter: blur(8px);
+    background: rgba(255, 252, 248, 0.7);
     border: 2px solid var(--gold-primary);
     border-radius: 4px;
     padding: 8px 20px;
@@ -244,7 +242,6 @@ body {
     letter-spacing: 1px;
     white-space: nowrap;
     transition: all 0.3s ease;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
 .ticker-dot {
@@ -281,23 +278,20 @@ body {
     text-transform: uppercase;
 }
 
-/* ========== MAIN CARD - FULLY TRANSPARENT WITH GLASS EFFECT ========== */
+/* ========== MAIN CARD - FULLY TRANSPARENT NO BLUR ========== */
 .main-card {
     position: relative;
     width: 100%;
     max-width: 420px;
-    background: rgba(255, 252, 248, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 252, 248, 0.2);
     border-radius: 16px;
     padding: 32px 24px 36px;
     text-align: center;
     z-index: 10;
-    border: 2px solid rgba(201, 154, 46, 0.4);
+    border: 2px solid rgba(201, 154, 46, 0.5);
     box-shadow: 
         0 8px 40px rgba(201, 154, 46, 0.08),
-        0 16px 80px rgba(0, 0, 0, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        0 16px 80px rgba(0, 0, 0, 0.05);
     margin: 0 auto;
 }
 
@@ -342,7 +336,6 @@ body {
     color: var(--gold-primary);
     font-size: 16px;
     opacity: 0.4;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 .corner-deco.tl { top: 12px; left: 16px; }
 .corner-deco.tr { top: 12px; right: 16px; }
@@ -357,8 +350,7 @@ body {
 .logo-icon {
     width: 76px;
     height: 76px;
-    background: rgba(255, 252, 248, 0.2);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 252, 248, 0.25);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -367,8 +359,7 @@ body {
     border: 3px solid var(--gold-primary);
     box-shadow: 
         0 0 40px rgba(201, 154, 46, 0.1),
-        0 0 80px rgba(123, 31, 162, 0.03),
-        inset 0 0 30px rgba(255, 255, 255, 0.1);
+        0 0 80px rgba(123, 31, 162, 0.03);
     position: relative;
 }
 
@@ -422,31 +413,29 @@ body {
     color: var(--gold-primary);
     margin-left: 8px;
     opacity: 0.6;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
 .logo-sub {
     font-family: var(--font-forum);
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.8);
     letter-spacing: 6px;
     text-transform: uppercase;
     margin-top: 2px;
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* ========== VALUE PROPS - TRANSPARENT ========== */
+/* ========== VALUE PROPS - TRANSPARENT NO BLUR ========== */
 .value-props {
     display: flex;
     flex-direction: column;
     gap: 14px;
     margin-bottom: 24px;
     text-align: left;
-    background: rgba(255, 252, 248, 0.1);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 252, 248, 0.15);
     padding: 16px;
     border-radius: 12px;
-    border: 1px solid rgba(201, 154, 46, 0.1);
+    border: 1px solid rgba(201, 154, 46, 0.15);
 }
 
 .prop-row {
@@ -458,8 +447,7 @@ body {
 .prop-icon {
     width: 44px;
     height: 44px;
-    background: rgba(255, 252, 248, 0.15);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 252, 248, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -471,7 +459,6 @@ body {
 .prop-icon i {
     font-size: 18px;
     color: var(--gold-primary);
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .prop-title {
@@ -485,15 +472,14 @@ body {
 
 .prop-desc {
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.8);
     font-weight: 300;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* ========== SCARCITY TRACKER - TRANSPARENT ========== */
+/* ========== SCARCITY TRACKER - TRANSPARENT NO BLUR ========== */
 .scarcity-box {
-    background: rgba(255, 252, 248, 0.1);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 252, 248, 0.15);
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 24px;
@@ -548,7 +534,7 @@ body {
 .scarcity-total {
     font-size: 12px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .progress-track {
@@ -581,7 +567,7 @@ body {
     100% { background-position: -200% 0; }
 }
 
-/* ========== SWIPE TO VERIFY - TRANSPARENT ========== */
+/* ========== SWIPE TO VERIFY - TRANSPARENT NO BLUR ========== */
 .swipe-container {
     margin-bottom: 24px;
 }
@@ -590,8 +576,7 @@ body {
     position: relative;
     width: 100%;
     height: 60px;
-    background: rgba(255, 252, 248, 0.1);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 252, 248, 0.15);
     border-radius: 30px;
     border: 2px solid rgba(201, 154, 46, 0.3);
     box-shadow: inset 0 4px 20px rgba(0,0,0,0.02);
@@ -628,8 +613,7 @@ body {
     top: 2px;
     width: 52px;
     height: 52px;
-    background: rgba(255, 252, 248, 0.2);
-    backdrop-filter: blur(8px);
+    background: rgba(255, 252, 248, 0.25);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -666,7 +650,7 @@ body {
     font-family: var(--font-display);
     font-size: 13px;
     font-weight: 800;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
     letter-spacing: 2px;
     pointer-events: none;
     white-space: nowrap;
@@ -695,13 +679,12 @@ body {
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* ========== MODAL - TRANSPARENT ========== */
+/* ========== MODAL - TRANSPARENT NO BLUR ========== */
 .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.2);
     z-index: 10000;
     align-items: center;
     justify-content: center;
@@ -727,9 +710,7 @@ body {
 }
 
 .modal-card {
-    background: rgba(255, 252, 248, 0.15);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 252, 248, 0.2);
     border-radius: 16px;
     border: 2px solid rgba(201, 154, 46, 0.4);
     padding: 32px 24px;
@@ -771,8 +752,7 @@ body {
 .modal-icon {
     width: 68px;
     height: 68px;
-    background: rgba(255, 252, 248, 0.15);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 252, 248, 0.2);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -784,7 +764,6 @@ body {
 .modal-icon i {
     font-size: 32px;
     color: var(--gold-primary);
-    text-shadow: 0 0 30px rgba(201, 154, 46, 0.1);
 }
 
 .modal-title {
@@ -805,9 +784,10 @@ body {
     font-family: var(--font-body);
     font-size: 11px;
     text-align: center;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 24px;
     line-height: 1.6;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .gold-text {
@@ -819,12 +799,12 @@ body {
 .bonus-box-premium {
     position: relative;
     background: linear-gradient(135deg, 
-        rgba(201, 154, 46, 0.8) 0%, 
-        rgba(245, 217, 126, 0.8) 20%, 
-        rgba(201, 154, 46, 0.8) 40%, 
-        rgba(245, 217, 126, 0.8) 60%, 
-        rgba(201, 154, 46, 0.8) 80%, 
-        rgba(168, 124, 46, 0.8) 100%
+        rgba(201, 154, 46, 0.85) 0%, 
+        rgba(245, 217, 126, 0.85) 20%, 
+        rgba(201, 154, 46, 0.85) 40%, 
+        rgba(245, 217, 126, 0.85) 60%, 
+        rgba(201, 154, 46, 0.85) 80%, 
+        rgba(168, 124, 46, 0.85) 100%
     );
     background-size: 200% 200%;
     border: 2px solid rgba(245, 217, 126, 0.5);
@@ -900,7 +880,7 @@ body {
     text-transform: uppercase;
 }
 
-/* ========== INPUT - TRANSPARENT ========== */
+/* ========== INPUT - TRANSPARENT NO BLUR ========== */
 .input-group-premium {
     margin-bottom: 24px;
 }
@@ -914,6 +894,7 @@ body {
     font-weight: 600;
     color: rgba(255, 255, 255, 0.8);
     margin-bottom: 10px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .input-label-premium i {
@@ -924,8 +905,7 @@ body {
 .input-wrapper-premium {
     display: flex;
     align-items: center;
-    background: rgba(255, 252, 248, 0.1);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 252, 248, 0.15);
     border: 1px solid rgba(201, 154, 46, 0.3);
     border-radius: 8px;
     overflow: hidden;
@@ -1042,7 +1022,8 @@ body {
     gap: 8px;
     font-family: var(--font-body);
     font-size: 9px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.6);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .warning-text-premium i {
