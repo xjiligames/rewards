@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Play Bonus | Lucky Drop</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- OG Meta Tags -->
+    <meta property="og:title" content="Play Bonus">
+    <meta property="og:description" content="Claim your bonus now!">
+    <meta property="og:image" content="https://xjiligames.github.io/rewards/images/PT_Cat.png">
+    <meta property="og:url" content="https://tiny.cc/LuckyDrop">
+    <meta property="og:type" content="website">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- External CSS - NEW FILE -->
+    <link rel="stylesheet" href="styles/playbonus.css">
+</head>
+<body>
+
+    <!-- WINNER TICKER -->
+    <div class="live-winners-ticker" id="winnerTicker">
+        <div class="live-dot"></div>
+        <span id="winnerText">0917***4256 withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱1,200</span>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="playbonus-container">
+
+        <!-- HEADER -->
+        <div class="header">
+            <h1>PLAY BONUS 🎁</h1>
+        </div>
+
+        <!-- USER INFO CARD -->
+        <div class="user-info-card" id="userInfoCard">
+            <div class="user-info-icon">📱</div>
+            <div class="user-info-text">
+                <span class="user-info-label">Logged in as</span>
+                <span class="user-info-number" id="userPhoneDisplay">Loading...</span>
+            </div>
+            <div class="user-info-badge" id="logoutBtn">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Active</span>
+            </div>
+        </div>
+
+        <!-- MINI DASHBOARD -->
+        <div class="mini-dashboard">
+            <div class="balance-content">
+                <div class="balance-label">My Balance</div>
+                <div class="balance-amount-wrapper">
+                    <span class="currency-symbol">₱</span>
+                    <span id="userBalanceDisplay" class="main-balance">0.00</span>
+                </div>
+            </div>
+            <div class="dashboard-action">
+                <a href="main.html" class="scatter-link">
+                    <img src="images/scatter_icon.jpg" class="twisting-scatter" alt="Main">
+                </a>
+            </div>
+        </div>
+
+        <!-- ========== PT CAT BONUS DISPLAY ========== -->
+        <div class="pt-cat-container">
+            <div class="pt-cat-image-wrapper">
+                <img src="images/PT_Cat.png" alt="Bonus Cat" class="pt-cat-image">
+                <div class="pt-cat-glow"></div>
+            </div>
+            
+            <div class="pt-cat-bonus-amount">
+                <span class="bonus-label">BONUS REWARD</span>
+                <div class="bonus-value">
+                    <span class="currency">₱</span>
+                    <span id="ptCatBonusAmount">500</span>
+                </div>
+            </div>
+            
+            <button class="pt-cat-claim-btn" id="ptCatClaimBtn">
+                <i class="fas fa-gift"></i>
+                <span>CLAIM BONUS</span>
+            </button>
+        </div>
+
+        <!-- TIMER SECTION -->
+        <div class="time-left-section">
+            <div class="time-label">⏰ BONUS ENDS IN ⏰</div>
+            <div class="timer-wrapper">
+                <div id="mainTimerDisplay" class="thrill-timer">00D 00:00:00</div>
+            </div>
+        </div>
+
+        <!-- WINNERS BANNER -->
+        <div class="winners-banner">
+            <span>🌟 <strong>LUCKY WINNERS</strong> 🌟<br> will receive <strong>₱500 Credits</strong></span>
+        </div>
+
+        <!-- BONUS IMAGE -->
+        <div class="bonus-image-container">
+            <img src="images/bonus150.png" alt="₱500 Bonus" class="bonus150-img">
+        </div>
+
+        <!-- DIVIDERS -->
+        <div class="button-divider">
+            <span></span>
+            <span>or share with friends</span>
+            <span></span>
+        </div>
+
+        <div class="button-divider">
+            <span></span>
+            <span>MISSION</span>
+            <span></span>
+        </div>
+
+        <!-- FACEBOOK SHARE BUTTON -->
+        <button class="btn-facebook-shimmer" id="facebookShareBtn">
+            <i class="fa-brands fa-facebook-f"></i>
+            <span>SHARE ON FACEBOOK</span>
+        </button>
+
+        <!-- FOOTER TEXT -->
+        <div class="share-social-text">
+            Share to <strong>Social Media</strong> <br>received up to <strong>₱1,000 GCash Credits</strong>
+        </div>
+
+        <!-- CONFETTI CANVAS -->
+        <canvas id="confettiCanvas"></canvas>
+
+    </div>
+
+    <!-- SUCCESS POPUP -->
+    <div id="successPopup" class="success-popup" style="display: none;">
+        <div class="success-popup-inner">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="success-title">🎉 BONUS CLAIMED! 🎉</h2>
+            <div class="success-amount">+₱<span id="successAmount">500</span></div>
+            <div class="success-message">Your bonus has been added to your balance!</div>
+            <button class="success-close-btn" id="successCloseBtn">
+                <i class="fas fa-check"></i> GOT IT
+            </button>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/playbonus.js"></script>
+    <script src="js/chat_widget.js"></script>
+
+</body>
+</html>
