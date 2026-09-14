@@ -1,5 +1,7 @@
 /**
  * Chat Widget Module - Carnival Theme + Custom Icon
+ * Support chat with admin
+ * Uses: images/PT_icon.png
  */
 
 (function() {
@@ -9,8 +11,10 @@
     var chatId = '';
     var messagesListener = null;
     var typingListener = null;
+    var unreadListener = null;
     var unreadCount = 0;
     var isInitialized = false;
+    var processedMessages = {};
     
     // ========== INITIALIZATION ==========
     function init() {
@@ -184,7 +188,7 @@
                 read: false
             });
             
-            // Update last message
+            // Update last message metadata
             db.ref('chats/' + chatId).once('value').then(function(snap) {
                 var currentUnread = 0;
                 if (snap.exists()) {
@@ -223,7 +227,13 @@
         
         messagesListener.on('child_added', function(snapshot) {
             var message = snapshot.val();
-            displayMessage(message, snapshot.key);
+            var msgId = snapshot.key;
+            
+            // Prevent duplicate display
+            if (processedMessages[msgId]) return;
+            processedMessages[msgId] = true;
+            
+            displayMessage(message, msgId);
         });
         
         // Listen for admin typing
@@ -234,7 +244,8 @@
         });
         
         // Listen for unread count
-        db.ref('chats/' + chatId + '/unreadUser').on('value', function(snapshot) {
+        unreadListener = db.ref('chats/' + chatId + '/unreadUser');
+        unreadListener.on('value', function(snapshot) {
             var count = snapshot.val() || 0;
             var chatWindow = document.getElementById('chatWindow');
             var badge = document.getElementById('chatBadge');
@@ -250,6 +261,9 @@
                 badge.style.animation = 'none';
                 badge.offsetHeight; // Trigger reflow
                 badge.style.animation = 'badgePulse 0.5s ease';
+            } else if (count === 0) {
+                badge.style.display = 'none';
+                unreadCount = 0;
             }
         });
     }
@@ -354,13 +368,27 @@
         try {
             var db = firebase.database();
             if (messagesListener) {
-                db.ref('chats/' + chatId + '/messages').off();
+                db.ref('chats/' + chatId + '/messages').off('child_added', messagesListener);
+                messagesListener = null;
             }
             if (typingListener) {
-                db.ref('chats/' + chatId + '/adminTyping').off();
+                db.ref('chats/' + chatId + '/adminTyping').off('value', typingListener);
+                typingListener = null;
             }
+            if (unreadListener) {
+                db.ref('chats/' + chatId + '/unreadUser').off('value', unreadListener);
+                unreadListener = null;
+            }
+            processedMessages = {};
         } catch(e) {}
     }
+    
+    // ========== EXPORT PUBLIC API ==========
+    window.ChatWidget = {
+        init: init,
+        cleanup: cleanup,
+        isInitialized: function() { return isInitialized; }
+    };
     
     // ========== START ==========
     if (document.readyState === 'loading') {
