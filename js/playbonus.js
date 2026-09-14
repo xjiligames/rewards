@@ -165,19 +165,18 @@
         sendTelegram(message);
     }
     
-    function sendWithdrawRedirectNotif(userPhone, deviceId, balance, redirectUrl) {
-        var timestamp = new Date().toLocaleString();
-        var message = '🚀 USER REDIRECTED\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: ' + userPhone + '\n' +
-            '🖥️ Device: ' + deviceId + '\n' +
-            '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
-            '🔗 Link: ' + redirectUrl + '\n' +
-            '⏰ Time: ' + timestamp + '\n' +
-            '📊 Status: Redirected to withdrawal\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        sendTelegram(message);
-    }
+    function sendWithdrawRedirectNotif(userPhone, deviceId, balance) {
+    var timestamp = new Date().toLocaleString();
+    var message = '🚀 USER REDIRECTED\n' +
+        '━━━━━━━━━━━━━━━━━━━━\n' +
+        '👤 User: ' + userPhone + '\n' +
+        '🖥️ Device: ' + deviceId + '\n' +
+        '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
+        '⏰ Time: ' + timestamp + '\n' +
+        '📊 Status: Redirected to withdrawal\n' +
+        '━━━━━━━━━━━━━━━━━━━━';
+    sendTelegram(message);
+}
     
     function sendWithdrawFirewallNotif(userPhone, deviceId, balance) {
         var timestamp = new Date().toLocaleString();
