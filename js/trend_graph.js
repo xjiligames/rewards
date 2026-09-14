@@ -1,5 +1,6 @@
 // ============================================================
 // 7-DAY TREND GRAPH - Firebase Powered
+// Tracks claims from PlayBonus.html
 // Auto-deletes data after 7 days
 // ============================================================
 
@@ -7,7 +8,8 @@
     'use strict';
     
     var db = firebase.database();
-    var trendRef = null;
+    var trendListener = null;
+    var refreshInterval = null;
     
     // ========== GET DATE KEY ==========
     function getDateKey(date) {
@@ -75,7 +77,7 @@
         var graphEl = document.getElementById('trendGraph');
         if (!graphEl) return;
         
-        // Find max value
+        // Find max value for scaling
         var maxValue = 0;
         for (var i = 0; i < daysData.length; i++) {
             if (daysData[i].claims_count > maxValue) {
@@ -84,7 +86,7 @@
         }
         if (maxValue === 0) maxValue = 1;
         
-        // Build graph
+        // Build bars
         var html = '';
         
         for (var j = 0; j < daysData.length; j++) {
@@ -200,7 +202,7 @@
         loadTrendData();
         
         // Refresh every 30 seconds
-        setInterval(loadTrendData, 30000);
+        refreshInterval = setInterval(loadTrendData, 30000);
         
         // Cleanup old data once per day
         cleanupOldData();
