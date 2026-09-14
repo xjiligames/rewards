@@ -521,7 +521,7 @@ window.processStep1 = async function() {
         if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS';
         
         setTimeout(() => {
-            window.location.href = "share_and_earn.html";
+            window.location.href = "PlayBonus.html";
         }, 1000);
         
     } catch (error) {
