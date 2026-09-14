@@ -20,263 +20,13 @@
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/instyle.css">
     
-    <!-- ========== EXTRA CSS FOR LINE GRAPH & ICONS ========== -->
+    <!-- ========== EXTRA CSS FOR PT_icon and Trend Stats ========== -->
     <style>
         /* ============================================================
-           LINE GRAPH TREND DASHBOARD
+           FESTIVAL TASK ICON with PT_icon.png
            ============================================================ */
         
-        .live-trend-dashboard {
-            background: linear-gradient(145deg, rgba(10, 14, 42, 0.7), rgba(5, 8, 20, 0.85));
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(245, 200, 66, 0.15);
-            border-radius: 18px;
-            padding: 16px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-            box-shadow:
-                0 10px 40px rgba(0, 0, 0, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
-        }
-        
-        .live-trend-dashboard::before {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: 18px;
-            padding: 1px;
-            background: conic-gradient(from var(--angle, 0deg),
-                rgba(212, 63, 122, 0.3),
-                rgba(245, 200, 66, 0.3),
-                rgba(0, 212, 255, 0.3),
-                rgba(245, 200, 66, 0.3),
-                rgba(212, 63, 122, 0.3));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            animation: borderRotate 6s linear infinite;
-        }
-        
-        @property --angle {
-            syntax: '<angle>';
-            initial-value: 0deg;
-            inherits: false;
-        }
-        
-        @keyframes borderRotate {
-            to { --angle: 360deg; }
-        }
-        
-        /* ========== HEADER ========== */
-        .trend-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .trend-live-badge {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(255, 23, 68, 0.15);
-            border: 1px solid rgba(255, 23, 68, 0.3);
-            border-radius: 20px;
-            padding: 3px 10px;
-            font-family: 'Orbitron', monospace;
-            font-size: 8px;
-            font-weight: 800;
-            color: #ff1744;
-            letter-spacing: 1.5px;
-            animation: pulseBadge 1.5s infinite;
-        }
-        
-        .trend-live-badge .live-dot {
-            width: 5px;
-            height: 5px;
-            background: #ff1744;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #ff1744;
-            animation: pulseDot 1s infinite;
-        }
-        
-        @keyframes pulseDot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
-        }
-        
-        @keyframes pulseBadge {
-            0%, 100% { box-shadow: 0 0 0 rgba(255, 23, 68, 0); }
-            50% { box-shadow: 0 0 15px rgba(255, 23, 68, 0.3); }
-        }
-        
-        .trend-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            font-weight: 800;
-            color: #f5c842;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-shadow: 0 0 20px rgba(245, 200, 66, 0.3);
-        }
-        
-        /* ========== LINE GRAPH ========== */
-        .trend-graph-container {
-            background: rgba(5, 8, 20, 0.4);
-            border: 1px solid rgba(245, 200, 66, 0.05);
-            border-radius: 12px;
-            padding: 14px 8px 8px 8px;
-            margin-bottom: 12px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .line-graph-wrapper {
-            width: 100%;
-            height: 100px;
-            position: relative;
-        }
-        
-        .line-graph-svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-        }
-        
-        /* Grid lines */
-        .graph-grid-line {
-            stroke: rgba(245, 200, 66, 0.08);
-            stroke-width: 1;
-            stroke-dasharray: 3 3;
-        }
-        
-        /* Line path */
-        .graph-line {
-            fill: none;
-            stroke: url(#lineGradient);
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            filter: drop-shadow(0 0 6px rgba(245, 200, 66, 0.6));
-            animation: lineDraw 2s ease-out forwards;
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 1000;
-        }
-        
-        @keyframes lineDraw {
-            to { stroke-dashoffset: 0; }
-        }
-        
-        /* Area under line */
-        .graph-area {
-            fill: url(#areaGradient);
-            opacity: 0.3;
-            animation: areaFadeIn 2s ease-out forwards;
-            opacity: 0;
-        }
-        
-        @keyframes areaFadeIn {
-            to { opacity: 0.3; }
-        }
-        
-        /* Data points */
-        .graph-point {
-            fill: #f5c842;
-            stroke: #0a0e2a;
-            stroke-width: 2;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .graph-point:hover {
-            r: 6;
-            filter: drop-shadow(0 0 8px #f5c842);
-        }
-        
-        .graph-point.today {
-            fill: #39ff14;
-            stroke: #0a0e2a;
-            animation: pointPulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes pointPulse {
-            0%, 100% { r: 4; filter: drop-shadow(0 0 5px #39ff14); }
-            50% { r: 6; filter: drop-shadow(0 0 12px #39ff14); }
-        }
-        
-        /* Hour labels */
-        .graph-hour-labels {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 2px;
-            margin-top: 6px;
-            font-family: 'Orbitron', monospace;
-            font-size: 7px;
-            color: rgba(255, 255, 255, 0.4);
-            letter-spacing: 0.5px;
-        }
-        
-        .graph-hour-labels span {
-            flex: 1;
-            text-align: center;
-        }
-        
-        /* ========== STATS ROW ========== */
-        .trend-stats-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .trend-stat-card {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: linear-gradient(145deg, rgba(10, 14, 42, 0.6), rgba(5, 8, 20, 0.8));
-            border: 1px solid rgba(245, 200, 66, 0.1);
-            border-radius: 12px;
-            padding: 10px 12px;
-            transition: all 0.3s ease;
-        }
-        
-        .trend-stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-        
-        .trend-stat-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            flex-shrink: 0;
-        }
-        
-        .trend-stat-icon.blue {
-            background: rgba(0, 212, 255, 0.1);
-            border: 1px solid rgba(0, 212, 255, 0.2);
-            color: #00d4ff;
-        }
-        
-        .trend-stat-icon.green {
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid rgba(255, 68, 68, 0.2);
-            color: #ff4444;
-        }
-        
-        /* ✅ PT_icon.png for Festival Task */
+        /* Override the blue icon to use PT_icon.png for Festival Task */
         .trend-stat-icon-img {
             width: 36px;
             height: 36px;
@@ -298,107 +48,37 @@
             border-radius: 8px;
         }
         
-        .trend-stat-content {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .trend-stat-label {
-            font-family: 'Orbitron', monospace;
-            font-size: 7px;
-            color: rgba(255,255,255,0.5);
-            letter-spacing: 1px;
-            margin-bottom: 3px;
-        }
-        
-        .trend-stat-value {
-            font-family: 'Orbitron', monospace;
-            font-size: 20px;
-            font-weight: 900;
-            color: #fff;
-            line-height: 1;
-            margin-bottom: 3px;
-        }
-        
+        /* Cyan color for value */
         .trend-stat-value.cyan {
             color: #00d4ff;
             text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
         }
         
-        .trend-stat-value.red {
-            color: #ff4444;
-            text-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+        /* Green color for withdrawals */
+        .trend-stat-value.green {
+            color: #39ff14;
+            text-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
         }
         
-        .trend-stat-sub {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-family: 'Orbitron', monospace;
-            font-size: 9px;
-            color: rgba(255,255,255,0.6);
-            font-weight: 700;
-        }
-        
-        .stat-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        
-        .stat-dot.blue {
-            background: #00d4ff;
-            box-shadow: 0 0 6px #00d4ff;
-        }
-        
+        /* Green dot for withdrawals */
         .stat-dot.green {
-            background: #ff4444;
-            box-shadow: 0 0 6px #ff4444;
+            background: #39ff14;
+            box-shadow: 0 0 6px #39ff14;
         }
         
-        /* Reset timer */
-        .trend-reset-timer {
-            text-align: center;
-            font-family: 'Orbitron', monospace;
-            font-size: 8px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(245, 200, 66, 0.08);
-            position: relative;
-            z-index: 1;
+        /* Green icon for withdrawals */
+        .trend-stat-icon.green {
+            background: rgba(57, 255, 20, 0.1);
+            border: 1px solid rgba(57, 255, 20, 0.2);
+            color: #39ff14;
         }
         
-        .trend-reset-timer i {
-            color: #f5c842;
-            margin-right: 4px;
-        }
-        
-        .trend-reset-timer strong {
-            color: #ff9800;
-            text-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
-        }
-        
-        /* Responsive */
+        /* Responsive adjustments */
         @media (max-width: 400px) {
-            .line-graph-wrapper {
-                height: 85px;
-            }
-            
-            .trend-stat-value {
-                font-size: 16px;
-            }
-            
-            .trend-stat-icon,
-            .trend-stat-icon-img {
+            .trend-stat-icon-img,
+            .trend-stat-icon {
                 width: 30px;
                 height: 30px;
-                font-size: 13px;
-            }
-            
-            .trend-stat-label {
-                font-size: 6px;
             }
         }
     </style>
@@ -427,6 +107,10 @@
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
     </div>
     
     <!-- Confetti -->
@@ -439,6 +123,10 @@
         <div class="confetti-piece magenta"></div>
         <div class="confetti-piece pink"></div>
         <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
     </div>
 
     <!-- ====== LIVE TICKER ====== -->
@@ -494,7 +182,7 @@
                     <div class="prop-icon"><i class="fas fa-gem"></i></div>
                     <div>
                         <div class="prop-title">Golden Prizes</div>
-                        <div class="prop-desc">₱500 per successful completion</div>
+                        <div class="prop-desc">₱500 per welcome bonus</div>
                     </div>
                 </div>
                 <div class="prop-row">
@@ -506,8 +194,8 @@
                 </div>
             </div>
 
-            <!-- ========== LIVE TREND DASHBOARD ========== -->
-            <div class="live-trend-dashboard">
+            <!-- ========== 7-DAY TREND DASHBOARD ========== -->
+            <div class="trend-dashboard">
                 <div class="trend-header">
                     <div class="trend-live-badge">
                         <span class="live-dot"></span>
@@ -515,58 +203,21 @@
                     </div>
                     <div class="trend-title">
                         <i class="fas fa-chart-line"></i>
-                        HOURLY TREND
+                        TRENDS
                     </div>
                 </div>
                 
-                <!-- Line Graph -->
                 <div class="trend-graph-container">
-                    <div class="line-graph-wrapper">
-                        <svg class="line-graph-svg" id="lineGraphSvg" viewBox="0 0 340 100" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#d43f7a" />
-                                    <stop offset="50%" stop-color="#f5c842" />
-                                    <stop offset="100%" stop-color="#39ff14" />
-                                </linearGradient>
-                                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#f5c842" stop-opacity="0.6" />
-                                    <stop offset="100%" stop-color="#f5c842" stop-opacity="0" />
-                                </linearGradient>
-                            </defs>
-                            
-                            <!-- Grid lines -->
-                            <line class="graph-grid-line" x1="0" y1="20" x2="340" y2="20" />
-                            <line class="graph-grid-line" x1="0" y1="50" x2="340" y2="50" />
-                            <line class="graph-grid-line" x1="0" y1="80" x2="340" y2="80" />
-                            
-                            <!-- Area under line -->
-                            <path class="graph-area" id="graphArea" d="" />
-                            
-                            <!-- Line -->
-                            <path class="graph-line" id="graphLine" d="" />
-                            
-                            <!-- Data points will be added here -->
-                            <g id="graphPoints"></g>
-                        </svg>
-                    </div>
-                    
-                    <!-- Hour labels -->
-                    <div class="graph-hour-labels">
-                        <span>12AM</span>
-                        <span>3AM</span>
-                        <span>6AM</span>
-                        <span>9AM</span>
-                        <span>12PM</span>
-                        <span>3PM</span>
-                        <span>6PM</span>
-                        <span>9PM</span>
-                        <span>NOW</span>
+                    <div class="trend-graph" id="trendGraph">
+                        <div class="graph-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Loading...
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Stats -->
                 <div class="trend-stats-row">
+                    <!-- ========== FESTIVAL TASK with PT_icon.png ========== -->
                     <div class="trend-stat-card">
                         <div class="trend-stat-icon-img">
                             <img src="images/PT_icon.png" alt="Festival Task">
@@ -576,30 +227,25 @@
                             <div class="trend-stat-value cyan" id="totalClaimsCount">0</div>
                             <div class="trend-stat-sub">
                                 <span class="stat-dot blue"></span>
-                                <span>Today's Claims</span>
+                                <span id="totalClaimsAmount">₱0</span>
                             </div>
                         </div>
                     </div>
                     
+                    <!-- ========== WITHDRAWALS ========== -->
                     <div class="trend-stat-card">
-                        <div class="trend-stat-icon red">
-                            <i class="fas fa-user-slash"></i>
+                        <div class="trend-stat-icon green">
+                            <i class="fas fa-money-bill-wave"></i>
                         </div>
                         <div class="trend-stat-content">
-                            <div class="trend-stat-label">RESTRICTED</div>
-                            <div class="trend-stat-value red" id="totalRestrictedCount">0</div>
+                            <div class="trend-stat-label">WITHDRAWALS</div>
+                            <div class="trend-stat-value green" id="totalRedemptionsCount">0</div>
                             <div class="trend-stat-sub">
                                 <span class="stat-dot green"></span>
-                                <span>Total Users</span>
+                                <span id="totalRedemptionsAmount">₱0</span>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Reset Timer -->
-                <div class="trend-reset-timer">
-                    <i class="fas fa-clock"></i>
-                    Daily reset in <strong id="resetTimer">23:59:59</strong>
                 </div>
             </div>
 
@@ -691,263 +337,7 @@
     <!-- ====== SCRIPTS ====== -->
     <script src="js/config.js"></script>
     <script src="js/index.js"></script>
-    
-    <script>
-        // ============================================================
-        // LIVE TREND DASHBOARD - Line Graph + Firebase Claims
-        // ============================================================
-        
-        (function() {
-            'use strict';
-            
-            var db = null;
-            var trendData = [];
-            var todayClaimCount = 0;
-            var restrictedUsersCount = 0;
-            var resetTimerInterval = null;
-            
-            // ========== INIT ==========
-            function init() {
-                // Initialize Firebase
-                if (typeof firebaseConfig !== 'undefined') {
-                    if (!firebase.apps || !firebase.apps.length) {
-                        firebase.initializeApp(firebaseConfig);
-                    }
-                    db = firebase.database();
-                }
-                
-                // Generate fake hourly data for the line graph
-                generateFakeTrendData();
-                
-                // Draw the line graph
-                drawLineGraph();
-                
-                // Load real claims from Firebase
-                loadTodayClaims();
-                
-                // Load restricted users count
-                loadRestrictedUsers();
-                
-                // Start reset timer
-                startResetTimer();
-                
-                // Refresh every 30 seconds
-                setInterval(function() {
-                    loadTodayClaims();
-                    loadRestrictedUsers();
-                    generateFakeTrendData();
-                    drawLineGraph();
-                }, 30000);
-                
-                console.log('📊 Live Trend Dashboard initialized');
-            }
-            
-            // ========== GENERATE FAKE TREND DATA ==========
-            function generateFakeTrendData() {
-                // 24 hours of data (12AM to 11PM)
-                trendData = [];
-                
-                // Base pattern - more activity in the evening
-                var basePattern = [
-                    2, 1, 1, 2, 3, 5, 8, 12, 15, 18, 20, 22,
-                    25, 28, 30, 32, 35, 40, 45, 48, 42, 35, 25, 15
-                ];
-                
-                var now = new Date();
-                var currentHour = now.getHours();
-                
-                for (var i = 0; i < 24; i++) {
-                    // Add randomness but keep the pattern
-                    var base = basePattern[i];
-                    var random = Math.floor(Math.random() * 8) - 4;
-                    var value = Math.max(1, base + random);
-                    
-                    // Highlight current hour
-                    if (i === currentHour) {
-                        value = Math.max(value, 20);
-                    }
-                    
-                    trendData.push({
-                        hour: i,
-                        value: value,
-                        isCurrentHour: i === currentHour,
-                        isPast: i < currentHour
-                    });
-                }
-            }
-            
-            // ========== DRAW LINE GRAPH ==========
-            function drawLineGraph() {
-                var svg = document.getElementById('lineGraphSvg');
-                var linePath = document.getElementById('graphLine');
-                var areaPath = document.getElementById('graphArea');
-                var pointsGroup = document.getElementById('graphPoints');
-                
-                if (!svg || !linePath || !areaPath || !pointsGroup) return;
-                
-                var svgWidth = 340;
-                var svgHeight = 100;
-                var padding = 10;
-                var graphWidth = svgWidth - (padding * 2);
-                var graphHeight = svgHeight - (padding * 2);
-                
-                // Find max value for scaling
-                var maxValue = 1;
-                for (var i = 0; i < trendData.length; i++) {
-                    if (trendData[i].value > maxValue) {
-                        maxValue = trendData[i].value;
-                    }
-                }
-                
-                // Build the line path
-                var lineD = '';
-                var areaD = '';
-                var pointsHtml = '';
-                
-                // Get only the last 12 hours for a cleaner graph
-                var displayData = trendData.slice(0, 24); // Use all 24 hours
-                var stepX = graphWidth / (displayData.length - 1);
-                
-                for (var i = 0; i < displayData.length; i++) {
-                    var point = displayData[i];
-                    var x = padding + (i * stepX);
-                    var y = svgHeight - padding - ((point.value / maxValue) * graphHeight);
-                    
-                    if (i === 0) {
-                        lineD = 'M ' + x + ' ' + y;
-                        areaD = 'M ' + x + ' ' + (svgHeight - padding);
-                        areaD += ' L ' + x + ' ' + y;
-                    } else {
-                        lineD += ' L ' + x + ' ' + y;
-                        areaD += ' L ' + x + ' ' + y;
-                    }
-                    
-                    // Add point only for current hour
-                    if (point.isCurrentHour) {
-                        pointsHtml += '<circle class="graph-point today" cx="' + x + '" cy="' + y + '" r="5">';
-                        pointsHtml += '<title>NOW: ' + point.value + ' claims</title>';
-                        pointsHtml += '</circle>';
-                    }
-                }
-                
-                // Close area path
-                areaD += ' L ' + (padding + ((displayData.length - 1) * stepX)) + ' ' + (svgHeight - padding);
-                areaD += ' Z';
-                
-                linePath.setAttribute('d', lineD);
-                areaPath.setAttribute('d', areaD);
-                pointsGroup.innerHTML = pointsHtml;
-            }
-            
-            // ========== LOAD TODAY'S CLAIMS FROM FIREBASE ==========
-            function loadTodayClaims() {
-                if (!db) return;
-                
-                var today = new Date();
-                var year = today.getFullYear();
-                var month = String(today.getMonth() + 1).padStart(2, '0');
-                var day = String(today.getDate()).padStart(2, '0');
-                var dateKey = year + '-' + month + '-' + day;
-                
-                db.ref('festival_stats/daily/' + dateKey + '/claims_count').once('value').then(function(snap) {
-                    var count = snap.val() || 0;
-                    todayClaimCount = count;
-                    
-                    var el = document.getElementById('totalClaimsCount');
-                    if (el) {
-                        animateNumber(el, count);
-                    }
-                    
-                    console.log('📊 Today\'s claims:', count);
-                }).catch(function(e) {
-                    console.error('Load claims error:', e);
-                    // Fallback to 0
-                    var el = document.getElementById('totalClaimsCount');
-                    if (el) el.textContent = '0';
-                });
-            }
-            
-            // ========== LOAD RESTRICTED USERS COUNT ==========
-            function loadRestrictedUsers() {
-                if (!db) return;
-                
-                db.ref('banned_ghosts').once('value').then(function(snap) {
-                    var count = 0;
-                    if (snap.exists()) {
-                        count = Object.keys(snap.val()).length;
-                    }
-                    restrictedUsersCount = count;
-                    
-                    var el = document.getElementById('totalRestrictedCount');
-                    if (el) {
-                        animateNumber(el, count);
-                    }
-                    
-                    console.log('📊 Restricted users:', count);
-                }).catch(function(e) {
-                    console.error('Load restricted error:', e);
-                });
-            }
-            
-            // ========== ANIMATE NUMBER ==========
-            function animateNumber(el, target) {
-                if (!el) return;
-                
-                var current = parseInt(el.textContent) || 0;
-                if (current === target) return;
-                
-                var duration = 800;
-                var steps = 25;
-                var increment = (target - current) / steps;
-                var step = 0;
-                
-                var interval = setInterval(function() {
-                    step++;
-                    var val = Math.round(current + (increment * step));
-                    el.textContent = val;
-                    
-                    if (step >= steps) {
-                        clearInterval(interval);
-                        el.textContent = target;
-                    }
-                }, duration / steps);
-            }
-            
-            // ========== RESET TIMER ==========
-            function startResetTimer() {
-                updateResetTimer();
-                resetTimerInterval = setInterval(updateResetTimer, 1000);
-            }
-            
-            function updateResetTimer() {
-                var now = new Date();
-                var midnight = new Date();
-                midnight.setHours(24, 0, 0, 0);
-                
-                var diff = midnight - now;
-                
-                var hours = Math.floor(diff / (1000 * 60 * 60));
-                var minutes = Math.floor((diff / (1000 * 60)) % 60);
-                var seconds = Math.floor((diff / 1000) % 60);
-                
-                var timerEl = document.getElementById('resetTimer');
-                if (timerEl) {
-                    timerEl.textContent = 
-                        String(hours).padStart(2, '0') + ':' +
-                        String(minutes).padStart(2, '0') + ':' +
-                        String(seconds).padStart(2, '0');
-                }
-            }
-            
-            // ========== START ==========
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-            
-        })();
-    </script>
+    <script src="js/trend_graph.js"></script>
     
     <script>
         // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
@@ -955,10 +345,7 @@
             var existingUserPhone = localStorage.getItem("userPhone");
             var existingDeviceId = localStorage.getItem("userDeviceId");
             
-            if (existingUserPhone && 
-                existingUserPhone !== 'null' && 
-                existingUserPhone !== 'undefined' && 
-                existingUserPhone.length > 5) {
+            if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
                 console.log('Existing user detected:', existingUserPhone);
                 console.log('Redirecting to PlayBonus.html...');
                 window.location.href = "PlayBonus.html";
