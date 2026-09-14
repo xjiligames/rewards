@@ -50,7 +50,7 @@
         widget.id = 'chatWidget';
         widget.innerHTML = 
             '<button class="chat-toggle-btn" id="chatToggleBtn">' +
-                '<img src="images/pt_icon.jpg" class="chat-toggle-img" alt="Chat">' +
+                '<img src="images/pt_icon.png" class="chat-toggle-img" alt="Chat">' +
                 '<span class="chat-badge" id="chatBadge" style="display: none;">0</span>' +
             '</button>' +
             
@@ -58,7 +58,7 @@
                 '<div class="chat-header">' +
                     '<div class="chat-header-info">' +
                         '<div class="chat-header-avatar">' +
-                            '<img src="images/pt_icon.jpg" alt="Support">' +
+                            '<img src="images/pt_icon.png" alt="Support">' +
                         '</div>' +
                         '<div>' +
                             '<div class="chat-header-title">LUCKY DROP SUPPORT</div>' +
