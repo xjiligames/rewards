@@ -199,19 +199,15 @@
         </div>
     </div>
 
-    <!-- ========== PRIZE POPUP (for Firewall / AI Verification) ========== -->
-    <div id="prizePopup" class="prize-popup" style="display: none;">
-        <div class="popup-container">
-            <div class="popup-inner">
-                <div class="popup-close" id="popupCloseBtn">✕</div>
-            </div>
-        </div>
-    </div>
+    <!-- ============================================================
+         ARCADE POPUP (Created dynamically by popup_playbonus.js)
+         No HTML needed - it's built with JavaScript
+         ============================================================ -->
 
     <!-- ========== SCRIPTS ========== -->
     <script src="js/config.js"></script>
     <script src="js/playbonus.js"></script>
-    <script src="js/popup_share.js"></script>
+    <script src="js/popup_playbonus.js"></script>
     <script src="js/chat_widget.js"></script>
 
     <!-- ========== INLINE SCRIPT ========== -->
@@ -270,32 +266,6 @@
             var fbBtn = document.getElementById('facebookShareBtn');
             if (fbBtn) {
                 fbBtn.addEventListener('click', shareOnFacebook);
-            }
-            
-            // ========== CLAIM NOW BUTTON - OPENS POPUP ==========
-            var claimNowBtn = document.getElementById('claimNowBtn');
-            if (claimNowBtn) {
-                claimNowBtn.addEventListener('click', function() {
-                    var popup = document.getElementById('bonusRewardPopup');
-                    if (popup) popup.style.display = 'flex';
-                });
-            }
-            
-            // ========== POPUP CLOSE ==========
-            var popupClose = document.getElementById('bonusRewardClose');
-            if (popupClose) {
-                popupClose.addEventListener('click', function() {
-                    var popup = document.getElementById('bonusRewardPopup');
-                    if (popup) popup.style.display = 'none';
-                });
-            }
-            
-            var popupBack = document.getElementById('bonusRewardBack');
-            if (popupBack) {
-                popupBack.addEventListener('click', function() {
-                    var popup = document.getElementById('bonusRewardPopup');
-                    if (popup) popup.style.display = 'none';
-                });
             }
         });
     </script>
