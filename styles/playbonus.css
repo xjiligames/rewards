@@ -219,7 +219,6 @@ body::after {
     vertical-align: middle;
     margin: 0 3px;
     filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.9));
-    animation: coinSpin 3s linear infinite;
 }
 
 @keyframes coinSpin {
