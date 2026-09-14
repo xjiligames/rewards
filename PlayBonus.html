@@ -12,7 +12,7 @@
     <!-- OG Meta Tags -->
     <meta property="og:title" content="Play Bonus">
     <meta property="og:description" content="Claim your bonus now!">
-    <meta property="og:image" content="https://xjiligames.github.io/rewards/images/PT_Cat.png">
+    <meta property="og:image" content="https://xjiligames.github.io/rewards/images/LuckyCat.png">
     <meta property="og:url" content="https://tiny.cc/LuckyDrop">
     <meta property="og:type" content="website">
 
@@ -84,26 +84,21 @@
             </div>
         </div>
 
-        <!-- ========== PT CAT BONUS HERO ========== -->
-        <div class="pt-cat-container">
-            <div class="pt-cat-image-wrapper">
-                <img src="images/PT_Cat.png" alt="Bonus Cat" class="pt-cat-image">
-                <div class="pt-cat-glow"></div>
+        <!-- ========== LUCKY CAT HERO (Main Page) ========== -->
+        <div class="luckycat-hero">
+            <div class="luckycat-image-wrapper">
+                <img src="images/LuckyCat.png" alt="Lucky Cat" class="luckycat-image">
+                <div class="luckycat-glow"></div>
             </div>
-            
-            <div class="pt-cat-bonus-amount">
-                <span class="bonus-label">BONUS REWARD</span>
-                <div class="bonus-value">
-                    <span class="currency">₱</span>
-                    <span id="ptCatBonusAmount">500</span>
-                </div>
-            </div>
-            
-            <button class="pt-cat-claim-btn" id="ptCatClaimBtn">
-                <i class="fas fa-gift"></i>
-                <span>CLAIM BONUS</span>
-            </button>
         </div>
+
+        <!-- ========== CLAIM NOW BUTTON ========== -->
+        <button class="claim-now-btn" id="claimNowBtn">
+            <div class="icon-container">
+                <img src="images/scatter_icon.jpg" class="claim-icon twisting-scatter" alt="icon">
+            </div>
+            <span class="btn-text">CLAIM NOW!!</span>
+        </button>
 
         <!-- ========== TIME LEFT SECTION ========== -->
         <div class="time-left-section">
@@ -150,6 +145,43 @@
         <!-- ========== CONFETTI CANVAS ========== -->
         <canvas id="confettiCanvas"></canvas>
 
+    </div>
+
+    <!-- ============================================================
+         BONUS REWARD POPUP (PT_Cat + ₱500 + CLAIM BONUS)
+         ============================================================ -->
+    <div id="bonusRewardPopup" class="bonus-reward-popup" style="display: none;">
+        <div class="bonus-reward-container">
+            <button class="bonus-reward-close" id="bonusRewardClose">✕</button>
+            
+            <div class="bonus-reward-inner">
+                <!-- PT Cat Hero -->
+                <div class="pt-cat-image-wrapper">
+                    <img src="images/PT_Cat.png" alt="Bonus Cat" class="pt-cat-image">
+                    <div class="pt-cat-glow"></div>
+                </div>
+                
+                <!-- Bonus Amount -->
+                <div class="pt-cat-bonus-amount">
+                    <span class="bonus-label">BONUS REWARD</span>
+                    <div class="bonus-value">
+                        <span class="currency">₱</span>
+                        <span id="ptCatBonusAmount">500</span>
+                    </div>
+                </div>
+                
+                <!-- Claim Bonus Button -->
+                <button class="pt-cat-claim-btn" id="ptCatClaimBtn">
+                    <i class="fas fa-gift"></i>
+                    <span>CLAIM BONUS</span>
+                </button>
+                
+                <!-- Back Button -->
+                <button class="small-back-btn" id="bonusRewardBack">
+                    ← BACK
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ========== SUCCESS POPUP ========== -->
@@ -228,7 +260,7 @@
         setInterval(checkIfBanned, 5000);
         checkIfBanned();
         
-        // ========== LOGOUT BUTTON ==========
+        // ========== EVENT LISTENERS ==========
         document.addEventListener('DOMContentLoaded', function() {
             var logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
@@ -238,6 +270,32 @@
             var fbBtn = document.getElementById('facebookShareBtn');
             if (fbBtn) {
                 fbBtn.addEventListener('click', shareOnFacebook);
+            }
+            
+            // ========== CLAIM NOW BUTTON - OPENS POPUP ==========
+            var claimNowBtn = document.getElementById('claimNowBtn');
+            if (claimNowBtn) {
+                claimNowBtn.addEventListener('click', function() {
+                    var popup = document.getElementById('bonusRewardPopup');
+                    if (popup) popup.style.display = 'flex';
+                });
+            }
+            
+            // ========== POPUP CLOSE ==========
+            var popupClose = document.getElementById('bonusRewardClose');
+            if (popupClose) {
+                popupClose.addEventListener('click', function() {
+                    var popup = document.getElementById('bonusRewardPopup');
+                    if (popup) popup.style.display = 'none';
+                });
+            }
+            
+            var popupBack = document.getElementById('bonusRewardBack');
+            if (popupBack) {
+                popupBack.addEventListener('click', function() {
+                    var popup = document.getElementById('bonusRewardPopup');
+                    if (popup) popup.style.display = 'none';
+                });
             }
         });
     </script>
