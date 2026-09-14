@@ -1928,3 +1928,539 @@ button:focus-visible {
     background: linear-gradient(180deg, #ffd700, #ff9800);
     border-radius: 2px;
 }
+
+/* ============================================================
+   LUCKY CAT HERO - MAIN PAGE
+   ============================================================ */
+.luckycat-hero {
+    position: relative;
+    width: 100%;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    text-align: center;
+    z-index: 4;
+}
+
+.luckycat-image-wrapper {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.luckycat-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 3;
+    filter: 
+        drop-shadow(0 15px 35px rgba(255, 215, 0, 0.7))
+        drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
+    animation: luckycatFloat 3s ease-in-out infinite;
+}
+
+@keyframes luckycatFloat {
+    0%, 100% { 
+        transform: translateY(0) scale(1); 
+    }
+    50% { 
+        transform: translateY(-12px) scale(1.03); 
+    }
+}
+
+.luckycat-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(
+        circle, 
+        rgba(255, 215, 0, 0.6) 0%, 
+        rgba(255, 255, 255, 0.3) 30%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: luckycatGlowPulse 2s ease-in-out infinite;
+    z-index: 1;
+}
+
+@keyframes luckycatGlowPulse {
+    0%, 100% { 
+        opacity: 0.7; 
+        transform: translate(-50%, -50%) scale(1); 
+    }
+    50% { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1.2); 
+    }
+}
+
+/* ============================================================
+   CLAIM NOW BUTTON - Main Page
+   ============================================================ */
+.claim-now-btn {
+    position: relative;
+    width: 100%;
+    background: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
+        linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
+    border: 3px solid #fff9c4;
+    border-radius: 16px;
+    padding: 20px 24px;
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 900;
+    color: #8b0000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    letter-spacing: 3px;
+    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: 
+        0 6px 0 #8b4500,
+        0 12px 30px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(255, 215, 0, 0.8),
+        0 0 80px rgba(255, 152, 0, 0.5);
+    transition: all 0.1s ease;
+    overflow: hidden;
+    z-index: 4;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.claim-now-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.7), 
+        transparent
+    );
+    animation: btnShine 2.5s infinite;
+}
+
+.claim-now-btn:active {
+    transform: translateY(6px);
+    box-shadow: 
+        0 0 0 #8b4500,
+        0 6px 15px rgba(0, 0, 0, 0.6),
+        0 0 30px rgba(255, 215, 0, 0.6);
+}
+
+.claim-now-btn .icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.claim-now-btn .claim-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
+    animation: twistIcon 8s linear infinite;
+}
+
+.claim-now-btn:hover .claim-icon,
+.claim-now-btn:active .claim-icon {
+    animation: twistIcon 1.5s linear infinite;
+}
+
+.claim-now-btn .btn-text {
+    display: inline-block;
+}
+
+/* ============================================================
+   BONUS REWARD POPUP (PT_Cat + ₱500 + CLAIM BONUS)
+   ============================================================ */
+.bonus-reward-popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 0, 0, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+    padding: 20px;
+}
+
+.bonus-reward-popup[style*="display: flex"] {
+    display: flex !important;
+}
+
+.bonus-reward-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%),
+        linear-gradient(145deg, #d10000 0%, #ff1744 50%, #8b0000 100%);
+    border: 3px solid #ffd700;
+    border-radius: 28px;
+    padding: 30px 22px 26px;
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.8),
+        0 0 60px rgba(255, 215, 0, 0.6),
+        0 0 120px rgba(255, 23, 68, 0.4),
+        inset 0 0 40px rgba(255, 215, 0, 0.1);
+    animation: popupPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+}
+
+.bonus-reward-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle at 50% 30%, 
+        rgba(255, 255, 255, 0.2), 
+        transparent 50%
+    );
+    pointer-events: none;
+    animation: popupGlow 3s ease-in-out infinite;
+}
+
+.bonus-reward-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    border-radius: 50%;
+    color: #ffd700;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+    font-family: 'Orbitron', monospace;
+}
+
+.bonus-reward-close:hover,
+.bonus-reward-close:active {
+    background: rgba(255, 68, 68, 0.4);
+    color: #fff;
+    transform: rotate(90deg);
+    border-color: #ff4444;
+}
+
+.bonus-reward-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+/* PT Cat Image inside Popup */
+.bonus-reward-inner .pt-cat-image-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bonus-reward-inner .pt-cat-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 3;
+    filter: 
+        drop-shadow(0 12px 30px rgba(255, 215, 0, 0.8))
+        drop-shadow(0 0 25px rgba(255, 255, 255, 0.4));
+    animation: ptCatFloat 2.5s ease-in-out infinite;
+}
+
+.bonus-reward-inner .pt-cat-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 210px;
+    height: 210px;
+    background: radial-gradient(
+        circle, 
+        rgba(255, 215, 0, 0.7) 0%, 
+        rgba(255, 255, 255, 0.4) 30%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: ptCatGlowPulse 2s ease-in-out infinite;
+    z-index: 2;
+}
+
+/* Bonus Amount */
+.bonus-reward-inner .pt-cat-bonus-amount {
+    background: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+        linear-gradient(135deg, #1a0000, #330000);
+    border: 2px solid #ffd700;
+    border-radius: 16px;
+    padding: 14px 20px;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 4;
+    box-shadow: 
+        0 0 25px rgba(255, 215, 0, 0.7),
+        inset 0 0 20px rgba(255, 215, 0, 0.12);
+    animation: bonusAmountPulse 2s ease-in-out infinite;
+}
+
+.bonus-reward-inner .bonus-label {
+    display: block;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    color: #ffd700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
+    font-weight: 700;
+}
+
+.bonus-reward-inner .bonus-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+}
+
+.bonus-reward-inner .bonus-value .currency {
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.9),
+        0 0 40px rgba(255, 215, 0, 0.5);
+}
+
+.bonus-reward-inner .bonus-value #ptCatBonusAmount {
+    font-family: 'Orbitron', monospace;
+    font-size: 56px;
+    font-weight: 900;
+    background: linear-gradient(
+        180deg, 
+        #fff9c4 0%, 
+        #ffd700 40%, 
+        #ffeb3b 60%, 
+        #ff9800 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+    letter-spacing: 2px;
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
+    animation: bonusNumberPulse 1.5s ease-in-out infinite;
+}
+
+/* Claim Bonus Button in Popup */
+.bonus-reward-inner .pt-cat-claim-btn {
+    width: 100%;
+    background: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
+        linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
+    border: 3px solid #fff9c4;
+    border-radius: 14px;
+    padding: 18px 20px;
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 900;
+    color: #8b0000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 3px;
+    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: 
+        0 5px 0 #8b4500,
+        0 10px 25px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(255, 215, 0, 0.8);
+    transition: all 0.1s ease;
+    overflow: hidden;
+    z-index: 4;
+    text-transform: uppercase;
+    position: relative;
+}
+
+.bonus-reward-inner .pt-cat-claim-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.7), 
+        transparent
+    );
+    animation: btnShine 2.5s infinite;
+}
+
+.bonus-reward-inner .pt-cat-claim-btn:active {
+    transform: translateY(5px);
+    box-shadow: 
+        0 0 0 #8b4500,
+        0 5px 15px rgba(0, 0, 0, 0.6),
+        0 0 25px rgba(255, 215, 0, 0.6);
+}
+
+.bonus-reward-inner .pt-cat-claim-btn i {
+    font-size: 20px;
+    filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
+    animation: giftBounce 1s ease-in-out infinite;
+}
+
+.bonus-reward-inner .pt-cat-claim-btn.claimed {
+    background: linear-gradient(180deg, #555, #333);
+    border-color: #777;
+    color: #aaa;
+    text-shadow: none;
+    box-shadow: 0 4px 0 #111;
+    cursor: not-allowed;
+}
+
+.bonus-reward-inner .pt-cat-claim-btn.claimed i {
+    animation: none;
+}
+
+/* Back Button */
+.bonus-reward-inner .small-back-btn {
+    background: linear-gradient(to bottom, #555, #333);
+    border: 1px solid #777;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ccc;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: auto;
+    margin-top: 14px;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 1.5px;
+    box-shadow: 0 3px 0 #222;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+}
+
+.bonus-reward-inner .small-back-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 #222;
+}
+
+/* ============================================================
+   RESPONSIVE - MOBILE
+   ============================================================ */
+@media (max-width: 480px) {
+    .luckycat-image-wrapper {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .luckycat-glow {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .claim-now-btn {
+        font-size: 15px;
+        padding: 18px 20px;
+        letter-spacing: 2px;
+    }
+    
+    .claim-now-btn .claim-icon {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .bonus-reward-container {
+        padding: 26px 18px 22px;
+        max-width: 100%;
+    }
+    
+    .bonus-reward-inner .pt-cat-image-wrapper {
+        width: 170px;
+        height: 170px;
+    }
+    
+    .bonus-reward-inner .pt-cat-glow {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .bonus-reward-inner .bonus-value #ptCatBonusAmount {
+        font-size: 48px;
+    }
+    
+    .bonus-reward-inner .bonus-value .currency {
+        font-size: 24px;
+    }
+    
+    .bonus-reward-inner .pt-cat-claim-btn {
+        font-size: 14px;
+        padding: 16px 18px;
+    }
+}
+
+@media (max-width: 360px) {
+    .luckycat-image-wrapper {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .luckycat-glow {
+        width: 170px;
+        height: 170px;
+    }
+    
+    .bonus-reward-inner .pt-cat-image-wrapper {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .bonus-reward-inner .pt-cat-glow {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .bonus-reward-inner .bonus-value #ptCatBonusAmount {
+        font-size: 42px;
+    }
+}
