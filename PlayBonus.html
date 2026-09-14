@@ -214,6 +214,68 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         ✨ BAGONG WITHDRAW POPUP (CLAIM NOW button target)
+         May pt_btn.png + CLAIM VIA GCASH APP button
+         ============================================================ -->
+    <div id="claimNowPopup" class="claim-now-popup" style="display: none;">
+        <div class="claim-now-popup-container">
+            <button class="claim-now-popup-close" id="claimNowPopupClose">✕</button>
+
+            <div class="claim-now-popup-inner">
+                <!-- Center Burst + Confetti Layer -->
+                <div class="claim-now-burst"></div>
+                <div class="claim-now-confetti-layer" id="claimNowConfetti"></div>
+
+                <!-- Main Image (pt_btn.png) -->
+                <div class="claim-now-image-wrapper">
+                    <div class="claim-now-glow"></div>
+                    <img src="images/pt_btn.png" alt="Withdraw Balance" class="claim-now-image">
+                </div>
+
+                <!-- Title -->
+                <h2 class="claim-now-title">💸 WITHDRAW YOUR BALANCE 💸</h2>
+
+                <!-- Divider -->
+                <div class="claim-now-divider">
+                    <span>★</span><span class="line"></span><span>★</span>
+                </div>
+
+                <!-- Balance Display -->
+                <div class="claim-now-balance-box">
+                    <div class="claim-balance-label">AVAILABLE BALANCE</div>
+                    <div class="claim-balance-value">
+                        <span class="currency">₱</span>
+                        <span id="claimNowBalanceAmount">0.00</span>
+                    </div>
+                </div>
+
+                <!-- Message -->
+                <p class="claim-now-message">
+                    I-withdraw ang iyong balance gamit ang<br>
+                    <span class="highlight">verified GCash Account</span>
+                </p>
+
+                <!-- Chips -->
+                <div class="claim-now-chips">
+                    <div class="claim-chip"><span>⚡</span> INSTANT</div>
+                    <div class="claim-chip"><span>🔒</span> SECURED</div>
+                    <div class="claim-chip"><span>💚</span> GCASH</div>
+                </div>
+
+                <!-- MAIN BUTTON -->
+                <button class="claim-via-gcash-btn" id="claimViaGCashBtn">
+                    <img src="images/gc_icon.png" class="gc-icon" alt="GCash">
+                    <span>CLAIM VIA GCASH APP</span>
+                    <span class="btn-shine"></span>
+                </button>
+
+                <!-- Back Button -->
+                <button class="claim-now-back-btn" id="claimNowBackBtn">← BACK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ========== SUCCESS POPUP ========== -->
     <div id="successPopup" class="success-popup" style="display: none;">
         <div class="success-popup-inner">
