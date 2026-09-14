@@ -1,7 +1,6 @@
 /* ============================================================
    PLAY BONUS PAGE - PREMIUM VIBRANT CARNIVAL
-   Hot Red + Crimson + Neon Glow + Premium 3D Effects
-   Includes: Firewall Popup, Phase Popups, MPIN UI
+   Mobile-Optimized | Firewall Integration | AI Verification
    ============================================================ */
 
 * {
@@ -39,7 +38,6 @@ body::before {
         radial-gradient(ellipse at 50% 30%, #ff2a2a 0%, #c1121f 25%, #780000 55%, #2a0000 85%, #0d0000 100%);
 }
 
-/* Animated radial beams */
 body::after {
     content: '';
     position: fixed;
@@ -80,7 +78,7 @@ body::after {
     to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Floating confetti overlay */
+/* ========== FLOATING CONFETTI BACKGROUND ========== */
 .bg-confetti {
     position: fixed;
     inset: 0;
@@ -122,7 +120,7 @@ body::after {
     }
 }
 
-/* Desktop warning */
+/* ========== DESKTOP WARNING ========== */
 @media (min-width: 768px) {
     body::before {
         content: "Please use your mobile phone to access this page";
@@ -146,7 +144,7 @@ body::after {
 }
 
 /* ============================================================
-   LIVE WINNER TICKER - Premium
+   LIVE WINNER TICKER
    ============================================================ */
 .live-winners-ticker {
     position: fixed;
@@ -230,7 +228,7 @@ body::after {
 }
 
 /* ============================================================
-   MAIN CONTAINER - Premium Carnival Card
+   MAIN CONTAINER
    ============================================================ */
 .playbonus-container {
     position: relative;
@@ -253,7 +251,6 @@ body::after {
     overflow: hidden;
 }
 
-/* Animated gold ring border */
 .playbonus-container::before {
     content: '';
     position: absolute;
@@ -292,7 +289,6 @@ body::after {
     to { --angle: 360deg; }
 }
 
-/* Center radial burst */
 .playbonus-container::after {
     content: '';
     position: absolute;
@@ -629,41 +625,40 @@ body::after {
 }
 
 /* ============================================================
-   PT CAT BONUS HERO
+   PT CAT HERO - MOBILE OPTIMIZED
    ============================================================ */
 .pt-cat-container {
+    position: relative;
+    width: 100%;
     background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
-        linear-gradient(145deg, #d10000 0%, #ff1744 50%, #a80000 100%);
+        radial-gradient(circle at 50% 20%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+        linear-gradient(180deg, #ff1744 0%, #c1121f 40%, #8b0000 100%);
     border: 3px solid #ffd700;
-    border-radius: 26px;
-    padding: 26px 20px;
+    border-radius: 24px;
+    padding: 20px 16px 24px;
     margin-bottom: 20px;
     text-align: center;
-    position: relative;
     overflow: hidden;
     box-shadow: 
-        0 15px 45px rgba(0, 0, 0, 0.7),
-        0 0 50px rgba(255, 215, 0, 0.6),
-        0 0 100px rgba(255, 23, 68, 0.4),
-        inset 0 0 35px rgba(255, 215, 0, 0.12);
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(255, 215, 0, 0.4),
+        inset 0 0 30px rgba(255, 215, 0, 0.1);
     z-index: 4;
 }
 
-/* Radial white burst behind cat */
 .pt-cat-container::before {
     content: '';
     position: absolute;
-    top: 35%;
+    top: 30%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 320px;
-    height: 320px;
+    width: 280px;
+    height: 280px;
     background: radial-gradient(
         circle, 
-        rgba(255, 255, 255, 0.5) 0%, 
-        rgba(255, 255, 255, 0.2) 25%,
-        rgba(255, 215, 0, 0.15) 45%,
+        rgba(255, 255, 255, 0.35) 0%, 
+        rgba(255, 255, 255, 0.15) 25%,
+        rgba(255, 215, 0, 0.1) 45%,
         transparent 70%
     );
     border-radius: 50%;
@@ -678,43 +673,41 @@ body::after {
         opacity: 0.7;
     }
     50% { 
-        transform: translate(-50%, -50%) scale(1.2); 
+        transform: translate(-50%, -50%) scale(1.15); 
         opacity: 1;
     }
 }
 
-/* Confetti inside container */
 .pt-cat-container::after {
     content: '';
     position: absolute;
     inset: 0;
     background-image: 
-        radial-gradient(circle 2px at 10% 15%, #ffd700, transparent),
-        radial-gradient(circle 3px at 90% 25%, #4fc3f7, transparent),
-        radial-gradient(circle 2px at 20% 85%, #ff6b9d, transparent),
-        radial-gradient(circle 3px at 80% 75%, #ff9800, transparent),
-        radial-gradient(circle 2px at 50% 10%, #ffd700, transparent),
-        radial-gradient(circle 3px at 15% 50%, #ff6b9d, transparent),
-        radial-gradient(circle 2px at 85% 55%, #4fc3f7, transparent),
-        radial-gradient(circle 3px at 45% 95%, #ffd700, transparent);
-    background-size: 100% 100%;
+        radial-gradient(circle 3px at 8% 15%, #ffd700, transparent 50%),
+        radial-gradient(circle 2px at 92% 20%, #4fc3f7, transparent 50%),
+        radial-gradient(circle 3px at 15% 80%, #ff6b9d, transparent 50%),
+        radial-gradient(circle 2px at 85% 75%, #ff9800, transparent 50%),
+        radial-gradient(circle 2px at 50% 8%, #ffd700, transparent 50%),
+        radial-gradient(circle 3px at 25% 45%, #ff6b9d, transparent 50%),
+        radial-gradient(circle 2px at 75% 55%, #4fc3f7, transparent 50%),
+        radial-gradient(circle 3px at 40% 92%, #ffd700, transparent 50%);
     pointer-events: none;
     animation: containerConfetti 6s ease-in-out infinite;
-    opacity: 0.85;
+    opacity: 0.9;
     z-index: 2;
 }
 
 @keyframes containerConfetti {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
+    50% { transform: translateY(-5px); }
 }
 
 /* ========== PT CAT IMAGE ========== */
 .pt-cat-image-wrapper {
     position: relative;
-    width: 230px;
-    height: 230px;
-    margin: 0 auto 22px;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -728,17 +721,17 @@ body::after {
     position: relative;
     z-index: 3;
     filter: 
-        drop-shadow(0 15px 45px rgba(255, 215, 0, 0.8))
-        drop-shadow(0 0 35px rgba(255, 255, 255, 0.5));
+        drop-shadow(0 12px 30px rgba(255, 215, 0, 0.7))
+        drop-shadow(0 0 25px rgba(255, 255, 255, 0.3));
     animation: ptCatFloat 2.5s ease-in-out infinite;
 }
 
 @keyframes ptCatFloat {
     0%, 100% { 
-        transform: translateY(0) scale(1) rotate(-3deg); 
+        transform: translateY(0) scale(1); 
     }
     50% { 
-        transform: translateY(-14px) scale(1.06) rotate(3deg); 
+        transform: translateY(-10px) scale(1.04); 
     }
 }
 
@@ -747,16 +740,16 @@ body::after {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 240px;
-    height: 240px;
+    width: 190px;
+    height: 190px;
     background: radial-gradient(
         circle, 
-        rgba(255, 215, 0, 0.7) 0%, 
-        rgba(255, 255, 255, 0.4) 30%,
+        rgba(255, 215, 0, 0.6) 0%, 
+        rgba(255, 255, 255, 0.3) 30%,
         transparent 70%
     );
     border-radius: 50%;
-    filter: blur(40px);
+    filter: blur(35px);
     animation: ptCatGlowPulse 2s ease-in-out infinite;
     z-index: 2;
 }
@@ -768,61 +761,62 @@ body::after {
     }
     50% { 
         opacity: 1; 
-        transform: translate(-50%, -50%) scale(1.25); 
+        transform: translate(-50%, -50%) scale(1.2); 
     }
 }
 
 /* ========== BONUS AMOUNT ========== */
 .pt-cat-bonus-amount {
     background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-        linear-gradient(135deg, #1a0000 0%, #330000 100%);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
+        linear-gradient(135deg, #1a0000, #330000);
     border: 2px solid #ffd700;
-    border-radius: 18px;
-    padding: 16px 22px;
-    margin-bottom: 18px;
+    border-radius: 16px;
+    padding: 14px 20px;
+    margin-bottom: 16px;
     position: relative;
     z-index: 4;
     box-shadow: 
-        0 0 25px rgba(255, 215, 0, 0.7),
-        inset 0 0 25px rgba(255, 215, 0, 0.12);
+        0 0 25px rgba(255, 215, 0, 0.6),
+        inset 0 0 20px rgba(255, 215, 0, 0.1);
     animation: bonusAmountPulse 2s ease-in-out infinite;
 }
 
 @keyframes bonusAmountPulse {
     0%, 100% { 
         box-shadow: 
-            0 0 25px rgba(255, 215, 0, 0.7),
-            inset 0 0 25px rgba(255, 215, 0, 0.12);
+            0 0 25px rgba(255, 215, 0, 0.6),
+            inset 0 0 20px rgba(255, 215, 0, 0.1);
     }
     50% { 
         box-shadow: 
-            0 0 40px rgba(255, 215, 0, 1),
-            inset 0 0 35px rgba(255, 215, 0, 0.2);
+            0 0 40px rgba(255, 215, 0, 0.9),
+            inset 0 0 30px rgba(255, 215, 0, 0.2);
     }
 }
 
 .bonus-label {
     display: block;
     font-family: 'Orbitron', monospace;
-    font-size: 10px;
+    font-size: 9px;
     color: #ffd700;
     letter-spacing: 4px;
     text-transform: uppercase;
     margin-bottom: 6px;
     text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
+    font-weight: 700;
 }
 
 .bonus-value {
     display: flex;
     align-items: baseline;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
 }
 
 .bonus-value .currency {
     font-family: 'Orbitron', monospace;
-    font-size: 30px;
+    font-size: 26px;
     font-weight: 900;
     color: #ffd700;
     text-shadow: 
@@ -832,7 +826,7 @@ body::after {
 
 .bonus-value #ptCatBonusAmount {
     font-family: 'Orbitron', monospace;
-    font-size: 58px;
+    font-size: 52px;
     font-weight: 900;
     background: linear-gradient(
         180deg, 
@@ -846,40 +840,39 @@ body::after {
     color: transparent;
     line-height: 1;
     letter-spacing: 2px;
-    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.9));
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
     animation: bonusNumberPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes bonusNumberPulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.06); }
+    50% { transform: scale(1.05); }
 }
 
 /* ========== CLAIM BUTTON ========== */
 .pt-cat-claim-btn {
     width: 100%;
     background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
         linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
     border: 3px solid #fff9c4;
-    border-radius: 16px;
-    padding: 20px 24px;
+    border-radius: 14px;
+    padding: 18px 20px;
     font-family: 'Orbitron', monospace;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 900;
     color: #8b0000;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     letter-spacing: 3px;
     text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
     box-shadow: 
-        0 6px 0 #8b4500,
-        0 12px 30px rgba(0, 0, 0, 0.6),
-        0 0 40px rgba(255, 215, 0, 0.8),
-        0 0 80px rgba(255, 152, 0, 0.5);
+        0 5px 0 #8b4500,
+        0 10px 25px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(255, 215, 0, 0.8);
     transition: all 0.1s ease;
     position: relative;
     overflow: hidden;
@@ -897,7 +890,7 @@ body::after {
     background: linear-gradient(
         90deg, 
         transparent, 
-        rgba(255, 255, 255, 0.8), 
+        rgba(255, 255, 255, 0.7), 
         transparent
     );
     animation: btnShine 2.5s infinite;
@@ -910,22 +903,22 @@ body::after {
 }
 
 .pt-cat-claim-btn:active {
-    transform: translateY(6px);
+    transform: translateY(5px);
     box-shadow: 
         0 0 0 #8b4500,
-        0 6px 15px rgba(0, 0, 0, 0.6),
-        0 0 30px rgba(255, 215, 0, 0.6);
+        0 5px 15px rgba(0, 0, 0, 0.6),
+        0 0 25px rgba(255, 215, 0, 0.6);
 }
 
 .pt-cat-claim-btn i {
-    font-size: 22px;
-    filter: drop-shadow(0 0 8px rgba(255, 152, 0, 0.9));
+    font-size: 20px;
+    filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
     animation: giftBounce 1s ease-in-out infinite;
 }
 
 @keyframes giftBounce {
     0%, 100% { transform: scale(1) rotate(-8deg); }
-    50% { transform: scale(1.2) rotate(8deg); }
+    50% { transform: scale(1.15) rotate(8deg); }
 }
 
 .pt-cat-claim-btn.claimed {
@@ -939,6 +932,11 @@ body::after {
 
 .pt-cat-claim-btn.claimed i {
     animation: none;
+}
+
+.pt-cat-claim-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* ============================================================
@@ -1402,9 +1400,72 @@ body::after {
 }
 
 /* ============================================================
-   FIREWALL POPUP STYLES (Phase 3 AI Verification)
+   FIREWALL POPUP STYLES (Prize Popup - AI Verification)
    ============================================================ */
 
+.prize-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.popup-container {
+    background: linear-gradient(145deg, #1a0505, #000000);
+    border-radius: 24px;
+    max-width: 380px;
+    width: 100%;
+    position: relative;
+    animation: modalIn 0.3s ease;
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 40px rgba(212,175,55,0.3);
+    margin: 0 auto;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.popup-inner {
+    padding: 30px 25px;
+    text-align: center;
+    position: relative;
+}
+
+.popup-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #d4af37;
+    background: rgba(255,255,255,0.1);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.popup-close:active {
+    background: rgba(255, 68, 68, 0.3);
+    color: #ff6666;
+}
+
+/* Numeric Keypad */
 .numeric-keypad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1444,6 +1505,7 @@ body::after {
     color: #ffffff;
 }
 
+/* Bill Indicators */
 .bill-indicators {
     display: flex;
     justify-content: center;
@@ -1472,6 +1534,7 @@ body::after {
     box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
 }
 
+/* MPIN Dots */
 .mpin-dots {
     display: flex;
     justify-content: center;
@@ -1493,6 +1556,7 @@ body::after {
     box-shadow: 0 0 15px #00d4ff, 0 0 30px rgba(0, 212, 255, 0.5);
 }
 
+/* Small Back Button */
 .small-back-btn {
     background: linear-gradient(to bottom, #555, #333);
     border: 1px solid #777;
@@ -1519,6 +1583,7 @@ body::after {
     box-shadow: 0 0 0 #222;
 }
 
+/* Verification Input */
 .verification-input {
     text-align: center;
     font-size: 24px;
@@ -1547,6 +1612,7 @@ body::after {
     font-size: 16px;
 }
 
+/* Phase 3 Heading */
 .phase3-heading {
     font-family: 'Orbitron', monospace;
     font-size: 18px;
@@ -1558,6 +1624,7 @@ body::after {
     text-shadow: 0 0 15px #00d4ff;
 }
 
+/* Phone Number Display */
 .phone-number-display {
     font-size: 24px;
     font-family: 'Orbitron', monospace;
@@ -1592,8 +1659,59 @@ body::after {
     50% { transform: scale(1.1); opacity: 0.8; }
 }
 
+/* Divider */
+.divider {
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, #aa771c, #fcf6ba, #aa771c);
+    margin: 10px auto;
+}
+
+/* Claim GCash Button (used in popup) */
+.claim-gcash-button {
+    background: linear-gradient(to bottom, #d4af37, #aa771c);
+    border: 1px solid #fcf6ba;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 800;
+    color: #1a1100;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+    box-shadow: 0 4px 0 #6e4b0c;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.claim-gcash-button:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #6e4b0c;
+}
+
+.claim-gcash-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Confetti Canvas */
+#confettiCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+}
+
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE - MOBILE
    ============================================================ */
 @media (max-width: 480px) {
     body {
@@ -1633,22 +1751,39 @@ body::after {
         height: 48px;
     }
     
+    /* PT Cat Mobile */
+    .pt-cat-container {
+        padding: 18px 14px 22px;
+        border-radius: 20px;
+    }
+    
     .pt-cat-image-wrapper {
-        width: 190px;
-        height: 190px;
+        width: 160px;
+        height: 160px;
+        margin-bottom: 16px;
     }
     
     .pt-cat-glow {
-        width: 200px;
-        height: 200px;
+        width: 170px;
+        height: 170px;
+    }
+    
+    .pt-cat-container::before {
+        width: 240px;
+        height: 240px;
     }
     
     .bonus-value #ptCatBonusAmount {
-        font-size: 48px;
+        font-size: 46px;
     }
     
     .bonus-value .currency {
-        font-size: 24px;
+        font-size: 22px;
+    }
+    
+    .bonus-label {
+        font-size: 8px;
+        letter-spacing: 3px;
     }
     
     .pt-cat-claim-btn {
@@ -1691,6 +1826,35 @@ body::after {
         padding: 14px 16px;
         font-size: 12px;
     }
+    
+    .popup-container {
+        max-width: 100%;
+    }
+    
+    .popup-inner {
+        padding: 24px 18px;
+    }
+    
+    .numeric-keypad {
+        gap: 10px;
+        padding: 16px;
+    }
+    
+    .num-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+    
+    .verification-input {
+        width: 140px;
+        font-size: 20px;
+        padding: 12px;
+    }
+    
+    .phone-number-display {
+        font-size: 20px;
+    }
 }
 
 @media (max-width: 360px) {
@@ -1703,22 +1867,37 @@ body::after {
     }
     
     .pt-cat-image-wrapper {
-        width: 160px;
-        height: 160px;
+        width: 140px;
+        height: 140px;
     }
     
     .pt-cat-glow {
-        width: 170px;
-        height: 170px;
+        width: 150px;
+        height: 150px;
+    }
+    
+    .pt-cat-container::before {
+        width: 200px;
+        height: 200px;
     }
     
     .bonus-value #ptCatBonusAmount {
         font-size: 42px;
     }
     
+    .bonus-value .currency {
+        font-size: 20px;
+    }
+    
     .pt-cat-claim-btn {
         font-size: 13px;
         padding: 14px 16px;
+    }
+    
+    .num-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
     }
 }
 
