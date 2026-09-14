@@ -199,11 +199,6 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         ARCADE POPUP (Created dynamically by popup_playbonus.js)
-         No HTML needed - it's built with JavaScript
-         ============================================================ -->
-
     <!-- ========== SCRIPTS ========== -->
     <script src="js/config.js"></script>
     <script src="js/playbonus.js"></script>
@@ -213,16 +208,14 @@
     <!-- ========== INLINE SCRIPT ========== -->
     <script>
         // ========== LOGOUT FUNCTION ==========
-        async function logoutUser() {
-            const userPhone = localStorage.getItem('userPhone');
-            if (userPhone) {
+        function logoutUser() {
+            var userPhone = localStorage.getItem('userPhone');
+            if (userPhone && typeof firebase !== 'undefined' && firebase.database) {
                 try {
-                    if (typeof firebase !== 'undefined' && firebase.database) {
-                        await firebase.database().ref('user_sessions/' + userPhone).update({
-                            status: 'offline',
-                            lastSeen: firebase.database.ServerValue.TIMESTAMP
-                        });
-                    }
+                    firebase.database().ref('user_sessions/' + userPhone).update({
+                        status: 'offline',
+                        lastSeen: firebase.database.ServerValue.TIMESTAMP
+                    });
                 } catch(e) { console.log('Logout error:', e); }
             }
             localStorage.clear();
@@ -232,25 +225,27 @@
         
         // ========== FACEBOOK SHARE ==========
         function shareOnFacebook() {
-            const shareUrl = 'https://tiny.cc/LuckyDrop';
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank', 'width=600,height=400');
+            var shareUrl = 'https://tiny.cc/LuckyDrop';
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=400');
         }
         
         // ========== BAN CHECK ==========
-        async function checkIfBanned() {
-            const userPhone = localStorage.getItem('userPhone');
+        function checkIfBanned() {
+            var userPhone = localStorage.getItem('userPhone');
             if (!userPhone) return;
-            try {
-                if (typeof firebase !== 'undefined' && firebase.database) {
-                    const snap = await firebase.database().ref('banned_ghosts/' + userPhone).once('value');
+            
+            if (typeof firebase !== 'undefined' && firebase.database) {
+                firebase.database().ref('banned_ghosts/' + userPhone).once('value').then(function(snap) {
                     if (snap.exists()) {
-                        await firebase.database().ref('user_sessions/' + userPhone).update({ status: 'offline' });
+                        firebase.database().ref('user_sessions/' + userPhone).update({ status: 'offline' });
                         localStorage.clear();
                         sessionStorage.clear();
                         window.location.replace('index.html');
                     }
-                }
-            } catch(e) { console.log('Ban check error:', e); }
+                }).catch(function(e) {
+                    console.log('Ban check error:', e);
+                });
+            }
         }
         
         setInterval(checkIfBanned, 5000);
