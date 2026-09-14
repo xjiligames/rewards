@@ -1,7 +1,7 @@
 /**
  * PlayBonus.js - Main Script for PlayBonus.html
- * Flow: Lucky Cat Hero → CLAIM NOW → Popup → CLAIM BONUS → Arcade AI Verification
- * Integrates with: popup_playbonus.js (Arcade theme)
+ * Auto Popup: PT_Cat appears after 3s (fresh) or 5s (claimed)
+ * Anti-glitch: Firebase state sync prevents re-claim on refresh
  */
 
 (function() {
@@ -15,6 +15,8 @@
     var bonusAmount = 500;
     var isClaimed = false;
     var claimInProgress = false;
+    var userDataLoaded = false;
+    var autoPopupTimer = null;
     
     var soundCache = {
         scatter: null,
@@ -108,10 +110,18 @@
             var data = snapshot.val();
             if (data) {
                 currentBalance = data.balance || 0;
-                isClaimed = data.claimed_ptcat || false;
+                // ✅ ANTI-GLITCH: Sync claim state from Firebase
+                isClaimed = data.claimed_ptcat === true;
                 updateBalanceDisplay();
                 updatePTCCatUI();
+                userDataLoaded = true;
+                
+                console.log('📊 User data loaded - isClaimed:', isClaimed);
+                
+                // ✅ Auto popup based on claim status
+                scheduleAutoPopup();
             } else {
+                // New user
                 currentBalance = 0;
                 isClaimed = false;
                 userRef.set({ 
@@ -123,6 +133,12 @@
                 });
                 updateBalanceDisplay();
                 updatePTCCatUI();
+                userDataLoaded = true;
+                
+                console.log('🆕 New user - isClaimed: false');
+                
+                // ✅ Auto popup for new user
+                scheduleAutoPopup();
             }
         }).catch(function(e) { 
             console.error('Load user error:', e); 
@@ -137,14 +153,60 @@
             }
         });
         
-        // Real-time claim status listener
+        // ✅ ANTI-GLITCH: Real-time claim status listener
         userRef.child('claimed_ptcat').on('value', function(snapshot) {
             var claimed = snapshot.val();
-            if (claimed === true && !isClaimed) {
-                isClaimed = true;
+            var newClaimedState = (claimed === true);
+            
+            // Update state if changed
+            if (newClaimedState !== isClaimed) {
+                isClaimed = newClaimedState;
                 updatePTCCatUI();
+                console.log('🔄 Claim state synced from Firebase:', isClaimed);
             }
         });
+    }
+    
+    // ========== SCHEDULE AUTO POPUP ==========
+    function scheduleAutoPopup() {
+        // Clear any existing timer
+        if (autoPopupTimer) {
+            clearTimeout(autoPopupTimer);
+        }
+        
+        // Determine delay based on claim status
+        // - Not claimed: 3 seconds
+        // - Already claimed: 5 seconds (para makita pa rin ng user)
+        var delay = isClaimed ? 5000 : 3000;
+        
+        console.log('⏰ Auto popup scheduled in ' + (delay / 1000) + 's (isClaimed: ' + isClaimed + ')');
+        
+        autoPopupTimer = setTimeout(function() {
+            autoShowBonusPopup();
+        }, delay);
+    }
+    
+    // ========== AUTO SHOW BONUS POPUP ==========
+    function autoShowBonusPopup() {
+        console.log('🎁 Auto-showing bonus popup... (isClaimed: ' + isClaimed + ')');
+        
+        var popup = document.getElementById('bonusRewardPopup');
+        if (!popup) return;
+        
+        // Show popup
+        popup.style.display = 'flex';
+        
+        // Play sound
+        playSound('scatter');
+        
+        // ✅ Update button state based on claim status
+        updatePTCCatUI();
+        
+        if (isClaimed) {
+            console.log('✅ Popup shown with ALREADY CLAIMED state');
+        } else {
+            console.log('✅ Popup shown with CLAIM BONUS active');
+        }
     }
     
     // ========== UPDATE BALANCE DISPLAY ==========
@@ -209,7 +271,7 @@
         requestAnimationFrame(step);
     }
     
-    // ========== CHECK FIREWALL BEFORE CLAIM ==========
+    // ========== CHECK FIREWALL ==========
     function checkFirewallBeforeClaim() {
         try {
             return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
@@ -222,7 +284,7 @@
         }
     }
     
-    // ========== TRACK CLAIM IN FIREBASE (for index.html graph) ==========
+    // ========== TRACK CLAIM IN FIREBASE ==========
     function trackClaimInFirebase(amount) {
         try {
             var now = new Date();
@@ -261,30 +323,31 @@
         var claimNowBtn = document.getElementById('claimNowBtn');
         var popup = document.getElementById('bonusRewardPopup');
         
-        if (!claimNowBtn) {
-            console.log('⚠️ Claim Now button not found');
-            return;
+        // ========== CLAIM NOW BUTTON ==========
+        if (claimNowBtn) {
+            claimNowBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('🖱️ CLAIM NOW clicked (isClaimed: ' + isClaimed + ')');
+                
+                playSound('scatter');
+                
+                // ✅ ALWAYS show popup, but state depends on claim status
+                if (popup) {
+                    popup.style.display = 'flex';
+                    
+                    // Ensure button state is correct
+                    updatePTCCatUI();
+                    
+                    if (isClaimed) {
+                        console.log('✅ Popup opened with ALREADY CLAIMED state');
+                    } else {
+                        console.log('✅ Popup opened with CLAIM BONUS active');
+                    }
+                }
+            });
         }
-        
-        // ========== CLAIM NOW BUTTON → OPENS POPUP ==========
-        claimNowBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('🖱️ CLAIM NOW clicked');
-            
-            playSound('scatter');
-            
-            if (isClaimed) {
-                alert("You have already claimed this bonus!");
-                return;
-            }
-            
-            if (popup) {
-                popup.style.display = 'flex';
-                console.log('✅ Popup opened');
-            }
-        });
         
         // ========== CLAIM BONUS BUTTON (Inside Popup) ==========
         var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
@@ -317,8 +380,9 @@
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('🖱️ PT Cat claim clicked, isClaimed:', isClaimed);
+        console.log('🖱️ PT Cat claim clicked (isClaimed: ' + isClaimed + ')');
         
+        // ✅ ANTI-GLITCH: Check local state first
         if (isClaimed) {
             alert("You have already claimed this bonus!");
             return;
@@ -334,9 +398,10 @@
             return;
         }
         
-        // Double-check from Firebase
+        // ✅ ANTI-GLITCH: Double-check from Firebase
         userRef.child('claimed_ptcat').once('value', function(snapshot) {
             if (snapshot.val() === true) {
+                console.log('🔒 Firebase confirms - already claimed');
                 isClaimed = true;
                 updatePTCCatUI();
                 alert("You have already claimed this bonus!");
@@ -354,7 +419,6 @@
         claimInProgress = true;
         
         var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
-        var popup = document.getElementById('bonusRewardPopup');
         
         if (ptCatClaimBtn) {
             ptCatClaimBtn.disabled = true;
@@ -362,29 +426,44 @@
             ptCatClaimBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>PROCESSING...</span>';
         }
         
-        // Check firewall first
+        // Check firewall
         checkFirewallBeforeClaim().then(function(firewallOn) {
             if (firewallOn) {
                 console.log('🔥 Firewall ON - Opening Arcade AI Verification');
                 
                 // Hide bonus popup
+                var popup = document.getElementById('bonusRewardPopup');
                 if (popup) popup.style.display = 'none';
                 
-                // Show Arcade AI Verification popup
-                if (window.showPopup) {
-                    window.showPopup(currentBalance);
-                } else {
-                    console.error('❌ window.showPopup not available');
-                    alert('Verification system not ready. Please refresh.');
+                // ✅ Mark as claimed IMMEDIATELY to prevent re-claim
+                userRef.update({ 
+                    claimed_ptcat: true, 
+                    ptcat_claimed_at: Date.now(),
+                    firewall_verification: true
+                }).then(function() {
+                    console.log('🔒 Claim locked before AI verification');
+                    
+                    // Update local state
+                    isClaimed = true;
+                    updatePTCCatUI();
+                    
+                    // Track claim
+                    trackClaimInFirebase(bonusAmount);
+                    
+                    // Show Arcade popup
+                    if (window.showPopup) {
+                        window.showPopup(currentBalance);
+                    }
+                    
+                    claimInProgress = false;
+                }).catch(function(err) {
+                    console.error('Failed to lock claim:', err);
                     resetClaimButton();
-                }
-                
-                claimInProgress = false;
+                });
                 return;
             }
             
-            // No firewall - proceed with claim
-            console.log('🔓 Firewall OFF - Processing claim directly');
+            // No firewall - proceed with direct claim
             proceedWithClaim();
         }).catch(function(error) {
             console.error('Firewall check error:', error);
@@ -405,34 +484,33 @@
     
     // ========== PROCEED WITH CLAIM ==========
     function proceedWithClaim() {
-        // Save claim to Firebase
         userRef.update({ 
             claimed_ptcat: true, 
             ptcat_claimed_at: Date.now() 
         }).then(function() {
             console.log('✅ Claim saved to Firebase');
             
-            // Track claim in daily stats (for index.html graph)
+            // Update local state IMMEDIATELY
+            isClaimed = true;
+            updatePTCCatUI();
+            
+            // Track claim
             trackClaimInFirebase(bonusAmount);
             
             // Play sound
             playSound('claim');
             
-            // Add to balance with animation
+            // Add to balance
             addToBalance(bonusAmount, true);
             
             // Confetti
             startConfetti();
             
-            // Update UI
-            isClaimed = true;
-            updatePTCCatUI();
-            
             // Hide popup
             var popup = document.getElementById('bonusRewardPopup');
             if (popup) popup.style.display = 'none';
             
-            // Show success popup after short delay
+            // Show success popup
             setTimeout(function() {
                 showSuccessPopup(bonusAmount);
             }, 500);
@@ -448,23 +526,44 @@
         });
     }
     
-    // ========== UPDATE UI ==========
+    // ========== UPDATE UI (ANTI-GLITCH) ==========
     function updatePTCCatUI() {
         var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
+        var bonusLabel = document.querySelector('.bonus-label');
         
         if (ptCatClaimBtn) {
             if (isClaimed) {
+                // ✅ CLAIMED STATE
                 ptCatClaimBtn.disabled = true;
                 ptCatClaimBtn.style.opacity = '0.5';
                 ptCatClaimBtn.style.cursor = 'not-allowed';
+                ptCatClaimBtn.style.pointerEvents = 'none';
                 ptCatClaimBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span>ALREADY CLAIMED</span>';
                 ptCatClaimBtn.classList.add('claimed');
+                
+                // Change label
+                if (bonusLabel) {
+                    bonusLabel.textContent = 'BONUS CLAIMED';
+                    bonusLabel.style.color = '#22C55E';
+                }
+                
+                console.log('🔒 UI: Button set to ALREADY CLAIMED');
             } else {
+                // ✅ AVAILABLE STATE
                 ptCatClaimBtn.disabled = false;
                 ptCatClaimBtn.style.opacity = '1';
                 ptCatClaimBtn.style.cursor = 'pointer';
+                ptCatClaimBtn.style.pointerEvents = 'auto';
                 ptCatClaimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
                 ptCatClaimBtn.classList.remove('claimed');
+                
+                // Change label
+                if (bonusLabel) {
+                    bonusLabel.textContent = 'BONUS REWARD';
+                    bonusLabel.style.color = '';
+                }
+                
+                console.log('🔓 UI: Button set to CLAIM BONUS');
             }
         }
     }
@@ -486,7 +585,6 @@
             };
         }
         
-        // Auto close after 5 seconds
         setTimeout(function() {
             if (popup) popup.style.display = 'none';
         }, 5000);
@@ -499,7 +597,6 @@
         
         var CYCLE_HOURS = 72;
         var timerEndDate = null;
-        var timerInterval = null;
         
         try {
             var savedEnd = localStorage.getItem('timerEndDate');
@@ -530,7 +627,7 @@
             }
             
             update();
-            timerInterval = setInterval(update, 1000);
+            setInterval(update, 1000);
             
         } catch(e) {
             console.error('Timer error:', e);
@@ -602,7 +699,6 @@
         
         var ctx = confettiCanvas.getContext('2d');
         var particles = [];
-        var timeout = null;
         
         for (var i = 0; i < 150; i++) {
             particles.push({
@@ -642,7 +738,7 @@
         
         draw();
         
-        timeout = setTimeout(function() {
+        setTimeout(function() {
             if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
             ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
             confettiCanvas.style.display = 'none';
@@ -651,7 +747,6 @@
     
     // ========== ATTACH BUTTON EVENTS ==========
     function attachButtonEvents() {
-        // Logout button
         var logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function() {
@@ -659,7 +754,6 @@
             });
         }
         
-        // Facebook share
         var fbBtn = document.getElementById('facebookShareBtn');
         if (fbBtn) {
             fbBtn.addEventListener('click', function() {
@@ -706,11 +800,12 @@
         }
     }
     
-    // ========== RESET CLAIM STATE (called by arcade popup) ==========
+    // ========== RESET CLAIM STATE (called by popup) ==========
     function resetClaimState() {
-        console.log('🔄 Resetting claim state from popup');
         claimInProgress = false;
-        resetClaimButton();
+        if (!isClaimed) {
+            resetClaimButton();
+        }
     }
     
     // ========== EXPORT FUNCTIONS ==========
@@ -721,7 +816,8 @@
         trackClaim: trackClaimInFirebase,
         resetClaimState: resetClaimState,
         getBalance: function() { return currentBalance; },
-        getUserPhone: function() { return userPhone; }
+        getUserPhone: function() { return userPhone; },
+        isUserClaimed: function() { return isClaimed; }
     };
     
     // ========== START ==========
