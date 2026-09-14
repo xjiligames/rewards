@@ -38,7 +38,7 @@
         widget.innerHTML = `
             <!-- Chat Toggle Button -->
             <button class="chat-toggle-btn" id="chatToggleBtn">
-                <i class="fa-solid fa-comments"></i>
+                <img src="images/pt_icon.jpg" class="chat-toggle-img" alt="Chat">
                 <span class="chat-badge" id="chatBadge" style="display: none;">0</span>
             </button>
             
