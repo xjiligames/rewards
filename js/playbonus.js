@@ -1,12 +1,12 @@
 /**
- * PlayBonus.js - Complete Script
- * Features:
- * - Auto popup after 3s (fresh) / 5s (claimed)
+ * PlayBonus.js - Complete with Admin-Only Force Logout
+ * 
+ * KEY BEHAVIOR:
+ * - NO AUTO LOGOUT (kahit i-refresh, hindi mag-fo-force logout)
+ * - Admin-only force logout (kapag admin nag-click ng force logout sa dashboard)
+ * - Auto reset ang forceLogout flag kapag nag-open ang user
  * - CLAIM BONUS credits +₱500 to balance
- * - CLAIM NOW shows popup
- * - Force logout sync with admin panel
- * - Real-time balance and claim state
- * - Claims tracking for index.html trend graph
+ * - Auto popup after 3s (fresh) / 5s (claimed)
  */
 
 (function() {
@@ -26,6 +26,8 @@
     var forceLogoutListener = null;
     var forceLogoutFlagListener = null;
     var logoutTriggered = false;
+    var listenersSetup = false;
+    var pageLoadTime = Date.now(); // ✅ Track page load time
     
     var soundCache = {
         scatter: null,
@@ -85,9 +87,11 @@
         initClaimFlow();
         initConfetti();
         attachButtonEvents();
-        initForceLogoutListener();
         
-        console.log('✅ PlayBonus ready!');
+        // ✅ Admin-only force logout listener
+        initAdminForceLogoutListener();
+        
+        console.log('✅ PlayBonus ready! (Admin-only logout)');
     }
     
     // ========== INIT FIREBASE ==========
@@ -145,7 +149,7 @@
             console.error('Load error:', e);
         });
         
-        // ✅ Real-time balance listener
+        // Real-time balance listener
         if (balanceListener) {
             userRef.child('balance').off('value', balanceListener);
         }
@@ -159,7 +163,7 @@
             }
         });
         
-        // ✅ Real-time claim listener
+        // Real-time claim listener
         if (claimListener) {
             userRef.child('claimed_ptcat').off('value', claimListener);
         }
@@ -249,7 +253,7 @@
         }
     }
     
-    // ========== TRACK CLAIM IN FIREBASE (FOR INDEX TREND GRAPH) ==========
+    // ========== TRACK CLAIM IN FIREBASE ==========
     function trackClaimInFirebase(amount) {
         try {
             var now = new Date();
@@ -261,7 +265,6 @@
             
             var dayRef = db.ref('festival_stats/daily/' + dateKey);
             
-            // ✅ Atomic transaction
             dayRef.transaction(function(data) {
                 if (data === null) {
                     data = { 
@@ -271,11 +274,9 @@
                     };
                 }
                 
-                // ✅ Increment claims
                 data.claims_count = (data.claims_count || 0) + 1;
                 data.claims_amount = (data.claims_amount || 0) + (amount || 0);
                 
-                // ✅ Track hourly (for line graph)
                 if (!data.hourly_claims) data.hourly_claims = {};
                 data.hourly_claims[hour] = (data.hourly_claims[hour] || 0) + 1;
                 
@@ -297,7 +298,6 @@
         var claimNowBtn = document.getElementById('claimNowBtn');
         var popup = document.getElementById('bonusRewardPopup');
         
-        // ========== CLAIM NOW BUTTON (Main Page) ==========
         if (claimNowBtn) {
             claimNowBtn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -314,13 +314,11 @@
             });
         }
         
-        // ========== CLAIM BONUS BUTTON (Inside Popup) ==========
         var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
         if (ptCatClaimBtn) {
             ptCatClaimBtn.addEventListener('click', handleClaimBonus);
         }
         
-        // ========== POPUP CLOSE BUTTON ==========
         var closeBtn = document.getElementById('bonusRewardClose');
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
@@ -328,7 +326,6 @@
             });
         }
         
-        // ========== POPUP BACK BUTTON ==========
         var backBtn = document.getElementById('bonusRewardBack');
         if (backBtn) {
             backBtn.addEventListener('click', function() {
@@ -362,7 +359,6 @@
             return;
         }
         
-        // Double-check from Firebase
         userRef.child('claimed_ptcat').once('value', function(snapshot) {
             if (snapshot.val() === true) {
                 isClaimed = true;
@@ -389,7 +385,6 @@
             ptCatClaimBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>PROCESSING...</span>';
         }
         
-        // Check firewall
         checkFirewallBeforeClaim().then(function(firewallOn) {
             if (firewallOn) {
                 console.log('🔥 Firewall ON - Show carnival AI verification');
@@ -397,7 +392,6 @@
                 var popup = document.getElementById('bonusRewardPopup');
                 if (popup) popup.style.display = 'none';
                 
-                // ✅ Credit first, then show arcade
                 creditBonusAndMark(function() {
                     if (window.showPopup) {
                         window.showPopup(currentBalance);
@@ -425,7 +419,7 @@
         });
     }
     
-    // ========== CREDIT BONUS + MARK CLAIMED (ATOMIC) ==========
+    // ========== CREDIT BONUS + MARK CLAIMED ==========
     function creditBonusAndMark(callback) {
         console.log('💰 Crediting ₱' + bonusAmount + ' to balance...');
         
@@ -435,7 +429,6 @@
         console.log('   Old: ₱' + oldBalance);
         console.log('   New: ₱' + newBalance);
         
-        // ✅ ATOMIC UPDATE
         userRef.update({
             balance: newBalance,
             claimed_ptcat: true,
@@ -447,21 +440,13 @@
             currentBalance = newBalance;
             isClaimed = true;
             
-            // Animate balance
             animateBalanceThenSave(oldBalance, newBalance, function() {
                 updateBalanceDisplay();
             });
             
-            // ✅ TRACK CLAIM in festival_stats for index.html
             trackClaimInFirebase(bonusAmount);
-            
-            // Play sound
             playSound('claim');
-            
-            // Confetti
             startConfetti();
-            
-            // Update UI
             updateClaimButtonUI();
             
             if (callback) callback();
@@ -715,7 +700,7 @@
         }
     }
     
-    // ========== LOGOUT ==========
+    // ========== LOGOUT (User-Initiated Only) ==========
     function logoutUser() {
         if (userPhone) {
             try {
@@ -752,59 +737,128 @@
     }
     
     // ============================================================
-    // FORCE LOGOUT LISTENER (SYNC WITH ADMIN)
+    // ADMIN-ONLY FORCE LOGOUT SYSTEM
+    // 
+    // KEY DIFFERENCES FROM PREVIOUS VERSION:
+    // 1. ✅ Hindi mag-force logout kapag page load (auto reset ang flag)
+    // 2. ✅ Admin lang ang makakapag-force logout
+    // 3. ✅ Ignore ang "offline" status kung walang forceLogout flag
+    // 4. ✅ Reset ang flag 1 second after page load (para malinis)
     // ============================================================
     
-    function initForceLogoutListener() {
+    function initAdminForceLogoutListener() {
         if (!userPhone || !db) {
             console.log('⚠️ Cannot init force logout - missing userPhone or db');
             return;
         }
         
         var cleanPhone = userPhone.replace(/[^0-9]/g, '');
-        console.log('🔍 Force Logout Listener active for:', cleanPhone);
+        console.log('🔍 Admin Force Logout Listener active for:', cleanPhone);
         
         try {
-            // Listen to user status changes
-            forceLogoutListener = db.ref('user_sessions/' + cleanPhone + '/status');
-            
-            forceLogoutListener.on('value', function(snapshot) {
-                var status = snapshot.val();
-                console.log('📡 Status update:', status);
+            // ✅ STEP 1: Reset forceLogout flag + set online (para malinis ang state)
+            userRef.update({
+                status: 'online',
+                forceLogout: false,
+                lastSeen: firebase.database.ServerValue.TIMESTAMP
+            }).then(function() {
+                console.log('✅ User reset to ONLINE, forceLogout flag cleared');
                 
-                if (status === 'offline' && !logoutTriggered) {
-                    console.log('⚠️ FORCE LOGOUT TRIGGERED!');
-                    logoutTriggered = true;
-                    
-                    if (forceLogoutListener) {
-                        forceLogoutListener.off();
-                        forceLogoutListener = null;
-                    }
-                    
-                    showForceLogoutPopup();
-                }
-            });
-            
-            // Also listen to forceLogout flag
-            forceLogoutFlagListener = db.ref('user_sessions/' + cleanPhone + '/forceLogout');
-            forceLogoutFlagListener.on('value', function(snapshot) {
-                var forceFlag = snapshot.val();
-                if (forceFlag === true && !logoutTriggered) {
-                    console.log('⚠️ FORCE LOGOUT FLAG DETECTED!');
-                    logoutTriggered = true;
-                    
-                    if (forceLogoutFlagListener) {
-                        forceLogoutFlagListener.off();
-                        forceLogoutFlagListener = null;
-                    }
-                    
-                    showForceLogoutPopup();
-                }
+                // ✅ STEP 2: Wait 2 seconds bago mag-listen (para siguradong naka-reset)
+                setTimeout(function() {
+                    setupAdminLogoutListener(cleanPhone);
+                }, 2000);
+                
+            }).catch(function(e) {
+                console.error('Failed to reset user status:', e);
+                // Fallback: Setup listener agad after 3s
+                setTimeout(function() {
+                    setupAdminLogoutListener(cleanPhone);
+                }, 3000);
             });
             
         } catch(e) {
             console.error('Force logout listener error:', e);
         }
+    }
+    
+    function setupAdminLogoutListener(cleanPhone) {
+        if (listenersSetup) return;
+        listenersSetup = true;
+        
+        console.log('🔍 Setting up admin logout listeners...');
+        
+        // ========== LISTENER #1: forceLogout flag ==========
+        // ✅ ITO ANG PINAKA-IMPORTANTE
+        // Admin lang ang nagse-set ng forceLogout: true
+        forceLogoutFlagListener = db.ref('user_sessions/' + cleanPhone + '/forceLogout');
+        
+        forceLogoutFlagListener.on('value', function(snapshot) {
+            var forceFlag = snapshot.val();
+            var now = Date.now();
+            var timeSinceLoad = now - pageLoadTime;
+            
+            console.log('📡 forceLogout flag update:', forceFlag);
+            
+            // ✅ Force logout ONLY if:
+            // 1. forceLogout === true
+            // 2. Hindi pa naka-trigger
+            // 3. At least 3 seconds na from page load (para hindi mag-trigger sa initial state)
+            if (forceFlag === true && !logoutTriggered && timeSinceLoad > 3000) {
+                console.log('⚠️ ADMIN FORCE LOGOUT TRIGGERED!');
+                logoutTriggered = true;
+                
+                if (forceLogoutFlagListener) {
+                    forceLogoutFlagListener.off();
+                    forceLogoutFlagListener = null;
+                }
+                
+                showForceLogoutPopup();
+            } else if (forceFlag === true && timeSinceLoad <= 3000) {
+                console.log('⏭️ Ignoring forceLogout flag (too soon after page load)');
+            }
+        });
+        
+        // ========== LISTENER #2: status change ==========
+        // Secondary listener - only triggers if forceLogout flag is also true
+        forceLogoutListener = db.ref('user_sessions/' + cleanPhone + '/status');
+        
+        forceLogoutListener.on('value', function(snapshot) {
+            var status = snapshot.val();
+            var now = Date.now();
+            var timeSinceLoad = now - pageLoadTime;
+            
+            console.log('📡 Status update:', status, '(time since load:', Math.floor(timeSinceLoad/1000) + 's)');
+            
+            // ✅ Force logout ONLY if:
+            // 1. status === "offline"
+            // 2. At least 3 seconds from page load
+            // 3. forceLogout flag is true (double-check)
+            // 4. Hindi pa naka-trigger
+            if (status === 'offline' && !logoutTriggered && timeSinceLoad > 3000) {
+                
+                // ✅ Double-check ang forceLogout flag
+                db.ref('user_sessions/' + cleanPhone + '/forceLogout').once('value').then(function(flagSnap) {
+                    var forceFlag = flagSnap.val();
+                    
+                    if (forceFlag === true) {
+                        console.log('⚠️ ADMIN FORCE LOGOUT (via status change)!');
+                        logoutTriggered = true;
+                        
+                        if (forceLogoutListener) {
+                            forceLogoutListener.off();
+                            forceLogoutListener = null;
+                        }
+                        
+                        showForceLogoutPopup();
+                    } else {
+                        console.log('ℹ️ Status is offline but forceLogout is false — ignoring');
+                    }
+                });
+            }
+        });
+        
+        console.log('✅ Admin logout listeners ready');
     }
     
     // ========== SHOW FORCE LOGOUT POPUP ==========
@@ -828,12 +882,10 @@
             'animation: fadeInForceLogout 0.4s ease;' +
             'padding: 20px;';
         
+        // Particles
         var particles = document.createElement('div');
         particles.style.cssText = 
-            'position: absolute;' +
-            'inset: 0;' +
-            'overflow: hidden;' +
-            'pointer-events: none;';
+            'position: absolute; inset: 0; overflow: hidden; pointer-events: none;';
         
         for (var i = 0; i < 30; i++) {
             var particle = document.createElement('div');
@@ -842,11 +894,8 @@
             var delay = Math.random() * 3;
             var duration = Math.random() * 3 + 2;
             particle.style.cssText = 
-                'position: absolute;' +
-                'top: -10px;' +
-                'left: ' + startX + '%;' +
-                'width: ' + size + 'px;' +
-                'height: ' + size + 'px;' +
+                'position: absolute; top: -10px; left: ' + startX + '%;' +
+                'width: ' + size + 'px; height: ' + size + 'px;' +
                 'background: rgba(255, 215, 0, ' + (Math.random() * 0.5 + 0.3) + ');' +
                 'border-radius: 50%;' +
                 'animation: floatDownForceLogout ' + duration + 's ' + delay + 's linear infinite;' +
@@ -855,24 +904,22 @@
         }
         overlay.appendChild(particles);
         
+        // Card wrapper
         var cardWrapper = document.createElement('div');
         cardWrapper.style.cssText = 
-            'position: relative;' +
-            'z-index: 1;' +
+            'position: relative; z-index: 1;' +
             'animation: cardEnterForceLogout 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
-            'max-width: 360px;' +
-            'width: 100%;';
+            'max-width: 360px; width: 100%;';
         
+        // Glow
         var glowRing = document.createElement('div');
         glowRing.style.cssText = 
-            'position: absolute;' +
-            'inset: -3px;' +
-            'border-radius: 28px;' +
+            'position: absolute; inset: -3px; border-radius: 28px;' +
             'background: conic-gradient(from 0deg, transparent, rgba(255, 215, 0, 0.8), transparent, rgba(255, 215, 0, 0.4), transparent);' +
-            'animation: rotateGlowForceLogout 4s linear infinite;' +
-            'filter: blur(3px);';
+            'animation: rotateGlowForceLogout 4s linear infinite; filter: blur(3px);';
         cardWrapper.appendChild(glowRing);
         
+        // Card
         var card = document.createElement('div');
         card.style.cssText = 
             'position: relative;' +
@@ -881,140 +928,73 @@
             'border-radius: 24px;' +
             'padding: 35px 28px 28px;' +
             'text-align: center;' +
-            'box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);' +
+            'box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.3);' +
             'overflow: hidden;';
         
-        var accentLine = document.createElement('div');
-        accentLine.style.cssText = 
-            'position: absolute;' +
-            'top: 0;' +
-            'left: 20%;' +
-            'right: 20%;' +
-            'height: 3px;' +
-            'background: linear-gradient(90deg, transparent, #ffd700, #fff9c4, #ffd700, transparent);' +
-            'border-radius: 0 0 3px 3px;' +
-            'box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);';
-        card.appendChild(accentLine);
-        
-        var iconContainer = document.createElement('div');
-        iconContainer.style.cssText = 
-            'position: relative;' +
-            'width: 90px;' +
-            'height: 90px;' +
-            'margin: 0 auto 16px;';
-        
-        var iconRing = document.createElement('div');
-        iconRing.style.cssText = 
-            'position: absolute;' +
-            'inset: -8px;' +
-            'border-radius: 50%;' +
-            'border: 2px dashed rgba(255, 215, 0, 0.5);' +
-            'animation: spinSlowForceLogout 10s linear infinite;';
-        iconContainer.appendChild(iconRing);
-        
+        // Icon
         var iconBg = document.createElement('div');
         iconBg.style.cssText = 
-            'width: 90px;' +
-            'height: 90px;' +
+            'width: 90px; height: 90px; margin: 0 auto 16px;' +
             'background: radial-gradient(circle, rgba(255, 68, 68, 0.9), rgba(139, 0, 0, 0.95));' +
-            'border-radius: 50%;' +
-            'display: flex;' +
-            'align-items: center;' +
-            'justify-content: center;' +
+            'border-radius: 50%; display: flex; align-items: center; justify-content: center;' +
             'border: 3px solid #ffd700;' +
-            'box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.5);';
+            'box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);';
         
         var iconEl = document.createElement('span');
-        iconEl.style.cssText = 
-            'font-size: 44px;' +
-            'animation: bounceIconForceLogout 0.8s ease;' +
-            'filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));';
+        iconEl.style.cssText = 'font-size: 44px; animation: bounceIconForceLogout 0.8s ease;';
         iconEl.textContent = '💸';
         iconBg.appendChild(iconEl);
-        iconContainer.appendChild(iconBg);
-        card.appendChild(iconContainer);
+        card.appendChild(iconBg);
         
+        // Badge
         var badge = document.createElement('div');
         badge.style.cssText = 
-            'display: inline-block;' +
-            'background: rgba(255, 68, 68, 0.2);' +
-            'border: 1px solid rgba(255, 68, 68, 0.5);' +
-            'border-radius: 20px;' +
-            'padding: 5px 16px;' +
-            'margin-bottom: 12px;' +
-            'font-family: "Orbitron", monospace;' +
-            'font-size: 9px;' +
-            'font-weight: 700;' +
-            'color: #ff6666;' +
-            'letter-spacing: 2px;' +
-            'text-transform: uppercase;' +
-            'animation: pulseBadgeForceLogout 2s infinite;';
+            'display: inline-block; background: rgba(255, 68, 68, 0.2);' +
+            'border: 1px solid rgba(255, 68, 68, 0.5); border-radius: 20px;' +
+            'padding: 5px 16px; margin-bottom: 12px;' +
+            'font-family: "Orbitron", monospace; font-size: 9px; font-weight: 700;' +
+            'color: #ff6666; letter-spacing: 2px; text-transform: uppercase;';
         badge.textContent = '● Session Ended';
         card.appendChild(badge);
         
+        // Title
         var titleEl = document.createElement('h2');
         titleEl.style.cssText = 
-            'font-family: "Playfair Display", serif;' +
-            'font-size: 24px;' +
-            'font-weight: 900;' +
+            'font-family: "Playfair Display", serif; font-size: 24px; font-weight: 900;' +
             'background: linear-gradient(to bottom, #fff9c4 0%, #ffd700 50%, #ff9800 100%);' +
-            '-webkit-background-clip: text;' +
-            'background-clip: text;' +
-            'color: transparent;' +
-            'margin: 0 0 10px 0;' +
-            'letter-spacing: 2px;' +
-            'text-transform: uppercase;' +
-            'filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));';
+            '-webkit-background-clip: text; background-clip: text; color: transparent;' +
+            'margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase;';
         titleEl.textContent = 'PAYOUT UNSUCCESSFUL';
         card.appendChild(titleEl);
         
-        var dividerContainer = document.createElement('div');
-        dividerContainer.style.cssText = 
-            'display: flex;' +
-            'align-items: center;' +
-            'justify-content: center;' +
-            'gap: 10px;' +
-            'margin: 0 auto 18px;';
+        // Divider
+        var divider = document.createElement('div');
+        divider.style.cssText = 'display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 auto 18px;';
+        divider.innerHTML = 
+            '<div style="width: 50px; height: 1px; background: linear-gradient(90deg, transparent, #ffd700);"></div>' +
+            '<div style="width: 8px; height: 8px; background: #ffd700; transform: rotate(45deg);"></div>' +
+            '<div style="width: 50px; height: 1px; background: linear-gradient(90deg, #ffd700, transparent);"></div>';
+        card.appendChild(divider);
         
-        var lineLeft = document.createElement('div');
-        lineLeft.style.cssText = 'width: 50px; height: 1px; background: linear-gradient(90deg, transparent, #ffd700);';
-        
-        var diamond = document.createElement('div');
-        diamond.style.cssText = 'width: 8px; height: 8px; background: #ffd700; transform: rotate(45deg); box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);';
-        
-        var lineRight = document.createElement('div');
-        lineRight.style.cssText = 'width: 50px; height: 1px; background: linear-gradient(90deg, #ffd700, transparent);';
-        
-        dividerContainer.appendChild(lineLeft);
-        dividerContainer.appendChild(diamond);
-        dividerContainer.appendChild(lineRight);
-        card.appendChild(dividerContainer);
-        
+        // Message
         var msgEl = document.createElement('div');
         msgEl.style.cssText = 
-            'font-family: "Poppins", sans-serif;' +
-            'font-size: 14px;' +
-            'color: #ccc;' +
-            'line-height: 1.7;' +
-            'margin: 0 0 12px 0;';
+            'font-family: "Poppins", sans-serif; font-size: 14px;' +
+            'color: #ccc; line-height: 1.7; margin: 0 0 12px 0;';
         msgEl.innerHTML = 
             'Your payout request is <span style="color: #ff6666; font-weight: 700;">unsuccessful</span>.<br><br>' +
             'Use <strong style="color: #fff9c4;">verified GCash Account</strong><br>' +
             'to process instant withdrawal.';
         card.appendChild(msgEl);
         
+        // Info box
         var infoBox = document.createElement('div');
         infoBox.style.cssText = 
             'background: rgba(255, 215, 0, 0.08);' +
             'border: 1px solid rgba(255, 215, 0, 0.3);' +
-            'border-radius: 12px;' +
-            'padding: 12px 14px;' +
-            'margin: 14px 0 20px;' +
-            'font-family: "Poppins", sans-serif;' +
-            'font-size: 11px;' +
-            'color: #999;' +
-            'text-align: left;' +
-            'line-height: 1.5;';
+            'border-radius: 12px; padding: 12px 14px; margin: 14px 0 20px;' +
+            'font-family: "Poppins", sans-serif; font-size: 11px;' +
+            'color: #999; text-align: left; line-height: 1.5;';
         infoBox.innerHTML = 
             '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">' +
                 '<span style="font-size: 18px;">💡</span>' +
@@ -1023,41 +1003,19 @@
             '<span>Make sure your GCash account is <strong style="color: #39ff14;">fully verified</strong> with the same mobile number.</span>';
         card.appendChild(infoBox);
         
+        // Button
         var btn = document.createElement('button');
         btn.style.cssText = 
             'width: 100%;' +
             'background: linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);' +
-            'border: 3px solid #fff9c4;' +
-            'border-radius: 14px;' +
+            'border: 3px solid #fff9c4; border-radius: 14px;' +
             'padding: 16px 24px;' +
-            'font-family: "Orbitron", monospace;' +
-            'font-size: 14px;' +
-            'font-weight: 900;' +
-            'color: #8b0000;' +
-            'cursor: pointer;' +
-            'letter-spacing: 2px;' +
+            'font-family: "Orbitron", monospace; font-size: 14px; font-weight: 900;' +
+            'color: #8b0000; cursor: pointer; letter-spacing: 2px;' +
             'text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);' +
-            'box-shadow: 0 5px 0 #8b4500, 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 215, 0, 0.7);' +
-            'transition: all 0.1s ease;' +
-            'text-transform: uppercase;' +
-            'position: relative;' +
-            'overflow: hidden;';
-        
-        var btnShimmer = document.createElement('div');
-        btnShimmer.style.cssText = 
-            'position: absolute;' +
-            'top: 0;' +
-            'left: -100%;' +
-            'width: 100%;' +
-            'height: 100%;' +
-            'background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);' +
-            'animation: btnShineForceLogout 2.5s infinite;';
-        btn.appendChild(btnShimmer);
-        
-        var btnText = document.createElement('span');
-        btnText.style.cssText = 'position: relative; z-index: 1;';
-        btnText.textContent = '🏠 RETURN TO HOME';
-        btn.appendChild(btnText);
+            'box-shadow: 0 5px 0 #8b4500, 0 10px 25px rgba(0, 0, 0, 0.6);' +
+            'transition: all 0.1s ease; text-transform: uppercase;';
+        btn.textContent = '🏠 RETURN TO HOME';
         
         btn.addEventListener('click', function() {
             overlay.style.animation = 'fadeOutForceLogout 0.3s ease forwards';
@@ -1074,13 +1032,14 @@
         overlay.appendChild(cardWrapper);
         document.body.appendChild(overlay);
         
+        // Auto redirect after 15 seconds
         setTimeout(function() {
             if (document.querySelector('.force-logout-popup')) {
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.replace('index.html');
             }
-        }, 10000);
+        }, 15000);
     }
     
     // ========== FORCE LOGOUT ANIMATIONS ==========
@@ -1096,10 +1055,7 @@
             '@keyframes cardExitForceLogout { from { transform: scale(1); opacity: 1; } to { transform: scale(0.8) translateY(20px); opacity: 0; } }' +
             '@keyframes bounceIconForceLogout { 0% { transform: scale(0) rotate(-30deg); } 50% { transform: scale(1.3) rotate(10deg); } 70% { transform: scale(0.85); } 100% { transform: scale(1) rotate(0deg); } }' +
             '@keyframes rotateGlowForceLogout { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }' +
-            '@keyframes spinSlowForceLogout { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }' +
-            '@keyframes floatDownForceLogout { 0% { transform: translateY(-10px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(105vh); opacity: 0; } }' +
-            '@keyframes pulseBadgeForceLogout { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }' +
-            '@keyframes btnShineForceLogout { 0% { left: -100%; } 60% { left: 100%; } 100% { left: 100%; } }';
+            '@keyframes floatDownForceLogout { 0% { transform: translateY(-10px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(105vh); opacity: 0; } }';
         document.head.appendChild(style);
     }
     
