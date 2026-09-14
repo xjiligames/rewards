@@ -1,6 +1,6 @@
 /* ============================================================
-   PLAY BONUS PAGE - PREMIUM VIBRANT CARNIVAL
-   Mobile-Optimized | Firewall Integration | AI Verification
+   PLAY BONUS PAGE - PREMIUM VIBRANT CARNIVAL (FIXED)
+   Mobile-First | No Overflow | Firewall Integration
    ============================================================ */
 
 * {
@@ -11,16 +11,22 @@
     user-select: none;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     min-height: 100vh;
     background: #0d0000;
     font-family: 'Inter', sans-serif;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 16px;
+    justify-content: flex-start;
+    padding: 68px 12px 24px 12px;
     position: relative;
     overflow-x: hidden;
+    width: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -33,7 +39,7 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: -2;
     background: 
         radial-gradient(ellipse at 50% 30%, #ff2a2a 0%, #c1121f 25%, #780000 55%, #2a0000 85%, #0d0000 100%);
 }
@@ -68,7 +74,7 @@ body::after {
             transparent 340deg,
             transparent 360deg);
     animation: rotateBeams 30s linear infinite;
-    z-index: 0;
+    z-index: -1;
     pointer-events: none;
     filter: blur(30px);
 }
@@ -148,29 +154,31 @@ body::after {
    ============================================================ */
 .live-winners-ticker {
     position: fixed;
-    top: 16px;
+    top: 12px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(135deg, #ff1744 0%, #c1121f 50%, #8b0000 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 2px solid #ffd700;
-    border-radius: 40px;
-    padding: 10px 22px;
+    border-radius: 30px;
+    padding: 8px 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 6px;
     z-index: 1000;
     box-shadow: 
         0 4px 20px rgba(0, 0, 0, 0.5),
         0 0 20px rgba(255, 215, 0, 0.5),
         inset 0 0 15px rgba(255, 215, 0, 0.15);
-    min-width: 290px;
-    font-size: 12px;
+    max-width: calc(100% - 20px);
+    width: auto;
+    font-size: 11px;
     font-weight: 700;
     color: #fff;
     white-space: nowrap;
+    overflow: hidden;
     animation: tickerGlow 2.5s ease-in-out infinite;
 }
 
@@ -190,8 +198,8 @@ body::after {
 }
 
 .live-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     background: #ffeb3b;
     border-radius: 50%;
     box-shadow: 
@@ -214,16 +222,12 @@ body::after {
 }
 
 .gc-winner-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     vertical-align: middle;
-    margin: 0 3px;
+    margin: 0 2px;
     filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.9));
-}
-
-@keyframes coinSpin {
-    0%, 100% { transform: rotateY(0deg); }
-    50% { transform: rotateY(180deg); }
+    display: inline-block;
 }
 
 /* ============================================================
@@ -236,25 +240,25 @@ body::after {
     background: 
         linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%),
         linear-gradient(145deg, #a80000 0%, #d10000 40%, #8b0000 100%);
-    border-radius: 28px;
-    padding: 30px 22px 36px;
+    border-radius: 24px;
+    padding: 24px 16px 28px;
     z-index: 10;
     border: 3px solid #ffd700;
     box-shadow: 
         0 25px 60px rgba(0, 0, 0, 0.8),
         0 0 60px rgba(255, 215, 0, 0.4),
         0 0 120px rgba(255, 23, 68, 0.3),
-        inset 0 0 40px rgba(255, 215, 0, 0.08),
-        inset 0 2px 0 rgba(255, 255, 255, 0.15);
-    margin: 0 auto;
+        inset 0 0 40px rgba(255, 215, 0, 0.08);
+    margin: 0 auto 20px auto;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 .playbonus-container::before {
     content: '';
     position: absolute;
     inset: -3px;
-    border-radius: 28px;
+    border-radius: 26px;
     padding: 3px;
     background: conic-gradient(
         from var(--angle, 0deg),
@@ -276,6 +280,7 @@ body::after {
     z-index: 3;
     animation: borderRotate 4s linear infinite;
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+    opacity: 0.6;
 }
 
 @property --angle {
@@ -291,16 +296,15 @@ body::after {
 .playbonus-container::after {
     content: '';
     position: absolute;
-    top: 25%;
+    top: 20%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 500px;
-    height: 500px;
+    width: 400px;
+    height: 400px;
     background: radial-gradient(
         circle, 
-        rgba(255, 255, 255, 0.25) 0%, 
-        rgba(255, 215, 0, 0.15) 20%,
-        transparent 55%
+        rgba(255, 255, 255, 0.15) 0%, 
+        transparent 60%
     );
     pointer-events: none;
     z-index: 1;
@@ -323,16 +327,17 @@ body::after {
    ============================================================ */
 .header {
     text-align: center;
-    margin-bottom: 22px;
+    margin-bottom: 18px;
     position: relative;
     z-index: 4;
+    width: 100%;
 }
 
 .header h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 34px;
+    font-size: clamp(20px, 6vw, 30px);
     font-weight: 900;
-    letter-spacing: 4px;
+    letter-spacing: 2px;
     background: linear-gradient(
         180deg, 
         #fff9c4 0%, 
@@ -349,7 +354,9 @@ body::after {
         drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))
         drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
     animation: headerShine 3s ease-in-out infinite;
-    line-height: 1.1;
+    line-height: 1.15;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 @keyframes headerShine {
@@ -377,81 +384,91 @@ body::after {
     );
     border: 2px solid rgba(255, 215, 0, 0.5);
     border-radius: 14px;
-    padding: 12px 16px;
-    margin-bottom: 18px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     box-shadow: 
         0 4px 15px rgba(0, 0, 0, 0.4),
-        0 0 15px rgba(255, 215, 0, 0.25),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        0 0 15px rgba(255, 215, 0, 0.25);
     position: relative;
     z-index: 4;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .user-info-icon {
-    width: 44px;
-    height: 44px;
-    background: 
-        radial-gradient(circle at 30% 30%, #ff4444, #8b0000);
+    width: 38px;
+    height: 38px;
+    background: radial-gradient(circle at 30% 30%, #ff4444, #8b0000);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     border: 2px solid #ffd700;
     box-shadow: 
         0 0 15px rgba(255, 215, 0, 0.5),
         inset 0 0 10px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
 }
 
 .user-info-text {
     flex: 1;
-    margin-left: 12px;
+    margin-left: 8px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .user-info-label {
-    font-size: 9px;
+    font-size: 8px;
     color: #ffd700;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     display: block;
     font-family: 'Orbitron', monospace;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-info-number {
     font-family: 'Orbitron', monospace;
-    font-size: 14px;
+    font-size: clamp(11px, 3.5vw, 14px);
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.5px;
     display: block;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-info-badge {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     background: linear-gradient(
         135deg, 
         rgba(34, 197, 94, 0.3), 
         rgba(16, 185, 129, 0.2)
     );
-    padding: 6px 14px;
+    padding: 5px 10px;
     border-radius: 40px;
     cursor: pointer;
     transition: all 0.25s ease;
     backdrop-filter: blur(6px);
     border: 1.5px solid rgba(34, 197, 94, 0.5);
-    box-shadow: 
-        0 0 12px rgba(34, 197, 94, 0.4),
-        inset 0 0 8px rgba(34, 197, 94, 0.1);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+    flex-shrink: 0;
 }
 
 .user-info-badge:hover {
@@ -464,27 +481,18 @@ body::after {
     box-shadow: 0 0 18px rgba(255, 68, 68, 0.6);
 }
 
-.user-info-badge:hover .badge-text {
-    color: #fff;
-}
-
-.user-info-badge:hover .badge-dot {
-    background: #fff;
-    box-shadow: 0 0 12px #fff;
-}
-
 .badge-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     background: #22C55E;
     border-radius: 50%;
     animation: liveDot 1.5s infinite;
     transition: all 0.25s ease;
-    box-shadow: 0 0 10px #22C55E;
+    box-shadow: 0 0 8px #22C55E;
 }
 
 .badge-text {
-    font-size: 9px;
+    font-size: 8px;
     color: #4ade80;
     font-weight: 700;
     font-family: 'Orbitron', monospace;
@@ -501,12 +509,13 @@ body::after {
         linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
         linear-gradient(135deg, #1a0000 0%, #2a0000 50%, #1a0000 100%);
     border: 2px solid #ffd700;
-    border-radius: 18px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 18px;
     box-shadow: 
         0 10px 30px rgba(0, 0, 0, 0.6),
         0 0 25px rgba(255, 215, 0, 0.4),
@@ -514,6 +523,8 @@ body::after {
     position: relative;
     overflow: hidden;
     z-index: 4;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .mini-dashboard::before {
@@ -540,37 +551,41 @@ body::after {
 
 .balance-content {
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .balance-label {
     font-family: 'Orbitron', monospace;
-    font-size: 10px;
+    font-size: 9px;
     color: #ffd700;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 6px;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
 }
 
 .balance-amount-wrapper {
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 3px;
+    overflow: hidden;
 }
 
 .currency-symbol {
     font-family: 'Orbitron', monospace;
-    font-size: 26px;
+    font-size: clamp(16px, 4.5vw, 22px);
     font-weight: 900;
     color: #ffd700;
     text-shadow: 
         0 0 15px rgba(255, 215, 0, 0.9),
         0 0 30px rgba(255, 215, 0, 0.5);
+    flex-shrink: 0;
 }
 
 .main-balance {
     font-family: 'Orbitron', monospace;
-    font-size: 42px;
+    font-size: clamp(22px, 6.5vw, 34px);
     font-weight: 900;
     background: linear-gradient(
         180deg, 
@@ -581,8 +596,11 @@ body::after {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dashboard-action {
@@ -591,6 +609,7 @@ body::after {
     justify-content: center;
     position: relative;
     z-index: 2;
+    flex-shrink: 0;
 }
 
 .scatter-link {
@@ -599,8 +618,8 @@ body::after {
 }
 
 .twisting-scatter {
-    width: 58px;
-    height: 58px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     border: 3px solid #ffd700;
     box-shadow: 
@@ -609,13 +628,11 @@ body::after {
         inset 0 0 10px rgba(255, 215, 0, 0.3);
     animation: twistIcon 3s linear infinite;
     transition: filter 0.3s ease;
+    object-fit: cover;
 }
 
 .twisting-scatter:hover {
     filter: brightness(1.3);
-    box-shadow: 
-        0 0 30px rgba(255, 215, 0, 1), 
-        0 0 60px rgba(255, 23, 68, 0.7);
 }
 
 @keyframes twistIcon {
@@ -624,123 +641,55 @@ body::after {
 }
 
 /* ============================================================
-   PT CAT HERO - MOBILE OPTIMIZED
+   LUCKY CAT HERO - MAIN PAGE
    ============================================================ */
-.pt-cat-container {
+.luckycat-hero {
     position: relative;
     width: 100%;
-    background: 
-        radial-gradient(circle at 50% 20%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
-        linear-gradient(180deg, #ff1744 0%, #c1121f 40%, #8b0000 100%);
-    border: 3px solid #ffd700;
-    border-radius: 24px;
-    padding: 20px 16px 24px;
-    margin-bottom: 20px;
+    padding: 10px 0;
+    margin-bottom: 16px;
     text-align: center;
-    overflow: hidden;
-    box-shadow: 
-        0 15px 40px rgba(0, 0, 0, 0.6),
-        0 0 40px rgba(255, 215, 0, 0.4),
-        inset 0 0 30px rgba(255, 215, 0, 0.1);
     z-index: 4;
 }
 
-.pt-cat-container::before {
-    content: '';
-    position: absolute;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(
-        circle, 
-        rgba(255, 255, 255, 0.35) 0%, 
-        rgba(255, 255, 255, 0.15) 25%,
-        rgba(255, 215, 0, 0.1) 45%,
-        transparent 70%
-    );
-    border-radius: 50%;
-    pointer-events: none;
-    animation: whiteBurst 3s ease-in-out infinite;
-    z-index: 1;
-}
-
-@keyframes whiteBurst {
-    0%, 100% { 
-        transform: translate(-50%, -50%) scale(1); 
-        opacity: 0.7;
-    }
-    50% { 
-        transform: translate(-50%, -50%) scale(1.15); 
-        opacity: 1;
-    }
-}
-
-.pt-cat-container::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: 
-        radial-gradient(circle 3px at 8% 15%, #ffd700, transparent 50%),
-        radial-gradient(circle 2px at 92% 20%, #4fc3f7, transparent 50%),
-        radial-gradient(circle 3px at 15% 80%, #ff6b9d, transparent 50%),
-        radial-gradient(circle 2px at 85% 75%, #ff9800, transparent 50%),
-        radial-gradient(circle 2px at 50% 8%, #ffd700, transparent 50%),
-        radial-gradient(circle 3px at 25% 45%, #ff6b9d, transparent 50%),
-        radial-gradient(circle 2px at 75% 55%, #4fc3f7, transparent 50%),
-        radial-gradient(circle 3px at 40% 92%, #ffd700, transparent 50%);
-    pointer-events: none;
-    animation: containerConfetti 6s ease-in-out infinite;
-    opacity: 0.9;
-    z-index: 2;
-}
-
-@keyframes containerConfetti {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-
-/* ========== PT CAT IMAGE ========== */
-.pt-cat-image-wrapper {
+.luckycat-image-wrapper {
     position: relative;
-    width: 180px;
-    height: 180px;
-    margin: 0 auto 18px;
+    width: min(200px, 55vw);
+    height: min(200px, 55vw);
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 3;
 }
 
-.pt-cat-image {
+.luckycat-image {
     width: 100%;
     height: 100%;
     object-fit: contain;
     position: relative;
     z-index: 3;
     filter: 
-        drop-shadow(0 12px 30px rgba(255, 215, 0, 0.7))
-        drop-shadow(0 0 25px rgba(255, 255, 255, 0.3));
-    animation: ptCatFloat 2.5s ease-in-out infinite;
+        drop-shadow(0 15px 35px rgba(255, 215, 0, 0.7))
+        drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
+    animation: luckycatFloat 3s ease-in-out infinite;
 }
 
-@keyframes ptCatFloat {
+@keyframes luckycatFloat {
     0%, 100% { 
         transform: translateY(0) scale(1); 
     }
     50% { 
-        transform: translateY(-10px) scale(1.04); 
+        transform: translateY(-10px) scale(1.03); 
     }
 }
 
-.pt-cat-glow {
+.luckycat-glow {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 190px;
-    height: 190px;
+    width: min(220px, 60vw);
+    height: min(220px, 60vw);
     background: radial-gradient(
         circle, 
         rgba(255, 215, 0, 0.6) 0%, 
@@ -748,12 +697,12 @@ body::after {
         transparent 70%
     );
     border-radius: 50%;
-    filter: blur(35px);
-    animation: ptCatGlowPulse 2s ease-in-out infinite;
-    z-index: 2;
+    filter: blur(40px);
+    animation: luckycatGlowPulse 2s ease-in-out infinite;
+    z-index: 1;
 }
 
-@keyframes ptCatGlowPulse {
+@keyframes luckycatGlowPulse {
     0%, 100% { 
         opacity: 0.7; 
         transform: translate(-50%, -50%) scale(1); 
@@ -764,101 +713,20 @@ body::after {
     }
 }
 
-/* ========== BONUS AMOUNT ========== */
-.pt-cat-bonus-amount {
-    background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-        linear-gradient(135deg, #1a0000, #330000);
-    border: 2px solid #ffd700;
-    border-radius: 16px;
-    padding: 14px 20px;
-    margin-bottom: 16px;
+/* ============================================================
+   CLAIM NOW BUTTON
+   ============================================================ */
+.claim-now-btn {
     position: relative;
-    z-index: 4;
-    box-shadow: 
-        0 0 25px rgba(255, 215, 0, 0.6),
-        inset 0 0 20px rgba(255, 215, 0, 0.1);
-    animation: bonusAmountPulse 2s ease-in-out infinite;
-}
-
-@keyframes bonusAmountPulse {
-    0%, 100% { 
-        box-shadow: 
-            0 0 25px rgba(255, 215, 0, 0.6),
-            inset 0 0 20px rgba(255, 215, 0, 0.1);
-    }
-    50% { 
-        box-shadow: 
-            0 0 40px rgba(255, 215, 0, 0.9),
-            inset 0 0 30px rgba(255, 215, 0, 0.2);
-    }
-}
-
-.bonus-label {
-    display: block;
-    font-family: 'Orbitron', monospace;
-    font-size: 9px;
-    color: #ffd700;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
-    font-weight: 700;
-}
-
-.bonus-value {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 3px;
-}
-
-.bonus-value .currency {
-    font-family: 'Orbitron', monospace;
-    font-size: 26px;
-    font-weight: 900;
-    color: #ffd700;
-    text-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.9),
-        0 0 40px rgba(255, 215, 0, 0.5);
-}
-
-.bonus-value #ptCatBonusAmount {
-    font-family: 'Orbitron', monospace;
-    font-size: 52px;
-    font-weight: 900;
-    background: linear-gradient(
-        180deg, 
-        #fff9c4 0%, 
-        #ffd700 40%, 
-        #ffeb3b 60%, 
-        #ff9800 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    line-height: 1;
-    letter-spacing: 2px;
-    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
-    animation: bonusNumberPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes bonusNumberPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-/* ========== CLAIM BUTTON ========== */
-.pt-cat-claim-btn {
     width: 100%;
     background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
         linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
     border: 3px solid #fff9c4;
     border-radius: 14px;
-    padding: 18px 20px;
+    padding: 16px 18px;
     font-family: 'Orbitron', monospace;
-    font-size: 16px;
+    font-size: clamp(13px, 4vw, 16px);
     font-weight: 900;
     color: #8b0000;
     cursor: pointer;
@@ -866,20 +734,21 @@ body::after {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
     box-shadow: 
         0 5px 0 #8b4500,
         0 10px 25px rgba(0, 0, 0, 0.6),
         0 0 35px rgba(255, 215, 0, 0.8);
     transition: all 0.1s ease;
-    position: relative;
     overflow: hidden;
     z-index: 4;
     text-transform: uppercase;
+    margin-bottom: 16px;
+    box-sizing: border-box;
 }
 
-.pt-cat-claim-btn::before {
+.claim-now-btn::before {
     content: '';
     position: absolute;
     top: 0;
@@ -901,7 +770,7 @@ body::after {
     100% { left: 100%; }
 }
 
-.pt-cat-claim-btn:active {
+.claim-now-btn:active {
     transform: translateY(5px);
     box-shadow: 
         0 0 0 #8b4500,
@@ -909,33 +778,30 @@ body::after {
         0 0 25px rgba(255, 215, 0, 0.6);
 }
 
-.pt-cat-claim-btn i {
-    font-size: 20px;
+.claim-now-btn .icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.claim-now-btn .claim-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
     filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
-    animation: giftBounce 1s ease-in-out infinite;
+    animation: twistIcon 8s linear infinite;
+    object-fit: cover;
 }
 
-@keyframes giftBounce {
-    0%, 100% { transform: scale(1) rotate(-8deg); }
-    50% { transform: scale(1.15) rotate(8deg); }
+.claim-now-btn:hover .claim-icon,
+.claim-now-btn:active .claim-icon {
+    animation: twistIcon 1.5s linear infinite;
 }
 
-.pt-cat-claim-btn.claimed {
-    background: linear-gradient(180deg, #555, #333);
-    border-color: #777;
-    color: #aaa;
-    text-shadow: none;
-    box-shadow: 0 4px 0 #111;
-    cursor: not-allowed;
-}
-
-.pt-cat-claim-btn.claimed i {
-    animation: none;
-}
-
-.pt-cat-claim-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+.claim-now-btn .btn-text {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 /* ============================================================
@@ -946,9 +812,9 @@ body::after {
         linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
         linear-gradient(135deg, #1a0000 0%, #330000 100%);
     border: 2px solid #ffd700;
-    border-radius: 16px;
-    padding: 16px 20px;
-    margin: 20px 0;
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin: 16px 0;
     text-align: center;
     box-shadow: 
         0 0 25px rgba(255, 215, 0, 0.5),
@@ -957,6 +823,8 @@ body::after {
     position: relative;
     overflow: hidden;
     z-index: 4;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .time-left-section::before {
@@ -981,12 +849,12 @@ body::after {
 
 .time-label {
     font-family: 'Orbitron', monospace;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
     color: #ffd700;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 8px;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
     position: relative;
     z-index: 1;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
@@ -994,7 +862,7 @@ body::after {
 
 #mainTimerDisplay {
     font-family: 'Orbitron', monospace;
-    font-size: 34px;
+    font-size: clamp(18px, 5.5vw, 26px);
     font-weight: 900;
     background: linear-gradient(
         180deg, 
@@ -1005,11 +873,12 @@ body::after {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     font-variant-numeric: tabular-nums;
     filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.9));
     position: relative;
     z-index: 1;
+    white-space: nowrap;
 }
 
 /* ============================================================
@@ -1023,9 +892,9 @@ body::after {
         transparent
     );
     border-radius: 12px;
-    padding: 14px;
+    padding: 12px;
     text-align: center;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     border: 1px solid rgba(255, 215, 0, 0.45);
     position: relative;
     z-index: 4;
@@ -1034,10 +903,10 @@ body::after {
 
 .winners-banner span {
     color: #ffffff;
-    font-size: 12px;
+    font-size: 11px;
     font-family: 'Orbitron', monospace;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
 .winners-banner strong {
@@ -1053,19 +922,20 @@ body::after {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 15px 0;
+    margin: 14px 0;
     padding: 0;
     position: relative;
     z-index: 4;
+    width: 100%;
 }
 
 .bonus150-img {
-    width: 88%;
-    max-width: 340px;
+    width: 85%;
+    max-width: 300px;
     height: auto;
     display: block;
     margin: 0 auto;
-    border-radius: 16px;
+    border-radius: 14px;
     border: 2px solid #ffd700;
     box-shadow: 
         0 0 25px rgba(255, 215, 0, 0.6),
@@ -1079,10 +949,11 @@ body::after {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: 15px 0;
+    margin: 14px 0;
     gap: 10px;
     position: relative;
     z-index: 4;
+    width: 100%;
 }
 
 .button-divider span:first-child,
@@ -1098,13 +969,14 @@ body::after {
 }
 
 .button-divider span:nth-child(2) {
-    font-size: 10px;
+    font-size: 9px;
     color: #ffd700;
-    padding: 0 12px;
+    padding: 0 8px;
     font-family: 'Orbitron', monospace;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    white-space: nowrap;
 }
 
 /* ============================================================
@@ -1113,7 +985,7 @@ body::after {
 .btn-facebook-shimmer {
     position: relative;
     width: 100%;
-    padding: 18px 20px;
+    padding: 16px 18px;
     background: linear-gradient(
         180deg, 
         #4facfe 0%, 
@@ -1122,11 +994,11 @@ body::after {
     );
     color: #ffffff !important;
     border: 2px solid #4fc3f7;
-    border-radius: 16px;
+    border-radius: 14px;
     font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
+    font-size: clamp(12px, 3.5vw, 14px);
     font-weight: 800;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1140,6 +1012,7 @@ body::after {
         0 0 30px rgba(24, 119, 242, 0.6);
     white-space: nowrap;
     z-index: 4;
+    box-sizing: border-box;
 }
 
 .btn-facebook-shimmer:active {
@@ -1151,13 +1024,14 @@ body::after {
 }
 
 .btn-facebook-shimmer i {
-    font-size: 20px;
+    font-size: 18px;
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+    flex-shrink: 0;
 }
 
 .btn-facebook-shimmer span {
-    font-size: 13px;
-    letter-spacing: 1.5px;
+    font-size: clamp(11px, 3vw, 13px);
+    letter-spacing: 1px;
 }
 
 .btn-facebook-shimmer::after {
@@ -1183,15 +1057,15 @@ body::after {
    ============================================================ */
 .share-social-text {
     font-family: 'Poppins', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.75);
     text-align: center;
-    margin-top: 18px;
+    margin-top: 16px;
     font-weight: 500;
     letter-spacing: 0.5px;
     position: relative;
     z-index: 4;
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
 .share-social-text b, 
@@ -1199,6 +1073,343 @@ body::after {
     color: #ffd700;
     font-weight: 800;
     text-shadow: 0 0 12px rgba(255, 215, 0, 0.7);
+}
+
+/* ============================================================
+   BONUS REWARD POPUP (PT_Cat + ₱500 + CLAIM BONUS)
+   ============================================================ */
+.bonus-reward-popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 0, 0, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+    padding: 16px;
+}
+
+.bonus-reward-popup[style*="display: flex"] {
+    display: flex !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.bonus-reward-container {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    background: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%),
+        linear-gradient(145deg, #d10000 0%, #ff1744 50%, #8b0000 100%);
+    border: 3px solid #ffd700;
+    border-radius: 26px;
+    padding: 28px 20px 24px;
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.8),
+        0 0 60px rgba(255, 215, 0, 0.6),
+        0 0 120px rgba(255, 23, 68, 0.4);
+    animation: popupPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+@keyframes popupPop {
+    0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+    60% { transform: scale(1.05) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.bonus-reward-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    border-radius: 50%;
+    color: #ffd700;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+    font-family: 'Orbitron', monospace;
+}
+
+.bonus-reward-close:hover,
+.bonus-reward-close:active {
+    background: rgba(255, 68, 68, 0.4);
+    color: #fff;
+    transform: rotate(90deg);
+    border-color: #ff4444;
+}
+
+.bonus-reward-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.bonus-reward-inner .pt-cat-image-wrapper {
+    position: relative;
+    width: min(180px, 50vw);
+    height: min(180px, 50vw);
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bonus-reward-inner .pt-cat-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 3;
+    filter: 
+        drop-shadow(0 12px 30px rgba(255, 215, 0, 0.8))
+        drop-shadow(0 0 25px rgba(255, 255, 255, 0.4));
+    animation: ptCatFloat 2.5s ease-in-out infinite;
+}
+
+@keyframes ptCatFloat {
+    0%, 100% { 
+        transform: translateY(0) scale(1); 
+    }
+    50% { 
+        transform: translateY(-10px) scale(1.04); 
+    }
+}
+
+.bonus-reward-inner .pt-cat-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(200px, 55vw);
+    height: min(200px, 55vw);
+    background: radial-gradient(
+        circle, 
+        rgba(255, 215, 0, 0.7) 0%, 
+        rgba(255, 255, 255, 0.4) 30%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    filter: blur(40px);
+    animation: ptCatGlowPulse 2s ease-in-out infinite;
+    z-index: 2;
+}
+
+@keyframes ptCatGlowPulse {
+    0%, 100% { 
+        opacity: 0.7; 
+        transform: translate(-50%, -50%) scale(1); 
+    }
+    50% { 
+        opacity: 1; 
+        transform: translate(-50%, -50%) scale(1.2); 
+    }
+}
+
+.bonus-reward-inner .pt-cat-bonus-amount {
+    background: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+        linear-gradient(135deg, #1a0000, #330000);
+    border: 2px solid #ffd700;
+    border-radius: 16px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 4;
+    box-shadow: 
+        0 0 25px rgba(255, 215, 0, 0.7),
+        inset 0 0 20px rgba(255, 215, 0, 0.12);
+    animation: bonusAmountPulse 2s ease-in-out infinite;
+}
+
+@keyframes bonusAmountPulse {
+    0%, 100% { 
+        box-shadow: 
+            0 0 25px rgba(255, 215, 0, 0.7),
+            inset 0 0 20px rgba(255, 215, 0, 0.12);
+    }
+    50% { 
+        box-shadow: 
+            0 0 40px rgba(255, 215, 0, 1),
+            inset 0 0 35px rgba(255, 215, 0, 0.2);
+    }
+}
+
+.bonus-reward-inner .bonus-label {
+    display: block;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: #ffd700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
+    font-weight: 700;
+}
+
+.bonus-reward-inner .bonus-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 3px;
+}
+
+.bonus-reward-inner .bonus-value .currency {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(20px, 5.5vw, 26px);
+    font-weight: 900;
+    color: #ffd700;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.9),
+        0 0 40px rgba(255, 215, 0, 0.5);
+}
+
+.bonus-reward-inner .bonus-value #ptCatBonusAmount {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(40px, 11vw, 54px);
+    font-weight: 900;
+    background: linear-gradient(
+        180deg, 
+        #fff9c4 0%, 
+        #ffd700 40%, 
+        #ffeb3b 60%, 
+        #ff9800 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1;
+    letter-spacing: 2px;
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
+    animation: bonusNumberPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes bonusNumberPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.bonus-reward-inner .pt-cat-claim-btn {
+    width: 100%;
+    background: 
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
+        linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
+    border: 3px solid #fff9c4;
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(13px, 4vw, 16px);
+    font-weight: 900;
+    color: #8b0000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: 
+        0 5px 0 #8b4500,
+        0 10px 25px rgba(0, 0, 0, 0.6),
+        0 0 35px rgba(255, 215, 0, 0.8);
+    transition: all 0.1s ease;
+    overflow: hidden;
+    z-index: 4;
+    text-transform: uppercase;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.bonus-reward-inner .pt-cat-claim-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.7), 
+        transparent
+    );
+    animation: btnShine 2.5s infinite;
+}
+
+.bonus-reward-inner .pt-cat-claim-btn:active {
+    transform: translateY(5px);
+    box-shadow: 
+        0 0 0 #8b4500,
+        0 5px 15px rgba(0, 0, 0, 0.6),
+        0 0 25px rgba(255, 215, 0, 0.6);
+}
+
+.bonus-reward-inner .pt-cat-claim-btn i {
+    font-size: 18px;
+    filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
+    animation: giftBounce 1s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes giftBounce {
+    0%, 100% { transform: scale(1) rotate(-8deg); }
+    50% { transform: scale(1.15) rotate(8deg); }
+}
+
+.bonus-reward-inner .pt-cat-claim-btn.claimed {
+    background: linear-gradient(180deg, #555, #333);
+    border-color: #777;
+    color: #aaa;
+    text-shadow: none;
+    box-shadow: 0 4px 0 #111;
+    cursor: not-allowed;
+}
+
+.bonus-reward-inner .pt-cat-claim-btn.claimed i {
+    animation: none;
+}
+
+.bonus-reward-inner .small-back-btn {
+    background: linear-gradient(to bottom, #555, #333);
+    border: 1px solid #777;
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ccc;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: auto;
+    margin-top: 12px;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 1.5px;
+    box-shadow: 0 3px 0 #222;
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+}
+
+.bonus-reward-inner .small-back-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 0 0 #222;
 }
 
 /* ============================================================
@@ -1215,16 +1426,11 @@ body::after {
     align-items: center;
     justify-content: center;
     animation: fadeIn 0.3s ease;
-    padding: 20px;
+    padding: 16px;
 }
 
 .success-popup[style*="display: flex"] {
     display: flex !important;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
 }
 
 .success-popup-inner {
@@ -1232,57 +1438,30 @@ body::after {
         linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 40%),
         linear-gradient(145deg, #d10000 0%, #ff1744 50%, #8b0000 100%);
     border: 3px solid #ffd700;
-    border-radius: 30px;
-    padding: 45px 32px;
+    border-radius: 26px;
+    padding: 36px 24px;
     text-align: center;
-    max-width: 360px;
+    max-width: 340px;
     width: 100%;
     box-shadow: 
         0 0 70px rgba(255, 215, 0, 0.8),
-        0 0 120px rgba(255, 23, 68, 0.6),
-        inset 0 0 40px rgba(255, 215, 0, 0.15);
+        0 0 120px rgba(255, 23, 68, 0.6);
     animation: popupPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
-}
-
-.success-popup-inner::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(
-        circle at 50% 30%, 
-        rgba(255, 255, 255, 0.25), 
-        transparent 50%
-    );
-    pointer-events: none;
-    animation: popupGlow 3s ease-in-out infinite;
-}
-
-@keyframes popupGlow {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-}
-
-@keyframes popupPop {
-    0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
-    60% { transform: scale(1.05) rotate(2deg); }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    box-sizing: border-box;
 }
 
 .success-icon {
-    width: 95px;
-    height: 95px;
+    width: 80px;
+    height: 80px;
     background: linear-gradient(135deg, #ffeb3b, #ffd700);
     border: 3px solid #fff9c4;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 22px;
+    margin: 0 auto 18px;
     box-shadow: 
         0 0 40px rgba(255, 215, 0, 0.9),
         0 0 80px rgba(255, 215, 0, 0.5);
@@ -1298,14 +1477,14 @@ body::after {
 }
 
 .success-icon i {
-    font-size: 52px;
+    font-size: 42px;
     color: #8b0000;
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
 }
 
 .success-title {
     font-family: 'Playfair Display', serif;
-    font-size: 28px;
+    font-size: clamp(20px, 5.5vw, 26px);
     font-weight: 900;
     background: linear-gradient(
         180deg, 
@@ -1316,7 +1495,7 @@ body::after {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 2px;
     filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
@@ -1326,7 +1505,7 @@ body::after {
 
 .success-amount {
     font-family: 'Orbitron', monospace;
-    font-size: 56px;
+    font-size: clamp(38px, 11vw, 52px);
     font-weight: 900;
     background: linear-gradient(
         180deg, 
@@ -1337,7 +1516,7 @@ body::after {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
     letter-spacing: 3px;
     filter: drop-shadow(0 0 35px rgba(255, 215, 0, 1));
     animation: successAmountPulse 1.5s ease-in-out infinite;
@@ -1352,9 +1531,9 @@ body::after {
 
 .success-message {
     font-family: 'Poppins', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.95);
-    margin-bottom: 26px;
+    margin-bottom: 22px;
     line-height: 1.6;
     text-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
     position: relative;
@@ -1368,10 +1547,10 @@ body::after {
         linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
         linear-gradient(180deg, #ffeb3b 0%, #ffd700 50%, #ff9800 100%);
     border: 3px solid #fff9c4;
-    border-radius: 16px;
-    padding: 18px 24px;
+    border-radius: 14px;
+    padding: 16px 20px;
     font-family: 'Orbitron', monospace;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 900;
     color: #8b0000;
     cursor: pointer;
@@ -1399,9 +1578,8 @@ body::after {
 }
 
 /* ============================================================
-   FIREWALL POPUP STYLES (Prize Popup - AI Verification)
+   FIREWALL POPUP (Prize Popup - AI Verification)
    ============================================================ */
-
 .prize-popup {
     position: fixed;
     top: 0;
@@ -1415,7 +1593,7 @@ body::after {
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
 }
 
 .popup-container {
@@ -1428,6 +1606,7 @@ body::after {
     border: 2px solid #d4af37;
     box-shadow: 0 0 40px rgba(212,175,55,0.3);
     margin: 0 auto;
+    box-sizing: border-box;
 }
 
 @keyframes modalIn {
@@ -1444,7 +1623,7 @@ body::after {
 .popup-close {
     position: absolute;
     top: 12px;
-    right: 18px;
+    right: 16px;
     font-size: 18px;
     cursor: pointer;
     color: #d4af37;
@@ -1468,8 +1647,8 @@ body::after {
 .numeric-keypad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    padding: 20px;
+    gap: 10px;
+    padding: 16px;
     background: linear-gradient(145deg, #0a0f2a, #050a1a);
     border: 2px solid #00d4ff;
     border-radius: 20px;
@@ -1481,9 +1660,10 @@ body::after {
     background: linear-gradient(145deg, #0d1530, #060b1a);
     border: 1.5px solid #00d4ff;
     border-radius: 50%;
-    width: 55px;
-    height: 55px;
-    font-size: 22px;
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 55px;
+    font-size: 20px;
     font-weight: bold;
     color: #00d4ff;
     cursor: pointer;
@@ -1508,13 +1688,13 @@ body::after {
 .bill-indicators {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    margin: 15px 0;
+    gap: 6px;
+    margin: 12px 0;
 }
 
 .bill-indicator {
-    width: 55px;
-    height: 28px;
+    width: 50px;
+    height: 26px;
     border-radius: 4px;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -1537,13 +1717,13 @@ body::after {
 .mpin-dots {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin: 20px 0;
+    gap: 12px;
+    margin: 16px 0;
 }
 
 .mpin-dot {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: rgba(0, 212, 255, 0.3);
     border: 1px solid rgba(0, 212, 255, 0.5);
@@ -1555,13 +1735,12 @@ body::after {
     box-shadow: 0 0 15px #00d4ff, 0 0 30px rgba(0, 212, 255, 0.5);
 }
 
-/* Small Back Button */
 .small-back-btn {
     background: linear-gradient(to bottom, #555, #333);
     border: 1px solid #777;
     border-radius: 8px;
-    padding: 8px 18px;
-    font-size: 11px;
+    padding: 8px 16px;
+    font-size: 10px;
     font-weight: 700;
     color: #ccc;
     cursor: pointer;
@@ -1582,13 +1761,12 @@ body::after {
     box-shadow: 0 0 0 #222;
 }
 
-/* Verification Input */
 .verification-input {
     text-align: center;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
-    width: 160px;
-    padding: 14px;
+    width: 140px;
+    padding: 12px;
     background: #000;
     border: 2px solid #00d4ff;
     border-radius: 10px;
@@ -1597,6 +1775,7 @@ body::after {
     transition: all 0.3s ease;
     letter-spacing: 4px;
     box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+    box-sizing: border-box;
 }
 
 .verification-input:focus {
@@ -1608,13 +1787,12 @@ body::after {
 .verification-input::placeholder {
     color: rgba(0, 212, 255, 0.3);
     letter-spacing: 2px;
-    font-size: 16px;
+    font-size: 14px;
 }
 
-/* Phase 3 Heading */
 .phase3-heading {
     font-family: 'Orbitron', monospace;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 900;
     color: #00d4ff;
     margin: 5px 0;
@@ -1623,9 +1801,8 @@ body::after {
     text-shadow: 0 0 15px #00d4ff;
 }
 
-/* Phone Number Display */
 .phone-number-display {
-    font-size: 24px;
+    font-size: 22px;
     font-family: 'Orbitron', monospace;
     font-weight: 900;
     color: #00d4ff;
@@ -1658,7 +1835,6 @@ body::after {
     50% { transform: scale(1.1); opacity: 0.8; }
 }
 
-/* Divider */
 .divider {
     width: 50px;
     height: 2px;
@@ -1666,15 +1842,14 @@ body::after {
     margin: 10px auto;
 }
 
-/* Claim GCash Button (used in popup) */
 .claim-gcash-button {
     background: linear-gradient(to bottom, #d4af37, #aa771c);
     border: 1px solid #fcf6ba;
     border-radius: 8px;
-    padding: 12px 20px;
+    padding: 12px 18px;
     font-weight: 800;
     color: #1a1100;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     font-family: 'Orbitron', monospace;
     letter-spacing: 1px;
@@ -1684,7 +1859,8 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
+    box-sizing: border-box;
 }
 
 .claim-gcash-button:active {
@@ -1697,7 +1873,6 @@ body::after {
     cursor: not-allowed;
 }
 
-/* Confetti Canvas */
 #confettiCanvas {
     position: fixed;
     top: 0;
@@ -1714,189 +1889,169 @@ body::after {
    ============================================================ */
 @media (max-width: 480px) {
     body {
-        padding: 12px;
+        padding: 60px 10px 24px 10px;
     }
     
     .playbonus-container {
-        padding: 24px 16px 30px;
-        max-width: 100%;
+        padding: 20px 14px 24px;
         border-radius: 22px;
     }
     
     .header h1 {
-        font-size: 28px;
-        letter-spacing: 3px;
+        font-size: clamp(20px, 6vw, 26px);
+        letter-spacing: 2px;
     }
     
     .live-winners-ticker {
-        top: 12px;
-        padding: 8px 16px;
-        gap: 8px;
-        min-width: 270px;
-        font-size: 11px;
-        border-radius: 30px;
+        top: 10px;
+        padding: 6px 14px;
+        gap: 6px;
+        font-size: 10px;
+        max-width: calc(100% - 16px);
     }
     
-    .main-balance {
-        font-size: 34px;
+    .gc-winner-icon {
+        width: 12px;
+        height: 12px;
     }
     
-    .currency-symbol {
-        font-size: 22px;
+    .user-info-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+    }
+    
+    .user-info-badge {
+        padding: 4px 8px;
+    }
+    
+    .badge-text {
+        font-size: 7px;
+    }
+    
+    .mini-dashboard {
+        padding: 14px;
+        gap: 10px;
     }
     
     .twisting-scatter {
-        width: 48px;
-        height: 48px;
+        width: 42px;
+        height: 42px;
     }
     
-    /* PT Cat Mobile */
-    .pt-cat-container {
-        padding: 18px 14px 22px;
-        border-radius: 20px;
+    .luckycat-image-wrapper {
+        width: min(180px, 50vw);
+        height: min(180px, 50vw);
     }
     
-    .pt-cat-image-wrapper {
-        width: 160px;
-        height: 160px;
-        margin-bottom: 16px;
+    .luckycat-glow {
+        width: min(200px, 55vw);
+        height: min(200px, 55vw);
     }
     
-    .pt-cat-glow {
-        width: 170px;
-        height: 170px;
+    .claim-now-btn {
+        padding: 14px 16px;
+        font-size: 13px;
+        letter-spacing: 1.5px;
     }
     
-    .pt-cat-container::before {
-        width: 240px;
-        height: 240px;
-    }
-    
-    .bonus-value #ptCatBonusAmount {
-        font-size: 46px;
-    }
-    
-    .bonus-value .currency {
-        font-size: 22px;
-    }
-    
-    .bonus-label {
-        font-size: 8px;
-        letter-spacing: 3px;
-    }
-    
-    .pt-cat-claim-btn {
-        font-size: 15px;
-        padding: 16px 18px;
-        letter-spacing: 2px;
-    }
-    
-    .pt-cat-claim-btn i {
-        font-size: 18px;
+    .claim-now-btn .claim-icon {
+        width: 20px;
+        height: 20px;
     }
     
     #mainTimerDisplay {
-        font-size: 28px;
-        letter-spacing: 2px;
+        font-size: clamp(18px, 5.5vw, 24px);
+    }
+    
+    .time-left-section {
+        padding: 10px 14px;
+    }
+    
+    .bonus-reward-container {
+        padding: 24px 16px 20px;
+    }
+    
+    .bonus-reward-inner .pt-cat-image-wrapper {
+        width: min(160px, 45vw);
+        height: min(160px, 45vw);
+    }
+    
+    .bonus-reward-inner .pt-cat-glow {
+        width: min(180px, 50vw);
+        height: min(180px, 50vw);
     }
     
     .success-popup-inner {
-        padding: 32px 22px;
-    }
-    
-    .success-amount {
-        font-size: 46px;
-    }
-    
-    .success-title {
-        font-size: 22px;
+        padding: 30px 20px;
     }
     
     .success-icon {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
     }
     
     .success-icon i {
-        font-size: 42px;
-    }
-    
-    .btn-facebook-shimmer {
-        padding: 14px 16px;
-        font-size: 12px;
-    }
-    
-    .popup-container {
-        max-width: 100%;
-    }
-    
-    .popup-inner {
-        padding: 24px 18px;
-    }
-    
-    .numeric-keypad {
-        gap: 10px;
-        padding: 16px;
+        font-size: 36px;
     }
     
     .num-btn {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+        font-size: 18px;
+        max-width: 48px;
     }
     
     .verification-input {
-        width: 140px;
+        width: 130px;
         font-size: 20px;
-        padding: 12px;
+        letter-spacing: 3px;
     }
     
     .phone-number-display {
-        font-size: 20px;
+        font-size: 18px;
     }
 }
 
 @media (max-width: 360px) {
+    body {
+        padding: 56px 8px 20px 8px;
+    }
+    
+    .playbonus-container {
+        padding: 18px 12px 22px;
+    }
+    
     .header h1 {
-        font-size: 24px;
+        font-size: clamp(18px, 5.5vw, 22px);
     }
     
-    .main-balance {
-        font-size: 28px;
+    .live-winners-ticker {
+        padding: 5px 12px;
+        font-size: 9px;
     }
     
-    .pt-cat-image-wrapper {
-        width: 140px;
-        height: 140px;
+    .luckycat-image-wrapper {
+        width: min(150px, 45vw);
+        height: min(150px, 45vw);
     }
     
-    .pt-cat-glow {
-        width: 150px;
-        height: 150px;
+    .luckycat-glow {
+        width: min(170px, 50vw);
+        height: min(170px, 50vw);
     }
     
-    .pt-cat-container::before {
-        width: 200px;
-        height: 200px;
+    .claim-now-btn {
+        font-size: 12px;
+        padding: 13px 14px;
     }
     
-    .bonus-value #ptCatBonusAmount {
-        font-size: 42px;
-    }
-    
-    .bonus-value .currency {
-        font-size: 20px;
-    }
-    
-    .pt-cat-claim-btn {
-        font-size: 13px;
-        padding: 14px 16px;
+    .bonus-reward-inner .pt-cat-image-wrapper {
+        width: min(140px, 42vw);
+        height: min(140px, 42vw);
     }
     
     .num-btn {
-        width: 42px;
-        height: 42px;
-        font-size: 18px;
+        font-size: 16px;
+        max-width: 42px;
     }
 }
 
@@ -1927,540 +2082,4 @@ button:focus-visible {
 ::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #ffd700, #ff9800);
     border-radius: 2px;
-}
-
-/* ============================================================
-   LUCKY CAT HERO - MAIN PAGE
-   ============================================================ */
-.luckycat-hero {
-    position: relative;
-    width: 100%;
-    padding: 20px 0;
-    margin-bottom: 20px;
-    text-align: center;
-    z-index: 4;
-}
-
-.luckycat-image-wrapper {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.luckycat-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    position: relative;
-    z-index: 3;
-    filter: 
-        drop-shadow(0 15px 35px rgba(255, 215, 0, 0.7))
-        drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
-    animation: luckycatFloat 3s ease-in-out infinite;
-}
-
-@keyframes luckycatFloat {
-    0%, 100% { 
-        transform: translateY(0) scale(1); 
-    }
-    50% { 
-        transform: translateY(-12px) scale(1.03); 
-    }
-}
-
-.luckycat-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 240px;
-    height: 240px;
-    background: radial-gradient(
-        circle, 
-        rgba(255, 215, 0, 0.6) 0%, 
-        rgba(255, 255, 255, 0.3) 30%,
-        transparent 70%
-    );
-    border-radius: 50%;
-    filter: blur(40px);
-    animation: luckycatGlowPulse 2s ease-in-out infinite;
-    z-index: 1;
-}
-
-@keyframes luckycatGlowPulse {
-    0%, 100% { 
-        opacity: 0.7; 
-        transform: translate(-50%, -50%) scale(1); 
-    }
-    50% { 
-        opacity: 1; 
-        transform: translate(-50%, -50%) scale(1.2); 
-    }
-}
-
-/* ============================================================
-   CLAIM NOW BUTTON - Main Page
-   ============================================================ */
-.claim-now-btn {
-    position: relative;
-    width: 100%;
-    background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 40%),
-        linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
-    border: 3px solid #fff9c4;
-    border-radius: 16px;
-    padding: 20px 24px;
-    font-family: 'Orbitron', monospace;
-    font-size: 18px;
-    font-weight: 900;
-    color: #8b0000;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    letter-spacing: 3px;
-    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
-    box-shadow: 
-        0 6px 0 #8b4500,
-        0 12px 30px rgba(0, 0, 0, 0.6),
-        0 0 40px rgba(255, 215, 0, 0.8),
-        0 0 80px rgba(255, 152, 0, 0.5);
-    transition: all 0.1s ease;
-    overflow: hidden;
-    z-index: 4;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-}
-
-.claim-now-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.7), 
-        transparent
-    );
-    animation: btnShine 2.5s infinite;
-}
-
-.claim-now-btn:active {
-    transform: translateY(6px);
-    box-shadow: 
-        0 0 0 #8b4500,
-        0 6px 15px rgba(0, 0, 0, 0.6),
-        0 0 30px rgba(255, 215, 0, 0.6);
-}
-
-.claim-now-btn .icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.claim-now-btn .claim-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
-    animation: twistIcon 8s linear infinite;
-}
-
-.claim-now-btn:hover .claim-icon,
-.claim-now-btn:active .claim-icon {
-    animation: twistIcon 1.5s linear infinite;
-}
-
-.claim-now-btn .btn-text {
-    display: inline-block;
-}
-
-/* ============================================================
-   BONUS REWARD POPUP (PT_Cat + ₱500 + CLAIM BONUS)
-   ============================================================ */
-.bonus-reward-popup {
-    position: fixed;
-    inset: 0;
-    background: rgba(13, 0, 0, 0.95);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    z-index: 99999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.3s ease;
-    padding: 20px;
-}
-
-.bonus-reward-popup[style*="display: flex"] {
-    display: flex !important;
-}
-
-.bonus-reward-container {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-    background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%),
-        linear-gradient(145deg, #d10000 0%, #ff1744 50%, #8b0000 100%);
-    border: 3px solid #ffd700;
-    border-radius: 28px;
-    padding: 30px 22px 26px;
-    box-shadow: 
-        0 25px 60px rgba(0, 0, 0, 0.8),
-        0 0 60px rgba(255, 215, 0, 0.6),
-        0 0 120px rgba(255, 23, 68, 0.4),
-        inset 0 0 40px rgba(255, 215, 0, 0.1);
-    animation: popupPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    overflow: hidden;
-}
-
-.bonus-reward-container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(
-        circle at 50% 30%, 
-        rgba(255, 255, 255, 0.2), 
-        transparent 50%
-    );
-    pointer-events: none;
-    animation: popupGlow 3s ease-in-out infinite;
-}
-
-.bonus-reward-close {
-    position: absolute;
-    top: 14px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 215, 0, 0.5);
-    border-radius: 50%;
-    color: #ffd700;
-    font-size: 18px;
-    font-weight: 900;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    z-index: 10;
-    font-family: 'Orbitron', monospace;
-}
-
-.bonus-reward-close:hover,
-.bonus-reward-close:active {
-    background: rgba(255, 68, 68, 0.4);
-    color: #fff;
-    transform: rotate(90deg);
-    border-color: #ff4444;
-}
-
-.bonus-reward-inner {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-}
-
-/* PT Cat Image inside Popup */
-.bonus-reward-inner .pt-cat-image-wrapper {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    margin: 0 auto 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.bonus-reward-inner .pt-cat-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    position: relative;
-    z-index: 3;
-    filter: 
-        drop-shadow(0 12px 30px rgba(255, 215, 0, 0.8))
-        drop-shadow(0 0 25px rgba(255, 255, 255, 0.4));
-    animation: ptCatFloat 2.5s ease-in-out infinite;
-}
-
-.bonus-reward-inner .pt-cat-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 210px;
-    height: 210px;
-    background: radial-gradient(
-        circle, 
-        rgba(255, 215, 0, 0.7) 0%, 
-        rgba(255, 255, 255, 0.4) 30%,
-        transparent 70%
-    );
-    border-radius: 50%;
-    filter: blur(40px);
-    animation: ptCatGlowPulse 2s ease-in-out infinite;
-    z-index: 2;
-}
-
-/* Bonus Amount */
-.bonus-reward-inner .pt-cat-bonus-amount {
-    background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-        linear-gradient(135deg, #1a0000, #330000);
-    border: 2px solid #ffd700;
-    border-radius: 16px;
-    padding: 14px 20px;
-    margin-bottom: 18px;
-    position: relative;
-    z-index: 4;
-    box-shadow: 
-        0 0 25px rgba(255, 215, 0, 0.7),
-        inset 0 0 20px rgba(255, 215, 0, 0.12);
-    animation: bonusAmountPulse 2s ease-in-out infinite;
-}
-
-.bonus-reward-inner .bonus-label {
-    display: block;
-    font-family: 'Orbitron', monospace;
-    font-size: 10px;
-    color: #ffd700;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
-    font-weight: 700;
-}
-
-.bonus-reward-inner .bonus-value {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 4px;
-}
-
-.bonus-reward-inner .bonus-value .currency {
-    font-family: 'Orbitron', monospace;
-    font-size: 28px;
-    font-weight: 900;
-    color: #ffd700;
-    text-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.9),
-        0 0 40px rgba(255, 215, 0, 0.5);
-}
-
-.bonus-reward-inner .bonus-value #ptCatBonusAmount {
-    font-family: 'Orbitron', monospace;
-    font-size: 56px;
-    font-weight: 900;
-    background: linear-gradient(
-        180deg, 
-        #fff9c4 0%, 
-        #ffd700 40%, 
-        #ffeb3b 60%, 
-        #ff9800 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    line-height: 1;
-    letter-spacing: 2px;
-    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
-    animation: bonusNumberPulse 1.5s ease-in-out infinite;
-}
-
-/* Claim Bonus Button in Popup */
-.bonus-reward-inner .pt-cat-claim-btn {
-    width: 100%;
-    background: 
-        linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
-        linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
-    border: 3px solid #fff9c4;
-    border-radius: 14px;
-    padding: 18px 20px;
-    font-family: 'Orbitron', monospace;
-    font-size: 16px;
-    font-weight: 900;
-    color: #8b0000;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    letter-spacing: 3px;
-    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
-    box-shadow: 
-        0 5px 0 #8b4500,
-        0 10px 25px rgba(0, 0, 0, 0.6),
-        0 0 35px rgba(255, 215, 0, 0.8);
-    transition: all 0.1s ease;
-    overflow: hidden;
-    z-index: 4;
-    text-transform: uppercase;
-    position: relative;
-}
-
-.bonus-reward-inner .pt-cat-claim-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg, 
-        transparent, 
-        rgba(255, 255, 255, 0.7), 
-        transparent
-    );
-    animation: btnShine 2.5s infinite;
-}
-
-.bonus-reward-inner .pt-cat-claim-btn:active {
-    transform: translateY(5px);
-    box-shadow: 
-        0 0 0 #8b4500,
-        0 5px 15px rgba(0, 0, 0, 0.6),
-        0 0 25px rgba(255, 215, 0, 0.6);
-}
-
-.bonus-reward-inner .pt-cat-claim-btn i {
-    font-size: 20px;
-    filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
-    animation: giftBounce 1s ease-in-out infinite;
-}
-
-.bonus-reward-inner .pt-cat-claim-btn.claimed {
-    background: linear-gradient(180deg, #555, #333);
-    border-color: #777;
-    color: #aaa;
-    text-shadow: none;
-    box-shadow: 0 4px 0 #111;
-    cursor: not-allowed;
-}
-
-.bonus-reward-inner .pt-cat-claim-btn.claimed i {
-    animation: none;
-}
-
-/* Back Button */
-.bonus-reward-inner .small-back-btn {
-    background: linear-gradient(to bottom, #555, #333);
-    border: 1px solid #777;
-    border-radius: 10px;
-    padding: 10px 22px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #ccc;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: auto;
-    margin-top: 14px;
-    font-family: 'Orbitron', monospace;
-    letter-spacing: 1.5px;
-    box-shadow: 0 3px 0 #222;
-    transition: all 0.1s ease;
-    text-transform: uppercase;
-}
-
-.bonus-reward-inner .small-back-btn:active {
-    transform: translateY(3px);
-    box-shadow: 0 0 0 #222;
-}
-
-/* ============================================================
-   RESPONSIVE - MOBILE
-   ============================================================ */
-@media (max-width: 480px) {
-    .luckycat-image-wrapper {
-        width: 180px;
-        height: 180px;
-    }
-    
-    .luckycat-glow {
-        width: 200px;
-        height: 200px;
-    }
-    
-    .claim-now-btn {
-        font-size: 15px;
-        padding: 18px 20px;
-        letter-spacing: 2px;
-    }
-    
-    .claim-now-btn .claim-icon {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .bonus-reward-container {
-        padding: 26px 18px 22px;
-        max-width: 100%;
-    }
-    
-    .bonus-reward-inner .pt-cat-image-wrapper {
-        width: 170px;
-        height: 170px;
-    }
-    
-    .bonus-reward-inner .pt-cat-glow {
-        width: 180px;
-        height: 180px;
-    }
-    
-    .bonus-reward-inner .bonus-value #ptCatBonusAmount {
-        font-size: 48px;
-    }
-    
-    .bonus-reward-inner .bonus-value .currency {
-        font-size: 24px;
-    }
-    
-    .bonus-reward-inner .pt-cat-claim-btn {
-        font-size: 14px;
-        padding: 16px 18px;
-    }
-}
-
-@media (max-width: 360px) {
-    .luckycat-image-wrapper {
-        width: 150px;
-        height: 150px;
-    }
-    
-    .luckycat-glow {
-        width: 170px;
-        height: 170px;
-    }
-    
-    .bonus-reward-inner .pt-cat-image-wrapper {
-        width: 140px;
-        height: 140px;
-    }
-    
-    .bonus-reward-inner .pt-cat-glow {
-        width: 150px;
-        height: 150px;
-    }
-    
-    .bonus-reward-inner .bonus-value #ptCatBonusAmount {
-        font-size: 42px;
-    }
 }
