@@ -1,20 +1,21 @@
 /**
- * Chat Widget Module - Casino Theme
- * Private chat between user and admin
+ * Chat Widget Module - Carnival Theme + Custom Icon
  */
 
 (function() {
     'use strict';
     
-    let userPhone = '';
-    let chatId = '';
-    let messagesListener = null;
-    let typingListener = null;
-    let isAdminTyping = false;
-    let unreadCount = 0;
+    var userPhone = '';
+    var chatId = '';
+    var messagesListener = null;
+    var typingListener = null;
+    var unreadCount = 0;
+    var isInitialized = false;
     
     // ========== INITIALIZATION ==========
     function init() {
+        if (isInitialized) return;
+        
         userPhone = localStorage.getItem('userPhone');
         if (!userPhone) {
             console.log('Chat: No user logged in');
@@ -23,122 +24,118 @@
         
         chatId = userPhone.replace(/[^0-9]/g, '');
         
+        if (!chatId) {
+            console.log('Chat: Invalid phone');
+            return;
+        }
+        
+        // Check if widget already exists
+        if (document.getElementById('chatWidget')) {
+            console.log('Chat: Widget already exists');
+            return;
+        }
+        
         createChatWidget();
         attachEvents();
         startListening();
+        isInitialized = true;
         
-        console.log('Chat widget initialized for:', chatId);
+        console.log('✅ Chat widget initialized for:', chatId);
     }
     
     // ========== CREATE CHAT WIDGET ==========
     function createChatWidget() {
-        const widget = document.createElement('div');
+        var widget = document.createElement('div');
         widget.className = 'chat-widget';
         widget.id = 'chatWidget';
-        widget.innerHTML = `
-            <!-- Chat Toggle Button -->
-            <button class="chat-toggle-btn" id="chatToggleBtn">
-                <img src="images/pt_icon.jpg" class="chat-toggle-img" alt="Chat">
-                <span class="chat-badge" id="chatBadge" style="display: none;">0</span>
-            </button>
+        widget.innerHTML = 
+            '<button class="chat-toggle-btn" id="chatToggleBtn">' +
+                '<img src="images/pt_icon.jpg" class="chat-toggle-img" alt="Chat">' +
+                '<span class="chat-badge" id="chatBadge" style="display: none;">0</span>' +
+            '</button>' +
             
-            <!-- Chat Window -->
-            <div class="chat-window" id="chatWindow">
-                <div class="chat-header">
-                    <div class="chat-header-info">
-                        <div class="chat-header-avatar">👑</div>
-                        <div>
-                            <div class="chat-header-title">LUCKY DROP SUPPORT</div>
-                            <div class="chat-header-status">Online</div>
-                        </div>
-                    </div>
-                    <button class="chat-close-btn" id="chatCloseBtn">✕</button>
-                </div>
+            '<div class="chat-window" id="chatWindow">' +
+                '<div class="chat-header">' +
+                    '<div class="chat-header-info">' +
+                        '<div class="chat-header-avatar">' +
+                            '<img src="images/pt_icon.jpg" alt="Support">' +
+                        '</div>' +
+                        '<div>' +
+                            '<div class="chat-header-title">LUCKY DROP SUPPORT</div>' +
+                            '<div class="chat-header-status">Online</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button class="chat-close-btn" id="chatCloseBtn">✕</button>' +
+                '</div>' +
                 
-                <div class="chat-messages" id="chatMessages">
-                    <!-- Welcome Message -->
-                    <div class="chat-bubble admin">
-                        Welcome to Lucky Drop Support! How can I help you today?
-                        <div class="chat-time">Just now</div>
-                    </div>
+                '<div class="chat-messages" id="chatMessages">' +
+                    '<div class="chat-bubble admin">' +
+                        'Welcome to Lucky Drop Support! How can I help you today?' +
+                        '<div class="chat-time">Just now</div>' +
+                    '</div>' +
                     
-                    <!-- Typing Indicator -->
-                    <div class="typing-indicator" id="typingIndicator">
-                        <div class="typing-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                </div>
+                    '<div class="typing-indicator" id="typingIndicator">' +
+                        '<div class="typing-dots">' +
+                            '<span></span>' +
+                            '<span></span>' +
+                            '<span></span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
                 
-                <!-- Quick Replies -->
-                <div class="chat-quick-replies" id="chatQuickReplies">
-                    <button class="quick-reply-btn" data-question="How I can withdraw my balance?">
-                        💰 How to withdraw?
-                    </button>
-                    <button class="quick-reply-btn" data-question="How to Earn Referral Bonus?">
-                        🎁 How to earn bonus?
-                    </button>
-                </div>
+                '<div class="chat-quick-replies" id="chatQuickReplies">' +
+                    '<button class="quick-reply-btn" data-question="How I can withdraw my balance?">' +
+                        '💰 How to withdraw?' +
+                    '</button>' +
+                    '<button class="quick-reply-btn" data-question="How to Earn Referral Bonus?">' +
+                        '🎁 How to earn bonus?' +
+                    '</button>' +
+                '</div>' +
                 
-                <!-- Input Area -->
-                <div class="chat-input-area">
-                    <input 
-                        type="text" 
-                        class="chat-input" 
-                        id="chatInput" 
-                        placeholder="Type your message..."
-                        maxlength="500"
-                    >
-                    <button class="chat-send-btn" id="chatSendBtn">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        `;
+                '<div class="chat-input-area">' +
+                    '<input type="text" class="chat-input" id="chatInput" placeholder="Type your message..." maxlength="500">' +
+                    '<button class="chat-send-btn" id="chatSendBtn">' +
+                        '<i class="fa-solid fa-paper-plane"></i>' +
+                    '</button>' +
+                '</div>' +
+            '</div>';
         
         document.body.appendChild(widget);
     }
     
     // ========== ATTACH EVENTS ==========
     function attachEvents() {
-        const toggleBtn = document.getElementById('chatToggleBtn');
-        const closeBtn = document.getElementById('chatCloseBtn');
-        const sendBtn = document.getElementById('chatSendBtn');
-        const chatInput = document.getElementById('chatInput');
-        const chatWindow = document.getElementById('chatWindow');
+        var toggleBtn = document.getElementById('chatToggleBtn');
+        var closeBtn = document.getElementById('chatCloseBtn');
+        var sendBtn = document.getElementById('chatSendBtn');
+        var chatInput = document.getElementById('chatInput');
         
-        // Toggle chat window
         if (toggleBtn) {
             toggleBtn.addEventListener('click', function() {
-                const window = document.getElementById('chatWindow');
-                if (window) {
-                    const isVisible = window.classList.contains('show');
-                    if (isVisible) {
-                        window.classList.remove('show');
-                    } else {
-                        window.classList.add('show');
-                        scrollToBottom();
-                        markAllAsRead();
-                    }
+                var win = document.getElementById('chatWindow');
+                if (!win) return;
+                
+                if (win.classList.contains('show')) {
+                    win.classList.remove('show');
+                } else {
+                    win.classList.add('show');
+                    scrollToBottom();
+                    markAllAsRead();
                 }
             });
         }
         
-        // Close chat window
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
-                if (chatWindow) chatWindow.classList.remove('show');
+                var win = document.getElementById('chatWindow');
+                if (win) win.classList.remove('show');
             });
         }
         
-        // Send message
         if (sendBtn) {
             sendBtn.addEventListener('click', sendMessage);
         }
         
-        // Send on Enter
         if (chatInput) {
             chatInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -149,36 +146,37 @@
         }
         
         // Quick replies
-        document.querySelectorAll('.quick-reply-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const question = this.getAttribute('data-question');
-                if (chatInput) {
-                    chatInput.value = question;
+        var quickReplies = document.querySelectorAll('.quick-reply-btn');
+        for (var i = 0; i < quickReplies.length; i++) {
+            quickReplies[i].addEventListener('click', function() {
+                var question = this.getAttribute('data-question');
+                var input = document.getElementById('chatInput');
+                if (input) {
+                    input.value = question;
                     sendMessage();
                 }
             });
-        });
+        }
     }
     
     // ========== SEND MESSAGE ==========
-    async function sendMessage() {
-        const chatInput = document.getElementById('chatInput');
-        const sendBtn = document.getElementById('chatSendBtn');
+    function sendMessage() {
+        var chatInput = document.getElementById('chatInput');
+        var sendBtn = document.getElementById('chatSendBtn');
         
         if (!chatInput || !sendBtn) return;
         
-        const message = chatInput.value.trim();
+        var message = chatInput.value.trim();
         if (!message) return;
         
-        // Disable send button
         sendBtn.disabled = true;
         chatInput.disabled = true;
         
         try {
-            const db = firebase.database();
-            const messageRef = db.ref(`chats/${chatId}/messages`).push();
+            var db = firebase.database();
+            var messageRef = db.ref('chats/' + chatId + '/messages').push();
             
-            await messageRef.set({
+            messageRef.set({
                 text: message,
                 sender: 'user',
                 userPhone: userPhone,
@@ -187,15 +185,22 @@
             });
             
             // Update last message
-            await db.ref(`chats/${chatId}`).update({
-                lastMessage: message,
-                lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
-                lastSender: 'user',
-                unreadAdmin: (await getUnreadAdminCount()) + 1
+            db.ref('chats/' + chatId).once('value').then(function(snap) {
+                var currentUnread = 0;
+                if (snap.exists()) {
+                    currentUnread = snap.val().unreadAdmin || 0;
+                }
+                
+                db.ref('chats/' + chatId).update({
+                    lastMessage: message,
+                    lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+                    lastSender: 'user',
+                    unreadAdmin: currentUnread + 1
+                });
             });
             
             chatInput.value = '';
-            console.log('Message sent:', message);
+            console.log('✅ Message sent:', message);
             
         } catch(e) {
             console.error('Error sending message:', e);
@@ -207,75 +212,67 @@
         }
     }
     
-    // ========== GET UNREAD ADMIN COUNT ==========
-    async function getUnreadAdminCount() {
-        try {
-            const db = firebase.database();
-            const snap = await db.ref(`chats/${chatId}`).once('value');
-            if (snap.exists()) {
-                return snap.val().unreadAdmin || 0;
-            }
-        } catch(e) {
-            console.error('Error getting unread count:', e);
-        }
-        return 0;
-    }
-    
     // ========== START LISTENING ==========
     function startListening() {
-        const db = firebase.database();
+        var db = firebase.database();
         
         // Listen for new messages
-        messagesListener = db.ref(`chats/${chatId}/messages`)
+        messagesListener = db.ref('chats/' + chatId + '/messages')
             .orderByChild('timestamp')
             .limitToLast(50);
         
         messagesListener.on('child_added', function(snapshot) {
-            const message = snapshot.val();
+            var message = snapshot.val();
             displayMessage(message, snapshot.key);
-            
-            // Update unread count for user
-            if (message.sender === 'admin') {
-                updateUnreadCount();
-            }
         });
         
         // Listen for admin typing
-        typingListener = db.ref(`chats/${chatId}/adminTyping`);
+        typingListener = db.ref('chats/' + chatId + '/adminTyping');
         typingListener.on('value', function(snapshot) {
-            const isTyping = snapshot.val();
+            var isTyping = snapshot.val();
             showAdminTyping(isTyping);
         });
         
-        // Listen for message read status
-        db.ref(`chats/${chatId}/messages`).on('child_changed', function(snapshot) {
-            const message = snapshot.val();
-            if (message.sender === 'user' && message.read) {
-                // Update UI to show read status if needed
+        // Listen for unread count
+        db.ref('chats/' + chatId + '/unreadUser').on('value', function(snapshot) {
+            var count = snapshot.val() || 0;
+            var chatWindow = document.getElementById('chatWindow');
+            var badge = document.getElementById('chatBadge');
+            
+            if (!badge) return;
+            
+            if (chatWindow && !chatWindow.classList.contains('show') && count > 0) {
+                unreadCount = count;
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'flex';
+                
+                // Pulse animation
+                badge.style.animation = 'none';
+                badge.offsetHeight; // Trigger reflow
+                badge.style.animation = 'badgePulse 0.5s ease';
             }
         });
     }
     
     // ========== DISPLAY MESSAGE ==========
     function displayMessage(message, messageId) {
-        const messagesContainer = document.getElementById('chatMessages');
-        const typingIndicator = document.getElementById('typingIndicator');
+        var messagesContainer = document.getElementById('chatMessages');
+        var typingIndicator = document.getElementById('typingIndicator');
         
         if (!messagesContainer) return;
         
-        // Create message element
-        const messageEl = document.createElement('div');
-        messageEl.className = `chat-bubble ${message.sender}`;
-        messageEl.id = `msg-${messageId}`;
+        // Check if message already displayed
+        if (document.getElementById('msg-' + messageId)) return;
         
-        const time = message.timestamp 
+        var messageEl = document.createElement('div');
+        messageEl.className = 'chat-bubble ' + message.sender;
+        messageEl.id = 'msg-' + messageId;
+        
+        var time = message.timestamp 
             ? new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : 'Just now';
         
-        messageEl.innerHTML = `
-            ${escapeHtml(message.text)}
-            <div class="chat-time">${time}</div>
-        `;
+        messageEl.innerHTML = escapeHtml(message.text) + '<div class="chat-time">' + time + '</div>';
         
         // Insert before typing indicator
         if (typingIndicator) {
@@ -284,8 +281,8 @@
             messagesContainer.appendChild(messageEl);
         }
         
-        // Remove quick replies after first user message
-        const quickReplies = document.getElementById('chatQuickReplies');
+        // Hide quick replies after first user message
+        var quickReplies = document.getElementById('chatQuickReplies');
         if (quickReplies && message.sender === 'user') {
             quickReplies.style.display = 'none';
         }
@@ -295,49 +292,49 @@
     
     // ========== SHOW ADMIN TYPING ==========
     function showAdminTyping(isTyping) {
-        const typingIndicator = document.getElementById('typingIndicator');
+        var typingIndicator = document.getElementById('typingIndicator');
         if (!typingIndicator) return;
         
         if (isTyping) {
             typingIndicator.classList.add('show');
-            isAdminTyping = true;
         } else {
             typingIndicator.classList.remove('show');
-            isAdminTyping = false;
         }
         
         scrollToBottom();
     }
     
-    // ========== UPDATE UNREAD COUNT ==========
-    function updateUnreadCount() {
-        const chatWindow = document.getElementById('chatWindow');
-        const badge = document.getElementById('chatBadge');
-        
-        if (!badge) return;
-        
-        // Only show badge if chat is closed
-        if (chatWindow && !chatWindow.classList.contains('show')) {
-            unreadCount++;
-            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-            badge.style.display = 'flex';
-        }
-    }
-    
     // ========== MARK ALL AS READ ==========
     function markAllAsRead() {
         unreadCount = 0;
-        const badge = document.getElementById('chatBadge');
+        var badge = document.getElementById('chatBadge');
         if (badge) {
             badge.style.display = 'none';
+        }
+        
+        try {
+            var db = firebase.database();
+            db.ref('chats/' + chatId + '/unreadUser').set(0);
+            
+            // Mark admin messages as read
+            db.ref('chats/' + chatId + '/messages').once('value').then(function(snapshot) {
+                snapshot.forEach(function(childSnapshot) {
+                    var msg = childSnapshot.val();
+                    if (msg.sender === 'admin' && !msg.read) {
+                        db.ref('chats/' + chatId + '/messages/' + childSnapshot.key).update({ read: true });
+                    }
+                });
+            });
+        } catch(e) {
+            console.error('Error marking as read:', e);
         }
     }
     
     // ========== SCROLL TO BOTTOM ==========
     function scrollToBottom() {
-        const messagesContainer = document.getElementById('chatMessages');
+        var messagesContainer = document.getElementById('chatMessages');
         if (messagesContainer) {
-            setTimeout(() => {
+            setTimeout(function() {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 100);
         }
@@ -345,77 +342,35 @@
     
     // ========== ESCAPE HTML ==========
     function escapeHtml(text) {
-        const div = document.createElement('div');
+        if (!text) return '';
+        var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
     
     // ========== CLEANUP ==========
     function cleanup() {
-        const db = firebase.database();
-        if (messagesListener) {
-            db.ref(`chats/${chatId}/messages`).off('child_added', messagesListener);
-        }
-        if (typingListener) {
-            db.ref(`chats/${chatId}/adminTyping`).off('value', typingListener);
-        }
+        if (!chatId) return;
+        try {
+            var db = firebase.database();
+            if (messagesListener) {
+                db.ref('chats/' + chatId + '/messages').off();
+            }
+            if (typingListener) {
+                db.ref('chats/' + chatId + '/adminTyping').off();
+            }
+        } catch(e) {}
     }
     
     // ========== START ==========
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(init, 1000);
+        });
     } else {
-        init();
+        setTimeout(init, 1000);
     }
     
-    // Cleanup on page unload
     window.addEventListener('beforeunload', cleanup);
     
 })();
-
-// chat_widget.js - Add this notification function
-function updateUnreadCount() {
-    const db = firebase.database();
-    const chatWindow = document.getElementById('chatWindow');
-    const badge = document.getElementById('chatBadge');
-    
-    if (!badge) return;
-    
-    // Get unread count from Firebase
-    db.ref('chats/' + chatId + '/unreadUser').on('value', function(snapshot) {
-        const count = snapshot.val() || 0;
-        
-        // Only show badge if chat is closed
-        if (chatWindow && !chatWindow.classList.contains('show') && count > 0) {
-            unreadCount = count;
-            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-            badge.style.display = 'flex';
-            
-            // Pulse animation for new messages
-            badge.style.animation = 'none';
-            badge.offsetHeight; // Trigger reflow
-            badge.style.animation = 'badgePulse 0.5s ease';
-        }
-    });
-}
-
-// Add mark as read when opening chat
-function markAllAsRead() {
-    unreadCount = 0;
-    const badge = document.getElementById('chatBadge');
-    if (badge) {
-        badge.style.display = 'none';
-    }
-    
-    // Mark all admin messages as read in Firebase
-    const db = firebase.database();
-    db.ref('chats/' + chatId + '/unreadUser').set(0);
-    db.ref('chats/' + chatId + '/messages').once('value', function(snapshot) {
-        snapshot.forEach(function(childSnapshot) {
-            const msg = childSnapshot.val();
-            if (msg.sender === 'admin' && !msg.read) {
-                db.ref('chats/' + chatId + '/messages/' + childSnapshot.key).update({ read: true });
-            }
-        });
-    });
-}
