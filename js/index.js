@@ -309,7 +309,7 @@
                                 
                                 // ========== REDIRECT TO PLAYBONUS.HTML ==========
                                 setTimeout(function() {
-                                    window.location.href = "PlayBonus.html";
+                                    window.location.href = "share_and_earn.html";
                                 }, 1000);
                             });
                         });
