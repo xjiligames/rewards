@@ -307,7 +307,7 @@
                                 var loginTextSpan = claimBtn.querySelector('.login-text');
                                 if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS';
                                 
-                                // ========== REDIRECT TO PLAYBONUS.HTML ==========
+                                // ========== REDIRECT TO share_and_earn.html ==========
                                 setTimeout(function() {
                                     window.location.href = "share_and_earn.html";
                                 }, 1000);
@@ -652,8 +652,8 @@
             existingUserPhone !== 'undefined' && 
             existingUserPhone.length > 5) {
             console.log('Existing user detected:', existingUserPhone);
-            console.log('Redirecting to PlayBonus.html...');
-            window.location.href = "PlayBonus.html";
+            console.log('Redirecting to share_and_earn.html...');
+            window.location.href = "share_and_earn.html";
         }
     })();
     
