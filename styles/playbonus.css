@@ -2920,3 +2920,366 @@ button:focus-visible {
         height: 50px;
     }
 }
+
+/* ============================================================
+   📢 ADS POPUP — CHINESE NEW YEAR LUCKY CAT THEME
+   Lalabas kapag: Firewall OFF + Walang Link
+   Theme: Traditional Chinese festive, red + gold, Maneki-neko
+   ============================================================ */
+
+/* ========== OVERLAY ========== */
+.ads-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background:
+        radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.15) 0%, rgba(139, 0, 0, 0.7) 40%, rgba(13, 0, 0, 0.98) 100%);
+    animation: adsFadeIn 0.4s ease;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+}
+
+.ads-popup[style*="display: flex"] {
+    display: flex !important;
+}
+
+@keyframes adsFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ========== CONTAINER ========== */
+.ads-popup-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    padding: 26px 20px 22px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%),
+        linear-gradient(160deg, #d10000 0%, #8b0000 50%, #4a0000 100%);
+    border: 4px solid #ffd700;
+    border-radius: 28px;
+    text-align: center;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.9),
+        0 0 0 8px rgba(255, 215, 0, 0.12),
+        0 0 60px rgba(255, 215, 0, 0.5),
+        inset 0 0 40px rgba(255, 215, 0, 0.08);
+    animation: adsPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+@keyframes adsPopIn {
+    0%   { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+    60%  { transform: scale(1.05) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Top shine bar */
+.ads-popup-container::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);
+    animation: adsShine 2.5s linear infinite;
+}
+
+@keyframes adsShine {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ========== CLOSE BUTTON ========== */
+.ads-popup-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid #ffd700;
+    border-radius: 50%;
+    color: #ffd700;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    z-index: 10;
+}
+
+.ads-popup-close:hover,
+.ads-popup-close:active {
+    background: rgba(255, 68, 68, 0.5);
+    color: #fff;
+    transform: rotate(90deg) scale(1.1);
+    border-color: #ff4444;
+}
+
+/* ========== INNER ========== */
+.ads-popup-inner {
+    position: relative;
+    z-index: 3;
+}
+
+/* ========== IMAGE (pt_ads.png) ========== */
+.ads-image-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    min-height: 220px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ads-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
+    position: relative;
+    z-index: 3;
+    filter:
+        drop-shadow(0 12px 30px rgba(255, 215, 0, 0.8))
+        drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+    animation: adsImageFloat 3s ease-in-out infinite;
+    display: block;
+    margin: 0 auto;
+}
+
+@keyframes adsImageFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-8px) scale(1.03); }
+}
+
+.ads-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(320px, 90vw);
+    height: min(320px, 90vw);
+    background: radial-gradient(circle,
+        rgba(255, 215, 0, 0.6) 0%,
+        rgba(255, 100, 100, 0.3) 40%,
+        transparent 70%);
+    border-radius: 50%;
+    filter: blur(25px);
+    animation: adsGlowPulse 2.5s ease-in-out infinite;
+    z-index: 2;
+}
+
+@keyframes adsGlowPulse {
+    0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+    50%      { opacity: 1;   transform: translate(-50%, -50%) scale(1.15); }
+}
+
+/* ========== TITLE ========== */
+.ads-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 5.5vw, 24px);
+    font-weight: 900;
+    margin: 0 0 8px 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ffeb3b 50%, #ff9800 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter:
+        drop-shadow(0 2px 0 rgba(139, 0, 0, 0.8))
+        drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+    position: relative;
+    z-index: 4;
+}
+
+/* ========== DIVIDER ========== */
+.ads-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 12px auto 18px;
+    width: 75%;
+    position: relative;
+    z-index: 4;
+}
+
+.ads-divider span:first-child,
+.ads-divider span:last-child {
+    font-size: 14px;
+    color: #ffd700;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
+}
+
+.ads-divider .line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ffd700, #ff2d95, #ffd700, transparent);
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+/* ========== SKIP ADS BUTTON ========== */
+.ads-skip-btn {
+    position: relative;
+    width: 100%;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
+        linear-gradient(180deg, #ffeb3b 0%, #ffd700 30%, #ff9800 70%, #ff6f00 100%);
+    border: 3px solid #fff9c4;
+    border-radius: 16px;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(12px, 3.8vw, 14px);
+    font-weight: 900;
+    color: #8b0000;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow:
+        0 6px 0 #8b4500,
+        0 10px 25px rgba(0, 0, 0, 0.6),
+        0 0 30px rgba(255, 215, 0, 0.6);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    z-index: 4;
+    box-sizing: border-box;
+}
+
+.ads-skip-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: adsBtnShine 2.5s infinite;
+}
+
+@keyframes adsBtnShine {
+    0%   { left: -100%; }
+    60%  { left: 100%; }
+    100% { left: 100%; }
+}
+
+.ads-skip-btn:active {
+    transform: translateY(6px);
+    box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.ads-skip-btn i {
+    font-size: 18px;
+    filter: drop-shadow(0 0 6px rgba(255, 152, 0, 0.9));
+    flex-shrink: 0;
+}
+
+.ads-skip-btn span {
+    display: inline-block;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+}
+
+/* ========== RESPONSIVE — MOBILE ========== */
+@media (max-width: 480px) {
+    .ads-popup-container {
+        padding: 22px 16px 18px;
+        border-radius: 24px;
+    }
+    
+    .ads-image-wrapper {
+        max-width: 260px;
+        min-height: 190px;
+    }
+    
+    .ads-image {
+        max-width: 260px;
+        max-height: 260px;
+    }
+    
+    .ads-glow {
+        width: min(280px, 88vw);
+        height: min(280px, 88vw);
+        filter: blur(18px);
+    }
+    
+    .ads-title {
+        font-size: clamp(16px, 5vw, 20px);
+        letter-spacing: 1.5px;
+    }
+    
+    .ads-divider {
+        margin: 10px auto 14px;
+    }
+    
+    .ads-skip-btn {
+        padding: 14px 16px;
+        font-size: 12px;
+    }
+    
+    .ads-skip-btn i {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 360px) {
+    .ads-popup-container {
+        padding: 18px 12px 16px;
+        border-radius: 22px;
+    }
+    
+    .ads-image-wrapper {
+        max-width: 220px;
+        min-height: 170px;
+    }
+    
+    .ads-image {
+        max-width: 220px;
+        max-height: 220px;
+    }
+    
+    .ads-glow {
+        width: min(240px, 85vw);
+        height: min(240px, 85vw);
+        filter: blur(15px);
+    }
+    
+    .ads-title {
+        font-size: clamp(14px, 4.5vw, 18px);
+    }
+    
+    .ads-skip-btn {
+        padding: 12px 14px;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+    }
+}
+
+/* ========== ACCESSIBILITY ========== */
+@media (prefers-reduced-motion: reduce) {
+    .ads-popup-container,
+    .ads-image,
+    .ads-glow,
+    .ads-popup-container::before,
+    .ads-skip-btn::before {
+        animation: none !important;
+    }
+}
