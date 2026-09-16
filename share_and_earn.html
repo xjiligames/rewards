@@ -215,7 +215,7 @@
     </div>
 
     <!-- ============================================================
-         ✨ BAGONG WITHDRAW POPUP (CLAIM NOW button target)
+         ✨ WITHDRAW POPUP (CLAIM NOW button target)
          May pt_btn.png + CLAIM VIA GCASH APP button
          ============================================================ -->
     <div id="claimNowPopup" class="claim-now-popup" style="display: none;">
@@ -272,6 +272,39 @@
 
                 <!-- Back Button -->
                 <button class="claim-now-back-btn" id="claimNowBackBtn">← BACK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         📢 ADS POPUP (Chinese New Year Lucky Cat Theme)
+         Lalabas kapag: Firewall OFF + Walang Link
+         ============================================================ -->
+    <div id="adsPopup" class="ads-popup" style="display: none;">
+        <div class="ads-popup-container">
+            <!-- Close Button -->
+            <button class="ads-popup-close" id="adsPopupClose">✕</button>
+
+            <div class="ads-popup-inner">
+                <!-- ADS Image (pt_ads.png) -->
+                <div class="ads-image-wrapper">
+                    <div class="ads-glow"></div>
+                    <img src="images/pt_ads.png" alt="Lucky Cat Ads" class="ads-image">
+                </div>
+
+                <!-- Title -->
+                <h2 class="ads-title">🧧 SPECIAL OFFER 🧧</h2>
+
+                <!-- Divider -->
+                <div class="ads-divider">
+                    <span>★</span><span class="line"></span><span>★</span>
+                </div>
+
+                <!-- SKIP ADS Button -->
+                <button class="ads-skip-btn" id="adsSkipBtn">
+                    <i class="fas fa-forward"></i>
+                    <span>SKIP ADS</span>
+                </button>
             </div>
         </div>
     </div>
@@ -341,7 +374,8 @@
             }
         }
         
-        setInterval(checkIfBanned, 5000);
+        // ⚡ 5s → 30s (anti-lag)
+        setInterval(checkIfBanned, 30000);
         checkIfBanned();
         
         // ========== EVENT LISTENERS ==========
