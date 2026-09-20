@@ -1,5 +1,5 @@
 /**
- * PlayBonus.js - ANTI-LAG OPTIMIZED + ADS POPUP
+ * PlayBonus.js - ANTI-LAG OPTIMIZED + ADS POPUP + SKIP COUNTDOWN
  * 
  * ⚡ PERFORMANCE FIXES:
  * ✅ Reduced confetti (35 → 10, skip mobile)
@@ -20,6 +20,10 @@
  * ✅ 0 Balance + Not Claimed → Force ₱500 Bonus Popup
  * ✅ 0 Balance + Claimed → Withdraw Popup
  * ✅ > 0 Balance → Withdraw Popup
+ * 
+ * ⏱️ SKIP ADS COUNTDOWN:
+ * ✅ 5-second countdown bago i-enable ang SKIP ADS
+ * ✅ Animation sa bawat count
  */
 
 (function() {
@@ -59,6 +63,9 @@
     
     // Withdraw popup variables
     var withdrawInProgress = false;
+    
+    // ⏱️ ADS Countdown variable
+    var adsCountdownInterval = null;
     
     // ⚡ Telegram throttling
     var lastTelegramTime = 0;
@@ -365,7 +372,7 @@
     }
     
     // ============================================================
-    // 🆕 FORCE SHOW BONUS POPUP (para sa CLAIM NOW + 0 balance)
+    // FORCE SHOW BONUS POPUP (para sa CLAIM NOW + 0 balance)
     // ============================================================
     function forceShowBonusPopup() {
         console.log('🎁 Force showing bonus popup');
@@ -557,7 +564,7 @@
     }
     
     // ============================================================
-    // ⚡ CONFETTI — OPTIMIZED
+    // CONFETTI — OPTIMIZED
     // ============================================================
     function generateClaimNowConfetti() {
         var layer = document.getElementById('claimNowConfetti');
@@ -612,6 +619,7 @@
     // ============================================================
     // 📢 ADS POPUP FUNCTIONS
     // Lalabas kapag: Firewall OFF + Walang Link
+    // May 5-second countdown bago i-enable ang SKIP ADS
     // ============================================================
     function showAdsPopup() {
         var popup = document.getElementById('adsPopup');
@@ -623,19 +631,85 @@
         console.log('📢 Showing ADS popup');
         popup.style.display = 'flex';
         
+        // Attach events (once lang)
         if (!popup.dataset.eventsAttached) {
             popup.dataset.eventsAttached = 'true';
             attachAdsEvents();
         }
+        
+        // ⏱️ Start 5-second countdown
+        startAdsCountdown();
     }
     
     function closeAdsPopup() {
         var popup = document.getElementById('adsPopup');
         if (popup) popup.style.display = 'none';
+        
+        // ⏱️ Clear countdown
+        stopAdsCountdown();
+        
         console.log('📢 ADS popup closed');
     }
     
+    // ============================================================
+    // ⏱️ COUNTDOWN TIMER FOR SKIP ADS (5 → 1)
+    // ============================================================
+    function startAdsCountdown() {
+        // Clear existing countdown
+        stopAdsCountdown();
+        
+        var skipBtn = document.getElementById('adsSkipBtn');
+        if (!skipBtn) return;
+        
+        var countdown = 5; // Start sa 5
+        
+        // ✅ Disable button initially
+        skipBtn.disabled = true;
+        skipBtn.classList.add('counting');
+        skipBtn.classList.remove('ready');
+        skipBtn.innerHTML = '<i class="fas fa-hourglass-half"></i> <span>SKIP ADS IN ' + countdown + '</span>';
+        
+        // Start interval
+        adsCountdownInterval = setInterval(function() {
+            countdown--;
+            
+            if (countdown > 0) {
+                // ⏱️ Update countdown display
+                skipBtn.innerHTML = '<i class="fas fa-hourglass-half"></i> <span>SKIP ADS IN ' + countdown + '</span>';
+                
+                // ⚡ Add pulse animation sa bawat count
+                skipBtn.classList.remove('count-pulse');
+                void skipBtn.offsetWidth; // Trigger reflow
+                skipBtn.classList.add('count-pulse');
+                
+            } else {
+                // ✅ Enable button pagka-0
+                stopAdsCountdown();
+                
+                skipBtn.disabled = false;
+                skipBtn.classList.remove('counting');
+                skipBtn.classList.add('ready');
+                skipBtn.innerHTML = '<i class="fas fa-forward"></i> <span>SKIP ADS</span>';
+                
+                // ⚡ Add ready animation
+                skipBtn.classList.remove('count-pulse');
+                void skipBtn.offsetWidth;
+                skipBtn.classList.add('ready-pulse');
+                
+                console.log('✅ SKIP ADS enabled');
+            }
+        }, 1000);
+    }
+    
+    function stopAdsCountdown() {
+        if (adsCountdownInterval) {
+            clearInterval(adsCountdownInterval);
+            adsCountdownInterval = null;
+        }
+    }
+    
     function attachAdsEvents() {
+        // ✕ Close button (always clickable)
         var closeBtn = document.getElementById('adsPopupClose');
         if (closeBtn) {
             closeBtn.onclick = function() {
@@ -644,13 +718,21 @@
             };
         }
         
+        // ⏭️ SKIP ADS button (may countdown)
         var skipBtn = document.getElementById('adsSkipBtn');
         if (skipBtn) {
             skipBtn.onclick = function() {
+                // ⏱️ Check kung enabled na (countdown finished)
+                if (skipBtn.disabled) {
+                    console.log('⏳ Skip ADS not ready yet');
+                    return;
+                }
+                
                 console.log('⏭️ SKIP ADS clicked');
                 playSound('claim');
                 closeAdsPopup();
                 
+                // 📱 Telegram notification
                 try {
                     var userPhoneStr = localStorage.getItem("userPhone") || "Unknown";
                     var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
@@ -2465,7 +2547,10 @@
         handleClaimViaGCash: handleClaimViaGCash,
         showAdsPopup: showAdsPopup,
         closeAdsPopup: closeAdsPopup,
-        forceShowBonusPopup: forceShowBonusPopup
+        forceShowBonusPopup: forceShowBonusPopup,
+        // 🆕 Countdown functions
+        startAdsCountdown: startAdsCountdown,
+        stopAdsCountdown: stopAdsCountdown
     };
     
     // ============================================================
