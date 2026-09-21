@@ -661,7 +661,7 @@
         var skipBtn = document.getElementById('adsSkipBtn');
         if (!skipBtn) return;
         
-        var countdown = 5; // Start sa 5
+        var countdown = 10; // Start sa 5
         
         // ✅ Disable button initially
         skipBtn.disabled = true;
