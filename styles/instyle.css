@@ -1,6 +1,6 @@
 /* ============================================================
    LUCKY DROP FESTIVAL — DISNEY-PIXAR MEXICAN FIESTA
-   High-Level Remaster | Piñata Background | 7-Day Trend
+   Line Graph Trend + Piñata Modal
    ============================================================ */
 
 /* ========== RESET ========== */
@@ -299,7 +299,7 @@ body {
     50% { transform: translateY(-6px); }
 }
 
-/* ✅ PIÑATA BACKGROUND (taas ng card) */
+/* Piñata background (taas ng card) */
 .card-bg-image {
     position: absolute;
     top: 0;
@@ -526,7 +526,7 @@ body {
 }
 
 /* ============================================================
-   7-DAY TREND DASHBOARD (SAME SA DATING DESIGN)
+   📊 LINE GRAPH TREND
    ============================================================ */
 .trend-dashboard {
     background: linear-gradient(145deg, rgba(26, 8, 69, 0.7), rgba(42, 8, 69, 0.85));
@@ -590,77 +590,107 @@ body {
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
 
-/* ========== BAR GRAPH ========== */
+/* ========== LINE GRAPH CONTAINER ========== */
 .trend-graph-container {
     background: rgba(26, 8, 69, 0.5);
     border: 1px solid rgba(255, 215, 0, 0.15);
     border-radius: 12px;
-    padding: 14px 12px 12px;
+    padding: 14px 10px 10px;
     margin-bottom: 12px;
+    position: relative;
 }
 
-.trend-graph {
+.line-graph-wrapper {
+    width: 100%;
+    height: 100px;
+    position: relative;
+}
+
+.line-graph-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.graph-grid-line {
+    stroke: rgba(255, 215, 0, 0.08);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+}
+
+.graph-line {
+    fill: none;
+    stroke: url(#lineGradient);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+}
+
+.graph-area {
+    fill: url(#areaGradient);
+    opacity: 0;
+}
+
+/* ========== PT_icon ENDPOINT ========== */
+.graph-endpoint-icon {
+    cursor: pointer;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.graph-endpoint-icon .endpoint-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: transparent;
+    filter: 
+        drop-shadow(0 0 8px #39ff14) 
+        drop-shadow(0 0 15px rgba(57, 255, 20, 0.5));
+    animation: endpointPulse 2s ease-in-out infinite;
+    will-change: filter, opacity;
+    transform: translateZ(0);
+}
+
+@keyframes endpointPulse {
+    0%, 100% {
+        filter: 
+            drop-shadow(0 0 6px #39ff14) 
+            drop-shadow(0 0 12px rgba(57, 255, 20, 0.4));
+        opacity: 0.9;
+    }
+    50% {
+        filter: 
+            drop-shadow(0 0 15px #39ff14) 
+            drop-shadow(0 0 25px rgba(57, 255, 20, 0.9));
+        opacity: 1;
+    }
+}
+
+/* ========== HOUR LABELS ========== */
+.graph-hour-labels {
     display: flex;
-    align-items: flex-end;
     justify-content: space-between;
-    height: 90px;
-    gap: 6px;
-}
-
-.trend-bar-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    height: 100%;
-    position: relative;
-}
-
-.trend-bar {
-    width: 100%;
-    max-width: 40px;
-    border-radius: 6px 6px 2px 2px;
-    background: linear-gradient(180deg, #ffd700 0%, #ff6b9d 100%);
-    position: relative;
-    transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-    min-height: 4px;
-}
-
-.trend-bar.today {
-    background: linear-gradient(180deg, #39ff14 0%, #00cc00 100%);
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.5);
-}
-
-.trend-bar.today::after {
-    content: 'TODAY';
-    position: absolute;
-    top: -16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #39ff14;
-    color: #000;
+    padding: 0 4px;
+    margin-top: 8px;
     font-family: 'Orbitron', monospace;
-    font-size: 6px;
-    font-weight: 900;
-    padding: 2px 5px;
-    border-radius: 3px;
+    font-size: 7px;
+    color: rgba(255, 224, 178, 0.5);
     letter-spacing: 0.5px;
-    white-space: nowrap;
 }
 
-.graph-loading {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: rgba(255, 224, 178, 0.5);
-    font-family: 'Fredoka', sans-serif;
-    font-size: 10px;
-    letter-spacing: 1px;
+.graph-hour-labels span {
+    flex: 1;
+    text-align: center;
+    transition: color 0.3s ease;
+}
+
+.graph-hour-labels span.current-hour {
+    color: #39ff14;
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
 }
 
 /* ========== STATS ROW ========== */
@@ -703,10 +733,7 @@ body {
     color: #39ff14;
 }
 
-.trend-stat-content {
-    flex: 1;
-    min-width: 0;
-}
+.trend-stat-content { flex: 1; min-width: 0; }
 
 .trend-stat-label {
     font-family: 'Fredoka', sans-serif;
@@ -848,7 +875,7 @@ body {
 }
 
 /* ============================================================
-   ✅ MODAL — VERIFICATION WITH PIÑATA BACKGROUND
+   MODAL — VERIFICATION WITH PIÑATA BACKGROUND
    ============================================================ */
 .modal-overlay {
     position: fixed;
@@ -895,11 +922,10 @@ body {
     box-shadow:
         0 25px 60px rgba(0, 0, 0, 0.7),
         0 0 60px rgba(255, 215, 0, 0.4);
-    position: relative;
     overflow: hidden;
 }
 
-/* ✅ PIÑATA BACKGROUND SA MODAL (center center) */
+/* Piñata background sa modal (center center) */
 .modal-bg-image {
     position: absolute;
     inset: 0;
@@ -1281,7 +1307,8 @@ body {
 
     .live-ticker { padding: 6px 14px; font-size: 10px; }
     .trend-stat-value { font-size: 16px; }
-    .trend-graph { height: 75px; }
+    .line-graph-wrapper { height: 90px; }
+    .trend-graph-container { padding: 12px 8px 8px; }
 }
 
 @media (max-width: 360px) {
@@ -1291,6 +1318,7 @@ body {
     .logo-text-sub { font-size: 12px; letter-spacing: 5px; }
     .modal-title { font-size: 22px; }
     .bonus-amount-premium { font-size: 36px; }
+    .line-graph-wrapper { height: 80px; }
 }
 
 /* ============================================================
