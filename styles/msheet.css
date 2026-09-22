@@ -951,3 +951,231 @@ body {
     border-color: #ff4444;
     transform: rotate(90deg) scale(1.1);
 }
+
+/* ============================================================
+   ✅ LUCKY CAT HEADER (Main Card)
+   Cute 3D Lucky Cat Gaming Theme
+   ============================================================ */
+
+.luckycat-header {
+    position: relative;
+    margin-bottom: 18px;
+    padding-top: 8px;
+    z-index: 5;
+}
+
+/* ========== GOLDEN AURA RING ========== */
+.luckycat-ring {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(255, 215, 0, 0.45) 0%,
+        rgba(255, 149, 0, 0.3) 40%,
+        transparent 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: luckycatAuraPulse 3s ease-in-out infinite;
+}
+
+@keyframes luckycatAuraPulse {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.08); opacity: 1; }
+}
+
+.luckycat-ring::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 3px dashed rgba(255, 215, 0, 0.7);
+    animation: luckycatSpin 20s linear infinite;
+}
+
+@keyframes luckycatSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ========== INNER CIRCLE (Lucky Cat) ========== */
+.luckycat-inner {
+    position: relative;
+    width: 82px;
+    height: 82px;
+    background: linear-gradient(180deg, #ffffff 0%, #ffe8d0 100%);
+    border-radius: 50%;
+    border: 3px solid #ffd700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 0 25px rgba(255, 215, 0, 0.8),
+        inset 0 -8px 15px rgba(255, 149, 0, 0.3);
+    overflow: hidden;
+}
+
+.luckycat-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.luckycat-emoji {
+    font-size: 44px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    animation: luckycatBounce 2s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes luckycatBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-4px) scale(1.05); }
+}
+
+/* ========== GOLDEN BELL ========== */
+.luckycat-bell {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
+    animation: luckycatBellRing 1.5s ease-in-out infinite;
+    transform-origin: top center;
+    z-index: 3;
+}
+
+@keyframes luckycatBellRing {
+    0%, 100% { transform: translateX(-50%) rotate(0deg); }
+    25% { transform: translateX(-50%) rotate(-15deg); }
+    75% { transform: translateX(-50%) rotate(15deg); }
+}
+
+/* ========== SPARKLE STARS ========== */
+.luckycat-star {
+    position: absolute;
+    font-size: 14px;
+    filter: drop-shadow(0 0 6px currentColor);
+    pointer-events: none;
+}
+
+.luckycat-star.star-1 {
+    top: 0;
+    right: 0;
+    color: #ffd700;
+    animation: luckycatSparkle 2s ease-in-out infinite;
+}
+
+.luckycat-star.star-2 {
+    bottom: 8px;
+    left: -4px;
+    color: #ff1744;
+    animation: luckycatSparkle 2s ease-in-out infinite 0.5s;
+}
+
+.luckycat-star.star-3 {
+    top: 30%;
+    right: -6px;
+    color: #ffffff;
+    animation: luckycatSparkle 2s ease-in-out infinite 1s;
+}
+
+@keyframes luckycatSparkle {
+    0%, 100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.3) rotate(15deg); }
+}
+
+/* ========== TITLE & SUBTITLE ========== */
+.luckycat-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 40%, #ff9500 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+    margin-bottom: 4px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.luckycat-subtitle {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 10px;
+    color: rgba(255, 215, 0, 0.85);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 480px) {
+    .luckycat-ring {
+        width: 95px;
+        height: 95px;
+        margin-bottom: 12px;
+    }
+
+    .luckycat-ring::before {
+        inset: 6px;
+        border-width: 2px;
+    }
+
+    .luckycat-inner {
+        width: 72px;
+        height: 72px;
+    }
+
+    .luckycat-emoji {
+        font-size: 38px;
+    }
+
+    .luckycat-bell {
+        font-size: 16px;
+        bottom: -6px;
+    }
+
+    .luckycat-title {
+        font-size: 22px;
+        letter-spacing: 1.5px;
+    }
+
+    .luckycat-subtitle {
+        font-size: 9px;
+        letter-spacing: 3px;
+    }
+
+    .luckycat-star {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .luckycat-ring {
+        width: 85px;
+        height: 85px;
+    }
+
+    .luckycat-inner {
+        width: 64px;
+        height: 64px;
+    }
+
+    .luckycat-emoji {
+        font-size: 34px;
+    }
+
+    .luckycat-title {
+        font-size: 20px;
+    }
+}
