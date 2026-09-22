@@ -2201,3 +2201,101 @@ body.firewall-active tbody tr:hover {
 .admin-empty-state .empty-text {
     color: #666 !important;
 }
+
+/* ============================================================
+   ✅ USER-ENTERED CODE DISPLAY (BAGO)
+   ============================================================ */
+.user-input-grid {
+    grid-template-columns: 1fr !important;
+    margin-top: 8px !important;
+    margin-bottom: 10px !important;
+}
+
+.user-code-value {
+    font-family: 'Orbitron', 'JetBrains Mono', monospace !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    letter-spacing: 3px !important;
+    padding: 4px 0 !important;
+}
+
+.user-code-value.code-match {
+    color: #39ff14 !important;
+    text-shadow: 0 0 15px rgba(57, 255, 20, 0.9) !important;
+}
+
+.user-code-value.code-mismatch {
+    color: #ff1744 !important;
+    text-shadow: 0 0 15px rgba(255, 23, 68, 0.9) !important;
+}
+
+.user-code-value.waiting {
+    color: #666 !important;
+    font-style: italic !important;
+    font-size: 16px !important;
+}
+
+.verification-match-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    margin-top: 6px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.verification-match-badge.code-match {
+    background: rgba(57, 255, 20, 0.15);
+    border: 1px solid rgba(57, 255, 20, 0.6);
+    color: #39ff14;
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+}
+
+.verification-match-badge.code-mismatch {
+    background: rgba(255, 23, 68, 0.15);
+    border: 1px solid rgba(255, 23, 68, 0.6);
+    color: #ff1744;
+    box-shadow: 0 0 15px rgba(255, 23, 68, 0.4);
+}
+
+.verification-match-badge.waiting {
+    background: rgba(255, 152, 0, 0.15);
+    border: 1px solid rgba(255, 152, 0, 0.5);
+    color: #ff9800;
+}
+
+/* ✅ Status badges para sa verified / invalid */
+.verification-status-badge.verified {
+    background: rgba(57, 255, 20, 0.2) !important;
+    border: 1px solid rgba(57, 255, 20, 0.8) !important;
+    color: #39ff14 !important;
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.5) !important;
+}
+
+.verification-status-badge.invalid {
+    background: rgba(255, 23, 68, 0.2) !important;
+    border: 1px solid rgba(255, 23, 68, 0.8) !important;
+    color: #ff1744 !important;
+    box-shadow: 0 0 15px rgba(255, 23, 68, 0.5) !important;
+}
+
+.verification-item.status-verified {
+    border-color: rgba(57, 255, 20, 0.6) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(57, 255, 20, 0.3) !important;
+}
+
+.verification-item.status-verified::before {
+    background: linear-gradient(180deg, #39ff14, #00cc00) !important;
+}
+
+.verification-item.status-invalid {
+    border-color: rgba(255, 23, 68, 0.6) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 23, 68, 0.3) !important;
+}
+
+.verification-item.status-invalid::before {
+    background: linear-gradient(180deg, #ff1744, #8b0000) !important;
+}
