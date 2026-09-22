@@ -1,30 +1,109 @@
+/* ============================================================
+   MSheet.css — Cute 3D Lucky Cat Gaming Theme
+   White Maneki-neko | Red collar | Golden bell
+   Red • Gold • White palette | Glowing golden circle
+   ============================================================ */
+
 /* ========== CSS RESET & VARIABLES ========== */
-:root { 
-    --gold: linear-gradient(180deg, #ffdc6a 0%, #d4af37 100%); 
-    --dark-bg: #04070d; 
-    --glass: rgba(255, 255, 255, 0.03);
-    --border: rgba(212, 175, 55, 0.3);
+:root {
+    --gold-gradient: linear-gradient(180deg, #ffe066 0%, #ffd700 40%, #ff9500 100%);
+    --gold-border: #fff3b0;
+    --red-deep: #8b0000;
+    --red-mid: #d10000;
+    --red-bright: #ff1744;
+    --white-soft: #ffffff;
+    --dark-bg: #1a0000;
+    --glass: rgba(255, 255, 255, 0.08);
+    --border-gold: rgba(255, 215, 0, 0.6);
+    --shadow-gold: 0 0 30px rgba(255, 215, 0, 0.4);
+    --shadow-red: 0 0 30px rgba(255, 23, 68, 0.3);
 }
 
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    -webkit-tap-highlight-color: transparent; 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ========== BASE BODY ========== */
-body { 
-    font-family: 'Public Sans', sans-serif; 
-    background-color: var(--dark-bg); 
-    background-image: radial-gradient(circle at 50% 0%, #1e3a8a 0%, transparent 70%); 
-    color: #fff; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    min-height: 100vh; 
-    padding: 15px; 
-    overflow-x: hidden; 
+body {
+    font-family: 'Fredoka', 'Public Sans', sans-serif;
+    background-color: var(--dark-bg);
+    background-image:
+        radial-gradient(circle at 50% 20%, rgba(255, 215, 0, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 50% 80%, rgba(209, 0, 0, 0.25) 0%, transparent 50%),
+        linear-gradient(180deg, #2a0000 0%, #1a0000 50%, #0a0000 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 15px;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ========== LUCKY CAT BACKGROUND AURA ========== */
+.bg-lucky-aura {
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle,
+        rgba(255, 215, 0, 0.25) 0%,
+        rgba(255, 149, 0, 0.15) 30%,
+        rgba(209, 0, 0, 0.08) 55%,
+        transparent 75%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    animation: auraPulse 4s ease-in-out infinite;
+    filter: blur(20px);
+}
+
+@keyframes auraPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+}
+
+/* Sparkle particles */
+.bg-sparkles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.bg-sparkles::before,
+.bg-sparkles::after {
+    content: '✨';
+    position: absolute;
+    font-size: 20px;
+    opacity: 0;
+    animation: sparkleFloat 6s ease-in-out infinite;
+}
+
+.bg-sparkles::before {
+    top: 15%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.bg-sparkles::after {
+    top: 70%;
+    right: 12%;
+    animation-delay: 3s;
+}
+
+@keyframes sparkleFloat {
+    0% { opacity: 0; transform: translateY(0) scale(0.5) rotate(0deg); }
+    20% { opacity: 1; transform: translateY(-15px) scale(1.2) rotate(20deg); }
+    50% { opacity: 0.8; transform: translateY(-30px) scale(1) rotate(-10deg); }
+    100% { opacity: 0; transform: translateY(-60px) scale(0.6) rotate(30deg); }
 }
 
 /* ========== ANIMATIONS ========== */
@@ -34,52 +113,57 @@ body {
     100% { opacity: 0; transform: translate(-50%, -150%) scale(1.5); }
 }
 
-@keyframes fadeInOut { 
-    0% { opacity: 0; transform: translateY(-15px); } 
-    10% { opacity: 1; transform: translateY(0); } 
-    90% { opacity: 1; } 
-    100% { opacity: 0; } 
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-15px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
-@keyframes pulse { 
-    0% { opacity: 1; } 
-    50% { opacity: 0.4; } 
-    100% { opacity: 1; } 
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
 }
 
-@keyframes spin { 
-    to { transform: rotate(360deg); } 
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
-/* Card Animations */
-@keyframes twirl { 
-    0% { transform: rotateY(0); } 
-    100% { transform: rotateY(360deg); } 
+@keyframes twirl {
+    0% { transform: rotateY(0); }
+    100% { transform: rotateY(360deg); }
 }
 
-@keyframes bounce { 
-    0%, 100% { transform: translateY(0); } 
-    50% { transform: translateY(-20px); } 
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
 }
 
-@keyframes glow { 
-    0% { filter: brightness(1); } 
-    50% { filter: brightness(3); } 
+@keyframes glow {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(3); }
 }
 
-@keyframes hop { 
-    0% { transform: scale(1); } 
-    50% { transform: scale(1.2) translateY(-10px); } 
+@keyframes hop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2) translateY(-10px); }
 }
 
-@keyframes float { 
-    0% { transform: translateY(0); } 
-    50% { transform: translateY(-15px); } 
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
 }
 
-@keyframes punch { 
-    0% { transform: translateX(0); } 
-    50% { transform: translateX(10px) scale(1.1); } 
+@keyframes punch {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(10px) scale(1.1); }
+}
+
+@keyframes bellRing {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
 }
 
 /* ========== COMPONENTS ========== */
@@ -87,121 +171,242 @@ body {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-family: 'Orbitron';
+    font-family: 'Orbitron', monospace;
     font-weight: 900;
     font-size: 28px;
-    color: #fbbf24;
-    text-shadow: 0 0 10px #000, 0 0 20px #fbbf24;
+    color: #ffd700;
+    text-shadow: 0 0 10px #000, 0 0 20px #ffd700;
     pointer-events: none;
     z-index: 1000;
     white-space: nowrap;
     animation: floatUp 0.8s ease-out forwards;
 }
 
-.live-winner-box { 
-    position: absolute; 
-    top: 20px; 
-    background: rgba(0, 0, 0, 0.85); 
-    border: 1px solid rgba(212, 175, 55, 0.4); 
-    padding: 8px 15px; 
-    border-radius: 50px; 
-    font-size: 11px; 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    backdrop-filter: blur(10px); 
-    animation: fadeInOut 3s infinite; 
-    z-index: 100; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+.live-winner-box {
+    position: absolute;
+    top: 20px;
+    background: linear-gradient(180deg, rgba(40, 0, 0, 0.9), rgba(20, 0, 0, 0.95));
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+    animation: fadeInOut 3s infinite;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6), 0 0 20px rgba(255, 215, 0, 0.2);
+    color: #ffd700;
 }
 
-.dot { 
-    width: 8px; 
-    height: 8px; 
-    background: #22c55e; 
-    border-radius: 50%; 
-    box-shadow: 0 0 10px #22c55e; 
-    animation: pulse 1.5s infinite; 
+.dot {
+    width: 8px;
+    height: 8px;
+    background: #39ff14;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #39ff14;
+    animation: pulse 1.5s infinite;
 }
 
-.gc-mini-icon { 
-    width: 14px; 
-    height: 14px; 
-    vertical-align: middle; 
-    margin: 0 2px; 
-    object-fit: contain; 
+.gc-mini-icon {
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin: 0 2px;
+    object-fit: contain;
 }
 
 /* ========== LAYOUT SECTIONS ========== */
-#mobileOnly { 
-    display: none; 
-    position: fixed; 
-    inset: 0; 
-    background: #04070d; 
-    z-index: 10000; 
-    align-items: center; 
-    justify-content: center; 
-    text-align: center; 
-    padding: 20px; 
+#mobileOnly {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #1a0000;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
 }
 
-.card { 
-    background: var(--glass); 
-    width: 100%; 
-    max-width: 400px; 
-    padding: 20px; 
-    border-radius: 30px; 
-    border: 1px solid var(--border); 
-    backdrop-filter: blur(15px); 
-    text-align: center; 
-    margin-top: 60px; 
-    position: relative; 
+/* ========== MAIN CARD — 3D GLOSSY LUCKY CAT STYLE ========== */
+.card {
+    position: relative;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 30%),
+        linear-gradient(160deg, #d10000 0%, #8b0000 50%, #4a0000 100%);
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 32px;
+    border: 3px solid #ffd700;
+    backdrop-filter: blur(15px);
+    text-align: center;
+    margin-top: 60px;
+    z-index: 10;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.7),
+        0 0 40px rgba(255, 215, 0, 0.35),
+        inset 0 0 40px rgba(255, 215, 0, 0.08);
+    overflow: hidden;
 }
 
-.casino-banner { 
-    width: 100%; 
-    border-radius: 20px; 
-    margin-bottom: 15px; 
-    border: 1px solid var(--border); 
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);
 }
 
-.logo-img { 
-    width: 120px; 
-    margin-bottom: 15px; 
+/* ========== LUCKY CAT HEADER ========== */
+.luckycat-header {
+    margin-bottom: 18px;
+    position: relative;
 }
 
-.footer-img { 
-    width: 100%; 
-    max-width: 220px; 
-    margin-top: 20px; 
-    opacity: 0.9; 
+.luckycat-ring {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(255, 215, 0, 0.45) 0%,
+        rgba(255, 149, 0, 0.3) 40%,
+        transparent 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: auraPulse 3s ease-in-out infinite;
+}
+
+.luckycat-ring::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 3px dashed rgba(255, 215, 0, 0.7);
+    animation: spin 20s linear infinite;
+}
+
+.luckycat-inner {
+    width: 82px;
+    height: 82px;
+    background: linear-gradient(180deg, #ffffff 0%, #ffe8d0 100%);
+    border-radius: 50%;
+    border: 3px solid #ffd700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 0 25px rgba(255, 215, 0, 0.8),
+        inset 0 -8px 15px rgba(255, 149, 0, 0.3);
+    position: relative;
+}
+
+.luckycat-emoji {
+    font-size: 44px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.luckycat-bell {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
+    animation: bellRing 1.5s ease-in-out infinite;
+    transform-origin: top center;
+}
+
+.luckycat-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 40%, #ff9500 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+    margin-bottom: 4px;
+    line-height: 1;
+}
+
+.luckycat-subtitle {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 10px;
+    color: rgba(255, 215, 0, 0.85);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+/* ========== IMAGES ========== */
+.casino-banner {
+    width: 100%;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+.logo-img {
+    width: 120px;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+}
+
+.footer-img {
+    width: 100%;
+    max-width: 220px;
+    margin-top: 20px;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
 }
 
 /* ========== GAME GRID ========== */
-.game-grid { 
-    display: grid; 
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 10px; 
-    margin: 20px 0; 
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 20px 0;
 }
 
-.card-wrapper { 
-    cursor: pointer; 
-    position: relative; 
+.card-wrapper {
+    cursor: pointer;
+    position: relative;
+    border-radius: 16px;
+    padding: 4px;
+    background: linear-gradient(180deg, rgba(255, 215, 0, 0.15), transparent);
+    transition: transform 0.2s ease;
 }
 
-.card-img { 
-    width: 100%; 
-    max-width: 100px; 
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); 
-    transition: transform 0.2s; 
+.card-wrapper:active {
+    transform: scale(0.95);
 }
 
-.card-disabled { 
-    filter: grayscale(1) opacity(0.2) !important; 
-    pointer-events: none !important; 
-    transform: scale(0.9); 
-    transition: 0.5s; 
+.card-img {
+    width: 100%;
+    max-width: 100px;
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+    transition: transform 0.2s;
+    border-radius: 12px;
+}
+
+.card-disabled {
+    filter: grayscale(1) opacity(0.2) !important;
+    pointer-events: none !important;
+    transform: scale(0.9);
+    transition: 0.5s;
 }
 
 /* Animation Classes */
@@ -213,65 +418,112 @@ body {
 .move-boxer { animation: punch 0.4s ease; }
 
 /* ========== TEXT & BUTTONS ========== */
-.amount { 
-    font-family: 'Orbitron'; 
-    font-size: 38px; 
-    background: var(--gold); 
-    -webkit-background-clip: text; 
-    -webkit-text-fill-color: transparent; 
-    font-weight: 700; 
-    margin: 10px 0; 
+.amount {
+    font-family: 'Orbitron', monospace;
+    font-size: 38px;
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 45%, #ff9500 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    margin: 10px 0;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+    letter-spacing: 1px;
 }
 
-.btn-main { 
-    background: var(--gold); 
-    color: #000; 
-    padding: 18px; 
-    border: none; 
-    border-radius: 15px; 
-    font-weight: 800; 
-    width: 100%; 
-    display: none; 
-    cursor: pointer; 
-    text-transform: uppercase; 
-    margin-top: 10px; 
-    box-shadow: 0 4px #8b6508; 
+.status-label {
+    font-size: 12px;
+    color: #ffd700;
+    margin-bottom: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* 3D GLOSSY GOLD BUTTON */
+.btn-main {
+    position: relative;
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ff9500 70%, #cc6600 100%);
+    color: #8b0000;
+    padding: 18px;
+    border: 3px solid #fff;
+    border-radius: 18px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    width: 100%;
+    display: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 10px;
+    box-shadow:
+        0 6px 0 #6e4b0c,
+        0 10px 25px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(255, 215, 0, 0.5);
+    transition: all 0.1s ease;
+    overflow: hidden;
+}
+
+.btn-main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: btnShine 2.5s infinite;
+}
+
+@keyframes btnShine {
+    0% { left: -100%; }
+    60% { left: 100%; }
+    100% { left: 100%; }
 }
 
 .btn-main:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px #8b6508;
+    transform: translateY(6px);
+    box-shadow:
+        0 0 0 #6e4b0c,
+        0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
-.trust-badge { 
-    font-size: 10px; 
-    color: #64748b; 
-    margin-top: 15px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 5px; 
+.trust-badge {
+    font-size: 10px;
+    color: #ffd700;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    opacity: 0.85;
+    font-weight: 500;
+    letter-spacing: 0.5px;
 }
 
-/* ========== OVERLAY ========== */
-#processingOverlay { 
-    position: fixed; 
-    inset: 0; 
-    background: rgba(4, 7, 13, 0.98); 
-    z-index: 9999; 
-    display: none; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center; 
+/* ========== PROCESSING OVERLAY ========== */
+#processingOverlay {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+        rgba(26, 0, 0, 0.98);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.spinner { 
-    width: 40px; 
-    height: 40px; 
-    border: 4px solid rgba(212,175,55,0.1); 
-    border-top-color: #d4af37; 
-    border-radius: 50%; 
-    animation: spin 1s linear infinite; 
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 215, 0, 0.15);
+    border-top-color: #ffd700;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
 }
 
 /* ========== RESPONSIVE ========== */
@@ -279,58 +531,93 @@ body {
     .card {
         margin-top: 50px;
         padding: 15px;
+        border-radius: 28px;
     }
-    
+
     .amount {
-        font-size: 28px;
+        font-size: 30px;
     }
-    
+
     .mult-pop {
         font-size: 20px;
     }
+
+    .luckycat-ring {
+        width: 95px;
+        height: 95px;
+    }
+
+    .luckycat-inner {
+        width: 72px;
+        height: 72px;
+    }
+
+    .luckycat-emoji {
+        font-size: 38px;
+    }
+
+    .luckycat-title {
+        font-size: 22px;
+    }
 }
 
-/* ========== REVISED CLAIM POPUP ========== */
+/* ============================================================
+   CLAIM POPUP — LUCKY CAT THEME
+   ============================================================ */
 .claim-popup-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.85);
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.2) 0%, transparent 50%),
+        rgba(26, 0, 0, 0.9);
     backdrop-filter: blur(12px);
     z-index: 30000;
     display: none;
     align-items: center;
     justify-content: center;
-    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    padding: 16px;
+    font-family: 'Fredoka', sans-serif;
 }
 
 .claim-popup-card {
-    background: rgba(20, 25, 35, 0.96);
-    backdrop-filter: blur(20px);
-    border-radius: 48px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 25%),
+        linear-gradient(160deg, #d10000 0%, #8b0000 50%, #4a0000 100%);
+    border-radius: 32px;
     max-width: 400px;
-    width: 88%;
+    width: 100%;
     padding: 35px 28px;
     text-align: center;
-    border: 1px solid rgba(0, 242, 255, 0.3);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    border: 3px solid #ffd700;
+    box-shadow:
+        0 25px 50px rgba(0,0,0,0.7),
+        0 0 40px rgba(255, 215, 0, 0.4);
     animation: fadeInScale 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.popup-luckycat {
+    font-size: 60px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.7));
+    animation: bounce 2s ease-in-out infinite;
 }
 
 .claim-popup-card h2 {
     color: #ffd700;
-    font-size: 26px;
+    font-size: 24px;
     margin-bottom: 8px;
-    font-weight: 800;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
 }
 
 .claim-popup-card .greeting {
-    color: rgba(255,255,255,0.95);
-    font-size: 18px;
-    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
+    font-weight: 700;
     margin-bottom: 20px;
+    letter-spacing: 1px;
 }
 
 .prize-amount-wrapper {
@@ -341,14 +628,17 @@ body {
 }
 
 .prize-amount {
-    background: linear-gradient(135deg, #ffd700, #ffaa33);
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 45%, #ff9500 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
+    font-family: 'Orbitron', monospace;
     font-size: 56px;
-    font-weight: 800;
+    font-weight: 900;
     display: inline-block;
     position: relative;
     z-index: 2;
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
 }
 
 .prize-underline {
@@ -370,52 +660,61 @@ body {
 }
 
 .claim-popup-card .message {
-    color: rgba(255,255,255,0.85);
-    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
     line-height: 1.6;
     margin: 20px 0 15px;
+    font-weight: 400;
 }
 
 .claim-popup-card .message .highlight {
-    color: #00f2ff;
-    font-weight: 700;
+    color: #ffd700;
+    font-weight: 800;
     text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
 }
 
 .simple-note {
-    background: rgba(0, 242, 255, 0.08);
-    border-radius: 20px;
+    background: rgba(255, 215, 0, 0.12);
+    border-radius: 16px;
     padding: 10px;
     margin: 15px 0;
-    border: 1px solid rgba(0, 242, 255, 0.3);
+    border: 2px solid rgba(255, 215, 0, 0.4);
 }
 
 .simple-note p {
-    color: #00f2ff;
+    color: #ffd700;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
+/* CLAIM BUTTON — 3D GOLD */
 .claim-action-btn {
-    background: linear-gradient(135deg, #0066ff, #0044cc);
-    border: none;
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ff9500 70%, #cc6600 100%);
+    border: 3px solid #fff;
     width: 100%;
     padding: 16px 20px;
-    font-size: 18px;
-    font-weight: 800;
-    border-radius: 60px;
+    font-size: 17px;
+    font-weight: 900;
+    border-radius: 16px;
     cursor: pointer;
-    transition: 0.2s;
-    font-family: 'Poppins', 'Segoe UI', sans-serif;
-    color: white;
+    transition: all 0.1s ease;
+    font-family: 'Fredoka', sans-serif;
+    color: #8b0000;
     margin-top: 10px;
-    box-shadow: 0 0 15px rgba(0, 102, 255, 0.5), 0 4px 10px rgba(0,0,0,0.3);
-    letter-spacing: 1px;
+    box-shadow:
+        0 6px 0 #6e4b0c,
+        0 10px 25px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(255, 215, 0, 0.6);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
 }
 
 .claim-action-btn:active {
-    transform: scale(0.98);
-    box-shadow: 0 0 8px rgba(0, 102, 255, 0.8);
+    transform: translateY(6px);
+    box-shadow: 0 0 0 #6e4b0c, 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .claim-action-btn:disabled {
@@ -425,9 +724,10 @@ body {
 }
 
 .info-note {
-    color: rgba(255,255,255,0.35);
+    color: rgba(255, 255, 255, 0.5);
     font-size: 10px;
     margin-top: 18px;
+    letter-spacing: 0.5px;
 }
 
 @keyframes fadeInScale {
@@ -436,21 +736,31 @@ body {
 }
 
 .congrats-title {
-    font-size: 22px !important;
+    font-size: 20px !important;
     white-space: nowrap;
 }
 
 @media (max-width: 480px) {
     .congrats-title {
-        font-size: 18px !important;
+        font-size: 16px !important;
         white-space: nowrap;
+    }
+
+    .popup-luckycat {
+        font-size: 48px;
+    }
+
+    .prize-amount {
+        font-size: 44px;
     }
 }
 
-/* ========== PENDING STATUS ========== */
+/* ============================================================
+   PENDING STATUS
+   ============================================================ */
 .pending-status-text {
     color: #ff4444;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -464,10 +774,11 @@ body {
     font-family: 'Orbitron', monospace;
     color: #ffd700;
     margin: 5px 0;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
 }
 
 .pending-message-text {
-    color: #94a3b8;
+    color: #ccc;
     font-size: 11px;
 }
 
@@ -478,58 +789,70 @@ body {
 }
 
 #pendingStatusArea {
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     border-radius: 16px;
     padding: 12px;
     margin: 10px 0;
-    border: 1px solid rgba(255,68,68,0.3);
+    border: 2px solid rgba(255, 68, 68, 0.4);
+    box-shadow: inset 0 0 20px rgba(255, 68, 68, 0.1);
 }
 
-/* ========== FIREWALL POPUP ========== */
+/* ============================================================
+   FIREWALL POPUP — LUCKY CAT RED THEME
+   ============================================================ */
 .firewall-popup-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 40%, rgba(255, 68, 68, 0.25) 0%, transparent 55%),
+        rgba(26, 0, 0, 0.95);
     backdrop-filter: blur(12px);
     z-index: 40000;
     display: none;
     align-items: center;
     justify-content: center;
-    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    padding: 16px;
+    font-family: 'Fredoka', sans-serif;
 }
 
 .firewall-popup-card {
-    background: rgba(20, 25, 35, 0.98);
-    backdrop-filter: blur(20px);
-    border-radius: 32px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 25%),
+        linear-gradient(160deg, #d10000 0%, #8b0000 50%, #4a0000 100%);
+    border-radius: 28px;
     max-width: 380px;
-    width: 88%;
+    width: 100%;
     padding: 30px 25px;
     text-align: center;
-    border: 1px solid rgba(255, 68, 68, 0.5);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    border: 3px solid #ffd700;
+    box-shadow:
+        0 25px 50px rgba(0,0,0,0.7),
+        0 0 40px rgba(255, 215, 0, 0.4);
     animation: fadeInScale 0.4s ease;
     position: relative;
+    overflow: hidden;
 }
 
 .firewall-warning-icon {
-    font-size: 48px;
+    font-size: 54px;
     margin-bottom: 15px;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.7));
+    animation: bellRing 1.5s ease-in-out infinite;
+    transform-origin: top center;
 }
 
 .firewall-popup-card h2 {
-    color: #ff4444;
-    font-size: 24px;
+    color: #ffd700;
+    font-size: 22px;
     margin-bottom: 15px;
-    font-weight: 800;
+    font-weight: 900;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    letter-spacing: 1px;
 }
 
 .firewall-message {
-    color: rgba(255,255,255,0.85);
-    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
     line-height: 1.6;
     margin-bottom: 20px;
 }
@@ -540,32 +863,53 @@ body {
 
 .verification-input {
     width: 100%;
-    background: #000;
-    border: 1px solid #ff4444;
-    color: #fff;
+    background: #1a0000;
+    border: 3px solid #ffd700;
+    color: #ffd700;
     padding: 14px;
-    border-radius: 12px;
-    font-size: 18px;
+    border-radius: 14px;
+    font-size: 22px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
     text-align: center;
-    letter-spacing: 4px;
+    letter-spacing: 8px;
     margin-bottom: 12px;
     outline: none;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.verification-input::placeholder {
+    color: rgba(255, 215, 0, 0.4);
+    letter-spacing: 4px;
+    font-size: 16px;
 }
 
 .verify-btn {
     width: 100%;
-    background: linear-gradient(135deg, #ff4444, #cc0000);
-    border: none;
+    background: linear-gradient(180deg, #fff9c4 0%, #ffd700 40%, #ff9500 100%);
+    border: 3px solid #fff;
     padding: 14px;
-    font-size: 16px;
-    font-weight: 800;
-    border-radius: 60px;
+    font-size: 15px;
+    font-weight: 900;
+    border-radius: 14px;
     cursor: pointer;
-    color: white;
+    color: #8b0000;
+    font-family: 'Fredoka', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    box-shadow:
+        0 5px 0 #6e4b0c,
+        0 8px 20px rgba(0, 0, 0, 0.5);
+    transition: all 0.1s ease;
+}
+
+.verify-btn:active {
+    transform: translateY(5px);
+    box-shadow: 0 0 0 #6e4b0c;
 }
 
 .firewall-note {
-    color: rgba(255,255,255,0.4);
+    color: rgba(255, 255, 255, 0.55);
     font-size: 11px;
     margin-top: 15px;
 }
@@ -574,31 +918,36 @@ body {
     color: #ff8888;
     font-size: 12px;
     margin-top: 12px;
-    padding: 8px;
-    background: rgba(255, 68, 68, 0.1);
-    border-radius: 8px;
+    padding: 10px;
+    background: rgba(255, 68, 68, 0.15);
+    border: 1px solid rgba(255, 68, 68, 0.4);
+    border-radius: 10px;
+    font-weight: 600;
 }
 
 .popup-close-btn {
     position: absolute;
     top: 15px;
     right: 20px;
-    width: 30px;
-    height: 30px;
-    background: rgba(255,255,255,0.1);
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 215, 0, 0.15);
+    border: 2px solid rgba(255, 215, 0, 0.5);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
-    color: #fff;
+    color: #ffd700;
     transition: 0.2s;
     z-index: 10;
 }
 
 .popup-close-btn:hover {
-    background: rgba(255,255,255,0.3);
-    transform: scale(1.1);
+    background: rgba(255, 68, 68, 0.4);
+    color: #fff;
+    border-color: #ff4444;
+    transform: rotate(90deg) scale(1.1);
 }
