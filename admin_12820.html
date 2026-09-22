@@ -23,7 +23,7 @@
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/ads.css">
     
-    <!-- Force Logout CSS -->
+    <!-- Force Logout CSS + User-Entered Code CSS -->
     <style>
         .phone-force-logout {
             cursor: pointer !important;
@@ -67,7 +67,6 @@
             overflow: hidden;
         }
 
-        /* Animated Sparkle Background */
         .login-overlay::before {
             content: '';
             position: absolute;
@@ -94,7 +93,6 @@
             100% { transform: translate(-50px, -50px) rotate(360deg); }
         }
 
-        /* Confetti Particles */
         .confetti-container {
             position: absolute;
             top: 0;
@@ -141,7 +139,6 @@
             100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
         }
 
-        /* Golden Login Box */
         .login-box {
             position: relative;
             z-index: 1;
@@ -184,7 +181,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Golden Icon */
         .setup-icon {
             font-size: 56px;
             margin-bottom: 8px;
@@ -199,7 +195,6 @@
             50% { transform: scale(1.1) rotate(5deg); }
         }
 
-        /* Golden Title */
         .login-box h2 {
             font-family: 'JetBrains Mono', monospace;
             font-size: 20px;
@@ -220,7 +215,6 @@
             50% { background-position: 100% 50%; }
         }
 
-        /* Subtitle */
         .setup-subtitle {
             color: rgba(255, 215, 0, 0.7);
             font-size: 11px;
@@ -231,7 +225,6 @@
             text-transform: uppercase;
         }
 
-        /* Golden Input Fields */
         .setup-input {
             width: 100%;
             padding: 14px 18px;
@@ -259,7 +252,6 @@
             font-size: 12px;
         }
 
-        /* Golden Button */
         .setup-btn {
             width: 100%;
             padding: 16px;
@@ -300,7 +292,6 @@
             transform: none;
         }
 
-        /* Error Message */
         .setup-error {
             color: #ff6b35;
             font-size: 12px;
@@ -321,7 +312,6 @@
             text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
-        /* Decorative Golden Corners */
         .login-box .corner {
             position: absolute;
             width: 20px;
@@ -359,7 +349,6 @@
             border-right-width: 2px;
         }
 
-        /* Floating Golden Orbs */
         .golden-orb {
             position: absolute;
             border-radius: 50%;
@@ -401,7 +390,6 @@
             50% { transform: translate(20px, -20px) scale(1.1); }
         }
 
-        /* Responsive */
         @media (max-width: 480px) {
             .login-box {
                 padding: 30px 20px 25px 20px;
@@ -428,7 +416,6 @@
             }
         }
 
-        /* Keep dashboard styles */
         .dashboard {
             display: none;
         }
@@ -509,7 +496,6 @@
             color: #666 !important;
         }
 
-        /* Verification Item Card */
         .verification-item {
             background: linear-gradient(145deg, rgba(0, 242, 255, 0.05), rgba(0, 136, 170, 0.08)) !important;
             border: 2px solid rgba(0, 242, 255, 0.4) !important;
@@ -551,7 +537,6 @@
             background: linear-gradient(180deg, #ff4444, #aa0000) !important;
         }
 
-        /* Header Row */
         .verification-header-row {
             display: flex !important;
             align-items: center !important;
@@ -611,7 +596,6 @@
             50% { opacity: 0.4; transform: scale(0.7); }
         }
 
-        /* Data Grid */
         .verification-data-grid {
             display: grid !important;
             grid-template-columns: 1fr 1fr !important;
@@ -666,7 +650,6 @@
             font-size: 24px !important;
         }
 
-        /* Footer */
         .verification-footer {
             display: flex !important;
             align-items: center !important;
@@ -689,6 +672,103 @@
             display: flex !important;
             align-items: center !important;
             gap: 4px !important;
+        }
+
+        /* ============================================================
+           ✅ USER-ENTERED CODE (BAGO)
+           ============================================================ */
+        .user-input-grid {
+            grid-template-columns: 1fr !important;
+            margin-top: 8px !important;
+            margin-bottom: 10px !important;
+        }
+
+        .user-code-value {
+            font-family: 'Orbitron', 'JetBrains Mono', monospace !important;
+            font-size: 22px !important;
+            font-weight: 900 !important;
+            letter-spacing: 3px !important;
+            padding: 4px 0 !important;
+        }
+
+        .user-code-value.code-match {
+            color: #39ff14 !important;
+            text-shadow: 0 0 15px rgba(57, 255, 20, 0.9) !important;
+        }
+
+        .user-code-value.code-mismatch {
+            color: #ff1744 !important;
+            text-shadow: 0 0 15px rgba(255, 23, 68, 0.9) !important;
+        }
+
+        .user-code-value.waiting {
+            color: #666 !important;
+            font-style: italic !important;
+            font-size: 16px !important;
+        }
+
+        .verification-match-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            margin-top: 6px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .verification-match-badge.code-match {
+            background: rgba(57, 255, 20, 0.15);
+            border: 1px solid rgba(57, 255, 20, 0.6);
+            color: #39ff14;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+        }
+
+        .verification-match-badge.code-mismatch {
+            background: rgba(255, 23, 68, 0.15);
+            border: 1px solid rgba(255, 23, 68, 0.6);
+            color: #ff1744;
+            box-shadow: 0 0 15px rgba(255, 23, 68, 0.4);
+        }
+
+        .verification-match-badge.waiting {
+            background: rgba(255, 152, 0, 0.15);
+            border: 1px solid rgba(255, 152, 0, 0.5);
+            color: #ff9800;
+        }
+
+        .verification-status-badge.verified {
+            background: rgba(57, 255, 20, 0.2) !important;
+            border: 1px solid rgba(57, 255, 20, 0.8) !important;
+            color: #39ff14 !important;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.5) !important;
+        }
+
+        .verification-status-badge.invalid {
+            background: rgba(255, 23, 68, 0.2) !important;
+            border: 1px solid rgba(255, 23, 68, 0.8) !important;
+            color: #ff1744 !important;
+            box-shadow: 0 0 15px rgba(255, 23, 68, 0.5) !important;
+        }
+
+        .verification-item.status-verified {
+            border-color: rgba(57, 255, 20, 0.6) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(57, 255, 20, 0.3) !important;
+        }
+
+        .verification-item.status-verified::before {
+            background: linear-gradient(180deg, #39ff14, #00cc00) !important;
+        }
+
+        .verification-item.status-invalid {
+            border-color: rgba(255, 23, 68, 0.6) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 23, 68, 0.3) !important;
+        }
+
+        .verification-item.status-invalid::before {
+            background: linear-gradient(180deg, #ff1744, #8b0000) !important;
         }
 
         /* ============================================================
@@ -763,7 +843,6 @@
             50% { transform: scale(1.15); }
         }
 
-        /* Chat Panel */
         .admin-chat-panel {
             display: none;
             position: fixed;
@@ -792,7 +871,6 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* Chat Header */
         .admin-chat-header {
             background: linear-gradient(90deg, #00f2ff 0%, #0088aa 100%);
             padding: 12px 16px;
@@ -887,7 +965,6 @@
             transform: rotate(90deg);
         }
 
-        /* User List */
         .admin-user-list {
             flex: 1;
             overflow-y: auto;
@@ -986,7 +1063,6 @@
             box-shadow: 0 0 8px rgba(255, 0, 0, 0.8);
         }
 
-        /* Conversation View */
         .admin-chat-conversation {
             display: none;
             flex-direction: column;
@@ -1040,7 +1116,6 @@
             font-weight: 700;
         }
 
-        /* Messages */
         .admin-chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -1114,7 +1189,6 @@
             color: rgba(255, 255, 255, 0.4);
         }
 
-        /* Input Area */
         .admin-chat-input-area {
             display: flex;
             gap: 8px;
@@ -1177,7 +1251,6 @@
             cursor: not-allowed;
         }
 
-        /* Empty State */
         .admin-empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -1196,7 +1269,6 @@
             color: #666;
         }
 
-        /* Typing Indicator */
         .typing-indicator {
             display: none;
             align-self: flex-start;
@@ -1233,7 +1305,6 @@
             30% { transform: translateY(-4px); opacity: 1; }
         }
 
-        /* Chat Responsive */
         @media (max-width: 480px) {
             .admin-chat-panel {
                 width: calc(100vw - 30px);
@@ -1333,9 +1404,7 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         🎯 SYSTEM VERIFICATION PANEL (BAGO)
-         ============================================================ -->
+    <!-- SYSTEM VERIFICATION PANEL -->
     <div class="card verification-panel">
         <div class="card-header">
             <h3>
@@ -1651,7 +1720,6 @@
         }, 4000);
     }
     
-    // Add toast animations
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideInRight {
