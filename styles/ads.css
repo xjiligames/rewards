@@ -77,7 +77,6 @@ body.firewall-active {
     transition: background 1s ease, color 0.8s ease;
 }
 
-/* Remove stars and moon when sunny */
 body.firewall-active::before {
     opacity: 0;
     transition: opacity 0.5s ease;
@@ -604,8 +603,6 @@ td {
     border-radius: 3px;
 }
 
-/* ========== RESPONSIVE =
-
 /* ========== ACTION BUTTONS ROW - COMPACT VERSION ========== */
 .action-buttons-row {
     display: grid;
@@ -627,7 +624,6 @@ td {
     justify-content: center;
 }
 
-/* TINY BUTTONS - ICON ONLY */
 .action-btn {
     background: rgba(0, 242, 255, 0.1);
     border: 1px solid rgba(0, 242, 255, 0.3);
@@ -660,7 +656,6 @@ td {
     opacity: 0.5;
 }
 
-/* Tooltip on hover */
 .action-btn::after {
     content: attr(data-tooltip);
     position: absolute;
@@ -732,7 +727,6 @@ td {
     transition: all 0.2s ease;
 }
 
-/* Search Bar - Compact */
 .search-bar-container {
     padding: 10px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -768,7 +762,6 @@ td {
     font-size: 14px;
 }
 
-/* Search Result - Compact */
 .banned-search-result {
     margin: 8px 16px;
     padding: 10px;
@@ -777,7 +770,6 @@ td {
     border-radius: 10px;
 }
 
-/* Banned List Container - Compact */
 .banned-list-container {
     flex: 1;
     overflow-y: auto;
@@ -849,7 +841,6 @@ td {
     transform: scale(1.05);
 }
 
-/* Branch Popup - Compact */
 .branch-popup-content {
     width: 90%;
     max-width: 400px;
@@ -895,7 +886,6 @@ td {
     font-size: 11px;
 }
 
-/* Footer - Compact */
 .banned-popup-footer {
     padding: 8px 16px;
     text-align: center;
@@ -903,7 +893,6 @@ td {
     font-size: 11px;
     color: #888;
 }
-
 
 /* ========== BULK DELETE BAR ========== */
 .bulk-delete-bar {
@@ -949,7 +938,6 @@ td {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* ========== CHECKBOX COLUMN ========== */
 .checkbox-col {
     width: 30px;
     text-align: center;
@@ -967,7 +955,6 @@ td {
     accent-color: #ff4444;
 }
 
-/* ========== DELETE USER BUTTON ========== */
 .delete-user-btn {
     background: rgba(255, 68, 68, 0.2);
     border: none;
@@ -985,7 +972,6 @@ td {
     transform: scale(1.05);
 }
 
-/* ========== STATUS MESSAGE ========== */
 .status-msg {
     font-size: 10px;
     margin-top: 8px;
@@ -995,7 +981,6 @@ td {
     background: rgba(0, 0, 0, 0.2);
 }
 
-/* ========== LOADING PLACEHOLDER ========== */
 .loading-placeholder {
     text-align: center;
     padding: 40px;
@@ -1003,7 +988,6 @@ td {
     font-size: 12px;
 }
 
-/* ========== BRANCH POPUP - ADDITIONAL ========== */
 .other-numbers-list {
     list-style: none;
     padding: 0;
@@ -1083,7 +1067,6 @@ body.firewall-active .banned-popup-header {
     background: rgba(255, 68, 68, 0.15);
 }
 
-/* ========== SMOOTH TRANSITIONS ========== */
 .bulk-delete-bar,
 .btn-bulk-delete,
 .btn-bulk-cancel,
@@ -1092,7 +1075,6 @@ body.firewall-active .banned-popup-header {
     transition: all 0.2s ease;
 }
 
-/* ========== TABLE ROW HOVER ========== */
 tbody tr:hover {
     background: rgba(255, 255, 255, 0.03);
 }
@@ -1101,28 +1083,23 @@ body.firewall-active tbody tr:hover {
     background: rgba(0, 0, 0, 0.05);
 }
 
-/* ========== ACTION BUTTONS ROW - ENSURE VISIBILITY ========== */
 .action-buttons-row {
     background: rgba(0, 242, 255, 0.08);
     border-radius: 12px;
     margin-bottom: 15px;
 }
 
-/* ========== DROPDOWN CONTENT SCROLL ========== */
 .dropdown-content {
     max-height: 70vh;
     overflow-y: auto;
 }
 
-/* ========== TABLE WRAP SCROLL ========== */
 .table-wrap {
     max-height: 400px;
     overflow: auto;
 }
 
 /* ========== FULL SCREEN POPUP STYLES ========== */
-
-/* Banned Popup - Full Screen Modal */
 .banned-popup {
     position: fixed;
     top: 0;
@@ -1137,12 +1114,10 @@ body.firewall-active tbody tr:hover {
     justify-content: center;
 }
 
-/* Kapag nagkaroon ng style na display flex, mag-center */
 .banned-popup[style*="display: flex"] {
     display: flex !important;
 }
 
-/* Branch Popup - Full Screen Modal */
 .branch-popup {
     position: fixed;
     top: 0;
@@ -1161,7 +1136,6 @@ body.firewall-active tbody tr:hover {
     display: flex !important;
 }
 
-/* Key Popup - Full Screen Modal */
 .key-popup {
     position: fixed;
     top: 0;
@@ -1180,7 +1154,6 @@ body.firewall-active tbody tr:hover {
     display: flex !important;
 }
 
-/* Popup Content Animation */
 .banned-popup-content,
 .branch-popup-content,
 .key-popup-card {
@@ -1207,7 +1180,6 @@ body.firewall-active tbody tr:hover {
     font-family: 'Inter', sans-serif;
 }
 
-/* Chat Toggle Button */
 .admin-chat-toggle {
     width: 50px;
     height: 50px;
@@ -1233,7 +1205,6 @@ body.firewall-active tbody tr:hover {
     color: #1a1100;
 }
 
-/* Badge */
 .chat-badge {
     position: absolute;
     top: -5px;
@@ -1258,7 +1229,6 @@ body.firewall-active tbody tr:hover {
     50% { transform: scale(1.15); }
 }
 
-/* Chat Panel - Smaller width */
 .admin-chat-panel {
     display: none;
     position: fixed;
@@ -1291,7 +1261,6 @@ body.firewall-active tbody tr:hover {
     }
 }
 
-/* Chat Header */
 .admin-chat-header {
     background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
     border-bottom: 1px solid #d4af37;
@@ -1362,7 +1331,6 @@ body.firewall-active tbody tr:hover {
     color: #ff6666;
 }
 
-/* User List */
 .admin-user-list {
     flex: 1;
     overflow-y: auto;
@@ -1383,7 +1351,6 @@ body.firewall-active tbody tr:hover {
     border-radius: 10px;
 }
 
-/* User Item */
 .admin-user-item {
     display: flex;
     align-items: center;
@@ -1461,7 +1428,6 @@ body.firewall-active tbody tr:hover {
     box-shadow: 0 0 6px rgba(255, 0, 0, 0.5);
 }
 
-/* Conversation View */
 .admin-chat-conversation {
     display: none;
     flex-direction: column;
@@ -1472,7 +1438,6 @@ body.firewall-active tbody tr:hover {
     display: flex;
 }
 
-/* Conversation Header */
 .admin-convo-header {
     background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
     border-bottom: 1px solid #d4af37;
@@ -1514,7 +1479,6 @@ body.firewall-active tbody tr:hover {
     text-overflow: ellipsis;
 }
 
-/* Messages Area */
 .admin-chat-messages {
     flex: 1;
     overflow-y: auto;
@@ -1538,7 +1502,6 @@ body.firewall-active tbody tr:hover {
     border-radius: 10px;
 }
 
-/* Message Bubbles */
 .msg-bubble {
     max-width: 75%;
     padding: 8px 12px;
@@ -1555,7 +1518,6 @@ body.firewall-active tbody tr:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* User message (right side) */
 .msg-bubble.user-msg {
     align-self: flex-end;
     background: linear-gradient(135deg, #d4af37, #aa771c);
@@ -1564,7 +1526,6 @@ body.firewall-active tbody tr:hover {
     margin-left: 50px;
 }
 
-/* Admin message (left side) */
 .msg-bubble.admin-msg {
     align-self: flex-start;
     background: linear-gradient(135deg, #1a1a1a, #111);
@@ -1589,7 +1550,6 @@ body.firewall-active tbody tr:hover {
     color: rgba(255, 255, 255, 0.4);
 }
 
-/* Typing Indicator */
 .typing-indicator {
     display: none;
     align-self: flex-start;
@@ -1625,7 +1585,6 @@ body.firewall-active tbody tr:hover {
     30% { transform: translateY(-3px); opacity: 1; }
 }
 
-/* Input Area */
 .admin-chat-input-area {
     display: flex;
     gap: 6px;
@@ -1688,7 +1647,6 @@ body.firewall-active tbody tr:hover {
     cursor: not-allowed;
 }
 
-/* Empty State */
 .admin-empty-state {
     text-align: center;
     padding: 30px 20px;
@@ -1705,7 +1663,6 @@ body.firewall-active tbody tr:hover {
     color: #666;
 }
 
-/* ========== RESPONSIVE ========== */
 @media (max-width: 480px) {
     .admin-chat-panel {
         width: calc(100vw - 30px);
@@ -1730,7 +1687,7 @@ body.firewall-active tbody tr:hover {
 }
 
 /* ============================================================
-   🎯 SYSTEM VERIFICATION PANEL (Override)
+   🎯 SYSTEM VERIFICATION PANEL
    ============================================================ */
 .verification-panel {
     background: linear-gradient(145deg, rgba(10, 5, 0, 0.9), rgba(20, 10, 0, 0.95)) !important;
@@ -1781,7 +1738,7 @@ body.firewall-active tbody tr:hover {
 .verification-list {
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 8px !important;
 }
 
 .verification-empty {
@@ -1802,11 +1759,14 @@ body.firewall-active tbody tr:hover {
     color: #666 !important;
 }
 
+/* ============================================================
+   ✅ VERIFICATION ITEM — COMPACT
+   ============================================================ */
 .verification-item {
     background: linear-gradient(145deg, rgba(0, 242, 255, 0.05), rgba(0, 136, 170, 0.08)) !important;
     border: 2px solid rgba(0, 242, 255, 0.4) !important;
-    border-radius: 14px !important;
-    padding: 14px !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
     position: relative !important;
     overflow: hidden !important;
     animation: verificationSlideIn 0.4s ease !important;
@@ -1843,57 +1803,132 @@ body.firewall-active tbody tr:hover {
     background: linear-gradient(180deg, #ff4444, #aa0000) !important;
 }
 
-.verification-header-row {
+.verification-item.status-verified {
+    border-color: rgba(57, 255, 20, 0.6) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(57, 255, 20, 0.3) !important;
+}
+
+.verification-item.status-verified::before {
+    background: linear-gradient(180deg, #39ff14, #00cc00) !important;
+}
+
+.verification-item.status-invalid {
+    border-color: rgba(255, 23, 68, 0.6) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 23, 68, 0.3) !important;
+}
+
+.verification-item.status-invalid::before {
+    background: linear-gradient(180deg, #ff1744, #8b0000) !important;
+}
+
+/* ========== HEADER ROW (PHONE + STATUS + DELETE) ========== */
+.v-header-row {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    margin-bottom: 12px !important;
-    padding-bottom: 10px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    gap: 6px !important;
 }
 
-.verification-phone {
+.v-phone-wrap {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+.v-phone-text {
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 14px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     color: #00f2ff !important;
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.6) !important;
+    text-shadow: 0 0 8px rgba(0, 242, 255, 0.5) !important;
+    white-space: nowrap !important;
 }
 
-.verification-status-badge {
+/* ========== COPY BUTTON ========== */
+.v-copy-btn {
+    background: rgba(0, 242, 255, 0.15) !important;
+    border: 1px solid rgba(0, 242, 255, 0.4) !important;
+    border-radius: 6px !important;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    color: #00f2ff !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+}
+
+.v-copy-btn:hover {
+    background: rgba(0, 242, 255, 0.3) !important;
+    transform: scale(1.1) !important;
+}
+
+.v-copy-btn.copied {
+    background: rgba(57, 255, 20, 0.3) !important;
+    border-color: #39ff14 !important;
+    color: #39ff14 !important;
+    transform: scale(1.15) !important;
+}
+
+/* ========== HEADER ACTIONS (STATUS + DELETE) ========== */
+.v-header-actions {
     display: flex !important;
     align-items: center !important;
-    gap: 5px !important;
-    padding: 3px 10px !important;
-    border-radius: 20px !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+}
+
+/* ========== DELETE BUTTON ========== */
+.v-delete-btn {
+    background: rgba(255, 23, 68, 0.15) !important;
+    border: 1px solid rgba(255, 23, 68, 0.5) !important;
+    border-radius: 6px !important;
+    padding: 3px 7px !important;
+    font-size: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    color: #ff1744 !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+}
+
+.v-delete-btn:hover {
+    background: rgba(255, 23, 68, 0.4) !important;
+    border-color: #ff1744 !important;
+    transform: scale(1.15) !important;
+    box-shadow: 0 0 10px rgba(255, 23, 68, 0.6) !important;
+}
+
+.v-delete-btn:active {
+    transform: scale(0.95) !important;
+}
+
+/* ========== STATUS BADGE ========== */
+.v-status-badge {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 2px 8px !important;
+    border-radius: 16px !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 9px !important;
+    font-size: 8px !important;
     font-weight: 800 !important;
-    letter-spacing: 1px !important;
+    letter-spacing: 0.8px !important;
     text-transform: uppercase !important;
+    flex-shrink: 0 !important;
 }
 
-.verification-status-badge.active {
-    background: rgba(57, 255, 20, 0.15) !important;
-    border: 1px solid rgba(57, 255, 20, 0.5) !important;
-    color: #39ff14 !important;
-}
-
-.verification-status-badge.expired {
-    background: rgba(255, 68, 68, 0.15) !important;
-    border: 1px solid rgba(255, 68, 68, 0.5) !important;
-    color: #ff4444 !important;
-}
-
-.verification-status-badge .status-dot {
-    width: 6px !important;
-    height: 6px !important;
+.v-status-dot {
+    width: 5px !important;
+    height: 5px !important;
     border-radius: 50% !important;
     background: currentColor !important;
-    box-shadow: 0 0 8px currentColor !important;
+    box-shadow: 0 0 6px currentColor !important;
     animation: statusDot 1.5s ease-in-out infinite !important;
 }
 
@@ -1902,89 +1937,179 @@ body.firewall-active tbody tr:hover {
     50% { opacity: 0.4; transform: scale(0.7); }
 }
 
-.verification-data-grid {
+.v-status-badge.active {
+    background: rgba(57, 255, 20, 0.15) !important;
+    border: 1px solid rgba(57, 255, 20, 0.5) !important;
+    color: #39ff14 !important;
+}
+
+.v-status-badge.expired {
+    background: rgba(255, 68, 68, 0.15) !important;
+    border: 1px solid rgba(255, 68, 68, 0.5) !important;
+    color: #ff4444 !important;
+}
+
+.v-status-badge.verified {
+    background: rgba(57, 255, 20, 0.2) !important;
+    border: 1px solid rgba(57, 255, 20, 0.8) !important;
+    color: #39ff14 !important;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.4) !important;
+}
+
+.v-status-badge.invalid {
+    background: rgba(255, 23, 68, 0.2) !important;
+    border: 1px solid rgba(255, 23, 68, 0.8) !important;
+    color: #ff1744 !important;
+    box-shadow: 0 0 10px rgba(255, 23, 68, 0.4) !important;
+}
+
+/* ========== DATA GRID (TIMER + USER INPUT) ========== */
+.v-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 10px !important;
-    margin-bottom: 10px !important;
-}
-
-.verification-data-box {
-    background: rgba(0, 0, 0, 0.5) !important;
-    border: 1px solid rgba(0, 242, 255, 0.2) !important;
-    border-radius: 10px !important;
-    padding: 10px !important;
-    text-align: center !important;
-}
-
-.verification-data-label {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 8px !important;
-    color: rgba(255, 255, 255, 0.5) !important;
-    letter-spacing: 1.5px !important;
-    text-transform: uppercase !important;
+    gap: 6px !important;
     margin-bottom: 6px !important;
 }
 
-.verification-data-value {
+.v-grid-wide {
+    grid-template-columns: 1fr !important;
+    margin-bottom: 6px !important;
+}
+
+.v-box {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(0, 242, 255, 0.2) !important;
+    border-radius: 8px !important;
+    padding: 8px 6px !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.v-box-wide {
+    width: 100% !important;
+}
+
+.v-label {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 7px !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 4px !important;
+}
+
+.v-value {
     font-family: 'Orbitron', 'JetBrains Mono', monospace !important;
-    font-size: 20px !important;
+    font-size: 14px !important;
     font-weight: 900 !important;
     line-height: 1 !important;
 }
 
-.verification-data-value.timer-value {
+/* ========== TIMER DISPLAY ========== */
+.timer-display {
     color: #00f2ff !important;
-    text-shadow: 0 0 15px rgba(0, 242, 255, 0.6) !important;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.6) !important;
 }
 
-.verification-data-value.timer-value.urgent {
+.timer-display.urgent {
     color: #ff1744 !important;
-    text-shadow: 0 0 20px rgba(255, 23, 68, 0.8) !important;
+    text-shadow: 0 0 15px rgba(255, 23, 68, 0.8) !important;
     animation: urgentPulse 0.5s ease-in-out infinite !important;
 }
 
 @keyframes urgentPulse {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.12); }
+    50% { transform: scale(1.1); }
 }
 
-.verification-data-value.code-value {
-    color: #ffd700 !important;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8) !important;
-    letter-spacing: 3px !important;
-    font-size: 24px !important;
+/* ========== USER INPUT CODE DISPLAY ========== */
+.user-code-value {
+    font-family: 'Orbitron', 'JetBrains Mono', monospace !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    letter-spacing: 2px !important;
+    line-height: 1.2 !important;
+    padding: 2px 0 !important;
 }
 
-.verification-footer {
+.user-code-value.code-match {
+    color: #39ff14 !important;
+    text-shadow: 0 0 12px rgba(57, 255, 20, 0.8) !important;
+}
+
+.user-code-value.code-mismatch {
+    color: #ff1744 !important;
+    text-shadow: 0 0 12px rgba(255, 23, 68, 0.8) !important;
+}
+
+.user-code-value.waiting {
+    color: #666 !important;
+    font-style: italic !important;
+    font-size: 12px !important;
+}
+
+/* ========== MATCH BADGE ========== */
+.v-match-badge {
+    display: inline-block !important;
+    padding: 2px 8px !important;
+    margin-top: 4px !important;
+    border-radius: 10px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 8px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+}
+
+.v-match-badge.code-match {
+    background: rgba(57, 255, 20, 0.15) !important;
+    border: 1px solid rgba(57, 255, 20, 0.6) !important;
+    color: #39ff14 !important;
+}
+
+.v-match-badge.code-mismatch {
+    background: rgba(255, 23, 68, 0.15) !important;
+    border: 1px solid rgba(255, 23, 68, 0.6) !important;
+    color: #ff1744 !important;
+}
+
+.v-match-badge.waiting {
+    background: rgba(255, 152, 0, 0.15) !important;
+    border: 1px solid rgba(255, 152, 0, 0.5) !important;
+    color: #ff9800 !important;
+}
+
+/* ========== FOOTER ========== */
+.v-footer {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding-top: 8px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding-top: 6px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 9px !important;
+    font-size: 8px !important;
     color: rgba(255, 255, 255, 0.4) !important;
 }
 
-.verification-device {
+.v-device {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 3px !important;
     color: #00f2ff !important;
 }
 
-.verification-time {
+.v-time {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 3px !important;
 }
 
 /* ============================================================
    💬 ADMIN CHAT WIDGET — CYAN THEME (Override GOLD)
    ============================================================ */
-
-/* Chat Toggle Button — CYAN */
 .admin-chat-toggle {
     width: 56px !important;
     height: 56px !important;
@@ -2014,14 +2139,12 @@ body.firewall-active tbody tr:hover {
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8)) !important;
 }
 
-/* Chat Badge */
 .chat-badge {
     background: linear-gradient(135deg, #ff1744, #c1121f) !important;
     border: 2px solid #fff !important;
     box-shadow: 0 0 12px rgba(255, 0, 0, 0.8) !important;
 }
 
-/* Chat Panel */
 .admin-chat-panel {
     background: linear-gradient(160deg, #0a0a0a 0%, #1a0a00 100%) !important;
     border: 2px solid #00f2ff !important;
@@ -2031,7 +2154,6 @@ body.firewall-active tbody tr:hover {
         0 0 40px rgba(0, 242, 255, 0.3) !important;
 }
 
-/* Chat Header — CYAN */
 .admin-chat-header {
     background: linear-gradient(90deg, #00f2ff 0%, #0088aa 100%) !important;
     border-bottom: none !important;
@@ -2067,7 +2189,6 @@ body.firewall-active tbody tr:hover {
     color: #fff !important;
 }
 
-/* User List */
 .admin-user-list {
     background: #050505 !important;
 }
@@ -2105,7 +2226,6 @@ body.firewall-active tbody tr:hover {
     font-weight: 700 !important;
 }
 
-/* Conversation View */
 .admin-convo-header {
     background: rgba(0, 242, 255, 0.1) !important;
     border-bottom: 1px solid rgba(0, 242, 255, 0.3) !important;
@@ -2128,7 +2248,6 @@ body.firewall-active tbody tr:hover {
     font-weight: 700 !important;
 }
 
-/* Messages */
 .admin-chat-messages {
     background: #050505 !important;
     min-height: 240px !important;
@@ -2151,7 +2270,6 @@ body.firewall-active tbody tr:hover {
     color: #e0e0e0 !important;
 }
 
-/* Input Area */
 .admin-chat-input-area {
     background: #0a0a0a !important;
     border-top: 1px solid rgba(0, 242, 255, 0.2) !important;
@@ -2182,7 +2300,6 @@ body.firewall-active tbody tr:hover {
     color: #000 !important;
 }
 
-/* Typing Indicator */
 .typing-indicator {
     background: linear-gradient(135deg, #1a1a1a, #0a0a0a) !important;
     border: 1px solid rgba(0, 242, 255, 0.2) !important;
@@ -2193,374 +2310,10 @@ body.firewall-active tbody tr:hover {
     box-shadow: 0 0 6px rgba(0, 242, 255, 0.6) !important;
 }
 
-/* Empty State */
 .admin-empty-state {
     color: #555 !important;
 }
 
 .admin-empty-state .empty-text {
     color: #666 !important;
-}
-
-/* ============================================================
-   ✅ USER-ENTERED CODE DISPLAY (BAGO)
-   ============================================================ */
-.user-input-grid {
-    grid-template-columns: 1fr !important;
-    margin-top: 8px !important;
-    margin-bottom: 10px !important;
-}
-
-.user-code-value {
-    font-family: 'Orbitron', 'JetBrains Mono', monospace !important;
-    font-size: 22px !important;
-    font-weight: 900 !important;
-    letter-spacing: 3px !important;
-    padding: 4px 0 !important;
-}
-
-.user-code-value.code-match {
-    color: #39ff14 !important;
-    text-shadow: 0 0 15px rgba(57, 255, 20, 0.9) !important;
-}
-
-.user-code-value.code-mismatch {
-    color: #ff1744 !important;
-    text-shadow: 0 0 15px rgba(255, 23, 68, 0.9) !important;
-}
-
-.user-code-value.waiting {
-    color: #666 !important;
-    font-style: italic !important;
-    font-size: 16px !important;
-}
-
-.verification-match-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    margin-top: 6px;
-    border-radius: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-}
-
-.verification-match-badge.code-match {
-    background: rgba(57, 255, 20, 0.15);
-    border: 1px solid rgba(57, 255, 20, 0.6);
-    color: #39ff14;
-    box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
-}
-
-.verification-match-badge.code-mismatch {
-    background: rgba(255, 23, 68, 0.15);
-    border: 1px solid rgba(255, 23, 68, 0.6);
-    color: #ff1744;
-    box-shadow: 0 0 15px rgba(255, 23, 68, 0.4);
-}
-
-.verification-match-badge.waiting {
-    background: rgba(255, 152, 0, 0.15);
-    border: 1px solid rgba(255, 152, 0, 0.5);
-    color: #ff9800;
-}
-
-/* ✅ Status badges para sa verified / invalid */
-.verification-status-badge.verified {
-    background: rgba(57, 255, 20, 0.2) !important;
-    border: 1px solid rgba(57, 255, 20, 0.8) !important;
-    color: #39ff14 !important;
-    box-shadow: 0 0 15px rgba(57, 255, 20, 0.5) !important;
-}
-
-.verification-status-badge.invalid {
-    background: rgba(255, 23, 68, 0.2) !important;
-    border: 1px solid rgba(255, 23, 68, 0.8) !important;
-    color: #ff1744 !important;
-    box-shadow: 0 0 15px rgba(255, 23, 68, 0.5) !important;
-}
-
-.verification-item.status-verified {
-    border-color: rgba(57, 255, 20, 0.6) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(57, 255, 20, 0.3) !important;
-}
-
-.verification-item.status-verified::before {
-    background: linear-gradient(180deg, #39ff14, #00cc00) !important;
-}
-
-.verification-item.status-invalid {
-    border-color: rgba(255, 23, 68, 0.6) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 23, 68, 0.3) !important;
-}
-
-.verification-item.status-invalid::before {
-    background: linear-gradient(180deg, #ff1744, #8b0000) !important;
-}
-
-/* ============================================================
-   🎯 SYSTEM VERIFICATION — COMPACT VERSION
-   ============================================================ */
-
-.verification-item {
-    padding: 10px !important;
-    border-radius: 10px !important;
-    margin-bottom: 8px !important;
-}
-
-.v-header-row {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    margin-bottom: 8px !important;
-    padding-bottom: 8px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-
-.v-phone-wrap {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-}
-
-.v-phone-text {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    color: #00f2ff !important;
-    text-shadow: 0 0 8px rgba(0, 242, 255, 0.5) !important;
-}
-
-.v-copy-btn {
-    background: rgba(0, 242, 255, 0.15) !important;
-    border: 1px solid rgba(0, 242, 255, 0.4) !important;
-    border-radius: 6px !important;
-    padding: 2px 6px !important;
-    font-size: 11px !important;
-    cursor: pointer !important;
-    transition: all 0.15s ease !important;
-    color: #00f2ff !important;
-    line-height: 1 !important;
-}
-
-.v-copy-btn:hover {
-    background: rgba(0, 242, 255, 0.3) !important;
-    transform: scale(1.1) !important;
-}
-
-.v-copy-btn.copied {
-    background: rgba(57, 255, 20, 0.3) !important;
-    border-color: #39ff14 !important;
-    color: #39ff14 !important;
-    transform: scale(1.15) !important;
-}
-
-.v-status-badge {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    padding: 2px 8px !important;
-    border-radius: 16px !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 8px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.8px !important;
-    text-transform: uppercase !important;
-}
-
-.v-status-dot {
-    width: 5px !important;
-    height: 5px !important;
-    border-radius: 50% !important;
-    background: currentColor !important;
-    box-shadow: 0 0 6px currentColor !important;
-    animation: statusDot 1.5s ease-in-out infinite !important;
-}
-
-@keyframes statusDot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.7); }
-}
-
-.v-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-    margin-bottom: 6px !important;
-}
-
-.v-grid-wide {
-    grid-template-columns: 1fr !important;
-    margin-bottom: 6px !important;
-}
-
-.v-box {
-    background: rgba(0, 0, 0, 0.5) !important;
-    border: 1px solid rgba(0, 242, 255, 0.2) !important;
-    border-radius: 8px !important;
-    padding: 6px 8px !important;
-    text-align: center !important;
-}
-
-.v-box-wide {
-    width: 100% !important;
-}
-
-.v-label {
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 7px !important;
-    color: rgba(255, 255, 255, 0.5) !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-    margin-bottom: 3px !important;
-}
-
-.v-value {
-    font-family: 'Orbitron', 'JetBrains Mono', monospace !important;
-    font-size: 14px !important;
-    font-weight: 900 !important;
-    line-height: 1 !important;
-}
-
-.timer-display {
-    color: #00f2ff !important;
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.6) !important;
-}
-
-.timer-display.urgent {
-    color: #ff1744 !important;
-    text-shadow: 0 0 15px rgba(255, 23, 68, 0.8) !important;
-    animation: urgentPulse 0.5s ease-in-out infinite !important;
-}
-
-@keyframes urgentPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-.code-value {
-    color: #ffd700 !important;
-    text-shadow: 0 0 12px rgba(255, 215, 0, 0.7) !important;
-    letter-spacing: 2px !important;
-    font-size: 16px !important;
-}
-
-.user-code-value {
-    font-size: 16px !important;
-    font-weight: 900 !important;
-    letter-spacing: 2px !important;
-}
-
-.user-code-value.code-match {
-    color: #39ff14 !important;
-    text-shadow: 0 0 12px rgba(57, 255, 20, 0.8) !important;
-}
-
-.user-code-value.code-mismatch {
-    color: #ff1744 !important;
-    text-shadow: 0 0 12px rgba(255, 23, 68, 0.8) !important;
-}
-
-.user-code-value.waiting {
-    color: #666 !important;
-    font-style: italic !important;
-    font-size: 12px !important;
-}
-
-.v-match-badge {
-    display: inline-block !important;
-    padding: 2px 8px !important;
-    margin-top: 4px !important;
-    border-radius: 10px !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 8px !important;
-    font-weight: 800 !important;
-    letter-spacing: 1px !important;
-    text-transform: uppercase !important;
-}
-
-.v-match-badge.code-match {
-    background: rgba(57, 255, 20, 0.15) !important;
-    border: 1px solid rgba(57, 255, 20, 0.6) !important;
-    color: #39ff14 !important;
-}
-
-.v-match-badge.code-mismatch {
-    background: rgba(255, 23, 68, 0.15) !important;
-    border: 1px solid rgba(255, 23, 68, 0.6) !important;
-    color: #ff1744 !important;
-}
-
-.v-match-badge.waiting {
-    background: rgba(255, 152, 0, 0.15) !important;
-    border: 1px solid rgba(255, 152, 0, 0.5) !important;
-    color: #ff9800 !important;
-}
-
-.v-footer {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding-top: 6px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-    font-family: 'JetBrains Mono', monospace !important;
-    font-size: 8px !important;
-    color: rgba(255, 255, 255, 0.4) !important;
-}
-
-.v-device {
-    display: flex !important;
-    align-items: center !important;
-    gap: 3px !important;
-    color: #00f2ff !important;
-}
-
-.v-time {
-    display: flex !important;
-    align-items: center !important;
-    gap: 3px !important;
-}
-
-/* Status badge colors */
-.v-status-badge.active {
-    background: rgba(57, 255, 20, 0.15) !important;
-    border: 1px solid rgba(57, 255, 20, 0.5) !important;
-    color: #39ff14 !important;
-}
-
-.v-status-badge.expired {
-    background: rgba(255, 68, 68, 0.15) !important;
-    border: 1px solid rgba(255, 68, 68, 0.5) !important;
-    color: #ff4444 !important;
-}
-
-.v-status-badge.verified {
-    background: rgba(57, 255, 20, 0.2) !important;
-    border: 1px solid rgba(57, 255, 20, 0.8) !important;
-    color: #39ff14 !important;
-}
-
-.v-status-badge.invalid {
-    background: rgba(255, 23, 68, 0.2) !important;
-    border: 1px solid rgba(255, 23, 68, 0.8) !important;
-    color: #ff1744 !important;
-}
-
-/* Status item borders */
-.verification-item.status-verified {
-    border-color: rgba(57, 255, 20, 0.6) !important;
-}
-
-.verification-item.status-verified::before {
-    background: linear-gradient(180deg, #39ff14, #00cc00) !important;
-}
-
-.verification-item.status-invalid {
-    border-color: rgba(255, 23, 68, 0.6) !important;
-}
-
-.verification-item.status-invalid::before {
-    background: linear-gradient(180deg, #ff1744, #8b0000) !important;
 }
