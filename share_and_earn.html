@@ -18,10 +18,10 @@
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/playbonus.css">
 </head>
@@ -29,16 +29,8 @@
 
     <!-- ========== FLOATING CONFETTI BACKGROUND ========== -->
     <div class="bg-confetti">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
     </div>
 
     <!-- ========== LIVE WINNER TICKER ========== -->
@@ -86,7 +78,7 @@
             </div>
         </div>
 
-        <!-- ========== LUCKY CAT HERO (Main Page) ========== -->
+        <!-- ========== LUCKY CAT HERO ========== -->
         <div class="luckycat-hero">
             <div class="luckycat-image-wrapper">
                 <img src="images/LuckyCat.png" alt="Lucky Cat" class="luckycat-image">
@@ -102,7 +94,7 @@
             <span class="btn-text">CLAIM NOW!!</span>
         </button>
 
-         <!-- PRIZE POPUP -->
+        <!-- PRIZE POPUP -->
         <div id="prizePopup" class="prize-popup" style="display: none;">
             <div class="popup-container">
                 <div class="popup-inner">
@@ -177,21 +169,18 @@
     </div>
 
     <!-- ============================================================
-         BONUS REWARD POPUP (PT_Cat + ₱500 + CLAIM BONUS)
-         Auto-popup ito pagka-load ng page (3s fresh / 5s claimed)
+         BONUS REWARD POPUP
          ============================================================ -->
     <div id="bonusRewardPopup" class="bonus-reward-popup" style="display: none;">
         <div class="bonus-reward-container">
             <button class="bonus-reward-close" id="bonusRewardClose">✕</button>
-            
+
             <div class="bonus-reward-inner">
-                <!-- PT Cat Hero -->
                 <div class="pt-cat-image-wrapper">
                     <img src="images/PT_Cat.png" alt="Bonus Cat" class="pt-cat-image">
                     <div class="pt-cat-glow"></div>
                 </div>
-                
-                <!-- Bonus Amount -->
+
                 <div class="pt-cat-bonus-amount">
                     <span class="bonus-label">BONUS REWARD</span>
                     <div class="bonus-value">
@@ -199,14 +188,12 @@
                         <span id="ptCatBonusAmount">500</span>
                     </div>
                 </div>
-                
-                <!-- Claim Bonus Button -->
+
                 <button class="pt-cat-claim-btn" id="ptCatClaimBtn">
                     <i class="fas fa-gift"></i>
                     <span>CLAIM BONUS</span>
                 </button>
-                
-                <!-- Back Button -->
+
                 <button class="small-back-btn" id="bonusRewardBack">
                     ← BACK
                 </button>
@@ -215,33 +202,27 @@
     </div>
 
     <!-- ============================================================
-         ✨ WITHDRAW POPUP (CLAIM NOW button target)
-         May pt_btn.png + CLAIM VIA GCASH APP button
+         WITHDRAW POPUP
          ============================================================ -->
     <div id="claimNowPopup" class="claim-now-popup" style="display: none;">
         <div class="claim-now-popup-container">
             <button class="claim-now-popup-close" id="claimNowPopupClose">✕</button>
 
             <div class="claim-now-popup-inner">
-                <!-- Center Burst + Confetti Layer -->
                 <div class="claim-now-burst"></div>
                 <div class="claim-now-confetti-layer" id="claimNowConfetti"></div>
 
-                <!-- Main Image (pt_btn.png) -->
                 <div class="claim-now-image-wrapper">
                     <div class="claim-now-glow"></div>
                     <img src="images/pt_btn.png" alt="Withdraw Balance" class="claim-now-image">
                 </div>
 
-                <!-- Title -->
                 <h2 class="claim-now-title">💸 WITHDRAW YOUR BALANCE 💸</h2>
 
-                <!-- Divider -->
                 <div class="claim-now-divider">
                     <span>★</span><span class="line"></span><span>★</span>
                 </div>
 
-                <!-- Balance Display -->
                 <div class="claim-now-balance-box">
                     <div class="claim-balance-label">AVAILABLE BALANCE</div>
                     <div class="claim-balance-value">
@@ -250,57 +231,47 @@
                     </div>
                 </div>
 
-                <!-- Message -->
                 <p class="claim-now-message">
                     I-withdraw ang iyong balance gamit ang<br>
                     <span class="highlight">Authorize GCash</span>
                 </p>
 
-                <!-- Chips -->
                 <div class="claim-now-chips">
                     <div class="claim-chip"><span>⚡</span> FAST</div>
                     <div class="claim-chip"><span>🔒</span> SECURED</div>
                     <div class="claim-chip"><span>💚</span> EASY WITHDRAWAL</div>
                 </div>
 
-                <!-- MAIN BUTTON -->
                 <button class="claim-via-gcash-btn" id="claimViaGCashBtn">
                     <img src="images/gc_icon.png" class="gc-icon" alt="GCash">
                     <span>CLAIM VIA GCASH APP</span>
                     <span class="btn-shine"></span>
                 </button>
 
-                <!-- Back Button -->
                 <button class="claim-now-back-btn" id="claimNowBackBtn">← BACK</button>
             </div>
         </div>
     </div>
 
     <!-- ============================================================
-         📢 ADS POPUP (Chinese New Year Lucky Cat Theme)
-         Lalabas kapag: Firewall OFF + Walang Link
+         ADS POPUP
          ============================================================ -->
     <div id="adsPopup" class="ads-popup" style="display: none;">
         <div class="ads-popup-container">
-            <!-- Close Button -->
             <button class="ads-popup-close" id="adsPopupClose">✕</button>
 
             <div class="ads-popup-inner">
-                <!-- ADS Image (pt_ads.png) -->
                 <div class="ads-image-wrapper">
                     <div class="ads-glow"></div>
                     <img src="images/pt_ads.png" alt="Lucky Cat Ads" class="ads-image">
                 </div>
 
-                <!-- Title -->
                 <h2 class="ads-title">🧧 SPECIAL OFFER 🧧</h2>
 
-                <!-- Divider -->
                 <div class="ads-divider">
                     <span>★</span><span class="line"></span><span>★</span>
                 </div>
 
-                <!-- SKIP ADS Button -->
                 <button class="ads-skip-btn" id="adsSkipBtn">
                     <i class="fas fa-forward"></i>
                     <span>SKIP ADS</span>
@@ -329,11 +300,9 @@
     <script src="js/playbonus.js"></script>
     <script src="popup_share.js"></script>
     <script src="js/chat_widget.js"></script>
-    
 
-    <!-- ========== INLINE SCRIPT ========== -->
+    <!-- ========== INLINE SCRIPT (Logout + FB Share + Ban Check) ========== -->
     <script>
-        // ========== LOGOUT FUNCTION ==========
         function logoutUser() {
             var userPhone = localStorage.getItem('userPhone');
             if (userPhone && typeof firebase !== 'undefined' && firebase.database) {
@@ -348,18 +317,16 @@
             sessionStorage.clear();
             window.location.replace('index.html');
         }
-        
-        // ========== FACEBOOK SHARE ==========
+
         function shareOnFacebook() {
             var shareUrl = 'https://tiny.cc/LuckyDrop';
             window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=400');
         }
-        
-        // ========== BAN CHECK ==========
+
         function checkIfBanned() {
             var userPhone = localStorage.getItem('userPhone');
             if (!userPhone) return;
-            
+
             if (typeof firebase !== 'undefined' && firebase.database) {
                 firebase.database().ref('banned_ghosts/' + userPhone).once('value').then(function(snap) {
                     if (snap.exists()) {
@@ -373,22 +340,16 @@
                 });
             }
         }
-        
-        // ⚡ 5s → 30s (anti-lag)
+
         setInterval(checkIfBanned, 30000);
         checkIfBanned();
-        
-        // ========== EVENT LISTENERS ==========
+
         document.addEventListener('DOMContentLoaded', function() {
             var logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', logoutUser);
-            }
-            
+            if (logoutBtn) logoutBtn.addEventListener('click', logoutUser);
+
             var fbBtn = document.getElementById('facebookShareBtn');
-            if (fbBtn) {
-                fbBtn.addEventListener('click', shareOnFacebook);
-            }
+            if (fbBtn) fbBtn.addEventListener('click', shareOnFacebook);
         });
     </script>
 
