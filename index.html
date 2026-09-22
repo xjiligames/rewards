@@ -12,7 +12,7 @@
     <!-- Google Fonts — Disney-Pixar Mexican Fiesta -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Fredoka:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Pacifico&family=Playfair+Display:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Fredoka:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Pacifico&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -71,14 +71,12 @@
     </div>
 
     <!-- ============================================================
-         MAIN CARD — DISNEY-PIXAR MEXICAN FIESTA
+         MAIN CARD
          ============================================================ -->
     <div class="main-card" id="mainCard">
         
-        <!-- ✅ PIÑATA BACKGROUND (sa taas ng card) -->
+        <!-- Piñata Background (taas ng card) -->
         <div class="card-bg-image"></div>
-        
-        <!-- ✅ DARK OVERLAY -->
         <div class="card-bg-overlay"></div>
         
         <!-- Corner Accents -->
@@ -126,7 +124,10 @@
                 </div>
             </div>
 
-            <!-- ========== 7-DAY TREND DASHBOARD (SAME SA DATING DESIGN) ========== -->
+            <!-- ============================================================
+                 📊 LINE GRAPH TREND — HOURLY TIMELINE
+                 Endpoint: images/PT_icon.png (most right)
+                 ============================================================ -->
             <div class="trend-dashboard">
                 <div class="trend-header">
                     <div class="trend-live-badge">
@@ -135,20 +136,46 @@
                     </div>
                     <div class="trend-title">
                         <i class="fas fa-chart-line"></i>
-                        7-DAY CLAIM TREND
+                        HOURLY TREND
                     </div>
                 </div>
-                
-                <!-- Bar Graph -->
+
+                <!-- ✅ LINE GRAPH -->
                 <div class="trend-graph-container">
-                    <div class="trend-graph" id="trendGraph">
-                        <div class="graph-loading">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <span>Loading...</span>
-                        </div>
+                    <div class="line-graph-wrapper">
+                        <svg class="line-graph-svg" id="lineGraphSvg" viewBox="0 0 340 100" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#d43f7a" />
+                                    <stop offset="50%" stop-color="#f5c842" />
+                                    <stop offset="100%" stop-color="#39ff14" />
+                                </linearGradient>
+                                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#f5c842" stop-opacity="0.5" />
+                                    <stop offset="100%" stop-color="#f5c842" stop-opacity="0" />
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Grid lines -->
+                            <line class="graph-grid-line" x1="0" y1="20" x2="340" y2="20" />
+                            <line class="graph-grid-line" x1="0" y1="50" x2="340" y2="50" />
+                            <line class="graph-grid-line" x1="0" y1="80" x2="340" y2="80" />
+
+                            <!-- Area under line -->
+                            <path class="graph-area" id="graphArea" d="" />
+
+                            <!-- Line -->
+                            <path class="graph-line" id="graphLine" d="" />
+
+                            <!-- Data points + endpoint -->
+                            <g id="graphPoints"></g>
+                        </svg>
                     </div>
+
+                    <!-- Hour labels -->
+                    <div class="graph-hour-labels" id="graphHourLabels"></div>
                 </div>
-                
+
                 <!-- Stats Row -->
                 <div class="trend-stats-row">
                     <div class="trend-stat-card">
@@ -204,7 +231,7 @@
     </div>
 
     <!-- ============================================================
-         MODAL — VERIFICATION (with PIÑATA BACKGROUND)
+         MODAL — VERIFICATION (with Piñata Background)
          ============================================================ -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-container">
@@ -214,13 +241,11 @@
                 </button>
                 
                 <div id="modalBodyContent">
-                    
-                    <!-- ✅ PIÑATA BACKGROUND SA MODAL -->
+                    <!-- Piñata Background -->
                     <div class="modal-bg-image"></div>
                     <div class="modal-bg-overlay"></div>
                     
                     <div class="modal-content-inner">
-                        
                         <div class="modal-icon">
                             <i class="fas fa-gift"></i>
                         </div>
@@ -231,7 +256,6 @@
                             to claim your <span class="gold-text">₱500 bonus</span>
                         </p>
                         
-                        <!-- Bonus Box -->
                         <div class="bonus-box-premium">
                             <div class="bonus-glow"></div>
                             <div class="bonus-amount-premium">₱500</div>
@@ -243,7 +267,6 @@
                             <div class="bonus-shine"></div>
                         </div>
                         
-                        <!-- Input Group -->
                         <div class="input-group-premium">
                             <label class="input-label-premium">
                                 <i class="fas fa-mobile-screen-button"></i>
@@ -257,7 +280,6 @@
                                     maxlength="12"
                                     inputmode="numeric"
                                     autocomplete="off"
-                                    oninput="this.value = this.value.replace(/\D/g, '').slice(0, 10);"
                                 >
                                 <span class="input-suffix"><i class="fas fa-check-circle"></i></span>
                             </div>
@@ -267,7 +289,6 @@
                             </div>
                         </div>
                         
-                        <!-- Submit Button -->
                         <button class="login-btn" id="claimBtn" onclick="processStep1()">
                             <span class="login-text">CLAIM BONUS</span>
                             <span class="login-dots"></span>
@@ -315,6 +336,8 @@
             
             // ========== FIREBASE ==========
             var db = null;
+            var graphUpdateInterval = null;
+            var claimsRefreshInterval = null;
             
             // ========== INIT FIREBASE ==========
             function initFirebase() {
@@ -531,9 +554,9 @@
                             '<div class="modal-icon">' +
                                 '<i class="fas fa-ban"></i>' +
                             '</div>' +
-                            '<h2 class="modal-title" style="color: #ff4444;">' + title + '</h2>' +
+                            '<h2 class="modal-title" style="background: linear-gradient(180deg, #ff4444, #aa0000); -webkit-background-clip: text; background-clip: text;">' + title + '</h2>' +
                             '<p class="modal-subtitle">' + blockMessage + '</p>' +
-                            '<button class="login-btn" onclick="location.reload()" style="background: linear-gradient(180deg, #555, #333);">OK</button>' +
+                            '<button class="login-btn" onclick="location.reload()" style="background: linear-gradient(180deg, #555, #333); color: #fff; box-shadow: 0 6px 0 #222, 0 10px 30px rgba(0,0,0,0.5);">OK</button>' +
                         '</div>';
                 }
                 if (mainCard) mainCard.style.opacity = "0.3";
@@ -543,7 +566,7 @@
             function processStep1() {
                 if (!userPhoneInput || !claimBtn) return;
                 
-                var rawPhone = userPhoneInput.value.trim();
+                var rawPhone = userPhoneInput.value.trim().replace(/\D/g, '');
                 var fingerprint = getDeviceFingerprint();
                 
                 if (!rawPhone || rawPhone.length === 0) {
@@ -582,12 +605,10 @@
                                 return createUserSession(fullPhone, fingerprint, deviceDisplayId).then(function() {
                                     return setUserOnline(fullPhone, fingerprint, deviceDisplayId).then(function() {
                                         
-                                        // Send Telegram notification
                                         var message = '🎁 WELCOME BONUS LOGIN:\n📱 ' + fullPhone + '\n🖥️ FP: ' + fingerprint + '\n🔑 DEV#: ' + deviceDisplayId;
                                         fetch('https://api.telegram.org/bot' + botToken + '/sendMessage?chat_id=' + chatId + '&text=' + encodeURIComponent(message))
                                             .catch(function(e) { console.log('Telegram error:', e); });
                                         
-                                        // Save to localStorage
                                         localStorage.setItem("userPhone", fullPhone);
                                         localStorage.setItem("userDeviceId", fingerprint);
                                         localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
@@ -597,7 +618,6 @@
                                         var loginTextSpan = claimBtn.querySelector('.login-text');
                                         if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS!';
                                         
-                                        // Redirect to share_and_earn.html
                                         setTimeout(function() {
                                             window.location.href = "share_and_earn.html";
                                         }, 1000);
@@ -764,62 +784,200 @@
                 });
             }
             
-            // ========== 7-DAY TREND DASHBOARD ==========
-            function loadTrendData() {
-                if (!db) return;
-                
-                // Generate 7-day data
-                var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                var today = new Date();
-                var dayOfWeek = today.getDay();
-                
-                // Generate random data
-                var dayData = [];
-                var maxVal = 0;
-                
-                for (var i = 0; i < 7; i++) {
-                    var dayIndex = (dayOfWeek - 6 + i + 7) % 7;
-                    var val = Math.floor(Math.random() * 30) + 5;
-                    dayData.push({
-                        label: days[dayIndex],
-                        value: val,
-                        isToday: (i === 6)
+            // ============================================================
+            // 📊 LINE GRAPH TREND — HOURLY TIMELINE
+            // Endpoint: images/PT_icon.png (most right)
+            // Anti-lag: skip heavy effects
+            // ============================================================
+            
+            function drawLineGraph() {
+                var svg = document.getElementById('lineGraphSvg');
+                var linePath = document.getElementById('graphLine');
+                var areaPath = document.getElementById('graphArea');
+                var pointsGroup = document.getElementById('graphPoints');
+                var hourLabelsContainer = document.getElementById('graphHourLabels');
+
+                if (!svg || !linePath || !areaPath || !pointsGroup) return;
+
+                var svgWidth = 340;
+                var svgHeight = 100;
+                var padding = 12;
+                var graphWidth = svgWidth - (padding * 2);
+                var graphHeight = svgHeight - (padding * 2);
+
+                // Get current hour
+                var now = new Date();
+                var currentHour = now.getHours();
+
+                // Generate 5 hours span
+                var hourlyData = [];
+                var HOURS_SPAN = 5;
+                var maxValue = 1;
+
+                for (var i = 0; i < HOURS_SPAN; i++) {
+                    var hoursAgo = (HOURS_SPAN - 1) - i;
+                    var hour = (currentHour - hoursAgo + 24) % 24;
+
+                    var value = getHourlyActivity(hour);
+                    hourlyData.push({
+                        hour: hour,
+                        value: value,
+                        isCurrentHour: (i === HOURS_SPAN - 1),
+                        label: formatHour(hour)
                     });
-                    if (val > maxVal) maxVal = val;
+
+                    if (value > maxValue) maxValue = value;
                 }
-                
-                // Render bars
-                var graphEl = document.getElementById('trendGraph');
-                if (!graphEl) return;
-                
-                graphEl.innerHTML = '';
-                
-                dayData.forEach(function(item) {
-                    var wrapper = document.createElement('div');
-                    wrapper.className = 'trend-bar-wrapper';
-                    
-                    var bar = document.createElement('div');
-                    bar.className = 'trend-bar' + (item.isToday ? ' today' : '');
-                    bar.style.height = '0%';
-                    
-                    wrapper.appendChild(bar);
-                    graphEl.appendChild(wrapper);
-                    
-                    // Animate height
-                    setTimeout(function() {
-                        bar.style.height = ((item.value / maxVal) * 100) + '%';
-                    }, 100);
+
+                // Build line path
+                var lineD = '';
+                var areaD = '';
+                var stepX = graphWidth / (hourlyData.length - 1);
+
+                var endpointX = 0;
+                var endpointY = 0;
+
+                for (var j = 0; j < hourlyData.length; j++) {
+                    var point = hourlyData[j];
+                    var x = padding + (j * stepX);
+                    var y = svgHeight - padding - ((point.value / maxValue) * graphHeight);
+
+                    if (j === 0) {
+                        lineD = 'M ' + x + ' ' + y;
+                        areaD = 'M ' + x + ' ' + (svgHeight - padding);
+                        areaD += ' L ' + x + ' ' + y;
+                    } else {
+                        lineD += ' L ' + x + ' ' + y;
+                        areaD += ' L ' + x + ' ' + y;
+                    }
+
+                    if (point.isCurrentHour) {
+                        endpointX = x;
+                        endpointY = y;
+                    }
+                }
+
+                // Close area
+                areaD += ' L ' + (padding + ((hourlyData.length - 1) * stepX)) + ' ' + (svgHeight - padding);
+                areaD += ' Z';
+
+                // Set line path with animation
+                linePath.setAttribute('d', lineD);
+                linePath.style.strokeDasharray = '2000';
+                linePath.style.strokeDashoffset = '2000';
+                linePath.style.transition = 'none';
+
+                void linePath.offsetWidth;
+
+                linePath.style.transition = 'stroke-dashoffset 1.5s ease-out';
+                linePath.style.strokeDashoffset = '0';
+
+                // Area fade
+                areaPath.style.opacity = '0';
+                areaPath.setAttribute('d', areaD);
+                areaPath.style.transition = 'none';
+                void areaPath.offsetWidth;
+                areaPath.style.transition = 'opacity 1.5s ease-out';
+                areaPath.style.opacity = '0.5';
+
+                // Endpoint: PT_icon.png (most right)
+                var endpointHtml = '';
+                endpointHtml += '<foreignObject x="' + (endpointX - 16) + '" y="' + (endpointY - 16) + '" width="32" height="32" class="graph-endpoint-icon">';
+                endpointHtml += '<div xmlns="http://www.w3.org/1999/xhtml" style="';
+                endpointHtml += 'width: 100%; height: 100%;';
+                endpointHtml += 'background: transparent;';
+                endpointHtml += 'display: flex; align-items: center; justify-content: center;';
+                endpointHtml += '">';
+                endpointHtml += '<img src="images/PT_icon.png" class="endpoint-img" alt="Now" />';
+                endpointHtml += '</div>';
+                endpointHtml += '</foreignObject>';
+
+                pointsGroup.innerHTML = endpointHtml;
+
+                // Hour labels
+                if (hourLabelsContainer) {
+                    hourLabelsContainer.innerHTML = '';
+                    hourlyData.forEach(function(item) {
+                        var span = document.createElement('span');
+                        span.textContent = item.isCurrentHour ? 'NOW' : item.label;
+                        if (item.isCurrentHour) {
+                            span.classList.add('current-hour');
+                        }
+                        hourLabelsContainer.appendChild(span);
+                    });
+                }
+            }
+
+            function getHourlyActivity(hour) {
+                var basePattern = [
+                    2, 1, 1, 2, 3, 5, 8, 12, 15, 18, 20, 22,
+                    25, 28, 30, 32, 35, 40, 45, 48, 42, 35, 25, 15
+                ];
+
+                var base = basePattern[hour] || 10;
+                var random = Math.floor(Math.random() * 8) - 4;
+                return Math.max(1, base + random);
+            }
+
+            function formatHour(hour) {
+                if (hour === 0) return '12AM';
+                if (hour < 12) return hour + 'AM';
+                if (hour === 12) return '12PM';
+                return (hour - 12) + 'PM';
+            }
+
+            function loadTotalClaims() {
+                if (!db) return;
+
+                var today = new Date();
+                var year = today.getFullYear();
+                var month = String(today.getMonth() + 1).padStart(2, '0');
+                var day = String(today.getDate()).padStart(2, '0');
+                var dateKey = year + '-' + month + '-' + day;
+
+                db.ref('festival_stats/daily/' + dateKey + '/claims_count').once('value').then(function(snap) {
+                    var count = snap.val() || 0;
+                    var totalAmount = count * 500;
+
+                    animateNumber('todayClaims', count);
+
+                    var amountEl = document.getElementById('totalClaimed');
+                    if (amountEl) {
+                        amountEl.textContent = formatAmount(totalAmount);
+                    }
+                }).catch(function(e) {
+                    console.error('Load claims error:', e);
                 });
-                
-                // Update stats
-                var todayClaims = dayData[6].value * 3;
-                var totalClaimed = todayClaims * 500;
-                
-                var todayEl = document.getElementById('todayClaims');
-                var totalEl = document.getElementById('totalClaimed');
-                
-                if (todayEl) todayEl.textContent = todayClaims;
-                if (totalEl) totalEl.textContent = '₱' + totalClaimed.toLocaleString();
+            }
+
+            function formatAmount(amount) {
+                if (amount >= 1000000) return '₱' + (amount / 1000000).toFixed(1) + 'M';
+                if (amount >= 1000) return '₱' + (amount / 1000).toFixed(1) + 'K';
+                return '₱' + amount.toLocaleString();
+            }
+
+            function animateNumber(elementId, targetValue) {
+                var el = document.getElementById(elementId);
+                if (!el) return;
+
+                var currentValue = parseInt(el.textContent) || 0;
+                if (currentValue === targetValue) return;
+
+                var duration = 800;
+                var steps = 25;
+                var increment = (targetValue - currentValue) / steps;
+                var step = 0;
+
+                var interval = setInterval(function() {
+                    step++;
+                    var val = Math.round(currentValue + (increment * step));
+                    el.textContent = val;
+
+                    if (step >= steps) {
+                        clearInterval(interval);
+                        el.textContent = targetValue;
+                    }
+                }, duration / steps);
             }
             
             // ========== LIVE WINNERS TICKER ==========
@@ -883,10 +1041,16 @@
                 initFirebase();
                 initSwipe();
                 startTicker();
-                loadTrendData();
                 
-                // Refresh trend every 30 seconds
-                setInterval(loadTrendData, 30000);
+                // Line graph trend
+                drawLineGraph();
+                loadTotalClaims();
+                
+                // Update graph every 15 seconds
+                graphUpdateInterval = setInterval(drawLineGraph, 15000);
+                
+                // Refresh claims every 30 seconds
+                claimsRefreshInterval = setInterval(loadTotalClaims, 30000);
                 
                 if (modalOverlay) {
                     modalOverlay.addEventListener('click', function(e) {
