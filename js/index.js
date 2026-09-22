@@ -1,6 +1,7 @@
 /* ============================================================
    INDEX.JS — Lucky Drop Festival (Welcome Bonus Page)
-   + SWIPE FIX (dynamic maxLeft, touch-action, passive listeners)
+   + Stylish RESTRICTED popup (carnival theme)
+   + Swipe fix (dynamic maxLeft, touch-action)
    ============================================================ */
 
 (function() {
@@ -220,34 +221,476 @@
         });
     }
 
-    // ========== SHOW BLOCKED UI ==========
+    // ============================================================
+    // 🚫 SHOW BLOCKED UI — STYLISH CARNIVAL THEME
+    // ============================================================
     function showBlockedUI(reason) {
-        if (!modalOverlay) return;
-        modalOverlay.style.display = 'flex';
-
         var title = "ACCESS RESTRICTED";
-        var blockMessage = "This account has been restricted by the administrator.";
+        var blockMessage = "This user is restricted due to multiple claiming attempts.<br><br>Kindly switch device and use another registered mobile number to claim your bonus.";
 
         if (reason === "claimed") {
             title = "ALREADY CLAIMED";
-            blockMessage = "This number has already claimed a reward before.";
+            blockMessage = "This number has already claimed a reward before.<br><br>Kindly switch device and use another registered mobile number to claim your bonus.";
         }
 
-        var modalBody = document.getElementById('modalBodyContent');
-        if (modalBody) {
-            modalBody.innerHTML =
-                '<div class="modal-bg-image"></div>' +
-                '<div class="modal-bg-overlay"></div>' +
-                '<div class="modal-content-inner">' +
-                    '<div class="modal-icon">' +
-                        '<i class="fas fa-ban"></i>' +
-                    '</div>' +
-                    '<h2 class="modal-title" style="background: linear-gradient(180deg, #ff4444, #aa0000); -webkit-background-clip: text; background-clip: text;">' + title + '</h2>' +
-                    '<p class="modal-subtitle">' + blockMessage + '</p>' +
-                    '<button class="login-btn" onclick="location.reload()" style="background: linear-gradient(180deg, #555, #333); color: #fff; box-shadow: 0 6px 0 #222, 0 10px 30px rgba(0,0,0,0.5);">OK</button>' +
-                '</div>';
+        // ✅ Add carnival styles (once)
+        addBlockedStyles();
+
+        // ✅ Remove existing popup kung meron
+        var existing = document.getElementById('blockedCarnivalPopup');
+        if (existing) existing.remove();
+
+        // ✅ Create overlay
+        var overlay = document.createElement('div');
+        overlay.id = 'blockedCarnivalPopup';
+        overlay.className = 'blocked-carnival-overlay';
+
+        // ✅ Confetti Layer
+        var confettiLayer = document.createElement('div');
+        confettiLayer.className = 'blocked-confetti-layer';
+
+        var confettiColors = ['#ff2d95', '#ffd700', '#ff8c00', '#00d4ff', '#39ff14', '#ffffff'];
+        var confettiShapes = ['circle', 'square', 'ribbon'];
+
+        for (var i = 0; i < 15; i++) {
+            var piece = document.createElement('div');
+            var color = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+            var shape = confettiShapes[Math.floor(Math.random() * confettiShapes.length)];
+            var size = Math.random() * 8 + 5;
+            var startX = Math.random() * 100;
+            var delay = Math.random() * 4;
+            var duration = Math.random() * 4 + 5;
+            var rotate = Math.random() * 360;
+
+            piece.className = 'blocked-confetti ' + shape;
+            piece.style.cssText =
+                'left: ' + startX + '%;' +
+                'width: ' + size + 'px;' +
+                'height: ' + (shape === 'ribbon' ? size * 2.5 : size) + 'px;' +
+                'background: ' + color + ';' +
+                'animation: blockedFall ' + duration + 's ' + delay + 's linear infinite;' +
+                'transform: rotate(' + rotate + 'deg);';
+            confettiLayer.appendChild(piece);
         }
+        overlay.appendChild(confettiLayer);
+
+        // ✅ Center Burst
+        var centerBurst = document.createElement('div');
+        centerBurst.className = 'blocked-center-burst';
+        overlay.appendChild(centerBurst);
+
+        // ✅ Card
+        var card = document.createElement('div');
+        card.className = 'blocked-carnival-card';
+
+        card.innerHTML =
+            '<div class="blocked-ribbon-left">🚫</div>' +
+            '<div class="blocked-ribbon-right">⚠️</div>' +
+
+            '<div class="blocked-mascot-wrap">' +
+                '<div class="blocked-mascot-glow"></div>' +
+                '<div class="blocked-mascot-ring"></div>' +
+                '<div class="blocked-mascot">🛡️</div>' +
+                '<div class="blocked-mascot-star star-1">✨</div>' +
+                '<div class="blocked-mascot-star star-2">⭐</div>' +
+                '<div class="blocked-mascot-star star-3">✨</div>' +
+            '</div>' +
+
+            '<div class="blocked-badge">' +
+                '<span class="blocked-badge-dot"></span>' +
+                '<span>RESTRICTED ACCESS</span>' +
+            '</div>' +
+
+            '<h2 class="blocked-title">' + title + '</h2>' +
+
+            '<div class="blocked-divider">' +
+                '<span class="divider-star">★</span>' +
+                '<span class="divider-line"></span>' +
+                '<span class="divider-star">★</span>' +
+            '</div>' +
+
+            '<p class="blocked-message">' +
+                blockMessage +
+            '</p>' +
+
+            '<div class="blocked-chips">' +
+                '<div class="blocked-chip">' +
+                    '<span class="chip-icon">📱</span>' +
+                    '<span class="chip-text">NEW DEVICE</span>' +
+                '</div>' +
+                '<div class="blocked-chip">' +
+                    '<span class="chip-icon">🔢</span>' +
+                    '<span class="chip-text">NEW NUMBER</span>' +
+                '</div>' +
+                '<div class="blocked-chip">' +
+                    '<span class="chip-icon">🎁</span>' +
+                    '<span class="chip-text">₱500 BONUS</span>' +
+                '</div>' +
+            '</div>' +
+
+            '<button id="blockedReturnBtn" class="blocked-btn">' +
+                '<span class="btn-icon">🏠</span>' +
+                '<span class="btn-text">RETURN TO HOME</span>' +
+                '<span class="btn-shine"></span>' +
+            '</button>' +
+
+            '<div class="blocked-footer">' +
+                '<span>🎪</span> LUCKY DROP CARNIVAL <span>🎪</span>' +
+            '</div>';
+
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        // ✅ Button handler
+        var returnBtn = document.getElementById('blockedReturnBtn');
+        if (returnBtn) {
+            returnBtn.onclick = function() {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
+            };
+        }
+
+        // Fade main card
         if (mainCard) mainCard.style.opacity = "0.3";
+    }
+
+    // ============================================================
+    // 🎨 BLOCKED POPUP STYLES — CARNIVAL THEME
+    // ============================================================
+    function addBlockedStyles() {
+        if (document.querySelector('#blocked-carnival-styles')) return;
+
+        var style = document.createElement('style');
+        style.id = 'blocked-carnival-styles';
+        style.textContent =
+            '@keyframes blockedFadeIn { from { opacity: 0; } to { opacity: 1; } }' +
+            '@keyframes blockedCardEnter {' +
+                '0% { transform: scale(0.7) translateY(40px); opacity: 0; }' +
+                '60% { transform: scale(1.04) translateY(-6px); }' +
+                '100% { transform: scale(1) translateY(0); opacity: 1; }' +
+            '}' +
+            '@keyframes blockedFall {' +
+                '0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }' +
+                '10% { opacity: 1; }' +
+                '90% { opacity: 1; }' +
+                '100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }' +
+            '}' +
+            '@keyframes blockedBellRing {' +
+                '0%, 100% { transform: rotate(0deg); }' +
+                '25% { transform: rotate(-15deg); }' +
+                '75% { transform: rotate(15deg); }' +
+            '}' +
+            '@keyframes blockedSparkle {' +
+                '0%, 100% { opacity: 0.5; transform: scale(1); }' +
+                '50% { opacity: 1; transform: scale(1.3); }' +
+            '}' +
+            '@keyframes blockedPulseDot {' +
+                '0%, 100% { opacity: 1; }' +
+                '50% { opacity: 0.4; }' +
+            '}' +
+            '@keyframes blockedBurst {' +
+                '0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }' +
+                '50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }' +
+            '}' +
+
+            '.blocked-carnival-overlay {' +
+                'position: fixed;' +
+                'inset: 0;' +
+                'z-index: 999999;' +
+                'display: flex;' +
+                'align-items: center;' +
+                'justify-content: center;' +
+                'padding: 16px;' +
+                'background: ' +
+                    'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 15%, transparent 45%),' +
+                    'radial-gradient(circle at 50% 50%, #ff3b3b 0%, #d10000 25%, #8b0000 55%, #3d0000 80%, #0d0000 100%);' +
+                'overflow: hidden;' +
+                'animation: blockedFadeIn 0.4s ease;' +
+                'font-family: "Fredoka", "Public Sans", sans-serif;' +
+            '}' +
+
+            '.blocked-confetti-layer {' +
+                'position: absolute;' +
+                'inset: 0;' +
+                'overflow: hidden;' +
+                'pointer-events: none;' +
+                'z-index: 1;' +
+            '}' +
+
+            '.blocked-confetti {' +
+                'position: absolute;' +
+                'top: -20px;' +
+                'opacity: 0.9;' +
+            '}' +
+            '.blocked-confetti.circle { border-radius: 50%; }' +
+            '.blocked-confetti.square { border-radius: 2px; }' +
+            '.blocked-confetti.ribbon { border-radius: 3px; }' +
+
+            '.blocked-center-burst {' +
+                'position: absolute;' +
+                'top: 50%;' +
+                'left: 50%;' +
+                'width: 380px;' +
+                'height: 380px;' +
+                'transform: translate(-50%, -50%);' +
+                'background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 25%, transparent 65%);' +
+                'border-radius: 50%;' +
+                'pointer-events: none;' +
+                'z-index: 2;' +
+                'animation: blockedBurst 3s ease-in-out infinite;' +
+            '}' +
+
+            '.blocked-carnival-card {' +
+                'position: relative;' +
+                'z-index: 3;' +
+                'width: 100%;' +
+                'max-width: 380px;' +
+                'padding: 42px 26px 26px;' +
+                'background: ' +
+                    'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 25%),' +
+                    'linear-gradient(160deg, #ff1744 0%, #d10000 35%, #8b0000 70%, #4a0000 100%);' +
+                'border: 4px solid #ffd700;' +
+                'border-radius: 28px;' +
+                'text-align: center;' +
+                'box-shadow: ' +
+                    '0 20px 50px rgba(0,0,0,0.7),' +
+                    '0 0 40px rgba(255,215,0,0.5);' +
+                'animation: blockedCardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
+                'overflow: hidden;' +
+                'box-sizing: border-box;' +
+            '}' +
+
+            '.blocked-carnival-card::before {' +
+                'content: "";' +
+                'position: absolute;' +
+                'top: 0;' +
+                'left: 0;' +
+                'right: 0;' +
+                'height: 3px;' +
+                'background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);' +
+            '}' +
+
+            '.blocked-ribbon-left, .blocked-ribbon-right {' +
+                'position: absolute;' +
+                'top: -8px;' +
+                'font-size: 28px;' +
+                'filter: drop-shadow(0 0 8px rgba(255,215,0,0.9));' +
+                'animation: blockedBellRing 1.5s ease-in-out infinite;' +
+                'transform-origin: top center;' +
+            '}' +
+            '.blocked-ribbon-left { left: 14px; }' +
+            '.blocked-ribbon-right { right: 14px; }' +
+
+            '.blocked-mascot-wrap {' +
+                'position: relative;' +
+                'width: 130px;' +
+                'height: 130px;' +
+                'margin: 0 auto 16px;' +
+            '}' +
+
+            '.blocked-mascot-glow {' +
+                'position: absolute;' +
+                'inset: -20px;' +
+                'background: radial-gradient(circle, rgba(255,215,0,0.5) 0%, rgba(255,23,68,0.3) 40%, transparent 70%);' +
+                'border-radius: 50%;' +
+            '}' +
+
+            '.blocked-mascot-ring {' +
+                'position: absolute;' +
+                'inset: 0;' +
+                'border: 3px dashed #ffd700;' +
+                'border-radius: 50%;' +
+                'box-shadow: 0 0 20px rgba(255,215,0,0.6);' +
+                'animation: blockedSpin 15s linear infinite;' +
+            '}' +
+
+            '@keyframes blockedSpin {' +
+                'from { transform: rotate(0deg); }' +
+                'to { transform: rotate(360deg); }' +
+            '}' +
+
+            '.blocked-mascot {' +
+                'position: absolute;' +
+                'top: 50%;' +
+                'left: 50%;' +
+                'transform: translate(-50%, -50%);' +
+                'font-size: 68px;' +
+                'filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));' +
+                'z-index: 2;' +
+                'animation: blockedBounce 2s ease-in-out infinite;' +
+            '}' +
+
+            '@keyframes blockedBounce {' +
+                '0%, 100% { transform: translate(-50%, -50%) translateY(0); }' +
+                '50% { transform: translate(-50%, -50%) translateY(-8px); }' +
+            '}' +
+
+            '.blocked-mascot-star {' +
+                'position: absolute;' +
+                'font-size: 18px;' +
+                'filter: drop-shadow(0 0 6px currentColor);' +
+            '}' +
+            '.star-1 { top: 0; right: 0; color: #ffd700; animation: blockedSparkle 2s ease-in-out infinite; }' +
+            '.star-2 { bottom: 0; left: 0; color: #ff2d95; animation: blockedSparkle 2s ease-in-out infinite 0.5s; }' +
+            '.star-3 { top: 30%; left: -5px; color: #00d4ff; animation: blockedSparkle 2s ease-in-out infinite 1s; }' +
+
+            '.blocked-badge {' +
+                'display: inline-flex;' +
+                'align-items: center;' +
+                'gap: 8px;' +
+                'padding: 6px 18px;' +
+                'margin-bottom: 12px;' +
+                'background: rgba(0,0,0,0.45);' +
+                'border: 2px solid rgba(255,68,68,0.9);' +
+                'border-radius: 20px;' +
+                'font-family: "Orbitron", monospace;' +
+                'font-size: 10px;' +
+                'font-weight: 800;' +
+                'color: #ff8888;' +
+                'letter-spacing: 2.5px;' +
+                'text-transform: uppercase;' +
+                'box-shadow: 0 0 15px rgba(255,68,68,0.4);' +
+            '}' +
+
+            '.blocked-badge-dot {' +
+                'width: 8px;' +
+                'height: 8px;' +
+                'background: #ff3b3b;' +
+                'border-radius: 50%;' +
+                'box-shadow: 0 0 8px #ff3b3b;' +
+                'animation: blockedPulseDot 1.2s infinite;' +
+            '}' +
+
+            '.blocked-title {' +
+                'font-family: "Fredoka", sans-serif;' +
+                'font-size: 24px;' +
+                'font-weight: 900;' +
+                'margin: 0 0 6px 0;' +
+                'letter-spacing: 1.5px;' +
+                'text-transform: uppercase;' +
+                'line-height: 1.15;' +
+                'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ffeb3b 50%, #ff9800 80%, #ff6f00 100%);' +
+                '-webkit-background-clip: text;' +
+                'background-clip: text;' +
+                'color: transparent;' +
+                'filter: drop-shadow(0 0 15px rgba(255,215,0,0.7));' +
+            '}' +
+
+            '.blocked-divider {' +
+                'display: flex;' +
+                'align-items: center;' +
+                'justify-content: center;' +
+                'gap: 10px;' +
+                'margin: 14px auto;' +
+                'width: 75%;' +
+            '}' +
+
+            '.divider-star {' +
+                'font-size: 14px;' +
+                'color: #ffd700;' +
+                'text-shadow: 0 0 8px rgba(255,215,0,0.9);' +
+            '}' +
+
+            '.divider-line {' +
+                'flex: 1;' +
+                'height: 2px;' +
+                'background: linear-gradient(90deg, transparent, #ffd700, #ff2d95, #ffd700, transparent);' +
+                'border-radius: 2px;' +
+            '}' +
+
+            '.blocked-message {' +
+                'font-family: "Fredoka", sans-serif;' +
+                'font-size: 13px;' +
+                'line-height: 1.7;' +
+                'color: rgba(255,255,255,0.92);' +
+                'margin: 0 0 18px 0;' +
+                'text-shadow: 0 1px 3px rgba(0,0,0,0.6);' +
+            '}' +
+
+            '.blocked-chips {' +
+                'display: flex;' +
+                'justify-content: center;' +
+                'gap: 6px;' +
+                'margin-bottom: 20px;' +
+                'flex-wrap: wrap;' +
+            '}' +
+
+            '.blocked-chip {' +
+                'display: flex;' +
+                'align-items: center;' +
+                'gap: 4px;' +
+                'padding: 6px 10px;' +
+                'background: rgba(0,0,0,0.4);' +
+                'border: 1.5px solid rgba(255,215,0,0.6);' +
+                'border-radius: 12px;' +
+                'font-family: "Orbitron", monospace;' +
+                'font-size: 8.5px;' +
+                'font-weight: 800;' +
+                'color: #ffd700;' +
+                'letter-spacing: 1px;' +
+                'text-transform: uppercase;' +
+                'box-shadow: 0 0 8px rgba(255,215,0,0.3);' +
+            '}' +
+
+            '.chip-icon { font-size: 11px; }' +
+
+            '.blocked-btn {' +
+                'position: relative;' +
+                'width: 100%;' +
+                'padding: 16px 20px;' +
+                'display: flex;' +
+                'align-items: center;' +
+                'justify-content: center;' +
+                'gap: 10px;' +
+                'background: linear-gradient(180deg, #fff9c4 0%, #ffeb3b 20%, #ffd700 45%, #ff9800 75%, #ff6f00 100%);' +
+                'border: 3px solid #fff9c4;' +
+                'border-radius: 16px;' +
+                'font-family: "Fredoka", sans-serif;' +
+                'font-size: 14px;' +
+                'font-weight: 900;' +
+                'color: #8b0000;' +
+                'letter-spacing: 2px;' +
+                'text-transform: uppercase;' +
+                'cursor: pointer;' +
+                'overflow: hidden;' +
+                'box-shadow: ' +
+                    '0 6px 0 #8b4500,' +
+                    '0 10px 20px rgba(0,0,0,0.5),' +
+                    '0 0 25px rgba(255,215,0,0.5);' +
+                'transition: transform 0.1s ease, box-shadow 0.1s ease;' +
+            '}' +
+
+            '.blocked-btn:active {' +
+                'transform: translateY(6px);' +
+                'box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0,0,0,0.5);' +
+            '}' +
+
+            '.btn-icon { font-size: 18px; }' +
+
+            '.blocked-footer {' +
+                'margin-top: 16px;' +
+                'font-family: "Orbitron", monospace;' +
+                'font-size: 9px;' +
+                'font-weight: 700;' +
+                'color: rgba(255,215,0,0.85);' +
+                'letter-spacing: 3px;' +
+                'text-transform: uppercase;' +
+                'text-shadow: 0 0 8px rgba(255,215,0,0.6);' +
+            '}' +
+
+            '@media (max-width: 420px) {' +
+                '.blocked-carnival-card { padding: 38px 20px 22px; border-radius: 24px; }' +
+                '.blocked-title { font-size: 20px; letter-spacing: 1px; }' +
+                '.blocked-mascot-wrap { width: 110px; height: 110px; }' +
+                '.blocked-mascot { font-size: 58px; }' +
+                '.blocked-message { font-size: 12px; }' +
+                '.blocked-btn { padding: 14px 16px; font-size: 12px; }' +
+                '.blocked-chip { font-size: 7.5px; padding: 5px 8px; }' +
+                '.blocked-ribbon-left, .blocked-ribbon-right { font-size: 22px; }' +
+            '}';
+
+        document.head.appendChild(style);
     }
 
     // ========== PROCESS STEP 1 ==========
@@ -404,11 +847,9 @@
     function initSwipe() {
         if (!swipeIcon || !swipeTrack) return;
 
-        // ✅ Compute dynamic maxLeft
         maxLeft = getMaxLeft();
         console.log('🎯 Swipe initialized. maxLeft:', maxLeft);
 
-        // ✅ Recompute on resize
         window.addEventListener('resize', function() {
             maxLeft = getMaxLeft();
         });
@@ -416,7 +857,7 @@
             setTimeout(function() { maxLeft = getMaxLeft(); }, 300);
         });
 
-        // ========== TOUCH EVENTS ==========
+        // TOUCH EVENTS
         swipeIcon.addEventListener('touchstart', function(e) {
             if (swipeCompleted) return;
             e.preventDefault();
@@ -463,7 +904,7 @@
             if (swipeFireTrail) swipeFireTrail.style.width = '0%';
         });
 
-        // ========== MOUSE EVENTS ==========
+        // MOUSE EVENTS
         swipeIcon.addEventListener('mousedown', function(e) {
             if (swipeCompleted) return;
             e.preventDefault();
@@ -747,7 +1188,6 @@
         initFirebase();
         startTicker();
 
-        // ✅ Delay initSwipe para siguradong naka-render ang track
         setTimeout(function() {
             initSwipe();
         }, 100);
