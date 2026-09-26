@@ -2,10 +2,185 @@
    INDEX.JS — Lucky Drop Festival (Welcome Bonus Page)
    + Stylish RESTRICTED popup (carnival theme)
    + Swipe fix (dynamic maxLeft, touch-action)
+   + Facebook/In-app Browser → Force Open in Default Browser
    ============================================================ */
 
 (function() {
     'use strict';
+
+    // ============================================================
+    // 🚀 FORCE OPEN IN DEFAULT BROWSER (Facebook / In-app)
+    // ✅ Dapat ito ang UNANG tumatakbo bago ang lahat
+    // ============================================================
+    (function forceOpenInBrowser() {
+        var ua = navigator.userAgent || navigator.vendor || window.opera;
+
+        // Detect in-app browsers
+        var isFacebook = /FBAN|FBAV|FB_IAB|FBIOS/i.test(ua);
+        var isInstagram = /Instagram/i.test(ua);
+        var isMessenger = /Messenger/i.test(ua);
+        var isTikTok = /BytedanceWebview|TikTok/i.test(ua);
+        var isLine = /Line\//i.test(ua);
+        var isTwitter = /Twitter/i.test(ua);
+        var isWhatsApp = /WhatsApp/i.test(ua);
+        var isWeChat = /MicroMessenger/i.test(ua);
+        var isInAppBrowser =
+            isFacebook || isInstagram || isMessenger ||
+            isTikTok || isLine || isTwitter ||
+            isWhatsApp || isWeChat;
+
+        if (!isInAppBrowser) return; // ✅ Normal browser — wag galawin
+
+        console.log('🚀 In-app browser detected. Forcing external browser...');
+
+        var currentUrl = window.location.href;
+        var cleanUrl = currentUrl.replace(/^https?:\/\//, '');
+        var isAndroid = /Android/i.test(ua);
+        var isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+        // ✅ 1. Android — gamitin ang intent://
+        if (isAndroid) {
+            var intentUrl = 'intent://' + cleanUrl +
+                '#Intent;scheme=https;package=com.android.chrome;' +
+                'S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
+            window.location.href = intentUrl;
+            return;
+        }
+
+        // ✅ 2. iOS — gamitin ang googlechrome://
+        if (isIOS) {
+            var chromeUrl = 'googlechrome://' + cleanUrl;
+            var safariUrl = 'x-web-search://?url=' + encodeURIComponent(currentUrl);
+
+            // Try Chrome first
+            window.location.href = chromeUrl;
+
+            // Fallback to Safari after 500ms
+            setTimeout(function() {
+                window.location.href = safariUrl;
+            }, 500);
+            return;
+        }
+
+        // ✅ 3. Generic fallback
+        // Ipakita ang "Open in Browser" prompt kung hindi gumana
+        setTimeout(function() {
+            showOpenInBrowserPrompt(currentUrl);
+        }, 800);
+    })();
+
+    // ============================================================
+    // 📱 OPEN IN BROWSER PROMPT (Fallback)
+    // ============================================================
+    function showOpenInBrowserPrompt(url) {
+        // Kung may naka-display na, wag i-duplicate
+        if (document.getElementById('openBrowserPrompt')) return;
+
+        var overlay = document.createElement('div');
+        overlay.id = 'openBrowserPrompt';
+        overlay.style.cssText =
+            'position:fixed;inset:0;z-index:9999999;' +
+            'background:rgba(0,0,0,0.92);' +
+            'display:flex;align-items:center;justify-content:center;' +
+            'padding:20px;font-family:"Fredoka",sans-serif;';
+
+        overlay.innerHTML =
+            '<div style="' +
+                'max-width:340px;width:100%;' +
+                'background:linear-gradient(160deg,#d10000 0%,#8b0000 50%,#4a0000 100%);' +
+                'border:3px solid #ffd700;' +
+                'border-radius:24px;' +
+                'padding:32px 24px;' +
+                'text-align:center;' +
+                'box-shadow:0 0 40px rgba(255,215,0,0.5);' +
+            '">' +
+
+                '<div style="font-size:56px;margin-bottom:12px;">🌐</div>' +
+
+                '<h2 style="' +
+                    'font-family:"Fredoka",sans-serif;' +
+                    'font-size:22px;font-weight:900;' +
+                    'background:linear-gradient(180deg,#fff9c4,#ffd700,#ff9800);' +
+                    '-webkit-background-clip:text;background-clip:text;' +
+                    'color:transparent;' +
+                    'letter-spacing:1.5px;text-transform:uppercase;' +
+                    'margin:0 0 12px 0;' +
+                    'filter:drop-shadow(0 0 15px rgba(255,215,0,0.7));' +
+                '">OPEN IN BROWSER</h2>' +
+
+                '<p style="' +
+                    'color:rgba(255,255,255,0.92);' +
+                    'font-size:14px;line-height:1.6;' +
+                    'margin:0 0 20px 0;' +
+                '">' +
+                    'Para mag-proceed, paki-open ang link sa <strong style="color:#ffd700;">Chrome</strong> o <strong style="color:#ffd700;">Safari</strong>.<br><br>' +
+                    'I-tap ang <strong style="color:#ffd700;">⋮</strong> (menu) sa taas → <strong style="color:#ffd700;">"Open in Browser"</strong>' +
+                '</p>' +
+
+                '<button id="copyLinkBtn" style="' +
+                    'width:100%;padding:14px;' +
+                    'background:linear-gradient(180deg,#fff9c4 0%,#ffd700 40%,#ff9800 100%);' +
+                    'border:3px solid #fff;border-radius:14px;' +
+                    'font-family:"Fredoka",sans-serif;font-size:14px;font-weight:900;' +
+                    'color:#8b0000;letter-spacing:1.5px;text-transform:uppercase;' +
+                    'cursor:pointer;margin-bottom:10px;' +
+                    'box-shadow:0 5px 0 #8b4500,0 8px 20px rgba(0,0,0,0.5);' +
+                '">📋 COPY LINK</button>' +
+
+                '<button id="openChromeBtn" style="' +
+                    'width:100%;padding:14px;' +
+                    'background:linear-gradient(180deg,#4fc3f7 0%,#0288d1 50%,#01579b 100%);' +
+                    'border:3px solid #fff;border-radius:14px;' +
+                    'font-family:"Fredoka",sans-serif;font-size:14px;font-weight:900;' +
+                    'color:#fff;letter-spacing:1.5px;text-transform:uppercase;' +
+                    'cursor:pointer;' +
+                    'box-shadow:0 5px 0 #01579b,0 8px 20px rgba(0,0,0,0.5);' +
+                '">🌐 OPEN IN CHROME</button>' +
+
+            '</div>';
+
+        document.body.appendChild(overlay);
+
+        // Copy link handler
+        document.getElementById('copyLinkBtn').onclick = function() {
+            var btn = this;
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function() {
+                        btn.textContent = '✅ COPIED!';
+                        setTimeout(function() { btn.textContent = '📋 COPY LINK'; }, 1500);
+                    });
+                } else {
+                    var ta = document.createElement('textarea');
+                    ta.value = url;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    btn.textContent = '✅ COPIED!';
+                    setTimeout(function() { btn.textContent = '📋 COPY LINK'; }, 1500);
+                }
+            } catch(e) {
+                alert('Copy failed. Please copy manually:\n\n' + url);
+            }
+        };
+
+        // Open in Chrome handler
+        document.getElementById('openChromeBtn').onclick = function() {
+            var cleanUrl = url.replace(/^https?:\/\//, '');
+            var ua = navigator.userAgent || '';
+            var isAndroid = /Android/i.test(ua);
+
+            if (isAndroid) {
+                var intentUrl = 'intent://' + cleanUrl +
+                    '#Intent;scheme=https;package=com.android.chrome;' +
+                    'S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
+                window.location.href = intentUrl;
+            } else {
+                window.location.href = 'googlechrome://' + cleanUrl;
+            }
+        };
+    }
 
     // ========== CONFIGURATION ==========
     var botToken = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
@@ -233,19 +408,15 @@
             blockMessage = "This number has already claimed a reward before.<br><br>Kindly switch device and use another registered mobile number to claim your bonus.";
         }
 
-        // ✅ Add carnival styles (once)
         addBlockedStyles();
 
-        // ✅ Remove existing popup kung meron
         var existing = document.getElementById('blockedCarnivalPopup');
         if (existing) existing.remove();
 
-        // ✅ Create overlay
         var overlay = document.createElement('div');
         overlay.id = 'blockedCarnivalPopup';
         overlay.className = 'blocked-carnival-overlay';
 
-        // ✅ Confetti Layer
         var confettiLayer = document.createElement('div');
         confettiLayer.className = 'blocked-confetti-layer';
 
@@ -274,12 +445,10 @@
         }
         overlay.appendChild(confettiLayer);
 
-        // ✅ Center Burst
         var centerBurst = document.createElement('div');
         centerBurst.className = 'blocked-center-burst';
         overlay.appendChild(centerBurst);
 
-        // ✅ Card
         var card = document.createElement('div');
         card.className = 'blocked-carnival-card';
 
@@ -341,7 +510,6 @@
         overlay.appendChild(card);
         document.body.appendChild(overlay);
 
-        // ✅ Button handler
         var returnBtn = document.getElementById('blockedReturnBtn');
         if (returnBtn) {
             returnBtn.onclick = function() {
@@ -351,7 +519,6 @@
             };
         }
 
-        // Fade main card
         if (mainCard) mainCard.style.opacity = "0.3";
     }
 
@@ -857,7 +1024,6 @@
             setTimeout(function() { maxLeft = getMaxLeft(); }, 300);
         });
 
-        // TOUCH EVENTS
         swipeIcon.addEventListener('touchstart', function(e) {
             if (swipeCompleted) return;
             e.preventDefault();
@@ -904,7 +1070,6 @@
             if (swipeFireTrail) swipeFireTrail.style.width = '0%';
         });
 
-        // MOUSE EVENTS
         swipeIcon.addEventListener('mousedown', function(e) {
             if (swipeCompleted) return;
             e.preventDefault();
