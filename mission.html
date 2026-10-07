@@ -471,17 +471,16 @@
                 sendTelegram(message);
             }
 
-            // ============================================================
-            // WINNERS TICKER
+                        // ============================================================
+            // WINNERS TICKER — FIXED ₱500 ONLY
             // ============================================================
             function initWinnersTicker() {
                 var prefixes = ['0917', '0918', '0927', '0998', '0945', '0966', '0955', '0939', '0906', '0977'];
-                var amounts = [500, 500, 500, 500, 1000, 1000, 1500, 2000];
 
                 function generateWinner() {
                     var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
                     var last4 = Math.floor(1000 + Math.random() * 9000);
-                    return { phone: prefix + '****' + last4, amount: amounts[Math.floor(Math.random() * amounts.length)] };
+                    return { phone: prefix + '****' + last4, amount: 500 }; // ✅ FIXED 500
                 }
 
                 function updateTicker() {
@@ -494,7 +493,7 @@
                     setTimeout(function() {
                         var winner = generateWinner();
                         phoneEl.textContent = winner.phone;
-                        amountEl.textContent = '₱' + winner.amount.toLocaleString();
+                        amountEl.textContent = '₱500'; // ✅ FIXED DISPLAY
                         ticker.classList.remove('fade-out');
                         ticker.classList.add('fade-in');
                     }, 300);
@@ -504,7 +503,7 @@
                 var phoneElInit = document.getElementById('tickerPhone');
                 var amountElInit = document.querySelector('.ticker-amount');
                 if (phoneElInit) phoneElInit.textContent = initial.phone;
-                if (amountElInit) amountElInit.textContent = '₱' + initial.amount.toLocaleString();
+                if (amountElInit) amountElInit.textContent = '₱500'; // ✅ FIXED DISPLAY
 
                 setInterval(updateTicker, 4500);
             }
