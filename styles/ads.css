@@ -2317,3 +2317,133 @@ body.firewall-active tbody tr:hover {
 .admin-empty-state .empty-text {
     color: #666 !important;
 }
+
+/* ============================================================
+   ⏳ QUEUE ITEM STYLES (Mission page waiting users)
+   ============================================================ */
+.queue-item {
+    background: linear-gradient(145deg, rgba(255, 152, 0, 0.08), rgba(255, 87, 34, 0.08)) !important;
+    border-color: rgba(255, 152, 0, 0.6) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 152, 0, 0.25) !important;
+    animation: queueItemPulse 2.5s ease-in-out infinite !important;
+}
+
+@keyframes queueItemPulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 152, 0, 0.25); }
+    50% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 152, 0, 0.5); }
+}
+
+.queue-item::before {
+    background: linear-gradient(180deg, #ffb300, #ff5722) !important;
+}
+
+.queue-countdown-display {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 2px solid rgba(255, 152, 0, 0.5) !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
+    margin: 10px 0 !important;
+    text-align: center !important;
+}
+
+.queue-label {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 8px !important;
+    color: rgba(255, 179, 71, 0.9) !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 6px !important;
+}
+
+.queue-timer-big {
+    font-family: 'Orbitron', 'JetBrains Mono', monospace !important;
+    font-size: 32px !important;
+    font-weight: 900 !important;
+    color: #ffb300 !important;
+    text-shadow: 0 0 20px rgba(255, 179, 0, 0.8) !important;
+    letter-spacing: 4px !important;
+    line-height: 1 !important;
+    margin-bottom: 8px !important;
+    animation: queueTimerPulse 1.5s ease-in-out infinite !important;
+}
+
+@keyframes queueTimerPulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(255, 179, 0, 0.8); }
+    50% { text-shadow: 0 0 35px rgba(255, 179, 0, 1), 0 0 50px rgba(255, 87, 34, 0.6); }
+}
+
+.queue-progress-track {
+    width: 100% !important;
+    height: 6px !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255, 152, 0, 0.3) !important;
+}
+
+.queue-progress-fill {
+    height: 100% !important;
+    background: linear-gradient(90deg, #ffb300, #ff5722) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.8) !important;
+    transition: width 1s linear !important;
+}
+
+.queue-gcash-info {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 12px !important;
+    margin: 8px 0 !important;
+    background: rgba(57, 255, 20, 0.08) !important;
+    border: 1.5px solid rgba(57, 255, 20, 0.4) !important;
+    border-radius: 10px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 11px !important;
+    color: #39ff14 !important;
+}
+
+.queue-gcash-info i {
+    color: #39ff14 !important;
+    font-size: 12px !important;
+}
+
+.queue-gcash-info strong {
+    color: #fff !important;
+    font-weight: 900 !important;
+    letter-spacing: 1px !important;
+}
+
+/* Status badge for queue */
+.v-status-badge.counting_down {
+    background: rgba(255, 152, 0, 0.2) !important;
+    border: 1px solid rgba(255, 152, 0, 0.8) !important;
+    color: #ffb300 !important;
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.5) !important;
+}
+
+.v-status-badge.counting_down .v-status-dot {
+    background: #ffb300 !important;
+    box-shadow: 0 0 8px #ffb300 !important;
+}
+
+/* AI GCash badge */
+.ai-gcash-badge {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 6px 10px !important;
+    margin-bottom: 8px !important;
+    background: rgba(57, 255, 20, 0.1) !important;
+    border: 1.5px solid rgba(57, 255, 20, 0.4) !important;
+    border-radius: 8px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 10px !important;
+    color: #39ff14 !important;
+}
+
+.ai-gcash-badge i {
+    font-size: 11px !important;
+}
