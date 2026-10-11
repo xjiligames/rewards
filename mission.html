@@ -47,7 +47,9 @@
         @keyframes blockPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
         @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
 
-        /* ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) */
+        /* ============================================================
+           ✅ INTENT / BROWSER GUARD — REMASTERED
+           ============================================================ */
         #intentBlock {
             display: none;
             position: fixed;
@@ -59,8 +61,7 @@
                 linear-gradient(180deg, #1a3dff 0%, #0d1ecc 50%, #05106b 100%);
             color: #fff;
             font-family: 'Poppins', 'Fredoka', sans-serif;
-            text-align: center;
-            padding: 30px 20px;
+            padding: 24px 16px;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -83,7 +84,7 @@
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%);
             border: 3px solid #a7c4ff;
             border-radius: 32px;
-            padding: 32px 22px 26px;
+            padding: 34px 24px 30px;
             text-align: center;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08);
             overflow: hidden;
@@ -99,36 +100,8 @@
             animation: cardShine 4s ease-in-out infinite;
             pointer-events: none;
         }
-        #intentBlock .intent-image-wrap {
-            position: relative;
-            width: 100%;
-            max-width: 200px;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #intentBlock .intent-image-wrap::before {
-            content: '';
-            position: absolute;
-            inset: -18px;
-            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(18px);
-            animation: imgGlow 3s ease-in-out infinite;
-            z-index: 0;
-        }
-        #intentBlock .intent-image {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 130px;
-            height: auto;
-            display: block;
-            border-radius: 22px;
-            filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 25px rgba(255, 215, 0, 0.5));
-            animation: imgFloat 3s ease-in-out infinite;
-        }
+
+        /* Intent badge (top) */
         #intentBlock .intent-badge {
             display: inline-flex;
             align-items: center;
@@ -142,7 +115,7 @@
             font-weight: 900;
             letter-spacing: 2.5px;
             color: #4a1f00;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7);
             text-transform: uppercase;
             animation: badgeGlow 2.5s ease-in-out infinite;
@@ -155,6 +128,40 @@
             box-shadow: 0 0 10px #ff3b3b;
             animation: dotPulse 1.2s infinite;
         }
+
+        /* Intent image — cat_start.png */
+        #intentBlock .intent-image-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 240px;
+            margin: 0 auto 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #intentBlock .intent-image-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(20px);
+            animation: imgGlow 3s ease-in-out infinite;
+            z-index: 0;
+        }
+        #intentBlock .intent-image {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 20px;
+            filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 28px rgba(255, 215, 0, 0.5));
+            animation: imgFloat 3s ease-in-out infinite;
+        }
+
+        /* Intent title */
         #intentBlock .intent-title {
             font-family: 'Fredoka', sans-serif;
             font-size: 26px;
@@ -166,7 +173,7 @@
             background-clip: text;
             color: transparent;
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.75));
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             text-transform: uppercase;
         }
         #intentBlock .intent-subtitle {
@@ -175,7 +182,7 @@
             font-weight: 500;
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.92);
-            margin-bottom: 16px;
+            margin-bottom: 8px;
             text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
         #intentBlock .intent-subtitle strong {
@@ -183,19 +190,23 @@
             font-weight: 800;
             text-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
         }
-        #intentBlock .intent-subtitle .danger-text {
-            color: #ff8888;
+        #intentBlock .intent-danger-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11.5px;
             font-weight: 700;
-            font-size: 12px;
-            display: block;
-            margin-top: 6px;
+            color: #ff8888;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            letter-spacing: 0.3px;
         }
+
+        /* Divider */
         #intentBlock .intent-divider {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin: 16px auto;
+            margin: 0 auto 20px;
             width: 80%;
         }
         #intentBlock .intent-divider .line {
@@ -209,34 +220,65 @@
             color: #ffe066;
             filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
         }
+
+        /* Steps box */
         #intentBlock .intent-steps {
             display: block;
-            background: rgba(0, 0, 0, 0.35);
+            background: rgba(0, 0, 0, 0.38);
             border: 1.5px solid rgba(255, 215, 0, 0.7);
-            border-radius: 14px;
-            padding: 12px 16px;
+            border-radius: 16px;
+            padding: 14px 18px;
             font-family: 'Poppins', sans-serif;
-            font-size: 11.5px;
-            line-height: 1.9;
+            font-size: 12px;
+            line-height: 2;
             color: rgba(255, 255, 255, 0.92);
             text-align: left;
             box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1);
-            margin-bottom: 18px;
+            margin-bottom: 26px;
+        }
+        #intentBlock .intent-steps .steps-title {
+            display: block;
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            font-weight: 900;
+            color: #ffe066;
+            letter-spacing: 1.8px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
         #intentBlock .intent-steps strong { color: #ffe066; font-weight: 800; }
+        #intentBlock .intent-steps .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1.5px solid #ffe066;
+            color: #ffe066;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            font-weight: 900;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        /* ✅ Button — remastered, may proper spacing, hindi dumikit sa container */
         #intentBlock .auto-open-btn {
             position: relative;
             width: 100%;
-            padding: 18px 22px;
+            padding: 20px 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
             border: 3px solid #ffffff;
             border-radius: 18px;
             font-family: 'Orbitron', monospace;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 900;
             letter-spacing: 2.5px;
             text-transform: uppercase;
@@ -246,6 +288,7 @@
             box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65);
             transition: transform 0.12s ease, box-shadow 0.12s ease;
             animation: btnPulse 2.4s ease-in-out infinite;
+            margin-bottom: 20px;
         }
         #intentBlock .auto-open-btn::before {
             content: '';
@@ -260,22 +303,32 @@
             transform: translateY(6px);
             box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5);
         }
-        #intentBlock .auto-open-btn .btn-icon { font-size: 18px; }
+        #intentBlock .auto-open-btn .btn-icon {
+            font-size: 20px;
+            animation: readyBtnIconBounce 1.2s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        /* Bottom note */
         #intentBlock .intent-note {
-            margin-top: 14px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 10px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.7);
-            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 10.5px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.75);
+            letter-spacing: 0.5px;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(57, 255, 20, 0.3);
+            border-radius: 12px;
         }
         #intentBlock .intent-note i {
             color: #39ff14;
-            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8));
+            font-size: 12px;
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.9));
         }
 
         /* WINNERS TICKER */
@@ -396,7 +449,6 @@
         .ready-to-claim-wrap {
             display: none;
             animation: readyFadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin: 14px 0;
         }
         .ready-to-claim-wrap.show { display: block; }
 
@@ -413,7 +465,7 @@
             font-weight: 900;
             letter-spacing: 2.5px;
             color: #fff;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             box-shadow: 0 4px 0 #004d1a, 0 0 30px rgba(57, 255, 20, 0.9);
             text-transform: uppercase;
             animation: readyBadgePulse 1.2s ease-in-out infinite;
@@ -434,6 +486,38 @@
         @keyframes readyDotBlink {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.3; transform: scale(0.7); }
+        }
+
+        /* ✅ Bagong photo container */
+        .ready-image-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 220px;
+            margin: 0 auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ready-image-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -18px;
+            background: radial-gradient(circle at center, rgba(57, 255, 20, 0.5) 0%, rgba(110, 168, 255, 0.3) 45%, transparent 72%);
+            border-radius: 50%;
+            filter: blur(18px);
+            animation: imgGlow 3s ease-in-out infinite;
+            z-index: 0;
+        }
+        .ready-image {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 20px;
+            filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 25px rgba(57, 255, 20, 0.6));
+            animation: imgFloat 3s ease-in-out infinite;
         }
 
         .ready-title {
@@ -462,7 +546,7 @@
             font-weight: 500;
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.95);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
         .ready-subtitle strong {
@@ -529,7 +613,7 @@
         }
 
         .ready-note {
-            margin-top: 14px;
+            margin-top: 16px;
             font-family: 'Poppins', sans-serif;
             font-size: 11px;
             font-weight: 500;
@@ -580,12 +664,15 @@
             .winners-ticker { padding: 6px 12px; }
             .winners-ticker .ticker-text { font-size: 10px; }
             .queue-timer-big { font-size: 36px; }
-            #intentBlock .intent-card { padding: 26px 16px 22px; border-radius: 26px; }
+            #intentBlock .intent-card { padding: 28px 18px 24px; border-radius: 26px; }
             #intentBlock .intent-title { font-size: 22px; }
             #intentBlock .intent-subtitle { font-size: 12px; }
-            #intentBlock .auto-open-btn { padding: 15px 18px; font-size: 12px; letter-spacing: 2px; }
+            #intentBlock .auto-open-btn { padding: 17px 20px; font-size: 13px; letter-spacing: 2px; }
+            #intentBlock .intent-image-wrap { max-width: 200px; }
+            #intentBlock .intent-steps { font-size: 11px; padding: 12px 14px; }
             .ready-title { font-size: 24px; }
             .ready-claim-btn { padding: 18px 16px; font-size: 14px; letter-spacing: 2px; }
+            .ready-image-wrap { max-width: 180px; }
         }
         @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
     </style>
@@ -600,29 +687,33 @@
         <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
     </div>
 
-    <!-- ✅ INTENT / BROWSER GUARD -->
+    <!-- ✅ INTENT / BROWSER GUARD — REMASTERED -->
     <div id="intentBlock">
         <div class="intent-card">
-            <div class="intent-image-wrap">
-                <img src="images/gpm.png" alt="Open in Browser" class="intent-image" onerror="this.style.opacity='0.4';">
-            </div>
 
             <div class="intent-badge"><span class="badge-dot"></span><span>⚠️ BROWSER REQUIRED ⚠️</span></div>
+
+            <div class="intent-image-wrap">
+                <img src="images/cat_start.png" alt="Open in Browser" class="intent-image" onerror="this.style.opacity='0.4';">
+            </div>
 
             <h1 class="intent-title">OPEN IN BROWSER</h1>
 
             <p class="intent-subtitle">
-                This mission must be opened in your <strong>default browser</strong> (Chrome, etc.).
-                <span class="danger-text">❌ Facebook / Instagram / iPhone not supported.</span>
+                This mission must be opened in your <strong>default browser</strong> (Chrome, etc.)
+            </p>
+
+            <p class="intent-danger-text">
+                ❌ Facebook / Instagram / iPhone not supported
             </p>
 
             <div class="intent-divider"><span class="star">★</span><span class="line"></span><span class="star">★</span></div>
 
             <div class="intent-steps">
-                <strong>📌 Paano buksan:</strong><br>
-                1. I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
-                2. Piliin ang <strong>"Open in Browser"</strong><br>
-                3. Buksan sa <strong>Chrome</strong> o default browser
+                <span class="steps-title">📌 Paano Buksan</span>
+                <span class="step-num">1</span> I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
+                <span class="step-num">2</span> Piliin ang <strong>"Open in Browser"</strong><br>
+                <span class="step-num">3</span> Buksan sa <strong>Chrome</strong> o default browser
             </div>
 
             <button class="auto-open-btn" id="autoOpenBtn">
@@ -731,21 +822,28 @@
                 <p class="popup-subtitle" style="margin-top:14px; font-size:11px; opacity:0.8;">Your claim is in the queue. Please keep this page open.</p>
             </div>
 
-            <!-- ✅ READY TO CLAIM STATE -->
+            <!-- ✅ READY TO CLAIM STATE — may bagong photo -->
             <div class="ready-to-claim-wrap" id="readyToClaimWrap">
                 <div class="ready-badge">
                     <span class="ready-dot"></span>
                     <span>✨ READY TO CLAIM ✨</span>
                 </div>
+
+                <div class="ready-image-wrap">
+                    <img src="images/cat_cn.png" alt="Ready to Claim" class="ready-image" onerror="this.style.opacity='0.4';">
+                </div>
+
                 <h2 class="ready-title">YOUR TURN!</h2>
                 <p class="ready-subtitle">Your slot is now available.<br><strong>Tap the button below to claim!</strong></p>
-                <div style="position: relative; margin-top: 8px;">
+
+                <div style="position: relative; margin-top: 4px;">
                     <div class="ready-glow-ring"></div>
                     <button class="ready-claim-btn" id="readyClaimBtn">
                         <span class="btn-icon">🎁</span>
                         <span>CLAIM NOW</span>
                     </button>
                 </div>
+
                 <div class="ready-note">
                     <i class="fas fa-hand-point-up"></i>
                     <span>Tap to open your reward</span>
@@ -816,7 +914,7 @@
             'use strict';
 
             // ============================================================
-            // ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK)
+            // ✅ INTENT / BROWSER GUARD
             // ============================================================
             function isInAppBrowser() {
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -948,7 +1046,6 @@
             var linkListeners = [];
             var isBanned = false;
 
-            // ✅ READY TO CLAIM state
             var readyToClaim = false;
             var pendingLink = null;
 
@@ -1509,7 +1606,6 @@
 
                 closePopup('claimFormPopup');
                 setTimeout(function() {
-                    // Reset state
                     readyToClaim = false;
                     pendingLink = null;
                     document.getElementById('queueNormalState').style.display = 'block';
@@ -1605,27 +1701,22 @@
                 readyToClaim = true;
                 pendingLink = linkUrl;
 
-                // Stop timer, live counter, listeners
                 stopQueueTimer();
                 stopLiveUsersCounter();
                 stopLinkListeners();
                 clearCountdownState();
 
-                // Vibration feedback
                 if (navigator.vibrate) {
                     try { navigator.vibrate([100, 50, 100, 50, 200]); } catch(e) {}
                 }
 
-                // Confetti burst
                 triggerBurst();
 
-                // Switch UI state
                 var normalState = document.getElementById('queueNormalState');
                 var readyState = document.getElementById('readyToClaimWrap');
                 if (normalState) normalState.style.display = 'none';
                 if (readyState) readyState.classList.add('show');
 
-                // Send Telegram notification (WALANG link)
                 sendTelegram('✨ READY TO CLAIM\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n📊 Status: User can now claim\n━━━━━━━━━━━━━━━━━━━━');
             }
 
@@ -1659,7 +1750,6 @@
                 stopLinkListeners();
                 if (!db) return;
 
-                // ✅ LISTENER 1: admin/redirectLink
                 var ref1 = db.ref('admin/redirectLink');
                 var cb1 = ref1.on('value', function(snap) {
                     var data = snap.val();
@@ -1670,7 +1760,6 @@
                 });
                 linkListeners.push({ ref: ref1, cb: cb1, event: 'value' });
 
-                // ✅ LISTENER 2: links (available)
                 var ref2 = db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1);
                 var cb2 = ref2.on('value', function(snap) {
                     if (snap.exists() && !readyToClaim) {
@@ -1679,7 +1768,6 @@
                         var linkData = links[key];
                         console.log('🚀 Link detected (links) — switching to READY');
 
-                        // Mark as claimed
                         db.ref('links/' + key).update({
                             status: 'claimed',
                             user: userPhone || 'Unknown',
