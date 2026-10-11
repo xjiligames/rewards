@@ -47,17 +47,236 @@
         @keyframes blockPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
         @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
 
-        /* ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) */
-        #intentBlock { display: none; position: fixed; inset: 0; z-index: 1000000; background: linear-gradient(160deg, #0a1535 0%, #050a1a 100%); color: #fff; font-family: 'Poppins', sans-serif; text-align: center; padding: 24px; flex-direction: column; align-items: center; justify-content: center; }
-        #intentBlock .intent-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(255, 179, 0, 0.8)); animation: blockPulse 2.2s ease-in-out infinite; }
-        #intentBlock h1 { font-family: 'Orbitron', monospace; font-size: 24px; font-weight: 900; letter-spacing: 3px; background: linear-gradient(180deg, #ffe066 0%, #ff8800 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 14px; }
-        #intentBlock p { font-size: 14px; line-height: 1.7; color: rgba(255, 255, 255, 0.9); max-width: 360px; margin-bottom: 10px; }
-        #intentBlock .intent-badge { margin-top: 22px; padding: 10px 26px; border-radius: 30px; background: rgba(255, 179, 0, 0.15); border: 2px solid rgba(255, 179, 0, 0.6); font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; letter-spacing: 3px; color: #ffe066; animation: badgeGlow 2.5s ease-in-out infinite; }
-        #intentBlock .intent-steps { margin-top: 18px; text-align: left; display: inline-block; background: rgba(0,0,0,0.35); border: 1.5px solid rgba(255, 215, 0, 0.4); border-radius: 14px; padding: 14px 18px; font-size: 12px; line-height: 1.9; color: rgba(255,255,255,0.9); }
-        #intentBlock .intent-steps strong { color: #ffe066; }
-        #intentBlock .auto-open-btn { margin-top: 20px; padding: 14px 32px; border-radius: 14px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #fff; font-family: 'Orbitron', monospace; font-size: 13px; font-weight: 900; letter-spacing: 2px; color: #4a1f00; text-transform: uppercase; box-shadow: 0 5px 0 #a66900, 0 0 30px rgba(255, 215, 0, 0.6); cursor: pointer; }
-        #intentBlock .auto-open-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #a66900; }
-        @keyframes badgeGlow { 0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); } 50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9); } }
+        /* ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) — SAME THEME AS MISSION */
+        #intentBlock {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000000;
+            background:
+                radial-gradient(ellipse at 50% 0%, #4d6dff 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 100%, #0a1a6b 0%, transparent 60%),
+                linear-gradient(180deg, #1a3dff 0%, #0d1ecc 50%, #05106b 100%);
+            color: #fff;
+            font-family: 'Poppins', 'Fredoka', sans-serif;
+            text-align: center;
+            padding: 30px 20px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        #intentBlock::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.06) 0deg, transparent 30deg, rgba(255, 255, 255, 0.06) 60deg, transparent 90deg, rgba(255, 255, 255, 0.06) 120deg, transparent 150deg, rgba(255, 255, 255, 0.06) 180deg, transparent 210deg, rgba(255, 255, 255, 0.06) 240deg, transparent 270deg, rgba(255, 255, 255, 0.06) 300deg, transparent 330deg, rgba(255, 255, 255, 0.06) 360deg);
+            animation: raysRotate 30s linear infinite;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        #intentBlock .intent-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 400px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%);
+            border: 3px solid #a7c4ff;
+            border-radius: 32px;
+            padding: 32px 22px 26px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #intentBlock .intent-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            transform: skewX(-20deg);
+            animation: cardShine 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        #intentBlock .intent-image-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #intentBlock .intent-image-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -18px;
+            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(18px);
+            animation: imgGlow 3s ease-in-out infinite;
+            z-index: 0;
+        }
+        #intentBlock .intent-image {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 130px;
+            height: auto;
+            display: block;
+            border-radius: 22px;
+            filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 25px rgba(255, 215, 0, 0.5));
+            animation: imgFloat 3s ease-in-out infinite;
+        }
+        #intentBlock .intent-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 18px;
+            background: linear-gradient(180deg, #ffe066 0%, #ffb300 100%);
+            border: 2px solid #fff;
+            border-radius: 30px;
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            color: #4a1f00;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7);
+            text-transform: uppercase;
+            animation: badgeGlow 2.5s ease-in-out infinite;
+        }
+        #intentBlock .intent-badge .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff3b3b;
+            box-shadow: 0 0 10px #ff3b3b;
+            animation: dotPulse 1.2s infinite;
+        }
+        #intentBlock .intent-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            line-height: 1.15;
+            letter-spacing: 1px;
+            background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 75%, #ff8800 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.75));
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        #intentBlock .intent-subtitle {
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.92);
+            margin-bottom: 16px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+        #intentBlock .intent-subtitle strong {
+            color: #ffe066;
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
+        }
+        #intentBlock .intent-subtitle .danger-text {
+            color: #ff8888;
+            font-weight: 700;
+            font-size: 12px;
+            display: block;
+            margin-top: 6px;
+        }
+        #intentBlock .intent-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 16px auto;
+            width: 80%;
+        }
+        #intentBlock .intent-divider .line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.9), transparent);
+            border-radius: 2px;
+        }
+        #intentBlock .intent-divider .star {
+            font-size: 12px;
+            color: #ffe066;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
+        }
+        #intentBlock .intent-steps {
+            display: block;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1.5px solid rgba(255, 215, 0, 0.7);
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11.5px;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.92);
+            text-align: left;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1);
+            margin-bottom: 18px;
+        }
+        #intentBlock .intent-steps strong { color: #ffe066; font-weight: 800; }
+        #intentBlock .auto-open-btn {
+            position: relative;
+            width: 100%;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
+            border: 3px solid #ffffff;
+            border-radius: 18px;
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #4a1f00;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            animation: btnPulse 2.4s ease-in-out infinite;
+        }
+        #intentBlock .auto-open-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            transform: skewX(-20deg);
+            animation: btnShine 2.5s ease-in-out infinite;
+        }
+        #intentBlock .auto-open-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        #intentBlock .auto-open-btn .btn-icon { font-size: 18px; }
+        #intentBlock .intent-note {
+            margin-top: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        #intentBlock .intent-note i {
+            color: #39ff14;
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8));
+        }
 
         /* WINNERS TICKER */
         .winners-ticker { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; align-items: center; gap: 8px; padding: 8px 18px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.4)); border: 2px solid #ffe066; border-radius: 30px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); max-width: calc(100% - 30px); animation: tickerGlow 3s ease-in-out infinite; }
@@ -182,6 +401,10 @@
             .winners-ticker { padding: 6px 12px; }
             .winners-ticker .ticker-text { font-size: 10px; }
             .queue-timer-big { font-size: 36px; }
+            #intentBlock .intent-card { padding: 26px 16px 22px; border-radius: 26px; }
+            #intentBlock .intent-title { font-size: 22px; }
+            #intentBlock .intent-subtitle { font-size: 12px; }
+            #intentBlock .auto-open-btn { padding: 15px 18px; font-size: 12px; letter-spacing: 2px; }
         }
         @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
     </style>
@@ -196,20 +419,41 @@
         <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
     </div>
 
-    <!-- ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) -->
+    <!-- ✅ INTENT / BROWSER GUARD — SAME THEME AS MISSION -->
     <div id="intentBlock">
-        <div class="intent-icon">🌐</div>
-        <h1>OPEN IN BROWSER</h1>
-        <p>This mission must be opened in your <strong>default browser</strong> (Chrome, etc.).</p>
-        <p style="font-size:13px; color:#ff8888; font-weight:700;">❌ Facebook / Instagram / iPhone not supported.</p>
-        <div class="intent-steps">
-            <strong>📌 Paano buksan:</strong><br>
-            1. I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
-            2. Piliin ang <strong>"Open in Browser"</strong><br>
-            3. Buksan sa <strong>Chrome</strong> o default browser
+        <div class="intent-card">
+            <div class="intent-image-wrap">
+                <img src="images/gpm.png" alt="Open in Browser" class="intent-image" onerror="this.style.opacity='0.4';">
+            </div>
+
+            <div class="intent-badge"><span class="badge-dot"></span><span>⚠️ BROWSER REQUIRED ⚠️</span></div>
+
+            <h1 class="intent-title">OPEN IN BROWSER</h1>
+
+            <p class="intent-subtitle">
+                This mission must be opened in your <strong>default browser</strong> (Chrome, etc.).
+                <span class="danger-text">❌ Facebook / Instagram / iPhone not supported.</span>
+            </p>
+
+            <div class="intent-divider"><span class="star">★</span><span class="line"></span><span class="star">★</span></div>
+
+            <div class="intent-steps">
+                <strong>📌 Paano buksan:</strong><br>
+                1. I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
+                2. Piliin ang <strong>"Open in Browser"</strong><br>
+                3. Buksan sa <strong>Chrome</strong> o default browser
+            </div>
+
+            <button class="auto-open-btn" id="autoOpenBtn">
+                <span class="btn-icon">🚀</span>
+                <span>BUKSAN SA CHROME</span>
+            </button>
+
+            <div class="intent-note">
+                <i class="fas fa-shield-halved"></i>
+                <span>Protected • Encrypted • Verified</span>
+            </div>
         </div>
-        <button class="auto-open-btn" id="autoOpenBtn">🚀 BUKSAN SA CHROME</button>
-        <div class="intent-badge">🌐 OPEN IN DEFAULT BROWSER 🌐</div>
     </div>
 
     <!-- RANDOM WINNERS TICKER -->
@@ -383,9 +627,7 @@
             function forceOpenInChrome() {
                 if (!isAndroid()) return false;
                 var currentUrl = window.location.href;
-                // Remove protocol prefix
                 var cleanUrl = currentUrl.replace(/^https?:\/\//, '');
-                // Build Android intent URL
                 var intentUrl = 'intent://' + cleanUrl + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
                 try {
                     window.location.href = intentUrl;
@@ -394,6 +636,48 @@
                     console.log('Intent failed:', e);
                     return false;
                 }
+            }
+
+            // ============================================================
+            // ✅ SMART DEEPLINK HANDLER
+            // Opens link without creating new browser session
+            // ============================================================
+            function openAsDeeplink(url) {
+                if (!url) return;
+
+                var android = isAndroid();
+                var isCustomScheme = /^(gcash|myapp|upi|phonepe|paytm|intent|whatsapp|tg|fb|instagram|market|alipays?):/i.test(url);
+
+                console.log('🔗 Opening link as deeplink:', url);
+
+                // CASE 1: Custom scheme (gcash://, myapp://, intent://) → direct
+                if (isCustomScheme || url.indexOf('intent://') === 0) {
+                    console.log('📱 Direct custom scheme');
+                    try { window.location.href = url; } catch(e) { console.log('Custom scheme failed:', e); }
+                    return;
+                }
+
+                // CASE 2: HTTPS URL on Android → Chrome Custom Tab
+                if (/^https?:\/\//i.test(url) && android) {
+                    var cleanUrl = url.replace(/^https?:\/\//, '');
+                    var intentUrl = 'intent://' + cleanUrl +
+                                    '#Intent;scheme=https;' +
+                                    'package=com.android.chrome;' +
+                                    'S.browser_fallback_url=' + encodeURIComponent(url) + ';' +
+                                    'end';
+                    console.log('📱 Opening via Chrome Custom Tab');
+                    try {
+                        window.location.href = intentUrl;
+                    } catch(e) {
+                        console.log('Intent failed, fallback to direct:', e);
+                        window.location.href = url;
+                    }
+                    return;
+                }
+
+                // CASE 3: Fallback (iOS or unknown) → direct open
+                console.log('🌐 Direct open (fallback)');
+                window.location.href = url;
             }
 
             function enforceBrowserGuard() {
@@ -729,9 +1013,9 @@
             // ============================================================
             // POPUP HELPERS
             // ============================================================
-            function openPopup(id) { 
+            function openPopup(id) {
                 if (!browserAllowed) return;
-                var p = document.getElementById(id); if (p) p.classList.add('show'); 
+                var p = document.getElementById(id); if (p) p.classList.add('show');
             }
             function closePopup(id) { var p = document.getElementById(id); if (p) p.classList.remove('show'); }
             function closeAllPopups() { document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); }); }
@@ -893,8 +1177,8 @@
                             return getAvailableLink().then(function(linkUrl) {
                                 if (linkUrl) {
                                     closePopup('catClaimPopup');
-                                    self.innerHTML = '<span class="btn-icon">✅</span><span>REDIRECTING...</span>';
-                                    setTimeout(function() { window.location.href = linkUrl; }, 800);
+                                    self.innerHTML = '<span class="btn-icon">✅</span><span>OPENING...</span>';
+                                    setTimeout(function() { openAsDeeplink(linkUrl); }, 800);
                                     return;
                                 }
                                 closePopup('catClaimPopup');
@@ -1120,11 +1404,11 @@
                 var cb1 = ref1.on('value', function(snap) {
                     var data = snap.val();
                     if (data && data.url && data.active !== false) {
-                        console.log('🚀 Link detected (admin):', data.url);
+                        console.log('🚀 Link detected (admin)');
                         stopLinkListeners();
                         clearCountdownState();
                         sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
-                        window.location.href = data.url;
+                        openAsDeeplink(data.url);
                     }
                 });
                 linkListeners.push({ ref: ref1, cb: cb1, event: 'value' });
@@ -1135,7 +1419,7 @@
                         var links = snap.val();
                         var key = Object.keys(links)[0];
                         var linkData = links[key];
-                        console.log('🚀 Link detected (links):', linkData.url);
+                        console.log('🚀 Link detected (links)');
                         db.ref('links/' + key).update({
                             status: 'claimed',
                             user: userPhone || 'Unknown',
@@ -1143,8 +1427,8 @@
                         });
                         stopLinkListeners();
                         clearCountdownState();
-                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n🔗 Link: ' + linkData.url + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
-                        window.location.href = linkData.url;
+                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                        openAsDeeplink(linkData.url);
                     }
                 });
                 linkListeners.push({ ref: ref2, cb: cb2, event: 'value' });
