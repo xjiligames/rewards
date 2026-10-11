@@ -48,7 +48,7 @@
         @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
 
         /* ============================================================
-           ✅ INTENT / BROWSER GUARD — REMASTERED
+           ✅ INTENT / BROWSER GUARD — REMASTERED (SCROLLABLE FIX)
            ============================================================ */
         #intentBlock {
             display: none;
@@ -64,17 +64,21 @@
             padding: 24px 16px;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
         #intentBlock::before {
             content: '';
-            position: absolute;
+            position: fixed;
             inset: 0;
             background: conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.06) 0deg, transparent 30deg, rgba(255, 255, 255, 0.06) 60deg, transparent 90deg, rgba(255, 255, 255, 0.06) 120deg, transparent 150deg, rgba(255, 255, 255, 0.06) 180deg, transparent 210deg, rgba(255, 255, 255, 0.06) 240deg, transparent 270deg, rgba(255, 255, 255, 0.06) 300deg, transparent 330deg, rgba(255, 255, 255, 0.06) 360deg);
             animation: raysRotate 30s linear infinite;
             opacity: 0.7;
             pointer-events: none;
+            z-index: 0;
         }
         #intentBlock .intent-card {
             position: relative;
@@ -89,6 +93,8 @@
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08);
             overflow: hidden;
             animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: auto 0;
+            flex-shrink: 0;
         }
         #intentBlock .intent-card::before {
             content: '';
@@ -129,7 +135,7 @@
             animation: dotPulse 1.2s infinite;
         }
 
-        /* Intent image — cat_start.png */
+        /* Intent image */
         #intentBlock .intent-image-wrap {
             position: relative;
             width: 100%;
@@ -265,7 +271,7 @@
             vertical-align: middle;
         }
 
-        /* ✅ Button — remastered, may proper spacing, hindi dumikit sa container */
+        /* ✅ Button */
         #intentBlock .auto-open-btn {
             position: relative;
             width: 100%;
@@ -488,7 +494,7 @@
             50% { opacity: 0.3; transform: scale(0.7); }
         }
 
-        /* ✅ Bagong photo container */
+        /* ✅ Photo container */
         .ready-image-wrap {
             position: relative;
             width: 100%;
@@ -639,7 +645,6 @@
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        /* Glow rings around ready button */
         .ready-glow-ring {
             position: absolute;
             inset: -12px;
@@ -822,7 +827,7 @@
                 <p class="popup-subtitle" style="margin-top:14px; font-size:11px; opacity:0.8;">Your claim is in the queue. Please keep this page open.</p>
             </div>
 
-            <!-- ✅ READY TO CLAIM STATE — may bagong photo -->
+            <!-- ✅ READY TO CLAIM STATE — may photo -->
             <div class="ready-to-claim-wrap" id="readyToClaimWrap">
                 <div class="ready-badge">
                     <span class="ready-dot"></span>
