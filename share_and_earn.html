@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome (Kailangan ng popup) -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- External CSS -->
@@ -97,7 +97,7 @@
             <img src="images/pt_sugar.png" alt="Lucky Mascots" class="hero-image">
         </div>
 
-        <!-- CLAIM NOW BUTTON -->
+        <!-- CLAIM NOW BUTTON (Ito ang nagbubukas ng Withdraw Popup) -->
         <button class="claim-now-btn mega-btn" id="claimNowBtn">
             <div class="icon-container">
                 <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon">
@@ -145,11 +145,10 @@
         <div class="share-social-text">
             Share to <strong>Social Media</strong><br>received up to <strong>₱1,000 GCash Credits</strong>
         </div>
-        <canvas id="confettiCanvas"></canvas>
     </div>
 
     <!-- ============================================================
-         WITHDRAW POPUP
+         WITHDRAW POPUP (Ito lang ang popup na kailangan)
          ============================================================ -->
     <div id="claimNowPopup" class="claim-now-popup" style="display: none;">
         <div class="claim-now-popup-container">
@@ -188,13 +187,6 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg> BACK
                 </button>
             </div>
-        </div>
-    </div>
-
-    <!-- PRIZE POPUP (Hidden, para sa popup_share.js logic) -->
-    <div id="prizePopup" style="display: none; position: fixed; inset: 0; z-index: 99999; align-items: center; justify-content: center; background: rgba(16,0,43,0.85); backdrop-filter: blur(15px);">
-        <div class="bonus-reward-container">
-            <div class="popup-inner" id="prizePopupInner"></div>
         </div>
     </div>
 
