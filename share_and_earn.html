@@ -10,12 +10,23 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <!-- Google Fonts -->
+    <!-- OG Meta Tags -->
+    <meta property="og:title" content="Play Bonus">
+    <meta property="og:description" content="Claim your bonus now!">
+    <meta property="og:image" content="images/pt_sugar.png">
+    <meta property="og:url" content="https://tiny.cc/LuckyDrop">
+    <meta property="og:type" content="website">
+
+    <!-- Google Fonts (Premium Candy Theme) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
 
+    <!-- External CSS -->
     <link rel="stylesheet" href="styles/playbonus.css">
+    
+    <!-- Font Awesome (Kailangan ng popup_share.js para sa icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -53,7 +64,6 @@
                 <span class="title-word accent">BONUS</span>
                 <span class="title-emoji">🎁</span>
             </h1>
-            <!-- Tinanggal ang MEGA REWARD dito -->
             <p class="subtitle">CANDY UNIVERSE</p>
         </div>
 
@@ -96,7 +106,7 @@
             <img src="images/pt_sugar.png" alt="Lucky Mascots" class="hero-image">
         </div>
 
-        <!-- CLAIM NOW BUTTON -->
+        <!-- CLAIM NOW BUTTON (Ito ang nagbubukas ng Withdraw Popup) -->
         <button class="claim-now-btn mega-btn" id="claimNowBtn">
             <div class="icon-container">
                 <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon">
@@ -150,35 +160,8 @@
     </div>
 
     <!-- ============================================================
-         POPUPS (Same logic, updated classes)
+         WITHDRAW POPUP (Ito ang lalabas pag clinick ang Claim Now)
          ============================================================ -->
-    <div id="bonusRewardPopup" class="bonus-reward-popup" style="display: none;">
-        <div class="bonus-reward-container">
-            <button class="bonus-reward-close" id="bonusRewardClose">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <div class="bonus-reward-inner">
-                <div class="pt-cat-image-wrapper">
-                    <img src="images/PT_Cat.png" alt="Bonus Cat" class="pt-cat-image">
-                </div>
-                <div class="pt-cat-bonus-amount">
-                    <span class="bonus-label">BONUS REWARD</span>
-                    <div class="bonus-value">
-                        <span class="currency">₱</span>
-                        <span id="ptCatBonusAmount">500</span>
-                    </div>
-                </div>
-                <button class="pt-cat-claim-btn mega-btn" id="ptCatClaimBtn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><line x1="12" x2="12" y1="22" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-                    <span>CLAIM BONUS</span>
-                </button>
-                <button class="small-back-btn" id="bonusRewardBack">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg> BACK
-                </button>
-            </div>
-        </div>
-    </div>
-
     <div id="claimNowPopup" class="claim-now-popup" style="display: none;">
         <div class="claim-now-popup-container">
             <button class="claim-now-popup-close" id="claimNowPopupClose">
@@ -206,6 +189,8 @@
                     <div class="claim-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> SECURED</div>
                     <div class="claim-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> EASY</div>
                 </div>
+                
+                <!-- DITO ANG REDIRECT -->
                 <button class="claim-via-gcash-btn mega-btn" id="claimViaGCashBtn">
                     <img src="images/gc_icon.png" class="gc-icon" alt="GCash">
                     <span>CLAIM VIA GCASH APP</span>
@@ -217,25 +202,16 @@
         </div>
     </div>
 
-    <div id="adsPopup" class="ads-popup" style="display: none;">
-        <div class="ads-popup-container">
-            <button class="ads-popup-close" id="adsPopupClose">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            </button>
-            <div class="ads-popup-inner">
-                <div class="ads-image-wrapper">
-                    <img src="images/pt_ads.png" alt="Lucky Cat Ads" class="ads-image">
-                </div>
-                <h2 class="ads-title">🧧 SPECIAL OFFER 🧧</h2>
-                <div class="ads-divider"><span>★</span><span class="line"></span><span>★</span></div>
-                <button class="ads-skip-btn mega-btn" id="adsSkipBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
-                    <span>SKIP ADS</span>
-                </button>
-            </div>
+    <!-- ============================================================
+         BONUS REWARD POPUP (Galing ito sa popup_share.js)
+         ============================================================ -->
+    <div id="prizePopup" class="bonus-reward-popup" style="display: none;">
+        <div class="bonus-reward-container">
+            <div class="popup-inner" id="prizePopupInner"></div>
         </div>
     </div>
 
+    <!-- SUCCESS POPUP -->
     <div id="successPopup" class="success-popup" style="display: none;">
         <div class="success-popup-inner">
             <div class="success-icon">
@@ -250,10 +226,82 @@
         </div>
     </div>
 
-    <!-- SCRIPTS (Huwag galawin) -->
+    <!-- ========== SCRIPTS ========== -->
     <script src="js/config.js"></script>
     <script src="js/playbonus.js"></script>
     <script src="popup_share.js"></script>
     <script src="js/chat_widget.js"></script>
+
+    <!-- ========== INLINE: Ban check + logout ========== -->
+    <script>
+        (function() {
+            var isRedirecting = false;
+
+            function safeLogout() {
+                if (isRedirecting) return;
+                isRedirecting = true;
+                var userPhone = localStorage.getItem('userPhone');
+                if (userPhone && typeof firebase !== 'undefined' && firebase.database) {
+                    try {
+                        firebase.database().ref('user_sessions/' + userPhone).update({
+                            status: 'offline',
+                            lastSeen: firebase.database.ServerValue.TIMESTAMP
+                        });
+                    } catch(e) { console.log('Logout error:', e); }
+                }
+                ['userPhone', 'userDeviceId', 'userDeviceDisplayId'].forEach(function(k) {
+                    localStorage.removeItem(k);
+                });
+                sessionStorage.clear();
+                window.location.replace('index.html');
+            }
+
+            function checkBanAndEnforce() {
+                if (isRedirecting) return;
+                var userPhone = localStorage.getItem('userPhone');
+                if (!userPhone || userPhone === 'null' || userPhone === 'undefined' || userPhone.length < 10) return;
+                if (typeof firebase === 'undefined' || !firebase.database) return;
+
+                var db = firebase.database();
+                db.ref('admin/banProtocolEnabled').once('value').then(function(banSnap) {
+                    var banData = banSnap.val();
+                    var banEnabled = !!(banData && banData.enabled === true);
+
+                    if (!banEnabled) return;
+
+                    return db.ref('banned_ghosts/' + userPhone).once('value').then(function(snap) {
+                        if (snap.exists()) {
+                            isRedirecting = true;
+                            db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
+                            ['userPhone', 'userDeviceId', 'userDeviceDisplayId'].forEach(function(k) {
+                                localStorage.removeItem(k);
+                            });
+                            sessionStorage.clear();
+                            window.location.replace('index.html');
+                        }
+                    });
+                }).catch(function(e) {
+                    console.log('Ban check error:', e);
+                });
+            }
+
+            function shareOnFacebook() {
+                var shareUrl = 'https://tiny.cc/LuckyDrop';
+                window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl), '_blank', 'width=600,height=400');
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                var logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) logoutBtn.addEventListener('click', safeLogout);
+
+                var fbBtn = document.getElementById('facebookShareBtn');
+                if (fbBtn) fbBtn.addEventListener('click', shareOnFacebook);
+
+                checkBanAndEnforce();
+                setInterval(checkBanAndEnforce, 30000);
+            });
+        })();
+    </script>
+
 </body>
 </html>
