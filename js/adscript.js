@@ -1,16 +1,17 @@
 /**
- * C.I.A. Command Center - Admin Panel
- * First Time Setup → Auto Login After
- * + System Verification Panel
- * + USER INPUT (kapalit ng SYSTEM CODE)
- * + Manual delete button 🗑️
- * + Auto-delete after 2 minutes
- * + Unique per phone (latest input only)
- * + Anti-refresh + Copy button + Compact display
- * + ⏳ QUEUE USERS (Mission counting_down)
- * + 📞 AI VERIFICATION USERS
+ * ============================================================
+ * C.I.A. ADMIN — adscript.js
+ * Remastered v4.0
+ * - No master key (open access — add Firebase Auth later)
+ * - Toggle switches (UI only for now)
+ * - Theme via data-theme (night/day)
+ * - SVG icons (no Font Awesome)
+ * ============================================================
  */
 
+/* ============================================================
+   1. FIREBASE INIT
+   ============================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
     authDomain: "casinorewards-95502.firebaseapp.com",
@@ -24,215 +25,36 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+/* ============================================================
+   2. STATE
+   ============================================================ */
 let globalFirewallActive = false;
 let currentUserData = [];
 let currentFilter = 'none';
 let bannedUsersData = [];
 
-// ============================================================
-// SYSTEM VERIFICATION VARIABLES
-// ============================================================
 let verificationListener = null;
-let verificationCountdownInterval = null;
+let verificationInterval = null;
 let activeVerifications = {};
 let lastRenderHash = '';
 
-// ✅ AUTO-DELETE TIMING
-const AUTO_DELETE_MS = 2 * 60 * 1000;         // 2 minutes for AI verification
-const QUEUE_DELETE_MS = 12 * 60 * 1000;       // 12 minutes for queue
+const AUTO_DELETE_MS = 2 * 60 * 1000;
+const QUEUE_DELETE_MS = 12 * 60 * 1000;
 
-// ========== CHECK IF MASTER KEY EXISTS ==========
-async function checkMasterKeyExists() {
-    try {
-        const snap = await db.ref('admin/masterKey').once('value');
-        return snap.exists();
-    } catch (error) {
-        console.warn('Error checking master key:', error);
-        return false;
-    }
-}
+/* Toggle state (UI only for now) */
+let userLogsEnabled = true;
+let banEnabled = false;
 
-// ========== SETUP MASTER KEY (First Time) ==========
-async function setupMasterKey() {
-    const newKey = document.getElementById('setupNewKey').value.trim();
-    const confirmKey = document.getElementById('setupConfirmKey').value.trim();
-    const errorDiv = document.getElementById('setupError');
-    const btn = document.getElementById('setupBtn');
+/* Delete mode */
+let deleteModeState = 0; // 0=off, 1=select, 2=confirm
+let selectedUsers = [];
 
-    if (!newKey || !confirmKey) {
-        errorDiv.innerHTML = "⚠️ Please fill in both fields";
-        errorDiv.style.color = '#ff4444';
-        return;
-    }
+/* Sort */
+let devSortState = 0; // 0=off, 1=asc, 2=desc
 
-    if (newKey.length < 4) {
-        errorDiv.innerHTML = "⚠️ Key must be at least 4 characters";
-        errorDiv.style.color = '#ff4444';
-        document.getElementById('setupNewKey').value = '';
-        document.getElementById('setupConfirmKey').value = '';
-        document.getElementById('setupNewKey').focus();
-        return;
-    }
-
-    if (newKey !== confirmKey) {
-        errorDiv.innerHTML = "⚠️ Keys do not match!";
-        errorDiv.style.color = '#ff4444';
-        document.getElementById('setupNewKey').value = '';
-        document.getElementById('setupConfirmKey').value = '';
-        document.getElementById('setupNewKey').focus();
-        return;
-    }
-
-    try {
-        btn.disabled = true;
-        errorDiv.innerHTML = "⏳ Saving to Firebase...";
-        errorDiv.style.color = '#39ff14';
-
-        await db.ref('admin/masterKey').set(newKey);
-        await db.ref('admin/setupInfo').set({
-            createdAt: Date.now(),
-            createdBy: 'ADMIN',
-            version: '1.0'
-        });
-
-        errorDiv.innerHTML = "✅ Master key created successfully!";
-        errorDiv.style.color = '#39ff14';
-
-        setTimeout(() => {
-            document.getElementById('setupOverlay').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('dashboard').classList.add('active');
-
-            loadStats();
-            checkGlobalFirewallStatus();
-            checkChangeNumberStatus();
-
-            initSystemVerificationPanel();
-
-            console.log('✅ Setup complete! Auto-login successful.');
-        }, 1000);
-
-    } catch (error) {
-        errorDiv.innerHTML = "❌ Error saving: " + error.message;
-        errorDiv.style.color = '#ff4444';
-        console.error('Setup error:', error);
-        btn.disabled = false;
-    }
-}
-
-// ========== SHOW SETUP OVERLAY ==========
-function showSetupOverlay() {
-    const overlay = document.getElementById('setupOverlay');
-    if (overlay) {
-        overlay.style.display = 'flex';
-        setTimeout(() => {
-            document.getElementById('setupNewKey').focus();
-        }, 300);
-    }
-}
-
-// ========== AUTO-LOGIN OR SHOW SETUP ==========
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 Initializing C.I.A. Admin Panel...');
-
-    const dashboard = document.getElementById('dashboard');
-    if (dashboard) {
-        dashboard.style.display = 'none';
-        dashboard.classList.remove('active');
-    }
-
-    const hasKey = await checkMasterKeyExists();
-
-    if (hasKey) {
-        console.log('🔑 Master key found. Auto-login...');
-        const setupOverlay = document.getElementById('setupOverlay');
-        if (setupOverlay) setupOverlay.style.display = 'none';
-
-        if (dashboard) {
-            dashboard.style.display = 'block';
-            dashboard.classList.add('active');
-        }
-
-        loadStats();
-        checkGlobalFirewallStatus();
-        checkChangeNumberStatus();
-
-        setTimeout(() => {
-            initSystemVerificationPanel();
-        }, 1000);
-
-        console.log('✅ Admin panel ready (Auto-login)');
-    } else {
-        console.log('🔐 No master key found. Showing setup...');
-        showSetupOverlay();
-    }
-});
-
-// ========== KEYBOARD SHORTCUTS ==========
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        const setupOverlay = document.getElementById('setupOverlay');
-        if (setupOverlay && setupOverlay.style.display !== 'none') {
-            const activeElement = document.activeElement;
-            if (activeElement.id === 'setupNewKey') {
-                document.getElementById('setupConfirmKey').focus();
-                e.preventDefault();
-            } else if (activeElement.id === 'setupConfirmKey') {
-                setupMasterKey();
-                e.preventDefault();
-            }
-        }
-    }
-});
-
-// ========== UI FUNCTIONS ==========
-function toggleDropdown(id) {
-    const el = document.getElementById(id);
-    if (el) el.classList.toggle('open');
-}
-
-function showMasterKeyPopup() {
-    const popup = document.getElementById('keyPopup');
-    if (popup) popup.style.display = 'flex';
-    setTimeout(() => {
-        document.getElementById('popupNewKey').focus();
-    }, 300);
-}
-
-function closeKeyPopup() {
-    const popup = document.getElementById('keyPopup');
-    if (popup) popup.style.display = 'none';
-    document.getElementById('popupNewKey').value = '';
-}
-
-// ========== UPDATE MASTER KEY ==========
-async function updateMasterKey() {
-    const newKey = document.getElementById('popupNewKey').value.trim();
-
-    if (!newKey || newKey.length < 4) {
-        alert("⚠️ Key must be at least 4 characters");
-        return;
-    }
-
-    if (!confirm(`⚠️ UPDATE MASTER KEY\n\nChange to "${newKey}"?\n\nThis will not affect your current session.`)) {
-        return;
-    }
-
-    try {
-        await db.ref('admin/masterKey').set(newKey);
-        await db.ref('admin/lastKeyUpdate').set({
-            timestamp: Date.now(),
-            updatedBy: 'ADMIN'
-        });
-
-        alert("✅ Master key updated successfully!");
-        closeKeyPopup();
-
-    } catch (error) {
-        alert("❌ Failed to update: " + error.message);
-    }
-}
-
+/* ============================================================
+   3. UTILITIES
+   ============================================================ */
 function generateHash(u) {
     if (!u) return '#00000000';
     let h = 0;
@@ -243,83 +65,131 @@ function generateHash(u) {
     return '#' + Math.abs(h).toString(16).substring(0, 8);
 }
 
-// ========== DEPLOY LINKS ==========
-function deploy() {
-    const v = document.getElementById('links').value.trim();
-    if (!v) {
-        alert("⚠️ Enter at least one link");
-        return;
+function formatVerificationTime(timestamp) {
+    if (!timestamp) return '---';
+    const diff = Date.now() - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+
+    if (minutes < 1) return seconds + 's ago';
+    if (minutes < 60) return minutes + 'm ago';
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + 'h ago';
+
+    const date = new Date(timestamp);
+    let h = date.getHours();
+    const m = date.getMinutes().toString().padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m} ${ampm}`;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
+
+function copyToClipboard(text, btn) {
+    const done = () => {
+        const original = btn.innerHTML;
+        btn.innerHTML = '<svg class="icon icon-xs"><use href="#i-check"/></svg>';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.remove('copied');
+        }, 1200);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+        fallbackCopy(text, done);
     }
-
-    const links = v.split('\n').filter(u => u.trim());
-    let count = 0;
-
-    links.forEach(u => {
-        if (u.trim()) {
-            db.ref('links').push({
-                url: u.trim(),
-                hash: generateHash(u.trim()),
-                status: 'available',
-                user: 'NONE',
-                createdAt: Date.now()
-            });
-            count++;
-        }
-    });
-
-    document.getElementById('links').value = '';
-    alert(`✅ ${count} link(s) deployed!`);
 }
 
-function reuseLink(k) {
-    if (confirm("♻️ Recycle this link?"))
-        db.ref('links/' + k).update({ status: 'available', user: 'NONE' });
+function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
 }
 
-// ========== FIREWALL FUNCTIONS ==========
+/* ============================================================
+   4. THEME MANAGER
+   ============================================================ */
+function applyTheme(day) {
+    document.body.setAttribute('data-theme', day ? 'day' : 'night');
+
+    const indicator = document.getElementById('themeIndicator');
+    if (indicator) {
+        indicator.innerHTML = day
+            ? '<svg class="icon"><use href="#i-sun"/></svg><span>DAY</span>'
+            : '<svg class="icon"><use href="#i-moon"/></svg><span>NIGHT</span>';
+    }
+}
+
+/* ============================================================
+   5. FIREWALL TOGGLE
+   ============================================================ */
 async function toggleFirewall() {
     const btn = document.getElementById('firewallToggleBtn');
     const statusMsg = document.getElementById('firewallStatusMsg');
 
     if (!globalFirewallActive) {
-        if (confirm("🔥 ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.")) {
-            await db.ref('admin/globalFirewall').set({
-                active: true,
-                activatedBy: "ADMIN",
-                timestamp: Date.now()
-            });
-            globalFirewallActive = true;
-            if (btn) {
-                btn.className = 'firewall-on';
-                btn.innerHTML = '🔥 FIREWALL ON 🔥';
-                btn.classList.add('fire-animation');
-            }
-            if (statusMsg) {
-                statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required';
-                statusMsg.style.color = '#ff4444';
-            }
-            updateBackgroundTheme();
-            alert("🔥 FIREWALL ACTIVATED");
+        if (!confirm('🔥 ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.')) return;
+
+        await db.ref('admin/globalFirewall').set({
+            active: true,
+            activatedBy: 'ADMIN',
+            timestamp: Date.now()
+        });
+        globalFirewallActive = true;
+        applyTheme(true);
+        updateFirewallUI();
+        alert('🔥 FIREWALL ACTIVATED — Day mode');
+    } else {
+        if (!confirm('🌙 DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.')) return;
+
+        await db.ref('admin/globalFirewall').set({
+            active: false,
+            deactivatedBy: 'ADMIN',
+            timestamp: Date.now()
+        });
+        globalFirewallActive = false;
+        applyTheme(false);
+        updateFirewallUI();
+        alert('🌙 FIREWALL DEACTIVATED — Night mode');
+    }
+}
+
+function updateFirewallUI() {
+    const btn = document.getElementById('firewallToggleBtn');
+    const statusMsg = document.getElementById('firewallStatusMsg');
+
+    if (globalFirewallActive) {
+        btn.className = 'firewall-btn firewall-on';
+        btn.innerHTML = '<svg class="icon icon-xs"><use href="#i-sun"/></svg><span>FIREWALL ON</span>';
+        if (statusMsg) {
+            statusMsg.textContent = '☀️ Day mode — verification required';
         }
     } else {
-        if (confirm("🔓 DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.")) {
-            await db.ref('admin/globalFirewall').set({
-                active: false,
-                deactivatedBy: "ADMIN",
-                timestamp: Date.now()
-            });
-            globalFirewallActive = false;
-            if (btn) {
-                btn.className = 'firewall-off';
-                btn.innerHTML = '🔥 FIREWALL OFF';
-                btn.classList.remove('fire-animation');
-            }
-            if (statusMsg) {
-                statusMsg.innerHTML = '🔓 FIREWALL DEACTIVATED - Normal claiming';
-                statusMsg.style.color = '#39ff14';
-            }
-            updateBackgroundTheme();
-            alert("🔓 FIREWALL DEACTIVATED");
+        btn.className = 'firewall-btn firewall-off';
+        btn.innerHTML = '<svg class="icon icon-xs"><use href="#i-moon"/></svg><span>FIREWALL OFF</span>';
+        if (statusMsg) {
+            statusMsg.textContent = '🌙 Night mode — normal claiming';
         }
     }
 }
@@ -328,177 +198,135 @@ async function checkGlobalFirewallStatus() {
     try {
         const snap = await db.ref('admin/globalFirewall').once('value');
         const data = snap.val();
-        globalFirewallActive = (data && data.active === true);
-        updateBackgroundTheme();
-
-        const btn = document.getElementById('firewallToggleBtn');
-        const statusMsg = document.getElementById('firewallStatusMsg');
-
-        if (globalFirewallActive) {
-            if (btn) {
-                btn.className = 'firewall-on';
-                btn.innerHTML = '🔥 FIREWALL ON 🔥';
-                btn.classList.add('fire-animation');
-            }
-            if (statusMsg) {
-                statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required';
-                statusMsg.style.color = '#ff4444';
-            }
-        } else {
-            if (btn) {
-                btn.className = 'firewall-off';
-                btn.innerHTML = '🔥 FIREWALL OFF';
-                btn.classList.remove('fire-animation');
-            }
-            if (statusMsg) {
-                statusMsg.innerHTML = '🔓 FIREWALL DEACTIVATED - Normal claiming';
-                statusMsg.style.color = '#39ff14';
-            }
-        }
-    } catch (error) {
-        console.warn('Could not check firewall status:', error);
+        globalFirewallActive = !!(data && data.active === true);
+        applyTheme(globalFirewallActive);
+        updateFirewallUI();
+    } catch (e) {
+        console.warn('Could not check firewall:', e);
     }
 }
 
-function updateBackgroundTheme() {
-    const body = document.body;
-    if (globalFirewallActive) {
-        body.classList.add('firewall-active');
-    } else {
-        body.classList.remove('firewall-active');
-    }
-}
+/* ============================================================
+   6. TOGGLES (UI ONLY — no logic yet)
+   ============================================================ */
+function bindToggles() {
+    const userLogsToggle = document.getElementById('userLogsToggle');
+    const userLogsBody = document.getElementById('userLogsBody');
+    const banToggle = document.getElementById('banToggle');
+    const banBody = document.getElementById('banBody');
 
-// ========== CHANGE NUMBER FUNCTIONS ==========
-let changeNumberActive = false;
-
-async function toggleChangeNumber() {
-    const checkbox = document.getElementById('changeNumberCheckbox');
-    const statusMsg = document.getElementById('firewallStatusMsg');
-
-    if (checkbox && checkbox.checked) {
-        await db.ref('admin/changeNumberRequired').set({
-            active: true,
-            activatedBy: "ADMIN",
-            timestamp: Date.now()
+    if (userLogsToggle && userLogsBody) {
+        userLogsToggle.addEventListener('change', (e) => {
+            userLogsEnabled = e.target.checked;
+            userLogsBody.style.display = userLogsEnabled ? '' : 'none';
+            updateToggleText(userLogsToggle, userLogsEnabled);
         });
-        changeNumberActive = true;
-        if (globalFirewallActive && statusMsg) {
-            statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required + Change mobile number';
-        }
-    } else {
-        await db.ref('admin/changeNumberRequired').set({
-            active: false,
-            deactivatedBy: "ADMIN",
-            timestamp: Date.now()
+    }
+
+    if (banToggle && banBody) {
+        banToggle.addEventListener('change', (e) => {
+            banEnabled = e.target.checked;
+            banBody.style.display = banEnabled ? '' : 'none';
+            updateToggleText(banToggle, banEnabled);
         });
-        changeNumberActive = false;
-        if (globalFirewallActive && statusMsg) {
-            statusMsg.innerHTML = '🔥 FIREWALL ACTIVE - Verification required';
-        }
     }
 }
 
-async function checkChangeNumberStatus() {
-    try {
-        const snap = await db.ref('admin/changeNumberRequired').once('value');
-        const data = snap.val();
-        changeNumberActive = (data && data.active === true);
-        const checkbox = document.getElementById('changeNumberCheckbox');
-        if (checkbox) checkbox.checked = changeNumberActive;
-    } catch (error) {
-        console.warn('Could not check change number status:', error);
-    }
+function updateToggleText(input, enabled) {
+    const label = input.parentElement.querySelector('.toggle-text');
+    if (label) label.textContent = enabled ? 'ON' : 'OFF';
 }
 
-// ========== BAN FUNCTIONS ==========
-function banGhost() {
-    const t = document.getElementById('banTarget').value.trim();
-    if (!t) {
-        alert("⚠️ Please enter a phone number to ban.");
-        return;
-    }
+/* ============================================================
+   7. DEPLOY LINKS
+   ============================================================ */
+function deploy() {
+    const input = document.getElementById('links');
+    const v = input.value.trim();
+    if (!v) { alert('⚠️ Enter at least one link'); return; }
 
-    if (!/^09\d{9}$/.test(t)) {
-        alert("⚠️ Invalid phone number. Format: 09XXXXXXXXX");
-        return;
-    }
+    const links = v.split('\n').filter(u => u.trim());
+    let count = 0;
 
-    if (confirm(`⚠️ TERMINATE USER ⚠️\n\nBan ${t}?\n\nThis user will no longer be able to claim rewards.`)) {
-        db.ref('banned_ghosts/' + t).set({
-            timestamp: Date.now(),
-            bannedBy: "ADMIN",
-            reason: "Manual ban by admin"
+    links.forEach(u => {
+        const url = u.trim();
+        if (!url) return;
+        db.ref('links').push({
+            url,
+            hash: generateHash(url),
+            status: 'available',
+            user: 'NONE',
+            createdAt: Date.now()
         });
-        alert(`✅ ${t} has been banned successfully!`);
-        document.getElementById('banTarget').value = '';
+        count++;
+    });
+
+    input.value = '';
+    alert(`✅ ${count} link(s) deployed!`);
+}
+
+function reuseLink(key) {
+    if (confirm('♻️ Recycle this link?')) {
+        db.ref('links/' + key).update({ status: 'available', user: 'NONE' });
     }
 }
 
-function liftBan(phone) {
-    if (confirm(`🔓 UNBAN USER 🔓\n\nUnban ${phone}?`)) {
-        db.ref('banned_ghosts/' + phone).remove();
-        alert(`✅ ${phone} has been unbanned successfully!`);
-    }
-}
+/* ============================================================
+   8. LINK MONITOR
+   ============================================================ */
+db.ref('links').on('value', (snapshot) => {
+    const tbody = document.getElementById('linkData');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const links = snapshot.val() || {};
 
-// ========== REALTIME DELETE USER FUNCTION ==========
-async function deleteSingleUser(phone) {
-    if (confirm(`⚠️ DELETE USER ⚠️\n\nAre you sure you want to delete user ${phone}?\n\nThis action CANNOT be undone!`)) {
-        try {
-            await db.ref('user_sessions/' + phone).remove();
-            console.log(`✅ User ${phone} deleted successfully`);
-            alert(`✅ User ${phone} deleted successfully!`);
-        } catch (error) {
-            console.error("Delete error:", error);
-            alert("❌ Error deleting user. Please try again.");
-        }
-    }
-}
+    Object.entries(links).forEach(([key, data]) => {
+        const cls = data.status === 'available' ? 'status-avail' : 'status-used';
+        const hash = data.hash || generateHash(data.url || '');
+        tbody.innerHTML += `
+            <tr>
+                <td>#${key.substr(-4)}</td>
+                <td>${hash}</td>
+                <td><span class="status ${cls}">${data.status}</span></td>
+                <td class="cell-phone">${data.user === 'NONE' ? '---' : data.user}</td>
+                <td class="action-col">
+                    <button class="btn-icon" onclick="reuseLink('${key}')" title="Recycle">
+                        <svg class="icon icon-xs"><use href="#i-clock"/></svg>
+                    </button>
+                    <button class="btn-icon btn-icon-danger" onclick="db.ref('links/${key}').remove()" title="Delete">
+                        <svg class="icon icon-xs"><use href="#i-trash"/></svg>
+                    </button>
+                </td>
+            </tr>`;
+    });
+});
 
-function purgeGhost(p) {
-    if (confirm(`Delete data for ${p}?`))
-        db.ref('user_sessions/' + p).remove();
-}
-
-async function loadStats() {
-    try {
-        const u = await db.ref('user_sessions').once('value');
-        const activeBadge = document.getElementById('activeUsersBadge');
-        if (activeBadge) activeBadge.innerHTML = (u.numChildren() || 0) + " ACTIVE";
-
-        const b = await db.ref('banned_ghosts').once('value');
-        const bannedBadge = document.getElementById('bannedBadge');
-        if (bannedBadge) bannedBadge.innerHTML = (b.numChildren() || 0) + " BANNED ▼";
-    } catch (error) {
-        console.warn('Could not load stats:', error);
-    }
-}
-
-// ========== DEVICE FINGERPRINT MAPPING ==========
+/* ============================================================
+   9. DEVICE MAPPING
+   ============================================================ */
 async function getDeviceDisplayId(fp) {
     if (!fp || fp === '---') return '---';
     try {
         const m = await db.ref('device_id_map/' + fp).once('value');
         if (m.exists()) return m.val().displayId;
 
-        const c = await db.ref('admin/deviceCounter').once('value');
-        let n = (c.val() || 0) + 1;
-        await db.ref('admin/deviceCounter').set(n);
-        const id = `Dev${n}`;
+        const result = await db.ref('admin/deviceCounter').transaction(n => (n || 0) + 1);
+        const id = `Dev${result.snapshot.val()}`;
         await db.ref('device_id_map/' + fp).set({
             displayId: id,
             createdAt: Date.now(),
             fingerprint: fp
         });
         return id;
-    } catch (error) {
-        console.warn('Device mapping error:', error);
+    } catch (e) {
+        console.warn('Device mapping error:', e);
         return '---';
     }
 }
 
-// ========== REALTIME USER SESSIONS LISTENER ==========
+/* ============================================================
+   10. USER SESSIONS (main table)
+   ============================================================ */
 db.ref('user_sessions').on('value', async (snapshot) => {
     const sessions = snapshot.val() || {};
     const usersArray = [];
@@ -507,12 +335,12 @@ db.ref('user_sessions').on('value', async (snapshot) => {
         const lastRaw = data.lastUpdate || 0;
         let lastFormatted = '---';
         if (lastRaw) {
-            const date = new Date(lastRaw);
-            let hours = date.getHours();
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            lastFormatted = `${hours}:${minutes} ${ampm}`;
+            const d = new Date(lastRaw);
+            let h = d.getHours();
+            const m = d.getMinutes().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            lastFormatted = `${h}:${m} ${ampm}`;
         }
 
         const fp = data.deviceFingerprint || '---';
@@ -520,287 +348,193 @@ db.ref('user_sessions').on('value', async (snapshot) => {
         if (fp !== '---') dev = await getDeviceDisplayId(fp);
 
         usersArray.push({
-            phone: phone,
+            phone,
             balance: (data.balance || 0).toLocaleString(),
             devDisplay: dev,
             lastSeen: lastFormatted,
-            lastSeenRaw: lastRaw
+            lastSeenRaw: lastRaw,
+            status: data.status || 'online'
         });
     }
 
     currentUserData = usersArray;
-    sortByLastSeen();
+    sortByLastSeen(true);
 
-    if (deleteModeState === 1) {
-        renderUserTableWithCheckboxes();
-    } else {
-        renderUserTable();
-    }
+    if (deleteModeState === 1) renderUserTableWithCheckboxes();
+    else renderUserTable();
 
     const activeBadge = document.getElementById('activeUsersBadge');
-    if (activeBadge) activeBadge.innerHTML = Object.keys(sessions).length + " ACTIVE";
+    if (activeBadge) activeBadge.textContent = Object.keys(sessions).length;
 });
 
-// ========== REALTIME BANNED GHOSTS LISTENER ==========
+/* ============================================================
+   11. BANNED GHOSTS
+   ============================================================ */
 db.ref('banned_ghosts').on('value', (snapshot) => {
     const count = snapshot.numChildren() || 0;
-    const bannedBadge = document.getElementById('bannedBadge');
-    if (bannedBadge) {
-        bannedBadge.innerHTML = count + " BANNED ▼";
-    }
+    const badge = document.getElementById('bannedBadge');
+    if (badge) badge.textContent = count;
 });
 
-// ========== REALTIME LINKS LISTENER ==========
-db.ref('links').on('value', (snapshot) => {
-    const t = document.getElementById('linkData');
-    if (!t) return;
-    t.innerHTML = '';
-    const links = snapshot.val() || {};
-
-    Object.entries(links).forEach(([key, data]) => {
-        const cls = data.status === 'available' ? 'status-avail' : 'status-used';
-        const hash = data.hash || generateHash(data.url || '');
-        t.innerHTML += `
-            <tr>
-                <td>#${key.substr(-4)}</td>
-                <td title="${data.url || ''}">${hash}</td>
-                <td><span class="status ${cls}">${data.status}</span></td>
-                <td class="ghost-id">${data.user === 'NONE' ? '---' : data.user}</td>
-                <td>
-                    <button class="icon-btn" onclick="reuseLink('${key}')" style="color:#ffd700;">♻️</button>
-                    <button class="icon-btn" onclick="db.ref('links/${key}').remove()" style="color:#ff3131;">🗑️</button>
-                </td>
-            </tr>
-        `;
-    });
-});
-
-// ========== SORT FUNCTIONS ==========
-function sortByDeviceAscending() {
-    currentUserData.sort((a, b) => {
-        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
-        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
-        return numA - numB;
-    });
-    renderUserTable();
-}
-
-function sortByDeviceDescending() {
-    currentUserData.sort((a, b) => {
-        const numA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
-        const numB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
-        return numB - numA;
-    });
-    renderUserTable();
-}
-
-function sortByLastSeen() {
+/* ============================================================
+   12. SORT FUNCTIONS
+   ============================================================ */
+function sortByLastSeen(silent = false) {
     currentUserData.sort((a, b) => b.lastSeenRaw - a.lastSeenRaw);
+    if (!silent) renderUserTable();
+}
+
+function sortByDevice(asc = true) {
+    currentUserData.sort((a, b) => {
+        const nA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
+        const nB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
+        return asc ? nA - nB : nB - nA;
+    });
     renderUserTable();
 }
 
-// ========== RENDER USER TABLE ==========
+/* ============================================================
+   13. USER TABLE RENDER
+   ============================================================ */
 function renderUserTable() {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
 
-    if (!currentUserData || currentUserData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
+    if (!currentUserData.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-hint">No users found</td></tr>';
         return;
     }
 
-    tbody.innerHTML = '';
-    currentUserData.forEach(user => {
-        tbody.innerHTML += `
-            <tr>
-                <td class="ghost-id">${user.phone || '---'}</td>
-                <td style="color:#39ff14">₱${user.balance || 0}</td>
-                <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
-                <td style="font-size:9px;">${user.lastSeen || '---'}</td>
-                <td class="action-col">
-                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444; cursor:pointer;" title="Delete User">🗑️</button>
-                </td>
-            </tr>
-        `;
-    });
+    tbody.innerHTML = currentUserData.map(u => `
+        <tr>
+            <td class="cell-phone phone-cell" data-phone="${u.phone}" title="Click to force logout">
+                ${u.phone}
+            </td>
+            <td class="cell-balance">₱${u.balance}</td>
+            <td class="cell-device">${u.devDisplay}</td>
+            <td class="cell-time">${u.lastSeen}</td>
+            <td class="action-col">
+                <button class="btn-icon btn-icon-danger delete-user-btn" data-phone="${u.phone}" title="Delete">
+                    <svg class="icon icon-xs"><use href="#i-trash"/></svg>
+                </button>
+            </td>
+        </tr>
+    `).join('');
 
-    document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const phone = btn.getAttribute('data-phone');
-            if (phone) deleteSingleUser(phone);
-        });
-    });
-}
-
-// ========== ACTION BUTTONS FUNCTIONS ==========
-let actionButtonsVisible = false;
-
-function toggleActionButtons() {
-    const row = document.getElementById('actionButtonsRow');
-    const badge = document.getElementById('activeUsersBadge');
-
-    actionButtonsVisible = !actionButtonsVisible;
-
-    if (actionButtonsVisible && row) {
-        row.style.display = 'grid';
-        if (badge) badge.innerHTML = badge.innerHTML.replace('▼', '▲');
-    } else if (row) {
-        row.style.display = 'none';
-        if (badge) badge.innerHTML = badge.innerHTML.replace('▲', '▼');
-    }
-}
-
-let devSortState = 0;
-
-function toggleDevSort() {
-    const btn = document.getElementById('devSortBtn');
-
-    devSortState = (devSortState + 1) % 3;
-
-    if (devSortState === 0) {
-        if (btn) {
-            btn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
-            btn.classList.remove('active', 'faded');
-        }
-        sortByLastSeen();
-    } else if (devSortState === 1) {
-        if (btn) {
-            btn.setAttribute('data-tooltip', 'Sort by Device (ASC)');
-            btn.classList.add('faded');
-            btn.classList.remove('active');
-        }
-        sortByDeviceAscending();
-    } else if (devSortState === 2) {
-        if (btn) {
-            btn.setAttribute('data-tooltip', 'Sort by Device (DESC)');
-            btn.classList.add('active');
-            btn.classList.remove('faded');
-        }
-        sortByDeviceDescending();
-    }
-}
-
-let timeSortActive = true;
-
-function toggleTimeSort() {
-    const btn = document.getElementById('timeSortBtn');
-    const devBtn = document.getElementById('devSortBtn');
-
-    timeSortActive = true;
-    devSortState = 0;
-
-    if (devBtn) {
-        devBtn.setAttribute('data-tooltip', 'Sort by Device (OFF)');
-        devBtn.classList.remove('active', 'faded');
-    }
-
-    if (btn) {
-        btn.setAttribute('data-tooltip', 'Sort by Time (Active)');
-        btn.classList.add('active');
-    }
-
-    sortByLastSeen();
-}
-
-// ========== DELETE MODE FUNCTIONS ==========
-let deleteModeState = 0;
-let selectedUsers = [];
-
-function toggleDeleteMode() {
-    const btn = document.getElementById('deleteModeBtn');
-    const selectAllTh = document.getElementById('selectAllTh');
-    const bulkBar = document.getElementById('bulkDeleteBar');
-
-    deleteModeState = (deleteModeState + 1) % 3;
-
-    if (deleteModeState === 0) {
-        btn.setAttribute('data-tooltip', 'Delete Mode (OFF)');
-        btn.classList.remove('active', 'faded');
-        if (selectAllTh) selectAllTh.style.display = 'none';
-        if (bulkBar) bulkBar.style.display = 'none';
-        selectedUsers = [];
-        renderUserTable();
-    } else if (deleteModeState === 1) {
-        btn.setAttribute('data-tooltip', 'Delete Mode (SELECT)');
-        btn.classList.add('faded');
-        btn.classList.remove('active');
-        if (selectAllTh) selectAllTh.style.display = 'table-cell';
-        if (bulkBar) bulkBar.style.display = 'none';
-        selectedUsers = [];
-        renderUserTableWithCheckboxes();
-    } else if (deleteModeState === 2) {
-        btn.setAttribute('data-tooltip', 'Delete Mode (DELETE)');
-        btn.classList.add('active');
-        btn.classList.remove('faded');
-
-        if (selectedUsers.length === 0) {
-            alert("⚠️ No users selected. Please select users first.");
-            deleteModeState = 1;
-            btn.classList.remove('active');
-            btn.classList.add('faded');
-            return;
-        }
-
-        if (confirm(`⚠️ DESTRUCTIVE ACTION ⚠️\n\nDelete ${selectedUsers.length} selected user(s)?`)) {
-            deleteSelectedUsers();
-        } else {
-            deleteModeState = 1;
-            btn.classList.remove('active');
-            btn.classList.add('faded');
-        }
-    }
+    bindTableActions();
+    bindForceLogout();
 }
 
 function renderUserTableWithCheckboxes() {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
 
-    if (!currentUserData || currentUserData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#666; padding:40px;">No users found</td></tr>';
+    if (!currentUserData.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-hint">No users found</td></tr>';
         return;
     }
 
-    tbody.innerHTML = '';
-    currentUserData.forEach(user => {
-        const isChecked = selectedUsers.includes(user.phone);
-        tbody.innerHTML += `
+    tbody.innerHTML = currentUserData.map(u => {
+        const checked = selectedUsers.includes(u.phone) ? 'checked' : '';
+        return `
             <tr>
-                <td class="checkbox-col" style="text-align:center;">
-                    <input type="checkbox" class="user-checkbox" data-phone="${user.phone}" ${isChecked ? 'checked' : ''}>
+                <td class="checkbox-col">
+                    <input type="checkbox" class="user-checkbox" data-phone="${u.phone}" ${checked}>
                 </td>
-                <td class="ghost-id">${user.phone || '---'}</td>
-                <td style="color:#39ff14">₱${user.balance || 0}</td>
-                <td style="color:#00f2ff;font-weight:bold;">${user.devDisplay || '---'}</td>
-                <td style="font-size:9px;">${user.lastSeen || '---'}</td>
+                <td class="cell-phone">${u.phone}</td>
+                <td class="cell-balance">₱${u.balance}</td>
+                <td class="cell-device">${u.devDisplay}</td>
+                <td class="cell-time">${u.lastSeen}</td>
                 <td class="action-col">
-                    <button class="icon-btn delete-user-btn" data-phone="${user.phone}" style="color:#ff4444;">🗑️</button>
+                    <button class="btn-icon btn-icon-danger delete-user-btn" data-phone="${u.phone}" title="Delete">
+                        <svg class="icon icon-xs"><use href="#i-trash"/></svg>
+                    </button>
                 </td>
-            </tr>
-        `;
-    });
+            </tr>`;
+    }).join('');
 
+    bindTableActions();
+    bindCheckboxes();
+}
+
+function bindTableActions() {
     document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.onclick = (e) => {
             e.stopPropagation();
-            const phone = btn.getAttribute('data-phone');
-            if (phone) deleteSingleUser(phone);
-        });
+            deleteSingleUser(btn.dataset.phone);
+        };
     });
+}
 
+function bindCheckboxes() {
     document.querySelectorAll('.user-checkbox').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-            e.stopPropagation();
-            const phone = cb.getAttribute('data-phone');
-            toggleUserSelect(phone, cb.checked);
-        });
+        cb.onchange = () => toggleUserSelect(cb.dataset.phone, cb.checked);
     });
 
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = (selectedUsers.length === currentUserData.length && currentUserData.length > 0);
-        selectAllCheckbox.indeterminate = (selectedUsers.length > 0 && selectedUsers.length < currentUserData.length);
+    const all = document.getElementById('selectAllCheckbox');
+    if (all) {
+        all.checked = selectedUsers.length === currentUserData.length && currentUserData.length > 0;
+        all.indeterminate = selectedUsers.length > 0 && selectedUsers.length < currentUserData.length;
     }
+}
+
+/* ============================================================
+   14. FORCE LOGOUT (event delegation — survives re-render)
+   ============================================================ */
+function bindForceLogout() {
+    document.querySelectorAll('.phone-cell').forEach(cell => {
+        if (cell.dataset.bound) return;
+        cell.dataset.bound = '1';
+        cell.addEventListener('click', () => {
+            if (!confirm(`⚠️ Force logout ${cell.dataset.phone}?`)) return;
+            db.ref('user_sessions/' + cell.dataset.phone).update({
+                status: 'offline',
+                lastSeen: firebase.database.ServerValue.TIMESTAMP,
+                forceLogout: true
+            }).then(() => {
+                showToast(`✅ ${cell.dataset.phone} logged out`, 'success');
+            }).catch(() => {
+                showToast('❌ Failed to logout', 'error');
+            });
+        });
+    });
+}
+
+function showToast(message, type) {
+    const old = document.getElementById('toast');
+    if (old) old.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 18px;
+        background: ${type === 'success' ? 'var(--success-soft)' : 'var(--danger-soft)'};
+        border: 1px solid ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
+        border-radius: 10px;
+        color: ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        z-index: 99999;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
+/* ============================================================
+   15. DELETE
+   ============================================================ */
+function deleteSingleUser(phone) {
+    if (!confirm(`⚠️ Delete user ${phone}?\n\nThis cannot be undone.`)) return;
+    db.ref('user_sessions/' + phone).remove()
+        .then(() => showToast(`✅ ${phone} deleted`, 'success'))
+        .catch(() => showToast('❌ Delete failed', 'error'));
 }
 
 function toggleUserSelect(phone, isChecked) {
@@ -809,1238 +543,779 @@ function toggleUserSelect(phone, isChecked) {
     } else {
         selectedUsers = selectedUsers.filter(p => p !== phone);
     }
+    updateBulkBar();
+}
 
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    const selectedCountSpan = document.getElementById('selectedCount');
-
-    if (selectedUsers.length > 0 && bulkBar) {
-        bulkBar.style.display = 'flex';
-        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
-    } else if (bulkBar) {
-        bulkBar.style.display = 'none';
+function updateBulkBar() {
+    const bar = document.getElementById('bulkDeleteBar');
+    const count = document.getElementById('selectedCount');
+    if (!bar) return;
+    if (selectedUsers.length > 0) {
+        bar.style.display = 'flex';
+        if (count) count.textContent = selectedUsers.length;
+    } else {
+        bar.style.display = 'none';
     }
 }
 
 function toggleSelectAll() {
-    const checkbox = document.getElementById('selectAllCheckbox');
-    const isChecked = checkbox.checked;
-
-    if (isChecked) {
-        selectedUsers = currentUserData.map(u => u.phone);
-    } else {
-        selectedUsers = [];
-    }
-
+    const cb = document.getElementById('selectAllCheckbox');
+    selectedUsers = cb.checked ? currentUserData.map(u => u.phone) : [];
     renderUserTableWithCheckboxes();
-
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    const selectedCountSpan = document.getElementById('selectedCount');
-
-    if (selectedUsers.length > 0 && bulkBar) {
-        bulkBar.style.display = 'flex';
-        if (selectedCountSpan) selectedCountSpan.innerHTML = selectedUsers.length;
-    } else if (bulkBar) {
-        bulkBar.style.display = 'none';
-    }
+    updateBulkBar();
 }
 
 function confirmBulkDelete() {
-    if (selectedUsers.length === 0) return;
-    if (confirm(`⚠️ Delete ${selectedUsers.length} selected user(s)?`)) {
-        deleteSelectedUsers();
-    }
+    if (!selectedUsers.length) return;
+    if (!confirm(`⚠️ Delete ${selectedUsers.length} user(s)?`)) return;
+    deleteSelectedUsers();
 }
 
 async function deleteSelectedUsers() {
-    let successCount = 0;
-    let failCount = 0;
-
+    let ok = 0, fail = 0;
     for (const phone of selectedUsers) {
-        try {
-            await db.ref('user_sessions/' + phone).remove();
-            successCount++;
-        } catch (error) {
-            console.error('Delete failed for', phone, error);
-            failCount++;
-        }
+        try { await db.ref('user_sessions/' + phone).remove(); ok++; }
+        catch { fail++; }
     }
-
-    alert(`✅ ${successCount} user(s) deleted successfully!${failCount > 0 ? `\n⚠️ ${failCount} failed.` : ''}`);
-
-    selectedUsers = [];
-    deleteModeState = 0;
-
-    const btn = document.getElementById('deleteModeBtn');
-    const selectAllTh = document.getElementById('selectAllTh');
-    const bulkBar = document.getElementById('bulkDeleteBar');
-
-    if (btn) btn.classList.remove('active', 'faded');
-    if (selectAllTh) selectAllTh.style.display = 'none';
-    if (bulkBar) bulkBar.style.display = 'none';
+    showToast(`✅ ${ok} deleted${fail ? `, ${fail} failed` : ''}`, 'success');
+    cancelBulkDelete();
 }
 
 function cancelBulkDelete() {
     selectedUsers = [];
     deleteModeState = 0;
-
-    const btn = document.getElementById('deleteModeBtn');
-    const selectAllTh = document.getElementById('selectAllTh');
-    const bulkBar = document.getElementById('bulkDeleteBar');
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-
-    if (btn) btn.classList.remove('active', 'faded');
-    if (selectAllTh) selectAllTh.style.display = 'none';
-    if (bulkBar) bulkBar.style.display = 'none';
-    if (selectAllCheckbox) selectAllCheckbox.checked = false;
-
+    document.getElementById('selectAllTh').style.display = 'none';
+    document.getElementById('bulkDeleteBar').style.display = 'none';
+    document.getElementById('deleteModeBtn').classList.remove('is-active');
     renderUserTable();
 }
 
-// ========== BANNED USERS POPUP FUNCTIONS ==========
+/* ============================================================
+   16. TOOLBAR BUTTONS
+   ============================================================ */
+function toggleDevSort() {
+    devSortState = (devSortState + 1) % 3;
+    const btn = document.getElementById('devSortBtn');
+    btn.classList.remove('is-active', 'is-faded');
+
+    if (devSortState === 0) { sortByLastSeen(); }
+    else if (devSortState === 1) { btn.classList.add('is-faded'); sortByDevice(true); }
+    else { btn.classList.add('is-active'); sortByDevice(false); }
+}
+
+function toggleTimeSort() {
+    devSortState = 0;
+    const devBtn = document.getElementById('devSortBtn');
+    if (devBtn) devBtn.classList.remove('is-active', 'is-faded');
+    sortByLastSeen();
+}
+
+function toggleDeleteMode() {
+    deleteModeState = (deleteModeState + 1) % 3;
+    const btn = document.getElementById('deleteModeBtn');
+    const th = document.getElementById('selectAllTh');
+
+    if (deleteModeState === 0) {
+        btn.classList.remove('is-active', 'is-faded');
+        th.style.display = 'none';
+        document.getElementById('bulkDeleteBar').style.display = 'none';
+        selectedUsers = [];
+        renderUserTable();
+    } else if (deleteModeState === 1) {
+        btn.classList.add('is-faded');
+        btn.classList.remove('is-active');
+        th.style.display = 'table-cell';
+        selectedUsers = [];
+        renderUserTableWithCheckboxes();
+    } else {
+        btn.classList.add('is-active');
+        btn.classList.remove('is-faded');
+        if (!selectedUsers.length) {
+            alert('⚠️ No users selected.');
+            deleteModeState = 1;
+            btn.classList.remove('is-active');
+            btn.classList.add('is-faded');
+            return;
+        }
+        if (confirm(`⚠️ Delete ${selectedUsers.length} selected user(s)?`)) {
+            deleteSelectedUsers();
+        } else {
+            deleteModeState = 1;
+            btn.classList.remove('is-active');
+            btn.classList.add('is-faded');
+        }
+    }
+}
+
+/* ============================================================
+   17. BAN
+   ============================================================ */
+function banGhost() {
+    const input = document.getElementById('banTarget');
+    const t = input.value.trim();
+    if (!t) { alert('⚠️ Enter a phone number'); return; }
+    if (!/^09\d{9}$/.test(t)) { alert('⚠️ Invalid format. Use 09XXXXXXXXX'); return; }
+    if (!confirm(`⚠️ Ban ${t}?`)) return;
+
+    db.ref('banned_ghosts/' + t).set({
+        timestamp: Date.now(),
+        bannedBy: 'ADMIN',
+        reason: 'Manual ban'
+    }).then(() => {
+        alert(`✅ ${t} banned`);
+        input.value = '';
+    });
+}
+
+function liftBan(phone) {
+    if (!confirm(`Unban ${phone}?`)) return;
+    db.ref('banned_ghosts/' + phone).remove();
+}
+
+/* ============================================================
+   18. BANNED POPUP
+   ============================================================ */
 async function showBannedPopup() {
-    const popup = document.getElementById('bannedPopup');
-    const badge = document.getElementById('bannedBadge');
-
-    if (!popup) return;
-
-    badge.style.background = 'linear-gradient(135deg, #ff4444, #aa0000)';
-    badge.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.8)';
-    badge.style.border = '1px solid #ff8888';
-
-    popup.style.display = 'flex';
+    document.getElementById('bannedPopup').style.display = 'flex';
     await loadBannedUsers();
-
-    popup.onclick = function(e) {
-        if (e.target === popup) closeBannedPopup();
-    };
 }
 
 function closeBannedPopup() {
-    const popup = document.getElementById('bannedPopup');
-    const badge = document.getElementById('bannedBadge');
-
-    if (!popup) return;
-
-    badge.style.background = '';
-    badge.style.boxShadow = '';
-    badge.style.border = '';
-
-    popup.style.display = 'none';
-
-    const searchInput = document.getElementById('bannedSearchInput');
-    const searchResult = document.getElementById('bannedSearchResult');
-    const clearBtn = document.querySelector('.search-clear-btn');
-
-    if (searchInput) searchInput.value = '';
-    if (searchResult) searchResult.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'none';
+    document.getElementById('bannedPopup').style.display = 'none';
+    const si = document.getElementById('bannedSearchInput');
+    const sr = document.getElementById('bannedSearchResult');
+    if (si) si.value = '';
+    if (sr) sr.style.display = 'none';
 }
 
 async function loadBannedUsers() {
     try {
-        const snapshot = await db.ref('banned_ghosts').once('value');
-        const banned = snapshot.val() || {};
-        const bannedArray = [];
+        const snap = await db.ref('banned_ghosts').once('value');
+        const banned = snap.val() || {};
+        const arr = [];
+
+        const deviceMapSnap = await db.ref('device_phone_map').once('value');
+        const deviceMap = deviceMapSnap.val() || {};
 
         for (const [phone, data] of Object.entries(banned)) {
-            const deviceMapSnapshot = await db.ref('device_phone_map').orderByChild('phone').equalTo(phone).once('value');
             let deviceId = 'Unknown';
             let fingerprint = '';
-
-            if (deviceMapSnapshot.exists()) {
-                deviceMapSnapshot.forEach((child) => {
-                    deviceId = child.val().displayId || 'Unknown';
-                    fingerprint = child.key;
-                });
+            for (const [fp, info] of Object.entries(deviceMap)) {
+                if (info.phone === phone) {
+                    deviceId = info.displayId || 'Unknown';
+                    fingerprint = fp;
+                    break;
+                }
             }
-
-            bannedArray.push({
-                phone: phone,
-                deviceId: deviceId,
-                fingerprint: fingerprint,
-                timestamp: data.timestamp || 0
-            });
+            arr.push({ phone, deviceId, fingerprint, timestamp: data.timestamp || 0 });
         }
 
-        bannedArray.sort((a, b) => {
-            const numA = parseInt(a.deviceId.replace('Dev', '')) || 0;
-            const numB = parseInt(b.deviceId.replace('Dev', '')) || 0;
-            return numB - numA;
-        });
+        arr.sort((a, b) => (parseInt(b.deviceId.replace('Dev', '')) || 0) - (parseInt(a.deviceId.replace('Dev', '')) || 0));
+        bannedUsersData = arr;
+        renderBannedList(arr);
 
-        bannedUsersData = bannedArray;
-        renderBannedList(bannedArray.slice(0, 10));
-
-        const countDisplay = document.getElementById('bannedCountDisplay');
-        if (countDisplay) countDisplay.innerHTML = bannedArray.length;
-    } catch (error) {
-        console.warn('Could not load banned users:', error);
+        const countEl = document.getElementById('bannedCountDisplay');
+        if (countEl) countEl.textContent = arr.length;
+    } catch (e) {
+        console.warn('Load banned failed:', e);
     }
 }
 
-function renderBannedList(bannedList) {
+function renderBannedList(list) {
     const container = document.getElementById('bannedUsersList');
     if (!container) return;
 
-    if (!bannedList || bannedList.length === 0) {
-        container.innerHTML = '<div class="loading-placeholder">No banned users found</div>';
+    if (!list.length) {
+        container.innerHTML = '<div class="empty-hint">No banned users</div>';
         return;
     }
 
-    let html = '';
-    for (const user of bannedList) {
-        html += `
-            <div class="banned-user-item">
-                <div class="banned-device-id" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.deviceId}</div>
-                <div class="banned-phone-number" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.phone}</div>
-                <div><button class="unban-btn" onclick="unbanUser('${user.phone}')">✕</button></div>
+    container.innerHTML = list.map(u => `
+        <div class="banned-item">
+            <div class="banned-item-device" onclick="showBranchDetails('${u.fingerprint}','${u.deviceId}')">${u.deviceId}</div>
+            <div class="banned-item-phone" onclick="showBranchDetails('${u.fingerprint}','${u.deviceId}')">${u.phone}</div>
+            <div class="banned-item-action">
+                <button class="btn-unban" onclick="unbanUser('${u.phone}')" title="Unban">
+                    <svg class="icon icon-xs"><use href="#i-unban"/></svg>
+                </button>
             </div>
-        `;
-    }
-    container.innerHTML = html;
+        </div>
+    `).join('');
 }
 
-async function searchBannedUsers() {
-    const searchTerm = document.getElementById('bannedSearchInput').value.trim().toLowerCase();
-    const searchResultDiv = document.getElementById('bannedSearchResult');
-    const bannedListContainer = document.getElementById('bannedUsersList');
-    const searchClearBtn = document.querySelector('.search-clear-btn');
+function searchBannedUsers() {
+    const term = document.getElementById('bannedSearchInput').value.trim().toLowerCase();
+    const result = document.getElementById('bannedSearchResult');
+    const clearBtn = document.querySelector('.search-clear');
 
-    if (!searchResultDiv || !bannedListContainer) return;
-
-    if (searchTerm === '') {
-        searchResultDiv.style.display = 'none';
-        bannedListContainer.style.display = 'block';
-        if (searchClearBtn) searchClearBtn.style.display = 'none';
-        renderBannedList(bannedUsersData.slice(0, 10));
+    if (!term) {
+        result.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'none';
+        renderBannedList(bannedUsersData);
         return;
     }
 
-    if (searchClearBtn) searchClearBtn.style.display = 'flex';
+    if (clearBtn) clearBtn.style.display = 'flex';
 
-    const found = bannedUsersData.filter(user =>
-        user.phone.includes(searchTerm) ||
-        user.deviceId.toLowerCase().includes(searchTerm)
+    const found = bannedUsersData.filter(u =>
+        u.phone.includes(term) || u.deviceId.toLowerCase().includes(term)
     );
 
-    if (found.length === 0) {
-        searchResultDiv.style.display = 'block';
-        searchResultDiv.innerHTML = `
-            <div style="text-align: center; color: #ff8888; padding: 20px;">
-                ❌ No banned user found for "${searchTerm}"
-            </div>
-        `;
-        bannedListContainer.style.display = 'none';
+    if (!found.length) {
+        result.style.display = 'block';
+        result.innerHTML = '<div class="empty-hint">No match found</div>';
+        document.getElementById('bannedUsersList').innerHTML = '';
         return;
     }
 
-    if (found.length === 1) {
-        searchResultDiv.style.display = 'block';
-        bannedListContainer.style.display = 'none';
-
-        const user = found[0];
-        searchResultDiv.innerHTML = `
-            <div class="banned-user-item" style="background: rgba(255,68,68,0.1); border-radius: 10px;">
-                <div class="banned-device-id" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.deviceId}</div>
-                <div class="banned-phone-number" onclick="showBranchDetails('${user.fingerprint}', '${user.deviceId}')">${user.phone}</div>
-                <div><button class="unban-btn" onclick="unbanUser('${user.phone}')">✕</button></div>
-            </div>
-        `;
-    } else {
-        searchResultDiv.style.display = 'none';
-        bannedListContainer.style.display = 'block';
-        renderBannedList(found);
-    }
+    result.style.display = 'none';
+    renderBannedList(found);
 }
 
 function clearBannedSearch() {
-    const searchInput = document.getElementById('bannedSearchInput');
-    const searchResult = document.getElementById('bannedSearchResult');
-    const bannedListContainer = document.getElementById('bannedUsersList');
-    const clearBtn = document.querySelector('.search-clear-btn');
-
-    if (searchInput) searchInput.value = '';
-    if (searchResult) searchResult.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'none';
-    if (bannedListContainer) bannedListContainer.style.display = 'block';
-
-    renderBannedList(bannedUsersData.slice(0, 10));
+    document.getElementById('bannedSearchInput').value = '';
+    document.getElementById('bannedSearchResult').style.display = 'none';
+    document.querySelector('.search-clear').style.display = 'none';
+    renderBannedList(bannedUsersData);
 }
 
 async function unbanUser(phone) {
-    if (confirm(`⚠️ UNBAN USER ⚠️\n\nUnban ${phone}?`)) {
-        try {
-            await db.ref('banned_ghosts/' + phone).remove();
-            alert(`✅ ${phone} unbanned!`);
-            await loadBannedUsers();
-        } catch (error) {
-            alert('❌ Error unbanning user: ' + error.message);
-        }
+    if (!confirm(`Unban ${phone}?`)) return;
+    try {
+        await db.ref('banned_ghosts/' + phone).remove();
+        showToast(`✅ ${phone} unbanned`, 'success');
+        await loadBannedUsers();
+    } catch (e) {
+        showToast('❌ Unban failed', 'error');
     }
 }
 
-async function showBranchDetails(fingerprint, deviceId) {
-    if (!fingerprint || fingerprint === '') {
-        alert("No fingerprint data available.");
-        return;
-    }
-
+/* ============================================================
+   19. BRANCH DETAILS
+   ============================================================ */
+async function showBranchDetails(fp, deviceId) {
+    if (!fp) { alert('No fingerprint available'); return; }
     const popup = document.getElementById('branchPopup');
-    const branchDetails = document.getElementById('branchDetails');
-
-    if (!popup || !branchDetails) return;
-
+    const details = document.getElementById('branchDetails');
     try {
-        const devicePhoneMapRef = db.ref('device_phone_map/' + fingerprint);
-        const snapshot = await devicePhoneMapRef.once('value');
-        const deviceData = snapshot.val();
-
-        branchDetails.innerHTML = `
-            <div style="margin-bottom: 15px;">
-                <strong style="color: #00f2ff;">Device ID:</strong> ${deviceId}
+        const snap = await db.ref('device_phone_map/' + fp).once('value');
+        const data = snap.val() || {};
+        details.innerHTML = `
+            <div style="margin-bottom:12px;">
+                <strong style="color:var(--accent);">Device ID:</strong> ${deviceId}
             </div>
-            <div style="margin-bottom: 15px;">
-                <strong style="color: #00f2ff;">Device Fingerprint:</strong>
-                <div class="device-fingerprint">${fingerprint}</div>
+            <div style="margin-bottom:12px;">
+                <strong style="color:var(--accent);">Fingerprint:</strong>
+                <div style="word-break:break-all;background:var(--input-bg);padding:8px;border-radius:6px;font-size:10px;margin-top:4px;color:var(--success);">${fp}</div>
             </div>
             <div>
-                <strong style="color: #00f2ff;">Primary Number:</strong> ${deviceData?.phone || 'Unknown'}
+                <strong style="color:var(--accent);">Primary Number:</strong> ${data.phone || 'Unknown'}
             </div>
         `;
-
         popup.style.display = 'flex';
-
-        popup.onclick = function(e) {
-            if (e.target === popup) closeBranchPopup();
-        };
-    } catch (error) {
-        alert('Error loading device details: ' + error.message);
+    } catch (e) {
+        alert('Error loading details: ' + e.message);
     }
 }
 
 function closeBranchPopup() {
-    const popup = document.getElementById('branchPopup');
-    if (popup) popup.style.display = 'none';
+    document.getElementById('branchPopup').style.display = 'none';
 }
 
-// ============================================================
-// 🎯 SYSTEM VERIFICATION PANEL
-// ✅ USER INPUT (kapalit ng SYSTEM CODE)
-// ✅ Manual delete button 🗑️
-// ✅ Auto-delete after 2 minutes
-// ✅ Unique per phone (latest input only)
-// ✅ Anti-refresh + Copy button + Compact display
-// ✅ ⏳ QUEUE USERS (Mission counting_down)
-// ✅ 📞 AI VERIFICATION USERS
-// ============================================================
-
-function initSystemVerificationPanel() {
-    if (!db) {
-        console.warn('⚠️ Firebase not initialized');
-        return;
-    }
-
-    if (verificationListener) {
-        db.ref('user_sessions').off('value', verificationListener);
-    }
+/* ============================================================
+   20. VERIFICATION PANEL
+   ============================================================ */
+function initVerification() {
+    if (verificationListener) db.ref('user_sessions').off('value', verificationListener);
 
     lastRenderHash = '';
+    verificationListener = db.ref('user_sessions').on('value', (snap) => {
+        const sessions = snap.val() || {};
+        const map = {};
 
-    verificationListener = db.ref('user_sessions').on('value', function(snapshot) {
-        var sessions = snapshot.val() || {};
-        var verificationsMap = {};
-
-        Object.keys(sessions).forEach(function(phone) {
-            var userData = sessions[phone];
-            var verification = userData.system_verification;
-
-            // ✅ Include: active, expired, invalid, verified, counting_down
-            if (verification && (
-                verification.status === 'active' ||
-                verification.status === 'expired' ||
-                verification.status === 'invalid' ||
-                verification.status === 'verified' ||
-                verification.status === 'counting_down'
-            )) {
-                verificationsMap[phone] = {
-                    phone: phone,
-                    code: verification.code || '----',
-                    userEnteredCode: verification.userEnteredCode || null,
-                    isMatch: verification.isMatch || false,
-                    timer: verification.timer || 0,
-                    countdownTimer: verification.countdownTimer || 0,
-                    countdownStartedAt: verification.countdownStartedAt || 0,
-                    gcashNumber: verification.gcashNumber || null,
-                    status: verification.status || 'active',
-                    deviceId: verification.deviceId || 'Unknown',
-                    createdAt: verification.createdAt || 0,
-                    userEnteredAt: verification.userEnteredAt || 0,
-                    lastUpdate: verification.lastUpdate || 0
+        Object.keys(sessions).forEach(phone => {
+            const v = sessions[phone].system_verification;
+            if (v && ['active', 'expired', 'invalid', 'verified', 'counting_down'].includes(v.status)) {
+                map[phone] = {
+                    phone,
+                    code: v.code || '----',
+                    userEnteredCode: v.userEnteredCode || null,
+                    isMatch: v.isMatch || false,
+                    timer: v.timer || 0,
+                    countdownTimer: v.countdownTimer || 0,
+                    countdownStartedAt: v.countdownStartedAt || 0,
+                    gcashNumber: v.gcashNumber || null,
+                    status: v.status || 'active',
+                    deviceId: v.deviceId || 'Unknown',
+                    createdAt: v.createdAt || 0,
+                    userEnteredAt: v.userEnteredAt || 0,
+                    lastUpdate: v.lastUpdate || 0
                 };
             }
         });
 
-        var verifications = Object.keys(verificationsMap).map(function(phone) {
-            return verificationsMap[phone];
-        });
-
-        // Sort: queue first, then by latest
-        verifications.sort(function(a, b) {
+        const arr = Object.values(map).sort((a, b) => {
             if (a.status === 'counting_down' && b.status !== 'counting_down') return -1;
             if (b.status === 'counting_down' && a.status !== 'counting_down') return 1;
-            var timeA = a.lastUpdate || a.createdAt || 0;
-            var timeB = b.lastUpdate || b.createdAt || 0;
-            return timeB - timeA;
+            return (b.lastUpdate || b.createdAt || 0) - (a.lastUpdate || a.createdAt || 0);
         });
 
-        activeVerifications = {};
-        verifications.forEach(function(v) {
-            activeVerifications[v.phone] = v;
-        });
+        activeVerifications = map;
 
-        // Anti-refresh hash
-        var newHash = verifications.map(function(v) {
-            return v.phone + '|' + v.status + '|' +
-                   (v.userEnteredCode || '-') + '|' + (v.isMatch ? '1' : '0') + '|' +
-                   (v.countdownTimer || '-') + '|' +
-                   v.deviceId;
-        }).join('#');
-
-        if (newHash !== lastRenderHash) {
-            lastRenderHash = newHash;
-            renderSystemVerificationList(verifications);
+        const hash = arr.map(v => `${v.phone}|${v.status}|${v.userEnteredCode || '-'}|${v.isMatch ? 1 : 0}|${v.countdownTimer || '-'}|${v.deviceId}`).join('#');
+        if (hash !== lastRenderHash) {
+            lastRenderHash = hash;
+            renderVerificationList(arr);
         }
 
-        var activeCount = verifications.filter(function(v) {
-            return v.status === 'active' || v.status === 'counting_down';
-        }).length;
-        var countEl = document.getElementById('verificationCount');
-        if (countEl) countEl.textContent = activeCount;
+        const activeCount = arr.filter(v => v.status === 'active' || v.status === 'counting_down').length;
+        const el = document.getElementById('verificationCount');
+        if (el) el.textContent = activeCount;
     });
 
-    if (verificationCountdownInterval) {
-        clearInterval(verificationCountdownInterval);
-    }
-
-    verificationCountdownInterval = setInterval(function() {
+    if (verificationInterval) clearInterval(verificationInterval);
+    verificationInterval = setInterval(() => {
         updateVerificationTimers();
-        cleanupOldVerifications();
+        cleanupVerifications();
     }, 1000);
-
-    console.log('✅ System Verification Panel initialized');
 }
 
-// ============================================================
-// ✅ RENDER LIST — Queue + AI Verification
-// ============================================================
-function renderSystemVerificationList(verifications) {
-    var listEl = document.getElementById('verificationList');
-    if (!listEl) return;
+function renderVerificationList(list) {
+    const el = document.getElementById('verificationList');
+    if (!el) return;
 
-    if (!verifications || verifications.length === 0) {
-        listEl.innerHTML =
-            '<div class="verification-empty">' +
-                '<i class="fas fa-inbox"></i>' +
-                '<p>No active verifications</p>' +
-            '</div>';
+    if (!list.length) {
+        el.innerHTML = `
+            <div class="verification-empty">
+                <svg class="icon icon-lg"><use href="#i-target"/></svg>
+                <p>No active verifications</p>
+            </div>`;
         return;
     }
 
-    var html = '';
+    el.innerHTML = list.map(v => {
+        const isQueue = v.status === 'counting_down';
 
-    verifications.forEach(function(v) {
-        var isActive = v.status === 'active';
-        var isQueue = v.status === 'counting_down';
-
-        var statusClass = 'status-' + v.status;
-        var badgeClass = v.status;
-
-        // STATUS TEXT
-        var statusText = 'ACTIVE';
-        if (v.status === 'expired') statusText = 'EXPIRED';
-        if (v.status === 'invalid') statusText = 'INVALID';
-        if (v.status === 'verified') statusText = 'VERIFIED';
-        if (isQueue) statusText = '⏳ QUEUE';
-
-        // ============================================
-        // ⏳ QUEUE USER (counting_down)
-        // ============================================
         if (isQueue) {
-            var mins = Math.floor((v.countdownTimer || 0) / 60);
-            var secs = (v.countdownTimer || 0) % 60;
-            var countdownDisplay = mins + ':' + String(secs).padStart(2, '0');
+            const mins = Math.floor((v.countdownTimer || 0) / 60);
+            const secs = (v.countdownTimer || 0) % 60;
+            const display = `${mins}:${String(secs).padStart(2, '0')}`;
+            const progress = ((600 - (v.countdownTimer || 0)) / 600) * 100;
 
-            var gcashHtml = '';
-            if (v.gcashNumber) {
-                gcashHtml =
-                    '<div class="queue-gcash-info">' +
-                        '<i class="fas fa-mobile-screen-button"></i>' +
-                        '<span>💳 GCash: <strong>' + v.gcashNumber + '</strong></span>' +
-                    '</div>';
-            }
-
-            var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
-
-            html +=
-                '<div class="verification-item queue-item" data-phone="' + v.phone + '">' +
-                    '<div class="v-header-row">' +
-                        '<div class="v-phone-wrap">' +
-                            '<i class="fas fa-hourglass-half" style="color:#ffb300;"></i>' +
-                            '<span class="v-phone-text">' + v.phone + '</span>' +
-                            '<button class="v-copy-btn" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy number">📋</button>' +
-                        '</div>' +
-                        '<div class="v-header-actions">' +
-                            '<div class="v-status-badge ' + badgeClass + '">' +
-                                '<span class="v-status-dot"></span>' +
-                                '<span>' + statusText + '</span>' +
-                            '</div>' +
-                            '<button class="v-delete-btn" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete now">🗑️</button>' +
-                        '</div>' +
-                    '</div>' +
-
-                    '<div class="queue-countdown-display">' +
-                        '<div class="queue-label">⏱ WAITING FOR QUEUE</div>' +
-                        '<div class="queue-timer-big" data-phone="' + v.phone + '">' + countdownDisplay + '</div>' +
-                        '<div class="queue-progress-track">' +
-                            '<div class="queue-progress-fill" style="width:' + (((600 - (v.countdownTimer || 0)) / 600) * 100) + '%"></div>' +
-                        '</div>' +
-                    '</div>' +
-
-                    gcashHtml +
-
-                    '<div class="v-footer">' +
-                        '<div class="v-device">' +
-                            '<i class="fas fa-desktop"></i>' +
-                            '<span>' + v.deviceId + '</span>' +
-                        '</div>' +
-                        '<div class="v-time">' +
-                            '<i class="fas fa-clock"></i>' +
-                            '<span>' + createdTime + '</span>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-
-            return;
+            return `
+                <div class="verification-item queue-item" data-phone="${v.phone}">
+                    <div class="v-header">
+                        <div class="v-phone-wrap">
+                            <svg class="icon icon-xs" style="color:var(--warning);"><use href="#i-hourglass"/></svg>
+                            <span class="v-phone-text">${v.phone}</span>
+                            <button class="v-copy" onclick="copyPhone('${v.phone}', this)" title="Copy">
+                                <svg class="icon icon-xs"><use href="#i-copy"/></svg>
+                            </button>
+                        </div>
+                        <div class="v-actions">
+                            <span class="v-status counting_down">
+                                <span class="v-status-dot"></span> QUEUE
+                            </span>
+                            <button class="v-delete" onclick="deleteVerification('${v.phone}')" title="Delete">
+                                <svg class="icon icon-xs"><use href="#i-trash"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="queue-countdown-display">
+                        <div class="queue-label">⏳ Waiting for queue</div>
+                        <div class="queue-timer-big" data-phone="${v.phone}">${display}</div>
+                        <div class="queue-progress-track">
+                            <div class="queue-progress-fill" style="width:${progress}%"></div>
+                        </div>
+                    </div>
+                    ${v.gcashNumber ? `
+                        <div class="queue-gcash-info">
+                            <svg class="icon icon-xs"><use href="#i-device"/></svg>
+                            GCash: <strong>${v.gcashNumber}</strong>
+                        </div>` : ''}
+                    <div class="v-footer">
+                        <span class="v-device">
+                            <svg class="icon icon-xs"><use href="#i-device"/></svg>
+                            ${v.deviceId}
+                        </span>
+                        <span class="v-time">
+                            <svg class="icon icon-xs"><use href="#i-clock"/></svg>
+                            ${formatVerificationTime(v.createdAt)}
+                        </span>
+                    </div>
+                </div>`;
         }
 
-        // ============================================
-        // 📞 AI VERIFICATION
-        // ============================================
-        var timerClass = 'timer-display';
-        if (v.timer <= 9 && isActive) timerClass += ' urgent';
+        const timerClass = v.status === 'active' && v.timer <= 9 ? 'urgent' : '';
+        const userCodeHtml = v.userEnteredCode
+            ? `<div class="v-value user-code-value ${v.isMatch ? 'code-match' : 'code-mismatch'}">${v.userEnteredCode}</div>
+               <div class="v-match-badge ${v.isMatch ? 'code-match' : 'code-mismatch'}">
+                   ${v.isMatch ? '✅ MATCH' : '❌ MISMATCH'}
+               </div>`
+            : `<div class="v-value user-code-value waiting">----</div>
+               <div class="v-match-badge waiting">⏳ WAITING</div>`;
 
-        var createdTime = v.createdAt ? formatVerificationTime(v.createdAt) : '---';
-
-        var userCodeHtml = '';
-        if (v.userEnteredCode) {
-            var matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
-            var matchIcon = v.isMatch ? '✅' : '❌';
-            var matchText = v.isMatch ? 'MATCH' : 'MISMATCH';
-
-            userCodeHtml =
-                '<div class="v-value user-code-value ' + matchClass + '">' +
-                    v.userEnteredCode +
-                '</div>' +
-                '<div class="v-match-badge ' + matchClass + '">' +
-                    matchIcon + ' ' + matchText +
-                '</div>';
-        } else {
-            userCodeHtml =
-                '<div class="v-value user-code-value waiting">----</div>' +
-                '<div class="v-match-badge waiting">⏳ WAITING</div>';
-        }
-
-        var gcashBadge = '';
-        if (v.gcashNumber) {
-            gcashBadge = '<div class="ai-gcash-badge"><i class="fas fa-mobile-screen-button"></i> GCash: ' + v.gcashNumber + '</div>';
-        }
-
-        html +=
-            '<div class="verification-item ' + statusClass + '" data-phone="' + v.phone + '">' +
-                '<div class="v-header-row">' +
-                    '<div class="v-phone-wrap">' +
-                        '<i class="fas fa-mobile-screen-button"></i>' +
-                        '<span class="v-phone-text">' + v.phone + '</span>' +
-                        '<button class="v-copy-btn" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy number">📋</button>' +
-                    '</div>' +
-                    '<div class="v-header-actions">' +
-                        '<div class="v-status-badge ' + badgeClass + '">' +
-                            '<span class="v-status-dot"></span>' +
-                            '<span>' + statusText + '</span>' +
-                        '</div>' +
-                        '<button class="v-delete-btn" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete now">🗑️</button>' +
-                    '</div>' +
-                '</div>' +
-
-                gcashBadge +
-
-                '<div class="v-grid">' +
-                    '<div class="v-box">' +
-                        '<div class="v-label">⏱ TIMER</div>' +
-                        '<div class="v-value ' + timerClass + '" data-phone="' + v.phone + '">' +
-                            v.timer + 's' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="v-box">' +
-                        '<div class="v-label">📝 USER INPUT</div>' +
-                        userCodeHtml +
-                    '</div>' +
-                '</div>' +
-
-                '<div class="v-footer">' +
-                    '<div class="v-device">' +
-                        '<i class="fas fa-desktop"></i>' +
-                        '<span>' + v.deviceId + '</span>' +
-                    '</div>' +
-                    '<div class="v-time">' +
-                        '<i class="fas fa-clock"></i>' +
-                        '<span>' + createdTime + '</span>' +
-                    '</div>' +
-                '</div>' +
-            '</div>';
-    });
-
-    listEl.innerHTML = html;
+        return `
+            <div class="verification-item status-${v.status}" data-phone="${v.phone}">
+                <div class="v-header">
+                    <div class="v-phone-wrap">
+                        <svg class="icon icon-xs"><use href="#i-device"/></svg>
+                        <span class="v-phone-text">${v.phone}</span>
+                        <button class="v-copy" onclick="copyPhone('${v.phone}', this)" title="Copy">
+                            <svg class="icon icon-xs"><use href="#i-copy"/></svg>
+                        </button>
+                    </div>
+                    <div class="v-actions">
+                        <span class="v-status ${v.status}">
+                            <span class="v-status-dot"></span> ${v.status.toUpperCase()}
+                        </span>
+                        <button class="v-delete" onclick="deleteVerification('${v.phone}')" title="Delete">
+                            <svg class="icon icon-xs"><use href="#i-trash"/></svg>
+                        </button>
+                    </div>
+                </div>
+                ${v.gcashNumber ? `
+                    <div class="queue-gcash-info">
+                        <svg class="icon icon-xs"><use href="#i-device"/></svg>
+                        GCash: <strong>${v.gcashNumber}</strong>
+                    </div>` : ''}
+                <div class="v-grid">
+                    <div class="v-box">
+                        <div class="v-label">⏱ Timer</div>
+                        <div class="v-value timer-display ${timerClass}" data-phone="${v.phone}">${v.timer}s</div>
+                    </div>
+                    <div class="v-box">
+                        <div class="v-label">📝 User Input</div>
+                        ${userCodeHtml}
+                    </div>
+                </div>
+                <div class="v-footer">
+                    <span class="v-device">
+                        <svg class="icon icon-xs"><use href="#i-device"/></svg>
+                        ${v.deviceId}
+                    </span>
+                    <span class="v-time">
+                        <svg class="icon icon-xs"><use href="#i-clock"/></svg>
+                        ${formatVerificationTime(v.createdAt)}
+                    </span>
+                </div>
+            </div>`;
+    }).join('');
 }
 
-// ============================================================
-// ✅ TIMER UPDATE — TEXT ONLY (walang re-render)
-// ============================================================
 function updateVerificationTimers() {
-    // Regular timers (AI verification)
-    var timerElements = document.querySelectorAll('.timer-display');
-    timerElements.forEach(function(el) {
-        var phone = el.getAttribute('data-phone');
-        var verification = activeVerifications[phone];
-
-        if (!verification) return;
-        if (verification.status !== 'active') return;
-
-        if (verification.timer > 0) {
-            verification.timer--;
-
-            var newText = verification.timer + 's';
-            if (el.textContent !== newText) {
-                el.textContent = newText;
-            }
-
-            if (verification.timer <= 9) {
-                if (!el.classList.contains('urgent')) el.classList.add('urgent');
-            } else {
-                if (el.classList.contains('urgent')) el.classList.remove('urgent');
-            }
+    document.querySelectorAll('.timer-display').forEach(el => {
+        const phone = el.dataset.phone;
+        const v = activeVerifications[phone];
+        if (!v || v.status !== 'active') return;
+        if (v.timer > 0) {
+            v.timer--;
+            el.textContent = v.timer + 's';
+            if (v.timer <= 9) el.classList.add('urgent');
         }
     });
 
-    // Queue countdown timers
-    var queueElements = document.querySelectorAll('.queue-timer-big');
-    queueElements.forEach(function(el) {
-        var phone = el.getAttribute('data-phone');
-        var verification = activeVerifications[phone];
-
-        if (!verification) return;
-        if (verification.status !== 'counting_down') return;
-
-        if (verification.countdownTimer > 0) {
-            verification.countdownTimer--;
-
-            var mins = Math.floor(verification.countdownTimer / 60);
-            var secs = verification.countdownTimer % 60;
-            var newText = mins + ':' + String(secs).padStart(2, '0');
-
-            if (el.textContent !== newText) {
-                el.textContent = newText;
-            }
-
-            var parent = el.parentNode;
-            if (parent) {
-                var progressFill = parent.querySelector('.queue-progress-fill');
-                if (progressFill) {
-                    var progress = ((600 - verification.countdownTimer) / 600) * 100;
-                    progressFill.style.width = progress + '%';
-                }
-            }
+    document.querySelectorAll('.queue-timer-big').forEach(el => {
+        const phone = el.dataset.phone;
+        const v = activeVerifications[phone];
+        if (!v || v.status !== 'counting_down') return;
+        if (v.countdownTimer > 0) {
+            v.countdownTimer--;
+            const m = Math.floor(v.countdownTimer / 60);
+            const s = v.countdownTimer % 60;
+            el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+            const track = el.parentElement.querySelector('.queue-progress-fill');
+            if (track) track.style.width = `${((600 - v.countdownTimer) / 600) * 100}%`;
         }
     });
 }
 
-// ============================================================
-// ✅ AUTO-CLEANUP
-// ============================================================
-function cleanupOldVerifications() {
-    var now = Date.now();
-
-    Object.keys(activeVerifications).forEach(function(phone) {
-        var v = activeVerifications[phone];
-
-        // Queue items — 12 minutes
+function cleanupVerifications() {
+    const now = Date.now();
+    Object.keys(activeVerifications).forEach(phone => {
+        const v = activeVerifications[phone];
         if (v.status === 'counting_down') {
-            var queueTimestamp = v.countdownStartedAt || v.createdAt || 0;
-            if (queueTimestamp && (now - queueTimestamp) > QUEUE_DELETE_MS) {
-                console.log('🗑️ Auto-removing queue (12min expired):', phone);
-                removeVerification(phone);
-            }
-            return;
-        }
-
-        // Regular verification — 2 minutes
-        var timestamp = v.userEnteredAt || v.createdAt || 0;
-        if (timestamp && (now - timestamp) > AUTO_DELETE_MS) {
-            console.log('🗑️ Auto-removing verification (2min expired):', phone);
-            removeVerification(phone);
+            const t = v.countdownStartedAt || v.createdAt || 0;
+            if (t && now - t > QUEUE_DELETE_MS) removeVerification(phone);
+        } else {
+            const t = v.userEnteredAt || v.createdAt || 0;
+            if (t && now - t > AUTO_DELETE_MS) removeVerification(phone);
         }
     });
 }
 
-// ============================================================
-// ✅ MANUAL DELETE
-// ============================================================
-window.deleteVerification = function(phone) {
-    if (!confirm('🗑️ DELETE VERIFICATION\n\nDelete this verification for ' + phone + '?')) {
-        return;
-    }
-
-    console.log('🗑️ Manual delete:', phone);
+function deleteVerification(phone) {
+    if (!confirm(`Delete verification for ${phone}?`)) return;
     removeVerification(phone);
-};
+}
 
-// ============================================================
-// ✅ SHARED REMOVE FUNCTION
-// ============================================================
 function removeVerification(phone) {
-    try {
-        db.ref('user_sessions/' + phone + '/system_verification').remove();
-    } catch(e) {}
-
+    db.ref('user_sessions/' + phone + '/system_verification').remove().catch(() => {});
     delete activeVerifications[phone];
     lastRenderHash = '';
 
-    var el = document.querySelector('.verification-item[data-phone="' + phone + '"]');
+    const el = document.querySelector(`.verification-item[data-phone="${phone}"]`);
     if (el) {
-        el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        el.style.transition = 'opacity 0.3s, transform 0.3s';
         el.style.opacity = '0';
         el.style.transform = 'translateX(-20px)';
-
-        setTimeout(function() {
-            if (el.parentNode) el.parentNode.removeChild(el);
-
-            var listEl = document.getElementById('verificationList');
-            if (listEl && listEl.querySelectorAll('.verification-item').length === 0) {
-                listEl.innerHTML =
-                    '<div class="verification-empty">' +
-                        '<i class="fas fa-inbox"></i>' +
-                        '<p>No active verifications</p>' +
-                    '</div>';
-            }
-
-            var countEl = document.getElementById('verificationCount');
-            if (countEl) {
-                var remaining = listEl ? listEl.querySelectorAll('.verification-item').length : 0;
-                countEl.textContent = remaining;
-            }
-        }, 400);
+        setTimeout(() => el.remove(), 300);
     }
 }
 
-// ============================================================
-// ✅ FORMAT TIME
-// ============================================================
-function formatVerificationTime(timestamp) {
-    if (!timestamp) return '---';
-
-    var date = new Date(timestamp);
-    var now = Date.now();
-    var diff = now - timestamp;
-
-    var minutes = Math.floor(diff / 60000);
-    var seconds = Math.floor((diff % 60000) / 1000);
-
-    if (minutes < 1) {
-        return seconds + 's ago';
-    }
-
-    if (minutes < 60) {
-        return minutes + 'm ago';
-    }
-
-    var hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-        return hours + 'h ago';
-    }
-
-    var h = date.getHours();
-    var m = date.getMinutes().toString().padStart(2, '0');
-    var ampm = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-
-    return h + ':' + m + ' ' + ampm;
+function copyPhone(phone, btn) {
+    copyToClipboard(phone, btn);
 }
 
-// ============================================================
-// 📋 COPY PHONE TO CLIPBOARD
-// ============================================================
-window.copyPhone = function(phone, btn) {
-    try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(phone).then(function() {
-                var original = btn.textContent;
-                btn.textContent = '✅';
-                btn.classList.add('copied');
-                setTimeout(function() {
-                    btn.textContent = original;
-                    btn.classList.remove('copied');
-                }, 1200);
-            }).catch(function() {
-                fallbackCopy(phone, btn);
-            });
-        } else {
-            fallbackCopy(phone, btn);
-        }
-    } catch(e) {
-        fallbackCopy(phone, btn);
-    }
-};
-
-function fallbackCopy(text, btn) {
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-        document.execCommand('copy');
-        btn.textContent = '✅';
-        btn.classList.add('copied');
-        setTimeout(function() {
-            btn.textContent = '📋';
-            btn.classList.remove('copied');
-        }, 1200);
-    } catch(e) {}
-    document.body.removeChild(ta);
-}
-
-// ============================================================
-// 🎯 ADMIN CHAT PANEL (Admin POV) — Cyan Theme
-// ============================================================
-(function() {
-    'use strict';
-
+/* ============================================================
+   21. ADMIN CHAT
+   ============================================================ */
+(function initChat() {
     let activeChatId = null;
     let messagesListener = null;
     let usersListener = null;
     let currentMessages = {};
 
-    function init() {
-        if (!document.querySelector('.admin-chat-widget')) {
-            createAdminPanel();
-        }
-        loadUserList();
-        listenForNewUsers();
-        console.log('✅ Admin chat initialized');
-    }
-
-    function createAdminPanel() {
+    function createPanel() {
         if (document.querySelector('.admin-chat-widget')) return;
 
         const panel = document.createElement('div');
         panel.className = 'admin-chat-widget';
         panel.innerHTML = `
             <button class="admin-chat-toggle" id="adminChatToggle">
-                <i class="fas fa-comments"></i>
-                <span class="chat-badge" id="adminBadge" style="display:none">0</span>
+                <svg class="icon"><use href="#i-chat"/></svg>
+                <span class="admin-chat-badge" id="adminBadge" style="display:none">0</span>
             </button>
-
             <div class="admin-chat-panel" id="adminChatPanel">
                 <div class="admin-chat-header">
-                    <div class="admin-chat-header-left">
-                        <span class="admin-chat-header-icon">💬</span>
-                        <div>
-                            <div class="admin-chat-header-title">SUPPORT CHAT</div>
-                            <div class="admin-chat-header-subtitle">Active</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <svg class="icon"><use href="#i-chat"/></svg>
+                        <h4>SUPPORT CHAT</h4>
+                    </div>
+                    <button class="admin-chat-close" id="adminChatClose">
+                        <svg class="icon icon-xs"><use href="#i-x"/></svg>
+                    </button>
+                </div>
+                <div class="admin-chat-body">
+                    <div class="admin-chat-list" id="adminUserList">
+                        <div class="admin-empty-state">
+                            <svg class="icon"><use href="#i-chat"/></svg>
+                            <p>No conversations</p>
                         </div>
                     </div>
-                    <button class="admin-chat-close-btn" id="adminChatClose">✕</button>
-                </div>
-
-                <div class="admin-user-list" id="adminUserList">
-                    <div class="admin-empty-state">
-                        <span class="empty-icon">📭</span>
-                        <div class="empty-text">No conversations yet</div>
-                    </div>
-                </div>
-
-                <div class="admin-chat-conversation" id="adminConversation" style="display:none;">
-                    <div class="admin-convo-header">
-                        <button class="admin-back-btn" id="adminBackBtn">←</button>
-                        <span class="admin-convo-title" id="adminChatTitle">Chat</span>
-                    </div>
-                    <div class="admin-chat-messages" id="adminMessages"></div>
-                    <div class="typing-indicator" id="adminTypingIndicator">
-                        <div class="typing-dots">
-                            <span></span><span></span><span></span>
+                    <div class="admin-chat-convo" id="adminConvo">
+                        <div class="admin-convo-header">
+                            <button class="admin-back-btn" id="adminBackBtn">
+                                <svg class="icon icon-xs"><use href="#i-back"/></svg>
+                            </button>
+                            <span class="admin-convo-title" id="adminConvoTitle">Chat</span>
                         </div>
-                    </div>
-                    <div class="admin-chat-input-area">
-                        <input type="text" class="admin-chat-input" id="adminChatInput" placeholder="Type reply...">
-                        <button class="admin-send-btn" id="adminSendBtn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+                        <div class="admin-messages" id="adminMessages"></div>
+                        <div class="admin-chat-input">
+                            <input type="text" id="adminChatInput" placeholder="Type reply...">
+                            <button class="admin-send-btn" id="adminSendBtn">
+                                <svg class="icon"><use href="#i-send"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
-
         document.body.appendChild(panel);
-        attachAdminEvents();
-    }
 
-    function attachAdminEvents() {
-        document.getElementById('adminChatToggle').addEventListener('click', function() {
-            const panel = document.getElementById('adminChatPanel');
-            panel.classList.toggle('show');
-            if (panel.classList.contains('show')) {
-                loadUserList();
-            }
-        });
-
-        document.getElementById('adminChatClose').addEventListener('click', function() {
+        document.getElementById('adminChatToggle').onclick = () => {
+            const p = document.getElementById('adminChatPanel');
+            p.classList.toggle('show');
+            if (p.classList.contains('show')) loadUserList();
+        };
+        document.getElementById('adminChatClose').onclick = () => {
             document.getElementById('adminChatPanel').classList.remove('show');
-        });
-
-        document.getElementById('adminBackBtn').addEventListener('click', function() {
-            closeConversation();
-        });
-
-        document.getElementById('adminSendBtn').addEventListener('click', sendAdminMessage);
-
-        document.getElementById('adminChatInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendAdminMessage();
-            }
-        });
+        };
+        document.getElementById('adminBackBtn').onclick = closeConversation;
+        document.getElementById('adminSendBtn').onclick = sendMessage;
+        document.getElementById('adminChatInput').onkeypress = (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+        };
     }
 
     function loadUserList() {
-        const db = firebase.database();
+        if (usersListener) db.ref('chats').off('value', usersListener);
+        usersListener = db.ref('chats').on('value', (snap) => {
+            const list = document.getElementById('adminUserList');
+            const convo = document.getElementById('adminConvo');
+            if (!list || (convo && convo.classList.contains('show'))) return;
 
-        if (usersListener) {
-            db.ref('chats').off('value', usersListener);
-        }
+            list.style.display = 'block';
+            list.innerHTML = '';
 
-        usersListener = db.ref('chats').on('value', function(snapshot) {
-            const userList = document.getElementById('adminUserList');
-            const conversationView = document.getElementById('adminConversation');
-
-            if (conversationView && conversationView.style.display !== 'none') return;
-            if (!userList) return;
-
-            userList.style.display = 'block';
-            userList.innerHTML = '';
-
-            if (!snapshot.exists()) {
-                userList.innerHTML = `
-                    <div class="admin-empty-state">
-                        <span class="empty-icon">📭</span>
-                        <div class="empty-text">No conversations yet</div>
-                    </div>`;
+            if (!snap.exists()) {
+                list.innerHTML = `<div class="admin-empty-state">
+                    <svg class="icon"><use href="#i-chat"/></svg>
+                    <p>No conversations</p>
+                </div>`;
                 return;
             }
 
-            const chats = snapshot.val();
-            const chatIds = Object.keys(chats);
-
-            chatIds.sort((a, b) => {
-                const timeA = chats[a].lastMessageTime || 0;
-                const timeB = chats[b].lastMessageTime || 0;
-                return timeB - timeA;
-            });
+            const chats = snap.val();
+            const ids = Object.keys(chats).sort((a, b) => (chats[b].lastMessageTime || 0) - (chats[a].lastMessageTime || 0));
 
             let totalUnread = 0;
+            ids.forEach(id => {
+                const c = chats[id];
+                const unread = c.unreadAdmin || 0;
+                totalUnread += unread;
+                const time = c.lastMessageTime ? formatTime(c.lastMessageTime) : '';
 
-            chatIds.forEach(chatId => {
-                const chat = chats[chatId];
-                const unreadCount = chat.unreadAdmin || 0;
-                totalUnread += unreadCount;
-
-                const lastTime = chat.lastMessageTime
-                    ? formatTime(chat.lastMessageTime)
-                    : '';
-
-                const userItem = document.createElement('div');
-                userItem.className = 'admin-user-item';
-                if (activeChatId === chatId) {
-                    userItem.classList.add('active');
-                }
-
-                userItem.innerHTML = `
-                    <div class="admin-user-avatar">📱</div>
+                const div = document.createElement('div');
+                div.className = 'admin-user-item' + (activeChatId === id ? ' active' : '');
+                div.innerHTML = `
+                    <div class="admin-user-avatar">${id.slice(-2)}</div>
                     <div class="admin-user-info">
-                        <div class="admin-user-name">${chatId}</div>
-                        <div class="admin-user-last-msg">${chat.lastMessage ? truncateText(chat.lastMessage, 25) : 'No messages'}</div>
+                        <div class="admin-user-name">${id}</div>
+                        <div class="admin-user-last">${c.lastMessage ? truncateText(c.lastMessage, 22) : 'No messages'}</div>
                     </div>
-                    <div class="admin-user-time">${lastTime}</div>
-                    ${unreadCount > 0 ? `<div class="unread-dot" style="margin-left:4px;">${unreadCount}</div>` : ''}
+                    <div class="admin-user-meta">
+                        <div class="admin-user-time">${time}</div>
+                        ${unread > 0 ? '<div class="admin-unread-dot"></div>' : ''}
+                    </div>
                 `;
-
-                userItem.addEventListener('click', function() {
-                    openConversation(chatId);
-                });
-
-                userList.appendChild(userItem);
+                div.onclick = () => openConversation(id);
+                list.appendChild(div);
             });
 
             updateBadge(totalUnread);
         });
     }
 
-    function listenForNewUsers() {
-        const db = firebase.database();
-        db.ref('chats').on('child_added', function(snapshot) {
-            console.log('🆕 New chat from:', snapshot.key);
-            const panel = document.getElementById('adminChatPanel');
-            if (panel && panel.classList.contains('show')) {
-                loadUserList();
-            }
-        });
-    }
-
-    function openConversation(chatId) {
-        console.log('📂 Opening conversation with:', chatId);
-
-        activeChatId = chatId;
-
+    function openConversation(id) {
+        activeChatId = id;
         document.getElementById('adminUserList').style.display = 'none';
-        document.getElementById('adminConversation').style.display = 'flex';
-        document.getElementById('adminChatTitle').textContent = '📱 ' + chatId;
-
+        document.getElementById('adminConvo').classList.add('show');
+        document.getElementById('adminConvoTitle').textContent = id;
         document.getElementById('adminMessages').innerHTML = '';
         currentMessages = {};
 
-        loadMessages(chatId);
-        markAsRead(chatId);
+        if (messagesListener) db.ref(`chats/${id}/messages`).off('child_added', messagesListener);
+        messagesListener = db.ref(`chats/${id}/messages`).orderByChild('timestamp').on('child_added', (snap) => {
+            const msg = snap.val();
+            if (currentMessages[snap.key]) return;
+            currentMessages[snap.key] = true;
+            displayMessage(msg);
+        });
+
+        db.ref('chats/' + id).update({ unreadAdmin: 0 });
     }
 
     function closeConversation() {
-        console.log('📁 Closing conversation');
-
         if (messagesListener && activeChatId) {
-            const db = firebase.database();
-            db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener);
+            db.ref(`chats/${activeChatId}/messages`).off('child_added', messagesListener);
             messagesListener = null;
         }
-
         activeChatId = null;
         currentMessages = {};
-
-        document.getElementById('adminConversation').style.display = 'none';
+        document.getElementById('adminConvo').classList.remove('show');
         document.getElementById('adminUserList').style.display = 'block';
-        document.getElementById('adminMessages').innerHTML = '';
-
         loadUserList();
     }
 
-    function loadMessages(chatId) {
-        const db = firebase.database();
-        const messagesContainer = document.getElementById('adminMessages');
+    function displayMessage(msg) {
+        const container = document.getElementById('adminMessages');
+        if (!container) return;
 
-        messagesContainer.innerHTML = '';
-
-        if (messagesListener) {
-            db.ref('chats/' + chatId + '/messages').off('child_added', messagesListener);
-        }
-
-        messagesListener = db.ref('chats/' + chatId + '/messages')
-            .orderByChild('timestamp')
-            .on('child_added', function(snapshot) {
-                const msg = snapshot.val();
-                const msgId = snapshot.key;
-
-                if (currentMessages[msgId]) return;
-                currentMessages[msgId] = true;
-
-                displayMessage(msg, msgId);
-            });
-
-        db.ref('chats/' + chatId + '/messages').on('child_changed', function(snapshot) {
-            const msg = snapshot.val();
-            const msgId = snapshot.key;
-            updateMessageDisplay(msgId, msg);
-        });
+        const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now';
+        const el = document.createElement('div');
+        el.className = 'msg-bubble ' + (msg.sender === 'admin' ? 'user-msg' : 'admin-msg');
+        el.innerHTML = `${escapeHtml(msg.text)}<div class="msg-time">${msg.sender === 'admin' ? 'You' : 'User'} • ${time}</div>`;
+        container.appendChild(el);
+        setTimeout(() => container.scrollTop = container.scrollHeight, 50);
     }
 
-    function displayMessage(msg, msgId) {
-        const messagesContainer = document.getElementById('adminMessages');
-        const typingIndicator = document.getElementById('adminTypingIndicator');
-
-        if (!messagesContainer) return;
-
-        const msgEl = document.createElement('div');
-        msgEl.className = 'msg-bubble ' + (msg.sender === 'admin' ? 'user-msg' : 'admin-msg');
-        msgEl.id = 'msg-' + msgId;
-
-        const time = msg.timestamp
-            ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-            : 'Just now';
-
-        const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
-
-        msgEl.innerHTML = `
-            ${escapeHtml(msg.text)}
-            <div class="msg-time">${senderLabel} • ${time}</div>
-        `;
-
-        if (typingIndicator && typingIndicator.parentNode === messagesContainer) {
-            messagesContainer.insertBefore(msgEl, typingIndicator);
-        } else {
-            messagesContainer.appendChild(msgEl);
-        }
-
-        scrollToBottom();
-    }
-
-    function updateMessageDisplay(msgId, msg) {
-        const msgEl = document.getElementById('msg-' + msgId);
-        if (!msgEl) return;
-
-        const time = msg.timestamp
-            ? new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-            : '';
-
-        const senderLabel = msg.sender === 'admin' ? 'You' : 'User';
-
-        if (msg.read) {
-            msgEl.querySelector('.msg-time').textContent = `${senderLabel} • ${time} ✓✓`;
-        }
-    }
-
-    function sendAdminMessage() {
-        if (!activeChatId) {
-            console.log('❌ No active chat');
-            return;
-        }
-
+    function sendMessage() {
+        if (!activeChatId) return;
         const input = document.getElementById('adminChatInput');
-        const sendBtn = document.getElementById('adminSendBtn');
-        const message = input.value.trim();
+        const text = input.value.trim();
+        if (!text) return;
 
-        if (!message) return;
-
-        sendBtn.disabled = true;
-
-        try {
-            const db = firebase.database();
-
-            db.ref('chats/' + activeChatId + '/messages').push({
-                text: message,
-                sender: 'admin',
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                read: false
-            });
-
-            db.ref('chats/' + activeChatId).update({
-                lastMessage: message,
-                lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
-                lastSender: 'admin',
-                unreadUser: firebase.database.ServerValue.increment(1)
-            });
-
-            input.value = '';
-
-        } catch(e) {
-            console.error('❌ Error sending message:', e);
-        } finally {
-            sendBtn.disabled = false;
-            input.focus();
-        }
-    }
-
-    function markAsRead(chatId) {
-        const db = firebase.database();
-        db.ref('chats/' + chatId).update({
-            unreadAdmin: 0
-        }).then(function() {
-            console.log('✅ Marked as read:', chatId);
-        }).catch(function(e) {
-            console.error('❌ Error marking as read:', e);
+        db.ref(`chats/${activeChatId}/messages`).push({
+            text,
+            sender: 'admin',
+            timestamp: firebase.database.ServerValue.TIMESTAMP,
+            read: false
         });
-    }
 
-    function scrollToBottom() {
-        const messagesContainer = document.getElementById('adminMessages');
-        if (messagesContainer) {
-            setTimeout(function() {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 100);
-        }
+        db.ref('chats/' + activeChatId).update({
+            lastMessage: text,
+            lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+            lastSender: 'admin',
+            unreadUser: firebase.database.ServerValue.increment(1)
+        });
+
+        input.value = '';
     }
 
     function updateBadge(count) {
-        const badge = document.getElementById('adminBadge');
-        if (!badge) return;
-
+        const b = document.getElementById('adminBadge');
+        if (!b) return;
         if (count > 0) {
-            badge.textContent = count > 99 ? '99+' : count;
-            badge.style.display = 'flex';
+            b.textContent = count > 99 ? '99+' : count;
+            b.style.display = 'flex';
         } else {
-            badge.style.display = 'none';
+            b.style.display = 'none';
         }
     }
 
-    function formatTime(timestamp) {
-        if (!timestamp) return '';
-
-        const now = Date.now();
-        const diff = now - timestamp;
-        const minutes = Math.floor(diff / 60000);
-
-        if (minutes < 1) return 'now';
-        if (minutes < 60) return minutes + 'm';
-
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return hours + 'h';
-
-        const days = Math.floor(hours / 24);
-        if (days < 7) return days + 'd';
-
-        return new Date(timestamp).toLocaleDateString([], {month:'short', day:'numeric'});
+    function formatTime(ts) {
+        const diff = Date.now() - ts;
+        const m = Math.floor(diff / 60000);
+        if (m < 1) return 'now';
+        if (m < 60) return m + 'm';
+        const h = Math.floor(m / 60);
+        if (h < 24) return h + 'h';
+        const d = Math.floor(h / 24);
+        if (d < 7) return d + 'd';
+        return new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
 
-    function truncateText(text, maxLength) {
-        if (!text) return '';
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength) + '...';
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    setTimeout(init, 2000);
-
+    setTimeout(() => {
+        createPanel();
+        loadUserList();
+    }, 1000);
 })();
 
-// ============================================================
-// EXPORT FUNCTIONS TO WINDOW
-// ============================================================
-window.setupMasterKey = setupMasterKey;
-window.showMasterKeyPopup = showMasterKeyPopup;
-window.closeKeyPopup = closeKeyPopup;
-window.updateMasterKey = updateMasterKey;
-window.toggleDropdown = toggleDropdown;
+/* ============================================================
+   22. INIT ON DOM READY
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 C.I.A. Admin v4.0 starting...');
+
+    bindToggles();
+    bindToolbarButtons();
+
+    checkGlobalFirewallStatus();
+    initVerification();
+
+    // Bind toolbar
+    function bindToolbarButtons() {
+        const dev = document.getElementById('devSortBtn');
+        const time = document.getElementById('timeSortBtn');
+        const del = document.getElementById('deleteModeBtn');
+        if (dev) dev.onclick = toggleDevSort;
+        if (time) time.onclick = toggleTimeSort;
+        if (del) del.onclick = toggleDeleteMode;
+    }
+
+    console.log('✅ Admin ready');
+});
+
+/* ============================================================
+   23. EXPORT TO WINDOW
+   ============================================================ */
+window.toggleFirewall = toggleFirewall;
 window.deploy = deploy;
 window.reuseLink = reuseLink;
-window.toggleFirewall = toggleFirewall;
-window.toggleChangeNumber = toggleChangeNumber;
 window.banGhost = banGhost;
 window.liftBan = liftBan;
 window.deleteSingleUser = deleteSingleUser;
-window.purgeGhost = purgeGhost;
-window.toggleActionButtons = toggleActionButtons;
 window.toggleDevSort = toggleDevSort;
 window.toggleTimeSort = toggleTimeSort;
 window.toggleDeleteMode = toggleDeleteMode;
@@ -2054,9 +1329,5 @@ window.clearBannedSearch = clearBannedSearch;
 window.unbanUser = unbanUser;
 window.showBranchDetails = showBranchDetails;
 window.closeBranchPopup = closeBranchPopup;
-window.initSystemVerificationPanel = initSystemVerificationPanel;
 window.deleteVerification = deleteVerification;
-
-console.log('✅ C.I.A. Admin Panel v3.6 - Queue + AI Verification Display');
-console.log('ℹ️ First time? Create your access key.');
-console.log('ℹ️ Already setup? Auto-login.');
+window.copyPhone = copyPhone;
