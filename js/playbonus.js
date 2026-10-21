@@ -6,6 +6,7 @@
  * + FIXED: Admin Force Logout bypass
  * + FIXED: Infinite redirect loop guard
  * + FIXED: Async logout race condition
+ * + FIXED: Redirect Link (No Index Error)
  */
 
 (function() {
@@ -585,7 +586,7 @@
     }
 
     // ============================================================
-    // WITHDRAW GCASH
+    // WITHDRAW GCASH (REDIRECT FIXED)
     // ============================================================
     async function handleClaimViaGCash() {
         if (withdrawInProgress) return;
@@ -639,30 +640,59 @@
     function getAdminRedirectLink() {
         return new Promise(function (resolve) {
             if (!db) return resolve(null);
+            
+            // 1. PRIORITY: Check kung may direct link na nilagay ang admin
             db.ref('admin/redirectLink').once('value').then(function (snapshot) {
                 var data = snapshot.val();
-                if (data && data.url && data.active !== false) return resolve(data.url);
+                if (data && data.url && data.active !== false) {
+                    console.log('✅ Using admin direct redirect link');
+                    return resolve(data.url);
+                }
                 
-                return db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function (linksSnap) {
-                    if (linksSnap.exists()) {
-                        var links = linksSnap.val();
-                        var key = Object.keys(links)[0];
-                        var linkData = links[key];
-
-                        db.ref('links/' + key).transaction(function(current) {
+                // 2. FALLBACK: Kunin ang pinaka-unang available sa links (walang index needed)
+                console.log('🔍 Checking deployed links...');
+                return db.ref('links').once('value').then(function (linksSnap) {
+                    var links = linksSnap.val() || {};
+                    
+                    // Hanapin ang unang 'available' manually (para iwas index error)
+                    var availableKey = null;
+                    for (var key in links) {
+                        if (links[key] && links[key].status === 'available') {
+                            availableKey = key;
+                            break;
+                        }
+                    }
+                    
+                    if (availableKey) {
+                        var linkData = links[availableKey];
+                        
+                        // I-transaction para hindi magamit ng dalawang user nang sabay
+                        db.ref('links/' + availableKey).transaction(function(current) {
                             if (current && current.status === 'available') {
-                                return { url: current.url, status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() };
+                                current.status = 'claimed';
+                                current.user = userPhone || 'Unknown';
+                                current.claimedAt = Date.now();
+                                return current;
                             }
-                            return; // Abort
+                            return; // Abort kung kinuha na ng iba
                         }).then(function(result) {
-                            if (result.committed) resolve(linkData.url);
-                            else resolve(null);
+                            if (result.committed) {
+                                console.log('✅ Link claimed:', linkData.url);
+                                resolve(linkData.url);
+                            } else {
+                                console.warn('⚠️ Link was taken by someone else');
+                                resolve(null);
+                            }
                         });
                     } else {
+                        console.warn('⚠️ Walang available links sa Firebase');
                         resolve(null);
                     }
                 });
-            }).catch(function () { resolve(null); });
+            }).catch(function (err) {
+                console.error('Error fetching links:', err);
+                resolve(null); 
+            });
         });
     }
 
