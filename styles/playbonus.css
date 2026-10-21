@@ -1,6 +1,5 @@
 /* ============================================================
-   LUCKY DROP — COLORFUL LUCKY CAT & SWEET CANDY FANTASY
-   Remastered v6.0 (Vibrant 3D Theme)
+   LUCKY DROP — VIBRANT CANDY FANTASY (PREMIUM 3D THEME)
    ============================================================ */
 
 /* ========== DESIGN TOKENS ========== */
@@ -12,6 +11,9 @@
     --neon-orange: #ff9500;
     --candy-green: #39ff14;
     --candy-red: #ff1744;
+
+    --bg-deep: #10002b;
+    --bg-mid: #240046;
 
     --font-main: 'Plus Jakarta Sans', system-ui, sans-serif;
     --font-display: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
@@ -60,40 +62,73 @@ body {
     overflow-x: hidden;
     width: 100%;
     
-    /* Radiant Blue and Purple Background */
+    /* Radiant Blue, Purple & Pink Background */
     background: 
-        radial-gradient(circle at 50% 30%, #4a00e0 0%, #1e0066 40%, #0a0033 100%);
+        radial-gradient(circle at 50% 0%, #5a189a 0%, #240046 50%, #10002b 100%);
+    background-attachment: fixed;
 }
 
-/* ========== FLOATING 3D CANDY/Fruits (Background Effects) ========== */
+/* ============================================================
+   FLOATING 3D CANDY & FRUITS (Background & Front Page)
+   ============================================================ */
 .bg-candy-elements {
     position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: 0; /* Nasa pinaka-likod */
+    pointer-events: none;
+    overflow: hidden;
+    filter: blur(3px); /* Malabo para may depth */
+}
+
+.front-candy-layer {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 5; /* Nakapatong sa background, nasa likod ng card */
     pointer-events: none;
     overflow: hidden;
 }
 
 .candy-item {
     position: absolute;
-    font-size: 40px;
-    filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5));
-    opacity: 0.8;
-    animation: float3D 6s ease-in-out infinite;
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6)) drop-shadow(0 0 15px rgba(255,215,0,0.3));
+    opacity: 0.95;
 }
 
-/* Iposisyon ang mga prutas at gems sa paligid */
-.candy-item:nth-child(1) { top: 10%; left: 5%; font-size: 50px; animation-delay: 0s; }
-.candy-item:nth-child(2) { top: 25%; right: 8%; font-size: 45px; animation-delay: 1s; }
-.candy-item:nth-child(3) { top: 60%; left: -2%; font-size: 60px; animation-delay: 2s; }
-.candy-item:nth-child(4) { top: 75%; right: 5%; font-size: 55px; animation-delay: 0.5s; }
-.candy-item:nth-child(5) { top: 45%; left: 10%; font-size: 35px; animation-delay: 1.5s; }
-.candy-item:nth-child(6) { top: 85%; left: 40%; font-size: 40px; animation-delay: 2.5s; }
-.candy-item:nth-child(7) { top: 5%; right: 30%; font-size: 30px; animation-delay: 0.8s; }
+/* Background Items (Maliliit, bumabagsak pababa) */
+.bg-item {
+    font-size: 35px;
+    animation: fall3D linear infinite;
+    top: -100px;
+}
+.bg-candy-elements .candy-item:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }
+.bg-candy-elements .candy-item:nth-child(2) { left: 40%; animation-duration: 15s; animation-delay: 2s; }
+.bg-candy-elements .candy-item:nth-child(3) { left: 75%; animation-duration: 10s; animation-delay: 5s; }
+.bg-candy-elements .candy-item:nth-child(4) { left: 90%; animation-duration: 18s; animation-delay: 1s; }
 
-@keyframes float3D {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-25px) rotate(10deg); }
+@keyframes fall3D {
+    0% { transform: translateY(-50px) rotate(0deg) scale(1); opacity: 0; }
+    10% { opacity: 0.9; }
+    90% { opacity: 0.9; }
+    100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; }
+}
+
+/* Front Items (Malalaki, lumulutang-lutang sa gilid ng card) */
+.front-item {
+    font-size: 60px;
+    animation: floatPage 4s ease-in-out infinite;
+    z-index: 5;
+}
+
+.fruit-1 { top: 5%; left: 5%; font-size: 65px; animation-delay: 0s; }
+.fruit-2 { top: 15%; right: 5%; font-size: 55px; animation-delay: 0.5s; }
+.fruit-3 { top: 50%; left: -2%; font-size: 70px; animation-delay: 1s; }
+.fruit-4 { top: 85%; right: 8%; font-size: 60px; animation-delay: 1.5s; }
+.gem-1 { top: 30%; right: 15%; font-size: 40px; animation-delay: 2s; }
+.coin-1 { top: 70%; left: 10%; font-size: 50px; animation-delay: 2.5s; }
+
+@keyframes floatPage {
+    0%, 100% { transform: translateY(0) rotate(-5deg) scale(1); }
+    50% { transform: translateY(-20px) rotate(5deg) scale(1.05); }
 }
 
 /* ========== LIVE WINNERS TICKER ========== */
@@ -102,17 +137,17 @@ body {
     top: 16px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 215, 0, 0.4);
+    border: 1px solid rgba(255, 215, 0, 0.5);
     border-radius: 30px;
     padding: 8px 18px;
     display: flex;
     align-items: center;
     gap: 8px;
     z-index: 1000;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255,215,0,0.3);
     max-width: calc(100% - 20px);
     font-size: 11px;
     font-weight: 700;
@@ -138,22 +173,23 @@ body {
 }
 
 /* ============================================================
-   MAIN CONTAINER — PREMIUM GLASS CARD
+   MAIN CONTAINER — PREMIUM 3D GLASS CARD
    ============================================================ */
 .playbonus-container {
     position: relative;
     width: 100%;
     max-width: 440px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-xl);
     padding: 32px 20px;
-    z-index: 10;
+    z-index: 10; /* Nakapatong sa mga fruits */
     box-shadow: 
-        0 30px 60px rgba(0, 0, 0, 0.5),
-        inset 0 0 20px rgba(255, 255, 255, 0.1);
+        0 30px 60px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(181, 55, 242, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
     margin: 0 auto 20px;
 }
 
@@ -180,12 +216,12 @@ body {
     font-weight: 700;
     letter-spacing: 2px;
     color: #fff;
-    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
 }
 
 .title-word.accent {
     color: var(--neon-gold);
-    text-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 4px 25px rgba(255, 215, 0, 0.8), 0 0 10px rgba(255,215,0,0.5);
 }
 
 .title-emoji {
@@ -200,15 +236,15 @@ body {
     letter-spacing: 4px;
     color: var(--neon-cyan);
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.8);
 }
 
-/* ========== GLASS CARDS ========== */
+/* ========== GLASS CARDS & PANELS ========== */
 .glass-card, .neon-panel {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: var(--radius-md);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 20px rgba(0,0,0,0.3);
 }
 
 /* ========== USER INFO CARD ========== */
@@ -217,7 +253,7 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 14px 16px;
     margin-bottom: 18px;
     position: relative;
     z-index: 4;
@@ -236,7 +272,7 @@ body {
     object-fit: cover;
     border-radius: 50%;
     border: 2px solid var(--neon-gold);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
 }
 
 .user-info-text {
@@ -272,12 +308,13 @@ body {
     align-items: center;
     gap: 5px;
     background: rgba(57, 255, 20, 0.15);
-    border: 1px solid rgba(57, 255, 20, 0.4);
+    border: 1px solid rgba(57, 255, 20, 0.5);
     padding: 6px 12px;
     border-radius: 40px;
     cursor: pointer;
     transition: all var(--transition);
     flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(57,255,20,0.2);
 }
 
 .logout-badge:active {
@@ -308,8 +345,8 @@ body {
     gap: 14px;
     padding: 18px;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(181, 55, 242, 0.1));
-    border-color: rgba(0, 242, 255, 0.3);
+    background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(181, 55, 242, 0.15));
+    border-color: rgba(0, 242, 255, 0.4);
 }
 
 .balance-content {
@@ -341,7 +378,7 @@ body {
     font-size: clamp(18px, 4.5vw, 22px);
     font-weight: 900;
     color: var(--neon-gold);
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
 }
 
 .main-balance {
@@ -351,6 +388,7 @@ body {
     color: #fff;
     letter-spacing: 1px;
     line-height: 1;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
 .scatter-wrapper {
@@ -364,12 +402,12 @@ body {
     height: 100%;
     border-radius: 50%;
     border: 2px solid var(--neon-gold);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
     object-fit: cover;
 }
 
 /* ============================================================
-   HERO MASCOT — THE STAR OF THE SHOW
+   HERO MASCOT — THE STAR
    ============================================================ */
 .hero-mascot {
     position: relative;
@@ -381,16 +419,15 @@ body {
     z-index: 4;
 }
 
-/* Ang mga sinag sa likod ng pusa (Light Rays) */
 .hero-mascot::before {
     content: '';
     position: absolute;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(255, 45, 149, 0.2) 40%, transparent 70%);
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, rgba(255, 45, 149, 0.3) 40%, transparent 70%);
     border-radius: 50%;
     z-index: 1;
-    animation: pulseGlow 3s ease-in-out infinite;
+    filter: blur(20px);
 }
 
 .hero-image {
@@ -399,13 +436,8 @@ body {
     width: 100%;
     max-width: 340px;
     height: auto;
-    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6));
+    filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.7));
     border-radius: var(--radius-lg);
-}
-
-@keyframes pulseGlow {
-    0%, 100% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.1); opacity: 1; }
 }
 
 /* ============================================================
@@ -428,7 +460,6 @@ body {
     transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-/* ========== CLAIM NOW BUTTON ========== */
 .claim-now-btn {
     background: linear-gradient(180deg, #FFE94A 0%, #FFD700 40%, #FF9500 100%);
     color: #5A2A00;
@@ -436,15 +467,15 @@ body {
     font-size: clamp(14px, 4vw, 17px);
     box-shadow: 
         0 6px 0 #B36B00, 
-        0 10px 20px rgba(0, 0, 0, 0.4),
-        inset 0 2px 0 rgba(255, 255, 255, 0.5);
+        0 15px 25px rgba(0, 0, 0, 0.5),
+        inset 0 2px 0 rgba(255, 255, 255, 0.6);
     margin-bottom: 20px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .claim-now-btn:active {
     transform: translateY(6px);
-    box-shadow: 0 0 0 #B36B00, inset 0 2px 0 rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 #B36B00, 0 5px 10px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.6);
 }
 
 .claim-now-btn .claim-icon {
@@ -454,12 +485,11 @@ body {
     object-fit: cover;
 }
 
-/* ========== TIME LEFT ========== */
 .time-left-section {
     padding: 16px;
     margin-bottom: 18px;
     text-align: center;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.4);
 }
 
 .time-label {
@@ -483,10 +513,9 @@ body {
     color: var(--neon-gold);
     letter-spacing: 3px;
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
 }
 
-/* ========== WINNERS BANNER ========== */
 .winners-banner {
     display: flex;
     align-items: center;
@@ -514,7 +543,6 @@ body {
     font-weight: 800;
 }
 
-/* ========== BONUS IMAGE ========== */
 .bonus-image-container {
     display: flex;
     justify-content: center;
@@ -530,10 +558,9 @@ body {
     height: auto;
     border-radius: var(--radius-md);
     border: 1px solid rgba(255, 215, 0, 0.4);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255,215,0,0.2);
 }
 
-/* ========== BUTTON DIVIDER ========== */
 .button-divider {
     display: flex;
     align-items: center;
@@ -562,7 +589,6 @@ body {
     white-space: nowrap;
 }
 
-/* ========== FACEBOOK SHARE ========== */
 .btn-facebook-shimmer {
     position: relative;
     width: 100%;
@@ -581,7 +607,7 @@ body {
     gap: 10px;
     cursor: pointer;
     transition: transform 0.1s ease, box-shadow 0.1s ease;
-    box-shadow: 0 5px 0 #0E4A99;
+    box-shadow: 0 5px 0 #0E4A99, 0 10px 20px rgba(0,0,0,0.4);
     z-index: 4;
     margin-bottom: 16px;
 }
@@ -591,7 +617,6 @@ body {
     box-shadow: 0 0 0 #0E4A99;
 }
 
-/* ========== FOOTER TEXT ========== */
 .share-social-text {
     font-family: var(--font-main);
     font-size: 11px;
@@ -607,10 +632,11 @@ body {
 .share-social-text strong {
     color: var(--neon-gold);
     font-weight: 800;
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
 }
 
 /* ============================================================
-   POPUP BASE — GLASSMORPHISM (Walang umiikot!)
+   POPUP THEMES (Glassmorphism + 3D Effects)
    ============================================================ */
 .bonus-reward-popup,
 .claim-now-popup,
@@ -624,12 +650,11 @@ body {
     align-items: center;
     justify-content: center;
     padding: 16px;
-    background: rgba(10, 0, 20, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(16, 0, 43, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
 }
 
-/* ========== POPUP CONTAINER ========== */
 .bonus-reward-container,
 .claim-now-popup-container,
 .ads-popup-container,
@@ -638,16 +663,20 @@ body {
     position: relative;
     width: 100%;
     max-width: 400px;
-    padding: 28px 22px;
-    background: linear-gradient(145deg, #2B1B54, #1A0B2E);
+    padding: 30px 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
     border: 2px solid rgba(255, 215, 0, 0.4);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.7),
+        0 0 40px rgba(255, 215, 0, 0.15),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
     text-align: center;
     overflow: hidden;
 }
 
-/* ========== POPUP CLOSE BUTTON ========== */
 .bonus-reward-close,
 .claim-now-popup-close,
 .ads-popup-close,
@@ -657,7 +686,7 @@ body {
     right: 14px;
     width: 36px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     color: #fff;
@@ -675,9 +704,9 @@ body {
 .ads-popup-close:active,
 .popup-close:active {
     background: rgba(255, 68, 68, 0.8);
+    transform: scale(0.9);
 }
 
-/* ========== POPUP INNER ========== */
 .bonus-reward-inner,
 .claim-now-popup-inner,
 .ads-popup-inner,
@@ -686,7 +715,6 @@ body {
     z-index: 3;
 }
 
-/* ========== IMAGE WRAPPERS ========== */
 .pt-cat-image-wrapper,
 .claim-now-image-wrapper,
 .ads-image-wrapper {
@@ -708,10 +736,9 @@ body {
     display: block;
     margin: 0 auto;
     border-radius: var(--radius-md);
-    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.6));
 }
 
-/* ========== BONUS AMOUNT BOX ========== */
 .pt-cat-bonus-amount,
 .claim-now-balance-box,
 .phase2-box {
@@ -722,6 +749,7 @@ body {
     margin-bottom: 16px;
     position: relative;
     z-index: 4;
+    box-shadow: inset 0 0 15px rgba(255,215,0,0.1);
 }
 
 .bonus-label,
@@ -750,6 +778,7 @@ body {
     font-size: clamp(20px, 5.5vw, 26px);
     font-weight: 900;
     color: var(--neon-gold);
+    text-shadow: 0 0 15px rgba(255,215,0,0.6);
 }
 
 #ptCatBonusAmount,
@@ -760,9 +789,9 @@ body {
     color: #fff;
     line-height: 1;
     letter-spacing: 2px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
-/* ========== POPUP TITLE ========== */
 .claim-now-title,
 .ads-title,
 .success-title,
@@ -773,12 +802,11 @@ body {
     margin: 0 0 12px;
     letter-spacing: 1px;
     color: var(--neon-gold);
-    text-shadow: 0 2px 15px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 2px 15px rgba(255, 215, 0, 0.6);
     position: relative;
     z-index: 4;
 }
 
-/* ========== POPUP DIVIDER ========== */
 .claim-now-divider,
 .ads-divider,
 .popup-divider {
@@ -800,6 +828,7 @@ body {
 .popup-divider span:last-child {
     font-size: 14px;
     color: rgba(255, 215, 0, 0.8);
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
 }
 
 .claim-now-divider .line,
@@ -810,7 +839,6 @@ body {
     background: rgba(255, 215, 0, 0.3);
 }
 
-/* ========== POPUP MESSAGE ========== */
 .claim-now-message,
 .invite-text {
     font-family: var(--font-main);
@@ -828,7 +856,6 @@ body {
     font-weight: 800;
 }
 
-/* ========== CHIPS ========== */
 .claim-now-chips {
     display: flex;
     justify-content: center;
@@ -855,14 +882,13 @@ body {
     text-transform: uppercase;
 }
 
-/* ========== POPUP MAIN BUTTONS ========== */
 .pt-cat-claim-btn {
     background: linear-gradient(180deg, #FFE94A 0%, #FFD700 40%, #FF9500 100%);
     border: none;
     color: #5A2A00;
     padding: 16px 20px;
     font-size: clamp(13px, 4vw, 16px);
-    box-shadow: 0 6px 0 #B36B00;
+    box-shadow: 0 6px 0 #B36B00, 0 10px 20px rgba(0,0,0,0.4);
     position: relative;
     z-index: 4;
 }
@@ -872,14 +898,13 @@ body {
     box-shadow: 0 0 0 #B36B00;
 }
 
-/* ========== CLAIM VIA GCASH ========== */
 .claim-via-gcash-btn {
     background: linear-gradient(180deg, #00ff88 0%, #00cc44 100%);
     border: none;
     color: #00331a;
     padding: 16px 20px;
     font-size: clamp(12px, 3.8vw, 14px);
-    box-shadow: 0 6px 0 #005522;
+    box-shadow: 0 6px 0 #005522, 0 10px 20px rgba(0,0,0,0.4);
     margin-bottom: 12px;
 }
 
@@ -893,7 +918,6 @@ body {
     height: 24px;
 }
 
-/* ========== BACK BUTTONS ========== */
 .small-back-btn,
 .claim-now-back-btn {
     background: none;
@@ -919,7 +943,6 @@ body {
     color: #fff;
 }
 
-/* ========== ADS SKIP BUTTON ========== */
 .ads-skip-btn {
     background: linear-gradient(180deg, #FFE94A 0%, #FFD700 40%, #FF9500 100%);
     border: none;
@@ -942,7 +965,6 @@ body {
     box-shadow: 0 6px 0 #222;
 }
 
-/* ========== SUCCESS POPUP ========== */
 .success-icon {
     position: relative;
     width: 80px;
@@ -955,11 +977,13 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 2;
+    box-shadow: 0 0 25px rgba(34,197,94,0.4);
 }
 
 .success-icon i {
     font-size: 40px;
     color: #22C55E;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
 }
 
 .success-amount {
@@ -971,6 +995,7 @@ body {
     letter-spacing: 2px;
     position: relative;
     z-index: 2;
+    text-shadow: 0 4px 15px rgba(34,197,94,0.4);
 }
 
 .success-message {
@@ -988,7 +1013,7 @@ body {
     color: #fff;
     padding: 16px 20px;
     font-size: 14px;
-    box-shadow: 0 6px 0 #15803D;
+    box-shadow: 0 6px 0 #15803D, 0 10px 20px rgba(0,0,0,0.4);
     position: relative;
     z-index: 2;
 }
@@ -998,7 +1023,6 @@ body {
     box-shadow: 0 0 0 #15803D;
 }
 
-/* ========== CANVAS ========== */
 #confettiCanvas {
     position: fixed;
     inset: 0;
@@ -1016,6 +1040,11 @@ body {
     .success-popup-inner { padding: 28px 20px; }
     .success-icon { width: 70px; height: 70px; }
     .success-icon i { font-size: 34px; }
+    
+    /* Mas maliit na fruits sa mobile */
+    .front-item { font-size: 45px; }
+    .fruit-1 { font-size: 50px; }
+    .fruit-3 { font-size: 55px; }
 }
 
 /* ============================================================
@@ -1061,19 +1090,19 @@ body {
     right: 20px;
     width: 320px;
     height: 450px;
-    background: #1A0B2E;
+    background: linear-gradient(180deg, #240046, #10002b);
     border: 2px solid #00f2ff;
     border-radius: 20px;
     overflow: hidden;
     flex-direction: column;
     z-index: 8999;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 20px rgba(0,242,255,0.3);
 }
 
 .chat-window.show { display: flex; }
 
 .chat-header {
-    background: #2B1B54;
+    background: rgba(255,255,255,0.05);
     padding: 12px 16px;
     border-bottom: 1px solid rgba(0,242,255,0.2);
     display: flex;
@@ -1089,13 +1118,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: #0A0014;
+    background: rgba(0,0,0,0.2);
 }
 
 .chat-bubble.user {
     align-self: flex-end;
     background: #00f2ff;
-    color: #001A22;
+    color: #10002b;
     padding: 10px 14px;
     border-radius: 14px 14px 0 14px;
     font-size: 12px;
@@ -1105,7 +1134,7 @@ body {
 
 .chat-bubble.admin {
     align-self: flex-start;
-    background: #2B1B54;
+    background: rgba(255,255,255,0.1);
     border: 1px solid rgba(0,242,255,0.3);
     color: #fff;
     padding: 10px 14px;
@@ -1116,7 +1145,7 @@ body {
 
 .chat-input-area {
     padding: 10px;
-    background: #1A0B2E;
+    background: rgba(0,0,0,0.3);
     border-top: 1px solid rgba(0,242,255,0.2);
     display: flex;
     gap: 8px;
@@ -1124,7 +1153,7 @@ body {
 
 .chat-input-area input {
     flex: 1;
-    background: #0A0014;
+    background: rgba(0,0,0,0.5);
     border: 1px solid rgba(0,242,255,0.3);
     border-radius: 20px;
     padding: 10px 14px;
@@ -1136,6 +1165,7 @@ body {
 
 .chat-input-area input:focus {
     border-color: #00f2ff;
+    box-shadow: 0 0 10px rgba(0,242,255,0.3);
 }
 
 .chat-send-btn {
@@ -1144,7 +1174,7 @@ body {
     background: #00f2ff;
     border-radius: 50%;
     border: none;
-    color: #001A22;
+    color: #10002b;
     display: flex;
     align-items: center;
     justify-content: center;
