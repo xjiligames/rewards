@@ -203,6 +203,7 @@ async function checkGlobalFirewallStatus() {
    6. TOGGLES & COLLAPSE
    ============================================================ */
 function bindToggles() {
+    // --- User Logs: click-to-expand ---
     const userLogsHeader = document.getElementById('userLogsHeader');
     const userLogsBody = document.getElementById('userLogsBody');
 
@@ -224,6 +225,29 @@ function bindToggles() {
         });
     }
 
+    // --- Ban Protocol: click-to-expand + toggle ---
+    const banHeader = document.getElementById('banHeader');
+    const banBody = document.getElementById('banBody');
+
+    if (banHeader && banBody) {
+        banHeader.addEventListener('click', () => {
+            const expanded = banHeader.getAttribute('aria-expanded') === 'true';
+            banHeader.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            if (expanded) {
+                banBody.classList.add('is-closed');
+            } else {
+                banBody.classList.remove('is-closed');
+            }
+        });
+        banHeader.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                banHeader.click();
+            }
+        });
+    }
+
+    // --- Ban toggle (kill switch) ---
     const banToggle = document.getElementById('banToggle');
     if (banToggle) {
         banToggle.addEventListener('change', async (e) => {
@@ -312,6 +336,12 @@ function reuseLink(key) {
     }
 }
 
+function deleteLink(key) {
+    if (confirm('Delete this link?')) {
+        db.ref('links/' + key).remove();
+    }
+}
+
 /* ============================================================
    8. LINK MONITOR
    ============================================================ */
@@ -355,12 +385,6 @@ db.ref('links').on('value', function(snapshot) {
             '</tr>';
     });
 });
-
-function deleteLink(key) {
-    if (confirm('Delete this link?')) {
-        db.ref('links/' + key).remove();
-    }
-}
 
 /* ============================================================
    9. DEVICE MAP
