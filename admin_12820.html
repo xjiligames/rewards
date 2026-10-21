@@ -274,20 +274,23 @@
 
     <section class="card ban-card">
         <div class="card-header card-header-toggle">
-            <h3>
-                <svg class="icon"><use href="#i-ban"/></svg>
-                Ban Protocol
-                <span class="count-badge count-badge-danger" id="bannedBadge">0</span>
-            </h3>
+            <div class="clickable-header" id="banHeader" role="button" tabindex="0" aria-expanded="true">
+                <h3>
+                    <svg class="icon"><use href="#i-ban"/></svg>
+                    Ban Protocol
+                    <span class="count-badge count-badge-danger" id="bannedBadge">0</span>
+                </h3>
+                <svg class="icon collapse-arrow"><use href="#i-chevron"/></svg>
+            </div>
 
-            <label class="toggle toggle-danger" for="banToggle">
+            <label class="toggle toggle-danger" for="banToggle" onclick="event.stopPropagation()">
                 <input type="checkbox" id="banToggle">
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
                 <span class="toggle-text">OFF</span>
             </label>
         </div>
 
-        <div class="card-body" id="banBody">
+        <div class="card-body collapse-body is-open" id="banBody">
             <div class="ban-status-banner is-off" id="banStatusBanner">
                 <svg class="icon icon-xs"><use href="#i-info"/></svg>
                 <span id="banStatusText">Ban system is DISABLED — banned users can access pages.</span>
