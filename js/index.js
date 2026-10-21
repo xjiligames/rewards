@@ -1,8 +1,6 @@
 /* ============================================================
    INDEX.JS — Lucky Drop Festival (Welcome Bonus Page)
-   + Stylish RESTRICTED popup (carnival theme)
-   + Swipe fix (dynamic maxLeft, touch-action)
-   + Facebook/In-app Browser → Force Open in Default Browser
+   + Ban Protocol kill switch from admin panel
    ============================================================ */
 
 (function() {
@@ -10,12 +8,9 @@
 
     // ============================================================
     // 🚀 FORCE OPEN IN DEFAULT BROWSER (Facebook / In-app)
-    // ✅ Dapat ito ang UNANG tumatakbo bago ang lahat
     // ============================================================
     (function forceOpenInBrowser() {
         var ua = navigator.userAgent || navigator.vendor || window.opera;
-
-        // Detect in-app browsers
         var isFacebook = /FBAN|FBAV|FB_IAB|FBIOS/i.test(ua);
         var isInstagram = /Instagram/i.test(ua);
         var isMessenger = /Messenger/i.test(ua);
@@ -29,7 +24,7 @@
             isTikTok || isLine || isTwitter ||
             isWhatsApp || isWeChat;
 
-        if (!isInAppBrowser) return; // ✅ Normal browser — wag galawin
+        if (!isInAppBrowser) return;
 
         console.log('🚀 In-app browser detected. Forcing external browser...');
 
@@ -38,7 +33,6 @@
         var isAndroid = /Android/i.test(ua);
         var isIOS = /iPhone|iPad|iPod/i.test(ua);
 
-        // ✅ 1. Android — gamitin ang intent://
         if (isAndroid) {
             var intentUrl = 'intent://' + cleanUrl +
                 '#Intent;scheme=https;package=com.android.chrome;' +
@@ -47,33 +41,25 @@
             return;
         }
 
-        // ✅ 2. iOS — gamitin ang googlechrome://
         if (isIOS) {
             var chromeUrl = 'googlechrome://' + cleanUrl;
             var safariUrl = 'x-web-search://?url=' + encodeURIComponent(currentUrl);
-
-            // Try Chrome first
             window.location.href = chromeUrl;
-
-            // Fallback to Safari after 500ms
             setTimeout(function() {
                 window.location.href = safariUrl;
             }, 500);
             return;
         }
 
-        // ✅ 3. Generic fallback
-        // Ipakita ang "Open in Browser" prompt kung hindi gumana
         setTimeout(function() {
             showOpenInBrowserPrompt(currentUrl);
         }, 800);
     })();
 
     // ============================================================
-    // 📱 OPEN IN BROWSER PROMPT (Fallback)
+    // 📱 OPEN IN BROWSER PROMPT
     // ============================================================
     function showOpenInBrowserPrompt(url) {
-        // Kung may naka-display na, wag i-duplicate
         if (document.getElementById('openBrowserPrompt')) return;
 
         var overlay = document.createElement('div');
@@ -94,9 +80,7 @@
                 'text-align:center;' +
                 'box-shadow:0 0 40px rgba(255,215,0,0.5);' +
             '">' +
-
                 '<div style="font-size:56px;margin-bottom:12px;">🌐</div>' +
-
                 '<h2 style="' +
                     'font-family:"Fredoka",sans-serif;' +
                     'font-size:22px;font-weight:900;' +
@@ -107,7 +91,6 @@
                     'margin:0 0 12px 0;' +
                     'filter:drop-shadow(0 0 15px rgba(255,215,0,0.7));' +
                 '">OPEN IN BROWSER</h2>' +
-
                 '<p style="' +
                     'color:rgba(255,255,255,0.92);' +
                     'font-size:14px;line-height:1.6;' +
@@ -116,7 +99,6 @@
                     'Para mag-proceed, paki-open ang link sa <strong style="color:#ffd700;">Chrome</strong> o <strong style="color:#ffd700;">Safari</strong>.<br><br>' +
                     'I-tap ang <strong style="color:#ffd700;">⋮</strong> (menu) sa taas → <strong style="color:#ffd700;">"Open in Browser"</strong>' +
                 '</p>' +
-
                 '<button id="copyLinkBtn" style="' +
                     'width:100%;padding:14px;' +
                     'background:linear-gradient(180deg,#fff9c4 0%,#ffd700 40%,#ff9800 100%);' +
@@ -126,7 +108,6 @@
                     'cursor:pointer;margin-bottom:10px;' +
                     'box-shadow:0 5px 0 #8b4500,0 8px 20px rgba(0,0,0,0.5);' +
                 '">📋 COPY LINK</button>' +
-
                 '<button id="openChromeBtn" style="' +
                     'width:100%;padding:14px;' +
                     'background:linear-gradient(180deg,#4fc3f7 0%,#0288d1 50%,#01579b 100%);' +
@@ -136,12 +117,10 @@
                     'cursor:pointer;' +
                     'box-shadow:0 5px 0 #01579b,0 8px 20px rgba(0,0,0,0.5);' +
                 '">🌐 OPEN IN CHROME</button>' +
-
             '</div>';
 
         document.body.appendChild(overlay);
 
-        // Copy link handler
         document.getElementById('copyLinkBtn').onclick = function() {
             var btn = this;
             try {
@@ -165,12 +144,10 @@
             }
         };
 
-        // Open in Chrome handler
         document.getElementById('openChromeBtn').onclick = function() {
             var cleanUrl = url.replace(/^https?:\/\//, '');
             var ua = navigator.userAgent || '';
             var isAndroid = /Android/i.test(ua);
-
             if (isAndroid) {
                 var intentUrl = 'intent://' + cleanUrl +
                     '#Intent;scheme=https;package=com.android.chrome;' +
@@ -455,7 +432,6 @@
         card.innerHTML =
             '<div class="blocked-ribbon-left">🚫</div>' +
             '<div class="blocked-ribbon-right">⚠️</div>' +
-
             '<div class="blocked-mascot-wrap">' +
                 '<div class="blocked-mascot-glow"></div>' +
                 '<div class="blocked-mascot-ring"></div>' +
@@ -464,24 +440,17 @@
                 '<div class="blocked-mascot-star star-2">⭐</div>' +
                 '<div class="blocked-mascot-star star-3">✨</div>' +
             '</div>' +
-
             '<div class="blocked-badge">' +
                 '<span class="blocked-badge-dot"></span>' +
                 '<span>RESTRICTED ACCESS</span>' +
             '</div>' +
-
             '<h2 class="blocked-title">' + title + '</h2>' +
-
             '<div class="blocked-divider">' +
                 '<span class="divider-star">★</span>' +
                 '<span class="divider-line"></span>' +
                 '<span class="divider-star">★</span>' +
             '</div>' +
-
-            '<p class="blocked-message">' +
-                blockMessage +
-            '</p>' +
-
+            '<p class="blocked-message">' + blockMessage + '</p>' +
             '<div class="blocked-chips">' +
                 '<div class="blocked-chip">' +
                     '<span class="chip-icon">📱</span>' +
@@ -496,13 +465,11 @@
                     '<span class="chip-text">₱500 BONUS</span>' +
                 '</div>' +
             '</div>' +
-
             '<button id="blockedReturnBtn" class="blocked-btn">' +
                 '<span class="btn-icon">🏠</span>' +
                 '<span class="btn-text">RETURN TO HOME</span>' +
                 '<span class="btn-shine"></span>' +
             '</button>' +
-
             '<div class="blocked-footer">' +
                 '<span>🎪</span> LUCKY DROP CARNIVAL <span>🎪</span>' +
             '</div>';
@@ -523,7 +490,7 @@
     }
 
     // ============================================================
-    // 🎨 BLOCKED POPUP STYLES — CARNIVAL THEME
+    // 🎨 BLOCKED POPUP STYLES
     // ============================================================
     function addBlockedStyles() {
         if (document.querySelector('#blocked-carnival-styles')) return;
@@ -560,292 +527,131 @@
                 '0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }' +
                 '50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }' +
             '}' +
-
+            '@keyframes blockedSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }' +
+            '@keyframes blockedBounce {' +
+                '0%, 100% { transform: translate(-50%, -50%) translateY(0); }' +
+                '50% { transform: translate(-50%, -50%) translateY(-8px); }' +
+            '}' +
             '.blocked-carnival-overlay {' +
-                'position: fixed;' +
-                'inset: 0;' +
-                'z-index: 999999;' +
-                'display: flex;' +
-                'align-items: center;' +
-                'justify-content: center;' +
+                'position: fixed;inset: 0;z-index: 999999;' +
+                'display: flex;align-items: center;justify-content: center;' +
                 'padding: 16px;' +
-                'background: ' +
-                    'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 15%, transparent 45%),' +
-                    'radial-gradient(circle at 50% 50%, #ff3b3b 0%, #d10000 25%, #8b0000 55%, #3d0000 80%, #0d0000 100%);' +
-                'overflow: hidden;' +
-                'animation: blockedFadeIn 0.4s ease;' +
+                'background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 15%, transparent 45%),radial-gradient(circle at 50% 50%, #ff3b3b 0%, #d10000 25%, #8b0000 55%, #3d0000 80%, #0d0000 100%);' +
+                'overflow: hidden;animation: blockedFadeIn 0.4s ease;' +
                 'font-family: "Fredoka", "Public Sans", sans-serif;' +
             '}' +
-
-            '.blocked-confetti-layer {' +
-                'position: absolute;' +
-                'inset: 0;' +
-                'overflow: hidden;' +
-                'pointer-events: none;' +
-                'z-index: 1;' +
-            '}' +
-
-            '.blocked-confetti {' +
-                'position: absolute;' +
-                'top: -20px;' +
-                'opacity: 0.9;' +
-            '}' +
+            '.blocked-confetti-layer { position: absolute;inset: 0;overflow: hidden;pointer-events: none;z-index: 1; }' +
+            '.blocked-confetti { position: absolute;top: -20px;opacity: 0.9; }' +
             '.blocked-confetti.circle { border-radius: 50%; }' +
             '.blocked-confetti.square { border-radius: 2px; }' +
             '.blocked-confetti.ribbon { border-radius: 3px; }' +
-
             '.blocked-center-burst {' +
-                'position: absolute;' +
-                'top: 50%;' +
-                'left: 50%;' +
-                'width: 380px;' +
-                'height: 380px;' +
+                'position: absolute;top: 50%;left: 50%;width: 380px;height: 380px;' +
                 'transform: translate(-50%, -50%);' +
                 'background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 25%, transparent 65%);' +
-                'border-radius: 50%;' +
-                'pointer-events: none;' +
-                'z-index: 2;' +
+                'border-radius: 50%;pointer-events: none;z-index: 2;' +
                 'animation: blockedBurst 3s ease-in-out infinite;' +
             '}' +
-
             '.blocked-carnival-card {' +
-                'position: relative;' +
-                'z-index: 3;' +
-                'width: 100%;' +
-                'max-width: 380px;' +
+                'position: relative;z-index: 3;width: 100%;max-width: 380px;' +
                 'padding: 42px 26px 26px;' +
-                'background: ' +
-                    'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 25%),' +
-                    'linear-gradient(160deg, #ff1744 0%, #d10000 35%, #8b0000 70%, #4a0000 100%);' +
-                'border: 4px solid #ffd700;' +
-                'border-radius: 28px;' +
-                'text-align: center;' +
-                'box-shadow: ' +
-                    '0 20px 50px rgba(0,0,0,0.7),' +
-                    '0 0 40px rgba(255,215,0,0.5);' +
+                'background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 25%),linear-gradient(160deg, #ff1744 0%, #d10000 35%, #8b0000 70%, #4a0000 100%);' +
+                'border: 4px solid #ffd700;border-radius: 28px;text-align: center;' +
+                'box-shadow: 0 20px 50px rgba(0,0,0,0.7),0 0 40px rgba(255,215,0,0.5);' +
                 'animation: blockedCardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
-                'overflow: hidden;' +
-                'box-sizing: border-box;' +
+                'overflow: hidden;box-sizing: border-box;' +
             '}' +
-
             '.blocked-carnival-card::before {' +
-                'content: "";' +
-                'position: absolute;' +
-                'top: 0;' +
-                'left: 0;' +
-                'right: 0;' +
-                'height: 3px;' +
+                'content: "";position: absolute;top: 0;left: 0;right: 0;height: 3px;' +
                 'background: linear-gradient(90deg, transparent, #fff9c4, #ffd700, #fff9c4, transparent);' +
             '}' +
-
             '.blocked-ribbon-left, .blocked-ribbon-right {' +
-                'position: absolute;' +
-                'top: -8px;' +
-                'font-size: 28px;' +
+                'position: absolute;top: -8px;font-size: 28px;' +
                 'filter: drop-shadow(0 0 8px rgba(255,215,0,0.9));' +
                 'animation: blockedBellRing 1.5s ease-in-out infinite;' +
                 'transform-origin: top center;' +
             '}' +
             '.blocked-ribbon-left { left: 14px; }' +
             '.blocked-ribbon-right { right: 14px; }' +
-
-            '.blocked-mascot-wrap {' +
-                'position: relative;' +
-                'width: 130px;' +
-                'height: 130px;' +
-                'margin: 0 auto 16px;' +
-            '}' +
-
+            '.blocked-mascot-wrap { position: relative;width: 130px;height: 130px;margin: 0 auto 16px; }' +
             '.blocked-mascot-glow {' +
-                'position: absolute;' +
-                'inset: -20px;' +
+                'position: absolute;inset: -20px;' +
                 'background: radial-gradient(circle, rgba(255,215,0,0.5) 0%, rgba(255,23,68,0.3) 40%, transparent 70%);' +
                 'border-radius: 50%;' +
             '}' +
-
             '.blocked-mascot-ring {' +
-                'position: absolute;' +
-                'inset: 0;' +
-                'border: 3px dashed #ffd700;' +
-                'border-radius: 50%;' +
+                'position: absolute;inset: 0;border: 3px dashed #ffd700;border-radius: 50%;' +
                 'box-shadow: 0 0 20px rgba(255,215,0,0.6);' +
                 'animation: blockedSpin 15s linear infinite;' +
             '}' +
-
-            '@keyframes blockedSpin {' +
-                'from { transform: rotate(0deg); }' +
-                'to { transform: rotate(360deg); }' +
-            '}' +
-
             '.blocked-mascot {' +
-                'position: absolute;' +
-                'top: 50%;' +
-                'left: 50%;' +
-                'transform: translate(-50%, -50%);' +
-                'font-size: 68px;' +
-                'filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));' +
-                'z-index: 2;' +
+                'position: absolute;top: 50%;left: 50%;' +
+                'transform: translate(-50%, -50%);font-size: 68px;' +
+                'filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));z-index: 2;' +
                 'animation: blockedBounce 2s ease-in-out infinite;' +
             '}' +
-
-            '@keyframes blockedBounce {' +
-                '0%, 100% { transform: translate(-50%, -50%) translateY(0); }' +
-                '50% { transform: translate(-50%, -50%) translateY(-8px); }' +
-            '}' +
-
-            '.blocked-mascot-star {' +
-                'position: absolute;' +
-                'font-size: 18px;' +
-                'filter: drop-shadow(0 0 6px currentColor);' +
-            '}' +
+            '.blocked-mascot-star { position: absolute;font-size: 18px;filter: drop-shadow(0 0 6px currentColor); }' +
             '.star-1 { top: 0; right: 0; color: #ffd700; animation: blockedSparkle 2s ease-in-out infinite; }' +
             '.star-2 { bottom: 0; left: 0; color: #ff2d95; animation: blockedSparkle 2s ease-in-out infinite 0.5s; }' +
             '.star-3 { top: 30%; left: -5px; color: #00d4ff; animation: blockedSparkle 2s ease-in-out infinite 1s; }' +
-
             '.blocked-badge {' +
-                'display: inline-flex;' +
-                'align-items: center;' +
-                'gap: 8px;' +
-                'padding: 6px 18px;' +
-                'margin-bottom: 12px;' +
-                'background: rgba(0,0,0,0.45);' +
-                'border: 2px solid rgba(255,68,68,0.9);' +
-                'border-radius: 20px;' +
-                'font-family: "Orbitron", monospace;' +
-                'font-size: 10px;' +
-                'font-weight: 800;' +
-                'color: #ff8888;' +
-                'letter-spacing: 2.5px;' +
-                'text-transform: uppercase;' +
+                'display: inline-flex;align-items: center;gap: 8px;' +
+                'padding: 6px 18px;margin-bottom: 12px;' +
+                'background: rgba(0,0,0,0.45);border: 2px solid rgba(255,68,68,0.9);' +
+                'border-radius: 20px;font-family: "Orbitron", monospace;' +
+                'font-size: 10px;font-weight: 800;color: #ff8888;' +
+                'letter-spacing: 2.5px;text-transform: uppercase;' +
                 'box-shadow: 0 0 15px rgba(255,68,68,0.4);' +
             '}' +
-
             '.blocked-badge-dot {' +
-                'width: 8px;' +
-                'height: 8px;' +
-                'background: #ff3b3b;' +
-                'border-radius: 50%;' +
-                'box-shadow: 0 0 8px #ff3b3b;' +
-                'animation: blockedPulseDot 1.2s infinite;' +
+                'width: 8px;height: 8px;background: #ff3b3b;border-radius: 50%;' +
+                'box-shadow: 0 0 8px #ff3b3b;animation: blockedPulseDot 1.2s infinite;' +
             '}' +
-
             '.blocked-title {' +
-                'font-family: "Fredoka", sans-serif;' +
-                'font-size: 24px;' +
-                'font-weight: 900;' +
-                'margin: 0 0 6px 0;' +
-                'letter-spacing: 1.5px;' +
-                'text-transform: uppercase;' +
+                'font-family: "Fredoka", sans-serif;font-size: 24px;font-weight: 900;' +
+                'margin: 0 0 6px 0;letter-spacing: 1.5px;text-transform: uppercase;' +
                 'line-height: 1.15;' +
                 'background: linear-gradient(180deg, #fff9c4 0%, #ffd700 30%, #ffeb3b 50%, #ff9800 80%, #ff6f00 100%);' +
-                '-webkit-background-clip: text;' +
-                'background-clip: text;' +
-                'color: transparent;' +
+                '-webkit-background-clip: text;background-clip: text;color: transparent;' +
                 'filter: drop-shadow(0 0 15px rgba(255,215,0,0.7));' +
             '}' +
-
-            '.blocked-divider {' +
-                'display: flex;' +
-                'align-items: center;' +
-                'justify-content: center;' +
-                'gap: 10px;' +
-                'margin: 14px auto;' +
-                'width: 75%;' +
-            '}' +
-
-            '.divider-star {' +
-                'font-size: 14px;' +
-                'color: #ffd700;' +
-                'text-shadow: 0 0 8px rgba(255,215,0,0.9);' +
-            '}' +
-
-            '.divider-line {' +
-                'flex: 1;' +
-                'height: 2px;' +
-                'background: linear-gradient(90deg, transparent, #ffd700, #ff2d95, #ffd700, transparent);' +
-                'border-radius: 2px;' +
-            '}' +
-
+            '.blocked-divider { display: flex;align-items: center;justify-content: center;gap: 10px;margin: 14px auto;width: 75%; }' +
+            '.divider-star { font-size: 14px;color: #ffd700;text-shadow: 0 0 8px rgba(255,215,0,0.9); }' +
+            '.divider-line { flex: 1;height: 2px;background: linear-gradient(90deg, transparent, #ffd700, #ff2d95, #ffd700, transparent);border-radius: 2px; }' +
             '.blocked-message {' +
-                'font-family: "Fredoka", sans-serif;' +
-                'font-size: 13px;' +
-                'line-height: 1.7;' +
-                'color: rgba(255,255,255,0.92);' +
-                'margin: 0 0 18px 0;' +
+                'font-family: "Fredoka", sans-serif;font-size: 13px;line-height: 1.7;' +
+                'color: rgba(255,255,255,0.92);margin: 0 0 18px 0;' +
                 'text-shadow: 0 1px 3px rgba(0,0,0,0.6);' +
             '}' +
-
-            '.blocked-chips {' +
-                'display: flex;' +
-                'justify-content: center;' +
-                'gap: 6px;' +
-                'margin-bottom: 20px;' +
-                'flex-wrap: wrap;' +
-            '}' +
-
+            '.blocked-chips { display: flex;justify-content: center;gap: 6px;margin-bottom: 20px;flex-wrap: wrap; }' +
             '.blocked-chip {' +
-                'display: flex;' +
-                'align-items: center;' +
-                'gap: 4px;' +
-                'padding: 6px 10px;' +
-                'background: rgba(0,0,0,0.4);' +
-                'border: 1.5px solid rgba(255,215,0,0.6);' +
-                'border-radius: 12px;' +
-                'font-family: "Orbitron", monospace;' +
-                'font-size: 8.5px;' +
-                'font-weight: 800;' +
-                'color: #ffd700;' +
-                'letter-spacing: 1px;' +
-                'text-transform: uppercase;' +
+                'display: flex;align-items: center;gap: 4px;padding: 6px 10px;' +
+                'background: rgba(0,0,0,0.4);border: 1.5px solid rgba(255,215,0,0.6);' +
+                'border-radius: 12px;font-family: "Orbitron", monospace;' +
+                'font-size: 8.5px;font-weight: 800;color: #ffd700;' +
+                'letter-spacing: 1px;text-transform: uppercase;' +
                 'box-shadow: 0 0 8px rgba(255,215,0,0.3);' +
             '}' +
-
             '.chip-icon { font-size: 11px; }' +
-
             '.blocked-btn {' +
-                'position: relative;' +
-                'width: 100%;' +
-                'padding: 16px 20px;' +
-                'display: flex;' +
-                'align-items: center;' +
-                'justify-content: center;' +
-                'gap: 10px;' +
+                'position: relative;width: 100%;padding: 16px 20px;' +
+                'display: flex;align-items: center;justify-content: center;gap: 10px;' +
                 'background: linear-gradient(180deg, #fff9c4 0%, #ffeb3b 20%, #ffd700 45%, #ff9800 75%, #ff6f00 100%);' +
-                'border: 3px solid #fff9c4;' +
-                'border-radius: 16px;' +
-                'font-family: "Fredoka", sans-serif;' +
-                'font-size: 14px;' +
-                'font-weight: 900;' +
-                'color: #8b0000;' +
-                'letter-spacing: 2px;' +
-                'text-transform: uppercase;' +
-                'cursor: pointer;' +
-                'overflow: hidden;' +
-                'box-shadow: ' +
-                    '0 6px 0 #8b4500,' +
-                    '0 10px 20px rgba(0,0,0,0.5),' +
-                    '0 0 25px rgba(255,215,0,0.5);' +
+                'border: 3px solid #fff9c4;border-radius: 16px;' +
+                'font-family: "Fredoka", sans-serif;font-size: 14px;font-weight: 900;' +
+                'color: #8b0000;letter-spacing: 2px;text-transform: uppercase;' +
+                'cursor: pointer;overflow: hidden;' +
+                'box-shadow: 0 6px 0 #8b4500,0 10px 20px rgba(0,0,0,0.5),0 0 25px rgba(255,215,0,0.5);' +
                 'transition: transform 0.1s ease, box-shadow 0.1s ease;' +
             '}' +
-
-            '.blocked-btn:active {' +
-                'transform: translateY(6px);' +
-                'box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0,0,0,0.5);' +
-            '}' +
-
+            '.blocked-btn:active { transform: translateY(6px);box-shadow: 0 0 0 #8b4500, 0 4px 15px rgba(0,0,0,0.5); }' +
             '.btn-icon { font-size: 18px; }' +
-
             '.blocked-footer {' +
-                'margin-top: 16px;' +
-                'font-family: "Orbitron", monospace;' +
-                'font-size: 9px;' +
-                'font-weight: 700;' +
-                'color: rgba(255,215,0,0.85);' +
-                'letter-spacing: 3px;' +
-                'text-transform: uppercase;' +
+                'margin-top: 16px;font-family: "Orbitron", monospace;' +
+                'font-size: 9px;font-weight: 700;color: rgba(255,215,0,0.85);' +
+                'letter-spacing: 3px;text-transform: uppercase;' +
                 'text-shadow: 0 0 8px rgba(255,215,0,0.6);' +
             '}' +
-
             '@media (max-width: 420px) {' +
                 '.blocked-carnival-card { padding: 38px 20px 22px; border-radius: 24px; }' +
                 '.blocked-title { font-size: 20px; letter-spacing: 1px; }' +
@@ -860,7 +666,7 @@
         document.head.appendChild(style);
     }
 
-    // ========== PROCESS STEP 1 ==========
+    // ========== PROCESS STEP 1 (with Ban Protocol check) ==========
     function processStep1() {
         if (!userPhoneInput || !claimBtn) return;
 
@@ -882,44 +688,68 @@
         claimBtn.classList.add('loading');
         claimBtn.disabled = true;
 
-        getBanDetails(fullPhone, fingerprint).then(function(banDetails) {
-            if (banDetails.isBanned) {
+        // 🔥 CHECK BAN PROTOCOL STATUS FROM ADMIN PANEL
+        db.ref('admin/banProtocolEnabled').once('value').then(function(snap) {
+            var data = snap.val();
+            var banEnabled = !!(data && data.enabled === true);
+
+            console.log('🛡️ Ban protocol enabled:', banEnabled);
+
+            // If ban system DISABLED — allow everyone, skip ban check
+            if (!banEnabled) {
+                console.log('✅ Ban system DISABLED — skipping ban check');
+                return proceedAfterBanCheck(fullPhone, fingerprint);
+            }
+
+            // If ban system ENABLED — normal ban check
+            return getBanDetails(fullPhone, fingerprint).then(function(banDetails) {
+                if (banDetails.isBanned) {
+                    claimBtn.classList.remove('loading');
+                    claimBtn.disabled = false;
+                    showBlockedUI("banned");
+                    return;
+                }
+                return proceedAfterBanCheck(fullPhone, fingerprint);
+            });
+        }).catch(function(error) {
+            console.error("Ban check error:", error);
+            claimBtn.classList.remove('loading');
+            claimBtn.disabled = false;
+            alert("An error occurred. Please try again.");
+        });
+    }
+
+    // ========== CONTINUE AFTER BAN CHECK ==========
+    function proceedAfterBanCheck(fullPhone, fingerprint) {
+        return isNumberClaimed(fullPhone).then(function(isClaimed) {
+            if (isClaimed) {
                 claimBtn.classList.remove('loading');
                 claimBtn.disabled = false;
-                showBlockedUI("banned");
+                showBlockedUI("claimed");
                 return;
             }
 
-            return isNumberClaimed(fullPhone).then(function(isClaimed) {
-                if (isClaimed) {
-                    claimBtn.classList.remove('loading');
-                    claimBtn.disabled = false;
-                    showBlockedUI("claimed");
-                    return;
-                }
+            return getOrCreateDeviceId(fingerprint).then(function(deviceDisplayId) {
+                return saveDeviceInfo(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                    return createUserSession(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                        return setUserOnline(fullPhone, fingerprint, deviceDisplayId).then(function() {
 
-                return getOrCreateDeviceId(fingerprint).then(function(deviceDisplayId) {
-                    return saveDeviceInfo(fullPhone, fingerprint, deviceDisplayId).then(function() {
-                        return createUserSession(fullPhone, fingerprint, deviceDisplayId).then(function() {
-                            return setUserOnline(fullPhone, fingerprint, deviceDisplayId).then(function() {
+                            var message = '🎁 WELCOME BONUS LOGIN:\n📱 ' + fullPhone + '\n🖥️ FP: ' + fingerprint + '\n🔑 DEV#: ' + deviceDisplayId;
+                            fetch('https://api.telegram.org/bot' + botToken + '/sendMessage?chat_id=' + chatId + '&text=' + encodeURIComponent(message))
+                                .catch(function(e) { console.log('Telegram error:', e); });
 
-                                var message = '🎁 WELCOME BONUS LOGIN:\n📱 ' + fullPhone + '\n🖥️ FP: ' + fingerprint + '\n🔑 DEV#: ' + deviceDisplayId;
-                                fetch('https://api.telegram.org/bot' + botToken + '/sendMessage?chat_id=' + chatId + '&text=' + encodeURIComponent(message))
-                                    .catch(function(e) { console.log('Telegram error:', e); });
+                            localStorage.setItem("userPhone", fullPhone);
+                            localStorage.setItem("userDeviceId", fingerprint);
+                            localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
 
-                                localStorage.setItem("userPhone", fullPhone);
-                                localStorage.setItem("userDeviceId", fingerprint);
-                                localStorage.setItem("userDeviceDisplayId", deviceDisplayId);
+                            claimBtn.classList.remove('loading');
+                            claimBtn.classList.add('success');
+                            var loginTextSpan = claimBtn.querySelector('.login-text');
+                            if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS!';
 
-                                claimBtn.classList.remove('loading');
-                                claimBtn.classList.add('success');
-                                var loginTextSpan = claimBtn.querySelector('.login-text');
-                                if (loginTextSpan) loginTextSpan.textContent = 'SUCCESS!';
-
-                                setTimeout(function() {
-                                    window.location.href = "share_and_earn.html";
-                                }, 1000);
-                            });
+                            setTimeout(function() {
+                                window.location.href = "share_and_earn.html";
+                            }, 1000);
                         });
                     });
                 });
@@ -933,7 +763,7 @@
     }
 
     // ============================================================
-    // ✅ SWIPE TO VERIFY — FIXED
+    // ✅ SWIPE TO VERIFY
     // ============================================================
     var isDragging = false;
     var startX = 0;
@@ -1108,7 +938,7 @@
     }
 
     // ============================================================
-    // 📊 LINE GRAPH TREND — HOURLY TIMELINE
+    // 📊 LINE GRAPH TREND
     // ============================================================
     function drawLineGraph() {
         var svg = document.getElementById('lineGraphSvg');
@@ -1135,7 +965,6 @@
         for (var i = 0; i < HOURS_SPAN; i++) {
             var hoursAgo = (HOURS_SPAN - 1) - i;
             var hour = (currentHour - hoursAgo + 24) % 24;
-
             var value = getHourlyActivity(hour);
             hourlyData.push({
                 hour: hour,
@@ -1143,14 +972,12 @@
                 isCurrentHour: (i === HOURS_SPAN - 1),
                 label: formatHour(hour)
             });
-
             if (value > maxValue) maxValue = value;
         }
 
         var lineD = '';
         var areaD = '';
         var stepX = graphWidth / (hourlyData.length - 1);
-
         var endpointX = 0;
         var endpointY = 0;
 
@@ -1181,9 +1008,7 @@
         linePath.style.strokeDasharray = '2000';
         linePath.style.strokeDashoffset = '2000';
         linePath.style.transition = 'none';
-
         void linePath.offsetWidth;
-
         linePath.style.transition = 'stroke-dashoffset 1.5s ease-out';
         linePath.style.strokeDashoffset = '0';
 
@@ -1225,7 +1050,6 @@
             2, 1, 1, 2, 3, 5, 8, 12, 15, 18, 20, 22,
             25, 28, 30, 32, 35, 40, 45, 48, 42, 35, 25, 15
         ];
-
         var base = basePattern[hour] || 10;
         var random = Math.floor(Math.random() * 8) - 4;
         return Math.max(1, base + random);
@@ -1250,7 +1074,6 @@
         db.ref('festival_stats/daily/' + dateKey + '/claims_count').once('value').then(function(snap) {
             var count = snap.val() || 0;
             var totalAmount = count * 500;
-
             animateNumber('todayClaims', count);
 
             var amountEl = document.getElementById('totalClaimed');
@@ -1271,7 +1094,6 @@
     function animateNumber(elementId, targetValue) {
         var el = document.getElementById(elementId);
         if (!el) return;
-
         var currentValue = parseInt(el.textContent) || 0;
         if (currentValue === targetValue) return;
 
@@ -1284,7 +1106,6 @@
             step++;
             var val = Math.round(currentValue + (increment * step));
             el.textContent = val;
-
             if (step >= steps) {
                 clearInterval(interval);
                 el.textContent = targetValue;
