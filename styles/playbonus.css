@@ -1,19 +1,19 @@
 /* ============================================================
-   LUCKY DROP — VIBRANT CANDY FANTASY (PREMIUM 3D THEME)
+   LUCKY DROP — 3D FANTASY FRUITS THEME
+   Premium Mobile Game UI
    ============================================================ */
 
 /* ========== DESIGN TOKENS ========== */
 :root {
-    --neon-cyan: #00f2ff;
-    --neon-pink: #ff2d95;
-    --neon-purple: #b537f2;
-    --neon-gold: #ffd700;
-    --neon-orange: #ff9500;
-    --candy-green: #39ff14;
-    --candy-red: #ff1744;
-
-    --bg-deep: #10002b;
-    --bg-mid: #240046;
+    --fruit-strawberry: #ff1744;
+    --fruit-blueberry: #2979ff;
+    --fruit-orange: #ff9100;
+    --fruit-peach: #ff80ab;
+    --fruit-grape: #d500f9;
+    --fruit-apple: #00e676;
+    
+    --bg-deep: #1a0b2e;
+    --bg-mid: #2b1b54;
 
     --font-main: 'Plus Jakarta Sans', system-ui, sans-serif;
     --font-display: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
@@ -24,7 +24,7 @@
     --radius-lg: 28px;
     --radius-xl: 36px;
 
-    --transition: 0.3s ease;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ========== RESET ========== */
@@ -33,14 +33,7 @@
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
-}
-
-body, .header, .live-winners-ticker, button, .user-info-badge, .mega-btn {
     user-select: none;
-}
-
-.user-info-number, .main-balance, .chat-bubble, input {
-    user-select: text;
 }
 
 html {
@@ -48,7 +41,7 @@ html {
     scroll-behavior: smooth;
 }
 
-/* ========== BASE BODY & VIBRANT BACKGROUND ========== */
+/* ========== BASE BODY & FANTASY BACKGROUND ========== */
 body {
     min-height: 100vh;
     color: #fff;
@@ -61,74 +54,43 @@ body {
     position: relative;
     overflow-x: hidden;
     width: 100%;
+    -webkit-font-smoothing: antialiased;
     
-    /* Radiant Blue, Purple & Pink Background */
+    /* Vibrant Blue and Purple Fantasy Background */
     background: 
         radial-gradient(circle at 50% 0%, #5a189a 0%, #240046 50%, #10002b 100%);
     background-attachment: fixed;
 }
 
-/* ============================================================
-   FLOATING 3D CANDY & FRUITS (Background & Front Page)
-   ============================================================ */
-.bg-candy-elements {
+/* ========== FLOATING FRUITS BACKGROUND ========== */
+.bg-fruits {
     position: fixed;
     inset: 0;
-    z-index: 0; /* Nasa pinaka-likod */
-    pointer-events: none;
-    overflow: hidden;
-    filter: blur(3px); /* Malabo para may depth */
-}
-
-.front-candy-layer {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 5; /* Nakapatong sa background, nasa likod ng card */
+    z-index: 0;
     pointer-events: none;
     overflow: hidden;
 }
 
-.candy-item {
+.fruit-float {
     position: absolute;
+    font-size: 45px;
     filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6)) drop-shadow(0 0 15px rgba(255,215,0,0.3));
-    opacity: 0.95;
+    opacity: 0.9;
+    animation: fruitFloat 6s ease-in-out infinite;
 }
 
-/* Background Items (Maliliit, bumabagsak pababa) */
-.bg-item {
-    font-size: 35px;
-    animation: fall3D linear infinite;
-    top: -100px;
-}
-.bg-candy-elements .candy-item:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }
-.bg-candy-elements .candy-item:nth-child(2) { left: 40%; animation-duration: 15s; animation-delay: 2s; }
-.bg-candy-elements .candy-item:nth-child(3) { left: 75%; animation-duration: 10s; animation-delay: 5s; }
-.bg-candy-elements .candy-item:nth-child(4) { left: 90%; animation-duration: 18s; animation-delay: 1s; }
+/* Iba't ibang fruits at position */
+.fruit-float:nth-child(1) { top: 10%; left: 5%; font-size: 60px; animation-delay: 0s; }
+.fruit-float:nth-child(2) { top: 25%; right: 8%; font-size: 55px; animation-delay: 1s; }
+.fruit-float:nth-child(3) { top: 60%; left: 2%; font-size: 50px; animation-delay: 2s; }
+.fruit-float:nth-child(4) { top: 75%; right: 5%; font-size: 65px; animation-delay: 0.5s; }
+.fruit-float:nth-child(5) { top: 45%; left: 15%; font-size: 40px; animation-delay: 1.5s; }
+.fruit-float:nth-child(6) { top: 85%; left: 40%; font-size: 45px; animation-delay: 2.5s; }
+.fruit-float:nth-child(7) { top: 5%; right: 25%; font-size: 35px; animation-delay: 0.8s; }
 
-@keyframes fall3D {
-    0% { transform: translateY(-50px) rotate(0deg) scale(1); opacity: 0; }
-    10% { opacity: 0.9; }
-    90% { opacity: 0.9; }
-    100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; }
-}
-
-/* Front Items (Malalaki, lumulutang-lutang sa gilid ng card) */
-.front-item {
-    font-size: 60px;
-    animation: floatPage 4s ease-in-out infinite;
-    z-index: 5;
-}
-
-.fruit-1 { top: 5%; left: 5%; font-size: 65px; animation-delay: 0s; }
-.fruit-2 { top: 15%; right: 5%; font-size: 55px; animation-delay: 0.5s; }
-.fruit-3 { top: 50%; left: -2%; font-size: 70px; animation-delay: 1s; }
-.fruit-4 { top: 85%; right: 8%; font-size: 60px; animation-delay: 1.5s; }
-.gem-1 { top: 30%; right: 15%; font-size: 40px; animation-delay: 2s; }
-.coin-1 { top: 70%; left: 10%; font-size: 50px; animation-delay: 2.5s; }
-
-@keyframes floatPage {
-    0%, 100% { transform: translateY(0) rotate(-5deg) scale(1); }
-    50% { transform: translateY(-20px) rotate(5deg) scale(1.05); }
+@keyframes fruitFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+    50% { transform: translateY(-25px) rotate(10deg) scale(1.05); }
 }
 
 /* ========== LIVE WINNERS TICKER ========== */
@@ -140,14 +102,14 @@ body {
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 215, 0, 0.5);
+    border: 2px solid var(--fruit-orange);
     border-radius: 30px;
     padding: 8px 18px;
     display: flex;
     align-items: center;
     gap: 8px;
     z-index: 1000;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255,215,0,0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 145, 0, 0.4);
     max-width: calc(100% - 20px);
     font-size: 11px;
     font-weight: 700;
@@ -158,10 +120,16 @@ body {
 .live-dot {
     width: 8px;
     height: 8px;
-    background: var(--candy-green);
+    background: var(--fruit-apple);
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--candy-green);
+    box-shadow: 0 0 10px var(--fruit-apple);
     flex-shrink: 0;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
 }
 
 .gc-winner-icon {
@@ -173,22 +141,22 @@ body {
 }
 
 /* ============================================================
-   MAIN CONTAINER — PREMIUM 3D GLASS CARD
+   MAIN CONTAINER — PREMIUM GLASS CARD
    ============================================================ */
 .playbonus-container {
     position: relative;
     width: 100%;
     max-width: 440px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: var(--radius-xl);
     padding: 32px 20px;
-    z-index: 10; /* Nakapatong sa mga fruits */
+    z-index: 10;
     box-shadow: 
         0 30px 60px rgba(0, 0, 0, 0.6),
-        0 0 40px rgba(181, 55, 242, 0.2),
+        0 0 40px rgba(213, 0, 249, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.4);
     margin: 0 auto 20px;
 }
@@ -220,8 +188,8 @@ body {
 }
 
 .title-word.accent {
-    color: var(--neon-gold);
-    text-shadow: 0 4px 25px rgba(255, 215, 0, 0.8), 0 0 10px rgba(255,215,0,0.5);
+    color: var(--fruit-orange);
+    text-shadow: 0 4px 25px rgba(255, 145, 0, 0.8), 0 0 10px rgba(255, 145, 0, 0.5);
 }
 
 .title-emoji {
@@ -234,9 +202,9 @@ body {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 4px;
-    color: var(--neon-cyan);
+    color: var(--fruit-peach);
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.8);
+    text-shadow: 0 0 10px rgba(255, 128, 171, 0.8);
 }
 
 /* ========== GLASS CARDS & PANELS ========== */
@@ -271,8 +239,8 @@ body {
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
-    border: 2px solid var(--neon-gold);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    border: 2px solid var(--fruit-orange);
+    box-shadow: 0 0 15px rgba(255, 145, 0, 0.6);
 }
 
 .user-info-text {
@@ -286,7 +254,7 @@ body {
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 2px;
-    color: var(--neon-gold);
+    color: var(--fruit-orange);
     text-transform: uppercase;
     display: block;
     margin-bottom: 3px;
@@ -307,33 +275,31 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
-    background: rgba(57, 255, 20, 0.15);
-    border: 1px solid rgba(57, 255, 20, 0.5);
+    background: rgba(0, 230, 118, 0.15);
+    border: 1px solid rgba(0, 230, 118, 0.5);
     padding: 6px 12px;
     border-radius: 40px;
     cursor: pointer;
     transition: all var(--transition);
     flex-shrink: 0;
-    box-shadow: 0 0 10px rgba(57,255,20,0.2);
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
 }
 
-.logout-badge:active {
-    transform: scale(0.95);
-}
+.logout-badge:active { transform: scale(0.95); }
 
 .badge-dot {
     width: 6px;
     height: 6px;
-    background: var(--candy-green);
+    background: var(--fruit-apple);
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--candy-green);
+    box-shadow: 0 0 8px var(--fruit-apple);
 }
 
 .badge-text {
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 800;
-    color: var(--candy-green);
+    color: var(--fruit-apple);
     letter-spacing: 1px;
 }
 
@@ -345,8 +311,8 @@ body {
     gap: 14px;
     padding: 18px;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(181, 55, 242, 0.15));
-    border-color: rgba(0, 242, 255, 0.4);
+    background: linear-gradient(135deg, rgba(41, 121, 255, 0.1), rgba(213, 0, 249, 0.15));
+    border-color: rgba(41, 121, 255, 0.4);
 }
 
 .balance-content {
@@ -359,7 +325,7 @@ body {
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 2px;
-    color: var(--neon-cyan);
+    color: var(--fruit-blueberry);
     text-transform: uppercase;
     margin-bottom: 6px;
     display: flex;
@@ -377,8 +343,8 @@ body {
     font-family: var(--font-mono);
     font-size: clamp(18px, 4.5vw, 22px);
     font-weight: 900;
-    color: var(--neon-gold);
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+    color: var(--fruit-orange);
+    text-shadow: 0 0 15px rgba(255, 145, 0, 0.7);
 }
 
 .main-balance {
@@ -401,13 +367,13 @@ body {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    border: 2px solid var(--neon-gold);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    border: 2px solid var(--fruit-orange);
+    box-shadow: 0 0 20px rgba(255, 145, 0, 0.6);
     object-fit: cover;
 }
 
 /* ============================================================
-   HERO MASCOT — THE STAR
+   HERO MASCOT — THE STAR OF THE SHOW
    ============================================================ */
 .hero-mascot {
     position: relative;
@@ -424,7 +390,7 @@ body {
     position: absolute;
     width: 320px;
     height: 320px;
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, rgba(255, 45, 149, 0.3) 40%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 145, 0, 0.5) 0%, rgba(255, 23, 68, 0.3) 40%, transparent 70%);
     border-radius: 50%;
     z-index: 1;
     filter: blur(20px);
@@ -485,6 +451,7 @@ body {
     object-fit: cover;
 }
 
+/* ========== TIME LEFT ========== */
 .time-left-section {
     padding: 16px;
     margin-bottom: 18px;
@@ -496,7 +463,7 @@ body {
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
-    color: var(--neon-cyan);
+    color: var(--fruit-blueberry);
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-bottom: 8px;
@@ -510,12 +477,13 @@ body {
     font-family: var(--font-mono);
     font-size: clamp(20px, 5.5vw, 28px);
     font-weight: 900;
-    color: var(--neon-gold);
+    color: var(--fruit-orange);
     letter-spacing: 3px;
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    text-shadow: 0 0 15px rgba(255, 145, 0, 0.6);
 }
 
+/* ========== WINNERS BANNER ========== */
 .winners-banner {
     display: flex;
     align-items: center;
@@ -523,8 +491,8 @@ body {
     gap: 12px;
     padding: 14px;
     margin-bottom: 18px;
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    background: rgba(255, 145, 0, 0.1);
+    border: 1px solid rgba(255, 145, 0, 0.3);
     border-radius: var(--radius-md);
     position: relative;
     z-index: 4;
@@ -539,10 +507,11 @@ body {
 }
 
 .winners-banner strong {
-    color: var(--neon-gold);
+    color: var(--fruit-orange);
     font-weight: 800;
 }
 
+/* ========== BONUS IMAGE ========== */
 .bonus-image-container {
     display: flex;
     justify-content: center;
@@ -557,10 +526,11 @@ body {
     max-width: 300px;
     height: auto;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 215, 0, 0.4);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255,215,0,0.2);
+    border: 1px solid rgba(255, 145, 0, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 145, 0, 0.2);
 }
 
+/* ========== BUTTON DIVIDER ========== */
 .button-divider {
     display: flex;
     align-items: center;
@@ -589,6 +559,7 @@ body {
     white-space: nowrap;
 }
 
+/* ========== FACEBOOK SHARE ========== */
 .btn-facebook-shimmer {
     position: relative;
     width: 100%;
@@ -617,6 +588,7 @@ body {
     box-shadow: 0 0 0 #0E4A99;
 }
 
+/* ========== FOOTER TEXT ========== */
 .share-social-text {
     font-family: var(--font-main);
     font-size: 11px;
@@ -630,13 +602,13 @@ body {
 }
 
 .share-social-text strong {
-    color: var(--neon-gold);
+    color: var(--fruit-orange);
     font-weight: 800;
-    text-shadow: 0 0 10px rgba(255,215,0,0.5);
+    text-shadow: 0 0 10px rgba(255, 145, 0, 0.5);
 }
 
 /* ============================================================
-   POPUP THEMES (Glassmorphism + 3D Effects)
+   POPUPS (FANTASY THEME)
    ============================================================ */
 .bonus-reward-popup,
 .claim-now-popup,
@@ -668,10 +640,10 @@ body {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
-    border: 2px solid rgba(255, 215, 0, 0.4);
+    border: 3px solid var(--fruit-orange);
     box-shadow: 
         0 25px 50px rgba(0, 0, 0, 0.7),
-        0 0 40px rgba(255, 215, 0, 0.15),
+        0 0 40px rgba(255, 145, 0, 0.3),
         inset 0 0 20px rgba(255, 255, 255, 0.1);
     text-align: center;
     overflow: hidden;
@@ -703,7 +675,7 @@ body {
 .claim-now-popup-close:active,
 .ads-popup-close:active,
 .popup-close:active {
-    background: rgba(255, 68, 68, 0.8);
+    background: var(--fruit-strawberry);
     transform: scale(0.9);
 }
 
@@ -743,13 +715,13 @@ body {
 .claim-now-balance-box,
 .phase2-box {
     background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    border: 1px solid rgba(255, 145, 0, 0.3);
     border-radius: var(--radius-md);
     padding: 16px;
     margin-bottom: 16px;
     position: relative;
     z-index: 4;
-    box-shadow: inset 0 0 15px rgba(255,215,0,0.1);
+    box-shadow: inset 0 0 15px rgba(255, 145, 0, 0.1);
 }
 
 .bonus-label,
@@ -777,8 +749,8 @@ body {
     font-family: var(--font-mono);
     font-size: clamp(20px, 5.5vw, 26px);
     font-weight: 900;
-    color: var(--neon-gold);
-    text-shadow: 0 0 15px rgba(255,215,0,0.6);
+    color: var(--fruit-orange);
+    text-shadow: 0 0 15px rgba(255, 145, 0, 0.6);
 }
 
 #ptCatBonusAmount,
@@ -801,8 +773,8 @@ body {
     font-weight: 700;
     margin: 0 0 12px;
     letter-spacing: 1px;
-    color: var(--neon-gold);
-    text-shadow: 0 2px 15px rgba(255, 215, 0, 0.6);
+    color: var(--fruit-orange);
+    text-shadow: 0 2px 15px rgba(255, 145, 0, 0.6);
     position: relative;
     z-index: 4;
 }
@@ -827,8 +799,8 @@ body {
 .popup-divider span:first-child,
 .popup-divider span:last-child {
     font-size: 14px;
-    color: rgba(255, 215, 0, 0.8);
-    text-shadow: 0 0 10px rgba(255,215,0,0.5);
+    color: rgba(255, 145, 0, 0.8);
+    text-shadow: 0 0 10px rgba(255, 145, 0, 0.5);
 }
 
 .claim-now-divider .line,
@@ -836,7 +808,7 @@ body {
 .popup-divider .line {
     flex: 1;
     height: 1px;
-    background: rgba(255, 215, 0, 0.3);
+    background: rgba(255, 145, 0, 0.3);
 }
 
 .claim-now-message,
@@ -852,7 +824,7 @@ body {
 
 .claim-now-message .highlight,
 .invite-text strong {
-    color: var(--neon-gold);
+    color: var(--fruit-orange);
     font-weight: 800;
 }
 
@@ -970,19 +942,19 @@ body {
     width: 80px;
     height: 80px;
     margin: 0 auto 16px;
-    background: rgba(34, 197, 94, 0.2);
-    border: 2px solid rgba(34, 197, 94, 0.5);
+    background: rgba(0, 230, 118, 0.2);
+    border: 2px solid rgba(0, 230, 118, 0.5);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2;
-    box-shadow: 0 0 25px rgba(34,197,94,0.4);
+    box-shadow: 0 0 25px rgba(0, 230, 118, 0.4);
 }
 
 .success-icon i {
     font-size: 40px;
-    color: #22C55E;
+    color: var(--fruit-apple);
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
 }
 
@@ -990,12 +962,12 @@ body {
     font-family: var(--font-mono);
     font-size: clamp(42px, 11vw, 56px);
     font-weight: 900;
-    color: #22C55E;
+    color: var(--fruit-apple);
     margin-bottom: 12px;
     letter-spacing: 2px;
     position: relative;
     z-index: 2;
-    text-shadow: 0 4px 15px rgba(34,197,94,0.4);
+    text-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
 }
 
 .success-message {
@@ -1008,19 +980,19 @@ body {
 }
 
 .success-close-btn {
-    background: linear-gradient(180deg, #22C55E, #16A34A);
+    background: linear-gradient(180deg, #00ff88 0%, #00cc44 100%);
     border: none;
-    color: #fff;
+    color: #00331a;
     padding: 16px 20px;
     font-size: 14px;
-    box-shadow: 0 6px 0 #15803D, 0 10px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 6px 0 #005522, 0 10px 20px rgba(0,0,0,0.4);
     position: relative;
     z-index: 2;
 }
 
 .success-close-btn:active {
     transform: translateY(6px);
-    box-shadow: 0 0 0 #15803D;
+    box-shadow: 0 0 0 #005522;
 }
 
 #confettiCanvas {
@@ -1041,14 +1013,13 @@ body {
     .success-icon { width: 70px; height: 70px; }
     .success-icon i { font-size: 34px; }
     
-    /* Mas maliit na fruits sa mobile */
-    .front-item { font-size: 45px; }
-    .fruit-1 { font-size: 50px; }
-    .fruit-3 { font-size: 55px; }
+    .fruit-float { font-size: 35px; }
+    .fruit-float:nth-child(1) { font-size: 45px; }
+    .fruit-float:nth-child(4) { font-size: 50px; }
 }
 
 /* ============================================================
-   CHAT WIDGET — CLEAN & STATIC
+   CHAT WIDGET — FRUIT THEME
    ============================================================ */
 .chat-widget {
     position: fixed;
@@ -1060,20 +1031,20 @@ body {
 .chat-toggle-btn {
     width: 56px;
     height: 56px;
-    background: #00f2ff;
+    background: linear-gradient(180deg, #FFE94A 0%, #FFD700 40%, #FF9500 100%);
     border: 3px solid #fff;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 0 #005577, 0 10px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 6px 0 #B36B00, 0 10px 20px rgba(0,0,0,0.5);
     transition: transform 0.1s;
 }
 
 .chat-toggle-btn:active {
     transform: translateY(6px);
-    box-shadow: 0 0 0 #005577;
+    box-shadow: 0 0 0 #B36B00;
 }
 
 .chat-toggle-btn img {
@@ -1091,12 +1062,12 @@ body {
     width: 320px;
     height: 450px;
     background: linear-gradient(180deg, #240046, #10002b);
-    border: 2px solid #00f2ff;
+    border: 2px solid var(--fruit-orange);
     border-radius: 20px;
     overflow: hidden;
     flex-direction: column;
     z-index: 8999;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 20px rgba(0,242,255,0.3);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 20px rgba(255, 145, 0, 0.3);
 }
 
 .chat-window.show { display: flex; }
@@ -1104,7 +1075,7 @@ body {
 .chat-header {
     background: rgba(255,255,255,0.05);
     padding: 12px 16px;
-    border-bottom: 1px solid rgba(0,242,255,0.2);
+    border-bottom: 1px solid rgba(255, 145, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1123,7 +1094,7 @@ body {
 
 .chat-bubble.user {
     align-self: flex-end;
-    background: #00f2ff;
+    background: var(--fruit-orange);
     color: #10002b;
     padding: 10px 14px;
     border-radius: 14px 14px 0 14px;
@@ -1135,7 +1106,7 @@ body {
 .chat-bubble.admin {
     align-self: flex-start;
     background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(0,242,255,0.3);
+    border: 1px solid rgba(255, 145, 0, 0.3);
     color: #fff;
     padding: 10px 14px;
     border-radius: 14px 14px 14px 0;
@@ -1146,7 +1117,7 @@ body {
 .chat-input-area {
     padding: 10px;
     background: rgba(0,0,0,0.3);
-    border-top: 1px solid rgba(0,242,255,0.2);
+    border-top: 1px solid rgba(255, 145, 0, 0.2);
     display: flex;
     gap: 8px;
 }
@@ -1154,7 +1125,7 @@ body {
 .chat-input-area input {
     flex: 1;
     background: rgba(0,0,0,0.5);
-    border: 1px solid rgba(0,242,255,0.3);
+    border: 1px solid rgba(255, 145, 0, 0.3);
     border-radius: 20px;
     padding: 10px 14px;
     color: #fff;
@@ -1164,14 +1135,14 @@ body {
 }
 
 .chat-input-area input:focus {
-    border-color: #00f2ff;
-    box-shadow: 0 0 10px rgba(0,242,255,0.3);
+    border-color: var(--fruit-orange);
+    box-shadow: 0 0 10px rgba(255, 145, 0, 0.3);
 }
 
 .chat-send-btn {
     width: 40px;
     height: 40px;
-    background: #00f2ff;
+    background: var(--fruit-orange);
     border-radius: 50%;
     border: none;
     color: #10002b;
@@ -1179,311 +1150,4 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-}
-
-/* ============================================================
-   LUCKY DROP CHAT WIDGET — CANDY THEME (NO CONFLICT)
-   ============================================================ */
-
-/* Toggle Button */
-.lucky-chat-toggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(180deg, #FFE94A 0%, #FFD700 40%, #FF9500 100%);
-    border: 3px solid #fff;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 6px 0 #B36B00, 0 10px 20px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.4);
-    transition: transform 0.1s;
-    z-index: 9999;
-}
-
-.lucky-chat-toggle:active {
-    transform: translateY(6px);
-    box-shadow: 0 0 0 #B36B00, 0 5px 10px rgba(0,0,0,0.5);
-}
-
-.lucky-chat-toggle img {
-    width: 85%;
-    height: 85%;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.lucky-chat-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    background: #ff1744;
-    color: #fff;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 800;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #fff;
-    box-shadow: 0 0 10px rgba(255,23,68,0.6);
-}
-
-/* Chat Window Container */
-.lucky-chat-window {
-    position: fixed;
-    bottom: 90px;
-    right: 20px;
-    width: 340px;
-    height: 480px;
-    background: linear-gradient(180deg, #240046, #10002b);
-    border: 2px solid #FFD700;
-    border-radius: 24px;
-    display: none;
-    flex-direction: column;
-    z-index: 9998;
-    overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(255,215,0,0.2);
-}
-
-.lucky-chat-window.show {
-    display: flex;
-}
-
-/* Chat Header */
-.lucky-chat-header {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.lucky-chat-header-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.lucky-chat-header-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #FFD700;
-    border: 2px solid #fff;
-    overflow: hidden;
-}
-
-.lucky-chat-header-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.lucky-chat-header-title {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 800;
-    color: #FFD700;
-    letter-spacing: 1px;
-}
-
-.lucky-chat-header-status {
-    font-family: var(--font-main);
-    font-size: 10px;
-    color: #39ff14;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.lucky-chat-header-status::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    background: #39ff14;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #39ff14;
-}
-
-.lucky-chat-close {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 18px;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.lucky-chat-close:hover {
-    color: #ff1744;
-}
-
-/* Chat Messages */
-.lucky-chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    background: rgba(0,0,0,0.2);
-}
-
-/* User Bubble */
-.lucky-bubble-user {
-    align-self: flex-end;
-    background: linear-gradient(180deg, #FFE94A 0%, #FFD700 100%);
-    color: #5A2A00;
-    padding: 10px 14px;
-    border-radius: 16px 16px 0 16px;
-    font-family: var(--font-main);
-    font-size: 12px;
-    font-weight: 600;
-    max-width: 85%;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-/* Admin Bubble */
-.lucky-bubble-admin {
-    align-self: flex-start;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 16px 16px 16px 0;
-    font-family: var(--font-main);
-    font-size: 12px;
-    max-width: 85%;
-}
-
-.lucky-chat-time {
-    display: block;
-    font-size: 8px;
-    opacity: 0.6;
-    margin-top: 4px;
-    text-align: right;
-    font-family: var(--font-mono);
-}
-
-/* Quick Replies */
-.lucky-chat-quick-replies {
-    padding: 10px 16px;
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    background: rgba(0,0,0,0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.lucky-quick-reply-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 215, 0, 0.4);
-    color: #FFD700;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-family: var(--font-main);
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.lucky-quick-reply-btn:hover {
-    background: rgba(255, 215, 0, 0.15);
-}
-
-/* Input Area */
-.lucky-chat-input-area {
-    padding: 12px 16px;
-    background: rgba(0,0,0,0.3);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    gap: 8px;
-}
-
-.lucky-chat-input {
-    flex: 1;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 20px;
-    padding: 10px 14px;
-    color: #fff;
-    font-family: var(--font-main);
-    font-size: 12px;
-    outline: none;
-}
-
-.lucky-chat-input:focus {
-    border-color: #FFD700;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-}
-
-.lucky-chat-send {
-    width: 40px;
-    height: 40px;
-    background: #FFD700;
-    border: none;
-    border-radius: 50%;
-    color: #5A2A00;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.1s;
-}
-
-.lucky-chat-send:active {
-    transform: scale(0.9);
-}
-
-/* Typing Indicator */
-.lucky-typing-indicator {
-    display: none;
-    align-self: flex-start;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 10px 14px;
-    border-radius: 16px;
-    border-bottom-left-radius: 0;
-}
-
-.lucky-typing-indicator.show {
-    display: block;
-}
-
-.lucky-typing-dots {
-    display: flex;
-    gap: 4px;
-}
-
-.lucky-typing-dots span {
-    width: 6px;
-    height: 6px;
-    background: #FFD700;
-    border-radius: 50%;
-    animation: typingBounce 1.4s infinite;
-}
-
-.lucky-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-.lucky-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typingBounce {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-    30% { transform: translateY(-4px); opacity: 1; }
-}
-
-@media (max-width: 480px) {
-    .lucky-chat-window {
-        width: calc(100vw - 30px);
-        right: 15px;
-        bottom: 85px;
-        height: 400px;
-    }
 }
