@@ -19,7 +19,6 @@
     --transition-slow: 0.6s ease;
 }
 
-/* ---------- NIGHT THEME (default) ---------- */
 body[data-theme="night"] {
     --bg-1: #0a0f2a;
     --bg-2: #1a1a3a;
@@ -51,7 +50,6 @@ body[data-theme="night"] {
     --star-opacity: 0.6;
 }
 
-/* ---------- DAY THEME ---------- */
 body[data-theme="day"] {
     --bg-1: #87CEEB;
     --bg-2: #FFE4B5;
@@ -1363,6 +1361,46 @@ body[data-theme="day"] .verification-item { background: rgba(0, 119, 170, 0.06);
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ========== BAN CARD HEADER — clickable + toggle layout ========== */
+.ban-card .card-header.card-header-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+}
+
+.ban-card .clickable-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    min-width: 0;
+    padding: 14px 0 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity var(--transition-fast);
+}
+
+.ban-card .clickable-header:hover {
+    opacity: 0.85;
+}
+
+.ban-card .clickable-header .collapse-arrow {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.ban-card .clickable-header[aria-expanded="false"] .collapse-arrow {
+    transform: rotate(-90deg);
+}
+
+.ban-card .card-header .toggle {
+    padding-right: 18px;
+    flex-shrink: 0;
+}
+
 @media (max-width: 640px) {
     body { padding: 8px; font-size: 12px; }
     .dashboard { gap: 10px; }
@@ -1377,6 +1415,22 @@ body[data-theme="day"] .verification-item { background: rgba(0, 119, 170, 0.06);
     .banned-list-head, .banned-item {
         grid-template-columns: 1fr 1.2fr 50px;
         font-size: 10px;
+    }
+}
+
+@media (max-width: 420px) {
+    .ban-card .card-header.card-header-toggle {
+        flex-wrap: wrap;
+        padding: 10px 14px;
+    }
+    .ban-card .clickable-header {
+        padding: 4px 0;
+        width: 100%;
+    }
+    .ban-card .card-header .toggle {
+        padding-right: 0;
+        padding-top: 8px;
+        margin-left: auto;
     }
 }
 
