@@ -1180,3 +1180,310 @@ body {
     justify-content: center;
     cursor: pointer;
 }
+
+/* ============================================================
+   LUCKY DROP CHAT WIDGET — CANDY THEME (NO CONFLICT)
+   ============================================================ */
+
+/* Toggle Button */
+.lucky-chat-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(180deg, #FFE94A 0%, #FFD700 40%, #FF9500 100%);
+    border: 3px solid #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 0 #B36B00, 0 10px 20px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.4);
+    transition: transform 0.1s;
+    z-index: 9999;
+}
+
+.lucky-chat-toggle:active {
+    transform: translateY(6px);
+    box-shadow: 0 0 0 #B36B00, 0 5px 10px rgba(0,0,0,0.5);
+}
+
+.lucky-chat-toggle img {
+    width: 85%;
+    height: 85%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.lucky-chat-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: #ff1744;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    box-shadow: 0 0 10px rgba(255,23,68,0.6);
+}
+
+/* Chat Window Container */
+.lucky-chat-window {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 340px;
+    height: 480px;
+    background: linear-gradient(180deg, #240046, #10002b);
+    border: 2px solid #FFD700;
+    border-radius: 24px;
+    display: none;
+    flex-direction: column;
+    z-index: 9998;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(255,215,0,0.2);
+}
+
+.lucky-chat-window.show {
+    display: flex;
+}
+
+/* Chat Header */
+.lucky-chat-header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.lucky-chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lucky-chat-header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFD700;
+    border: 2px solid #fff;
+    overflow: hidden;
+}
+
+.lucky-chat-header-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lucky-chat-header-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 800;
+    color: #FFD700;
+    letter-spacing: 1px;
+}
+
+.lucky-chat-header-status {
+    font-family: var(--font-main);
+    font-size: 10px;
+    color: #39ff14;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lucky-chat-header-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #39ff14;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #39ff14;
+}
+
+.lucky-chat-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.lucky-chat-close:hover {
+    color: #ff1744;
+}
+
+/* Chat Messages */
+.lucky-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(0,0,0,0.2);
+}
+
+/* User Bubble */
+.lucky-bubble-user {
+    align-self: flex-end;
+    background: linear-gradient(180deg, #FFE94A 0%, #FFD700 100%);
+    color: #5A2A00;
+    padding: 10px 14px;
+    border-radius: 16px 16px 0 16px;
+    font-family: var(--font-main);
+    font-size: 12px;
+    font-weight: 600;
+    max-width: 85%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Admin Bubble */
+.lucky-bubble-admin {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 16px 16px 16px 0;
+    font-family: var(--font-main);
+    font-size: 12px;
+    max-width: 85%;
+}
+
+.lucky-chat-time {
+    display: block;
+    font-size: 8px;
+    opacity: 0.6;
+    margin-top: 4px;
+    text-align: right;
+    font-family: var(--font-mono);
+}
+
+/* Quick Replies */
+.lucky-chat-quick-replies {
+    padding: 10px 16px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: rgba(0,0,0,0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lucky-quick-reply-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    color: #FFD700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-family: var(--font-main);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lucky-quick-reply-btn:hover {
+    background: rgba(255, 215, 0, 0.15);
+}
+
+/* Input Area */
+.lucky-chat-input-area {
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 8px;
+}
+
+.lucky-chat-input {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 20px;
+    padding: 10px 14px;
+    color: #fff;
+    font-family: var(--font-main);
+    font-size: 12px;
+    outline: none;
+}
+
+.lucky-chat-input:focus {
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.lucky-chat-send {
+    width: 40px;
+    height: 40px;
+    background: #FFD700;
+    border: none;
+    border-radius: 50%;
+    color: #5A2A00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.lucky-chat-send:active {
+    transform: scale(0.9);
+}
+
+/* Typing Indicator */
+.lucky-typing-indicator {
+    display: none;
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px 14px;
+    border-radius: 16px;
+    border-bottom-left-radius: 0;
+}
+
+.lucky-typing-indicator.show {
+    display: block;
+}
+
+.lucky-typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.lucky-typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: #FFD700;
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite;
+}
+
+.lucky-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.lucky-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+}
+
+@media (max-width: 480px) {
+    .lucky-chat-window {
+        width: calc(100vw - 30px);
+        right: 15px;
+        bottom: 85px;
+        height: 400px;
+    }
+}
