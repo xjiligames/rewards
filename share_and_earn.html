@@ -10,27 +10,20 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-    <!-- OG Meta Tags -->
-    <meta property="og:title" content="Play Bonus">
-    <meta property="og:description" content="Claim your bonus now!">
-    <meta property="og:image" content="images/pt_sugar.png">
-    <meta property="og:url" content="https://tiny.cc/LuckyDrop">
-    <meta property="og:type" content="website">
-
-    <!-- Google Fonts (Premium Candy Theme) -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
 
+    <!-- Font Awesome (Kailangan ng popup) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <!-- External CSS -->
     <link rel="stylesheet" href="styles/playbonus.css">
-    
-    <!-- Font Awesome (Kailangan ng popup_share.js para sa icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- BACKGROUND LAYER (Maliliit at malabo) -->
+    <!-- BACKGROUND LAYER -->
     <div class="bg-candy-elements">
         <div class="candy-item bg-item">🍓</div>
         <div class="candy-item bg-item">💎</div>
@@ -38,7 +31,7 @@
         <div class="candy-item bg-item">🪙</div>
     </div>
 
-    <!-- FRONT LAYER (Malalaki at 3D na nakakalat sa page) -->
+    <!-- FRONT LAYER -->
     <div class="front-candy-layer">
         <div class="candy-item front-item fruit-1">🍓</div>
         <div class="candy-item front-item fruit-2">🫐</div>
@@ -56,8 +49,6 @@
 
     <!-- MAIN CONTAINER -->
     <div class="playbonus-container">
-
-        <!-- HEADER -->
         <div class="header">
             <h1 class="main-title">
                 <span class="title-word">PLAY</span>
@@ -86,7 +77,7 @@
         <div class="mini-dashboard neon-panel">
             <div class="balance-content">
                 <div class="balance-label">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>
                     MY BALANCE
                 </div>
                 <div class="balance-amount-wrapper">
@@ -106,19 +97,19 @@
             <img src="images/pt_sugar.png" alt="Lucky Mascots" class="hero-image">
         </div>
 
-        <!-- CLAIM NOW BUTTON (Ito ang nagbubukas ng Withdraw Popup) -->
+        <!-- CLAIM NOW BUTTON -->
         <button class="claim-now-btn mega-btn" id="claimNowBtn">
             <div class="icon-container">
                 <img src="images/scatter_icon.jpg" class="claim-icon" alt="icon">
             </div>
             <span class="btn-text">CLAIM NOW!!</span>
-            <svg class="btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <svg class="btn-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>
 
         <!-- TIME LEFT -->
         <div class="time-left-section neon-panel">
             <div class="time-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 BONUS ENDS IN
             </div>
             <div class="timer-wrapper">
@@ -128,9 +119,9 @@
 
         <!-- WINNERS BANNER -->
         <div class="winners-banner">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span><strong>LUCKY WINNERS</strong> will receive <strong>₱500 Credits</strong></span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
 
         <!-- BONUS IMAGE -->
@@ -151,16 +142,14 @@
             <span>SHARE ON FACEBOOK</span>
         </button>
 
-        <!-- FOOTER TEXT -->
         <div class="share-social-text">
             Share to <strong>Social Media</strong><br>received up to <strong>₱1,000 GCash Credits</strong>
         </div>
-
         <canvas id="confettiCanvas"></canvas>
     </div>
 
     <!-- ============================================================
-         WITHDRAW POPUP (Ito ang lalabas pag clinick ang Claim Now)
+         WITHDRAW POPUP
          ============================================================ -->
     <div id="claimNowPopup" class="claim-now-popup" style="display: none;">
         <div class="claim-now-popup-container">
@@ -202,27 +191,10 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         BONUS REWARD POPUP (Galing ito sa popup_share.js)
-         ============================================================ -->
-    <div id="prizePopup" class="bonus-reward-popup" style="display: none;">
+    <!-- PRIZE POPUP (Hidden, para sa popup_share.js logic) -->
+    <div id="prizePopup" style="display: none; position: fixed; inset: 0; z-index: 99999; align-items: center; justify-content: center; background: rgba(16,0,43,0.85); backdrop-filter: blur(15px);">
         <div class="bonus-reward-container">
             <div class="popup-inner" id="prizePopupInner"></div>
-        </div>
-    </div>
-
-    <!-- SUCCESS POPUP -->
-    <div id="successPopup" class="success-popup" style="display: none;">
-        <div class="success-popup-inner">
-            <div class="success-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            </div>
-            <h2 class="success-title">🎉 BONUS CLAIMED! 🎉</h2>
-            <div class="success-amount">+₱<span id="successAmount">500</span></div>
-            <div class="success-message">Your bonus has been added to your balance!</div>
-            <button class="success-close-btn mega-btn" id="successCloseBtn">
-                <span>GOT IT</span>
-            </button>
         </div>
     </div>
 
@@ -247,7 +219,7 @@
                             status: 'offline',
                             lastSeen: firebase.database.ServerValue.TIMESTAMP
                         });
-                    } catch(e) { console.log('Logout error:', e); }
+                    } catch(e) {}
                 }
                 ['userPhone', 'userDeviceId', 'userDeviceDisplayId'].forEach(function(k) {
                     localStorage.removeItem(k);
@@ -280,9 +252,7 @@
                             window.location.replace('index.html');
                         }
                     });
-                }).catch(function(e) {
-                    console.log('Ban check error:', e);
-                });
+                }).catch(function(e) {});
             }
 
             function shareOnFacebook() {
