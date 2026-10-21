@@ -1,16 +1,11 @@
 /**
  * ============================================================
- * C.I.A. ADMIN — adscript.js
- * Remastered v4.0
- * - No master key (open access — add Firebase Auth later)
- * - Toggle switches (UI only for now)
- * - Theme via data-theme (night/day)
- * - SVG icons (no Font Awesome)
+ * C.I.A. ADMIN — adscript.js v4.0
  * ============================================================
  */
 
 /* ============================================================
-   1. FIREBASE INIT
+   1. FIREBASE
    ============================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
@@ -29,8 +24,8 @@ const db = firebase.database();
    2. STATE
    ============================================================ */
 let globalFirewallActive = false;
+let banProtocolEnabled = false;
 let currentUserData = [];
-let currentFilter = 'none';
 let bannedUsersData = [];
 
 let verificationListener = null;
@@ -41,19 +36,12 @@ let lastRenderHash = '';
 const AUTO_DELETE_MS = 2 * 60 * 1000;
 const QUEUE_DELETE_MS = 12 * 60 * 1000;
 
-/* Toggle state (UI only for now) */
-let userLogsEnabled = true;
-let banEnabled = false;
-
-/* Delete mode */
-let deleteModeState = 0; // 0=off, 1=select, 2=confirm
+let deleteModeState = 0;
 let selectedUsers = [];
-
-/* Sort */
-let devSortState = 0; // 0=off, 1=asc, 2=desc
+let devSortState = 0;
 
 /* ============================================================
-   3. UTILITIES
+   3. UTILS
    ============================================================ */
 function generateHash(u) {
     if (!u) return '#00000000';
@@ -70,19 +58,16 @@ function formatVerificationTime(timestamp) {
     const diff = Date.now() - timestamp;
     const minutes = Math.floor(diff / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-
     if (minutes < 1) return seconds + 's ago';
     if (minutes < 60) return minutes + 'm ago';
-
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return hours + 'h ago';
-
     const date = new Date(timestamp);
     let h = date.getHours();
     const m = date.getMinutes().toString().padStart(2, '0');
     const ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12 || 12;
-    return `${h}:${m} ${ampm}`;
+    return h + ':' + m + ' ' + ampm;
 }
 
 function escapeHtml(text) {
@@ -108,7 +93,6 @@ function copyToClipboard(text, btn) {
             btn.classList.remove('copied');
         }, 1200);
     };
-
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
     } else {
@@ -127,12 +111,30 @@ function fallbackCopy(text, done) {
     document.body.removeChild(ta);
 }
 
+function showToast(message, type) {
+    const old = document.getElementById('toast');
+    if (old) old.remove();
+    const toast = document.createElement('div');
+    toast.id = 'toast';
+    const color = type === 'success' ? 'var(--success)' : 'var(--danger)';
+    const soft = type === 'success' ? 'var(--success-soft)' : 'var(--danger-soft)';
+    toast.style.cssText =
+        'position:fixed;top:20px;right:20px;padding:12px 18px;' +
+        'background:' + soft + ';border:1px solid ' + color + ';' +
+        'border-radius:10px;color:' + color + ';' +
+        'font-family:var(--font-mono);font-size:11px;font-weight:700;' +
+        'z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,0.3);' +
+        'animation:slideDown 0.3s ease;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
+
 /* ============================================================
-   4. THEME MANAGER
+   4. THEME
    ============================================================ */
 function applyTheme(day) {
     document.body.setAttribute('data-theme', day ? 'day' : 'night');
-
     const indicator = document.getElementById('themeIndicator');
     if (indicator) {
         indicator.innerHTML = day
@@ -142,15 +144,11 @@ function applyTheme(day) {
 }
 
 /* ============================================================
-   5. FIREWALL TOGGLE
+   5. FIREWALL
    ============================================================ */
 async function toggleFirewall() {
-    const btn = document.getElementById('firewallToggleBtn');
-    const statusMsg = document.getElementById('firewallStatusMsg');
-
     if (!globalFirewallActive) {
         if (!confirm('🔥 ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.')) return;
-
         await db.ref('admin/globalFirewall').set({
             active: true,
             activatedBy: 'ADMIN',
@@ -162,7 +160,6 @@ async function toggleFirewall() {
         alert('🔥 FIREWALL ACTIVATED — Day mode');
     } else {
         if (!confirm('🌙 DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.')) return;
-
         await db.ref('admin/globalFirewall').set({
             active: false,
             deactivatedBy: 'ADMIN',
@@ -178,19 +175,15 @@ async function toggleFirewall() {
 function updateFirewallUI() {
     const btn = document.getElementById('firewallToggleBtn');
     const statusMsg = document.getElementById('firewallStatusMsg');
-
+    if (!btn) return;
     if (globalFirewallActive) {
         btn.className = 'firewall-btn firewall-on';
         btn.innerHTML = '<svg class="icon icon-xs"><use href="#i-sun"/></svg><span>FIREWALL ON</span>';
-        if (statusMsg) {
-            statusMsg.textContent = '☀️ Day mode — verification required';
-        }
+        if (statusMsg) statusMsg.textContent = '☀️ Day mode — verification required';
     } else {
         btn.className = 'firewall-btn firewall-off';
         btn.innerHTML = '<svg class="icon icon-xs"><use href="#i-moon"/></svg><span>FIREWALL OFF</span>';
-        if (statusMsg) {
-            statusMsg.textContent = '🌙 Night mode — normal claiming';
-        }
+        if (statusMsg) statusMsg.textContent = '🌙 Night mode — normal claiming';
     }
 }
 
@@ -207,27 +200,47 @@ async function checkGlobalFirewallStatus() {
 }
 
 /* ============================================================
-   6. TOGGLES (UI ONLY — no logic yet)
+   6. TOGGLES & COLLAPSE
    ============================================================ */
 function bindToggles() {
-    const userLogsToggle = document.getElementById('userLogsToggle');
+    const userLogsHeader = document.getElementById('userLogsHeader');
     const userLogsBody = document.getElementById('userLogsBody');
-    const banToggle = document.getElementById('banToggle');
-    const banBody = document.getElementById('banBody');
 
-    if (userLogsToggle && userLogsBody) {
-        userLogsToggle.addEventListener('change', (e) => {
-            userLogsEnabled = e.target.checked;
-            userLogsBody.style.display = userLogsEnabled ? '' : 'none';
-            updateToggleText(userLogsToggle, userLogsEnabled);
+    if (userLogsHeader && userLogsBody) {
+        userLogsHeader.addEventListener('click', () => {
+            const expanded = userLogsHeader.getAttribute('aria-expanded') === 'true';
+            userLogsHeader.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            if (expanded) {
+                userLogsBody.classList.add('is-closed');
+            } else {
+                userLogsBody.classList.remove('is-closed');
+            }
+        });
+        userLogsHeader.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                userLogsHeader.click();
+            }
         });
     }
 
-    if (banToggle && banBody) {
-        banToggle.addEventListener('change', (e) => {
-            banEnabled = e.target.checked;
-            banBody.style.display = banEnabled ? '' : 'none';
-            updateToggleText(banToggle, banEnabled);
+    const banToggle = document.getElementById('banToggle');
+    if (banToggle) {
+        banToggle.addEventListener('change', async (e) => {
+            const enabled = e.target.checked;
+            banProtocolEnabled = enabled;
+            updateToggleText(banToggle, enabled);
+            updateBanStatusBanner(enabled);
+            try {
+                await db.ref('admin/banProtocolEnabled').set({
+                    enabled: enabled,
+                    updatedAt: Date.now(),
+                    updatedBy: 'ADMIN'
+                });
+            } catch (err) {
+                console.error('Failed to save ban protocol:', err);
+                showToast('❌ Failed to save ban toggle', 'error');
+            }
         });
     }
 }
@@ -237,22 +250,51 @@ function updateToggleText(input, enabled) {
     if (label) label.textContent = enabled ? 'ON' : 'OFF';
 }
 
+function updateBanStatusBanner(enabled) {
+    const banner = document.getElementById('banStatusBanner');
+    const text = document.getElementById('banStatusText');
+    if (!banner || !text) return;
+    if (enabled) {
+        banner.classList.remove('is-off');
+        banner.classList.add('is-on');
+        text.textContent = 'Ban system is ENABLED — banned users are restricted.';
+    } else {
+        banner.classList.remove('is-on');
+        banner.classList.add('is-off');
+        text.textContent = 'Ban system is DISABLED — banned users can access pages.';
+    }
+}
+
+async function checkBanProtocolStatus() {
+    try {
+        const snap = await db.ref('admin/banProtocolEnabled').once('value');
+        const data = snap.val();
+        banProtocolEnabled = !!(data && data.enabled === true);
+        const banToggle = document.getElementById('banToggle');
+        if (banToggle) {
+            banToggle.checked = banProtocolEnabled;
+            updateToggleText(banToggle, banProtocolEnabled);
+        }
+        updateBanStatusBanner(banProtocolEnabled);
+    } catch (e) {
+        console.warn('Could not check ban protocol:', e);
+    }
+}
+
 /* ============================================================
-   7. DEPLOY LINKS
+   7. DEPLOY
    ============================================================ */
 function deploy() {
     const input = document.getElementById('links');
     const v = input.value.trim();
     if (!v) { alert('⚠️ Enter at least one link'); return; }
-
     const links = v.split('\n').filter(u => u.trim());
     let count = 0;
-
     links.forEach(u => {
         const url = u.trim();
         if (!url) return;
         db.ref('links').push({
-            url,
+            url: url,
             hash: generateHash(url),
             status: 'available',
             user: 'NONE',
@@ -260,9 +302,8 @@ function deploy() {
         });
         count++;
     });
-
     input.value = '';
-    alert(`✅ ${count} link(s) deployed!`);
+    alert('✅ ' + count + ' link(s) deployed!');
 }
 
 function reuseLink(key) {
@@ -274,35 +315,55 @@ function reuseLink(key) {
 /* ============================================================
    8. LINK MONITOR
    ============================================================ */
-db.ref('links').on('value', (snapshot) => {
+db.ref('links').on('value', function(snapshot) {
     const tbody = document.getElementById('linkData');
     if (!tbody) return;
     tbody.innerHTML = '';
     const links = snapshot.val() || {};
 
-    Object.entries(links).forEach(([key, data]) => {
-        const cls = data.status === 'available' ? 'status-avail' : 'status-used';
-        const hash = data.hash || generateHash(data.url || '');
-        tbody.innerHTML += `
-            <tr>
-                <td>#${key.substr(-4)}</td>
-                <td>${hash}</td>
-                <td><span class="status ${cls}">${data.status}</span></td>
-                <td class="cell-phone">${data.user === 'NONE' ? '---' : data.user}</td>
-                <td class="action-col">
-                    <button class="btn-icon" onclick="reuseLink('${key}')" title="Recycle">
-                        <svg class="icon icon-xs"><use href="#i-clock"/></svg>
-                    </button>
-                    <button class="btn-icon btn-icon-danger" onclick="db.ref('links/${key}').remove()" title="Delete">
-                        <svg class="icon icon-xs"><use href="#i-trash"/></svg>
-                    </button>
-                </td>
-            </tr>`;
+    if (Object.keys(links).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-hint">No links deployed yet</td></tr>';
+        return;
+    }
+
+    Object.entries(links).forEach(function(entry) {
+        const key = entry[0];
+        const data = entry[1];
+        const isAvail = data.status === 'available';
+        const statusClass = isAvail ? 'available' : 'used';
+        const statusLabel = isAvail ? 'AVAILABLE' : 'USED';
+
+        tbody.innerHTML +=
+            '<tr>' +
+                '<td>' +
+                    '<span class="link-status ' + statusClass + '">' +
+                        '<span class="dot"></span>' +
+                        statusLabel +
+                    '</span>' +
+                '</td>' +
+                '<td class="cell-phone">' + (data.user === 'NONE' ? '---' : data.user) + '</td>' +
+                '<td class="action-col">' +
+                    '<div class="link-actions">' +
+                        '<button class="btn-icon" onclick="reuseLink(\'' + key + '\')" title="Recycle">' +
+                            '<svg class="icon icon-xs"><use href="#i-clock"/></svg>' +
+                        '</button>' +
+                        '<button class="btn-icon btn-icon-danger" onclick="deleteLink(\'' + key + '\')" title="Delete">' +
+                            '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
+                        '</button>' +
+                    '</div>' +
+                '</td>' +
+            '</tr>';
     });
 });
 
+function deleteLink(key) {
+    if (confirm('Delete this link?')) {
+        db.ref('links/' + key).remove();
+    }
+}
+
 /* ============================================================
-   9. DEVICE MAPPING
+   9. DEVICE MAP
    ============================================================ */
 async function getDeviceDisplayId(fp) {
     if (!fp || fp === '---') return '---';
@@ -310,8 +371,10 @@ async function getDeviceDisplayId(fp) {
         const m = await db.ref('device_id_map/' + fp).once('value');
         if (m.exists()) return m.val().displayId;
 
-        const result = await db.ref('admin/deviceCounter').transaction(n => (n || 0) + 1);
-        const id = `Dev${result.snapshot.val()}`;
+        const result = await db.ref('admin/deviceCounter').transaction(function(n) {
+            return (n || 0) + 1;
+        });
+        const id = 'Dev' + result.snapshot.val();
         await db.ref('device_id_map/' + fp).set({
             displayId: id,
             createdAt: Date.now(),
@@ -325,13 +388,15 @@ async function getDeviceDisplayId(fp) {
 }
 
 /* ============================================================
-   10. USER SESSIONS (main table)
+   10. USER SESSIONS
    ============================================================ */
-db.ref('user_sessions').on('value', async (snapshot) => {
+db.ref('user_sessions').on('value', async function(snapshot) {
     const sessions = snapshot.val() || {};
     const usersArray = [];
 
-    for (const [phone, data] of Object.entries(sessions)) {
+    for (const entry of Object.entries(sessions)) {
+        const phone = entry[0];
+        const data = entry[1];
         const lastRaw = data.lastUpdate || 0;
         let lastFormatted = '---';
         if (lastRaw) {
@@ -340,15 +405,14 @@ db.ref('user_sessions').on('value', async (snapshot) => {
             const m = d.getMinutes().toString().padStart(2, '0');
             const ampm = h >= 12 ? 'PM' : 'AM';
             h = h % 12 || 12;
-            lastFormatted = `${h}:${m} ${ampm}`;
+            lastFormatted = h + ':' + m + ' ' + ampm;
         }
-
         const fp = data.deviceFingerprint || '---';
         let dev = '---';
         if (fp !== '---') dev = await getDeviceDisplayId(fp);
 
         usersArray.push({
-            phone,
+            phone: phone,
             balance: (data.balance || 0).toLocaleString(),
             devDisplay: dev,
             lastSeen: lastFormatted,
@@ -368,24 +432,24 @@ db.ref('user_sessions').on('value', async (snapshot) => {
 });
 
 /* ============================================================
-   11. BANNED GHOSTS
+   11. BANNED BADGE
    ============================================================ */
-db.ref('banned_ghosts').on('value', (snapshot) => {
+db.ref('banned_ghosts').on('value', function(snapshot) {
     const count = snapshot.numChildren() || 0;
     const badge = document.getElementById('bannedBadge');
     if (badge) badge.textContent = count;
 });
 
 /* ============================================================
-   12. SORT FUNCTIONS
+   12. SORT
    ============================================================ */
-function sortByLastSeen(silent = false) {
-    currentUserData.sort((a, b) => b.lastSeenRaw - a.lastSeenRaw);
+function sortByLastSeen(silent) {
+    currentUserData.sort(function(a, b) { return b.lastSeenRaw - a.lastSeenRaw; });
     if (!silent) renderUserTable();
 }
 
-function sortByDevice(asc = true) {
-    currentUserData.sort((a, b) => {
+function sortByDevice(asc) {
+    currentUserData.sort(function(a, b) {
         const nA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
         const nB = parseInt(b.devDisplay.replace('Dev', '')) || 999;
         return asc ? nA - nB : nB - nA;
@@ -394,7 +458,7 @@ function sortByDevice(asc = true) {
 }
 
 /* ============================================================
-   13. USER TABLE RENDER
+   13. USER TABLE
    ============================================================ */
 function renderUserTable() {
     const tbody = document.getElementById('ghostData');
@@ -405,22 +469,22 @@ function renderUserTable() {
         return;
     }
 
-    tbody.innerHTML = currentUserData.map(u => `
-        <tr>
-            <td class="cell-phone phone-cell" data-phone="${u.phone}" title="Click to force logout">
-                ${u.phone}
-            </td>
-            <td class="cell-balance">₱${u.balance}</td>
-            <td class="cell-device">${u.devDisplay}</td>
-            <td class="cell-time">${u.lastSeen}</td>
-            <td class="action-col">
-                <button class="btn-icon btn-icon-danger delete-user-btn" data-phone="${u.phone}" title="Delete">
-                    <svg class="icon icon-xs"><use href="#i-trash"/></svg>
-                </button>
-            </td>
-        </tr>
-    `).join('');
-
+    let html = '';
+    currentUserData.forEach(function(u) {
+        html +=
+            '<tr>' +
+                '<td class="cell-phone phone-cell" data-phone="' + u.phone + '" title="Click to force logout">' + u.phone + '</td>' +
+                '<td class="cell-balance">₱' + u.balance + '</td>' +
+                '<td class="cell-device">' + u.devDisplay + '</td>' +
+                '<td class="cell-time">' + u.lastSeen + '</td>' +
+                '<td class="action-col">' +
+                    '<button class="btn-icon btn-icon-danger delete-user-btn" data-phone="' + u.phone + '" title="Delete">' +
+                        '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
+                    '</button>' +
+                '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
     bindTableActions();
     bindForceLogout();
 }
@@ -434,32 +498,33 @@ function renderUserTableWithCheckboxes() {
         return;
     }
 
-    tbody.innerHTML = currentUserData.map(u => {
-        const checked = selectedUsers.includes(u.phone) ? 'checked' : '';
-        return `
-            <tr>
-                <td class="checkbox-col">
-                    <input type="checkbox" class="user-checkbox" data-phone="${u.phone}" ${checked}>
-                </td>
-                <td class="cell-phone">${u.phone}</td>
-                <td class="cell-balance">₱${u.balance}</td>
-                <td class="cell-device">${u.devDisplay}</td>
-                <td class="cell-time">${u.lastSeen}</td>
-                <td class="action-col">
-                    <button class="btn-icon btn-icon-danger delete-user-btn" data-phone="${u.phone}" title="Delete">
-                        <svg class="icon icon-xs"><use href="#i-trash"/></svg>
-                    </button>
-                </td>
-            </tr>`;
-    }).join('');
-
+    let html = '';
+    currentUserData.forEach(function(u) {
+        const checked = selectedUsers.indexOf(u.phone) !== -1 ? 'checked' : '';
+        html +=
+            '<tr>' +
+                '<td class="checkbox-col">' +
+                    '<input type="checkbox" class="user-checkbox" data-phone="' + u.phone + '" ' + checked + '>' +
+                '</td>' +
+                '<td class="cell-phone">' + u.phone + '</td>' +
+                '<td class="cell-balance">₱' + u.balance + '</td>' +
+                '<td class="cell-device">' + u.devDisplay + '</td>' +
+                '<td class="cell-time">' + u.lastSeen + '</td>' +
+                '<td class="action-col">' +
+                    '<button class="btn-icon btn-icon-danger delete-user-btn" data-phone="' + u.phone + '" title="Delete">' +
+                        '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
+                    '</button>' +
+                '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
     bindTableActions();
     bindCheckboxes();
 }
 
 function bindTableActions() {
-    document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.onclick = (e) => {
+    document.querySelectorAll('.delete-user-btn').forEach(function(btn) {
+        btn.onclick = function(e) {
             e.stopPropagation();
             deleteSingleUser(btn.dataset.phone);
         };
@@ -467,10 +532,9 @@ function bindTableActions() {
 }
 
 function bindCheckboxes() {
-    document.querySelectorAll('.user-checkbox').forEach(cb => {
-        cb.onchange = () => toggleUserSelect(cb.dataset.phone, cb.checked);
+    document.querySelectorAll('.user-checkbox').forEach(function(cb) {
+        cb.onchange = function() { toggleUserSelect(cb.dataset.phone, cb.checked); };
     });
-
     const all = document.getElementById('selectAllCheckbox');
     if (all) {
         all.checked = selectedUsers.length === currentUserData.length && currentUserData.length > 0;
@@ -478,70 +542,40 @@ function bindCheckboxes() {
     }
 }
 
-/* ============================================================
-   14. FORCE LOGOUT (event delegation — survives re-render)
-   ============================================================ */
 function bindForceLogout() {
-    document.querySelectorAll('.phone-cell').forEach(cell => {
+    document.querySelectorAll('.phone-cell').forEach(function(cell) {
         if (cell.dataset.bound) return;
         cell.dataset.bound = '1';
-        cell.addEventListener('click', () => {
-            if (!confirm(`⚠️ Force logout ${cell.dataset.phone}?`)) return;
+        cell.addEventListener('click', function() {
+            if (!confirm('⚠️ Force logout ' + cell.dataset.phone + '?')) return;
             db.ref('user_sessions/' + cell.dataset.phone).update({
                 status: 'offline',
                 lastSeen: firebase.database.ServerValue.TIMESTAMP,
                 forceLogout: true
-            }).then(() => {
-                showToast(`✅ ${cell.dataset.phone} logged out`, 'success');
-            }).catch(() => {
+            }).then(function() {
+                showToast('✅ ' + cell.dataset.phone + ' logged out', 'success');
+            }).catch(function() {
                 showToast('❌ Failed to logout', 'error');
             });
         });
     });
 }
 
-function showToast(message, type) {
-    const old = document.getElementById('toast');
-    if (old) old.remove();
-
-    const toast = document.createElement('div');
-    toast.id = 'toast';
-    toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 18px;
-        background: ${type === 'success' ? 'var(--success-soft)' : 'var(--danger-soft)'};
-        border: 1px solid ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
-        border-radius: 10px;
-        color: ${type === 'success' ? 'var(--success)' : 'var(--danger)'};
-        font-family: var(--font-mono);
-        font-size: 11px;
-        font-weight: 700;
-        z-index: 99999;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-        animation: slideDown 0.3s ease;
-    `;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3500);
-}
-
 /* ============================================================
-   15. DELETE
+   14. DELETE
    ============================================================ */
 function deleteSingleUser(phone) {
-    if (!confirm(`⚠️ Delete user ${phone}?\n\nThis cannot be undone.`)) return;
+    if (!confirm('⚠️ Delete user ' + phone + '?\n\nThis cannot be undone.')) return;
     db.ref('user_sessions/' + phone).remove()
-        .then(() => showToast(`✅ ${phone} deleted`, 'success'))
-        .catch(() => showToast('❌ Delete failed', 'error'));
+        .then(function() { showToast('✅ ' + phone + ' deleted', 'success'); })
+        .catch(function() { showToast('❌ Delete failed', 'error'); });
 }
 
 function toggleUserSelect(phone, isChecked) {
     if (isChecked) {
-        if (!selectedUsers.includes(phone)) selectedUsers.push(phone);
+        if (selectedUsers.indexOf(phone) === -1) selectedUsers.push(phone);
     } else {
-        selectedUsers = selectedUsers.filter(p => p !== phone);
+        selectedUsers = selectedUsers.filter(function(p) { return p !== phone; });
     }
     updateBulkBar();
 }
@@ -560,14 +594,14 @@ function updateBulkBar() {
 
 function toggleSelectAll() {
     const cb = document.getElementById('selectAllCheckbox');
-    selectedUsers = cb.checked ? currentUserData.map(u => u.phone) : [];
+    selectedUsers = cb.checked ? currentUserData.map(function(u) { return u.phone; }) : [];
     renderUserTableWithCheckboxes();
     updateBulkBar();
 }
 
 function confirmBulkDelete() {
     if (!selectedUsers.length) return;
-    if (!confirm(`⚠️ Delete ${selectedUsers.length} user(s)?`)) return;
+    if (!confirm('⚠️ Delete ' + selectedUsers.length + ' user(s)?')) return;
     deleteSelectedUsers();
 }
 
@@ -575,38 +609,48 @@ async function deleteSelectedUsers() {
     let ok = 0, fail = 0;
     for (const phone of selectedUsers) {
         try { await db.ref('user_sessions/' + phone).remove(); ok++; }
-        catch { fail++; }
+        catch (e) { fail++; }
     }
-    showToast(`✅ ${ok} deleted${fail ? `, ${fail} failed` : ''}`, 'success');
+    showToast('✅ ' + ok + ' deleted' + (fail ? ', ' + fail + ' failed' : ''), 'success');
     cancelBulkDelete();
 }
 
 function cancelBulkDelete() {
     selectedUsers = [];
     deleteModeState = 0;
-    document.getElementById('selectAllTh').style.display = 'none';
-    document.getElementById('bulkDeleteBar').style.display = 'none';
-    document.getElementById('deleteModeBtn').classList.remove('is-active');
+    const th = document.getElementById('selectAllTh');
+    const bar = document.getElementById('bulkDeleteBar');
+    const btn = document.getElementById('deleteModeBtn');
+    if (th) th.style.display = 'none';
+    if (bar) bar.style.display = 'none';
+    if (btn) btn.classList.remove('is-active');
     renderUserTable();
 }
 
 /* ============================================================
-   16. TOOLBAR BUTTONS
+   15. TOOLBAR
    ============================================================ */
 function toggleDevSort() {
     devSortState = (devSortState + 1) % 3;
     const btn = document.getElementById('devSortBtn');
     btn.classList.remove('is-active', 'is-faded');
-
-    if (devSortState === 0) { sortByLastSeen(); }
-    else if (devSortState === 1) { btn.classList.add('is-faded'); sortByDevice(true); }
-    else { btn.classList.add('is-active'); sortByDevice(false); }
+    if (devSortState === 0) {
+        sortByLastSeen();
+    } else if (devSortState === 1) {
+        btn.classList.add('is-faded');
+        sortByDevice(true);
+    } else {
+        btn.classList.add('is-active');
+        sortByDevice(false);
+    }
 }
 
 function toggleTimeSort() {
     devSortState = 0;
     const devBtn = document.getElementById('devSortBtn');
+    const timeBtn = document.getElementById('timeSortBtn');
     if (devBtn) devBtn.classList.remove('is-active', 'is-faded');
+    if (timeBtn) timeBtn.classList.add('is-active');
     sortByLastSeen();
 }
 
@@ -614,11 +658,12 @@ function toggleDeleteMode() {
     deleteModeState = (deleteModeState + 1) % 3;
     const btn = document.getElementById('deleteModeBtn');
     const th = document.getElementById('selectAllTh');
+    const bar = document.getElementById('bulkDeleteBar');
 
     if (deleteModeState === 0) {
         btn.classList.remove('is-active', 'is-faded');
         th.style.display = 'none';
-        document.getElementById('bulkDeleteBar').style.display = 'none';
+        bar.style.display = 'none';
         selectedUsers = [];
         renderUserTable();
     } else if (deleteModeState === 1) {
@@ -637,7 +682,7 @@ function toggleDeleteMode() {
             btn.classList.add('is-faded');
             return;
         }
-        if (confirm(`⚠️ Delete ${selectedUsers.length} selected user(s)?`)) {
+        if (confirm('⚠️ Delete ' + selectedUsers.length + ' selected user(s)?')) {
             deleteSelectedUsers();
         } else {
             deleteModeState = 1;
@@ -648,32 +693,32 @@ function toggleDeleteMode() {
 }
 
 /* ============================================================
-   17. BAN
+   16. BAN
    ============================================================ */
 function banGhost() {
     const input = document.getElementById('banTarget');
     const t = input.value.trim();
     if (!t) { alert('⚠️ Enter a phone number'); return; }
     if (!/^09\d{9}$/.test(t)) { alert('⚠️ Invalid format. Use 09XXXXXXXXX'); return; }
-    if (!confirm(`⚠️ Ban ${t}?`)) return;
-
+    if (!confirm('⚠️ Ban ' + t + '?')) return;
     db.ref('banned_ghosts/' + t).set({
         timestamp: Date.now(),
         bannedBy: 'ADMIN',
         reason: 'Manual ban'
-    }).then(() => {
-        alert(`✅ ${t} banned`);
+    }).then(function() {
+        alert('✅ ' + t + ' banned');
         input.value = '';
+        loadBannedUsers();
     });
 }
 
 function liftBan(phone) {
-    if (!confirm(`Unban ${phone}?`)) return;
+    if (!confirm('Unban ' + phone + '?')) return;
     db.ref('banned_ghosts/' + phone).remove();
 }
 
 /* ============================================================
-   18. BANNED POPUP
+   17. BANNED POPUP
    ============================================================ */
 async function showBannedPopup() {
     document.getElementById('bannedPopup').style.display = 'flex';
@@ -684,35 +729,46 @@ function closeBannedPopup() {
     document.getElementById('bannedPopup').style.display = 'none';
     const si = document.getElementById('bannedSearchInput');
     const sr = document.getElementById('bannedSearchResult');
+    const cb = document.querySelector('.search-clear');
     if (si) si.value = '';
     if (sr) sr.style.display = 'none';
+    if (cb) cb.style.display = 'none';
 }
 
 async function loadBannedUsers() {
     try {
         const snap = await db.ref('banned_ghosts').once('value');
         const banned = snap.val() || {};
-        const arr = [];
-
         const deviceMapSnap = await db.ref('device_phone_map').once('value');
         const deviceMap = deviceMapSnap.val() || {};
+        const arr = [];
 
-        for (const [phone, data] of Object.entries(banned)) {
+        for (const entry of Object.entries(banned)) {
+            const phone = entry[0];
+            const data = entry[1];
             let deviceId = 'Unknown';
             let fingerprint = '';
-            for (const [fp, info] of Object.entries(deviceMap)) {
+            for (const fpEntry of Object.entries(deviceMap)) {
+                const fp = fpEntry[0];
+                const info = fpEntry[1];
                 if (info.phone === phone) {
                     deviceId = info.displayId || 'Unknown';
                     fingerprint = fp;
                     break;
                 }
             }
-            arr.push({ phone, deviceId, fingerprint, timestamp: data.timestamp || 0 });
+            arr.push({ phone: phone, deviceId: deviceId, fingerprint: fingerprint, timestamp: data.timestamp || 0 });
         }
 
-        arr.sort((a, b) => (parseInt(b.deviceId.replace('Dev', '')) || 0) - (parseInt(a.deviceId.replace('Dev', '')) || 0));
+        arr.sort(function(a, b) {
+            const nA = parseInt(a.deviceId.replace('Dev', '')) || 0;
+            const nB = parseInt(b.deviceId.replace('Dev', '')) || 0;
+            return nB - nA;
+        });
+
         bannedUsersData = arr;
         renderBannedList(arr);
+        renderBannedPreview();
 
         const countEl = document.getElementById('bannedCountDisplay');
         if (countEl) countEl.textContent = arr.length;
@@ -730,17 +786,43 @@ function renderBannedList(list) {
         return;
     }
 
-    container.innerHTML = list.map(u => `
-        <div class="banned-item">
-            <div class="banned-item-device" onclick="showBranchDetails('${u.fingerprint}','${u.deviceId}')">${u.deviceId}</div>
-            <div class="banned-item-phone" onclick="showBranchDetails('${u.fingerprint}','${u.deviceId}')">${u.phone}</div>
-            <div class="banned-item-action">
-                <button class="btn-unban" onclick="unbanUser('${u.phone}')" title="Unban">
-                    <svg class="icon icon-xs"><use href="#i-unban"/></svg>
-                </button>
-            </div>
-        </div>
-    `).join('');
+    let html = '';
+    list.forEach(function(u) {
+        html +=
+            '<div class="banned-item">' +
+                '<div class="banned-item-device" onclick="showBranchDetails(\'' + u.fingerprint + '\',\'' + u.deviceId + '\')">' + u.deviceId + '</div>' +
+                '<div class="banned-item-phone" onclick="showBranchDetails(\'' + u.fingerprint + '\',\'' + u.deviceId + '\')">' + u.phone + '</div>' +
+                '<div class="banned-item-action">' +
+                    '<button class="btn-unban" onclick="unbanUser(\'' + u.phone + '\')" title="Unban">' +
+                        '<svg class="icon icon-xs"><use href="#i-unban"/></svg>' +
+                    '</button>' +
+                '</div>' +
+            '</div>';
+    });
+    container.innerHTML = html;
+}
+
+function renderBannedPreview() {
+    const container = document.getElementById('bannedPreview');
+    if (!container) return;
+
+    if (!bannedUsersData.length) {
+        container.innerHTML = '<div class="empty-hint">No banned users yet</div>';
+        return;
+    }
+
+    const preview = bannedUsersData.slice(0, 5);
+    let html = '';
+    preview.forEach(function(u) {
+        html +=
+            '<div class="banned-preview-item">' +
+                '<span class="banned-preview-phone">' + u.phone + '</span>' +
+                '<button class="btn-unban" onclick="unbanUser(\'' + u.phone + '\')" title="Unban">' +
+                    '<svg class="icon icon-xs"><use href="#i-unban"/></svg>' +
+                '</button>' +
+            '</div>';
+    });
+    container.innerHTML = html;
 }
 
 function searchBannedUsers() {
@@ -757,9 +839,9 @@ function searchBannedUsers() {
 
     if (clearBtn) clearBtn.style.display = 'flex';
 
-    const found = bannedUsersData.filter(u =>
-        u.phone.includes(term) || u.deviceId.toLowerCase().includes(term)
-    );
+    const found = bannedUsersData.filter(function(u) {
+        return u.phone.indexOf(term) !== -1 || u.deviceId.toLowerCase().indexOf(term) !== -1;
+    });
 
     if (!found.length) {
         result.style.display = 'block';
@@ -775,15 +857,16 @@ function searchBannedUsers() {
 function clearBannedSearch() {
     document.getElementById('bannedSearchInput').value = '';
     document.getElementById('bannedSearchResult').style.display = 'none';
-    document.querySelector('.search-clear').style.display = 'none';
+    const cb = document.querySelector('.search-clear');
+    if (cb) cb.style.display = 'none';
     renderBannedList(bannedUsersData);
 }
 
 async function unbanUser(phone) {
-    if (!confirm(`Unban ${phone}?`)) return;
+    if (!confirm('Unban ' + phone + '?')) return;
     try {
         await db.ref('banned_ghosts/' + phone).remove();
-        showToast(`✅ ${phone} unbanned`, 'success');
+        showToast('✅ ' + phone + ' unbanned', 'success');
         await loadBannedUsers();
     } catch (e) {
         showToast('❌ Unban failed', 'error');
@@ -791,7 +874,7 @@ async function unbanUser(phone) {
 }
 
 /* ============================================================
-   19. BRANCH DETAILS
+   18. BRANCH DETAILS
    ============================================================ */
 async function showBranchDetails(fp, deviceId) {
     if (!fp) { alert('No fingerprint available'); return; }
@@ -800,18 +883,17 @@ async function showBranchDetails(fp, deviceId) {
     try {
         const snap = await db.ref('device_phone_map/' + fp).once('value');
         const data = snap.val() || {};
-        details.innerHTML = `
-            <div style="margin-bottom:12px;">
-                <strong style="color:var(--accent);">Device ID:</strong> ${deviceId}
-            </div>
-            <div style="margin-bottom:12px;">
-                <strong style="color:var(--accent);">Fingerprint:</strong>
-                <div style="word-break:break-all;background:var(--input-bg);padding:8px;border-radius:6px;font-size:10px;margin-top:4px;color:var(--success);">${fp}</div>
-            </div>
-            <div>
-                <strong style="color:var(--accent);">Primary Number:</strong> ${data.phone || 'Unknown'}
-            </div>
-        `;
+        details.innerHTML =
+            '<div style="margin-bottom:12px;">' +
+                '<strong style="color:var(--accent);">Device ID:</strong> ' + deviceId +
+            '</div>' +
+            '<div style="margin-bottom:12px;">' +
+                '<strong style="color:var(--accent);">Fingerprint:</strong>' +
+                '<div style="word-break:break-all;background:var(--input-bg);padding:8px;border-radius:6px;font-size:10px;margin-top:4px;color:var(--success);">' + fp + '</div>' +
+            '</div>' +
+            '<div>' +
+                '<strong style="color:var(--accent);">Primary Number:</strong> ' + (data.phone || 'Unknown') +
+            '</div>';
         popup.style.display = 'flex';
     } catch (e) {
         alert('Error loading details: ' + e.message);
@@ -823,21 +905,21 @@ function closeBranchPopup() {
 }
 
 /* ============================================================
-   20. VERIFICATION PANEL
+   19. VERIFICATION
    ============================================================ */
 function initVerification() {
     if (verificationListener) db.ref('user_sessions').off('value', verificationListener);
 
     lastRenderHash = '';
-    verificationListener = db.ref('user_sessions').on('value', (snap) => {
+    verificationListener = db.ref('user_sessions').on('value', function(snap) {
         const sessions = snap.val() || {};
         const map = {};
 
-        Object.keys(sessions).forEach(phone => {
+        Object.keys(sessions).forEach(function(phone) {
             const v = sessions[phone].system_verification;
-            if (v && ['active', 'expired', 'invalid', 'verified', 'counting_down'].includes(v.status)) {
+            if (v && ['active', 'expired', 'invalid', 'verified', 'counting_down'].indexOf(v.status) !== -1) {
                 map[phone] = {
-                    phone,
+                    phone: phone,
                     code: v.code || '----',
                     userEnteredCode: v.userEnteredCode || null,
                     isMatch: v.isMatch || false,
@@ -854,7 +936,7 @@ function initVerification() {
             }
         });
 
-        const arr = Object.values(map).sort((a, b) => {
+        const arr = Object.values(map).sort(function(a, b) {
             if (a.status === 'counting_down' && b.status !== 'counting_down') return -1;
             if (b.status === 'counting_down' && a.status !== 'counting_down') return 1;
             return (b.lastUpdate || b.createdAt || 0) - (a.lastUpdate || a.createdAt || 0);
@@ -862,19 +944,24 @@ function initVerification() {
 
         activeVerifications = map;
 
-        const hash = arr.map(v => `${v.phone}|${v.status}|${v.userEnteredCode || '-'}|${v.isMatch ? 1 : 0}|${v.countdownTimer || '-'}|${v.deviceId}`).join('#');
+        const hash = arr.map(function(v) {
+            return v.phone + '|' + v.status + '|' + (v.userEnteredCode || '-') + '|' + (v.isMatch ? 1 : 0) + '|' + (v.countdownTimer || '-') + '|' + v.deviceId;
+        }).join('#');
+
         if (hash !== lastRenderHash) {
             lastRenderHash = hash;
             renderVerificationList(arr);
         }
 
-        const activeCount = arr.filter(v => v.status === 'active' || v.status === 'counting_down').length;
+        const activeCount = arr.filter(function(v) {
+            return v.status === 'active' || v.status === 'counting_down';
+        }).length;
         const el = document.getElementById('verificationCount');
         if (el) el.textContent = activeCount;
     });
 
     if (verificationInterval) clearInterval(verificationInterval);
-    verificationInterval = setInterval(() => {
+    verificationInterval = setInterval(function() {
         updateVerificationTimers();
         cleanupVerifications();
     }, 1000);
@@ -885,126 +972,132 @@ function renderVerificationList(list) {
     if (!el) return;
 
     if (!list.length) {
-        el.innerHTML = `
-            <div class="verification-empty">
-                <svg class="icon icon-lg"><use href="#i-target"/></svg>
-                <p>No active verifications</p>
-            </div>`;
+        el.innerHTML =
+            '<div class="verification-empty">' +
+                '<svg class="icon icon-lg"><use href="#i-target"/></svg>' +
+                '<p>No active verifications</p>' +
+            '</div>';
         return;
     }
 
-    el.innerHTML = list.map(v => {
+    let html = '';
+    list.forEach(function(v) {
         const isQueue = v.status === 'counting_down';
 
         if (isQueue) {
             const mins = Math.floor((v.countdownTimer || 0) / 60);
             const secs = (v.countdownTimer || 0) % 60;
-            const display = `${mins}:${String(secs).padStart(2, '0')}`;
+            const display = mins + ':' + String(secs).padStart(2, '0');
             const progress = ((600 - (v.countdownTimer || 0)) / 600) * 100;
 
-            return `
-                <div class="verification-item queue-item" data-phone="${v.phone}">
-                    <div class="v-header">
-                        <div class="v-phone-wrap">
-                            <svg class="icon icon-xs" style="color:var(--warning);"><use href="#i-hourglass"/></svg>
-                            <span class="v-phone-text">${v.phone}</span>
-                            <button class="v-copy" onclick="copyPhone('${v.phone}', this)" title="Copy">
-                                <svg class="icon icon-xs"><use href="#i-copy"/></svg>
-                            </button>
-                        </div>
-                        <div class="v-actions">
-                            <span class="v-status counting_down">
-                                <span class="v-status-dot"></span> QUEUE
-                            </span>
-                            <button class="v-delete" onclick="deleteVerification('${v.phone}')" title="Delete">
-                                <svg class="icon icon-xs"><use href="#i-trash"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="queue-countdown-display">
-                        <div class="queue-label">⏳ Waiting for queue</div>
-                        <div class="queue-timer-big" data-phone="${v.phone}">${display}</div>
-                        <div class="queue-progress-track">
-                            <div class="queue-progress-fill" style="width:${progress}%"></div>
-                        </div>
-                    </div>
-                    ${v.gcashNumber ? `
-                        <div class="queue-gcash-info">
-                            <svg class="icon icon-xs"><use href="#i-device"/></svg>
-                            GCash: <strong>${v.gcashNumber}</strong>
-                        </div>` : ''}
-                    <div class="v-footer">
-                        <span class="v-device">
-                            <svg class="icon icon-xs"><use href="#i-device"/></svg>
-                            ${v.deviceId}
-                        </span>
-                        <span class="v-time">
-                            <svg class="icon icon-xs"><use href="#i-clock"/></svg>
-                            ${formatVerificationTime(v.createdAt)}
-                        </span>
-                    </div>
-                </div>`;
+            html +=
+                '<div class="verification-item queue-item" data-phone="' + v.phone + '">' +
+                    '<div class="v-header">' +
+                        '<div class="v-phone-wrap">' +
+                            '<svg class="icon icon-xs" style="color:var(--warning);"><use href="#i-hourglass"/></svg>' +
+                            '<span class="v-phone-text">' + v.phone + '</span>' +
+                            '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy">' +
+                                '<svg class="icon icon-xs"><use href="#i-copy"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                        '<div class="v-actions">' +
+                            '<span class="v-status counting_down">' +
+                                '<span class="v-status-dot"></span> QUEUE' +
+                            '</span>' +
+                            '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
+                                '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="queue-countdown-display">' +
+                        '<div class="queue-label">⏳ Waiting for queue</div>' +
+                        '<div class="queue-timer-big" data-phone="' + v.phone + '">' + display + '</div>' +
+                        '<div class="queue-progress-track">' +
+                            '<div class="queue-progress-fill" style="width:' + progress + '%"></div>' +
+                        '</div>' +
+                    '</div>' +
+                    (v.gcashNumber
+                        ? '<div class="queue-gcash-info">' +
+                            '<svg class="icon icon-xs"><use href="#i-device"/></svg>' +
+                            'GCash: <strong>' + v.gcashNumber + '</strong>' +
+                          '</div>'
+                        : '') +
+                    '<div class="v-footer">' +
+                        '<span class="v-device">' +
+                            '<svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId +
+                        '</span>' +
+                        '<span class="v-time">' +
+                            '<svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) +
+                        '</span>' +
+                    '</div>' +
+                '</div>';
+            return;
         }
 
         const timerClass = v.status === 'active' && v.timer <= 9 ? 'urgent' : '';
-        const userCodeHtml = v.userEnteredCode
-            ? `<div class="v-value user-code-value ${v.isMatch ? 'code-match' : 'code-mismatch'}">${v.userEnteredCode}</div>
-               <div class="v-match-badge ${v.isMatch ? 'code-match' : 'code-mismatch'}">
-                   ${v.isMatch ? '✅ MATCH' : '❌ MISMATCH'}
-               </div>`
-            : `<div class="v-value user-code-value waiting">----</div>
-               <div class="v-match-badge waiting">⏳ WAITING</div>`;
+        let userCodeHtml;
+        if (v.userEnteredCode) {
+            const matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
+            const matchText = v.isMatch ? '✅ MATCH' : '❌ MISMATCH';
+            userCodeHtml =
+                '<div class="v-value user-code-value ' + matchClass + '">' + v.userEnteredCode + '</div>' +
+                '<div class="v-match-badge ' + matchClass + '">' + matchText + '</div>';
+        } else {
+            userCodeHtml =
+                '<div class="v-value user-code-value waiting">----</div>' +
+                '<div class="v-match-badge waiting">⏳ WAITING</div>';
+        }
 
-        return `
-            <div class="verification-item status-${v.status}" data-phone="${v.phone}">
-                <div class="v-header">
-                    <div class="v-phone-wrap">
-                        <svg class="icon icon-xs"><use href="#i-device"/></svg>
-                        <span class="v-phone-text">${v.phone}</span>
-                        <button class="v-copy" onclick="copyPhone('${v.phone}', this)" title="Copy">
-                            <svg class="icon icon-xs"><use href="#i-copy"/></svg>
-                        </button>
-                    </div>
-                    <div class="v-actions">
-                        <span class="v-status ${v.status}">
-                            <span class="v-status-dot"></span> ${v.status.toUpperCase()}
-                        </span>
-                        <button class="v-delete" onclick="deleteVerification('${v.phone}')" title="Delete">
-                            <svg class="icon icon-xs"><use href="#i-trash"/></svg>
-                        </button>
-                    </div>
-                </div>
-                ${v.gcashNumber ? `
-                    <div class="queue-gcash-info">
-                        <svg class="icon icon-xs"><use href="#i-device"/></svg>
-                        GCash: <strong>${v.gcashNumber}</strong>
-                    </div>` : ''}
-                <div class="v-grid">
-                    <div class="v-box">
-                        <div class="v-label">⏱ Timer</div>
-                        <div class="v-value timer-display ${timerClass}" data-phone="${v.phone}">${v.timer}s</div>
-                    </div>
-                    <div class="v-box">
-                        <div class="v-label">📝 User Input</div>
-                        ${userCodeHtml}
-                    </div>
-                </div>
-                <div class="v-footer">
-                    <span class="v-device">
-                        <svg class="icon icon-xs"><use href="#i-device"/></svg>
-                        ${v.deviceId}
-                    </span>
-                    <span class="v-time">
-                        <svg class="icon icon-xs"><use href="#i-clock"/></svg>
-                        ${formatVerificationTime(v.createdAt)}
-                    </span>
-                </div>
-            </div>`;
-    }).join('');
+        html +=
+            '<div class="verification-item status-' + v.status + '" data-phone="' + v.phone + '">' +
+                '<div class="v-header">' +
+                    '<div class="v-phone-wrap">' +
+                        '<svg class="icon icon-xs"><use href="#i-device"/></svg>' +
+                        '<span class="v-phone-text">' + v.phone + '</span>' +
+                        '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy">' +
+                            '<svg class="icon icon-xs"><use href="#i-copy"/></svg>' +
+                        '</button>' +
+                    '</div>' +
+                    '<div class="v-actions">' +
+                        '<span class="v-status ' + v.status + '">' +
+                            '<span class="v-status-dot"></span> ' + v.status.toUpperCase() +
+                        '</span>' +
+                        '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
+                            '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+                (v.gcashNumber
+                    ? '<div class="queue-gcash-info">' +
+                        '<svg class="icon icon-xs"><use href="#i-device"/></svg>' +
+                        'GCash: <strong>' + v.gcashNumber + '</strong>' +
+                      '</div>'
+                    : '') +
+                '<div class="v-grid">' +
+                    '<div class="v-box">' +
+                        '<div class="v-label">⏱ Timer</div>' +
+                        '<div class="v-value timer-display ' + timerClass + '" data-phone="' + v.phone + '">' + v.timer + 's</div>' +
+                    '</div>' +
+                    '<div class="v-box">' +
+                        '<div class="v-label">📝 User Input</div>' +
+                        userCodeHtml +
+                    '</div>' +
+                '</div>' +
+                '<div class="v-footer">' +
+                    '<span class="v-device">' +
+                        '<svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId +
+                    '</span>' +
+                    '<span class="v-time">' +
+                        '<svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) +
+                    '</span>' +
+                '</div>' +
+            '</div>';
+    });
+    el.innerHTML = html;
 }
 
 function updateVerificationTimers() {
-    document.querySelectorAll('.timer-display').forEach(el => {
+    document.querySelectorAll('.timer-display').forEach(function(el) {
         const phone = el.dataset.phone;
         const v = activeVerifications[phone];
         if (!v || v.status !== 'active') return;
@@ -1015,7 +1108,7 @@ function updateVerificationTimers() {
         }
     });
 
-    document.querySelectorAll('.queue-timer-big').forEach(el => {
+    document.querySelectorAll('.queue-timer-big').forEach(function(el) {
         const phone = el.dataset.phone;
         const v = activeVerifications[phone];
         if (!v || v.status !== 'counting_down') return;
@@ -1023,16 +1116,16 @@ function updateVerificationTimers() {
             v.countdownTimer--;
             const m = Math.floor(v.countdownTimer / 60);
             const s = v.countdownTimer % 60;
-            el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+            el.textContent = m + ':' + String(s).padStart(2, '0');
             const track = el.parentElement.querySelector('.queue-progress-fill');
-            if (track) track.style.width = `${((600 - v.countdownTimer) / 600) * 100}%`;
+            if (track) track.style.width = ((600 - v.countdownTimer) / 600) * 100 + '%';
         }
     });
 }
 
 function cleanupVerifications() {
     const now = Date.now();
-    Object.keys(activeVerifications).forEach(phone => {
+    Object.keys(activeVerifications).forEach(function(phone) {
         const v = activeVerifications[phone];
         if (v.status === 'counting_down') {
             const t = v.countdownStartedAt || v.createdAt || 0;
@@ -1045,21 +1138,20 @@ function cleanupVerifications() {
 }
 
 function deleteVerification(phone) {
-    if (!confirm(`Delete verification for ${phone}?`)) return;
+    if (!confirm('Delete verification for ' + phone + '?')) return;
     removeVerification(phone);
 }
 
 function removeVerification(phone) {
-    db.ref('user_sessions/' + phone + '/system_verification').remove().catch(() => {});
+    db.ref('user_sessions/' + phone + '/system_verification').remove().catch(function() {});
     delete activeVerifications[phone];
     lastRenderHash = '';
-
-    const el = document.querySelector(`.verification-item[data-phone="${phone}"]`);
+    const el = document.querySelector('.verification-item[data-phone="' + phone + '"]');
     if (el) {
         el.style.transition = 'opacity 0.3s, transform 0.3s';
         el.style.opacity = '0';
         el.style.transform = 'translateX(-20px)';
-        setTimeout(() => el.remove(), 300);
+        setTimeout(function() { el.remove(); }, 300);
     }
 }
 
@@ -1068,7 +1160,7 @@ function copyPhone(phone, btn) {
 }
 
 /* ============================================================
-   21. ADMIN CHAT
+   20. ADMIN CHAT
    ============================================================ */
 (function initChat() {
     let activeChatId = null;
@@ -1081,86 +1173,118 @@ function copyPhone(phone, btn) {
 
         const panel = document.createElement('div');
         panel.className = 'admin-chat-widget';
-        panel.innerHTML = `
-            <button class="admin-chat-toggle" id="adminChatToggle">
-                <svg class="icon"><use href="#i-chat"/></svg>
-                <span class="admin-chat-badge" id="adminBadge" style="display:none">0</span>
-            </button>
-            <div class="admin-chat-panel" id="adminChatPanel">
-                <div class="admin-chat-header">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <svg class="icon"><use href="#i-chat"/></svg>
-                        <h4>SUPPORT CHAT</h4>
-                    </div>
-                    <button class="admin-chat-close" id="adminChatClose">
-                        <svg class="icon icon-xs"><use href="#i-x"/></svg>
-                    </button>
-                </div>
-                <div class="admin-chat-body">
-                    <div class="admin-chat-list" id="adminUserList">
-                        <div class="admin-empty-state">
-                            <svg class="icon"><use href="#i-chat"/></svg>
-                            <p>No conversations</p>
-                        </div>
-                    </div>
-                    <div class="admin-chat-convo" id="adminConvo">
-                        <div class="admin-convo-header">
-                            <button class="admin-back-btn" id="adminBackBtn">
-                                <svg class="icon icon-xs"><use href="#i-back"/></svg>
-                            </button>
-                            <span class="admin-convo-title" id="adminConvoTitle">Chat</span>
-                        </div>
-                        <div class="admin-messages" id="adminMessages"></div>
-                        <div class="admin-chat-input">
-                            <input type="text" id="adminChatInput" placeholder="Type reply...">
-                            <button class="admin-send-btn" id="adminSendBtn">
-                                <svg class="icon"><use href="#i-send"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        panel.innerHTML =
+            '<button class="admin-chat-toggle" id="adminChatToggle">' +
+                '<svg class="icon" style="width:26px;height:26px;"><use href="#i-chat"/></svg>' +
+                '<span class="admin-chat-badge" id="adminBadge" style="display:none">0</span>' +
+            '</button>' +
+            '<div class="admin-chat-panel" id="adminChatPanel">' +
+                '<div class="admin-chat-header">' +
+                    '<div style="display:flex;align-items:center;gap:8px;">' +
+                        '<svg class="icon"><use href="#i-chat"/></svg>' +
+                        '<h4 style="font-size:11px;letter-spacing:1.5px;">SUPPORT CHAT</h4>' +
+                    '</div>' +
+                    '<button class="admin-chat-close" id="adminChatClose" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:rgba(0,0,0,0.2);border:none;border-radius:50%;cursor:pointer;color:inherit;">' +
+                        '<svg class="icon icon-xs"><use href="#i-x"/></svg>' +
+                    '</button>' +
+                '</div>' +
+                '<div class="admin-chat-body" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">' +
+                    '<div class="admin-chat-list" id="adminUserList" style="flex:1;overflow-y:auto;padding:8px;">' +
+                        '<div class="admin-empty-state" style="text-align:center;padding:40px 20px;color:var(--fg-subtle);">' +
+                            '<svg class="icon icon-lg" style="display:block;margin:0 auto 12px;opacity:0.4;"><use href="#i-chat"/></svg>' +
+                            '<p style="font-size:11px;">No conversations</p>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="admin-chat-convo" id="adminConvo" style="display:none;flex-direction:column;height:100%;">' +
+                        '<div class="admin-convo-header" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--accent-soft);border-bottom:1px solid var(--divider);">' +
+                            '<button class="admin-back-btn" id="adminBackBtn" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--card-bg);border:1px solid var(--card-border);color:var(--accent);cursor:pointer;">' +
+                                '<svg class="icon icon-xs"><use href="#i-back"/></svg>' +
+                            '</button>' +
+                            '<span id="adminConvoTitle" style="font-size:11px;font-weight:700;color:var(--accent);flex:1;">Chat</span>' +
+                        '</div>' +
+                        '<div class="admin-messages" id="adminMessages" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;"></div>' +
+                        '<div class="admin-chat-input" style="display:flex;gap:6px;padding:10px;border-top:1px solid var(--divider);background:var(--card-bg);">' +
+                            '<input type="text" id="adminChatInput" placeholder="Type reply..." style="flex:1;margin:0;padding:8px 12px;border-radius:20px;background:var(--input-bg);border:1px solid var(--input-border);color:var(--fg);font-family:var(--font-mono);font-size:11px;outline:none;">' +
+                            '<button class="admin-send-btn" id="adminSendBtn" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--btn-primary-bg);border:none;color:var(--btn-primary-fg);cursor:pointer;flex-shrink:0;">' +
+                                '<svg class="icon" style="width:16px;height:16px;"><use href="#i-send"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
         document.body.appendChild(panel);
 
-        document.getElementById('adminChatToggle').onclick = () => {
+        const style = document.createElement('style');
+        style.textContent =
+            '.admin-chat-widget{position:fixed;bottom:20px;right:20px;z-index:9000;font-family:var(--font-mono);}' +
+            '.admin-chat-toggle{width:56px;height:56px;border-radius:50%;background:var(--btn-primary-bg);border:2px solid var(--accent);color:var(--btn-primary-fg);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--accent-glow);position:relative;transition:transform 0.15s;}' +
+            '.admin-chat-toggle:hover{transform:scale(1.06);}' +
+            '.admin-chat-badge{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-solid);box-shadow:0 0 10px rgba(255,68,68,0.8);}' +
+            '.admin-chat-panel{display:none;position:fixed;bottom:88px;right:20px;width:340px;max-height:500px;height:500px;background:var(--card-bg);border:1px solid var(--accent);border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.45);z-index:8999;flex-direction:column;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);animation:slideUp 0.25s ease;}' +
+            '.admin-chat-panel.show{display:flex;}' +
+            '.admin-chat-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--btn-primary-bg);color:var(--btn-primary-fg);}' +
+            '.admin-chat-header h4{font-weight:800;text-transform:uppercase;}' +
+            '.msg-bubble{max-width:78%;padding:8px 12px;border-radius:12px;font-size:11px;line-height:1.4;word-wrap:break-word;animation:msgSlide 0.2s ease;}' +
+            '.msg-bubble.user-msg{align-self:flex-end;background:var(--btn-primary-bg);color:var(--btn-primary-fg);border-bottom-right-radius:4px;font-weight:600;}' +
+            '.msg-bubble.admin-msg{align-self:flex-start;background:var(--input-bg);color:var(--fg);border:1px solid var(--input-border);border-bottom-left-radius:4px;}' +
+            '.msg-time{font-size:8px;opacity:0.6;margin-top:3px;text-align:right;}' +
+            '.admin-user-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all 0.15s;border:1px solid transparent;margin-bottom:4px;}' +
+            '.admin-user-item:hover{background:var(--accent-soft);border-color:var(--card-border);}' +
+            '.admin-user-item.active{background:var(--accent-soft);border-color:var(--accent);}' +
+            '.admin-user-avatar{width:36px;height:36px;border-radius:50%;background:var(--btn-primary-bg);color:var(--btn-primary-fg);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;}' +
+            '.admin-user-info{flex:1;min-width:0;}' +
+            '.admin-user-name{font-size:11px;font-weight:700;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+            '.admin-user-last{font-size:9px;color:var(--fg-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}' +
+            '.admin-user-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}' +
+            '.admin-user-time{font-size:8px;color:var(--fg-subtle);}' +
+            '.admin-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 6px var(--danger);}' +
+            '@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +
+            '@keyframes msgSlide{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}' +
+            '@media(max-width:480px){.admin-chat-panel{width:calc(100vw - 24px);right:12px;bottom:82px;max-height:420px;height:420px;}}';
+        document.head.appendChild(style);
+
+        document.getElementById('adminChatToggle').onclick = function() {
             const p = document.getElementById('adminChatPanel');
             p.classList.toggle('show');
             if (p.classList.contains('show')) loadUserList();
         };
-        document.getElementById('adminChatClose').onclick = () => {
+        document.getElementById('adminChatClose').onclick = function() {
             document.getElementById('adminChatPanel').classList.remove('show');
         };
         document.getElementById('adminBackBtn').onclick = closeConversation;
         document.getElementById('adminSendBtn').onclick = sendMessage;
-        document.getElementById('adminChatInput').onkeypress = (e) => {
+        document.getElementById('adminChatInput').onkeypress = function(e) {
             if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
         };
     }
 
     function loadUserList() {
         if (usersListener) db.ref('chats').off('value', usersListener);
-        usersListener = db.ref('chats').on('value', (snap) => {
+        usersListener = db.ref('chats').on('value', function(snap) {
             const list = document.getElementById('adminUserList');
             const convo = document.getElementById('adminConvo');
-            if (!list || (convo && convo.classList.contains('show'))) return;
+            if (!list || (convo && convo.style.display !== 'none')) return;
 
             list.style.display = 'block';
             list.innerHTML = '';
 
             if (!snap.exists()) {
-                list.innerHTML = `<div class="admin-empty-state">
-                    <svg class="icon"><use href="#i-chat"/></svg>
-                    <p>No conversations</p>
-                </div>`;
+                list.innerHTML =
+                    '<div class="admin-empty-state" style="text-align:center;padding:40px 20px;color:var(--fg-subtle);">' +
+                        '<svg class="icon icon-lg" style="display:block;margin:0 auto 12px;opacity:0.4;"><use href="#i-chat"/></svg>' +
+                        '<p style="font-size:11px;">No conversations</p>' +
+                    '</div>';
                 return;
             }
 
             const chats = snap.val();
-            const ids = Object.keys(chats).sort((a, b) => (chats[b].lastMessageTime || 0) - (chats[a].lastMessageTime || 0));
+            const ids = Object.keys(chats).sort(function(a, b) {
+                return (chats[b].lastMessageTime || 0) - (chats[a].lastMessageTime || 0);
+            });
 
             let totalUnread = 0;
-            ids.forEach(id => {
+            ids.forEach(function(id) {
                 const c = chats[id];
                 const unread = c.unreadAdmin || 0;
                 totalUnread += unread;
@@ -1168,18 +1292,17 @@ function copyPhone(phone, btn) {
 
                 const div = document.createElement('div');
                 div.className = 'admin-user-item' + (activeChatId === id ? ' active' : '');
-                div.innerHTML = `
-                    <div class="admin-user-avatar">${id.slice(-2)}</div>
-                    <div class="admin-user-info">
-                        <div class="admin-user-name">${id}</div>
-                        <div class="admin-user-last">${c.lastMessage ? truncateText(c.lastMessage, 22) : 'No messages'}</div>
-                    </div>
-                    <div class="admin-user-meta">
-                        <div class="admin-user-time">${time}</div>
-                        ${unread > 0 ? '<div class="admin-unread-dot"></div>' : ''}
-                    </div>
-                `;
-                div.onclick = () => openConversation(id);
+                div.innerHTML =
+                    '<div class="admin-user-avatar">' + id.slice(-2) + '</div>' +
+                    '<div class="admin-user-info">' +
+                        '<div class="admin-user-name">' + id + '</div>' +
+                        '<div class="admin-user-last">' + (c.lastMessage ? truncateText(c.lastMessage, 22) : 'No messages') + '</div>' +
+                    '</div>' +
+                    '<div class="admin-user-meta">' +
+                        '<div class="admin-user-time">' + time + '</div>' +
+                        (unread > 0 ? '<div class="admin-unread-dot"></div>' : '') +
+                    '</div>';
+                div.onclick = function() { openConversation(id); };
                 list.appendChild(div);
             });
 
@@ -1190,13 +1313,14 @@ function copyPhone(phone, btn) {
     function openConversation(id) {
         activeChatId = id;
         document.getElementById('adminUserList').style.display = 'none';
-        document.getElementById('adminConvo').classList.add('show');
+        const convo = document.getElementById('adminConvo');
+        convo.style.display = 'flex';
         document.getElementById('adminConvoTitle').textContent = id;
         document.getElementById('adminMessages').innerHTML = '';
         currentMessages = {};
 
-        if (messagesListener) db.ref(`chats/${id}/messages`).off('child_added', messagesListener);
-        messagesListener = db.ref(`chats/${id}/messages`).orderByChild('timestamp').on('child_added', (snap) => {
+        if (messagesListener) db.ref('chats/' + id + '/messages').off('child_added', messagesListener);
+        messagesListener = db.ref('chats/' + id + '/messages').orderByChild('timestamp').on('child_added', function(snap) {
             const msg = snap.val();
             if (currentMessages[snap.key]) return;
             currentMessages[snap.key] = true;
@@ -1208,12 +1332,12 @@ function copyPhone(phone, btn) {
 
     function closeConversation() {
         if (messagesListener && activeChatId) {
-            db.ref(`chats/${activeChatId}/messages`).off('child_added', messagesListener);
+            db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener);
             messagesListener = null;
         }
         activeChatId = null;
         currentMessages = {};
-        document.getElementById('adminConvo').classList.remove('show');
+        document.getElementById('adminConvo').style.display = 'none';
         document.getElementById('adminUserList').style.display = 'block';
         loadUserList();
     }
@@ -1221,13 +1345,12 @@ function copyPhone(phone, btn) {
     function displayMessage(msg) {
         const container = document.getElementById('adminMessages');
         if (!container) return;
-
         const time = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'now';
         const el = document.createElement('div');
         el.className = 'msg-bubble ' + (msg.sender === 'admin' ? 'user-msg' : 'admin-msg');
-        el.innerHTML = `${escapeHtml(msg.text)}<div class="msg-time">${msg.sender === 'admin' ? 'You' : 'User'} • ${time}</div>`;
+        el.innerHTML = escapeHtml(msg.text) + '<div class="msg-time">' + (msg.sender === 'admin' ? 'You' : 'User') + ' • ' + time + '</div>';
         container.appendChild(el);
-        setTimeout(() => container.scrollTop = container.scrollHeight, 50);
+        setTimeout(function() { container.scrollTop = container.scrollHeight; }, 50);
     }
 
     function sendMessage() {
@@ -1236,8 +1359,8 @@ function copyPhone(phone, btn) {
         const text = input.value.trim();
         if (!text) return;
 
-        db.ref(`chats/${activeChatId}/messages`).push({
-            text,
+        db.ref('chats/' + activeChatId + '/messages').push({
+            text: text,
             sender: 'admin',
             timestamp: firebase.database.ServerValue.TIMESTAMP,
             read: false
@@ -1276,43 +1399,42 @@ function copyPhone(phone, btn) {
         return new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
 
-    setTimeout(() => {
+    setTimeout(function() {
         createPanel();
         loadUserList();
     }, 1000);
 })();
 
 /* ============================================================
-   22. INIT ON DOM READY
+   21. INIT
    ============================================================ */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 C.I.A. Admin v4.0 starting...');
 
     bindToggles();
-    bindToolbarButtons();
+
+    const dev = document.getElementById('devSortBtn');
+    const time = document.getElementById('timeSortBtn');
+    const del = document.getElementById('deleteModeBtn');
+    if (dev) dev.onclick = toggleDevSort;
+    if (time) time.onclick = toggleTimeSort;
+    if (del) del.onclick = toggleDeleteMode;
 
     checkGlobalFirewallStatus();
+    checkBanProtocolStatus();
     initVerification();
-
-    // Bind toolbar
-    function bindToolbarButtons() {
-        const dev = document.getElementById('devSortBtn');
-        const time = document.getElementById('timeSortBtn');
-        const del = document.getElementById('deleteModeBtn');
-        if (dev) dev.onclick = toggleDevSort;
-        if (time) time.onclick = toggleTimeSort;
-        if (del) del.onclick = toggleDeleteMode;
-    }
+    loadBannedUsers();
 
     console.log('✅ Admin ready');
 });
 
 /* ============================================================
-   23. EXPORT TO WINDOW
+   22. EXPORTS
    ============================================================ */
 window.toggleFirewall = toggleFirewall;
 window.deploy = deploy;
 window.reuseLink = reuseLink;
+window.deleteLink = deleteLink;
 window.banGhost = banGhost;
 window.liftBan = liftBan;
 window.deleteSingleUser = deleteSingleUser;
