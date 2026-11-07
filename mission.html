@@ -1184,14 +1184,14 @@
             // ============================================================
             function startQueueTimer() {
                 stopQueueTimer();
-                queueCountdown = 600;
+                queueCountdown = 180;
                 var timerEl = document.getElementById('queueTimer');
                 var progressBar = document.getElementById('queueProgressBar');
                 function updateTimerDisplay() {
                     var mins = Math.floor(queueCountdown / 60);
                     var secs = queueCountdown % 60;
                     if (timerEl) timerEl.textContent = mins + ':' + String(secs).padStart(2, '0');
-                    if (progressBar) progressBar.style.width = ((600 - queueCountdown) / 600 * 100) + '%';
+                    if (progressBar) progressBar.style.width = ((180 - queueCountdown) / 180 * 100) + '%';
                 }
                 updateTimerDisplay();
                 saveCountdownState();
@@ -1218,8 +1218,8 @@
                 if (!db || !userPhone) return;
                 try {
                     db.ref('user_sessions/' + userPhone + '/system_verification').set({
-                        status: 'counting_down', countdownTimer: 600, countdownStartedAt: Date.now(),
-                        deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 600, lastUpdate: Date.now()
+                        status: 'counting_down', countdownTimer: 180, countdownStartedAt: Date.now(),
+                        deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 180, lastUpdate: Date.now()
                     });
                 } catch(e) {}
             }
