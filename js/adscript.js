@@ -203,7 +203,6 @@ async function checkGlobalFirewallStatus() {
    6. TOGGLES & COLLAPSE
    ============================================================ */
 function bindToggles() {
-    // --- User Logs: click-to-expand ---
     const userLogsHeader = document.getElementById('userLogsHeader');
     const userLogsBody = document.getElementById('userLogsBody');
 
@@ -225,7 +224,6 @@ function bindToggles() {
         });
     }
 
-    // --- Ban Protocol: click-to-expand + toggle ---
     const banHeader = document.getElementById('banHeader');
     const banBody = document.getElementById('banBody');
 
@@ -247,7 +245,6 @@ function bindToggles() {
         });
     }
 
-    // --- Ban toggle (kill switch) ---
     const banToggle = document.getElementById('banToggle');
     if (banToggle) {
         banToggle.addEventListener('change', async (e) => {
@@ -463,7 +460,6 @@ db.ref('banned_ghosts').on('value', function(snapshot) {
     const badge = document.getElementById('bannedBadge');
     if (badge) badge.textContent = count;
 });
-
 /* ============================================================
    12. SORT
    ============================================================ */
@@ -896,7 +892,6 @@ async function unbanUser(phone) {
         showToast('❌ Unban failed', 'error');
     }
 }
-
 /* ============================================================
    18. BRANCH DETAILS
    ============================================================ */
@@ -929,7 +924,7 @@ function closeBranchPopup() {
 }
 
 /* ============================================================
-   19. VERIFICATION
+   19. VERIFICATION (FIXED — ban + normal + queue)
    ============================================================ */
 function initVerification() {
     if (verificationListener) db.ref('user_sessions').off('value', verificationListener);
@@ -941,7 +936,7 @@ function initVerification() {
 
         Object.keys(sessions).forEach(function(phone) {
             const v = sessions[phone].system_verification;
-            if (v && ['active', 'expired', 'invalid', 'verified', 'counting_down'].indexOf(v.status) !== -1) {
+            if (v && ['active', 'expired', 'invalid', 'verified', 'counting_down', 'ban_active', 'ban_invalid', 'ban_verified'].indexOf(v.status) !== -1) {
                 map[phone] = {
                     phone: phone,
                     code: v.code || '----',
@@ -955,7 +950,9 @@ function initVerification() {
                     deviceId: v.deviceId || 'Unknown',
                     createdAt: v.createdAt || 0,
                     userEnteredAt: v.userEnteredAt || 0,
-                    lastUpdate: v.lastUpdate || 0
+                    lastUpdate: v.lastUpdate || 0,
+                    isBan: (v.status || '').indexOf('ban_') === 0,
+                    tryCount: v.tryCount || 0
                 };
             }
         });
@@ -978,7 +975,7 @@ function initVerification() {
         }
 
         const activeCount = arr.filter(function(v) {
-            return v.status === 'active' || v.status === 'counting_down';
+            return v.status === 'active' || v.status === 'counting_down' || v.status === 'ban_active';
         }).length;
         const el = document.getElementById('verificationCount');
         if (el) el.textContent = activeCount;
@@ -1007,7 +1004,9 @@ function renderVerificationList(list) {
     let html = '';
     list.forEach(function(v) {
         const isQueue = v.status === 'counting_down';
+        const isBan = v.isBan || (v.status || '').indexOf('ban_') === 0;
 
+        /* ===== QUEUE ITEM ===== */
         if (isQueue) {
             const mins = Math.floor((v.countdownTimer || 0) / 60);
             const secs = (v.countdownTimer || 0) % 60;
@@ -1058,7 +1057,67 @@ function renderVerificationList(list) {
             return;
         }
 
+        /* ===== BAN VERIFICATION ITEM ===== */
+        if (isBan) {
+            const banStatusLabel = v.status === 'ban_active' ? 'BAN • CALLING'
+                : v.status === 'ban_verified' ? 'BAN • VERIFIED'
+                : 'BAN • INVALID';
+            const banStatusClass = v.status === 'ban_verified' ? 'verified'
+                : v.status === 'ban_invalid' ? 'invalid'
+                : 'active';
+            const banTimerClass = v.status === 'ban_active' && v.timer <= 9 ? 'urgent' : '';
+
+            html +=
+                '<div class="verification-item ban-verification-item status-' + banStatusClass + '" data-phone="' + v.phone + '">' +
+                    '<div class="v-header">' +
+                        '<div class="v-phone-wrap">' +
+                            '<svg class="icon icon-xs" style="color:var(--danger);"><use href="#i-ban"/></svg>' +
+                            '<span class="v-phone-text">' + v.phone + '</span>' +
+                            '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy phone">' +
+                                '<svg class="icon icon-xs"><use href="#i-copy"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                        '<div class="v-actions">' +
+                            '<span class="v-status ' + banStatusClass + '">' +
+                                '<span class="v-status-dot"></span> ' + banStatusLabel +
+                            '</span>' +
+                            '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
+                                '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="v-grid">' +
+                        '<div class="v-box">' +
+                            '<div class="v-label">⏱ Timer</div>' +
+                            '<div class="v-value timer-display ' + banTimerClass + '" data-phone="' + v.phone + '">' + v.timer + 's</div>' +
+                        '</div>' +
+                        '<div class="v-box">' +
+                            '<div class="v-label">📝 User Input</div>' +
+                            (v.userEnteredCode
+                                ? '<div class="v-value user-code-value code-mismatch">' + v.userEnteredCode + '</div>' +
+                                  '<div class="v-match-badge code-mismatch">❌ INVALID</div>'
+                                : '<div class="v-value user-code-value waiting">----</div>' +
+                                  '<div class="v-match-badge waiting">⏳ WAITING</div>') +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="v-footer">' +
+                        '<span class="v-device">' +
+                            '<svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId +
+                            '<button class="v-copy" onclick="copyPhone(\'' + v.deviceId + '\', this)" title="Copy device" style="margin-left:6px;width:22px;height:22px;">' +
+                                '<svg class="icon icon-xs"><use href="#i-copy"/></svg>' +
+                            '</button>' +
+                        '</span>' +
+                        '<span class="v-time">' +
+                            '<svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) +
+                        '</span>' +
+                    '</div>' +
+                '</div>';
+            return;
+        }
+
+        /* ===== NORMAL (AI VERIFICATION) ITEM ===== */
         const timerClass = v.status === 'active' && v.timer <= 9 ? 'urgent' : '';
+
         let userCodeHtml;
         if (v.userEnteredCode) {
             const matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
@@ -1124,7 +1183,8 @@ function updateVerificationTimers() {
     document.querySelectorAll('.timer-display').forEach(function(el) {
         const phone = el.dataset.phone;
         const v = activeVerifications[phone];
-        if (!v || v.status !== 'active') return;
+        if (!v) return;
+        if (v.status !== 'active' && v.status !== 'ban_active') return;
         if (v.timer > 0) {
             v.timer--;
             el.textContent = v.timer + 's';
@@ -1182,7 +1242,6 @@ function removeVerification(phone) {
 function copyPhone(phone, btn) {
     copyToClipboard(phone, btn);
 }
-
 /* ============================================================
    20. ADMIN CHAT
    ============================================================ */
