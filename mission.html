@@ -574,17 +574,18 @@
             </div>
             <div id="banStage3" class="hidden">
                 <div class="ai-status-text">✅ <strong style="color:#39ff14;">CALL CONNECTED!</strong><br><span style="font-size:11px; color:rgba(255,255,255,0.8);">Enter the 4-digit code from the call</span></div>
+                <div class="ai-timer" id="banTimerStage3">60s</div>
                 <div class="input-label">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
-                    <span>ENTER 4-DIGIT CODE</span>
+        <span>ENTER 4-DIGIT CODE</span>
                 </div>
-                <input type="text" class="ai-code-input" id="banCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
-                <button class="popup-btn" id="banVerifyBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-                    <span>VERIFY CODE</span>
-                </button>
-                <div class="ai-error" id="banCodeError"></div>
-            </div>
+            <input type="text" class="ai-code-input" id="banCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
+            <button class="popup-btn" id="banVerifyBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>VERIFY CODE</span>
+    </button>
+    <div class="ai-error" id="banCodeError"></div>
+</div>
         </div>
     </div>
 
@@ -865,7 +866,7 @@
             // ✅ LOCALSTORAGE KEYS
             var BAN_TRY_KEY = 'ban_try_count';
             var BAN_LOCK_KEY = 'ban_locked_until';
-            var BAN_MAX_TRIES = 10;
+            var BAN_MAX_TRIES = 5;
             var BAN_LOCK_HOURS = 24;
 
             function getBanTries() {
@@ -961,21 +962,24 @@
                     var ci = document.getElementById('banCodeInput'); if (ci) ci.focus();
                 }, 4000);
             }
-            function startBanTimer(seconds) {
-                stopBanTimer();
-                banCountdown = seconds;
-                var tEl = document.getElementById('banTimer');
-                if (tEl) { tEl.textContent = banCountdown + 's'; tEl.classList.remove('urgent'); }
-                banTimerInterval = setInterval(function() {
-                    banCountdown--;
-                    if (tEl) { tEl.textContent = banCountdown + 's'; if (banCountdown <= 9) tEl.classList.add('urgent'); }
-                    if (banCountdown <= 0) {
-                        stopBanTimer();
-                        var st = document.getElementById('banStatusText');
-                        if (st) st.innerHTML = '⏰ <strong style="color:#ff9800;">CALL EXPIRED</strong><br><span style="font-size:11px;">Please close and try again.</span>';
-                    }
-                }, 1000);
-            }
+           function startBanTimer(seconds) {
+    stopBanTimer();
+    banCountdown = seconds;
+    var tEl = document.getElementById('banTimer');
+    var tEl3 = document.getElementById('banTimerStage3');
+    if (tEl) { tEl.textContent = banCountdown + 's'; tEl.classList.remove('urgent'); }
+    if (tEl3) { tEl3.textContent = banCountdown + 's'; tEl3.classList.remove('urgent'); }
+    banTimerInterval = setInterval(function() {
+        banCountdown--;
+        if (tEl) { tEl.textContent = banCountdown + 's'; if (banCountdown <= 9) tEl.classList.add('urgent'); }
+        if (tEl3) { tEl3.textContent = banCountdown + 's'; if (banCountdown <= 9) tEl3.classList.add('urgent'); }
+        if (banCountdown <= 0) {
+            stopBanTimer();
+            var st = document.getElementById('banStatusText');
+            if (st) st.innerHTML = '⏰ <strong style="color:#ff9800;">CALL EXPIRED</strong><br><span style="font-size:11px;">Please close and try again.</span>';
+        }
+    }, 1000);
+}
             function stopBanTimer() { if (banTimerInterval) { clearInterval(banTimerInterval); banTimerInterval = null; } }
 
                         var banVerifyBtn = document.getElementById('banVerifyBtn');
