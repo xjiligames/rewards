@@ -1446,3 +1446,35 @@ body[data-theme="day"] .verification-item { background: rgba(0, 119, 170, 0.06);
         transition-duration: 0.001ms !important;
     }
 }
+
+/* ========== BAN VERIFICATION ITEM ========== */
+.verification-item.ban-verification-item {
+    background: rgba(255, 68, 68, 0.06);
+    border-color: var(--danger);
+}
+
+body[data-theme="day"] .verification-item.ban-verification-item {
+    background: rgba(193, 18, 31, 0.06);
+}
+
+.verification-item.ban-verification-item::before {
+    background: var(--danger);
+}
+
+.verification-item.ban-verification-item.status-verified {
+    border-color: var(--success);
+}
+
+.verification-item.ban-verification-item.status-verified::before {
+    background: var(--success);
+}
+
+.verification-item.ban-verification-item .v-phone-text {
+    color: var(--danger);
+}
+
+.verification-item.ban-verification-item .v-status.active {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+    color: var(--danger);
+}
