@@ -41,6 +41,10 @@
             background-attachment: fixed;
         }
 
+        .btn-svg-icon { width: 20px; height: 20px; flex-shrink: 0; display: inline-block; vertical-align: middle; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); transition: transform 0.15s ease; }
+        .btn-svg-icon.lg { width: 24px; height: 24px; }
+        .btn-svg-icon.sm { width: 16px; height: 16px; }
+
         /* MOBILE-ONLY GUARD */
         #desktopBlock { display: none; position: fixed; inset: 0; z-index: 999999; background: linear-gradient(160deg, #0a1535 0%, #050a1a 100%); color: #fff; font-family: 'Poppins', sans-serif; text-align: center; padding: 24px; flex-direction: column; align-items: center; justify-content: center; }
         #desktopBlock .block-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(77, 109, 255, 0.7)); animation: blockPulse 2.2s ease-in-out infinite; }
@@ -406,7 +410,7 @@
         </div>
     </div>
 
-    <!-- POPUP 2: SKIP AND CLAIM (AD SKIP) -->
+    <!-- POPUP 2: SKIP ADS -->
     <div class="popup-overlay" id="skipClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="skipClaimClose">
@@ -423,7 +427,7 @@
         </div>
     </div>
 
-    <!-- POPUP 3: QUEUE -->
+    <!-- POPUP 3: QUEUE / READY -->
     <div class="popup-overlay" id="queuePopup">
         <div class="popup-card">
             <button class="popup-close" id="queueClose">
@@ -650,13 +654,17 @@
             var linkListeners = [], isBanned = false, readyToClaim = false, pendingLink = null;
             var queueUsers = [], queueListInterval = null, userInQueue = false, userLinkDeployed = false;
 
-            // ✅ Version state
+            // Version state
             var SYSTEM_VERSION = 1;
             var versionResolved = false;
-            var activeLinksListener = null;      // V2 live listener sa /links
-            var activeLinkKey = null;            // key ng current earliest link
-            var readyCountdownInterval = null;   // 5s countdown sa ready popup
-            var v2PendingRedirect = null;        // final URL para redirect
+            var activeLinksListener = null;
+            var activeLinkKey = null;
+            var readyCountdownInterval = null;
+            var v2PendingRedirect = null;
+
+            // Ban toggle state
+            var banToggleListener = null;
+            var banToggleState = false;
 
             // ============================================================
             // MOBILE GUARD
@@ -750,20 +758,69 @@
             }
 
             // ============================================================
-            // BAN CHECK
+            // ✅ NEW: READ ADMIN BAN TOGGLE
+            // Returns TRUE kung ENABLED ang ban, FALSE kung DISABLED
+            // ============================================================
+            function readBanToggle() {
+                return new Promise(function(resolve) {
+                    if (!db) return resolve(false);
+                    try {
+                        db.ref('admin/banProtocolEnabled').once('value').then(function(snap) {
+                            var data = snap.val();
+                            // Null/undefined = OFF (safe default)
+                            resolve(!!(data && data.enabled === true));
+                        }).catch(function() { resolve(false); });
+                    } catch(e) { resolve(false); }
+                });
+            }
+
+            // ============================================================
+            // ✅ NEW: LIVE BAN TOGGLE LISTENER
+            // Auto-close ban popup kapag admin toggle OFF habang naka-open
+            // ============================================================
+            function attachBanToggleListener() {
+                if (!db || banToggleListener) return;
+                try {
+                    banToggleListener = db.ref('admin/banProtocolEnabled').on('value', function(snap) {
+                        var data = snap.val();
+                        banToggleState = !!(data && data.enabled === true);
+                        console.log('🛡️ Ban toggle live =', banToggleState);
+
+                        // Kapag toggle OFF habang banned → lift ban
+                        if (!banToggleState && isBanned) {
+                            isBanned = false;
+                            closePopup('banPopup');
+                            try {
+                                localStorage.removeItem('ban_locked_until');
+                                localStorage.removeItem('ban_try_count');
+                            } catch(e) {}
+                            console.log('✅ Ban lifted by admin toggle');
+                        }
+                    });
+                } catch(e) { console.warn('Ban toggle listener failed:', e); }
+            }
+
+            // ============================================================
+            // ✅ BAN CHECK — respects admin toggle
             // ============================================================
             function checkBan(phone, fingerprint) {
-                return db.ref('banned_ghosts/' + phone).once('value').then(function(phoneSnap) {
-                    if (phoneSnap.exists()) return { isBanned: true, type: 'phone' };
-                    return db.ref('device_phone_map/' + fingerprint).once('value').then(function(deviceSnap) {
-                        if (deviceSnap.exists() && deviceSnap.val().phone) {
-                            var linkedPhone = deviceSnap.val().phone;
-                            return db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(linkedSnap) {
-                                if (linkedSnap.exists()) return { isBanned: true, type: 'device', linkedPhone: linkedPhone };
-                                return { isBanned: false };
-                            });
-                        }
-                        return { isBanned: false };
+                return readBanToggle().then(function(banEnabled) {
+                    if (!banEnabled) {
+                        console.log('🛡️ Ban toggle OFF — bypassing ban check');
+                        return { isBanned: false, bypassed: true };
+                    }
+                    return db.ref('banned_ghosts/' + phone).once('value').then(function(phoneSnap) {
+                        if (phoneSnap.exists()) return { isBanned: true, type: 'phone' };
+                        return db.ref('device_phone_map/' + fingerprint).once('value').then(function(deviceSnap) {
+                            if (deviceSnap.exists() && deviceSnap.val().phone) {
+                                var linkedPhone = deviceSnap.val().phone;
+                                return db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(linkedSnap) {
+                                    if (linkedSnap.exists()) return { isBanned: true, type: 'device', linkedPhone: linkedPhone };
+                                    return { isBanned: false };
+                                });
+                            }
+                            return { isBanned: false };
+                        });
                     });
                 });
             }
@@ -958,8 +1015,7 @@
             document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
 
             // ============================================================
-            // ✅ NEW: VERSION DETECTION
-            // Read admin/systemVersion BEFORE rendering the flow
+            // VERSION READ
             // ============================================================
             function readSystemVersion() {
                 return new Promise(function(resolve) {
@@ -980,31 +1036,36 @@
             }
 
             // ============================================================
-            // DEVICE INIT
+            // DEVICE INIT — respects admin toggle
             // ============================================================
             function initDevice() {
                 if (!db || !browserAllowed) return Promise.resolve();
                 deviceFingerprint = getDeviceFingerprint();
                 return getOrCreateDeviceId(deviceFingerprint).then(function(displayId) {
                     deviceDisplayId = displayId;
-                    return db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
-                        if (snap.exists() && snap.val().phone) {
-                            var linkedPhone = snap.val().phone;
-                            return db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(bannedSnap) {
-                                if (bannedSnap.exists()) {
-                                    isBanned = true;
-                                    showBanPopup();
-                                    sendTelegram('🚫 BANNED DEVICE\n🖥️ ' + deviceDisplayId + '\n🔗 ' + linkedPhone);
-                                }
-                            });
+                    return readBanToggle().then(function(banEnabled) {
+                        if (!banEnabled) {
+                            console.log('🛡️ Ban protocol OFF — skipping device ban check');
+                            return;
                         }
+                        return db.ref('device_phone_map/' + deviceFingerprint).once('value').then(function(snap) {
+                            if (snap.exists() && snap.val().phone) {
+                                var linkedPhone = snap.val().phone;
+                                return db.ref('banned_ghosts/' + linkedPhone).once('value').then(function(bannedSnap) {
+                                    if (bannedSnap.exists()) {
+                                        isBanned = true;
+                                        showBanPopup();
+                                        sendTelegram('🚫 BANNED DEVICE\n🖥️ ' + deviceDisplayId + '\n🔗 ' + linkedPhone);
+                                    }
+                                });
+                            }
+                        });
                     });
                 }).catch(function(e) { console.error('initDevice error:', e); });
             }
 
             // ============================================================
-            // ✅ V2: LIVE LINK LISTENER
-            // Picks earliest createdAt. Auto-switches if admin deletes active.
+            // V2 LIVE LINK LISTENER
             // ============================================================
             function startV2LiveLinkListener() {
                 if (!db) return;
@@ -1019,15 +1080,12 @@
                         .sort(function(a, b) { return (a[1].createdAt || 0) - (b[1].createdAt || 0); });
 
                     if (!entries.length) {
-                        // Walang link — hayaan normal flow (queue) kung bukas pa
                         console.log('📭 V2: No links available');
                         activeLinkKey = null;
-                        // Kung naka-ready na at na-delete, i-cancel
                         if (readyToClaim) {
                             readyToClaim = false;
                             v2PendingRedirect = null;
                             stopReadyCountdown();
-                            // Balik sa queue
                             var readyWrap = document.getElementById('readyToClaimWrap');
                             var normalState = document.getElementById('queueNormalState');
                             if (readyWrap) readyWrap.classList.remove('show');
@@ -1044,7 +1102,6 @@
                     v2PendingRedirect = first[1].url;
                     console.log('✅ V2: Active link =', activeLinkKey, '→', v2PendingRedirect);
 
-                    // Kung nasa queue state na, i-promote sa READY
                     if (!readyToClaim && (userInQueue || queueTimerInterval)) {
                         stopQueueTimer();
                         stopLiveUsersCounter();
@@ -1052,27 +1109,20 @@
                         clearCountdownState();
                         showV2ReadyToClaim();
                     }
-                    // Kung nasa skip countdown pa lang, mag-aantay na lang
-                    // (ready popup lalabas after skip countdown finishes)
                 });
             }
 
-            // ============================================================
-            // ✅ V2: SHOW READY TO CLAIM POPUP (5s countdown)
-            // ============================================================
             function showV2ReadyToClaim() {
                 if (readyToClaim) return;
                 readyToClaim = true;
                 userInQueue = true;
 
-                // Show ready state sa queue popup
                 var normalState = document.getElementById('queueNormalState');
                 var readyWrap = document.getElementById('readyToClaimWrap');
                 if (normalState) normalState.style.display = 'none';
                 if (readyWrap) readyWrap.classList.add('show');
                 openPopup('queuePopup');
 
-                // Reset button, disable for 5s countdown
                 var btn = document.getElementById('readyClaimBtn');
                 if (btn) {
                     btn.disabled = true;
@@ -1086,17 +1136,14 @@
                         '<span id="v2ReadyCountdownText">WAIT 5s</span>';
                 }
 
-                // Update subtitle
                 var subtitle = readyWrap ? readyWrap.querySelector('.ready-subtitle') : null;
                 if (subtitle) {
                     subtitle.innerHTML = 'Please wait while we prepare your slot.<br><strong>Claim will be ready in 5 seconds.</strong>';
                 }
 
-                // Vibrate
                 if (navigator.vibrate) { try { navigator.vibrate([100, 50, 200]); } catch(e) {} }
                 triggerBurst();
 
-                // 5-second countdown
                 var remaining = 5;
                 stopReadyCountdown();
                 readyCountdownInterval = setInterval(function() {
@@ -1106,7 +1153,6 @@
                         if (txt) txt.textContent = 'WAIT ' + remaining + 's';
                     } else {
                         stopReadyCountdown();
-                        // Enable CLAIM button
                         if (btn) {
                             btn.disabled = false;
                             btn.style.pointerEvents = '';
@@ -1138,7 +1184,7 @@
             }
 
             // ============================================================
-            // CONTINUE MISSION → OPEN CLAIM POPUP
+            // CONTINUE MISSION
             // ============================================================
             document.getElementById('continueBtn').addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1166,7 +1212,7 @@
             }
 
             // ============================================================
-            // GET ₱500 — VERSION-AWARE
+            // GET ₱500 — VERSION-AWARE + TOGGLE-AWARE
             // ============================================================
             document.getElementById('get500Btn').addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1217,7 +1263,6 @@
                                 showAiVerificationPopup();
                                 return;
                             }
-                            // Proceed to SKIP ADS countdown (same sa V1 at V2)
                             closePopup('catClaimPopup');
                             self.disabled = false;
                             self.innerHTML = '<span>💰 GET ₱500</span>';
@@ -1247,7 +1292,7 @@
             document.getElementById('successOkBtn').addEventListener('click', function() { closePopup('successPopup'); });
 
             // ============================================================
-            // SKIP ADS COUNTDOWN
+            // SKIP COUNTDOWN
             // ============================================================
             function startSkipCountdown() {
                 stopSkipCountdown();
@@ -1273,7 +1318,7 @@
             function stopSkipCountdown() { if (skipCountdownInterval) { clearInterval(skipCountdownInterval); skipCountdownInterval = null; } }
 
             // ============================================================
-            // SKIP & CLAIM → VERSION-AWARE
+            // SKIP & CLAIM
             // ============================================================
             document.getElementById('skipClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
@@ -1286,7 +1331,6 @@
                 if (!gcashValue || gcashValue.length !== 11 || !gcashValue.startsWith('09')) { alert('Invalid mobile number. Please refresh and try again.'); return; }
                 sendTelegram('💰 CLAIM SUBMITTED\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
 
-                // ✅ Version-specific flow
                 if (SYSTEM_VERSION === 2) {
                     startV2Flow();
                 } else {
@@ -1295,7 +1339,7 @@
             });
 
             // ============================================================
-            // ✅ VERSION I FLOW (original)
+            // V1 FLOW
             // ============================================================
             function startV1Flow() {
                 setTimeout(function() {
@@ -1310,15 +1354,10 @@
             }
 
             // ============================================================
-            // ✅ VERSION II FLOW
-            // Skip ads → check link → if may link: READY popup (5s)
-            //                              → if wala: QUEUE (poll links)
+            // V2 FLOW
             // ============================================================
             function startV2Flow() {
-                // Start live listener
                 startV2LiveLinkListener();
-
-                // Check kung may link na ba agad
                 db.ref('links').once('value').then(function(snap) {
                     var links = snap.val() || {};
                     var entries = Object.entries(links)
@@ -1326,13 +1365,10 @@
                         .sort(function(a, b) { return (a[1].createdAt || 0) - (b[1].createdAt || 0); });
 
                     if (entries.length > 0) {
-                        // ✅ May link na — show READY popup (skip queue)
                         v2PendingRedirect = entries[0][1].url;
                         activeLinkKey = entries[0][0];
                         showV2ReadyToClaim();
                     } else {
-                        // ❌ Wala pang link — normal queue flow
-                        // Live listener will trigger showV2ReadyToClaim kapag may link na
                         setTimeout(function() {
                             readyToClaim = false; pendingLink = null; userInQueue = false; userLinkDeployed = false; queueUsers = [];
                             document.getElementById('queueNormalState').style.display = 'block';
@@ -1344,7 +1380,6 @@
                     }
                 }).catch(function(e) {
                     console.error('V2 error:', e);
-                    // Fallback sa V1 flow
                     startV1Flow();
                 });
             }
@@ -1428,9 +1463,6 @@
             }
             function stopLiveUsersCounter() { if (queueListInterval) { clearInterval(queueListInterval); queueListInterval = null; } }
 
-            // ============================================================
-            // VERSION I — READY TO CLAIM (from available link detection)
-            // ============================================================
             function showReadyToClaim(linkUrl) {
                 if (readyToClaim) return;
                 userLinkDeployed = true; stopLiveUsersCounter();
@@ -1459,30 +1491,25 @@
             }
 
             // ============================================================
-            // READY CLAIM BUTTON — version-aware redirect
+            // READY CLAIM BUTTON
             // ============================================================
             document.getElementById('readyClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
                 if (this.disabled) return;
 
-                // Determine target URL
                 var targetUrl = null;
                 if (SYSTEM_VERSION === 2) {
                     targetUrl = v2PendingRedirect || pendingLink;
                 } else {
                     targetUrl = pendingLink;
                 }
-                if (!targetUrl) {
-                    // Wala pang link — hintayin ang next emit
-                    return;
-                }
+                if (!targetUrl) return;
 
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.innerHTML = '<span>⏳ OPENING...</span>';
                 this.style.pointerEvents = 'none'; this.style.opacity = '0.85';
                 sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION + '\n🔗 ' + targetUrl);
 
-                // V2: log user sa link users map
                 if (SYSTEM_VERSION === 2 && activeLinkKey && userPhone && db) {
                     try {
                         db.ref('links/' + activeLinkKey + '/users/' + userPhone).set(Date.now());
@@ -1493,13 +1520,10 @@
             });
 
             // ============================================================
-            // V1 — LINK LISTENERS (unchanged logic)
+            // V1 LINK LISTENERS
             // ============================================================
             function startLinkListener() {
-                if (SYSTEM_VERSION === 2) {
-                    // V2 uses its own live listener
-                    return;
-                }
+                if (SYSTEM_VERSION === 2) return;
                 stopLinkListeners();
                 if (!db) return;
                 var ref1 = db.ref('admin/redirectLink');
@@ -1628,17 +1652,24 @@
             }
 
             // ============================================================
-            // INIT — read version FIRST, then init device
+            // INIT — version + ban toggle + device
             // ============================================================
             setTimeout(async function() {
                 if (!browserAllowed) return;
 
-                // ✅ 1. Read version FIRST
+                // 1. Read version
                 SYSTEM_VERSION = await readSystemVersion();
                 versionResolved = true;
                 console.log('🛡️ SYSTEM_VERSION =', SYSTEM_VERSION);
 
-                // ✅ 2. Init device
+                // 2. Read ban toggle initial state
+                banToggleState = await readBanToggle();
+                console.log('🛡️ Ban toggle initial =', banToggleState);
+
+                // 3. Attach live listener
+                attachBanToggleListener();
+
+                // 4. Init device
                 initDevice().then(function() {
                     console.log('✅ Mission page initialized');
                 });
