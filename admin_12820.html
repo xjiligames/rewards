@@ -118,6 +118,14 @@
     <symbol id="i-chevron" viewBox="0 0 24 24">
         <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
+    <!-- NEW: folder icon for Version II stack -->
+    <symbol id="i-folder" viewBox="0 0 24 24">
+        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <!-- NEW: hash icon for LINK # -->
+    <symbol id="i-hash" viewBox="0 0 24 24">
+        <path d="M5 9h14M5 15h14M9 4l-2 16M17 4l-2 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
 </svg>
 
 <div id="dashboard" class="dashboard">
@@ -146,12 +154,47 @@
             </h3>
         </div>
         <div class="card-body">
+
+            <!-- ========== NEW: VERSION SELECTOR ========== -->
+            <div class="form-group">
+                <label class="form-label">
+                    <svg class="icon icon-xs"><use href="#i-target"/></svg>
+                    System Version
+                </label>
+                <div class="version-selector">
+                    <button type="button" class="version-btn" id="versionBtn1" onclick="setSystemVersion(1)">
+                        <span class="version-num">I</span>
+                        <span class="version-label">FIRST COME</span>
+                    </button>
+                    <button type="button" class="version-btn" id="versionBtn2" onclick="setSystemVersion(2)">
+                        <span class="version-num">II</span>
+                        <span class="version-label">SHARED</span>
+                    </button>
+                </div>
+                <div class="status-msg" id="versionStatusMsg">
+                    ⚙️ Version I — First-come, first-served (current)
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
             <div class="form-group">
                 <label class="form-label">
                     <svg class="icon icon-xs"><use href="#i-link"/></svg>
                     Deploy Payout Links
                 </label>
                 <textarea id="links" rows="3" placeholder="Paste links (one per line)..."></textarea>
+
+                <!-- ========== NEW: LINK # input (Version II only) ========== -->
+                <div class="link-num-row" id="linkNumRow" style="display:none;">
+                    <label class="form-label" style="margin-bottom:6px;">
+                        <svg class="icon icon-xs"><use href="#i-hash"/></svg>
+                        LINK #
+                    </label>
+                    <input type="number" id="linkNumberInput" placeholder="e.g. 1" min="1" step="1" autocomplete="off">
+                    <p class="hint-text">Optional — if blank, system auto-assigns next number.</p>
+                </div>
+
                 <button class="btn" onclick="deploy()">
                     <svg class="icon icon-xs"><use href="#i-rocket"/></svg>
                     DEPLOY NOW
@@ -183,6 +226,22 @@
             </h3>
         </div>
         <div class="card-body">
+
+            <!-- ========== NEW: VERSION II LINK STACK (folder-style) ========== -->
+            <div class="link-stack-section" id="linkStackSection" style="display:none;">
+                <div class="link-stack-head">
+                    <span class="link-stack-title">
+                        <svg class="icon icon-xs"><use href="#i-folder"/></svg>
+                        Deployed Link Stack
+                    </span>
+                    <span class="link-stack-hint">Active order: first deployed → active</span>
+                </div>
+                <div class="link-stack" id="linkStack">
+                    <div class="empty-hint">No links deployed yet</div>
+                </div>
+                <div class="divider"></div>
+            </div>
+
             <div class="verification-list" id="verificationList">
                 <div class="verification-empty">
                     <svg class="icon icon-lg"><use href="#i-target"/></svg>
@@ -203,10 +262,8 @@
             <div class="table-wrap">
                 <table>
                     <thead>
-                        <tr>
-                            <th>STATUS</th>
-                            <th>USER</th>
-                            <th class="action-col">ACTIONS</th>
+                        <tr id="linkMonitorHead">
+                            <!-- rendered dynamically -->
                         </tr>
                     </thead>
                     <tbody id="linkData"></tbody>
