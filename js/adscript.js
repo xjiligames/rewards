@@ -1,13 +1,11 @@
 /**
  * ============================================================
- * C.I.A. ADMIN — adscript.js v4.1
+ * C.I.A. ADMIN — adscript.js v4.3
  * Version I (First Come) + Version II (Shared Link)
+ * V2 Link Monitor: LINK# | USER (with per-user access time) | ACTION
  * ============================================================
  */
 
-/* ============================================================
-   1. FIREBASE
-   ============================================================ */
 const firebaseConfig = {
     apiKey: "AIzaSyCjTn-hyUdZGiDHsy5_ijYu6KQCYMElsTI",
     authDomain: "casinorewards-95502.firebaseapp.com",
@@ -22,7 +20,7 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /* ============================================================
-   2. STATE
+   STATE
    ============================================================ */
 let globalFirewallActive = false;
 let banProtocolEnabled = false;
@@ -41,26 +39,21 @@ let deleteModeState = 0;
 let selectedUsers = [];
 let devSortState = 0;
 
-/* Version state */
 let SYSTEM_VERSION = 1;
 let linkMonitorData = {};
 let linkMonitorListener = null;
 let linkStackData = [];
 
-/* Deploy popup pending state */
 let pendingDeployLinks = [];
 let pendingDeleteLinkKey = null;
 
 /* ============================================================
-   3. UTILS
+   UTILS
    ============================================================ */
 function generateHash(u) {
     if (!u) return '#00000000';
     let h = 0;
-    for (let i = 0; i < u.length; i++) {
-        h = ((h << 5) - h) + u.charCodeAt(i);
-        h |= 0;
-    }
+    for (let i = 0; i < u.length; i++) { h = ((h << 5) - h) + u.charCodeAt(i); h |= 0; }
     return '#' + Math.abs(h).toString(16).substring(0, 8);
 }
 
@@ -87,6 +80,28 @@ function formatDate(ts) {
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+/* Short time "3:42 PM" or "Nov 11 · 3:42 PM" */
+function formatShortTime(ts) {
+    if (!ts) return '---';
+    const d = new Date(ts);
+    const now = new Date();
+    const sameDay =
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getDate() === now.getDate();
+
+    let h = d.getHours();
+    const m = d.getMinutes().toString().padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    const timeStr = h + ':' + m + ' ' + ampm;
+
+    if (sameDay) return timeStr;
+
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    return month + ' ' + d.getDate() + ' · ' + timeStr;
+}
+
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -105,25 +120,17 @@ function copyToClipboard(text, btn) {
         const original = btn.innerHTML;
         btn.innerHTML = '<svg class="icon icon-xs"><use href="#i-check"/></svg>';
         btn.classList.add('copied');
-        setTimeout(() => {
-            btn.innerHTML = original;
-            btn.classList.remove('copied');
-        }, 1200);
+        setTimeout(() => { btn.innerHTML = original; btn.classList.remove('copied'); }, 1200);
     };
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
-    } else {
-        fallbackCopy(text, done);
-    }
+    } else { fallbackCopy(text, done); }
 }
 
 function fallbackCopy(text, done) {
     const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); done(); } catch (e) {}
     document.body.removeChild(ta);
 }
@@ -148,7 +155,7 @@ function showToast(message, type) {
 }
 
 /* ============================================================
-   4. THEME
+   THEME
    ============================================================ */
 function applyTheme(day) {
     document.body.setAttribute('data-theme', day ? 'day' : 'night');
@@ -161,26 +168,18 @@ function applyTheme(day) {
 }
 
 /* ============================================================
-   5. FIREWALL
+   FIREWALL
    ============================================================ */
 async function toggleFirewall() {
     if (!globalFirewallActive) {
         if (!confirm('🔥 ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.')) return;
-        await db.ref('admin/globalFirewall').set({
-            active: true, activatedBy: 'ADMIN', timestamp: Date.now()
-        });
-        globalFirewallActive = true;
-        applyTheme(true);
-        updateFirewallUI();
+        await db.ref('admin/globalFirewall').set({ active: true, activatedBy: 'ADMIN', timestamp: Date.now() });
+        globalFirewallActive = true; applyTheme(true); updateFirewallUI();
         alert('🔥 FIREWALL ACTIVATED — Day mode');
     } else {
         if (!confirm('🌙 DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.')) return;
-        await db.ref('admin/globalFirewall').set({
-            active: false, deactivatedBy: 'ADMIN', timestamp: Date.now()
-        });
-        globalFirewallActive = false;
-        applyTheme(false);
-        updateFirewallUI();
+        await db.ref('admin/globalFirewall').set({ active: false, deactivatedBy: 'ADMIN', timestamp: Date.now() });
+        globalFirewallActive = false; applyTheme(false); updateFirewallUI();
         alert('🌙 FIREWALL DEACTIVATED — Night mode');
     }
 }
@@ -207,13 +206,11 @@ async function checkGlobalFirewallStatus() {
         globalFirewallActive = !!(data && data.active === true);
         applyTheme(globalFirewallActive);
         updateFirewallUI();
-    } catch (e) {
-        console.warn('Could not check firewall:', e);
-    }
+    } catch (e) { console.warn('Could not check firewall:', e); }
 }
 
 /* ============================================================
-   5.1 SYSTEM VERSION (NO POPUP ON SWITCH)
+   SYSTEM VERSION
    ============================================================ */
 async function checkSystemVersion() {
     try {
@@ -226,9 +223,7 @@ async function checkSystemVersion() {
             else if (typeof data === 'string') v = parseInt(data, 10) || 1;
         }
         SYSTEM_VERSION = (v === 2) ? 2 : 1;
-    } catch (e) {
-        SYSTEM_VERSION = 1;
-    }
+    } catch (e) { SYSTEM_VERSION = 1; }
     applyVersionUI();
 }
 
@@ -253,20 +248,13 @@ function applyVersionUI() {
     renderLinkStack();
 }
 
-/* ✅ NO POPUP — instant switch */
 async function setSystemVersion(v) {
     const target = (v === 2) ? 2 : 1;
     if (target === SYSTEM_VERSION) return;
-
     SYSTEM_VERSION = target;
     applyVersionUI();
-
     try {
-        await db.ref('admin/systemVersion').set({
-            version: target,
-            updatedAt: Date.now(),
-            updatedBy: 'ADMIN'
-        });
+        await db.ref('admin/systemVersion').set({ version: target, updatedAt: Date.now(), updatedBy: 'ADMIN' });
         showToast('✅ Switched to Version ' + (target === 1 ? 'I' : 'II'), 'success');
     } catch (e) {
         console.error('Failed to save version:', e);
@@ -275,12 +263,11 @@ async function setSystemVersion(v) {
 }
 
 /* ============================================================
-   6. TOGGLES & COLLAPSE
+   TOGGLES & COLLAPSE
    ============================================================ */
 function bindToggles() {
     const userLogsHeader = document.getElementById('userLogsHeader');
     const userLogsBody = document.getElementById('userLogsBody');
-
     if (userLogsHeader && userLogsBody) {
         userLogsHeader.addEventListener('click', () => {
             const expanded = userLogsHeader.getAttribute('aria-expanded') === 'true';
@@ -288,23 +275,16 @@ function bindToggles() {
             if (expanded) userLogsBody.classList.add('is-closed');
             else userLogsBody.classList.remove('is-closed');
         });
-        userLogsHeader.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); userLogsHeader.click(); }
-        });
     }
 
     const banHeader = document.getElementById('banHeader');
     const banBody = document.getElementById('banBody');
-
     if (banHeader && banBody) {
         banHeader.addEventListener('click', () => {
             const expanded = banHeader.getAttribute('aria-expanded') === 'true';
             banHeader.setAttribute('aria-expanded', expanded ? 'false' : 'true');
             if (expanded) banBody.classList.add('is-closed');
             else banBody.classList.remove('is-closed');
-        });
-        banHeader.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); banHeader.click(); }
         });
     }
 
@@ -316,9 +296,7 @@ function bindToggles() {
             updateToggleText(banToggle, enabled);
             updateBanStatusBanner(enabled);
             try {
-                await db.ref('admin/banProtocolEnabled').set({
-                    enabled: enabled, updatedAt: Date.now(), updatedBy: 'ADMIN'
-                });
+                await db.ref('admin/banProtocolEnabled').set({ enabled: enabled, updatedAt: Date.now(), updatedBy: 'ADMIN' });
             } catch (err) {
                 console.error('Failed to save ban protocol:', err);
                 showToast('❌ Failed to save ban toggle', 'error');
@@ -337,12 +315,10 @@ function updateBanStatusBanner(enabled) {
     const text = document.getElementById('banStatusText');
     if (!banner || !text) return;
     if (enabled) {
-        banner.classList.remove('is-off');
-        banner.classList.add('is-on');
+        banner.classList.remove('is-off'); banner.classList.add('is-on');
         text.textContent = 'Ban system is ENABLED — banned users are restricted.';
     } else {
-        banner.classList.remove('is-on');
-        banner.classList.add('is-off');
+        banner.classList.remove('is-on'); banner.classList.add('is-off');
         text.textContent = 'Ban system is DISABLED — banned users can access pages.';
     }
 }
@@ -358,27 +334,22 @@ async function checkBanProtocolStatus() {
             updateToggleText(banToggle, banProtocolEnabled);
         }
         updateBanStatusBanner(banProtocolEnabled);
-    } catch (e) {
-        console.warn('Could not check ban protocol:', e);
-    }
+    } catch (e) { console.warn('Could not check ban protocol:', e); }
 }
 
 /* ============================================================
-   7. DEPLOY
+   DEPLOY
    ============================================================ */
 async function deploy() {
     const input = document.getElementById('links');
     const v = input.value.trim();
     if (!v) { alert('⚠️ Enter at least one link'); return; }
-
     const links = v.split('\n').map(u => u.trim()).filter(Boolean);
     if (!links.length) { alert('⚠️ Enter at least one link'); return; }
 
     if (SYSTEM_VERSION === 2) {
-        // V2: show LINK # popup
         openDeployNumPopup(links);
     } else {
-        // V1: deploy immediately
         deployLinksV1(links);
         input.value = '';
         alert('✅ ' + links.length + ' link(s) deployed (Version I)');
@@ -388,36 +359,25 @@ async function deploy() {
 function deployLinksV1(links) {
     links.forEach(url => {
         db.ref('links').push({
-            url: url,
-            hash: generateHash(url),
-            status: 'available',
-            user: 'NONE',
-            createdAt: Date.now(),
-            linkNumber: 0,
-            version: 1
+            url: url, hash: generateHash(url), status: 'available',
+            user: 'NONE', createdAt: Date.now(), linkNumber: 0, version: 1
         });
     });
 }
 
 /* ============================================================
-   7.1 DEPLOY LINK # POPUP (Version II)
+   DEPLOY LINK # POPUP
    ============================================================ */
 async function openDeployNumPopup(links) {
     pendingDeployLinks = links;
-
-    // Load existing to compute next available #
     let usedNumbers = new Set();
     try {
         const snap = await db.ref('links').once('value');
         const existing = snap.val() || {};
         Object.values(existing).forEach(d => {
-            if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) {
-                usedNumbers.add(d.linkNumber);
-            }
+            if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) usedNumbers.add(d.linkNumber);
         });
-    } catch (e) {
-        console.warn('Could not load existing links:', e);
-    }
+    } catch (e) { console.warn('Could not load existing links:', e); }
 
     let nextAvailable = 1;
     while (usedNumbers.has(nextAvailable)) nextAvailable++;
@@ -426,18 +386,13 @@ async function openDeployNumPopup(links) {
     document.getElementById('deployNumNext').textContent = nextAvailable;
     document.getElementById('deployNumInput').value = '';
     document.getElementById('deployNumError').classList.remove('show');
-
     updateDeployNumPreview();
-
     document.getElementById('deployNumPopup').style.display = 'flex';
 
-    // Bind input listener
     const input = document.getElementById('deployNumInput');
     input.oninput = updateDeployNumPreview;
     input.focus();
-    input.onkeypress = (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); confirmDeployWithNumber(); }
-    };
+    input.onkeypress = (e) => { if (e.key === 'Enter') { e.preventDefault(); confirmDeployWithNumber(); } };
 }
 
 function closeDeployNumPopup() {
@@ -452,7 +407,6 @@ function updateDeployNumPreview() {
     const errEl = document.getElementById('deployNumError');
     if (!preview) return;
 
-    // Determine starting number
     let startNum = 0;
     if (raw !== '') {
         const parsed = parseInt(raw, 10);
@@ -462,7 +416,6 @@ function updateDeployNumPreview() {
         }
         startNum = parsed;
     } else {
-        // Auto: compute from current used
         const used = new Set();
         Object.values(linkMonitorData || {}).forEach(d => {
             if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) used.add(d.linkNumber);
@@ -472,7 +425,6 @@ function updateDeployNumPreview() {
         startNum = next;
     }
 
-    // Build preview chips
     const usedNumbers = new Set();
     Object.values(linkMonitorData || {}).forEach(d => {
         if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) usedNumbers.add(d.linkNumber);
@@ -512,13 +464,11 @@ async function confirmDeployWithNumber() {
         startNum = parsed;
     }
 
-    // Compute used
     const usedNumbers = new Set();
     Object.values(linkMonitorData || {}).forEach(d => {
         if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) usedNumbers.add(d.linkNumber);
     });
 
-    // Validate all proposed numbers
     if (startNum > 0) {
         const conflicts = [];
         for (let i = 0; i < pendingDeployLinks.length; i++) {
@@ -531,41 +481,28 @@ async function confirmDeployWithNumber() {
         }
     }
 
-    // Auto-assign starting number if blank
     let nextNum = startNum > 0 ? startNum : 1;
     while (usedNumbers.has(nextNum)) nextNum++;
 
-    // Deploy
     const deployed = [];
     for (const url of pendingDeployLinks) {
         while (usedNumbers.has(nextNum)) nextNum++;
-        const num = nextNum;
-        nextNum++;
-        usedNumbers.add(num);
-
+        const num = nextNum; nextNum++; usedNumbers.add(num);
         const newRef = db.ref('links').push();
         await newRef.set({
-            url: url,
-            hash: generateHash(url),
-            status: 'available',
-            user: 'NONE',
-            createdAt: Date.now(),
-            linkNumber: num,
-            version: 2,
-            users: {}
+            url: url, hash: generateHash(url), status: 'available',
+            user: 'NONE', createdAt: Date.now(), linkNumber: num, version: 2, users: {}
         });
         deployed.push({ linkNumber: num, url: url, key: newRef.key });
     }
 
-    // Clear textarea + close popup
     document.getElementById('links').value = '';
     closeDeployNumPopup();
-
     showToast('✅ ' + deployed.length + ' link(s) deployed', 'success');
 }
 
 /* ============================================================
-   7.2 DELETE LINK (Version-aware)
+   REUSE / DELETE (V1 vs V2)
    ============================================================ */
 function reuseLink(key) {
     if (SYSTEM_VERSION === 2) {
@@ -591,11 +528,9 @@ function deleteLink(key) {
 
 async function openDeleteLinkPopup(key) {
     pendingDeleteLinkKey = key;
-
     const data = linkMonitorData[key];
     if (!data) { alert('Link not found'); return; }
 
-    // Find active link key (earliest createdAt)
     const arr = Object.entries(linkMonitorData)
         .map(([k, v]) => ({ key: k, createdAt: v.createdAt || 0 }))
         .sort((a, b) => a.createdAt - b.createdAt);
@@ -609,7 +544,6 @@ async function openDeleteLinkPopup(key) {
     const statusEl = document.getElementById('deleteLinkStatus');
     statusEl.textContent = isActive ? 'ACTIVE' : 'QUEUED';
     statusEl.classList.toggle('is-queued', !isActive);
-
     document.getElementById('deleteLinkUrl').textContent = data.url || '---';
     document.getElementById('deleteLinkUsers').textContent = userCount + ' user(s)';
     document.getElementById('deleteLinkDate').textContent = formatDate(data.createdAt);
@@ -627,11 +561,10 @@ async function confirmDeleteLink() {
     const key = pendingDeleteLinkKey;
     const data = linkMonitorData[key];
     const num = data ? data.linkNumber : 0;
-
     try {
         await db.ref('links/' + key).remove();
         closeDeleteLinkPopup();
-        showToast('🗑️ LINK #' + num + ' deleted', 'success');
+        showToast('🗑️ LINK #' + num + ' deleted (all data removed)', 'success');
     } catch (e) {
         console.error('Delete failed:', e);
         showToast('❌ Delete failed', 'error');
@@ -639,16 +572,12 @@ async function confirmDeleteLink() {
 }
 
 /* ============================================================
-   7.3 LINK STACK (Version II)
+   LINK STACK
    ============================================================ */
 function renderLinkStack() {
     const stackEl = document.getElementById('linkStack');
     if (!stackEl) return;
-
-    if (SYSTEM_VERSION !== 2) {
-        stackEl.innerHTML = '';
-        return;
-    }
+    if (SYSTEM_VERSION !== 2) { stackEl.innerHTML = ''; return; }
 
     const arr = Object.entries(linkMonitorData || {})
         .filter(([k, v]) => v && v.url)
@@ -661,14 +590,12 @@ function renderLinkStack() {
         .sort((a, b) => a.createdAt - b.createdAt);
 
     linkStackData = arr;
-
     if (!arr.length) {
         stackEl.innerHTML = '<div class="empty-hint">No links deployed yet</div>';
         return;
     }
 
     const activeKey = arr[0].key;
-
     let html = '';
     arr.forEach(item => {
         const isActive = item.key === activeKey;
@@ -685,7 +612,9 @@ function renderLinkStack() {
 }
 
 /* ============================================================
-   8. LINK MONITOR
+   LINK MONITOR — HEADER
+   V2 columns: LINK# | USER | ACTION
+   (date/time moved INSIDE user rows)
    ============================================================ */
 function renderLinkMonitorHeader() {
     const head = document.getElementById('linkMonitorHead');
@@ -693,15 +622,16 @@ function renderLinkMonitorHeader() {
 
     if (SYSTEM_VERSION === 2) {
         head.innerHTML =
-            '<th style="text-align:center;">LINK#</th>' +
-            '<th>STATUS</th>' +
+            '<th style="text-align:center;width:70px;">LINK#</th>' +
             '<th>USER</th>' +
-            '<th class="action-col">ACTIONS</th>';
+            '<th class="action-col" style="width:56px;">ACTION</th>';
+        head.classList.add('link-monitor-v2');
     } else {
         head.innerHTML =
             '<th>STATUS</th>' +
             '<th>USER</th>' +
             '<th class="action-col">ACTIONS</th>';
+        head.classList.remove('link-monitor-v2');
     }
 }
 
@@ -711,7 +641,7 @@ function renderLinkMonitorBody() {
 
     const links = linkMonitorData || {};
     if (Object.keys(links).length === 0) {
-        const colspan = SYSTEM_VERSION === 2 ? 4 : 3;
+        const colspan = SYSTEM_VERSION === 2 ? 3 : 3;
         tbody.innerHTML = '<tr><td colspan="' + colspan + '" class="empty-hint">No links deployed yet</td></tr>';
         return;
     }
@@ -752,58 +682,72 @@ function renderLinkMonitorBodyV1(tbody, links) {
     });
 }
 
+/* ✅ V2 — LINK# | USER (with per-user access time) | ACTION */
 function renderLinkMonitorBodyV2(tbody, links) {
     const arr = Object.entries(links)
         .map(([k, v]) => ({ key: k, data: v, createdAt: v.createdAt || 0 }))
         .sort((a, b) => a.createdAt - b.createdAt);
 
     const activeKey = arr.length ? arr[0].key : null;
-
     tbody.innerHTML = '';
+
     arr.forEach(({ key, data }) => {
         const num = data.linkNumber || 0;
         const isActive = key === activeKey;
-        const usersMap = data.users || {};
-        const userPhones = Object.keys(usersMap);
-        const userCount = userPhones.length;
 
-        let userCell;
-        if (userCount === 0) {
-            userCell = '<span style="color:var(--fg-subtle);font-style:italic;">— none yet —</span>';
+        /* --- USER CELL with per-user access time --- */
+        const usersMap = data.users || {};
+        const userEntries = Object.entries(usersMap)
+            .map(([phone, ts]) => ({
+                phone,
+                ts: (typeof ts === 'number') ? ts : (ts && ts.timestamp ? ts.timestamp : 0)
+            }))
+            .sort((a, b) => b.ts - a.ts);  // newest access on top
+
+        let userCellInner;
+        if (userEntries.length === 0) {
+            userCellInner = '<span class="lm-users-none">— none yet —</span>';
         } else {
-            const preview = userPhones.slice(0, 2).join(', ');
-            const more = userCount > 2 ? (' +' + (userCount - 2)) : '';
-            userCell =
-                '<div class="link-user-list has-users" title="' + escapeHtml(userPhones.join('\n')) + '">' +
-                    preview + more +
-                    '<span class="link-user-count">' + userCount + '</span>' +
-                '</div>';
+            let userHtml = '<div class="lm-users-wrap">';
+            userEntries.forEach(entry => {
+                userHtml +=
+                    '<div class="lm-user-row">' +
+                        '<span class="lm-user-phone" title="' + escapeHtml(entry.phone) + '">' + escapeHtml(entry.phone) + '</span>' +
+                        '<span class="lm-user-time" title="' + (entry.ts ? new Date(entry.ts).toLocaleString() : 'unknown') + '">' +
+                            '<svg class="icon"><use href="#i-clock"/></svg>' +
+                            formatShortTime(entry.ts) +
+                        '</span>' +
+                    '</div>';
+            });
+            userHtml += '</div>';
+            userCellInner = userHtml;
         }
 
-        tbody.innerHTML +=
-            '<tr>' +
-                '<td class="cell-linknum">' +
-                    '<span class="link-num-badge' + (isActive ? ' is-active' : '') + '" ' +
-                          'onclick="openDeleteLinkPopup(\'' + key + '\')" ' +
-                          'title="Click to delete LINK #' + num + '">' +
-                        '#' + num +
-                    '</span>' +
-                '</td>' +
-                '<td>' +
-                    '<span class="link-status ' + (isActive ? 'available' : 'used') + '">' +
-                        '<span class="dot"></span>' +
-                        (isActive ? 'ACTIVE' : 'QUEUED') +
-                    '</span>' +
-                '</td>' +
-                '<td>' + userCell + '</td>' +
-                '<td class="action-col">' +
-                    '<div class="link-actions">' +
-                        '<button class="btn-icon" onclick="reuseLink(\'' + key + '\')" title="Clear users">' +
-                            '<svg class="icon icon-xs"><use href="#i-clock"/></svg>' +
-                        '</button>' +
-                    '</div>' +
-                '</td>' +
-            '</tr>';
+        /* --- LINK# cell --- */
+        const linkNumCell =
+            '<td class="lm-linknum-cell">' +
+                '<span class="lm-linknum-badge' + (isActive ? ' is-active' : '') + '" ' +
+                      'onclick="openDeleteLinkPopup(\'' + key + '\')" ' +
+                      'title="Click to delete LINK #' + num + '">' +
+                    (isActive ? '<span class="lm-linknum-dot"></span>' : '') +
+                    '#' + num +
+                '</span>' +
+            '</td>';
+
+        /* --- USER cell --- */
+        const userCell = '<td class="lm-user-cell">' + userCellInner + '</td>';
+
+        /* --- ACTION cell --- */
+        const actionCell =
+            '<td class="lm-action-cell">' +
+                '<button class="lm-del-btn" ' +
+                        'onclick="openDeleteLinkPopup(\'' + key + '\')" ' +
+                        'title="Delete LINK #' + num + ' and all its data">' +
+                    '<svg class="icon"><use href="#i-trash"/></svg>' +
+                '</button>' +
+            '</td>';
+
+        tbody.innerHTML += '<tr>' + linkNumCell + userCell + actionCell + '</tr>';
     });
 }
 
@@ -820,38 +764,28 @@ function attachLinkMonitorListener() {
 }
 
 /* ============================================================
-   9. DEVICE MAP
+   DEVICE MAP
    ============================================================ */
 async function getDeviceDisplayId(fp) {
     if (!fp || fp === '---') return '---';
     try {
         const m = await db.ref('device_id_map/' + fp).once('value');
         if (m.exists()) return m.val().displayId;
-
-        const result = await db.ref('admin/deviceCounter').transaction(function(n) {
-            return (n || 0) + 1;
-        });
+        const result = await db.ref('admin/deviceCounter').transaction(function(n) { return (n || 0) + 1; });
         const id = 'Dev' + result.snapshot.val();
-        await db.ref('device_id_map/' + fp).set({
-            displayId: id, createdAt: Date.now(), fingerprint: fp
-        });
+        await db.ref('device_id_map/' + fp).set({ displayId: id, createdAt: Date.now(), fingerprint: fp });
         return id;
-    } catch (e) {
-        console.warn('Device mapping error:', e);
-        return '---';
-    }
+    } catch (e) { console.warn('Device mapping error:', e); return '---'; }
 }
 
 /* ============================================================
-   10. USER SESSIONS
+   USER SESSIONS
    ============================================================ */
 db.ref('user_sessions').on('value', async function(snapshot) {
     const sessions = snapshot.val() || {};
     const usersArray = [];
-
     for (const entry of Object.entries(sessions)) {
-        const phone = entry[0];
-        const data = entry[1];
+        const phone = entry[0]; const data = entry[1];
         const lastRaw = data.lastUpdate || 0;
         let lastFormatted = '---';
         if (lastRaw) {
@@ -865,30 +799,20 @@ db.ref('user_sessions').on('value', async function(snapshot) {
         const fp = data.deviceFingerprint || '---';
         let dev = '---';
         if (fp !== '---') dev = await getDeviceDisplayId(fp);
-
         usersArray.push({
-            phone: phone,
-            balance: (data.balance || 0).toLocaleString(),
-            devDisplay: dev,
-            lastSeen: lastFormatted,
-            lastSeenRaw: lastRaw,
-            status: data.status || 'online'
+            phone, balance: (data.balance || 0).toLocaleString(),
+            devDisplay: dev, lastSeen: lastFormatted,
+            lastSeenRaw: lastRaw, status: data.status || 'online'
         });
     }
-
     currentUserData = usersArray;
     sortByLastSeen(true);
-
     if (deleteModeState === 1) renderUserTableWithCheckboxes();
     else renderUserTable();
-
     const activeBadge = document.getElementById('activeUsersBadge');
     if (activeBadge) activeBadge.textContent = Object.keys(sessions).length;
 });
 
-/* ============================================================
-   11. BANNED BADGE
-   ============================================================ */
 db.ref('banned_ghosts').on('value', function(snapshot) {
     const count = snapshot.numChildren() || 0;
     const badge = document.getElementById('bannedBadge');
@@ -896,13 +820,12 @@ db.ref('banned_ghosts').on('value', function(snapshot) {
 });
 
 /* ============================================================
-   12. SORT
+   SORT
    ============================================================ */
 function sortByLastSeen(silent) {
     currentUserData.sort(function(a, b) { return b.lastSeenRaw - a.lastSeenRaw; });
     if (!silent) renderUserTable();
 }
-
 function sortByDevice(asc) {
     currentUserData.sort(function(a, b) {
         const nA = parseInt(a.devDisplay.replace('Dev', '')) || 999;
@@ -913,17 +836,15 @@ function sortByDevice(asc) {
 }
 
 /* ============================================================
-   13. USER TABLE
+   USER TABLE
    ============================================================ */
 function renderUserTable() {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
-
     if (!currentUserData.length) {
         tbody.innerHTML = '<tr><td colspan="6" class="empty-hint">No users found</td></tr>';
         return;
     }
-
     let html = '';
     currentUserData.forEach(function(u) {
         html +=
@@ -947,20 +868,16 @@ function renderUserTable() {
 function renderUserTableWithCheckboxes() {
     const tbody = document.getElementById('ghostData');
     if (!tbody) return;
-
     if (!currentUserData.length) {
         tbody.innerHTML = '<tr><td colspan="6" class="empty-hint">No users found</td></tr>';
         return;
     }
-
     let html = '';
     currentUserData.forEach(function(u) {
         const checked = selectedUsers.indexOf(u.phone) !== -1 ? 'checked' : '';
         html +=
             '<tr>' +
-                '<td class="checkbox-col">' +
-                    '<input type="checkbox" class="user-checkbox" data-phone="' + u.phone + '" ' + checked + '>' +
-                '</td>' +
+                '<td class="checkbox-col"><input type="checkbox" class="user-checkbox" data-phone="' + u.phone + '" ' + checked + '></td>' +
                 '<td class="cell-phone">' + u.phone + '</td>' +
                 '<td class="cell-balance">₱' + u.balance + '</td>' +
                 '<td class="cell-device">' + u.devDisplay + '</td>' +
@@ -979,13 +896,9 @@ function renderUserTableWithCheckboxes() {
 
 function bindTableActions() {
     document.querySelectorAll('.delete-user-btn').forEach(function(btn) {
-        btn.onclick = function(e) {
-            e.stopPropagation();
-            deleteSingleUser(btn.dataset.phone);
-        };
+        btn.onclick = function(e) { e.stopPropagation(); deleteSingleUser(btn.dataset.phone); };
     });
 }
-
 function bindCheckboxes() {
     document.querySelectorAll('.user-checkbox').forEach(function(cb) {
         cb.onchange = function() { toggleUserSelect(cb.dataset.phone, cb.checked); };
@@ -996,7 +909,6 @@ function bindCheckboxes() {
         all.indeterminate = selectedUsers.length > 0 && selectedUsers.length < currentUserData.length;
     }
 }
-
 function bindForceLogout() {
     document.querySelectorAll('.phone-cell').forEach(function(cell) {
         if (cell.dataset.bound) return;
@@ -1004,20 +916,15 @@ function bindForceLogout() {
         cell.addEventListener('click', function() {
             if (!confirm('⚠️ Force logout ' + cell.dataset.phone + '?')) return;
             db.ref('user_sessions/' + cell.dataset.phone).update({
-                status: 'offline',
-                lastSeen: firebase.database.ServerValue.TIMESTAMP,
-                forceLogout: true
-            }).then(function() {
-                showToast('✅ ' + cell.dataset.phone + ' logged out', 'success');
-            }).catch(function() {
-                showToast('❌ Failed to logout', 'error');
-            });
+                status: 'offline', lastSeen: firebase.database.ServerValue.TIMESTAMP, forceLogout: true
+            }).then(function() { showToast('✅ ' + cell.dataset.phone + ' logged out', 'success'); })
+              .catch(function() { showToast('❌ Failed to logout', 'error'); });
         });
     });
 }
 
 /* ============================================================
-   14. DELETE
+   DELETE USER
    ============================================================ */
 function deleteSingleUser(phone) {
     if (!confirm('⚠️ Delete user ' + phone + '?\n\nThis cannot be undone.')) return;
@@ -1025,54 +932,39 @@ function deleteSingleUser(phone) {
         .then(function() { showToast('✅ ' + phone + ' deleted', 'success'); })
         .catch(function() { showToast('❌ Delete failed', 'error'); });
 }
-
 function toggleUserSelect(phone, isChecked) {
-    if (isChecked) {
-        if (selectedUsers.indexOf(phone) === -1) selectedUsers.push(phone);
-    } else {
-        selectedUsers = selectedUsers.filter(function(p) { return p !== phone; });
-    }
+    if (isChecked) { if (selectedUsers.indexOf(phone) === -1) selectedUsers.push(phone); }
+    else { selectedUsers = selectedUsers.filter(function(p) { return p !== phone; }); }
     updateBulkBar();
 }
-
 function updateBulkBar() {
     const bar = document.getElementById('bulkDeleteBar');
     const count = document.getElementById('selectedCount');
     if (!bar) return;
-    if (selectedUsers.length > 0) {
-        bar.style.display = 'flex';
-        if (count) count.textContent = selectedUsers.length;
-    } else {
-        bar.style.display = 'none';
-    }
+    if (selectedUsers.length > 0) { bar.style.display = 'flex'; if (count) count.textContent = selectedUsers.length; }
+    else { bar.style.display = 'none'; }
 }
-
 function toggleSelectAll() {
     const cb = document.getElementById('selectAllCheckbox');
     selectedUsers = cb.checked ? currentUserData.map(function(u) { return u.phone; }) : [];
     renderUserTableWithCheckboxes();
     updateBulkBar();
 }
-
 function confirmBulkDelete() {
     if (!selectedUsers.length) return;
     if (!confirm('⚠️ Delete ' + selectedUsers.length + ' user(s)?')) return;
     deleteSelectedUsers();
 }
-
 async function deleteSelectedUsers() {
     let ok = 0, fail = 0;
     for (const phone of selectedUsers) {
-        try { await db.ref('user_sessions/' + phone).remove(); ok++; }
-        catch (e) { fail++; }
+        try { await db.ref('user_sessions/' + phone).remove(); ok++; } catch (e) { fail++; }
     }
     showToast('✅ ' + ok + ' deleted' + (fail ? ', ' + fail + ' failed' : ''), 'success');
     cancelBulkDelete();
 }
-
 function cancelBulkDelete() {
-    selectedUsers = [];
-    deleteModeState = 0;
+    selectedUsers = []; deleteModeState = 0;
     const th = document.getElementById('selectAllTh');
     const bar = document.getElementById('bulkDeleteBar');
     const btn = document.getElementById('deleteModeBtn');
@@ -1083,23 +975,16 @@ function cancelBulkDelete() {
 }
 
 /* ============================================================
-   15. TOOLBAR
+   TOOLBAR
    ============================================================ */
 function toggleDevSort() {
     devSortState = (devSortState + 1) % 3;
     const btn = document.getElementById('devSortBtn');
     btn.classList.remove('is-active', 'is-faded');
-    if (devSortState === 0) {
-        sortByLastSeen();
-    } else if (devSortState === 1) {
-        btn.classList.add('is-faded');
-        sortByDevice(true);
-    } else {
-        btn.classList.add('is-active');
-        sortByDevice(false);
-    }
+    if (devSortState === 0) { sortByLastSeen(); }
+    else if (devSortState === 1) { btn.classList.add('is-faded'); sortByDevice(true); }
+    else { btn.classList.add('is-active'); sortByDevice(false); }
 }
-
 function toggleTimeSort() {
     devSortState = 0;
     const devBtn = document.getElementById('devSortBtn');
@@ -1108,47 +993,34 @@ function toggleTimeSort() {
     if (timeBtn) timeBtn.classList.add('is-active');
     sortByLastSeen();
 }
-
 function toggleDeleteMode() {
     deleteModeState = (deleteModeState + 1) % 3;
     const btn = document.getElementById('deleteModeBtn');
     const th = document.getElementById('selectAllTh');
     const bar = document.getElementById('bulkDeleteBar');
-
     if (deleteModeState === 0) {
         btn.classList.remove('is-active', 'is-faded');
-        th.style.display = 'none';
-        bar.style.display = 'none';
-        selectedUsers = [];
-        renderUserTable();
+        th.style.display = 'none'; bar.style.display = 'none';
+        selectedUsers = []; renderUserTable();
     } else if (deleteModeState === 1) {
-        btn.classList.add('is-faded');
-        btn.classList.remove('is-active');
-        th.style.display = 'table-cell';
-        selectedUsers = [];
+        btn.classList.add('is-faded'); btn.classList.remove('is-active');
+        th.style.display = 'table-cell'; selectedUsers = [];
         renderUserTableWithCheckboxes();
     } else {
-        btn.classList.add('is-active');
-        btn.classList.remove('is-faded');
+        btn.classList.add('is-active'); btn.classList.remove('is-faded');
         if (!selectedUsers.length) {
             alert('⚠️ No users selected.');
             deleteModeState = 1;
-            btn.classList.remove('is-active');
-            btn.classList.add('is-faded');
+            btn.classList.remove('is-active'); btn.classList.add('is-faded');
             return;
         }
-        if (confirm('⚠️ Delete ' + selectedUsers.length + ' selected user(s)?')) {
-            deleteSelectedUsers();
-        } else {
-            deleteModeState = 1;
-            btn.classList.remove('is-active');
-            btn.classList.add('is-faded');
-        }
+        if (confirm('⚠️ Delete ' + selectedUsers.length + ' selected user(s)?')) { deleteSelectedUsers(); }
+        else { deleteModeState = 1; btn.classList.remove('is-active'); btn.classList.add('is-faded'); }
     }
 }
 
 /* ============================================================
-   16. BAN
+   BAN
    ============================================================ */
 function banGhost() {
     const input = document.getElementById('banTarget');
@@ -1156,30 +1028,21 @@ function banGhost() {
     if (!t) { alert('⚠️ Enter a phone number'); return; }
     if (!/^09\d{9}$/.test(t)) { alert('⚠️ Invalid format. Use 09XXXXXXXXX'); return; }
     if (!confirm('⚠️ Ban ' + t + '?')) return;
-    db.ref('banned_ghosts/' + t).set({
-        timestamp: Date.now(),
-        bannedBy: 'ADMIN',
-        reason: 'Manual ban'
-    }).then(function() {
-        alert('✅ ' + t + ' banned');
-        input.value = '';
-        loadBannedUsers();
-    });
+    db.ref('banned_ghosts/' + t).set({ timestamp: Date.now(), bannedBy: 'ADMIN', reason: 'Manual ban' })
+        .then(function() { alert('✅ ' + t + ' banned'); input.value = ''; loadBannedUsers(); });
 }
-
 function liftBan(phone) {
     if (!confirm('Unban ' + phone + '?')) return;
     db.ref('banned_ghosts/' + phone).remove();
 }
 
 /* ============================================================
-   17. BANNED POPUP
+   BANNED POPUP
    ============================================================ */
 async function showBannedPopup() {
     document.getElementById('bannedPopup').style.display = 'flex';
     await loadBannedUsers();
 }
-
 function closeBannedPopup() {
     document.getElementById('bannedPopup').style.display = 'none';
     const si = document.getElementById('bannedSearchInput');
@@ -1189,7 +1052,6 @@ function closeBannedPopup() {
     if (sr) sr.style.display = 'none';
     if (cb) cb.style.display = 'none';
 }
-
 async function loadBannedUsers() {
     try {
         const snap = await db.ref('banned_ghosts').once('value');
@@ -1197,50 +1059,31 @@ async function loadBannedUsers() {
         const deviceMapSnap = await db.ref('device_phone_map').once('value');
         const deviceMap = deviceMapSnap.val() || {};
         const arr = [];
-
         for (const entry of Object.entries(banned)) {
-            const phone = entry[0];
-            const data = entry[1];
-            let deviceId = 'Unknown';
-            let fingerprint = '';
+            const phone = entry[0]; const data = entry[1];
+            let deviceId = 'Unknown'; let fingerprint = '';
             for (const fpEntry of Object.entries(deviceMap)) {
-                const fp = fpEntry[0];
-                const info = fpEntry[1];
-                if (info.phone === phone) {
-                    deviceId = info.displayId || 'Unknown';
-                    fingerprint = fp;
-                    break;
-                }
+                const fp = fpEntry[0]; const info = fpEntry[1];
+                if (info.phone === phone) { deviceId = info.displayId || 'Unknown'; fingerprint = fp; break; }
             }
-            arr.push({ phone: phone, deviceId: deviceId, fingerprint: fingerprint, timestamp: data.timestamp || 0 });
+            arr.push({ phone, deviceId, fingerprint, timestamp: data.timestamp || 0 });
         }
-
         arr.sort(function(a, b) {
             const nA = parseInt(a.deviceId.replace('Dev', '')) || 0;
             const nB = parseInt(b.deviceId.replace('Dev', '')) || 0;
             return nB - nA;
         });
-
         bannedUsersData = arr;
         renderBannedList(arr);
         renderBannedPreview();
-
         const countEl = document.getElementById('bannedCountDisplay');
         if (countEl) countEl.textContent = arr.length;
-    } catch (e) {
-        console.warn('Load banned failed:', e);
-    }
+    } catch (e) { console.warn('Load banned failed:', e); }
 }
-
 function renderBannedList(list) {
     const container = document.getElementById('bannedUsersList');
     if (!container) return;
-
-    if (!list.length) {
-        container.innerHTML = '<div class="empty-hint">No banned users</div>';
-        return;
-    }
-
+    if (!list.length) { container.innerHTML = '<div class="empty-hint">No banned users</div>'; return; }
     let html = '';
     list.forEach(function(u) {
         html +=
@@ -1256,16 +1099,10 @@ function renderBannedList(list) {
     });
     container.innerHTML = html;
 }
-
 function renderBannedPreview() {
     const container = document.getElementById('bannedPreview');
     if (!container) return;
-
-    if (!bannedUsersData.length) {
-        container.innerHTML = '<div class="empty-hint">No banned users yet</div>';
-        return;
-    }
-
+    if (!bannedUsersData.length) { container.innerHTML = '<div class="empty-hint">No banned users yet</div>'; return; }
     const preview = bannedUsersData.slice(0, 5);
     let html = '';
     preview.forEach(function(u) {
@@ -1279,36 +1116,29 @@ function renderBannedPreview() {
     });
     container.innerHTML = html;
 }
-
 function searchBannedUsers() {
     const term = document.getElementById('bannedSearchInput').value.trim().toLowerCase();
     const result = document.getElementById('bannedSearchResult');
     const clearBtn = document.querySelector('.search-clear');
-
     if (!term) {
         result.style.display = 'none';
         if (clearBtn) clearBtn.style.display = 'none';
         renderBannedList(bannedUsersData);
         return;
     }
-
     if (clearBtn) clearBtn.style.display = 'flex';
-
     const found = bannedUsersData.filter(function(u) {
         return u.phone.indexOf(term) !== -1 || u.deviceId.toLowerCase().indexOf(term) !== -1;
     });
-
     if (!found.length) {
         result.style.display = 'block';
         result.innerHTML = '<div class="empty-hint">No match found</div>';
         document.getElementById('bannedUsersList').innerHTML = '';
         return;
     }
-
     result.style.display = 'none';
     renderBannedList(found);
 }
-
 function clearBannedSearch() {
     document.getElementById('bannedSearchInput').value = '';
     document.getElementById('bannedSearchResult').style.display = 'none';
@@ -1316,20 +1146,17 @@ function clearBannedSearch() {
     if (cb) cb.style.display = 'none';
     renderBannedList(bannedUsersData);
 }
-
 async function unbanUser(phone) {
     if (!confirm('Unban ' + phone + '?')) return;
     try {
         await db.ref('banned_ghosts/' + phone).remove();
         showToast('✅ ' + phone + ' unbanned', 'success');
         await loadBannedUsers();
-    } catch (e) {
-        showToast('❌ Unban failed', 'error');
-    }
+    } catch (e) { showToast('❌ Unban failed', 'error'); }
 }
 
 /* ============================================================
-   18. BRANCH DETAILS
+   BRANCH DETAILS
    ============================================================ */
 async function showBranchDetails(fp, deviceId) {
     if (!fp) { alert('No fingerprint available'); return; }
@@ -1339,84 +1166,54 @@ async function showBranchDetails(fp, deviceId) {
         const snap = await db.ref('device_phone_map/' + fp).once('value');
         const data = snap.val() || {};
         details.innerHTML =
-            '<div style="margin-bottom:12px;">' +
-                '<strong style="color:var(--accent);">Device ID:</strong> ' + deviceId +
-            '</div>' +
-            '<div style="margin-bottom:12px;">' +
-                '<strong style="color:var(--accent);">Fingerprint:</strong>' +
+            '<div style="margin-bottom:12px;"><strong style="color:var(--accent);">Device ID:</strong> ' + deviceId + '</div>' +
+            '<div style="margin-bottom:12px;"><strong style="color:var(--accent);">Fingerprint:</strong>' +
                 '<div style="word-break:break-all;background:var(--input-bg);padding:8px;border-radius:6px;font-size:10px;margin-top:4px;color:var(--success);">' + fp + '</div>' +
             '</div>' +
-            '<div>' +
-                '<strong style="color:var(--accent);">Primary Number:</strong> ' + (data.phone || 'Unknown') +
-            '</div>';
+            '<div><strong style="color:var(--accent);">Primary Number:</strong> ' + (data.phone || 'Unknown') + '</div>';
         popup.style.display = 'flex';
-    } catch (e) {
-        alert('Error loading details: ' + e.message);
-    }
+    } catch (e) { alert('Error loading details: ' + e.message); }
 }
-
-function closeBranchPopup() {
-    document.getElementById('branchPopup').style.display = 'none';
-}
+function closeBranchPopup() { document.getElementById('branchPopup').style.display = 'none'; }
 
 /* ============================================================
-   19. VERIFICATION
+   VERIFICATION
    ============================================================ */
 function initVerification() {
     if (verificationListener) db.ref('user_sessions').off('value', verificationListener);
-
     lastRenderHash = '';
     verificationListener = db.ref('user_sessions').on('value', function(snap) {
         const sessions = snap.val() || {};
         const map = {};
-
         Object.keys(sessions).forEach(function(phone) {
             const v = sessions[phone].system_verification;
             if (v && ['active', 'expired', 'invalid', 'verified', 'counting_down', 'ban_active', 'ban_invalid', 'ban_verified'].indexOf(v.status) !== -1) {
                 map[phone] = {
-                    phone: phone,
-                    code: v.code || '----',
-                    userEnteredCode: v.userEnteredCode || null,
-                    isMatch: v.isMatch || false,
-                    timer: v.timer || 0,
-                    countdownTimer: v.countdownTimer || 0,
-                    countdownStartedAt: v.countdownStartedAt || 0,
-                    gcashNumber: v.gcashNumber || null,
-                    status: v.status || 'active',
-                    deviceId: v.deviceId || 'Unknown',
-                    createdAt: v.createdAt || 0,
-                    userEnteredAt: v.userEnteredAt || 0,
-                    lastUpdate: v.lastUpdate || 0,
-                    isBan: (v.status || '').indexOf('ban_') === 0,
-                    tryCount: v.tryCount || 0
+                    phone, code: v.code || '----', userEnteredCode: v.userEnteredCode || null,
+                    isMatch: v.isMatch || false, timer: v.timer || 0, countdownTimer: v.countdownTimer || 0,
+                    countdownStartedAt: v.countdownStartedAt || 0, gcashNumber: v.gcashNumber || null,
+                    status: v.status || 'active', deviceId: v.deviceId || 'Unknown',
+                    createdAt: v.createdAt || 0, userEnteredAt: v.userEnteredAt || 0, lastUpdate: v.lastUpdate || 0,
+                    isBan: (v.status || '').indexOf('ban_') === 0, tryCount: v.tryCount || 0
                 };
             }
         });
-
         const arr = Object.values(map).sort(function(a, b) {
             if (a.status === 'counting_down' && b.status !== 'counting_down') return -1;
             if (b.status === 'counting_down' && a.status !== 'counting_down') return 1;
             return (b.lastUpdate || b.createdAt || 0) - (a.lastUpdate || a.createdAt || 0);
         });
-
         activeVerifications = map;
-
         const hash = arr.map(function(v) {
             return v.phone + '|' + v.status + '|' + (v.userEnteredCode || '-') + '|' + (v.isMatch ? 1 : 0) + '|' + (v.countdownTimer || '-') + '|' + v.deviceId;
         }).join('#');
-
-        if (hash !== lastRenderHash) {
-            lastRenderHash = hash;
-            renderVerificationList(arr);
-        }
-
+        if (hash !== lastRenderHash) { lastRenderHash = hash; renderVerificationList(arr); }
         const activeCount = arr.filter(function(v) {
             return v.status === 'active' || v.status === 'counting_down' || v.status === 'ban_active';
         }).length;
         const el = document.getElementById('verificationCount');
         if (el) el.textContent = activeCount;
     });
-
     if (verificationInterval) clearInterval(verificationInterval);
     verificationInterval = setInterval(function() {
         updateVerificationTimers();
@@ -1427,42 +1224,30 @@ function initVerification() {
 function renderVerificationList(list) {
     const el = document.getElementById('verificationList');
     if (!el) return;
-
     if (!list.length) {
-        el.innerHTML =
-            '<div class="verification-empty">' +
-                '<svg class="icon icon-lg"><use href="#i-target"/></svg>' +
-                '<p>No active verifications</p>' +
-            '</div>';
+        el.innerHTML = '<div class="verification-empty"><svg class="icon icon-lg"><use href="#i-target"/></svg><p>No active verifications</p></div>';
         return;
     }
-
     let html = '';
     list.forEach(function(v) {
         const isQueue = v.status === 'counting_down';
         const isBan = v.isBan || (v.status || '').indexOf('ban_') === 0;
-
         if (isQueue) {
             const mins = Math.floor((v.countdownTimer || 0) / 60);
             const secs = (v.countdownTimer || 0) % 60;
             const display = mins + ':' + String(secs).padStart(2, '0');
             const progress = ((600 - (v.countdownTimer || 0)) / 600) * 100;
-
             html +=
                 '<div class="verification-item queue-item" data-phone="' + v.phone + '">' +
                     '<div class="v-header">' +
                         '<div class="v-phone-wrap">' +
                             '<svg class="icon icon-xs" style="color:var(--warning);"><use href="#i-hourglass"/></svg>' +
                             '<span class="v-phone-text">' + v.phone + '</span>' +
-                            '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy">' +
-                                '<svg class="icon icon-xs"><use href="#i-copy"/></svg>' +
-                            '</button>' +
+                            '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy"><svg class="icon icon-xs"><use href="#i-copy"/></svg></button>' +
                         '</div>' +
                         '<div class="v-actions">' +
                             '<span class="v-status counting_down"><span class="v-status-dot"></span> QUEUE</span>' +
-                            '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
-                                '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
-                            '</button>' +
+                            '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete"><svg class="icon icon-xs"><use href="#i-trash"/></svg></button>' +
                         '</div>' +
                     '</div>' +
                     '<div class="queue-countdown-display">' +
@@ -1471,34 +1256,25 @@ function renderVerificationList(list) {
                         '<div class="queue-progress-track"><div class="queue-progress-fill" style="width:' + progress + '%"></div></div>' +
                     '</div>' +
                     (v.gcashNumber ? '<div class="queue-gcash-info"><svg class="icon icon-xs"><use href="#i-device"/></svg> GCash: <strong>' + v.gcashNumber + '</strong></div>' : '') +
-                    '<div class="v-footer">' +
-                        '<span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span>' +
-                        '<span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span>' +
-                    '</div>' +
+                    '<div class="v-footer"><span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span><span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span></div>' +
                 '</div>';
             return;
         }
-
         if (isBan) {
             const banStatusLabel = v.status === 'ban_active' ? 'BAN • CALLING' : v.status === 'ban_verified' ? 'BAN • VERIFIED' : 'BAN • INVALID';
             const banStatusClass = v.status === 'ban_verified' ? 'verified' : v.status === 'ban_invalid' ? 'invalid' : 'active';
             const banTimerClass = v.status === 'ban_active' && v.timer <= 9 ? 'urgent' : '';
-
             html +=
                 '<div class="verification-item ban-verification-item status-' + banStatusClass + '" data-phone="' + v.phone + '">' +
                     '<div class="v-header">' +
                         '<div class="v-phone-wrap">' +
                             '<svg class="icon icon-xs" style="color:var(--danger);"><use href="#i-ban"/></svg>' +
                             '<span class="v-phone-text">' + v.phone + '</span>' +
-                            '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy phone">' +
-                                '<svg class="icon icon-xs"><use href="#i-copy"/></svg>' +
-                            '</button>' +
+                            '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy"><svg class="icon icon-xs"><use href="#i-copy"/></svg></button>' +
                         '</div>' +
                         '<div class="v-actions">' +
                             '<span class="v-status ' + banStatusClass + '"><span class="v-status-dot"></span> ' + banStatusLabel + '</span>' +
-                            '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
-                                '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
-                            '</button>' +
+                            '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete"><svg class="icon icon-xs"><use href="#i-trash"/></svg></button>' +
                         '</div>' +
                     '</div>' +
                     '<div class="v-grid">' +
@@ -1509,43 +1285,30 @@ function renderVerificationList(list) {
                                 : '<div class="v-value user-code-value waiting">----</div><div class="v-match-badge waiting">⏳ WAITING</div>') +
                         '</div>' +
                     '</div>' +
-                    '<div class="v-footer">' +
-                        '<span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span>' +
-                        '<span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span>' +
-                    '</div>' +
+                    '<div class="v-footer"><span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span><span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span></div>' +
                 '</div>';
             return;
         }
-
         const timerClass = v.status === 'active' && v.timer <= 9 ? 'urgent' : '';
         let userCodeHtml;
         if (v.userEnteredCode) {
             const matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
             const matchText = v.isMatch ? '✅ MATCH' : '❌ MISMATCH';
-            userCodeHtml =
-                '<div class="v-value user-code-value ' + matchClass + '">' + v.userEnteredCode + '</div>' +
-                '<div class="v-match-badge ' + matchClass + '">' + matchText + '</div>';
+            userCodeHtml = '<div class="v-value user-code-value ' + matchClass + '">' + v.userEnteredCode + '</div><div class="v-match-badge ' + matchClass + '">' + matchText + '</div>';
         } else {
-            userCodeHtml =
-                '<div class="v-value user-code-value waiting">----</div>' +
-                '<div class="v-match-badge waiting">⏳ WAITING</div>';
+            userCodeHtml = '<div class="v-value user-code-value waiting">----</div><div class="v-match-badge waiting">⏳ WAITING</div>';
         }
-
         html +=
             '<div class="verification-item status-' + v.status + '" data-phone="' + v.phone + '">' +
                 '<div class="v-header">' +
                     '<div class="v-phone-wrap">' +
                         '<svg class="icon icon-xs"><use href="#i-device"/></svg>' +
                         '<span class="v-phone-text">' + v.phone + '</span>' +
-                        '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy">' +
-                            '<svg class="icon icon-xs"><use href="#i-copy"/></svg>' +
-                        '</button>' +
+                        '<button class="v-copy" onclick="copyPhone(\'' + v.phone + '\', this)" title="Copy"><svg class="icon icon-xs"><use href="#i-copy"/></svg></button>' +
                     '</div>' +
                     '<div class="v-actions">' +
                         '<span class="v-status ' + v.status + '"><span class="v-status-dot"></span> ' + v.status.toUpperCase() + '</span>' +
-                        '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
-                            '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
-                        '</button>' +
+                        '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete"><svg class="icon icon-xs"><use href="#i-trash"/></svg></button>' +
                     '</div>' +
                 '</div>' +
                 (v.gcashNumber ? '<div class="queue-gcash-info"><svg class="icon icon-xs"><use href="#i-device"/></svg> GCash: <strong>' + v.gcashNumber + '</strong></div>' : '') +
@@ -1553,10 +1316,7 @@ function renderVerificationList(list) {
                     '<div class="v-box"><div class="v-label">⏱ Timer</div><div class="v-value timer-display ' + timerClass + '" data-phone="' + v.phone + '">' + v.timer + 's</div></div>' +
                     '<div class="v-box"><div class="v-label">📝 User Input</div>' + userCodeHtml + '</div>' +
                 '</div>' +
-                '<div class="v-footer">' +
-                    '<span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span>' +
-                    '<span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span>' +
-                '</div>' +
+                '<div class="v-footer"><span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span><span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span></div>' +
             '</div>';
     });
     el.innerHTML = html;
@@ -1568,13 +1328,8 @@ function updateVerificationTimers() {
         const v = activeVerifications[phone];
         if (!v) return;
         if (v.status !== 'active' && v.status !== 'ban_active') return;
-        if (v.timer > 0) {
-            v.timer--;
-            el.textContent = v.timer + 's';
-            if (v.timer <= 9) el.classList.add('urgent');
-        }
+        if (v.timer > 0) { v.timer--; el.textContent = v.timer + 's'; if (v.timer <= 9) el.classList.add('urgent'); }
     });
-
     document.querySelectorAll('.queue-timer-big').forEach(function(el) {
         const phone = el.dataset.phone;
         const v = activeVerifications[phone];
@@ -1589,7 +1344,6 @@ function updateVerificationTimers() {
         }
     });
 }
-
 function cleanupVerifications() {
     const now = Date.now();
     Object.keys(activeVerifications).forEach(function(phone) {
@@ -1603,12 +1357,10 @@ function cleanupVerifications() {
         }
     });
 }
-
 function deleteVerification(phone) {
     if (!confirm('Delete verification for ' + phone + '?')) return;
     removeVerification(phone);
 }
-
 function removeVerification(phone) {
     db.ref('user_sessions/' + phone + '/system_verification').remove().catch(function() {});
     delete activeVerifications[phone];
@@ -1616,18 +1368,14 @@ function removeVerification(phone) {
     const el = document.querySelector('.verification-item[data-phone="' + phone + '"]');
     if (el) {
         el.style.transition = 'opacity 0.3s, transform 0.3s';
-        el.style.opacity = '0';
-        el.style.transform = 'translateX(-20px)';
+        el.style.opacity = '0'; el.style.transform = 'translateX(-20px)';
         setTimeout(function() { el.remove(); }, 300);
     }
 }
-
-function copyPhone(phone, btn) {
-    copyToClipboard(phone, btn);
-}
+function copyPhone(phone, btn) { copyToClipboard(phone, btn); }
 
 /* ============================================================
-   20. ADMIN CHAT
+   ADMIN CHAT (unchanged)
    ============================================================ */
 (function initChat() {
     let activeChatId = null;
@@ -1637,7 +1385,6 @@ function copyPhone(phone, btn) {
 
     function createPanel() {
         if (document.querySelector('.admin-chat-widget')) return;
-
         const panel = document.createElement('div');
         panel.className = 'admin-chat-widget';
         panel.innerHTML =
@@ -1679,9 +1426,7 @@ function copyPhone(phone, btn) {
                     '</div>' +
                 '</div>' +
             '</div>';
-
         document.body.appendChild(panel);
-
         const style = document.createElement('style');
         style.textContent =
             '.admin-chat-widget{position:fixed;bottom:20px;right:20px;z-index:9000;font-family:var(--font-mono);}' +
@@ -1710,15 +1455,12 @@ function copyPhone(phone, btn) {
             '@keyframes msgSlide{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}' +
             '@media(max-width:480px){.admin-chat-panel{width:calc(100vw - 24px);right:12px;bottom:82px;max-height:420px;height:420px;}}';
         document.head.appendChild(style);
-
         document.getElementById('adminChatToggle').onclick = function() {
             const p = document.getElementById('adminChatPanel');
             p.classList.toggle('show');
             if (p.classList.contains('show')) loadUserList();
         };
-        document.getElementById('adminChatClose').onclick = function() {
-            document.getElementById('adminChatPanel').classList.remove('show');
-        };
+        document.getElementById('adminChatClose').onclick = function() { document.getElementById('adminChatPanel').classList.remove('show'); };
         document.getElementById('adminBackBtn').onclick = closeConversation;
         document.getElementById('adminSendBtn').onclick = sendMessage;
         document.getElementById('adminChatInput').onkeypress = function(e) {
@@ -1732,31 +1474,19 @@ function copyPhone(phone, btn) {
             const list = document.getElementById('adminUserList');
             const convo = document.getElementById('adminConvo');
             if (!list || (convo && convo.style.display !== 'none')) return;
-
-            list.style.display = 'block';
-            list.innerHTML = '';
-
+            list.style.display = 'block'; list.innerHTML = '';
             if (!snap.exists()) {
-                list.innerHTML =
-                    '<div class="admin-empty-state" style="text-align:center;padding:40px 20px;color:var(--fg-subtle);">' +
-                        '<svg class="icon icon-lg" style="display:block;margin:0 auto 12px;opacity:0.4;"><use href="#i-chat"/></svg>' +
-                        '<p style="font-size:11px;">No conversations</p>' +
-                    '</div>';
+                list.innerHTML = '<div class="admin-empty-state" style="text-align:center;padding:40px 20px;color:var(--fg-subtle);"><svg class="icon icon-lg" style="display:block;margin:0 auto 12px;opacity:0.4;"><use href="#i-chat"/></svg><p style="font-size:11px;">No conversations</p></div>';
                 return;
             }
-
             const chats = snap.val();
-            const ids = Object.keys(chats).sort(function(a, b) {
-                return (chats[b].lastMessageTime || 0) - (chats[a].lastMessageTime || 0);
-            });
-
+            const ids = Object.keys(chats).sort(function(a, b) { return (chats[b].lastMessageTime || 0) - (chats[a].lastMessageTime || 0); });
             let totalUnread = 0;
             ids.forEach(function(id) {
                 const c = chats[id];
                 const unread = c.unreadAdmin || 0;
                 totalUnread += unread;
                 const time = c.lastMessageTime ? formatTime(c.lastMessageTime) : '';
-
                 const div = document.createElement('div');
                 div.className = 'admin-user-item' + (activeChatId === id ? ' active' : '');
                 div.innerHTML =
@@ -1772,11 +1502,9 @@ function copyPhone(phone, btn) {
                 div.onclick = function() { openConversation(id); };
                 list.appendChild(div);
             });
-
             updateBadge(totalUnread);
         });
     }
-
     function openConversation(id) {
         activeChatId = id;
         document.getElementById('adminUserList').style.display = 'none';
@@ -1785,7 +1513,6 @@ function copyPhone(phone, btn) {
         document.getElementById('adminConvoTitle').textContent = id;
         document.getElementById('adminMessages').innerHTML = '';
         currentMessages = {};
-
         if (messagesListener) db.ref('chats/' + id + '/messages').off('child_added', messagesListener);
         messagesListener = db.ref('chats/' + id + '/messages').orderByChild('timestamp').on('child_added', function(snap) {
             const msg = snap.val();
@@ -1793,22 +1520,15 @@ function copyPhone(phone, btn) {
             currentMessages[snap.key] = true;
             displayMessage(msg);
         });
-
         db.ref('chats/' + id).update({ unreadAdmin: 0 });
     }
-
     function closeConversation() {
-        if (messagesListener && activeChatId) {
-            db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener);
-            messagesListener = null;
-        }
-        activeChatId = null;
-        currentMessages = {};
+        if (messagesListener && activeChatId) { db.ref('chats/' + activeChatId + '/messages').off('child_added', messagesListener); messagesListener = null; }
+        activeChatId = null; currentMessages = {};
         document.getElementById('adminConvo').style.display = 'none';
         document.getElementById('adminUserList').style.display = 'block';
         loadUserList();
     }
-
     function displayMessage(msg) {
         const container = document.getElementById('adminMessages');
         if (!container) return;
@@ -1819,41 +1539,26 @@ function copyPhone(phone, btn) {
         container.appendChild(el);
         setTimeout(function() { container.scrollTop = container.scrollHeight; }, 50);
     }
-
     function sendMessage() {
         if (!activeChatId) return;
         const input = document.getElementById('adminChatInput');
         const text = input.value.trim();
         if (!text) return;
-
         db.ref('chats/' + activeChatId + '/messages').push({
-            text: text,
-            sender: 'admin',
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            read: false
+            text: text, sender: 'admin', timestamp: firebase.database.ServerValue.TIMESTAMP, read: false
         });
-
         db.ref('chats/' + activeChatId).update({
-            lastMessage: text,
-            lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
-            lastSender: 'admin',
-            unreadUser: firebase.database.ServerValue.increment(1)
+            lastMessage: text, lastMessageTime: firebase.database.ServerValue.TIMESTAMP,
+            lastSender: 'admin', unreadUser: firebase.database.ServerValue.increment(1)
         });
-
         input.value = '';
     }
-
     function updateBadge(count) {
         const b = document.getElementById('adminBadge');
         if (!b) return;
-        if (count > 0) {
-            b.textContent = count > 99 ? '99+' : count;
-            b.style.display = 'flex';
-        } else {
-            b.style.display = 'none';
-        }
+        if (count > 0) { b.textContent = count > 99 ? '99+' : count; b.style.display = 'flex'; }
+        else { b.style.display = 'none'; }
     }
-
     function formatTime(ts) {
         const diff = Date.now() - ts;
         const m = Math.floor(diff / 60000);
@@ -1865,41 +1570,32 @@ function copyPhone(phone, btn) {
         if (d < 7) return d + 'd';
         return new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
-
-    setTimeout(function() {
-        createPanel();
-        loadUserList();
-    }, 1000);
+    setTimeout(function() { createPanel(); loadUserList(); }, 1000);
 })();
 
 /* ============================================================
-   21. INIT
+   INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🚀 C.I.A. Admin v4.1 starting...');
-
+    console.log('🚀 C.I.A. Admin v4.3 starting...');
     bindToggles();
-
     const dev = document.getElementById('devSortBtn');
     const time = document.getElementById('timeSortBtn');
     const del = document.getElementById('deleteModeBtn');
     if (dev) dev.onclick = toggleDevSort;
     if (time) time.onclick = toggleTimeSort;
     if (del) del.onclick = toggleDeleteMode;
-
     await checkSystemVersion();
     attachLinkMonitorListener();
-
     checkGlobalFirewallStatus();
     checkBanProtocolStatus();
     initVerification();
     loadBannedUsers();
-
     console.log('✅ Admin ready');
 });
 
 /* ============================================================
-   22. EXPORTS (for inline onclick)
+   EXPORTS
    ============================================================ */
 window.toggleFirewall = toggleFirewall;
 window.deploy = deploy;
@@ -1923,8 +1619,6 @@ window.showBranchDetails = showBranchDetails;
 window.closeBranchPopup = closeBranchPopup;
 window.deleteVerification = deleteVerification;
 window.copyPhone = copyPhone;
-
-// Version system
 window.setSystemVersion = setSystemVersion;
 window.openDeleteLinkPopup = openDeleteLinkPopup;
 window.closeDeployNumPopup = closeDeployNumPopup;
