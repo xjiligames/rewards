@@ -1,6 +1,7 @@
 /**
  * ============================================================
- * C.I.A. ADMIN — adscript.js v4.1 (Version I & II)
+ * C.I.A. ADMIN — adscript.js v4.1
+ * Version I (First Come) + Version II (Shared Link)
  * ============================================================
  */
 
@@ -40,13 +41,15 @@ let deleteModeState = 0;
 let selectedUsers = [];
 let devSortState = 0;
 
-/* ============================================================
-   2.1 VERSION STATE (I or II)
-   ============================================================ */
-let SYSTEM_VERSION = 1;                 // default = Version I
-let linkStackData = [];                // sorted by createdAt asc (Version II)
-let linkMonitorData = {};              // raw { key: {url, status, user, linkNumber, createdAt, ...} }
-let linkMonitorUnsubscribe = null;     // live listener handle
+/* Version state */
+let SYSTEM_VERSION = 1;
+let linkMonitorData = {};
+let linkMonitorListener = null;
+let linkStackData = [];
+
+/* Deploy popup pending state */
+let pendingDeployLinks = [];
+let pendingDeleteLinkKey = null;
 
 /* ============================================================
    3. UTILS
@@ -76,6 +79,12 @@ function formatVerificationTime(timestamp) {
     const ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12 || 12;
     return h + ':' + m + ' ' + ampm;
+}
+
+function formatDate(ts) {
+    if (!ts) return '---';
+    const d = new Date(ts);
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function escapeHtml(text) {
@@ -158,9 +167,7 @@ async function toggleFirewall() {
     if (!globalFirewallActive) {
         if (!confirm('🔥 ACTIVATE GLOBAL FIREWALL?\n\nUsers will need verification before claiming.')) return;
         await db.ref('admin/globalFirewall').set({
-            active: true,
-            activatedBy: 'ADMIN',
-            timestamp: Date.now()
+            active: true, activatedBy: 'ADMIN', timestamp: Date.now()
         });
         globalFirewallActive = true;
         applyTheme(true);
@@ -169,9 +176,7 @@ async function toggleFirewall() {
     } else {
         if (!confirm('🌙 DEACTIVATE GLOBAL FIREWALL?\n\nUsers will return to normal claiming.')) return;
         await db.ref('admin/globalFirewall').set({
-            active: false,
-            deactivatedBy: 'ADMIN',
-            timestamp: Date.now()
+            active: false, deactivatedBy: 'ADMIN', timestamp: Date.now()
         });
         globalFirewallActive = false;
         applyTheme(false);
@@ -208,7 +213,7 @@ async function checkGlobalFirewallStatus() {
 }
 
 /* ============================================================
-   5.1 SYSTEM VERSION (I or II)
+   5.1 SYSTEM VERSION (NO POPUP ON SWITCH)
    ============================================================ */
 async function checkSystemVersion() {
     try {
@@ -223,19 +228,16 @@ async function checkSystemVersion() {
         SYSTEM_VERSION = (v === 2) ? 2 : 1;
     } catch (e) {
         SYSTEM_VERSION = 1;
-        console.warn('Could not check system version:', e);
     }
     applyVersionUI();
 }
 
 function applyVersionUI() {
-    // Highlight the active version button
     const b1 = document.getElementById('versionBtn1');
     const b2 = document.getElementById('versionBtn2');
     if (b1) b1.classList.toggle('is-active', SYSTEM_VERSION === 1);
     if (b2) b2.classList.toggle('is-active', SYSTEM_VERSION === 2);
 
-    // Status message
     const msg = document.getElementById('versionStatusMsg');
     if (msg) {
         msg.textContent = SYSTEM_VERSION === 2
@@ -243,28 +245,21 @@ function applyVersionUI() {
             : '⚙️ Version I — First-come, first-served (current)';
     }
 
-    // LINK # input row
-    const linkNumRow = document.getElementById('linkNumRow');
-    if (linkNumRow) linkNumRow.style.display = (SYSTEM_VERSION === 2) ? 'block' : 'none';
-
-    // Link Stack section
     const stackSection = document.getElementById('linkStackSection');
     if (stackSection) stackSection.style.display = (SYSTEM_VERSION === 2) ? 'block' : 'none';
 
-    // Re-render link monitor with correct columns
     renderLinkMonitorHeader();
     renderLinkMonitorBody();
     renderLinkStack();
 }
 
+/* ✅ NO POPUP — instant switch */
 async function setSystemVersion(v) {
     const target = (v === 2) ? 2 : 1;
     if (target === SYSTEM_VERSION) return;
 
-    const label = target === 2
-        ? 'VERSION II (Shared Link)\n\nBanned users in system verification will switch to shared-link mode.\nAll users follow the FIRST DEPLOYED link until you delete it.\n\nContinue?'
-        : 'VERSION I (First Come)\n\nUsers will again lock links on first claim.\n\nContinue?';
-    if (!confirm(label)) return;
+    SYSTEM_VERSION = target;
+    applyVersionUI();
 
     try {
         await db.ref('admin/systemVersion').set({
@@ -272,9 +267,7 @@ async function setSystemVersion(v) {
             updatedAt: Date.now(),
             updatedBy: 'ADMIN'
         });
-        SYSTEM_VERSION = target;
-        applyVersionUI();
-        showToast('✅ System set to Version ' + (target === 1 ? 'I' : 'II'), 'success');
+        showToast('✅ Switched to Version ' + (target === 1 ? 'I' : 'II'), 'success');
     } catch (e) {
         console.error('Failed to save version:', e);
         showToast('❌ Failed to save version', 'error');
@@ -292,17 +285,11 @@ function bindToggles() {
         userLogsHeader.addEventListener('click', () => {
             const expanded = userLogsHeader.getAttribute('aria-expanded') === 'true';
             userLogsHeader.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-            if (expanded) {
-                userLogsBody.classList.add('is-closed');
-            } else {
-                userLogsBody.classList.remove('is-closed');
-            }
+            if (expanded) userLogsBody.classList.add('is-closed');
+            else userLogsBody.classList.remove('is-closed');
         });
         userLogsHeader.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                userLogsHeader.click();
-            }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); userLogsHeader.click(); }
         });
     }
 
@@ -313,17 +300,11 @@ function bindToggles() {
         banHeader.addEventListener('click', () => {
             const expanded = banHeader.getAttribute('aria-expanded') === 'true';
             banHeader.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-            if (expanded) {
-                banBody.classList.add('is-closed');
-            } else {
-                banBody.classList.remove('is-closed');
-            }
+            if (expanded) banBody.classList.add('is-closed');
+            else banBody.classList.remove('is-closed');
         });
         banHeader.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                banHeader.click();
-            }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); banHeader.click(); }
         });
     }
 
@@ -336,9 +317,7 @@ function bindToggles() {
             updateBanStatusBanner(enabled);
             try {
                 await db.ref('admin/banProtocolEnabled').set({
-                    enabled: enabled,
-                    updatedAt: Date.now(),
-                    updatedBy: 'ADMIN'
+                    enabled: enabled, updatedAt: Date.now(), updatedBy: 'ADMIN'
                 });
             } catch (err) {
                 console.error('Failed to save ban protocol:', err);
@@ -385,7 +364,7 @@ async function checkBanProtocolStatus() {
 }
 
 /* ============================================================
-   7. DEPLOY (Version I & II)
+   7. DEPLOY
    ============================================================ */
 async function deploy() {
     const input = document.getElementById('links');
@@ -396,15 +375,17 @@ async function deploy() {
     if (!links.length) { alert('⚠️ Enter at least one link'); return; }
 
     if (SYSTEM_VERSION === 2) {
-        await deployLinksV2(links, input);
+        // V2: show LINK # popup
+        openDeployNumPopup(links);
     } else {
-        await deployLinksV1(links, input);
+        // V1: deploy immediately
+        deployLinksV1(links);
+        input.value = '';
+        alert('✅ ' + links.length + ' link(s) deployed (Version I)');
     }
 }
 
-/* ---- Version I: original flow ---- */
-function deployLinksV1(links, input) {
-    let count = 0;
+function deployLinksV1(links) {
     links.forEach(url => {
         db.ref('links').push({
             url: url,
@@ -412,99 +393,182 @@ function deployLinksV1(links, input) {
             status: 'available',
             user: 'NONE',
             createdAt: Date.now(),
-            linkNumber: 0,       // 0 = not applicable in V1
+            linkNumber: 0,
             version: 1
         });
-        count++;
     });
-    input.value = '';
-    alert('✅ ' + count + ' link(s) deployed (Version I)');
 }
 
-/* ---- Version II: LINK # assignment ---- */
-async function deployLinksV2(links, input) {
-    // 1) Load existing links to know used numbers
-    const snap = await db.ref('links').once('value');
-    const existing = snap.val() || {};
-    const usedNumbers = new Set();
-    Object.values(existing).forEach(d => {
-        if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) {
-            usedNumbers.add(d.linkNumber);
-        }
-    });
+/* ============================================================
+   7.1 DEPLOY LINK # POPUP (Version II)
+   ============================================================ */
+async function openDeployNumPopup(links) {
+    pendingDeployLinks = links;
 
-    // 2) Determine starting LINK # from input (or auto)
-    const numInputEl = document.getElementById('linkNumberInput');
-    let startNum = 0;
-    if (numInputEl) {
-        const raw = numInputEl.value.trim();
-        if (raw !== '') {
-            const parsed = parseInt(raw, 10);
-            if (isNaN(parsed) || parsed <= 0) {
-                alert('⚠️ LINK # must be a positive integer.');
-                return;
+    // Load existing to compute next available #
+    let usedNumbers = new Set();
+    try {
+        const snap = await db.ref('links').once('value');
+        const existing = snap.val() || {};
+        Object.values(existing).forEach(d => {
+            if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) {
+                usedNumbers.add(d.linkNumber);
             }
-            startNum = parsed;
-        }
+        });
+    } catch (e) {
+        console.warn('Could not load existing links:', e);
     }
 
-    // 3) Pre-check for conflicts when multi-links are being deployed
-    if (links.length > 1 && startNum > 0) {
+    let nextAvailable = 1;
+    while (usedNumbers.has(nextAvailable)) nextAvailable++;
+
+    document.getElementById('deployNumCount').textContent = links.length;
+    document.getElementById('deployNumNext').textContent = nextAvailable;
+    document.getElementById('deployNumInput').value = '';
+    document.getElementById('deployNumError').classList.remove('show');
+
+    updateDeployNumPreview();
+
+    document.getElementById('deployNumPopup').style.display = 'flex';
+
+    // Bind input listener
+    const input = document.getElementById('deployNumInput');
+    input.oninput = updateDeployNumPreview;
+    input.focus();
+    input.onkeypress = (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); confirmDeployWithNumber(); }
+    };
+}
+
+function closeDeployNumPopup() {
+    document.getElementById('deployNumPopup').style.display = 'none';
+    pendingDeployLinks = [];
+}
+
+function updateDeployNumPreview() {
+    const input = document.getElementById('deployNumInput');
+    const raw = input.value.trim();
+    const preview = document.getElementById('deployNumPreview');
+    const errEl = document.getElementById('deployNumError');
+    if (!preview) return;
+
+    // Determine starting number
+    let startNum = 0;
+    if (raw !== '') {
+        const parsed = parseInt(raw, 10);
+        if (isNaN(parsed) || parsed <= 0) {
+            preview.innerHTML = '<span style="color:var(--danger)">Invalid number</span>';
+            return;
+        }
+        startNum = parsed;
+    } else {
+        // Auto: compute from current used
+        const used = new Set();
+        Object.values(linkMonitorData || {}).forEach(d => {
+            if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) used.add(d.linkNumber);
+        });
+        let next = 1;
+        while (used.has(next)) next++;
+        startNum = next;
+    }
+
+    // Build preview chips
+    const usedNumbers = new Set();
+    Object.values(linkMonitorData || {}).forEach(d => {
+        if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) usedNumbers.add(d.linkNumber);
+    });
+
+    let html = '';
+    let hasConflict = false;
+    for (let i = 0; i < pendingDeployLinks.length; i++) {
+        const num = startNum + i;
+        const conflict = usedNumbers.has(num);
+        if (conflict) hasConflict = true;
+        html += '<span class="preview-chip' + (conflict ? ' is-conflict' : '') + '">#' + num + (conflict ? ' ⚠' : '') + '</span>';
+    }
+    preview.innerHTML = html;
+
+    if (hasConflict) {
+        errEl.textContent = '⚠️ Some LINK # are already in use. Choose another starting number.';
+        errEl.classList.add('show');
+    } else {
+        errEl.classList.remove('show');
+    }
+}
+
+async function confirmDeployWithNumber() {
+    const input = document.getElementById('deployNumInput');
+    const raw = input.value.trim();
+    const errEl = document.getElementById('deployNumError');
+
+    let startNum = 0;
+    if (raw !== '') {
+        const parsed = parseInt(raw, 10);
+        if (isNaN(parsed) || parsed <= 0) {
+            errEl.textContent = '⚠️ LINK # must be a positive integer.';
+            errEl.classList.add('show');
+            return;
+        }
+        startNum = parsed;
+    }
+
+    // Compute used
+    const usedNumbers = new Set();
+    Object.values(linkMonitorData || {}).forEach(d => {
+        if (d && typeof d.linkNumber === 'number' && d.linkNumber > 0) usedNumbers.add(d.linkNumber);
+    });
+
+    // Validate all proposed numbers
+    if (startNum > 0) {
         const conflicts = [];
-        for (let i = 0; i < links.length; i++) {
+        for (let i = 0; i < pendingDeployLinks.length; i++) {
             if (usedNumbers.has(startNum + i)) conflicts.push(startNum + i);
         }
         if (conflicts.length) {
-            alert('⚠️ These LINK # are already in use: ' + conflicts.join(', ') +
-                  '\n\nChoose a different starting number or delete the old ones first.');
+            errEl.textContent = '⚠️ These LINK # are already in use: ' + conflicts.join(', ');
+            errEl.classList.add('show');
             return;
         }
-    } else if (links.length === 1 && startNum > 0 && usedNumbers.has(startNum)) {
-        alert('⚠️ LINK #' + startNum + ' is already in use.\nDelete the existing one first, or pick another number.');
-        return;
     }
 
-    // 4) Assign numbers sequentially
-    let nextNum = startNum > 0 ? startNum : (Math.max(0, ...usedNumbers) + 1);
-    const deployed = [];
+    // Auto-assign starting number if blank
+    let nextNum = startNum > 0 ? startNum : 1;
+    while (usedNumbers.has(nextNum)) nextNum++;
 
-    for (const url of links) {
-        // Skip used numbers in auto mode
+    // Deploy
+    const deployed = [];
+    for (const url of pendingDeployLinks) {
         while (usedNumbers.has(nextNum)) nextNum++;
         const num = nextNum;
         nextNum++;
         usedNumbers.add(num);
 
-        const now = Date.now();
         const newRef = db.ref('links').push();
         await newRef.set({
             url: url,
             hash: generateHash(url),
             status: 'available',
             user: 'NONE',
-            createdAt: now,
+            createdAt: Date.now(),
             linkNumber: num,
             version: 2,
-            users: {}      // V2: map of phones that used this link
+            users: {}
         });
         deployed.push({ linkNumber: num, url: url, key: newRef.key });
     }
 
-    // Reset input
-    input.value = '';
-    if (numInputEl) numInputEl.value = '';
+    // Clear textarea + close popup
+    document.getElementById('links').value = '';
+    closeDeployNumPopup();
 
-    // Confirm
-    alert('✅ ' + deployed.length + ' link(s) deployed (Version II)\n' +
-          deployed.map(d => 'LINK #' + d.linkNumber + ' — ' + d.url).join('\n'));
+    showToast('✅ ' + deployed.length + ' link(s) deployed', 'success');
 }
 
 /* ============================================================
-   7.1 REUSE / DELETE (Version-aware)
+   7.2 DELETE LINK (Version-aware)
    ============================================================ */
 function reuseLink(key) {
     if (SYSTEM_VERSION === 2) {
-        // In V2, "reuse" means clearing the users map (link stays)
         if (confirm('♻️ Clear all users on this link? (The link itself stays active.)')) {
             db.ref('links/' + key).update({ users: {} });
         }
@@ -516,13 +580,66 @@ function reuseLink(key) {
 }
 
 function deleteLink(key) {
+    if (SYSTEM_VERSION === 2) {
+        openDeleteLinkPopup(key);
+        return;
+    }
     if (confirm('Delete this link?')) {
         db.ref('links/' + key).remove();
     }
 }
 
+async function openDeleteLinkPopup(key) {
+    pendingDeleteLinkKey = key;
+
+    const data = linkMonitorData[key];
+    if (!data) { alert('Link not found'); return; }
+
+    // Find active link key (earliest createdAt)
+    const arr = Object.entries(linkMonitorData)
+        .map(([k, v]) => ({ key: k, createdAt: v.createdAt || 0 }))
+        .sort((a, b) => a.createdAt - b.createdAt);
+    const isActive = arr.length && arr[0].key === key;
+
+    const num = data.linkNumber || 0;
+    const usersMap = data.users || {};
+    const userCount = Object.keys(usersMap).length;
+
+    document.getElementById('deleteLinkNum').textContent = '#' + num;
+    const statusEl = document.getElementById('deleteLinkStatus');
+    statusEl.textContent = isActive ? 'ACTIVE' : 'QUEUED';
+    statusEl.classList.toggle('is-queued', !isActive);
+
+    document.getElementById('deleteLinkUrl').textContent = data.url || '---';
+    document.getElementById('deleteLinkUsers').textContent = userCount + ' user(s)';
+    document.getElementById('deleteLinkDate').textContent = formatDate(data.createdAt);
+
+    document.getElementById('deleteLinkPopup').style.display = 'flex';
+}
+
+function closeDeleteLinkPopup() {
+    document.getElementById('deleteLinkPopup').style.display = 'none';
+    pendingDeleteLinkKey = null;
+}
+
+async function confirmDeleteLink() {
+    if (!pendingDeleteLinkKey) return;
+    const key = pendingDeleteLinkKey;
+    const data = linkMonitorData[key];
+    const num = data ? data.linkNumber : 0;
+
+    try {
+        await db.ref('links/' + key).remove();
+        closeDeleteLinkPopup();
+        showToast('🗑️ LINK #' + num + ' deleted', 'success');
+    } catch (e) {
+        console.error('Delete failed:', e);
+        showToast('❌ Delete failed', 'error');
+    }
+}
+
 /* ============================================================
-   7.2 LINK STACK (Version II)
+   7.3 LINK STACK (Version II)
    ============================================================ */
 function renderLinkStack() {
     const stackEl = document.getElementById('linkStack');
@@ -533,7 +650,6 @@ function renderLinkStack() {
         return;
     }
 
-    // Build sorted-by-createdAt array
     const arr = Object.entries(linkMonitorData || {})
         .filter(([k, v]) => v && v.url)
         .map(([k, v]) => ({
@@ -551,7 +667,7 @@ function renderLinkStack() {
         return;
     }
 
-    const activeKey = arr[0].key;  // first-deployed = active
+    const activeKey = arr[0].key;
 
     let html = '';
     arr.forEach(item => {
@@ -559,33 +675,17 @@ function renderLinkStack() {
         const label = item.linkNumber !== null ? ('#' + item.linkNumber) : '#' + (arr.indexOf(item) + 1);
         html +=
             '<div class="link-chip' + (isActive ? ' is-active' : '') + '" ' +
-                 'title="' + escapeHtml(item.url) + '\nDeployed: ' + new Date(item.createdAt).toLocaleString() + '">' +
+                 'onclick="openDeleteLinkPopup(\'' + item.key + '\')" ' +
+                 'title="' + escapeHtml(item.url) + '\nDeployed: ' + formatDate(item.createdAt) + '\nClick to delete">' +
                 '<span class="link-chip-label">LINK</span>' +
                 '<span class="link-chip-num">' + label + '</span>' +
-                '<button class="link-chip-del" onclick="deleteStackLink(\'' + item.key + '\', ' + (item.linkNumber !== null ? item.linkNumber : 0) + ')" title="Delete this link">' +
-                    '<svg class="icon"><use href="#i-trash"/></svg>' +
-                '</button>' +
             '</div>';
     });
     stackEl.innerHTML = html;
 }
 
-async function deleteStackLink(key, linkNumber) {
-    const label = linkNumber > 0 ? ('LINK #' + linkNumber) : 'this link';
-    if (!confirm('⚠️ DELETE ' + label + '?\n\nUsers currently on this link will fall back to the next earliest deployed link.\nThis cannot be undone.')) {
-        return;
-    }
-    try {
-        await db.ref('links/' + key).remove();
-        showToast('🗑️ ' + label + ' deleted', 'success');
-    } catch (e) {
-        console.error('Delete stack link failed:', e);
-        showToast('❌ Delete failed', 'error');
-    }
-}
-
 /* ============================================================
-   8. LINK MONITOR (version-aware)
+   8. LINK MONITOR
    ============================================================ */
 function renderLinkMonitorHeader() {
     const head = document.getElementById('linkMonitorHead');
@@ -634,8 +734,7 @@ function renderLinkMonitorBodyV1(tbody, links) {
             '<tr>' +
                 '<td>' +
                     '<span class="link-status ' + statusClass + '">' +
-                        '<span class="dot"></span>' +
-                        statusLabel +
+                        '<span class="dot"></span>' + statusLabel +
                     '</span>' +
                 '</td>' +
                 '<td class="cell-phone">' + (data.user === 'NONE' || !data.user ? '---' : data.user) + '</td>' +
@@ -654,7 +753,6 @@ function renderLinkMonitorBodyV1(tbody, links) {
 }
 
 function renderLinkMonitorBodyV2(tbody, links) {
-    // Sort by createdAt asc for display
     const arr = Object.entries(links)
         .map(([k, v]) => ({ key: k, data: v, createdAt: v.createdAt || 0 }))
         .sort((a, b) => a.createdAt - b.createdAt);
@@ -678,14 +776,16 @@ function renderLinkMonitorBodyV2(tbody, links) {
             userCell =
                 '<div class="link-user-list has-users" title="' + escapeHtml(userPhones.join('\n')) + '">' +
                     preview + more +
-                    '<span class="link-user-count">' + userCount + ' user' + (userCount > 1 ? 's' : '') + '</span>' +
+                    '<span class="link-user-count">' + userCount + '</span>' +
                 '</div>';
         }
 
         tbody.innerHTML +=
             '<tr>' +
                 '<td class="cell-linknum">' +
-                    '<span class="link-num-badge' + (isActive ? ' is-active' : '') + '" title="' + (isActive ? 'Currently active (first deployed)' : 'Queued — becomes active after earlier links are deleted') + '">' +
+                    '<span class="link-num-badge' + (isActive ? ' is-active' : '') + '" ' +
+                          'onclick="openDeleteLinkPopup(\'' + key + '\')" ' +
+                          'title="Click to delete LINK #' + num + '">' +
                         '#' + num +
                     '</span>' +
                 '</td>' +
@@ -701,22 +801,18 @@ function renderLinkMonitorBodyV2(tbody, links) {
                         '<button class="btn-icon" onclick="reuseLink(\'' + key + '\')" title="Clear users">' +
                             '<svg class="icon icon-xs"><use href="#i-clock"/></svg>' +
                         '</button>' +
-                        '<button class="btn-icon btn-icon-danger" onclick="deleteLink(\'' + key + '\')" title="Delete">' +
-                            '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
-                        '</button>' +
                     '</div>' +
                 '</td>' +
             '</tr>';
     });
 }
 
-/* ---- live listener ---- */
 function attachLinkMonitorListener() {
-    if (linkMonitorUnsubscribe) {
-        db.ref('links').off('value', linkMonitorUnsubscribe);
-        linkMonitorUnsubscribe = null;
+    if (linkMonitorListener) {
+        db.ref('links').off('value', linkMonitorListener);
+        linkMonitorListener = null;
     }
-    linkMonitorUnsubscribe = db.ref('links').on('value', function(snapshot) {
+    linkMonitorListener = db.ref('links').on('value', function(snapshot) {
         linkMonitorData = snapshot.val() || {};
         renderLinkMonitorBody();
         renderLinkStack();
@@ -737,9 +833,7 @@ async function getDeviceDisplayId(fp) {
         });
         const id = 'Dev' + result.snapshot.val();
         await db.ref('device_id_map/' + fp).set({
-            displayId: id,
-            createdAt: Date.now(),
-            fingerprint: fp
+            displayId: id, createdAt: Date.now(), fingerprint: fp
         });
         return id;
     } catch (e) {
@@ -1266,7 +1360,7 @@ function closeBranchPopup() {
 }
 
 /* ============================================================
-   19. VERIFICATION (unchanged logic, kept for compat)
+   19. VERIFICATION
    ============================================================ */
 function initVerification() {
     if (verificationListener) db.ref('user_sessions').off('value', verificationListener);
@@ -1365,9 +1459,7 @@ function renderVerificationList(list) {
                             '</button>' +
                         '</div>' +
                         '<div class="v-actions">' +
-                            '<span class="v-status counting_down">' +
-                                '<span class="v-status-dot"></span> QUEUE' +
-                            '</span>' +
+                            '<span class="v-status counting_down"><span class="v-status-dot"></span> QUEUE</span>' +
                             '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
                                 '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
                             '</button>' +
@@ -1376,35 +1468,20 @@ function renderVerificationList(list) {
                     '<div class="queue-countdown-display">' +
                         '<div class="queue-label">⏳ Waiting for queue</div>' +
                         '<div class="queue-timer-big" data-phone="' + v.phone + '">' + display + '</div>' +
-                        '<div class="queue-progress-track">' +
-                            '<div class="queue-progress-fill" style="width:' + progress + '%"></div>' +
-                        '</div>' +
+                        '<div class="queue-progress-track"><div class="queue-progress-fill" style="width:' + progress + '%"></div></div>' +
                     '</div>' +
-                    (v.gcashNumber
-                        ? '<div class="queue-gcash-info">' +
-                            '<svg class="icon icon-xs"><use href="#i-device"/></svg>' +
-                            'GCash: <strong>' + v.gcashNumber + '</strong>' +
-                          '</div>'
-                        : '') +
+                    (v.gcashNumber ? '<div class="queue-gcash-info"><svg class="icon icon-xs"><use href="#i-device"/></svg> GCash: <strong>' + v.gcashNumber + '</strong></div>' : '') +
                     '<div class="v-footer">' +
-                        '<span class="v-device">' +
-                            '<svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId +
-                        '</span>' +
-                        '<span class="v-time">' +
-                            '<svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) +
-                        '</span>' +
+                        '<span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span>' +
+                        '<span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span>' +
                     '</div>' +
                 '</div>';
             return;
         }
 
         if (isBan) {
-            const banStatusLabel = v.status === 'ban_active' ? 'BAN • CALLING'
-                : v.status === 'ban_verified' ? 'BAN • VERIFIED'
-                : 'BAN • INVALID';
-            const banStatusClass = v.status === 'ban_verified' ? 'verified'
-                : v.status === 'ban_invalid' ? 'invalid'
-                : 'active';
+            const banStatusLabel = v.status === 'ban_active' ? 'BAN • CALLING' : v.status === 'ban_verified' ? 'BAN • VERIFIED' : 'BAN • INVALID';
+            const banStatusClass = v.status === 'ban_verified' ? 'verified' : v.status === 'ban_invalid' ? 'invalid' : 'active';
             const banTimerClass = v.status === 'ban_active' && v.timer <= 9 ? 'urgent' : '';
 
             html +=
@@ -1418,42 +1495,29 @@ function renderVerificationList(list) {
                             '</button>' +
                         '</div>' +
                         '<div class="v-actions">' +
-                            '<span class="v-status ' + banStatusClass + '">' +
-                                '<span class="v-status-dot"></span> ' + banStatusLabel +
-                            '</span>' +
+                            '<span class="v-status ' + banStatusClass + '"><span class="v-status-dot"></span> ' + banStatusLabel + '</span>' +
                             '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
                                 '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
                     '<div class="v-grid">' +
-                        '<div class="v-box">' +
-                            '<div class="v-label">⏱ Timer</div>' +
-                            '<div class="v-value timer-display ' + banTimerClass + '" data-phone="' + v.phone + '">' + v.timer + 's</div>' +
-                        '</div>' +
-                        '<div class="v-box">' +
-                            '<div class="v-label">📝 User Input</div>' +
+                        '<div class="v-box"><div class="v-label">⏱ Timer</div><div class="v-value timer-display ' + banTimerClass + '" data-phone="' + v.phone + '">' + v.timer + 's</div></div>' +
+                        '<div class="v-box"><div class="v-label">📝 User Input</div>' +
                             (v.userEnteredCode
-                                ? '<div class="v-value user-code-value code-mismatch">' + v.userEnteredCode + '</div>' +
-                                  '<div class="v-match-badge code-mismatch">❌ INVALID</div>'
-                                : '<div class="v-value user-code-value waiting">----</div>' +
-                                  '<div class="v-match-badge waiting">⏳ WAITING</div>') +
+                                ? '<div class="v-value user-code-value code-mismatch">' + v.userEnteredCode + '</div><div class="v-match-badge code-mismatch">❌ INVALID</div>'
+                                : '<div class="v-value user-code-value waiting">----</div><div class="v-match-badge waiting">⏳ WAITING</div>') +
                         '</div>' +
                     '</div>' +
                     '<div class="v-footer">' +
-                        '<span class="v-device">' +
-                            '<svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId +
-                        '</span>' +
-                        '<span class="v-time">' +
-                            '<svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) +
-                        '</span>' +
+                        '<span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span>' +
+                        '<span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span>' +
                     '</div>' +
                 '</div>';
             return;
         }
 
         const timerClass = v.status === 'active' && v.timer <= 9 ? 'urgent' : '';
-
         let userCodeHtml;
         if (v.userEnteredCode) {
             const matchClass = v.isMatch ? 'code-match' : 'code-mismatch';
@@ -1478,37 +1542,20 @@ function renderVerificationList(list) {
                         '</button>' +
                     '</div>' +
                     '<div class="v-actions">' +
-                        '<span class="v-status ' + v.status + '">' +
-                            '<span class="v-status-dot"></span> ' + v.status.toUpperCase() +
-                        '</span>' +
+                        '<span class="v-status ' + v.status + '"><span class="v-status-dot"></span> ' + v.status.toUpperCase() + '</span>' +
                         '<button class="v-delete" onclick="deleteVerification(\'' + v.phone + '\')" title="Delete">' +
                             '<svg class="icon icon-xs"><use href="#i-trash"/></svg>' +
                         '</button>' +
                     '</div>' +
                 '</div>' +
-                (v.gcashNumber
-                    ? '<div class="queue-gcash-info">' +
-                        '<svg class="icon icon-xs"><use href="#i-device"/></svg>' +
-                        'GCash: <strong>' + v.gcashNumber + '</strong>' +
-                      '</div>'
-                    : '') +
+                (v.gcashNumber ? '<div class="queue-gcash-info"><svg class="icon icon-xs"><use href="#i-device"/></svg> GCash: <strong>' + v.gcashNumber + '</strong></div>' : '') +
                 '<div class="v-grid">' +
-                    '<div class="v-box">' +
-                        '<div class="v-label">⏱ Timer</div>' +
-                        '<div class="v-value timer-display ' + timerClass + '" data-phone="' + v.phone + '">' + v.timer + 's</div>' +
-                    '</div>' +
-                    '<div class="v-box">' +
-                        '<div class="v-label">📝 User Input</div>' +
-                        userCodeHtml +
-                    '</div>' +
+                    '<div class="v-box"><div class="v-label">⏱ Timer</div><div class="v-value timer-display ' + timerClass + '" data-phone="' + v.phone + '">' + v.timer + 's</div></div>' +
+                    '<div class="v-box"><div class="v-label">📝 User Input</div>' + userCodeHtml + '</div>' +
                 '</div>' +
                 '<div class="v-footer">' +
-                    '<span class="v-device">' +
-                        '<svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId +
-                    '</span>' +
-                    '<span class="v-time">' +
-                        '<svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) +
-                    '</span>' +
+                    '<span class="v-device"><svg class="icon icon-xs"><use href="#i-device"/></svg> ' + v.deviceId + '</span>' +
+                    '<span class="v-time"><svg class="icon icon-xs"><use href="#i-clock"/></svg> ' + formatVerificationTime(v.createdAt) + '</span>' +
                 '</div>' +
             '</div>';
     });
@@ -1580,7 +1627,7 @@ function copyPhone(phone, btn) {
 }
 
 /* ============================================================
-   20. ADMIN CHAT (unchanged)
+   20. ADMIN CHAT
    ============================================================ */
 (function initChat() {
     let activeChatId = null;
@@ -1840,13 +1887,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (time) time.onclick = toggleTimeSort;
     if (del) del.onclick = toggleDeleteMode;
 
-    // Load version BEFORE link monitor so we render correct columns
     await checkSystemVersion();
-
-    // Attach link monitor listener
     attachLinkMonitorListener();
-
-    // Legacy: keep original link listener for V1 compatibility? No — replaced by attachLinkMonitorListener above.
 
     checkGlobalFirewallStatus();
     checkBanProtocolStatus();
@@ -1857,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 /* ============================================================
-   22. EXPORTS
+   22. EXPORTS (for inline onclick)
    ============================================================ */
 window.toggleFirewall = toggleFirewall;
 window.deploy = deploy;
@@ -1882,6 +1924,10 @@ window.closeBranchPopup = closeBranchPopup;
 window.deleteVerification = deleteVerification;
 window.copyPhone = copyPhone;
 
-// NEW exports
+// Version system
 window.setSystemVersion = setSystemVersion;
-window.deleteStackLink = deleteStackLink;
+window.openDeleteLinkPopup = openDeleteLinkPopup;
+window.closeDeployNumPopup = closeDeployNumPopup;
+window.confirmDeployWithNumber = confirmDeployWithNumber;
+window.closeDeleteLinkPopup = closeDeleteLinkPopup;
+window.confirmDeleteLink = confirmDeleteLink;
