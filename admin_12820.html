@@ -153,7 +153,7 @@
         </div>
         <div class="card-body">
 
-            <!-- VERSION SELECTOR (NO POPUP ON SWITCH) -->
+            <!-- VERSION SELECTOR -->
             <div class="form-group">
                 <label class="form-label">
                     <svg class="icon icon-xs"><use href="#i-target"/></svg>
@@ -238,6 +238,12 @@
         </div>
     </section>
 
+    <!-- ============================================================
+         LINK MONITOR
+         V1: STATUS | USER | ACTIONS
+         V2: LINK# | USER | ACTION  (per-user access time inside USER cell)
+         Headers auto-rendered by renderLinkMonitorHeader() in JS
+         ============================================================ -->
     <section class="card">
         <div class="card-header">
             <h3>
@@ -247,7 +253,7 @@
         </div>
         <div class="card-body">
             <div class="table-wrap">
-                <table>
+                <table id="linkMonitorTable">
                     <thead>
                         <tr id="linkMonitorHead"></tr>
                     </thead>
@@ -366,7 +372,7 @@
 
     <footer class="admin-footer">
         <svg class="icon icon-xs"><use href="#i-shield"/></svg>
-        C.I.A. ADMIN v4.1 — Version I & II
+        C.I.A. ADMIN v4.3 — Version I & II
     </footer>
 
 </div>
@@ -427,7 +433,7 @@
     </div>
 </div>
 
-<!-- ========== DEPLOY LINK # POPUP (Version II only) ========== -->
+<!-- DEPLOY LINK # POPUP -->
 <div id="deployNumPopup" class="modal" style="display:none;">
     <div class="modal-card modal-md">
         <div class="modal-header">
@@ -473,7 +479,6 @@
             </div>
 
             <div class="deploy-num-preview" id="deployNumPreview"></div>
-
             <div class="deploy-num-error" id="deployNumError"></div>
         </div>
 
@@ -490,7 +495,7 @@
     </div>
 </div>
 
-<!-- ========== DELETE LINK POPUP (Version II only) ========== -->
+<!-- DELETE LINK POPUP -->
 <div id="deleteLinkPopup" class="modal" style="display:none;">
     <div class="modal-card modal-md">
         <div class="modal-header">
