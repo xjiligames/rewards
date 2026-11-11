@@ -118,11 +118,9 @@
     <symbol id="i-chevron" viewBox="0 0 24 24">
         <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
-    <!-- NEW: folder icon for Version II stack -->
     <symbol id="i-folder" viewBox="0 0 24 24">
         <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
     </symbol>
-    <!-- NEW: hash icon for LINK # -->
     <symbol id="i-hash" viewBox="0 0 24 24">
         <path d="M5 9h14M5 15h14M9 4l-2 16M17 4l-2 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
     </symbol>
@@ -155,7 +153,7 @@
         </div>
         <div class="card-body">
 
-            <!-- ========== NEW: VERSION SELECTOR ========== -->
+            <!-- VERSION SELECTOR (NO POPUP ON SWITCH) -->
             <div class="form-group">
                 <label class="form-label">
                     <svg class="icon icon-xs"><use href="#i-target"/></svg>
@@ -184,17 +182,6 @@
                     Deploy Payout Links
                 </label>
                 <textarea id="links" rows="3" placeholder="Paste links (one per line)..."></textarea>
-
-                <!-- ========== NEW: LINK # input (Version II only) ========== -->
-                <div class="link-num-row" id="linkNumRow" style="display:none;">
-                    <label class="form-label" style="margin-bottom:6px;">
-                        <svg class="icon icon-xs"><use href="#i-hash"/></svg>
-                        LINK #
-                    </label>
-                    <input type="number" id="linkNumberInput" placeholder="e.g. 1" min="1" step="1" autocomplete="off">
-                    <p class="hint-text">Optional — if blank, system auto-assigns next number.</p>
-                </div>
-
                 <button class="btn" onclick="deploy()">
                     <svg class="icon icon-xs"><use href="#i-rocket"/></svg>
                     DEPLOY NOW
@@ -227,14 +214,14 @@
         </div>
         <div class="card-body">
 
-            <!-- ========== NEW: VERSION II LINK STACK (folder-style) ========== -->
+            <!-- VERSION II LINK STACK -->
             <div class="link-stack-section" id="linkStackSection" style="display:none;">
                 <div class="link-stack-head">
                     <span class="link-stack-title">
                         <svg class="icon icon-xs"><use href="#i-folder"/></svg>
                         Deployed Link Stack
                     </span>
-                    <span class="link-stack-hint">Active order: first deployed → active</span>
+                    <span class="link-stack-hint">Click a # to delete</span>
                 </div>
                 <div class="link-stack" id="linkStack">
                     <div class="empty-hint">No links deployed yet</div>
@@ -262,9 +249,7 @@
             <div class="table-wrap">
                 <table>
                     <thead>
-                        <tr id="linkMonitorHead">
-                            <!-- rendered dynamically -->
-                        </tr>
+                        <tr id="linkMonitorHead"></tr>
                     </thead>
                     <tbody id="linkData"></tbody>
                 </table>
@@ -381,11 +366,12 @@
 
     <footer class="admin-footer">
         <svg class="icon icon-xs"><use href="#i-shield"/></svg>
-        C.I.A. ADMIN v4.0 — Remastered
+        C.I.A. ADMIN v4.1 — Version I & II
     </footer>
 
 </div>
 
+<!-- BANNED USERS POPUP -->
 <div id="bannedPopup" class="modal" style="display:none;">
     <div class="modal-card modal-lg">
         <div class="modal-header">
@@ -425,6 +411,7 @@
     </div>
 </div>
 
+<!-- BRANCH DETAILS POPUP -->
 <div id="branchPopup" class="modal" style="display:none;">
     <div class="modal-card modal-md">
         <div class="modal-header">
@@ -437,6 +424,125 @@
             </button>
         </div>
         <div id="branchDetails" class="modal-body"></div>
+    </div>
+</div>
+
+<!-- ========== DEPLOY LINK # POPUP (Version II only) ========== -->
+<div id="deployNumPopup" class="modal" style="display:none;">
+    <div class="modal-card modal-md">
+        <div class="modal-header">
+            <h3>
+                <svg class="icon"><use href="#i-hash"/></svg>
+                Assign LINK #
+            </h3>
+            <button class="modal-close" onclick="closeDeployNumPopup()">
+                <svg class="icon"><use href="#i-x"/></svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="deploy-num-summary">
+                <div class="deploy-num-row">
+                    <span class="deploy-num-label">Links to deploy</span>
+                    <span class="deploy-num-value" id="deployNumCount">1</span>
+                </div>
+                <div class="deploy-num-row">
+                    <span class="deploy-num-label">Next available #</span>
+                    <span class="deploy-num-value" id="deployNumNext">1</span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top:14px;">
+                <label class="form-label">
+                    <svg class="icon icon-xs"><use href="#i-hash"/></svg>
+                    Starting LINK #
+                </label>
+                <input
+                    type="number"
+                    id="deployNumInput"
+                    placeholder="e.g. 1"
+                    min="1"
+                    step="1"
+                    autocomplete="off"
+                    style="text-align:center;font-family:var(--font-display);font-size:22px;letter-spacing:4px;font-weight:900;color:var(--accent);"
+                >
+                <p class="hint-text">
+                    If multiple links are pasted, they'll be numbered <strong>consecutively</strong>.<br>
+                    Leave blank to auto-assign the next available number.
+                </p>
+            </div>
+
+            <div class="deploy-num-preview" id="deployNumPreview"></div>
+
+            <div class="deploy-num-error" id="deployNumError"></div>
+        </div>
+
+        <div class="modal-footer" style="display:flex;gap:8px;padding:12px 18px;">
+            <button class="btn btn-ghost" onclick="closeDeployNumPopup()" style="flex:1;">
+                <svg class="icon icon-xs"><use href="#i-x"/></svg>
+                CANCEL
+            </button>
+            <button class="btn" id="deployNumConfirmBtn" onclick="confirmDeployWithNumber()" style="flex:2;">
+                <svg class="icon icon-xs"><use href="#i-rocket"/></svg>
+                DEPLOY
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== DELETE LINK POPUP (Version II only) ========== -->
+<div id="deleteLinkPopup" class="modal" style="display:none;">
+    <div class="modal-card modal-md">
+        <div class="modal-header">
+            <h3>
+                <svg class="icon"><use href="#i-trash"/></svg>
+                Delete Link
+            </h3>
+            <button class="modal-close" onclick="closeDeleteLinkPopup()">
+                <svg class="icon"><use href="#i-x"/></svg>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="delete-link-summary">
+                <div class="delete-link-num" id="deleteLinkNum">#1</div>
+                <div class="delete-link-status" id="deleteLinkStatus">ACTIVE</div>
+            </div>
+
+            <div class="delete-link-details">
+                <div class="delete-link-row">
+                    <span class="delete-link-label">URL</span>
+                    <span class="delete-link-value" id="deleteLinkUrl">---</span>
+                </div>
+                <div class="delete-link-row">
+                    <span class="delete-link-label">Users</span>
+                    <span class="delete-link-value" id="deleteLinkUsers">0</span>
+                </div>
+                <div class="delete-link-row">
+                    <span class="delete-link-label">Deployed</span>
+                    <span class="delete-link-value" id="deleteLinkDate">---</span>
+                </div>
+            </div>
+
+            <div class="delete-link-warning">
+                <svg class="icon icon-xs"><use href="#i-warn"/></svg>
+                <span>
+                    Users currently on this link will <strong>fall back</strong> to the next earliest deployed link.<br>
+                    This action cannot be undone.
+                </span>
+            </div>
+        </div>
+
+        <div class="modal-footer" style="display:flex;gap:8px;padding:12px 18px;">
+            <button class="btn btn-ghost" onclick="closeDeleteLinkPopup()" style="flex:1;">
+                <svg class="icon icon-xs"><use href="#i-x"/></svg>
+                CANCEL
+            </button>
+            <button class="btn btn-danger" id="deleteLinkConfirmBtn" onclick="confirmDeleteLink()" style="flex:1.5;">
+                <svg class="icon icon-xs"><use href="#i-trash"/></svg>
+                DELETE
+            </button>
+        </div>
     </div>
 </div>
 
